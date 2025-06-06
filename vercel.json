@@ -1,0 +1,19 @@
+{
+  "rewrites": [
+    { "source": "/get-latest-response", "destination": "/api/get-latest-response.js" },
+    { "source": "/get-ai-summary", "destination": "/api/get-ai-summary.js" },
+    { "source": "/test-firestore", "destination": "/api/test-firestore.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/get-ai-summary.js": {
+      "maxDuration": 30
+    },
+    "api/get-latest-response.js": {
+      "maxDuration": 30
+    },
+    "api/test-firestore.js": {
+      "maxDuration": 30
+    }
+  }
+}
