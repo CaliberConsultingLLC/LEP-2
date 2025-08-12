@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, LinearProgress, Alert, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem } from '@mui/material';
 import { Person, Star, Warning, Lightbulb, ExpandMore } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function Summary() {
+  const { state } = useLocation();
+  const formData = state?.formData || {};
   const [summaryData, setSummaryData] = useState(null);
   const [aiSummary, setAiSummary] = useState(null);
   const [error, setError] = useState(null);
@@ -50,36 +52,46 @@ function Summary() {
   useEffect(() => {
     const fetchSummary = async () => {
       setIsLoading(true);
+      console.log('Starting fetchSummary...');
       try {
+        console.log('Fetching latest response from /get-latest-response');
         const response = await fetch('/get-latest-response', { headers: { 'Accept': 'application/json' } });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        console.log('Fetched summary data:', data);
+        let data;
+        if (!response.ok) {
+          console.error('Failed to fetch latest response:', response.status, response.statusText);
+          console.log('Falling back to formData from route state:', formData);
+          data = formData; // Use formData as fallback
+        } else {
+          data = await response.json();
+          console.log('Fetched summary data:', data);
+        }
         setSummaryData(data);
-
+    
         const validAgents = ["bluntPracticalFriend", "formalEmpatheticCoach", "balancedMentor"];
         const selectedAgent = validAgents.includes(data.selectedAgent) ? data.selectedAgent : "balancedMentor";
         const requestBody = { ...data, selectedAgent };
-        console.log('Initial summary request body:', requestBody);
-
+        console.log('Sending request to /get-ai-summary with body:', requestBody);
+    
         const summaryResponse = await fetch('/get-ai-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify(requestBody),
         });
-
+    
         if (!summaryResponse.ok) {
           const errorData = await summaryResponse.json();
+          console.error('Failed to fetch AI summary:', summaryResponse.status, errorData);
           throw new Error(`HTTP error! status: ${summaryResponse.status}, details: ${JSON.stringify(errorData)}`);
         }
-
+    
         const summaryData = await summaryResponse.json();
+        console.log('AI summary response:', summaryData);
         if (summaryData.error) {
           console.error('AI summary error:', summaryData.error);
           setError(summaryData.error);
           setAiSummary(null);
         } else if (summaryData.aiSummary) {
-          console.log('Fetched AI summary:', summaryData.aiSummary);
+          console.log('Successfully fetched AI summary:', summaryData.aiSummary);
           setAiSummary(summaryData.aiSummary);
           localStorage.setItem('aiSummary', summaryData.aiSummary);
           setError(null);
@@ -89,10 +101,11 @@ function Summary() {
           setAiSummary(null);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error in fetchSummary:', error.message, error.stack);
         setError('Failed to connect to server or invalid response: ' + error.message);
         setAiSummary(null);
       } finally {
+        console.log('Fetch summary complete, isLoading set to false');
         setIsLoading(false);
       }
     };

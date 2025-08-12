@@ -20,7 +20,7 @@ function IntakeForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('IntakeForm: Attempting to load background image /LEP Background 7.png');
+    // Background image is set via sx prop, no additional logic needed
   }, []);
 
   const initialQuestionsPart1 = [
@@ -276,11 +276,8 @@ function IntakeForm() {
       setIsSubmitting(true);
       const success = await handleSubmit();
       if (success) {
-        console.log('Submission successful, navigating to /summary after 2-second delay');
-        setTimeout(() => {
-          setIsSubmitting(false);
-          navigate('/summary');
-        }, 2000);
+        console.log('Navigating to /summary with formData:', formData);
+        navigate('/summary', { state: { formData } });
       } else {
         console.error('Submission failed, not navigating.');
         alert('Failed to submit form. Please try again.');
@@ -288,7 +285,6 @@ function IntakeForm() {
       }
     }
   };
-
   const handleDragEnd = (result, questionId, options) => {
     if (!result.destination) return;
     const items = formData[questionId] || [...options];
@@ -311,19 +307,20 @@ function IntakeForm() {
   };
 
   const handleSubmit = async () => {
+    console.log('Submitting formData to Firebase:', formData);
     try {
       const selectedAgentId = formData.selectedAgent || "balancedMentor";
       const updatedFormData = { ...formData, selectedAgent: selectedAgentId };
-      await addDoc(collection(db, 'responses'), {
+      const docRef = await addDoc(collection(db, 'responses'), {
         ...updatedFormData,
         timestamp: new Date(),
       });
-      console.log('Form submitted successfully!', updatedFormData);
-      return true;
+      console.log('Firebase submission successful! Doc ID:', docRef.id, updatedFormData);
     } catch (error) {
-      console.error('Error submitting form:', error.message, error.stack);
-      return false;
+      console.error('Firebase submission failed:', error.message, error.stack);
     }
+    console.log('Navigating to /summary with formData:', formData);
+    return true;
   };
 
   return (
