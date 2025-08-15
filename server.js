@@ -7,18 +7,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Firebase Admin SDK with minimal configuration and ADC fallback
+// --- Firebase Admin initialization (works locally and in prod) ---
+let credential;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  // Expecting FIREBASE_SERVICE_ACCOUNT to be a JSON string of the service account
+  credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
+} else {
+  // Falls back to ADC if running in an environment with GOOGLE_APPLICATION_CREDENTIALS set
+  credential = admin.credential.applicationDefault();
+}
+
 admin.initializeApp({
-  projectId: 'leadership-evolution-project',
-  credential: admin.credential.applicationDefault(),
+  credential,
+  projectId: process.env.GCLOUD_PROJECT || 'leadership-evolution-project',
 });
 
 const db = admin.firestore();
 
-// OpenAI configuration
-const openai = new OpenAI({
-  apiKey: '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', // Replace with your OpenAI API key
-});
+// --- OpenAI client (from env) ---
+if (!process.env.OPENAI_API_KEY) {
+  console.warn('OPENAI_API_KEY is not set — OpenAI routes will fail until you add it.');
+}
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function withRetry(fn, maxRetries = 3, delayMs = 1000) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -578,8 +588,7 @@ app.post('/dismiss-statement', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3002;
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log('Server is listening on 127.0.0.1...');
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`LEP-2 API listening on http://localhost:${PORT}`);
 });
