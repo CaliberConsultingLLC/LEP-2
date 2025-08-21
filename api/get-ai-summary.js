@@ -1,106 +1,98 @@
 // api/get-ai-summary.js
 import { OpenAI } from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // ✅ use env var
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export default async (req, res) => {
+// Clip helper – stops at last space or period before the limit
+function clipClean(s, n) {
+  if (!s) return '';
+  if (s.length <= n) return s;
+  const cut = s.slice(0, n);
+  const lastPunct = Math.max(cut.lastIndexOf('.'), cut.lastIndexOf(' '));
+  return cut.slice(0, lastPunct > 0 ? lastPunct + 1 : n).trim();
+}
+
+// Enforce budgets per section
+function enforceBudgets(text, budgets) {
+  const parts = text.split(/\n\s*\n/).map(s => s.trim());
+  while (parts.length < 4) parts.push('');
+  const [p1, p2, p3, p4] = parts.slice(0, 4);
+  const out1 = clipClean(p1, budgets.snapshot);
+  const out2 = clipClean(p2, budgets.strength);
+  const out3 = clipClean(p3, budgets.blindSpots);
+  const out4 = clipClean(p4, budgets.growthSpark);
+  return [out1, out2, out3, out4].join('\n\n');
+}
+
+export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const body = req.body || {};
-  if (!body || Object.keys(body).length === 0) {
-    return res.status(400).json({ error: 'No data received' });
-  }
-
-  const selectedAgent = body.selectedAgent;
-  if (!selectedAgent) {
-    return res.status(400).json({ error: 'Selected agent is required' });
-  }
-
-  // Agent library
-  const agents = {
-    bluntPracticalFriend: {
-      name: 'Blunt Practical Friend',
-      prompt: `
-You are a blunt, practical friend giving straightforward leadership advice. Write casually, as if speaking directly to a friend, using informal language. Deliver direct, critical feedback that points out flaws without softening. Provide only concrete, actionable steps with no visionary or inspirational elements. Focus on immediate actions the user can take today.
-`
-    },
-    formalEmpatheticCoach: {
-      name: 'Formal Empathetic Coach',
-      prompt: `
-You are a formal, empathetic leadership coach delivering polished, professional feedback. Write in a highly formal tone, as if preparing an executive report. Use a gentle, supportive approach, cushioning criticism with understanding and encouragement. Focus on visionary, hypothetical ideas that inspire the user to dream big, with minimal actionable steps.
-`
-    },
-    balancedMentor: {
-      name: 'Balanced Mentor',
-      prompt: `
-You are a balanced mentor providing a mix of professional and approachable leadership advice. Write in a neutral tone, blending formal and informal language. Deliver feedback with a balanced tone, offering constructive criticism with moderate encouragement. Provide a mix of practical steps and inspirational ideas, ensuring a balance between actionability and vision.
-`
-    },
-    comedyRoaster: {
-      name: 'Comedy Roaster',
-      prompt: `
-You are a highly blunt yet insightful comedy roaster giving leadership advice. Write in a humorous, roasting tone, as if playfully mocking the user while still being insightful. Deliver sharp, critical feedback that highlights flaws with wit, but ensure the advice is actionable. Focus on practical steps the user can take, wrapped in a layer of humor to keep it engaging.
-`
-    },
-    pragmaticProblemSolver: {
-      name: 'Pragmatic Problem Solver',
-      prompt: `
-You are a pragmatic problem solver giving leadership advice. Write in a straightforward, no-frills tone, focusing on breaking down challenges into clear steps. Deliver feedback that is highly actionable, with a focus on solving problems efficiently. Avoid inspirational or visionary elements, sticking to practical, immediate solutions.
-`
-    },
-    highSchoolCoach: {
-      name: 'High School Coach',
-      prompt: `
-You are a high school coach giving leadership advice. Write in a conversational, encouraging tone, as if coaching a student athlete, mixing practical advice with simple inspiration. Deliver feedback that motivates the user to grow, offering clear, actionable steps alongside light, uplifting encouragement to keep them engaged.
-`
-    }
-  };
-
-  if (!agents[selectedAgent]) {
-    return res.status(400).json({
-      error: `Invalid agent: ${selectedAgent}. Choose from: ${Object.keys(agents).join(', ')}`
-    });
-  }
-
-  const agent = agents[selectedAgent];
-
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      max_tokens: 300,
+    const body = req.body || {};
+    const { selectedAgent = 'balancedMentor', charLimit } = body;
+
+    // Agent tones
+    const agents = {
+      bluntPracticalFriend: { prompt: `You are a blunt, practical friend. Be direct, concrete, and action-first.` },
+      formalEmpatheticCoach: { prompt: `You are a formal, empathetic coach. Be polished, supportive, and professional.` },
+      balancedMentor: { prompt: `You are a balanced mentor. Mix critique with encouragement and clear steps.` },
+      comedyRoaster: { prompt: `You are a witty roaster. Be humorous but insightful and actionable.` },
+      pragmaticProblemSolver: { prompt: `You are a pragmatic problem solver. No fluff—explain issues and steps simply.` },
+      highSchoolCoach: { prompt: `You are a motivational coach. Encourage while giving simple, practical actions.` }
+    };
+
+    if (!agents[selectedAgent]) {
+      return res.status(400).json({ error: `Invalid agent. Choose one of: ${Object.keys(agents).join(', ')}` });
+    }
+
+    // Larger budgets (default total 1600 instead of 1200)
+    const TOTAL = Math.max(800, Math.min(Number(charLimit) || 1600, 2400));
+    const budgets = {
+      snapshot: Math.round(TOTAL * 0.25),
+      strength: Math.round(TOTAL * 0.20),
+      blindSpots: Math.round(TOTAL * 0.30),
+      growthSpark: Math.round(TOTAL * 0.25)
+    };
+
+    const systemPrompt = `
+${agents[selectedAgent].prompt}
+
+Produce exactly four paragraphs.
+
+FORMAT (no headings, no bullets):
+1) Snapshot (~${budgets.snapshot} chars)
+2) Strength (~${budgets.strength} chars)
+3) Blind Spots (~${budgets.blindSpots} chars)
+4) Growth Spark (~${budgets.growthSpark} chars)
+
+Rules:
+- Write directly to "you".
+- Keep near the character budgets.
+- End each paragraph at a natural stop (sentence or word).
+- Separate paragraphs with one blank line.
+`;
+
+    const userPrompt = `Analyze this leadership intake data and produce the 4 paragraphs:\n${JSON.stringify(body)}`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 600, // allow for longer paragraphs
       messages: [
-        {
-          role: 'system',
-          content: `
-${agent.prompt}
-
-You are a ${selectedAgent} delivering bold, insightful feedback that feels like a revelation to the user. Analyze the user's leadership intake responses to uncover hidden patterns, motivations, and potential in their leadership style. Dig deep into their job title, industry, team size, and answers to draw thought-provoking conclusions, even if it means making bold assumptions.
-
-Write directly to the user (using "you" language), using their job title, industry, and team size to make the feedback feel personal and magical. Use a conversational tone, as if you're speaking naturally to the user, without explicitly labeling strengths, blind spots, or other sections.
-
-The response must be in paragraph form with no headers, titles, bullet points, symbols, or special characters, including bold or underline formatting. Format the output as exactly 4 paragraphs as specified.
-
-Separate each paragraph with a double newline (\\n\\n). Provide only clean descriptive text
-`
-        },
-        {
-          role: 'user',
-          content: `Analyze the following leadership responses: ${JSON.stringify(body)}`
-        }
+        { role: 'system', content: systemPrompt.trim() },
+        { role: 'user', content: userPrompt }
       ]
     });
 
-    res.status(200).json({
-      aiSummary: response.choices[0].message.content.trim()
-    });
-  } catch (error) {
-    console.error('OpenAI API Error:', error.message, error.stack);
-    res.status(500).json({ error: 'AI Analysis Failed', details: error.message });
+    const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
+    const capped = enforceBudgets(raw, budgets);
+
+    return res.status(200).json({ aiSummary: capped, budgets });
+  } catch (err) {
+    console.error('AI Summary error:', err);
+    return res.status(500).json({ error: 'AI Analysis Failed', details: String(err?.message || err) });
   }
-};
+}
