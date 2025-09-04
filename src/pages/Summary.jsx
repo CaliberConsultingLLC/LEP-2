@@ -419,22 +419,23 @@ function Summary() {
                 Return to Home
               </Button>
               <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  console.log('Navigating to campaign-builder with aiSummary:', aiSummary);
-                  if (!aiSummary || aiSummary.trim() === '') {
-                    console.error('aiSummary is missing or empty, redirecting to summary');
-                    navigate('/summary');
-                    return;
-                  }
-                  localStorage.setItem('aiSummary', aiSummary);
-                  navigate('/campaign-builder', { state: { aiSummary } });
-                }}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
-              >
-                I want to dig deeper...
-              </Button>
+  variant="contained"
+  color="primary"
+  onClick={() => {
+    console.log('Navigating to societal-norms assessment with aiSummary:', aiSummary);
+    if (!aiSummary || aiSummary.trim() === '') {
+      console.error('aiSummary is missing or empty, redirecting to summary');
+      navigate('/summary');
+      return;
+    }
+    localStorage.setItem('aiSummary', aiSummary);
+    navigate('/societal-norms', { state: { aiSummary } });
+  }}
+  sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
+>
+  I want to dig deeper...
+</Button>
+
               <Select
                 value={selectedAgent}
                 onChange={handleAgentChange}
