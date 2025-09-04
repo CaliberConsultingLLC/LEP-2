@@ -11,23 +11,25 @@ import NewCampaignIntro from './pages/NewCampaignIntro';
 import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
+import SocietalNormAssessment from './pages/SocietalNormAssessment'
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/form" element={<IntakeForm />} />
-        <Route path="/summary" element={<Summary />} />
-        <Route path="/campaign-intro" element={<CampaignIntro />} />
-        <Route path="/campaign-builder" element={<CampaignBuilder />} />
-        <Route path="/campaign-verify" element={<CampaignVerify />} />
-        <Route path="/campaign/:id" element={<NewCampaignIntro />} />
-        <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
-        <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="*" element={<Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>No match found</Typography>} />
-      </Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/form" element={<IntakeForm />} />
+  <Route path="/summary" element={<Summary />} />
+  <Route path="/societal-norms" element={<SocietalNormAssessment />} />   {/* NEW */}
+  <Route path="/campaign-intro" element={<CampaignIntro />} />
+  <Route path="/campaign-builder" element={<CampaignBuilder />} />
+  <Route path="/campaign-verify" element={<CampaignVerify />} />
+  <Route path="/campaign/:id" element={<NewCampaignIntro />} />
+  <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
+  <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
+  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="*" element={<Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>No match found</Typography>} />
+</Routes>
     </Router>
   );
 }

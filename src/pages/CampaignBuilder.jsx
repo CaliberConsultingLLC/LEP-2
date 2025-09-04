@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Table, TableBody, TableRow, TableCell, Button, Checkbox, Stack } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 function CampaignBuilder() {
   const [campaign, setCampaign] = useState(null);
@@ -29,10 +31,32 @@ function CampaignBuilder() {
     console.log('CampaignBuilder: final aiSummary:', aiSummary);
 
     if (!aiSummary || aiSummary.trim() === '') {
-      console.error('No leadership summary available, redirecting to summary');
-      navigate('/summary');
-      return;
+  console.error('No leadership summary available, redirecting to summary');
+  navigate('/summary');
+  return;
+}
+
+// 🔒 Guard: Ensure Societal Norms assessment is completed
+const sessionId = localStorage.getItem("sessionId");
+if (sessionId) {
+  const checkNorms = async () => {
+    try {
+      const docRef = doc(db, "societalNorms", sessionId);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        console.warn("Societal Norms not completed, redirecting...");
+        navigate("/societal-norms");
+      }
+    } catch (err) {
+      console.error("Error checking norms:", err);
+      navigate("/societal-norms");
     }
+  };
+  checkNorms();
+} else {
+  console.error("Missing sessionId – redirecting to intake form");
+  navigate("/form");
+}
 
     setIsLoading(true);
     fetch('/api/get-campaign', {
