@@ -74,10 +74,11 @@ export default function SocietalNormAssessment() {
         return;
       }
       await setDoc(doc(db, "societalNorms", sessionId), {
-        responses,
-        timestamp: new Date().toISOString()
-      });
-      navigate("/campaign-builder", { state: { norms: responses } });
+  responses,
+  timestamp: new Date().toISOString()
+});
+navigate("/campaign-builder"); // go straight to builder
+
     } catch (e) {
       console.error("Error saving norms:", e);
       setSaving(false);
@@ -86,20 +87,22 @@ export default function SocietalNormAssessment() {
 
   return (
     <Box
-      sx={{
-        p: 5,
-        minHeight: '100vh',
-        width: '100vw',
-        backgroundImage:
-          'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+  sx={{
+    p: 5,
+    minHeight: '100vh',
+    width: '100vw',
+    backgroundImage:
+      'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed', // keep background stationary
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+>
+
       <Container maxWidth="md" sx={{ textAlign: 'center', position: 'relative' }}>
         <Stack spacing={3} sx={{ width: '800px', mx: 'auto' }}>
           <Typography
@@ -130,18 +133,18 @@ export default function SocietalNormAssessment() {
           <Stack spacing={2}>
             {QUESTIONS.map((q, idx) => (
               <Paper
-                key={idx}
-                elevation={4}
-                sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  textAlign: 'left',
-                  overflow: 'hidden' // prevents slider labels from spilling
-                }}
-              >
+  elevation={4}
+  sx={{
+    p: 2.5,
+    borderRadius: 2,
+    background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+    border: '1px solid',
+    borderColor: 'primary.main',
+    textAlign: 'center', // center question text/content
+    overflow: 'hidden'
+  }}
+>
+
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
@@ -156,28 +159,29 @@ export default function SocietalNormAssessment() {
                 </Typography>
 
                 <Slider
-                  value={responses[idx]}
-                  onChange={(_, v) => setValue(idx, v)}
-                  step={1}
-                  min={1}
-                  max={10}
-                  marks={[
-                    { value: 1, label: "Never" },
-                    { value: 10, label: "Always" }
-                  ]}
-                  valueLabelDisplay="on"
-                  sx={{
-                    mx: 1,
-                    '& .MuiSlider-markLabel': {
-                      fontSize: '0.75rem',
-                      whiteSpace: 'nowrap',
-                      transform: 'translateY(4px)'
-                    },
-                    '& .MuiSlider-valueLabel': {
-                      fontSize: '0.75rem'
-                    }
-                  }}
-                />
+  value={responses[idx]}
+  onChange={(_, v) => setValue(idx, v)}
+  step={1}
+  min={1}
+  max={10}
+  marks={[
+    { value: 1, label: "Never" },
+    { value: 10, label: "Always" }
+  ]}
+  valueLabelDisplay="on"
+  sx={{
+    mx: 1,
+    '& .MuiSlider-markLabel': {
+      fontSize: '0.9rem',         // larger labels under slider
+      whiteSpace: 'nowrap',
+      transform: 'translateY(4px)'
+    },
+    '& .MuiSlider-valueLabel': {
+      fontSize: '0.9rem'          // larger value bubble
+    }
+  }}
+/>
+
               </Paper>
             ))}
           </Stack>
