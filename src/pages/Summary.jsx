@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, LinearProgress, Alert, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem } from '@mui/material';
-import { Person, Star, Warning, Lightbulb, ExpandMore } from '@mui/icons-material';
+import { Person, Star, Warning, Lightbulb, Public, ExpandMore } from '@mui/icons-material';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function Summary() {
@@ -170,14 +171,14 @@ function Summary() {
     }
   };
 
-  const summarySections = aiSummary ? aiSummary.split('\n\n') : [];
-  while (summarySections.length < 4) {
-    summarySections.push('Section not available.');
-  }
-  const shortSummary = summarySections[0] || '';
-  const strengthsText = summarySections[1] || '';
-  const blindSpotsText = summarySections[2] || '';
-  const inspirationTip = summarySections[3] || '';
+  const summarySections = aiSummary ? aiSummary.split(/\n\s*\n/) : [];
+while (summarySections.length < 5) summarySections.push('Section not available.');
+const shortSummary     = summarySections[0] || '';
+const strengthsText    = summarySections[1] || '';
+const blindSpotsText   = summarySections[2] || '';
+const inspirationTip   = summarySections[3] || '';
+const societalNormsTxt = summarySections[4] || '';
+
 
   return (
     <Box
@@ -409,6 +410,35 @@ function Summary() {
                 </Typography>
               </AccordionDetails>
             </Accordion>
+            <Accordion
+  defaultExpanded={false}
+  sx={{
+    border: '1px solid',
+    borderColor: 'primary.main',
+    borderRadius: 2,
+    boxShadow: 4,
+    bgcolor: 'rgba(255, 255, 255, 0.95)',
+    background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+  }}
+>
+  <AccordionSummary
+    expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}
+    sx={{ bgcolor: 'rgba(255, 255, 255, 0.95)' }}
+  >
+    <Stack direction="row" spacing={2} alignItems="center">
+      <Public sx={{ color: 'primary.main', fontSize: 40 }} />
+      <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold', color: 'text.primary' }}>
+        Societal Norms
+      </Typography>
+    </Stack>
+  </AccordionSummary>
+  <AccordionDetails>
+    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', whiteSpace: 'pre-wrap', textAlign: 'center' }}>
+      {societalNormsTxt || "No societal norms identified."}
+    </Typography>
+  </AccordionDetails>
+</Accordion>
+
             <Stack direction="row" spacing={3} justifyContent="center" alignItems="center" sx={{ mt: 4 }}>
               <Button
                 variant="contained"
