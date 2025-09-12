@@ -30,11 +30,14 @@ function CampaignBuilder() {
     console.log('CampaignBuilder: aiSummary from localStorage:', aiSummaryFromStorage);
     console.log('CampaignBuilder: final aiSummary:', aiSummary);
 
-    if (!aiSummary || aiSummary.trim() === '') {
-  console.error('No leadership summary available, redirecting to summary');
-  navigate('/summary');
-  return;
-}
+    // relax summary guard — allow flow if norms are present
+const storedSummary = localStorage.getItem('aiSummary');
+const effectiveSummary =
+  (aiSummary && aiSummary.trim() !== '') ? aiSummary :
+  (storedSummary && storedSummary.trim() !== '') ? storedSummary :
+  null;
+// no redirect here; builder can proceed if norms exist
+
 
 // 🔒 Guard: Ensure Societal Norms assessment is completed
 const sessionId = localStorage.getItem("sessionId");
