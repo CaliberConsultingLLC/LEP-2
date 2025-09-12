@@ -1,7 +1,7 @@
 // src/pages/SocietalNormAssessment.jsx
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Box, Container, Paper, Stack, Typography, Slider, Button, LinearProgress
+  Box, Container, Paper, Stack, Typography, Slider, Button, Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
@@ -44,9 +44,11 @@ const QUESTIONS = [
 
 export default function SocietalNormAssessment() {
   const navigate = useNavigate();
-  const total = QUESTIONS.length;
+  const [responses, setResponses] = useState(() => Array(QUESTIONS.length).fill(5));
+  const [saving, setSaving] = useState(false);
+  const [openIntro, setOpenIntro] = useState(true);
 
-  // Ensure intake session exists
+  // Require session from intake
   useEffect(() => {
     const sid = localStorage.getItem("sessionId");
     if (!sid) {
@@ -55,20 +57,11 @@ export default function SocietalNormAssessment() {
     }
   }, [navigate]);
 
-  const [index, setIndex] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [responses, setResponses] = useState(() => Array(total).fill(5));
-
-  const progress = useMemo(() => Math.round(((index + 1) / total) * 100), [index, total]);
-
   const setValue = (i, val) => {
     const next = [...responses];
     next[i] = val;
     setResponses(next);
   };
-
-  const next = () => setIndex(i => Math.min(i + 1, total - 1));
-  const back = () => setIndex(i => Math.max(i - 1, 0));
 
   const submit = async () => {
     setSaving(true);
@@ -105,101 +98,116 @@ export default function SocietalNormAssessment() {
         justifyContent: 'center',
       }}
     >
-      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+      <Container maxWidth="md" sx={{ textAlign: 'center', position: 'relative' }}>
         <Stack spacing={3} sx={{ width: '800px', mx: 'auto' }}>
           <Typography
             variant="h4"
             sx={{
               fontFamily: 'Gemunu Libre, sans-serif',
               color: 'text.primary',
-              mb: 1,
+              mb: 0.5,
               textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
             }}
           >
             Societal Norms Assessment
           </Typography>
 
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{ height: 10, borderRadius: 1 }}
-          />
+          {/* Brief subtitle (short description + scale reminder) */}
           <Typography
-            sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary' }}
-          >
-            Question {index + 1} of {total} • Use the slider (1 = Never, 10 = Always)
-          </Typography>
-
-          <Paper
-            elevation={4}
             sx={{
-              p: 3,
-              borderRadius: 2,
-              background:
-                'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-              border: '1px solid',
-              borderColor: 'primary.main',
-              textAlign: 'left'
+              fontFamily: 'Gemunu Libre, sans-serif',
+              color: 'text.secondary',
+              fontSize: '1rem'
             }}
           >
-            <Typography
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: '1.15rem',
-                color: 'text.primary',
-                mb: 3
-              }}
-            >
-              {QUESTIONS[index]}
-            </Typography>
+            Rate how often each statement reflects your typical leadership behavior. Use the slider:
+            1 = Never, 10 = Always.
+          </Typography>
 
-            <Slider
-              value={responses[index]}
-              onChange={(_, v) => setValue(index, v)}
-              step={1}
-              min={1}
-              max={10}
-              marks={[
-                { value: 1, label: "Never" },
-                { value: 10, label: "Always" }
-              ]}
-              valueLabelDisplay="on"
-              sx={{ mx: 2 }}
-            />
-          </Paper>
-
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button
-              variant="outlined"
-              onClick={back}
-              disabled={index === 0 || saving}
-              sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
-            >
-              Back
-            </Button>
-
-            {index < total - 1 ? (
-              <Button
-                variant="contained"
-                onClick={next}
-                disabled={saving}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+          {/* All questions on one page */}
+          <Stack spacing={2}>
+            {QUESTIONS.map((q, idx) => (
+              <Paper
+                key={idx}
+                elevation={4}
+                sx={{
+                  p: 2.5,
+                  borderRadius: 2,
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  textAlign: 'left',
+                  overflow: 'hidden' // prevents slider labels from spilling
+                }}
               >
-                Next
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={submit}
-                disabled={saving}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
-              >
-                {saving ? "Saving..." : "Submit Assessment"}
-              </Button>
-            )}
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1.05rem',
+                    color: 'text.primary',
+                    mb: 2,
+                    wordBreak: 'break-word',
+                    overflowWrap: 'anywhere'
+                  }}
+                >
+                  {q}
+                </Typography>
+
+                <Slider
+                  value={responses[idx]}
+                  onChange={(_, v) => setValue(idx, v)}
+                  step={1}
+                  min={1}
+                  max={10}
+                  marks={[
+                    { value: 1, label: "Never" },
+                    { value: 10, label: "Always" }
+                  ]}
+                  valueLabelDisplay="on"
+                  sx={{
+                    mx: 1,
+                    '& .MuiSlider-markLabel': {
+                      fontSize: '0.75rem',
+                      whiteSpace: 'nowrap',
+                      transform: 'translateY(4px)'
+                    },
+                    '& .MuiSlider-valueLabel': {
+                      fontSize: '0.75rem'
+                    }
+                  }}
+                />
+              </Paper>
+            ))}
           </Stack>
+
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={submit}
+              disabled={saving}
+              sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.25 }}
+            >
+              {saving ? "Saving..." : "Submit Assessment"}
+            </Button>
+          </Box>
         </Stack>
+
+        {/* Intro dialog */}
+        <Dialog open={openIntro} onClose={() => setOpenIntro(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
+            About this assessment
+          </DialogTitle>
+          <DialogContent sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
+            This quick assessment helps reveal the norms and mindsets that may be shaping your leadership beneath the surface.
+            By rating each statement, you’ll give the system context it uses to tailor your growth path.
+            Scores are private and combined with your intake to build a more accurate campaign.
+            Answer instinctively—there are no right or wrong responses.
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenIntro(false)} variant="contained">Got it</Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );
