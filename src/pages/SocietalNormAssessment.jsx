@@ -1,18 +1,13 @@
-import React, { useState } from "react";
+// src/pages/SocietalNormAssessment.jsx
+import React, { useMemo, useState, useEffect } from "react";
 import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Stack,
-  Slider,
-  Paper
+  Box, Container, Paper, Stack, Typography, Slider, Button, LinearProgress
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { db } from "../firebase"; // adjust path if needed
+import { db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 
-const questions = [
+const QUESTIONS = [
   "When challenges arise, I determine the solution from my experience and expertise.",
   "I am careful to acknowledge and admit my mistakes to my team.",
   "I communicate the long-term vision to the company often and in different ways.",
@@ -27,7 +22,7 @@ const questions = [
   "I vocally encourage employees to reserve time for creativity or process improvement within their role.",
   "I am intentional about hiring employees that equally fit the need and the company culture and values.",
   "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation.",
-  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"we're in this together.\" (Perhaps, even jokes about it exist among employees.)",
+  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"we're in this together.\"  (Perhaps, even jokes about it exist among employees.)",
   "I have more answers than I do questions in our team discussions or meetings.",
   "It is important that our employee performance metrics are directly connected to their work AND in their full control.",
   "I consistently seek interactions with employees “organically” to hear their thoughts about a project, idea, or recent decision.",
@@ -42,82 +37,169 @@ const questions = [
   "I communicate that failure is inevitable and celebrate the associated learning.",
   "I regularly meet with my immediate team members to discuss their professional goals and the adjustments I see they could make that can help them reach those goals.",
   "I regularly and intentionally seek to learn from our employees, especially the newer ones.",
-  "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line.",
+  "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line",
   "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
   "I know the limits of my natural strengths and that I need others to successfully achieve the height of the company's mission and vision."
 ];
 
 export default function SocietalNormAssessment() {
-  const [responses, setResponses] = useState(Array(questions.length).fill(5));
-  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const total = QUESTIONS.length;
 
-  const handleSliderChange = (index, value) => {
-    const newResponses = [...responses];
-    newResponses[index] = value;
-    setResponses(newResponses);
+  // Ensure intake session exists
+  useEffect(() => {
+    const sid = localStorage.getItem("sessionId");
+    if (!sid) {
+      console.error("Missing sessionId – intake must be completed first.");
+      navigate("/form");
+    }
+  }, [navigate]);
+
+  const [index, setIndex] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [responses, setResponses] = useState(() => Array(total).fill(5));
+
+  const progress = useMemo(() => Math.round(((index + 1) / total) * 100), [index, total]);
+
+  const setValue = (i, val) => {
+    const next = [...responses];
+    next[i] = val;
+    setResponses(next);
   };
 
-  const handleSubmit = async () => {
+  const next = () => setIndex(i => Math.min(i + 1, total - 1));
+  const back = () => setIndex(i => Math.max(i - 1, 0));
+
+  const submit = async () => {
     setSaving(true);
     try {
       const sessionId = localStorage.getItem("sessionId");
-if (!sessionId) {
-  console.error("Missing sessionId – intake form must be completed first.");
-  navigate("/form");
-  return;
-}
-await setDoc(doc(db, "societalNorms", sessionId), {
-  responses,
-  timestamp: new Date().toISOString()
-});
+      if (!sessionId) {
+        navigate("/form");
+        return;
+      }
+      await setDoc(doc(db, "societalNorms", sessionId), {
+        responses,
+        timestamp: new Date().toISOString()
+      });
       navigate("/campaign-builder", { state: { norms: responses } });
-    } catch (err) {
-      console.error("Error saving norms:", err);
+    } catch (e) {
+      console.error("Error saving norms:", e);
       setSaving(false);
     }
   };
 
   return (
-    <Box sx={{ p: 5, minHeight: "100vh", bgcolor: "background.default" }}>
-      <Container maxWidth="md">
-        <Typography variant="h4" gutterBottom>
-          Societal Norms Assessment
-        </Typography>
-        <Typography variant="subtitle1" gutterBottom>
-          Please respond to each statement on a scale of 1 (Never) to 10 (Always).
-        </Typography>
-
-        <Stack spacing={3}>
-          {questions.map((q, idx) => (
-            <Paper key={idx} sx={{ p: 2 }}>
-              <Typography gutterBottom>{q}</Typography>
-              <Slider
-                value={responses[idx]}
-                onChange={(_, val) => handleSliderChange(idx, val)}
-                step={1}
-                min={1}
-                max={10}
-                marks={[
-                  { value: 1, label: "Never" },
-                  { value: 10, label: "Always" }
-                ]}
-                valueLabelDisplay="auto"
-              />
-            </Paper>
-          ))}
-        </Stack>
-
-        <Box sx={{ mt: 4, textAlign: "center" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            disabled={saving}
+    <Box
+      sx={{
+        p: 5,
+        minHeight: '100vh',
+        width: '100vw',
+        backgroundImage:
+          'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+        <Stack spacing={3} sx={{ width: '800px', mx: 'auto' }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              color: 'text.primary',
+              mb: 1,
+              textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
+            }}
           >
-            {saving ? "Saving..." : "Submit Assessment"}
-          </Button>
-        </Box>
+            Societal Norms Assessment
+          </Typography>
+
+          <LinearProgress
+            variant="determinate"
+            value={progress}
+            sx={{ height: 10, borderRadius: 1 }}
+          />
+          <Typography
+            sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary' }}
+          >
+            Question {index + 1} of {total} • Use the slider (1 = Never, 10 = Always)
+          </Typography>
+
+          <Paper
+            elevation={4}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              background:
+                'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              textAlign: 'left'
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: '1.15rem',
+                color: 'text.primary',
+                mb: 3
+              }}
+            >
+              {QUESTIONS[index]}
+            </Typography>
+
+            <Slider
+              value={responses[index]}
+              onChange={(_, v) => setValue(index, v)}
+              step={1}
+              min={1}
+              max={10}
+              marks={[
+                { value: 1, label: "Never" },
+                { value: 10, label: "Always" }
+              ]}
+              valueLabelDisplay="on"
+              sx={{ mx: 2 }}
+            />
+          </Paper>
+
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button
+              variant="outlined"
+              onClick={back}
+              disabled={index === 0 || saving}
+              sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+            >
+              Back
+            </Button>
+
+            {index < total - 1 ? (
+              <Button
+                variant="contained"
+                onClick={next}
+                disabled={saving}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={submit}
+                disabled={saving}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+              >
+                {saving ? "Saving..." : "Submit Assessment"}
+              </Button>
+            )}
+          </Stack>
+        </Stack>
       </Container>
     </Box>
   );
