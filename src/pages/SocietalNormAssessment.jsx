@@ -50,12 +50,14 @@ export default function SocietalNormAssessment() {
 
   // Require session from intake
   useEffect(() => {
-    const sid = localStorage.getItem("sessionId");
-    if (!sid) {
-      console.error("Missing sessionId – intake must be completed first.");
-      navigate("/form");
-    }
-  }, [navigate]);
+  let sid = localStorage.getItem("sessionId");
+  if (!sid) {
+    sid = `sess-${Date.now()}`;
+    localStorage.setItem("sessionId", sid);
+    console.log("Generated sessionId for norms:", sid);
+  }
+}, []);
+
 
   const setValue = (i, val) => {
     const next = [...responses];
