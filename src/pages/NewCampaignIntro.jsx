@@ -60,18 +60,18 @@ function NewCampaignIntro() {
   }, [campaignData]);
 
   const handleStart = () => {
-    if (isNavigating) return;
-    const enteredPassword = prompt('Please enter the campaign password:');
-    if (enteredPassword === campaignData?.password) {
-      localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
-      const surveyUrl = `/campaign/${id}/survey`;
-      setIsNavigating(true);
-      navigate(surveyUrl, { replace: true });
-      setTimeout(() => setIsNavigating(false), 100);
-    } else {
-      alert('Incorrect password. Please try again.');
-    }
-  };
+  if (isNavigating) return;
+  const enteredPassword = prompt('Please enter the campaign password:');
+  if (enteredPassword === campaignData?.password) {
+    localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
+    setIsNavigating(true);
+    navigate('/societal-norms', { replace: true });
+    setTimeout(() => setIsNavigating(false), 100);
+  } else {
+    alert('Incorrect password. Please try again.');
+  }
+};
+
 
   if (!campaignData) {
     return (
