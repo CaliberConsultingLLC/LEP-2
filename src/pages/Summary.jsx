@@ -453,13 +453,11 @@ const societalNormsTxt = summarySections[4] || '';
   color="primary"
   onClick={() => {
     console.log('Navigating to societal-norms assessment with aiSummary:', aiSummary);
-    if (!aiSummary || aiSummary.trim() === '') {
-      console.error('aiSummary is missing or empty, redirecting to summary');
-      navigate('/summary');
-      return;
-    }
-    localStorage.setItem('aiSummary', aiSummary);
-    navigate('/societal-norms', { state: { aiSummary } });
+    if (aiSummary && aiSummary.trim() !== '') {
+  localStorage.setItem('aiSummary', aiSummary);
+}
+navigate('/societal-norms');
+
   }}
   sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
 >
