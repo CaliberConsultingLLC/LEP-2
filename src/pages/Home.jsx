@@ -31,21 +31,13 @@ function Home() {
         </Box>
         <Stack spacing={1} direction="column" alignItems="center">
   <Button
-    variant="outlined"
-    color="primary"
-    onClick={() => navigate('/dev-skip-1')}
-    sx={{ fontSize: '1.125rem', px: 4, py: 2 }}
-  >
-    Dev Skip 1 — Random Intake + Summary
-  </Button>
-  <Button
-    variant="outlined"
-    color="primary"
-    onClick={() => navigate('/dev-skip-2')}
-    sx={{ fontSize: '1.125rem', px: 4, py: 2 }}
-  >
-    Dev Skip 2 — Random Intake + Norms + Summary + Campaign
-  </Button>
+  variant="outlined"
+  color="primary"
+  onClick={() => navigate('/dev-skip-1')}
+>
+  Dev Skip — Random Intake + Summary
+</Button>
+
 </Stack>
 
       </Container>
