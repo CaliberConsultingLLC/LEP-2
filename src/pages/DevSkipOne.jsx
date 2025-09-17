@@ -160,6 +160,7 @@ export default function DevSkipOne() {
 
   if (loading) return <Box p={6}><Typography>Building scenario…</Typography></Box>;
 
+// Ensure CampaignBuilder receives aiSummary (state + localStorage)
 const saveRandomNormsAndGo = async () => {
   const sessionId = localStorage.getItem('sessionId');
   if (!sessionId) {
@@ -175,12 +176,19 @@ const saveRandomNormsAndGo = async () => {
       { sessionId, responses, timestamp: new Date().toISOString() },
       { merge: true }
     );
+
+    // persist summary for builder fallbacks
+    if (aiSummary && aiSummary.trim() !== '') {
+      localStorage.setItem('aiSummary', aiSummary);
+    }
+
     console.log('[DevSkip1] Norms saved. Going to /campaign-builder');
-    navigate('/campaign-builder', { replace: true });
+    navigate('/campaign-builder', { replace: true, state: { aiSummary: aiSummary || null } });
   } catch (e) {
     console.error('[DevSkip1] Failed to save norms:', e);
   }
 };
+
 
 
   return (
