@@ -66,24 +66,34 @@ export default function SocietalNormAssessment() {
   };
 
   const submit = async () => {
-    setSaving(true);
-    try {
-      const sessionId = localStorage.getItem("sessionId");
-      if (!sessionId) {
-        navigate("/form");
-        return;
-      }
-      await setDoc(doc(db, "societalNorms", sessionId), {
-  responses,
-  timestamp: new Date().toISOString()
-});
-navigate("/campaign-builder"); // go straight to builder
-
-    } catch (e) {
-      console.error("Error saving norms:", e);
-      setSaving(false);
+  setSaving(true);
+  try {
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      console.warn("[Norms] Missing sessionId -> /form");
+      navigate("/form", { replace: true });
+      return;
     }
-  };
+    await setDoc(doc(db, "societalNorms", sessionId), {
+      responses,
+      timestamp: new Date().toISOString()
+    });
+    console.log("[Norms] Saved. Navigating to /campaign-builder");
+    navigate("/campaign-builder", { replace: true });
+
+    // Hard fallback in case a guard or stale router blocks
+    setTimeout(() => {
+      if (window.location.pathname !== "/campaign-builder") {
+        console.warn("[Norms] Router nav didn’t take. Forcing location change.");
+        window.location.assign("/campaign-builder");
+      }
+    }, 150);
+  } catch (e) {
+    console.error("Error saving norms:", e);
+    setSaving(false);
+  }
+};
+
 
   return (
     <Box
