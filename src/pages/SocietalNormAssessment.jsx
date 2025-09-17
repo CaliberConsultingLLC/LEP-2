@@ -75,9 +75,11 @@ export default function SocietalNormAssessment() {
       return;
     }
     await setDoc(doc(db, "societalNorms", sessionId), {
-      responses,
-      timestamp: new Date().toISOString()
-    });
+  sessionId,                    // <-- add this
+  responses,
+  timestamp: new Date().toISOString()
+});
+
     console.log("[Norms] Saved. Navigating to /campaign-builder");
     navigate("/campaign-builder", { replace: true });
 
