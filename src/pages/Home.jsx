@@ -29,16 +29,28 @@ function Home() {
         <Box sx={{ mb: 6 }}>
           <img src="/logo.jpg" alt="LEP Logo" style={{ width: '600px', height: 'auto' }} />
         </Box>
-        <Stack spacing={1} direction="column" alignItems="center">
+        <Stack spacing={2} direction="column" alignItems="center">
+  {/* Normal flow */}
   <Button
-  variant="outlined"
-  color="primary"
-  onClick={() => navigate('/dev-skip-1')}
->
-  Dev Skip — Random Intake + Summary
-</Button>
+    variant="contained"
+    color="primary"
+    onClick={handleGetStarted}   // navigates to /form
+    sx={{ fontSize: '1.125rem', px: 4, py: 2, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
+  >
+    Get Started
+  </Button>
 
+  {/* Dev tester flow */}
+  <Button
+    variant="outlined"
+    color="primary"
+    onClick={() => navigate('/dev-skip-1')}
+    sx={{ fontSize: '1.125rem', px: 4, py: 2 }}
+  >
+    Dev Skip — Random Intake + Summary
+  </Button>
 </Stack>
+
 
       </Container>
     </Box>
