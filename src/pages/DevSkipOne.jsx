@@ -1,9 +1,10 @@
 // src/pages/DevSkipOne.jsx
 import React, { useEffect, useState } from 'react';
 import { Box, Container, Paper, Stack, Typography, Button } from '@mui/material';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import { doc, setDoc } from 'firebase/firestore'; // REQUIRED
+import { db } from '../firebase';                 // REQUIRED
+
 
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -159,6 +160,29 @@ export default function DevSkipOne() {
 
   if (loading) return <Box p={6}><Typography>Building scenario…</Typography></Box>;
 
+const saveRandomNormsAndGo = async () => {
+  const sessionId = localStorage.getItem('sessionId');
+  if (!sessionId) {
+    console.warn('[DevSkip1] Missing sessionId; cannot write norms.');
+    return;
+  }
+
+  const responses = Array.from({ length: 32 }, () => Math.floor(Math.random() * 10) + 1);
+
+  try {
+    await setDoc(
+      doc(db, 'societalNorms', sessionId),
+      { sessionId, responses, timestamp: new Date().toISOString() },
+      { merge: true }
+    );
+    console.log('[DevSkip1] Norms saved. Going to /campaign-builder');
+    navigate('/campaign-builder', { replace: true });
+  } catch (e) {
+    console.error('[DevSkip1] Failed to save norms:', e);
+  }
+};
+
+
   return (
     <Box sx={{
       p:5, minHeight:'100vh', width:'100vw',
@@ -181,10 +205,14 @@ export default function DevSkipOne() {
           </Paper>
         </Stack>
 
-        <Stack direction="row" spacing={2} sx={{ mt:2 }}>
-          <Button variant="contained" onClick={() => navigate('/summary')}>Open Summary Page</Button>
-          <Button variant="outlined" onClick={() => navigate('/campaign-builder')}>Open Campaign Builder</Button>
-        </Stack>
+        <Stack direction="row" spacing={2} sx={{ mt:2, flexWrap:'wrap' }}>
+  <Button variant="contained" onClick={() => navigate('/summary')}>
+    Open Summary Page
+  </Button>
+  <Button variant="outlined" onClick={saveRandomNormsAndGo}>
+    Dev Skip Norms → Campaign Builder
+  </Button>
+</Stack>
       </Container>
     </Box>
   );
