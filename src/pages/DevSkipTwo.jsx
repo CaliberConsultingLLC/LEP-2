@@ -35,30 +35,33 @@ export default function DevSkipTwo() {
       }
 
       const intake = {
-        sessionId,
-        name: 'Dev User',
-        industry: pick(INDUSTRIES),
-        role: pick(ROLES),
-        responsibilities: 'Dev test scenario',
-        teamSize: rnd(3, 25),
-        leadershipExperience: rnd(1, 20),
-        careerExperience: rnd(2, 25),
-        resourcePick: pick(RESOURCES),
-        communicationStyle: pickMany(COMM_STYLES, 3),
-        feedbackFormality: rnd(1,10),
-        feedbackPracticality: rnd(1,10),
-        feedbackTone: rnd(1,10),
-        wins: ['Shipping a major release','Resolving key client issue','Team collaboration uptick'],
-        impactfulAction: 'Quietly check in on their well-being',
-        selectedAgent: pick(AGENTS),
-        timestamp: new Date().toISOString()
-      };
+  sessionId,
+  name: "Dev User",
+  industry: "Technology",
+  role: "Team Lead",
+  responsibilities: "Dev test scenario",
+  teamSize: rnd(1, 10),
+  leadershipExperience: rnd(0, 10),
+  careerExperience: rnd(0, 20),
+  resourcePick: pick(RESOURCE_PICK),
+  coffeeImpression: pick(COFFEE_IMPRESSION),
+  projectApproach: pick(PROJECT_APPROACH),
+  energyDrains: shuffle(ENERGY_DRAINS).slice(0, 3),
+  crisisResponse: shuffle(CRISIS_RESPONSE),
+  pushbackFeeling: "A bit anxious but focused on learning.",
+  roleModelTrait: shuffle(ROLE_MODEL_TRAIT).slice(0, 2),
+  successMetric: pick(SUCCESS_METRIC),
+  warningLabel: pick(WARNING_LABEL),
+  leaderFuel: shuffle(LEADER_FUEL),
+  proudMoment: "My team shipped a critical feature under pressure.",
+  selfReflection: "I need to be more decisive in conflict.",
+  selectedAgent: pick(AGENTS),
+  timestamp: new Date().toISOString(),
+};
 
-      const normsDoc = {
-        sessionId,
-        responses: RANDOM_NORMS,
-        timestamp: new Date().toISOString()
-      };
+// norms stays as you had:
+const normsDoc = { sessionId, responses: Array.from({ length: 32 }, () => rnd(1,10)), timestamp: new Date().toISOString() };
+
 
       try {
         await setDoc(doc(db, 'responses', sessionId), intake, { merge: true });
