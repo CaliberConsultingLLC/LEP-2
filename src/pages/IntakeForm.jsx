@@ -272,18 +272,10 @@ function IntakeForm() {
       }
       setCurrentStep(prev => prev + 1);
     } else if (currentStep === totalSteps - 1) {
-      console.log('Attempting to submit form...', formData);
-      setIsSubmitting(true);
-      const success = await handleSubmit();
-      if (success) {
-        console.log('Navigating to /summary with formData:', formData);
-        navigate('/summary', { state: { formData } });
-      } else {
-        console.error('Submission failed, not navigating.');
-        alert('Failed to submit form. Please try again.');
-        setIsSubmitting(false);
-      }
-    }
+  console.log('Attempting to submit form...', formData);
+  setIsSubmitting(true);
+  await handleSubmit(); // navigation happens inside handleSubmit
+}
   };
   const handleDragEnd = (result, questionId, options) => {
     if (!result.destination) return;
@@ -307,21 +299,27 @@ function IntakeForm() {
   };
 
   const handleSubmit = async () => {
-    console.log('Submitting formData to Firebase:', formData);
-    try {
-      const selectedAgentId = formData.selectedAgent || "balancedMentor";
-      const updatedFormData = { ...formData, selectedAgent: selectedAgentId };
-      const docRef = await addDoc(collection(db, 'responses'), {
-        ...updatedFormData,
-        timestamp: new Date(),
-      });
-      console.log('Firebase submission successful! Doc ID:', docRef.id, updatedFormData);
-    } catch (error) {
-      console.error('Firebase submission failed:', error.message, error.stack);
-    }
-    console.log('Navigating to /summary with formData:', formData);
-    return true;
-  };
+  try {
+    const selectedAgentId = formData.selectedAgent || "balancedMentor";
+    const updatedFormData = { ...formData, selectedAgent: selectedAgentId };
+
+    const docRef = await addDoc(collection(db, 'responses'), {
+      ...updatedFormData,
+      timestamp: new Date(),
+    });
+    console.log('Firebase submission successful! Doc ID:', docRef.id);
+
+    // Persist locally as an extra fallback for Summary
+    localStorage.setItem('latestFormData', JSON.stringify(updatedFormData));
+
+    // Single source of navigation
+    navigate('/summary', { state: { formData: updatedFormData } });
+  } catch (error) {
+    console.error('Firebase submission failed:', error);
+    alert('Failed to submit form. Please try again.');
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <Box
