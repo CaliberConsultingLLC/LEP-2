@@ -2,27 +2,25 @@
 import { OpenAI } from 'openai';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const identityPath = path.join(process.cwd(), 'AgentIdentity.txt');
-const agentIdentity = fs.readFileSync(identityPath, 'utf8');
 
-// Sentence-safe clip: prefer last sentence end (., !, ?) before limit; else last space; else hard cut.
+// ---------------- Sentence-safe clipping helpers ----------------
 function clipSentenceSafe(text, limit) {
   if (!text) return '';
   const s = text.trim();
   if (s.length <= limit) return s;
   const cut = s.slice(0, limit);
 
-  // Find last sentence terminator within limit (handles quotes/brackets after punctuation)
+  // Prefer last sentence terminator within limit (handles quotes/brackets)
   const re = /[.!?](?:[”’'")\]]+)?(?=\s|$)/g;
   let lastEnd = -1;
   let m;
   while ((m = re.exec(cut)) !== null) lastEnd = re.lastIndex;
-
   if (lastEnd > 0) return cut.slice(0, lastEnd).trim();
 
-  // Fallback: last whitespace
+  // Fallback: last space
   const lastSpace = cut.lastIndexOf(' ');
   if (lastSpace > 0) return cut.slice(0, lastSpace).trim();
 
@@ -30,7 +28,6 @@ function clipSentenceSafe(text, limit) {
   return cut.trim();
 }
 
-// Apply per-section budgets to exactly 5 paragraphs
 function enforceBudgets(text, budgets) {
   const parts = text.split(/\n\s*\n/).map(s => s.trim());
   while (parts.length < 5) parts.push('');
@@ -45,15 +42,21 @@ function enforceBudgets(text, budgets) {
   return [out1, out2, out3, out4, out5].join('\n\n');
 }
 
+// ---------------- API Handler ----------------
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('[get-ai-summary] Missing OPENAI_API_KEY');
+    return res.status(500).json({ error: 'Server misconfig: missing OPENAI_API_KEY' });
+  }
 
   try {
     const body = req.body || {};
     const { selectedAgent = 'balancedMentor', charLimit } = body;
 
-    // Agent tones (concise to keep behavior stable)
+    // ---- Agent tones (concise) ----
     const agents = {
       bluntPracticalFriend: { prompt: `You are a blunt, practical friend. Be direct, concrete, action-first.` },
       formalEmpatheticCoach: { prompt: `You are a formal, empathetic coach. Polished, supportive, professional.` },
@@ -66,9 +69,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
+    // ---- Character budgets ----
     // DEFAULT TOTAL = 2200 (safe range 900–2800)
-    // Preserve original 25/20/30/25 proportions across the first four by allocating 90% to them,
-    // and reserve ~10% for the new Societal Norms paragraph.
+    // 90% to first four sections (25/20/30/25), ~10% for Societal Norms.
     const TOTAL = Math.max(900, Math.min(Number(charLimit) || 2200, 2800));
     const MAIN = Math.round(TOTAL * 0.9);
 
@@ -77,7 +80,8 @@ export default async function handler(req, res) {
       strength: Math.round(MAIN * 0.20),
       blindSpots: Math.round(MAIN * 0.30),
       growthSpark: Math.round(MAIN * 0.25),
-      societalNorms: Math.max(120, TOTAL - (Math.round(MAIN * 0.25) + Math.round(MAIN * 0.20) + Math.round(MAIN * 0.30) + Math.round(MAIN * 0.25)))
+      societalNorms:
+        Math.max(120, TOTAL - (Math.round(MAIN * 0.25) + Math.round(MAIN * 0.20) + Math.round(MAIN * 0.30) + Math.round(MAIN * 0.25)))
     };
 
     const SOCIETAL_NORMS_LIST = [
@@ -103,6 +107,20 @@ export default async function handler(req, res) {
       "An “open-door policy” makes me available"
     ];
 
+    // ---- Load external Agent Identity (next to this file) ----
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const identityPath = path.join(__dirname, 'AgentIdentity.txt'); // keep filename exactly as in repo
+
+    let agentIdentity = '';
+    try {
+      agentIdentity = fs.readFileSync(identityPath, 'utf8');
+    } catch (e) {
+      console.error('[get-ai-summary] Failed to read AgentIdentity.txt at:', identityPath, e);
+      agentIdentity = '(Agent identity document not found. Proceed with default behavior.)';
+    }
+
+    // ---- System & user prompts ----
     const systemPrompt = `
 ${agents[selectedAgent].prompt}
 
@@ -123,18 +141,17 @@ ${SOCIETAL_NORMS_LIST.map((n,i)=>`${i+1}. ${n}`).join('\n')}
 
     const userPrompt = `
 You are an expert in leadership development.
-Analyze this leadership intake data and produce the five paragraphs described above.
-
-Use the following external identity document as your foundation:
+Use the following external identity document as your foundation (it may evolve over time):
 ${agentIdentity}
 
-Here is the intake data:
+Now analyze this intake data and produce the five paragraphs described in the system message:
 ${JSON.stringify(body)}
-`;
+    `.trim();
 
+    // ---- OpenAI call ----
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 800, // allows ~2200 chars comfortably
+      max_tokens: 800,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
