@@ -10,9 +10,9 @@ function Home() {
 
 
   const handleGetStarted = () => {
-    console.log('Get Started button clicked, navigating to /campaign-intro');
-    navigate('/form');
-  };
+  console.log('Get Started button clicked, navigating to /form');
+  navigate('/form');
+};
 
   return (
     <Box
