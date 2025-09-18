@@ -1,7 +1,11 @@
 // api/get-ai-summary.js
 import { OpenAI } from 'openai';
+import fs from 'fs';
+import path from 'path';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const identityPath = path.join(process.cwd(), 'AgentIdentity.txt');
+const agentIdentity = fs.readFileSync(identityPath, 'utf8');
 
 // Sentence-safe clip: prefer last sentence end (., !, ?) before limit; else last space; else hard cut.
 function clipSentenceSafe(text, limit) {
@@ -117,9 +121,16 @@ Rules:
 ${SOCIETAL_NORMS_LIST.map((n,i)=>`${i+1}. ${n}`).join('\n')}
     `.trim();
 
-    const userPrompt =
-      'Analyze this leadership intake data and produce the five paragraphs described above:\n' +
-      JSON.stringify(body);
+    const userPrompt = `
+You are an expert in leadership development.
+Analyze this leadership intake data and produce the five paragraphs described above.
+
+Use the following external identity document as your foundation:
+${agentIdentity}
+
+Here is the intake data:
+${JSON.stringify(body)}
+`;
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
