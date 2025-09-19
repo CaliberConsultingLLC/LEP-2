@@ -748,12 +748,12 @@ export default function DevSkipOne() {
   <Grid item xs={12} md={6}>
     <Box sx={{ minWidth: 0 }}>
       <Section title="Actions">
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
-          <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
-          <Button variant="outlined" onClick={saveRandomNormsAndGo}>Dev Skip Norms → Campaign Builder</Button>
-        </Stack>
-      </Section>
+  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+    <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
+    <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
+    <Button variant="outlined" onClick={() => navigate('/dev-skip-two')}>Dev Skip Norms →</Button>
+  </Stack>
+</Section>
 
       <Section title="Profile">
         {['name', 'industry', 'role', 'responsibilities'].map((key) => {
