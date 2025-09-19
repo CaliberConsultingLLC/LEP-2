@@ -111,27 +111,66 @@ const [campaignError, setCampaignError] = useState('');
 
   // Helper: fetch campaign text (no UI from builder)
 const fetchCampaign = async () => {
-  // allow the readiness effect to trigger later without flashing an error
+  // allow readiness effect to trigger later without flashing an error
   const s = summary || (typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || '';
-  if (!sessionId || !s) return;
+  if (!sessionId) return;
 
   setCampaignLoading(true);
   setCampaignError('');
+  setCampaignText('');
+
+  // helpers
+  const tryRequest = async (url, payload) => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': '*/*' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Try JSON first; if it fails, read as text
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const data = await res.json();
+      return data.campaignText || data.text || '';
+    } else {
+      const text = await res.text();
+      return text || '';
+    }
+  };
+
   try {
-    const body = JSON.stringify({ sessionId, aiSummary: s });
-    const res = await fetch('/api/get-campaign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body
-    });
-    const finalRes = res.ok ? res : await fetch('/get-campaign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body
-    });
-    if (!finalRes.ok) throw new Error(`HTTP ${finalRes.status}`);
-    const data = await finalRes.json();
-    setCampaignText(data.campaignText || data.text || '');
+    // 1) Most backends only need sessionId (they read Firestore)
+    // 2) If that fails, include aiSummary explicitly
+    // 3) Try common endpoint variants
+    const attempts = [
+      ['/api/get-campaign', { sessionId }],
+      ['/get-campaign',    { sessionId }],
+      ['/api/get-campaign', { sessionId, aiSummary: s }],
+      ['/get-campaign',     { sessionId, aiSummary: s }],
+      // last resort alt names your server might use:
+      ['/api/campaign',    { sessionId }],
+      ['/campaign',        { sessionId }],
+    ];
+
+    let result = '';
+    let lastErr = null;
+    for (const [url, payload] of attempts) {
+      try {
+        result = await tryRequest(url, payload);
+        if (result && result.trim()) break;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+
+    if (!result || !result.trim()) {
+      if (lastErr) console.error('[DevSkipTwo] campaign attempts error:', lastErr);
+      setCampaignError('No campaign content returned.');
+      setCampaignText('');
+    } else {
+      setCampaignText(result.trim());
+    }
   } catch (e) {
     console.error('[DevSkipTwo] fetchCampaign error:', e);
     setCampaignError('Failed to load campaign.');
@@ -139,6 +178,7 @@ const fetchCampaign = async () => {
     setCampaignLoading(false);
   }
 };
+
 
 
 // When both are ready, fetch the campaign text
@@ -307,36 +347,40 @@ useEffect(() => {
   <Divider sx={{ mb: 2 }} />
 
   {campaignLoading && (
-    <Typography variant="body2" sx={{ opacity: 0.7 }}>Generating…</Typography>
-  )}
+  <Typography variant="body2" sx={{ opacity: 0.7 }}>Generating…</Typography>
+)}
 
-  {campaignError && (
-    <Typography variant="body2" color="error">{campaignError}</Typography>
-  )}
+{!campaignLoading && campaignError && (
+  <Typography variant="body2" color="error">{campaignError}</Typography>
+)}
 
-  {!campaignLoading && !campaignError && (
-    <Box sx={{ maxHeight: '70vh', overflow: 'auto', pr: 1 }}>
-      {/* Convert campaignText into bullet lines.
-          - If text already contains bullets (•, -, *), preserve them.
-          - Otherwise split by lines and render non-empty ones. */}
-      <Stack spacing={1}>
-        {(() => {
-          const lines = (campaignText || '')
-            .split(/\r?\n/)
-            .map((l) => l.trim())
-            .filter(Boolean);
-          return lines.map((line, i) => (
-            <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
-              <Box sx={{ mt: '6px' }}>•</Box>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {line.replace(/^[-*•]\s*/, '')}
-              </Typography>
-            </Stack>
-          ));
-        })()}
-      </Stack>
-    </Box>
-  )}
+{!campaignLoading && !campaignError && !campaignText && (
+  <Typography variant="body2" sx={{ opacity: 0.7 }}>
+    No campaign content yet.
+  </Typography>
+)}
+
+{!campaignLoading && !campaignError && !!campaignText && (
+  <Box sx={{ maxHeight: '70vh', overflow: 'auto', pr: 1 }}>
+    <Stack spacing={1}>
+      {(() => {
+        const lines = (campaignText || '')
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
+        return lines.map((line, i) => (
+          <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
+            <Box sx={{ mt: '6px' }}>•</Box>
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+              {line.replace(/^[-*•]\s*/, '')}
+            </Typography>
+          </Stack>
+        ));
+      })()}
+    </Stack>
+  </Box>
+)}
+
 </Paper>
 
           </Grid>
