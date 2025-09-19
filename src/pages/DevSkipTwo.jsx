@@ -20,7 +20,6 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import CampaignBuilder from './CampaignBuilder';
 
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -91,7 +90,10 @@ export default function DevSkipTwo() {
   const [sessionId, setSessionId] = useState(null);
   const [norms, setNorms] = useState(Array.from({ length: 32 }, () => rnd(1, 10)));
   const [loading, setLoading] = useState(true);
-  const [builderKey, setBuilderKey] = useState(0);
+  const [campaignText, setCampaignText] = useState('');
+const [campaignLoading, setCampaignLoading] = useState(false);
+const [campaignError, setCampaignError] = useState('');
+
 
   // Ensure aiSummary is present for CampaignBuilder
   useEffect(() => {
@@ -100,6 +102,45 @@ export default function DevSkipTwo() {
       localStorage.setItem('aiSummary', passed);
     }
   }, [location.state]);
+
+  // Helper: fetch campaign text (no UI from builder)
+const fetchCampaign = async () => {
+  const summary = (typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || '';
+  if (!sessionId || !summary) {
+    setCampaignError('Missing session or summary.');
+    return;
+  }
+  setCampaignLoading(true);
+  setCampaignError('');
+  try {
+    // Try the builder API endpoint first
+    const res = await fetch('/api/get-campaign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ sessionId, aiSummary: summary }),
+    });
+
+    if (!res.ok) {
+      // fallback path if your route is without /api
+      const res2 = await fetch('/get-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ sessionId, aiSummary: summary }),
+      });
+      if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+      const data2 = await res2.json();
+      setCampaignText(data2.campaignText || data2.text || '');
+    } else {
+      const data = await res.json();
+      setCampaignText(data.campaignText || data.text || '');
+    }
+  } catch (e) {
+    console.error('[DevSkipTwo] fetchCampaign error:', e);
+    setCampaignError('Failed to load campaign.');
+  } finally {
+    setCampaignLoading(false);
+  }
+};
 
 
   useEffect(() => {
@@ -136,8 +177,11 @@ export default function DevSkipTwo() {
       } catch (e) {
         console.error('[DevSkipTwo] init norms error:', e);
       } finally {
-        setLoading(false);
-      }
+  setLoading(false);
+  // kick off initial campaign fetch once we have a session & norms
+  setTimeout(() => fetchCampaign(), 0);
+}
+
     })();
   }, []);
 
@@ -157,21 +201,22 @@ export default function DevSkipTwo() {
 
   // Save norms and refresh inline builder (no summary calls)
   const rerunOutput = async () => {
-    if (!sessionId) return;
-    setLoading(true);
-    try {
-      await setDoc(
-        doc(db, 'societalNorms', sessionId),
-        { sessionId, responses: norms, timestamp: new Date().toISOString() },
-        { merge: true }
-      );
-      setBuilderKey((k) => k + 1);
-    } catch (e) {
-      console.error('[DevSkipTwo] save norms error:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!sessionId) return;
+  setLoading(true);
+  try {
+    await setDoc(
+      doc(db, 'societalNorms', sessionId),
+      { sessionId, responses: norms, timestamp: new Date().toISOString() },
+      { merge: true }
+    );
+  } catch (e) {
+    console.error('[DevSkipTwo] save norms error:', e);
+  } finally {
+    setLoading(false);
+    fetchCampaign(); // refresh text
+  }
+};
+
 
   const goToCampaignBuilder = async () => {
     if (!sessionId) return;
@@ -248,34 +293,44 @@ export default function DevSkipTwo() {
           {/* RIGHT: Inline Campaign Builder (no summary UI on this page) */}
           <Grid item xs={12} md={6}>
             <Paper
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'divider',
-                alignSelf: 'flex-start',
-              }}
-            >
-              <Typography variant="h6" sx={{ mb: 1 }}>Campaign Builder Preview</Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Box
-                sx={{
-                  // contain the builder visually if it’s tall/wide
-                  maxHeight: '70vh',
-                  overflow: 'auto',
-                  px: 1,
-                }}
-              >
-                {/* If CampaignBuilder supports flags to hide summary fetching, pass them. Otherwise they will be ignored safely. */}
-                <CampaignBuilder
-  key={builderKey}
-  embedded
-  hideSummary
-  aiSummary={(typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || ''}
-/>
+  sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', alignSelf: 'flex-start' }}
+>
+  <Typography variant="h6" sx={{ mb: 1 }}>Campaign Builder Preview</Typography>
+  <Divider sx={{ mb: 2 }} />
 
-              </Box>
-            </Paper>
+  {campaignLoading && (
+    <Typography variant="body2" sx={{ opacity: 0.7 }}>Generating…</Typography>
+  )}
+
+  {campaignError && (
+    <Typography variant="body2" color="error">{campaignError}</Typography>
+  )}
+
+  {!campaignLoading && !campaignError && (
+    <Box sx={{ maxHeight: '70vh', overflow: 'auto', pr: 1 }}>
+      {/* Convert campaignText into bullet lines.
+          - If text already contains bullets (•, -, *), preserve them.
+          - Otherwise split by lines and render non-empty ones. */}
+      <Stack spacing={1}>
+        {(() => {
+          const lines = (campaignText || '')
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .filter(Boolean);
+          return lines.map((line, i) => (
+            <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
+              <Box sx={{ mt: '6px' }}>•</Box>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                {line.replace(/^[-*•]\s*/, '')}
+              </Typography>
+            </Stack>
+          ));
+        })()}
+      </Stack>
+    </Box>
+  )}
+</Paper>
+
           </Grid>
         </Grid>
       </Container>
