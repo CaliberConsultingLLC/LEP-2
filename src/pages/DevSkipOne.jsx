@@ -751,7 +751,18 @@ export default function DevSkipOne() {
   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
     <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
     <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
-    <Button variant="outlined" onClick={() => navigate('/dev-skip-two')}>Dev Skip Norms →</Button>
+    <Button
+  variant="outlined"
+  onClick={() => {
+    if (aiSummary && aiSummary.trim()) {
+      localStorage.setItem('aiSummary', aiSummary);
+    }
+    navigate('/dev-skip-two', { state: { aiSummary } });
+  }}
+>
+  Dev Skip Norms →
+</Button>
+
   </Stack>
 </Section>
 
