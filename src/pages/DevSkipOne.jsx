@@ -18,21 +18,53 @@ import {
   TextField,
   Divider,
   FormHelperText,
+  Card,
+  CardContent,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { doc, setDoc } from 'firebase/firestore'; // REQUIRED
-import { db } from '../firebase';                 // REQUIRED
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
-// ---------------------------------------------------------
-// Random helpers
-// ---------------------------------------------------------
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
 
-// ---------------------------------------------------------
-// Existing fixed option pools
-// ---------------------------------------------------------
+const INDUSTRY_POOL = [
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Manufacturing',
+  'Retail',
+  'Government',
+  'Nonprofit',
+  'Energy',
+  'Media',
+  'Logistics',
+  'Hospitality',
+  'Professional Services',
+  'Telecommunications',
+  'Consumer Goods',
+];
+
+const ROLE_TITLE_POOL = [
+  'Team Lead',
+  'Engineering Manager',
+  'Product Manager',
+  'Operations Manager',
+  'Program Manager',
+  'Director of Engineering',
+  'Technical Lead',
+  'Head of Operations',
+  'Customer Success Lead',
+  'Data Team Lead',
+  'Project Manager',
+  'Sales Manager',
+  'People Manager',
+  'Strategy Lead',
+  'Innovation Lead',
+];
+
 const RESOURCE_PICK = [
   "More time in the day to focus on priorities",
   "A larger budget to work with",
@@ -41,7 +73,6 @@ const RESOURCE_PICK = [
   "A dedicated time/space for reflection and planning",
   "A high performer to share the load",
 ];
-
 const COFFEE_IMPRESSION = [
   "They really listen to us.",
   "They’ve got everything under control.",
@@ -51,7 +82,6 @@ const COFFEE_IMPRESSION = [
   "They hold a high bar for us.",
   "They trust us to deliver.",
 ];
-
 const PROJECT_APPROACH = [
   "Create a detailed plan to guide the team.",
   "Dive into the most challenging aspect to lead by example.",
@@ -59,7 +89,6 @@ const PROJECT_APPROACH = [
   "Focus on identifying and mitigating the biggest risks.",
   "Distribute tasks to the team and set clear check-in points.",
 ];
-
 const ENERGY_DRAINS = [
   "Repeating myself to ensure understanding",
   "Addressing a team member’s inconsistent contributions",
@@ -70,7 +99,6 @@ const ENERGY_DRAINS = [
   "Pursuing goals that lack clear direction",
   "Balancing expectations from high-pressure stakeholders",
 ];
-
 const CRISIS_RESPONSE = [
   "I stay calm and provide clear direction.",
   "I rally everyone to brainstorm solutions.",
@@ -78,7 +106,6 @@ const CRISIS_RESPONSE = [
   "I empower the team to take the lead while I support.",
   "I take a hands-on role to address the issue quickly.",
 ];
-
 const ROLE_MODEL_TRAIT = [
   "Connecting with people effortlessly",
   "Making tough decisions without hesitation",
@@ -88,7 +115,6 @@ const ROLE_MODEL_TRAIT = [
   "Explaining complex ideas simply",
   "Knowing when to step back and listen",
 ];
-
 const SUCCESS_METRIC = [
   "The team’s buzzing with energy and momentum.",
   "We hit our big goals or deadlines.",
@@ -97,7 +123,6 @@ const SUCCESS_METRIC = [
   "Collaboration was smooth and drama-free.",
   "Someone acknowledged the progress we made.",
 ];
-
 const WARNING_LABEL = [
   "Caution: May overthink the details.",
   "Warning: Moves fast—keep up!",
@@ -106,7 +131,6 @@ const WARNING_LABEL = [
   "Fragile: Avoid too much pushback.",
   "High voltage: Big ideas ahead.",
 ];
-
 const LEADER_FUEL = [
   "Seeing the team gel and succeed together",
   "Nailing a tough project on time",
@@ -115,7 +139,6 @@ const LEADER_FUEL = [
   "My team getting the recognition it deserves",
   "Turning chaos into order",
 ];
-
 const AGENTS = [
   "bluntPracticalFriend",
   "formalEmpatheticCoach",
@@ -125,9 +148,6 @@ const AGENTS = [
   "highSchoolCoach",
 ];
 
-// ---------------------------------------------------------
-// New: Open-ended statement pools (12–15 each)
-// ---------------------------------------------------------
 const PUSHBACK_FEELING_POOL = [
   "I feel energized by challenge and curious about the reasoning.",
   "A bit anxious but open to feedback and iteration.",
@@ -145,7 +165,6 @@ const PUSHBACK_FEELING_POOL = [
   "I propose a time-boxed experiment.",
   "I escalate only if we’re blocked on delivery.",
 ];
-
 const PROUD_MOMENT_POOL = [
   "Led a cross-team delivery under a tight deadline.",
   "Turned a failing project into a stable release.",
@@ -163,7 +182,6 @@ const PROUD_MOMENT_POOL = [
   "Established a feedback ritual the team actually uses.",
   "Unlocked a stuck negotiation with a simple reframing.",
 ];
-
 const SELF_REFLECTION_POOL = [
   "I need to delegate earlier and more clearly.",
   "I over-optimize details when speed matters.",
@@ -182,36 +200,6 @@ const SELF_REFLECTION_POOL = [
   "I can separate urgency from importance better.",
 ];
 
-const RESPONSIBILITIES_POOL = [
-  "Set strategy and translate it into quarterly goals.",
-  "Align cross-functional teams and clear roadblocks.",
-  "Coach and develop team members.",
-  "Prioritize roadmap with stakeholders.",
-  "Ensure on-time, high-quality delivery.",
-  "Communicate progress and risks.",
-  "Improve processes and team health.",
-  "Manage budgets and resource plans.",
-  "Drive customer-centric decisions.",
-  "Facilitate postmortems and learning.",
-  "Hire and onboard effectively.",
-  "Maintain standards and accountability.",
-  "Champion experimentation and learning loops.",
-  "Balance short-term wins with long-term bets.",
-  "Represent the team’s work to executives.",
-];
-
-// ---------------------------------------------------------
-// UI metadata describing how each field should render
-// ---------------------------------------------------------
-/**
- * type:
- *  - 'text'             -> single-line text field
- *  - 'number'           -> numeric dropdown
- *  - 'select'           -> single-select dropdown
- *  - 'multi'            -> multi-select with max
- *  - 'rank'             -> multiple rank dropdowns
- *  - 'open-choice'      -> dropdown of canned statements with a Free Text toggle
- */
 const QUESTION_META_ORDER = [
   'name',
   'industry',
@@ -237,13 +225,41 @@ const QUESTION_META_ORDER = [
 
 const QUESTION_META = {
   name: { label: 'Your Name', type: 'text' },
-  industry: { label: 'Your Industry', type: 'text' },
-  role: { label: 'Your Role/Title', type: 'text' },
+
+  industry: {
+    label: 'Your Industry',
+    type: 'open-choice',
+    options: INDUSTRY_POOL,
+    placeholder: 'Enter industry…',
+  },
+
+  role: {
+    label: 'Your Role/Title',
+    type: 'open-choice',
+    options: ROLE_TITLE_POOL,
+    placeholder: 'Enter role/title…',
+  },
 
   responsibilities: {
     label: 'Your Primary Responsibilities',
     type: 'open-choice',
-    options: RESPONSIBILITIES_POOL,
+    options: [
+      "Set strategy and translate it into quarterly goals.",
+      "Align cross-functional teams and clear roadblocks.",
+      "Coach and develop team members.",
+      "Prioritize roadmap with stakeholders.",
+      "Ensure on-time, high-quality delivery.",
+      "Communicate progress and risks.",
+      "Improve processes and team health.",
+      "Manage budgets and resource plans.",
+      "Drive customer-centric decisions.",
+      "Facilitate postmortems and learning.",
+      "Hire and onboard effectively.",
+      "Maintain standards and accountability.",
+      "Champion experimentation and learning loops.",
+      "Balance short-term wins with long-term bets.",
+      "Represent the team’s work to executives.",
+    ],
     placeholder: 'Describe your primary responsibilities…',
   },
 
@@ -348,24 +364,21 @@ const QUESTION_META = {
   },
 };
 
-// ---------------------------------------------------------
-// Component
-// ---------------------------------------------------------
 export default function DevSkipOne() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(null);
   const [aiSummary, setAiSummary] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Track free-text toggles for open-choice questions
   const [freeTextToggles, setFreeTextToggles] = useState({
+    industry: false,
+    role: false,
     responsibilities: false,
     pushbackFeeling: false,
     proudMoment: false,
     selfReflection: false,
   });
 
-  // Build numeric options for number fields
   const numberOptions = useMemo(() => {
     const make = (min, max) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
     return {
@@ -375,7 +388,6 @@ export default function DevSkipOne() {
     };
   }, []);
 
-  // Initialize session + random intake, write to Firestore, fetch summary
   useEffect(() => {
     (async () => {
       let sessionId = localStorage.getItem('sessionId');
@@ -387,28 +399,26 @@ export default function DevSkipOne() {
       const payload = {
         sessionId,
         name: "Dev User",
-        industry: "Technology",
-        role: "Team Lead",
-        responsibilities: pick(RESPONSIBILITIES_POOL),
+        industry: pick(INDUSTRY_POOL),
+        role: pick(ROLE_TITLE_POOL),
+        responsibilities: pick(QUESTION_META.responsibilities.options),
 
-        // sliders (match ranges in Intake)
         teamSize: rnd(1, 10),
         leadershipExperience: rnd(0, 10),
         careerExperience: rnd(0, 20),
 
-        // radios / multi / ranking / text
         resourcePick: pick(RESOURCE_PICK),
         coffeeImpression: pick(COFFEE_IMPRESSION),
         projectApproach: pick(PROJECT_APPROACH),
-        energyDrains: shuffle(ENERGY_DRAINS).slice(0, 3),               // multi (limit 3)
-        crisisResponse: shuffle(CRISIS_RESPONSE),                        // ranking (preserve order)
-        pushbackFeeling: pick(PUSHBACK_FEELING_POOL),                    // open-choice
-        roleModelTrait: shuffle(ROLE_MODEL_TRAIT).slice(0, 2),           // multi (limit 2)
+        energyDrains: shuffle(ENERGY_DRAINS).slice(0, 3),
+        crisisResponse: shuffle(CRISIS_RESPONSE),
+        pushbackFeeling: pick(PUSHBACK_FEELING_POOL),
+        roleModelTrait: shuffle(ROLE_MODEL_TRAIT).slice(0, 2),
         successMetric: pick(SUCCESS_METRIC),
         warningLabel: pick(WARNING_LABEL),
-        leaderFuel: shuffle(LEADER_FUEL),                                // ranking (order)
-        proudMoment: pick(PROUD_MOMENT_POOL),                            // open-choice
-        selfReflection: pick(SELF_REFLECTION_POOL),                      // open-choice
+        leaderFuel: shuffle(LEADER_FUEL),
+        proudMoment: pick(PROUD_MOMENT_POOL),
+        selfReflection: pick(SELF_REFLECTION_POOL),
         selectedAgent: pick(AGENTS),
 
         timestamp: new Date().toISOString(),
@@ -417,7 +427,6 @@ export default function DevSkipOne() {
       try {
         await setDoc(doc(db, 'responses', sessionId), payload, { merge: true });
 
-        // existing summary endpoint (POST)
         const res = await fetch('/get-ai-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -438,41 +447,29 @@ export default function DevSkipOne() {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
-
   const handleNumberChange = (key) => (e) => {
     const value = Number(e.target.value);
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
-
   const handleMultiChange = (key, max) => (e) => {
     let value = e.target.value;
-    if (Array.isArray(value) && max && value.length > max) {
-      value = value.slice(0, max);
-    }
+    if (Array.isArray(value) && max && value.length > max) value = value.slice(0, max);
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
-
-  // Ensure ranking arrays contain each option exactly once
   const handleRankChange = (key, idx) => (e) => {
     const selection = e.target.value;
     setFormData((prev) => {
       const current = Array.isArray(prev[key]) ? [...prev[key]] : [];
       const options = QUESTION_META[key].options;
-
-      // If the selection exists elsewhere, swap
       const existingIndex = current.findIndex((v) => v === selection);
       const newArr = [...current];
-
       if (existingIndex !== -1) {
-        // swap positions
         const tmp = newArr[idx];
         newArr[idx] = selection;
         newArr[existingIndex] = tmp;
       } else {
         newArr[idx] = selection;
       }
-
-      // Ensure every position filled with a unique option (fallback fill)
       const chosen = new Set(newArr.filter(Boolean));
       for (const opt of options) {
         if (chosen.size >= options.length) break;
@@ -487,12 +484,10 @@ export default function DevSkipOne() {
       return { ...prev, [key]: newArr };
     });
   };
-
   const toggleFreeText = (key) => (e) => {
     const checked = e.target.checked;
     setFreeTextToggles((prev) => ({ ...prev, [key]: checked }));
   };
-
   const handleOpenChoiceText = (key) => (e) => {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -501,9 +496,7 @@ export default function DevSkipOne() {
   const rerunSummary = async () => {
     if (!formData) return;
     setLoading(true);
-
     try {
-      // persist current formData for parity with flow
       await setDoc(doc(db, 'responses', formData.sessionId), {
         ...formData,
         timestamp: new Date().toISOString(),
@@ -523,29 +516,19 @@ export default function DevSkipOne() {
     }
   };
 
-  // Save random societal norms and go to campaign builder (unchanged)
   const saveRandomNormsAndGo = async () => {
     const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
-      console.warn('[DevSkip1] Missing sessionId; cannot write norms.');
-      return;
-    }
-
+    if (!sessionId) return;
     const responses = Array.from({ length: 32 }, () => Math.floor(Math.random() * 10) + 1);
-
     try {
       await setDoc(
         doc(db, 'societalNorms', sessionId),
         { sessionId, responses, timestamp: new Date().toISOString() },
         { merge: true }
       );
-
-      // persist summary for builder fallbacks
       if (aiSummary && aiSummary.trim() !== '') {
         localStorage.setItem('aiSummary', aiSummary);
       }
-
-      console.log('[DevSkip1] Norms saved. Going to /campaign-builder');
       navigate('/campaign-builder', { replace: true, state: { aiSummary: aiSummary || null } });
     } catch (e) {
       console.error('[DevSkip1] Failed to save norms:', e);
@@ -559,7 +542,6 @@ export default function DevSkipOne() {
       </Box>
     );
   }
-
   if (!formData) {
     return (
       <Box p={6}>
@@ -568,79 +550,114 @@ export default function DevSkipOne() {
     );
   }
 
-  // ---------------------------------------------------------
-  // Render helpers
-  // ---------------------------------------------------------
+  const Section = ({ title, children }) => (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        mb: 2,
+        borderRadius: 3,
+        border: '1px solid',
+        borderColor: 'divider',
+        background:
+          'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85))',
+        backdropFilter: 'blur(2px)',
+      }}
+    >
+      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+        {title}
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      <Stack spacing={1.5}>{children}</Stack>
+    </Paper>
+  );
+
+  const FieldCard = ({ children }) => (
+    <Card
+      variant="outlined"
+      sx={{
+        borderRadius: 2,
+        '&:hover': { borderColor: 'primary.light' },
+      }}
+    >
+      <CardContent sx={{ py: 1.5 }}>{children}</CardContent>
+    </Card>
+  );
+
   const renderNumber = (key, meta) => (
-    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-      <InputLabel>{meta.label}</InputLabel>
-      <Select
-        label={meta.label}
-        value={Number(formData[key] ?? meta.min)}
-        onChange={handleNumberChange(key)}
-        input={<OutlinedInput label={meta.label} />}
-      >
-        {numberOptions[key].map((n) => (
-          <MenuItem key={n} value={n}>{n}</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+    <FieldCard>
+      <FormControl fullWidth size="small">
+        <InputLabel>{meta.label}</InputLabel>
+        <Select
+          label={meta.label}
+          value={Number(formData[key] ?? meta.min)}
+          onChange={handleNumberChange(key)}
+          input={<OutlinedInput label={meta.label} />}
+        >
+          {numberOptions[key].map((n) => (
+            <MenuItem key={n} value={n}>{n}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </FieldCard>
   );
 
   const renderSelect = (key, meta) => (
-    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-      <InputLabel>{meta.label}</InputLabel>
-      <Select
-        label={meta.label}
-        value={formData[key] ?? ''}
-        onChange={handleSingleChange(key)}
-        input={<OutlinedInput label={meta.label} />}
-      >
-        {meta.options.map((opt) => (
-          <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+    <FieldCard>
+      <FormControl fullWidth size="small">
+        <InputLabel>{meta.label}</InputLabel>
+        <Select
+          label={meta.label}
+          value={formData[key] ?? ''}
+          onChange={handleSingleChange(key)}
+          input={<OutlinedInput label={meta.label} />}
+        >
+          {meta.options.map((opt) => (
+            <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </FieldCard>
   );
 
   const renderMulti = (key, meta) => {
     const selected = Array.isArray(formData[key]) ? formData[key] : [];
-    const overLimit = meta.max && selected.length > meta.max;
-
     return (
-      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel>{meta.label}</InputLabel>
-        <Select
-          multiple
-          value={selected}
-          onChange={handleMultiChange(key, meta.max)}
-          input={<OutlinedInput label={meta.label} />}
-          renderValue={(selected) => selected.join(', ')}
-        >
-          {meta.options.map((opt) => (
-            <MenuItem key={opt} value={opt}>
-              <Checkbox checked={selected.indexOf(opt) > -1} />
-              <ListItemText primary={opt} />
-            </MenuItem>
-          ))}
-        </Select>
-        {meta.max && (
-          <FormHelperText>
-            {selected.length}/{meta.max} selected
-            {overLimit ? ' — over the limit!' : ''}
-          </FormHelperText>
-        )}
-      </FormControl>
+      <FieldCard>
+        <FormControl fullWidth size="small">
+          <InputLabel>{meta.label}</InputLabel>
+          <Select
+            multiple
+            value={selected}
+            onChange={handleMultiChange(key, meta.max)}
+            input={<OutlinedInput label={meta.label} />}
+            renderValue={(sel) => (sel || []).join(', ')}
+          >
+            {meta.options.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                <Checkbox checked={selected.indexOf(opt) > -1} />
+                <ListItemText primary={opt} />
+              </MenuItem>
+            ))}
+          </Select>
+          {meta.max && (
+            <FormHelperText>
+              {(selected || []).length}/{meta.max} selected
+            </FormHelperText>
+          )}
+        </FormControl>
+      </FieldCard>
     );
   };
 
   const renderRank = (key, meta) => {
     const arr = Array.isArray(formData[key]) ? formData[key] : [];
     const options = meta.options;
-
     return (
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>{meta.label}</Typography>
+      <FieldCard>
+        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+          {meta.label}
+        </Typography>
         <Stack spacing={1}>
           {options.map((_, idx) => (
             <FormControl key={`${key}-${idx}`} size="small" fullWidth>
@@ -658,24 +675,18 @@ export default function DevSkipOne() {
             </FormControl>
           ))}
         </Stack>
-      </Box>
+      </FieldCard>
     );
   };
 
   const renderOpenChoice = (key, meta) => {
     const isFree = !!freeTextToggles[key];
-
     return (
-      <Box sx={{ mb: 2 }}>
+      <FieldCard>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-          <Typography variant="subtitle2">{meta.label}</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>{meta.label}</Typography>
           <FormControlLabel
-            control={
-              <Checkbox
-                checked={isFree}
-                onChange={toggleFreeText(key)}
-              />
-            }
+            control={<Checkbox checked={isFree} onChange={toggleFreeText(key)} />}
             label="Free Text"
           />
         </Stack>
@@ -704,79 +715,76 @@ export default function DevSkipOne() {
             onChange={handleOpenChoiceText(key)}
           />
         )}
-      </Box>
+      </FieldCard>
     );
   };
 
   const renderText = (key, meta) => (
-    <TextField
-      fullWidth
-      size="small"
-      label={meta.label}
-      value={formData[key] ?? ''}
-      onChange={handleSingleChange(key)}
-      sx={{ mb: 2 }}
-    />
+    <FieldCard>
+      <TextField
+        fullWidth
+        size="small"
+        label={meta.label}
+        value={formData[key] ?? ''}
+        onChange={handleSingleChange(key)}
+      />
+    </FieldCard>
   );
 
-  // ---------------------------------------------------------
-  // Main render
-  // ---------------------------------------------------------
   return (
     <Box sx={{
       p: 5, minHeight: '100vh', width: '100vw',
-      backgroundImage: 'linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.5)), url(/LEP1.jpg)',
+      backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP1.jpg)',
       backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'
     }}>
       <Container maxWidth="lg">
         <Typography variant="h4" sx={{ mb: 3, fontFamily: 'Gemunu Libre, sans-serif' }}>
-          Dev Skip 1 — Random Intake + Editable Answers + Re-run Summary
+          Dev Skip 1 — Editable Intake + Re-run Summary
         </Typography>
 
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-          {/* Left: Editable Questions */}
-          <Paper sx={{ p: 2, flex: 1, minWidth: 0 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>Questions (showing question text + editable answers)</Typography>
-            <Divider sx={{ mb: 2 }} />
-            {QUESTION_META_ORDER.map((key) => {
-              const meta = QUESTION_META[key];
-              if (!meta) return null;
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Section title="Profile">
+              {['name', 'industry', 'role', 'responsibilities'].map((key) => {
+                const meta = QUESTION_META[key];
+                if (!meta) return null;
+                if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
+                if (meta.type === 'text') return renderText(key, meta);
+                return null;
+              })}
+            </Section>
 
-              switch (meta.type) {
-                case 'text':
-                  return renderText(key, meta);
-                case 'number':
-                  return renderNumber(key, meta);
-                case 'select':
-                  return renderSelect(key, meta);
-                case 'multi':
-                  return renderMulti(key, meta);
-                case 'rank':
-                  return renderRank(key, meta);
-                case 'open-choice':
-                  return renderOpenChoice(key, meta);
-                default:
-                  return null;
-              }
-            })}
+            <Section title="Experience & Team">
+              {['teamSize', 'leadershipExperience', 'careerExperience'].map((key) =>
+                renderNumber(key, QUESTION_META[key])
+              )}
+            </Section>
+
+            <Section title="Styles & Preferences">
+              {['resourcePick', 'coffeeImpression', 'projectApproach', 'successMetric', 'warningLabel', 'selectedAgent'].map((key) =>
+                renderSelect(key, QUESTION_META[key])
+              )}
+              {['energyDrains', 'roleModelTrait'].map((key) =>
+                renderMulti(key, QUESTION_META[key])
+              )}
+              {['crisisResponse', 'leaderFuel'].map((key) =>
+                renderRank(key, QUESTION_META[key])
+              )}
+              {['pushbackFeeling', 'proudMoment', 'selfReflection'].map((key) =>
+                renderOpenChoice(key, QUESTION_META[key])
+              )}
+            </Section>
 
             <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
               <Button variant="contained" onClick={rerunSummary}>
                 Re-run Summary
               </Button>
             </Stack>
+          </Box>
 
-            <Divider sx={{ my: 2 }} />
-
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>Current Payload (debug)</Typography>
-            <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>
-              {JSON.stringify(formData, null, 2)}
-            </pre>
-          </Paper>
-
-          {/* Right: AI Summary */}
-          <Paper sx={{ p: 2, flex: 1, minWidth: 0 }}>
-            <Typography variant="h6">AI Summary</Typography>
+          <Paper sx={{ p: 2, flex: 1, minWidth: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>AI Summary</Typography>
+            <Divider sx={{ mb: 2 }} />
             <Typography sx={{ whiteSpace: 'pre-wrap' }}>{aiSummary}</Typography>
           </Paper>
         </Stack>
