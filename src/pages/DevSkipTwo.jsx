@@ -17,7 +17,7 @@ import {
   CardContent,
   Grid,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import CampaignBuilder from './CampaignBuilder';
@@ -87,10 +87,20 @@ const Section = ({ title, children }) => (
 
 export default function DevSkipTwo() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [sessionId, setSessionId] = useState(null);
   const [norms, setNorms] = useState(Array.from({ length: 32 }, () => rnd(1, 10)));
   const [loading, setLoading] = useState(true);
-  const [builderKey, setBuilderKey] = useState(0); // remount CampaignBuilder on save
+  const [builderKey, setBuilderKey] = useState(0);
+
+  // Ensure aiSummary is present for CampaignBuilder
+  useEffect(() => {
+    const passed = location.state?.aiSummary;
+    if (passed && typeof passed === 'string' && passed.trim()) {
+      localStorage.setItem('aiSummary', passed);
+    }
+  }, [location.state]);
+
 
   useEffect(() => {
     (async () => {
@@ -257,7 +267,13 @@ export default function DevSkipTwo() {
                 }}
               >
                 {/* If CampaignBuilder supports flags to hide summary fetching, pass them. Otherwise they will be ignored safely. */}
-                <CampaignBuilder key={builderKey} embedded hideSummary />
+                <CampaignBuilder
+  key={builderKey}
+  embedded
+  hideSummary
+  aiSummary={(typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || ''}
+/>
+
               </Box>
             </Paper>
           </Grid>
