@@ -761,19 +761,19 @@ export default function DevSkipOne() {
             </Section>
 
             <Section title="Styles & Preferences">
-              {['resourcePick', 'coffeeImpression', 'projectApproach', 'successMetric', 'warningLabel', 'selectedAgent'].map((key) =>
-                renderSelect(key, QUESTION_META[key])
-              )}
-              {['energyDrains', 'roleModelTrait'].map((key) =>
-                renderMulti(key, QUESTION_META[key])
-              )}
-              {['crisisResponse', 'leaderFuel'].map((key) =>
-                renderRank(key, QUESTION_META[key])
-              )}
-              {['pushbackFeeling', 'proudMoment', 'selfReflection'].map((key) =>
-                renderOpenChoice(key, QUESTION_META[key])
-              )}
-            </Section>
+  {['resourcePick', 'coffeeImpression', 'projectApproach', 'successMetric', 'warningLabel'].map((key) =>
+    renderSelect(key, QUESTION_META[key])
+  )}
+  {['energyDrains', 'roleModelTrait'].map((key) =>
+    renderMulti(key, QUESTION_META[key])
+  )}
+  {['crisisResponse', 'leaderFuel'].map((key) =>
+    renderRank(key, QUESTION_META[key])
+  )}
+  {['pushbackFeeling', 'proudMoment', 'selfReflection'].map((key) =>
+    renderOpenChoice(key, QUESTION_META[key])
+  )}
+</Section>
 
             <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
               <Button variant="contained" onClick={rerunSummary}>
@@ -783,10 +783,31 @@ export default function DevSkipOne() {
           </Box>
 
           <Paper sx={{ p: 2, flex: 1, minWidth: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>AI Summary</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Typography sx={{ whiteSpace: 'pre-wrap' }}>{aiSummary}</Typography>
-          </Paper>
+  {/* Agent Persona moved here */}
+  <Box sx={{ mb: 2 }}>
+    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+      {QUESTION_META.selectedAgent.label}
+    </Typography>
+    <FormControl fullWidth size="small">
+      <InputLabel>{QUESTION_META.selectedAgent.label}</InputLabel>
+      <Select
+        label={QUESTION_META.selectedAgent.label}
+        value={formData.selectedAgent ?? ''}
+        onChange={handleSingleChange('selectedAgent')}
+        input={<OutlinedInput label={QUESTION_META.selectedAgent.label} />}
+      >
+        {QUESTION_META.selectedAgent.options.map((opt) => (
+          <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </Box>
+
+  <Typography variant="h6" sx={{ mb: 1 }}>AI Summary</Typography>
+  <Divider sx={{ mb: 2 }} />
+  <Typography sx={{ whiteSpace: 'pre-wrap' }}>{aiSummary}</Typography>
+</Paper>
+
         </Stack>
 
         <Stack direction="row" spacing={2} sx={{ mt: 2, flexWrap: 'wrap' }}>
