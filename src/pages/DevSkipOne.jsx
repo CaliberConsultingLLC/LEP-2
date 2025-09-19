@@ -744,15 +744,23 @@ export default function DevSkipOne() {
 
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Section title="Profile">
-              {['name', 'industry', 'role', 'responsibilities'].map((key) => {
-                const meta = QUESTION_META[key];
-                if (!meta) return null;
-                if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
-                if (meta.type === 'text') return renderText(key, meta);
-                return null;
-              })}
-            </Section>
+  {/* Moved here: three buttons left-to-right */}
+  <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
+    <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
+    <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
+    <Button variant="outlined" onClick={saveRandomNormsAndGo}>Dev Skip Norms → Campaign Builder</Button>
+  </Stack>
+
+  <Section title="Profile">
+    {['name', 'industry', 'role', 'responsibilities'].map((key) => {
+      const meta = QUESTION_META[key];
+      if (!meta) return null;
+      if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
+      if (meta.type === 'text') return renderText(key, meta);
+      return null;
+    })}
+  </Section>
+
 
             <Section title="Experience & Team">
               {['teamSize', 'leadershipExperience', 'careerExperience'].map((key) =>
@@ -774,12 +782,6 @@ export default function DevSkipOne() {
     renderOpenChoice(key, QUESTION_META[key])
   )}
 </Section>
-
-            <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
-              <Button variant="contained" onClick={rerunSummary}>
-                Re-run Summary
-              </Button>
-            </Stack>
           </Box>
 
           <Paper sx={{ p: 2, flex: 1, minWidth: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -810,14 +812,7 @@ export default function DevSkipOne() {
 
         </Stack>
 
-        <Stack direction="row" spacing={2} sx={{ mt: 2, flexWrap: 'wrap' }}>
-          <Button variant="contained" onClick={() => navigate('/summary')}>
-            Open Summary Page
-          </Button>
-          <Button variant="outlined" onClick={saveRandomNormsAndGo}>
-            Dev Skip Norms → Campaign Builder
-          </Button>
-        </Stack>
+    
       </Container>
     </Box>
   );
