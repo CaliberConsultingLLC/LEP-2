@@ -20,7 +20,9 @@ import {
   FormHelperText,
   Card,
   CardContent,
+  Grid,
 } from '@mui/material';
+
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -742,88 +744,78 @@ export default function DevSkipOne() {
           Dev Skip 1 — Editable Intake + Re-run Summary
         </Typography>
 
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-  <Section title="Actions">
-    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-      <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
-      <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
-      <Button variant="outlined" onClick={saveRandomNormsAndGo}>Dev Skip Norms → Campaign Builder</Button>
-    </Stack>
-  </Section>
-
-  <Section title="Profile">
-    {['name', 'industry', 'role', 'responsibilities'].map((key) => {
-      const meta = QUESTION_META[key];
-      if (!meta) return null;
-      if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
-      if (meta.type === 'text') return renderText(key, meta);
-      return null;
-    })}
-  </Section>
-
-
-  <Section title="Profile">
-    {['name', 'industry', 'role', 'responsibilities'].map((key) => {
-      const meta = QUESTION_META[key];
-      if (!meta) return null;
-      if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
-      if (meta.type === 'text') return renderText(key, meta);
-      return null;
-    })}
-  </Section>
-
-
-            <Section title="Experience & Team">
-              {['teamSize', 'leadershipExperience', 'careerExperience'].map((key) =>
-                renderNumber(key, QUESTION_META[key])
-              )}
-            </Section>
-
-            <Section title="Styles & Preferences">
-  {['resourcePick', 'coffeeImpression', 'projectApproach', 'successMetric', 'warningLabel'].map((key) =>
-    renderSelect(key, QUESTION_META[key])
-  )}
-  {['energyDrains', 'roleModelTrait'].map((key) =>
-    renderMulti(key, QUESTION_META[key])
-  )}
-  {['crisisResponse', 'leaderFuel'].map((key) =>
-    renderRank(key, QUESTION_META[key])
-  )}
-  {['pushbackFeeling', 'proudMoment', 'selfReflection'].map((key) =>
-    renderOpenChoice(key, QUESTION_META[key])
-  )}
-</Section>
-          </Box>
-
-          <Paper sx={{ p: 2, minWidth: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider', alignSelf: 'flex-start' }}>
-  {/* Agent Persona moved here */}
-  <Box sx={{ mb: 2 }}>
-    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-      {QUESTION_META.selectedAgent.label}
-    </Typography>
-    <FormControl fullWidth size="small">
-      <InputLabel>{QUESTION_META.selectedAgent.label}</InputLabel>
-      <Select
-        label={QUESTION_META.selectedAgent.label}
-        value={formData.selectedAgent ?? ''}
-        onChange={handleSingleChange('selectedAgent')}
-        input={<OutlinedInput label={QUESTION_META.selectedAgent.label} />}
-      >
-        {QUESTION_META.selectedAgent.options.map((opt) => (
-          <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </Box>
-
-  <Typography variant="h6" sx={{ mb: 1 }}>AI Summary</Typography>
-  <Divider sx={{ mb: 2 }} />
-  <Typography sx={{ whiteSpace: 'pre-wrap' }}>{aiSummary}</Typography>
-</Paper>
-
-
+        <Grid container spacing={2} alignItems="flex-start">
+  <Grid item xs={12} md={6}>
+    <Box sx={{ minWidth: 0 }}>
+      <Section title="Actions">
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
+          <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
+          <Button variant="outlined" onClick={saveRandomNormsAndGo}>Dev Skip Norms → Campaign Builder</Button>
         </Stack>
+      </Section>
+
+      <Section title="Profile">
+        {['name', 'industry', 'role', 'responsibilities'].map((key) => {
+          const meta = QUESTION_META[key];
+          if (!meta) return null;
+          if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
+          if (meta.type === 'text') return renderText(key, meta);
+          return null;
+        })}
+      </Section>
+
+      <Section title="Experience & Team">
+        {['teamSize', 'leadershipExperience', 'careerExperience'].map((key) =>
+          renderNumber(key, QUESTION_META[key])
+        )}
+      </Section>
+
+      <Section title="Styles & Preferences">
+        {['resourcePick', 'coffeeImpression', 'projectApproach', 'successMetric', 'warningLabel'].map((key) =>
+          renderSelect(key, QUESTION_META[key])
+        )}
+        {['energyDrains', 'roleModelTrait'].map((key) =>
+          renderMulti(key, QUESTION_META[key])
+        )}
+        {['crisisResponse', 'leaderFuel'].map((key) =>
+          renderRank(key, QUESTION_META[key])
+        )}
+        {['pushbackFeeling', 'proudMoment', 'selfReflection'].map((key) =>
+          renderOpenChoice(key, QUESTION_META[key])
+        )}
+      </Section>
+    </Box>
+  </Grid>
+
+  <Grid item xs={12} md={6}>
+    <Paper sx={{ p: 2, minWidth: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+          {QUESTION_META.selectedAgent.label}
+        </Typography>
+        <FormControl fullWidth size="small">
+          <InputLabel>{QUESTION_META.selectedAgent.label}</InputLabel>
+          <Select
+            label={QUESTION_META.selectedAgent.label}
+            value={formData.selectedAgent ?? ''}
+            onChange={handleSingleChange('selectedAgent')}
+            input={<OutlinedInput label={QUESTION_META.selectedAgent.label} />}
+          >
+            {QUESTION_META.selectedAgent.options.map((opt) => (
+              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Typography variant="h6" sx={{ mb: 1 }}>AI Summary</Typography>
+      <Divider sx={{ mb: 2 }} />
+      <Typography sx={{ whiteSpace: 'pre-wrap' }}>{aiSummary}</Typography>
+    </Paper>
+  </Grid>
+</Grid>
+
 
     
       </Container>
