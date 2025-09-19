@@ -111,15 +111,14 @@ const [campaignError, setCampaignError] = useState('');
 
   // Helper: fetch campaign text (no UI from builder)
 const fetchCampaign = async () => {
-  if (!sessionId || !summary) {
-    setCampaignError('Missing session or summary.');
-    return;
-  }
+  // allow the readiness effect to trigger later without flashing an error
+  const s = summary || (typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || '';
+  if (!sessionId || !s) return;
+
   setCampaignLoading(true);
   setCampaignError('');
   try {
-    const body = JSON.stringify({ sessionId, aiSummary: summary });
-    // Try /api route first, then fallback
+    const body = JSON.stringify({ sessionId, aiSummary: s });
     const res = await fetch('/api/get-campaign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -141,6 +140,14 @@ const fetchCampaign = async () => {
   }
 };
 
+
+// When both are ready, fetch the campaign text
+useEffect(() => {
+  if (!loading && sessionId && summary) {
+    fetchCampaign();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [loading, sessionId, summary]);
 
 
   useEffect(() => {
@@ -178,9 +185,9 @@ const fetchCampaign = async () => {
         console.error('[DevSkipTwo] init norms error:', e);
       } finally {
   setLoading(false);
-  // kick off initial campaign fetch once we have a session & norms
-  setTimeout(() => fetchCampaign(), 0);
+  // no fetch here; we wait for summary + sessionId readiness
 }
+
 
     })();
   }, []);
