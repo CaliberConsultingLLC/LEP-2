@@ -435,8 +435,12 @@ export default function DevSkipOne() {
           body: JSON.stringify(payload),
         });
         const data = await res.json();
-        setFormData(payload);
-        setAiSummary(data.aiSummary || '(no summary returned)');
+setFormData(payload);
+setAiSummary(data.aiSummary || '(no summary returned)');
+if (data.aiSummary && data.aiSummary.trim()) {
+  localStorage.setItem('aiSummary', data.aiSummary);
+}
+
       } catch (e) {
         console.error('[DevSkip1] error:', e);
       } finally {
@@ -510,7 +514,11 @@ export default function DevSkipOne() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      setAiSummary(data.aiSummary || '(no summary returned)');
+setAiSummary(data.aiSummary || '(no summary returned)');
+if (data.aiSummary && data.aiSummary.trim()) {
+  localStorage.setItem('aiSummary', data.aiSummary);
+}
+
     } catch (e) {
       console.error('[DevSkip1] rerun summary error:', e);
     } finally {
