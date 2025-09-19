@@ -88,24 +88,29 @@ export default function DevSkipTwo() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sessionId, setSessionId] = useState(null);
-  const [norms, setNorms] = useState(Array.from({ length: 32 }, () => rnd(1, 10)));
-  const [loading, setLoading] = useState(true);
-  const [campaignText, setCampaignText] = useState('');
+const [norms, setNorms] = useState(Array.from({ length: 32 }, () => rnd(1, 10)));
+const [loading, setLoading] = useState(true);
+
+const [summary, setSummary] = useState('');
+const [campaignText, setCampaignText] = useState('');
 const [campaignLoading, setCampaignLoading] = useState(false);
 const [campaignError, setCampaignError] = useState('');
 
 
   // Ensure aiSummary is present for CampaignBuilder
-  useEffect(() => {
-    const passed = location.state?.aiSummary;
-    if (passed && typeof passed === 'string' && passed.trim()) {
-      localStorage.setItem('aiSummary', passed);
-    }
-  }, [location.state]);
+ useEffect(() => {
+  const passed = location.state?.aiSummary;
+  const fromLS = (typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || '';
+  const s = (passed && passed.trim()) ? passed : fromLS;
+  if (passed && passed.trim()) {
+    localStorage.setItem('aiSummary', passed);
+  }
+  if (s && s.trim()) setSummary(s.trim());
+}, [location.state]);
+
 
   // Helper: fetch campaign text (no UI from builder)
 const fetchCampaign = async () => {
-  const summary = (typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || '';
   if (!sessionId || !summary) {
     setCampaignError('Missing session or summary.');
     return;
@@ -113,27 +118,21 @@ const fetchCampaign = async () => {
   setCampaignLoading(true);
   setCampaignError('');
   try {
-    // Try the builder API endpoint first
+    const body = JSON.stringify({ sessionId, aiSummary: summary });
+    // Try /api route first, then fallback
     const res = await fetch('/api/get-campaign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ sessionId, aiSummary: summary }),
+      body
     });
-
-    if (!res.ok) {
-      // fallback path if your route is without /api
-      const res2 = await fetch('/get-campaign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ sessionId, aiSummary: summary }),
-      });
-      if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
-      const data2 = await res2.json();
-      setCampaignText(data2.campaignText || data2.text || '');
-    } else {
-      const data = await res.json();
-      setCampaignText(data.campaignText || data.text || '');
-    }
+    const finalRes = res.ok ? res : await fetch('/get-campaign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body
+    });
+    if (!finalRes.ok) throw new Error(`HTTP ${finalRes.status}`);
+    const data = await finalRes.json();
+    setCampaignText(data.campaignText || data.text || '');
   } catch (e) {
     console.error('[DevSkipTwo] fetchCampaign error:', e);
     setCampaignError('Failed to load campaign.');
@@ -141,6 +140,7 @@ const fetchCampaign = async () => {
     setCampaignLoading(false);
   }
 };
+
 
 
   useEffect(() => {
@@ -212,9 +212,10 @@ const fetchCampaign = async () => {
   } catch (e) {
     console.error('[DevSkipTwo] save norms error:', e);
   } finally {
-    setLoading(false);
-    fetchCampaign(); // refresh text
-  }
+  setLoading(false);
+  fetchCampaign();
+}
+
 };
 
 
