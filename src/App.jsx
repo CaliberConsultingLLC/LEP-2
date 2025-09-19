@@ -12,7 +12,8 @@ import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
 import SocietalNormAssessment from './pages/SocietalNormAssessment';
-import DevSkipOne from './pages/DevSkipOne'
+import DevSkipOne from './pages/DevSkipOne';
+import DevSkipTwo from './pages/DevSkipTwo'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
   <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
   <Route path="/dashboard" element={<Dashboard />} />
   <Route path="/dev-skip-1" element={<DevSkipOne />} />
+  <Route path="/dev-skip-two" element={<DevSkipTwo />} />
  
 
   <Route path="*" element={<Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>No match found</Typography>} />
