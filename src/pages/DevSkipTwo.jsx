@@ -157,45 +157,6 @@ const fetchCampaign = async () => {
 };
 
 
-  try {
-    // 1) Most backends only need sessionId (they read Firestore)
-    // 2) If that fails, include aiSummary explicitly
-    // 3) Try common endpoint variants
-    const attempts = [
-      ['/api/get-campaign', { sessionId }],
-      ['/get-campaign',    { sessionId }],
-      ['/api/get-campaign', { sessionId, aiSummary: s }],
-      ['/get-campaign',     { sessionId, aiSummary: s }],
-      // last resort alt names your server might use:
-      ['/api/campaign',    { sessionId }],
-      ['/campaign',        { sessionId }],
-    ];
-
-    let result = '';
-    let lastErr = null;
-    for (const [url, payload] of attempts) {
-      try {
-        result = await tryRequest(url, payload);
-        if (result && result.trim()) break;
-      } catch (e) {
-        lastErr = e;
-      }
-    }
-
-    if (!result || !result.trim()) {
-      if (lastErr) console.error('[DevSkipTwo] campaign attempts error:', lastErr);
-      setCampaignError('No campaign content returned.');
-      setCampaignText('');
-    } else {
-      setCampaignText(result.trim());
-    }
-  } catch (e) {
-    console.error('[DevSkipTwo] fetchCampaign error:', e);
-    setCampaignError('Failed to load campaign.');
-  } finally {
-    setCampaignLoading(false);
-  }
-};
 
 
 
