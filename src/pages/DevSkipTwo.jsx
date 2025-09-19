@@ -93,6 +93,7 @@ const [loading, setLoading] = useState(true);
 
 const [summary, setSummary] = useState('');
 const [campaignText, setCampaignText] = useState('');
+const [campaignData, setCampaignData] = useState(null); // ← array of {trait, statements}
 const [campaignLoading, setCampaignLoading] = useState(false);
 const [campaignError, setCampaignError] = useState('');
 
@@ -111,33 +112,50 @@ const [campaignError, setCampaignError] = useState('');
 
   // Helper: fetch campaign text (no UI from builder)
 const fetchCampaign = async () => {
-  // allow readiness effect to trigger later without flashing an error
   const s = summary || (typeof window !== 'undefined' && localStorage.getItem('aiSummary')) || '';
-  if (!sessionId) return;
+  if (!sessionId || !s) return; // wait until ready
 
   setCampaignLoading(true);
   setCampaignError('');
   setCampaignText('');
+  setCampaignData(null);
 
-  // helpers
-  const tryRequest = async (url, payload) => {
-    const res = await fetch(url, {
+  try {
+    // The API expects { aiSummary } and returns { campaign: [...] }
+    // See repo api/get-campaign.js and CampaignBuilder.jsx.
+    const res = await fetch('/api/get-campaign', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': '*/*' },
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ aiSummary: s })
     });
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    // Try JSON first; if it fails, read as text
     const ct = res.headers.get('content-type') || '';
     if (ct.includes('application/json')) {
       const data = await res.json();
-      return data.campaignText || data.text || '';
+      if (Array.isArray(data?.campaign)) {
+        setCampaignData(data.campaign);   // ← use structured data
+      } else {
+        // tolerate legacy/text
+        const fallback = (data.campaignText || data.text || '').trim();
+        if (!fallback) throw new Error('Empty campaign payload');
+        setCampaignText(fallback);
+      }
     } else {
-      const text = await res.text();
-      return text || '';
+      // rare: plain text response
+      const txt = (await res.text()).trim();
+      if (!txt) throw new Error('Empty campaign text');
+      setCampaignText(txt);
     }
-  };
+  } catch (e) {
+    console.error('[DevSkipTwo] fetchCampaign error:', e);
+    setCampaignError('Failed to load campaign: ' + e.message);
+  } finally {
+    setCampaignLoading(false);
+  }
+};
+
 
   try {
     // 1) Most backends only need sessionId (they read Firestore)
@@ -360,26 +378,49 @@ useEffect(() => {
   </Typography>
 )}
 
-{!campaignLoading && !campaignError && !!campaignText && (
+{!campaignLoading && !campaignError && (campaignData || campaignText) && (
   <Box sx={{ maxHeight: '70vh', overflow: 'auto', pr: 1 }}>
-    <Stack spacing={1}>
-      {(() => {
-        const lines = (campaignText || '')
-          .split(/\r?\n/)
-          .map((l) => l.trim())
-          .filter(Boolean);
-        return lines.map((line, i) => (
-          <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
-            <Box sx={{ mt: '6px' }}>•</Box>
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-              {line.replace(/^[-*•]\s*/, '')}
+    {campaignData ? (
+      <Stack spacing={2}>
+        {campaignData.map((item, i) => (
+          <Box key={i}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {item.trait}
             </Typography>
-          </Stack>
-        ));
-      })()}
-    </Stack>
+            <Stack spacing={0.5}>
+              {item.statements.map((st, j) => (
+                <Stack key={j} direction="row" spacing={1} alignItems="flex-start">
+                  <Box sx={{ mt: '6px' }}>•</Box>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {st}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
+    ) : (
+      <Stack spacing={1}>
+        {(() => {
+          const lines = (campaignText || '')
+            .split(/\r?\n/)
+            .map((l) => l.trim())
+            .filter(Boolean);
+          return lines.map((line, i) => (
+            <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
+              <Box sx={{ mt: '6px' }}>•</Box>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                {line.replace(/^[-*•]\s*/, '')}
+              </Typography>
+            </Stack>
+          ));
+        })()}
+      </Stack>
+    )}
   </Box>
 )}
+
 
 </Paper>
 
