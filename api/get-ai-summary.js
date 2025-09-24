@@ -136,8 +136,8 @@ INSTRUCTIONS:
 
     // Call OpenAI
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // keep stable; switch to 'gpt-5' only if available in your account
-      max_tokens: 700,
+      model: 'gpt-5', // keep stable; switch to 'gpt-5' only if available in your account
+      max_tokens: 600,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
