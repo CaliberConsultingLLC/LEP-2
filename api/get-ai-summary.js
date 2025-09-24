@@ -280,13 +280,13 @@ INSTRUCTIONS:
 const completion = await openai.chat.completions.create({
   model: 'gpt-4o-mini',
   max_tokens: 600,
-  temperature: p.temperature ?? 0.35,
-  frequency_penalty: p.frequency_penalty ?? 0.2,
-  presence_penalty: p.presence_penalty ?? 0.0,
+  temperature: agents[selectedAgent]?.params?.temperature ?? 0.35,
+  frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
+  presence_penalty: agents[selectedAgent]?.params?.presence_penalty ?? 0.0,
   messages: [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
-  ]
+    { role: 'user', content: userPrompt },
+  ],
 });
 
 
