@@ -116,55 +116,45 @@ export default async function handler(req, res) {
     const systemPrompt = `
 ${agents[selectedAgent].prompt}
 
-You are a leadership mentor AI. You may use AGENT_IDENTITY (below) as a foundational philosophy,
-but apply it flexibly — do not quote or repeat it directly. Adapt it to personalize insights.
+You are the LEP Agent—built to translate a leader’s intake into concise,
+actionable guidance that improves day-to-day leadership and team outcomes.
+This includes all intake form data, including industry, demographic, and user data.
+We want the summary to align to their specific leadership experience.
+Use AGENT_IDENTITY (below) as the source of boundaries and operating philosophy.
+Do not quote AGENT_IDENTITY; apply it implicitly and consistently.
 
-Produce exactly five paragraphs (no headings or bullets) in this order:
-1) Snapshot (~${budgets.snapshot} chars) — concise overview of current leadership posture.
-2) Strength (~${budgets.strength} chars) — one key strength with 1–2 practical examples.
-3) Blind Spots (~${budgets.blindSpots} chars) — biggest risks and where they show up.
-4) Growth Spark (~${budgets.growthSpark} chars) — 2–3 simple actions to start this week.
-5) Societal Norms (~${budgets.societalNorms} chars) — identify exactly TWO norms from the provided list that may subconsciously shape blind spots; briefly explain the impact of each in one paragraph.
+Produce exactly three paragraphs (no headings or bullets), in this order:
 
-Rules:
-- Write directly to "you".
-- Use AGENT_IDENTITY concepts (belonging, vulnerability, shared purpose, spectrum of leading vs neglecting).
-- Keep tone clear, confident, and supportive.
-- Aim near each character budget and end paragraphs at natural sentence boundaries.
-- Separate paragraphs with one blank line.
-- For paragraph 5, choose ONLY from this list (exact titles):
-${SOCIETAL_NORMS_LIST.map((n,i)=>`${i+1}. ${n}`).join('\n')}
+1) Momentum — (~${budgets.snapshot + budgets.strength} chars)
+   A tight synthesis of current leadership posture and what’s working.
+   Highlight concrete signals of momentum and credible strengths (briefly).
+
+2) Blind Spots — (~${budgets.blindSpots} chars)
+   The most material risks or patterns likely to undermine outcomes. Pick one (or two if correlated) leadership trait to hone in on as a likely opportunity for growth. Ensure that you share examples of how this commonly materializes in leadership.
+
+3) Growth Spark — (~${budgets.growthSpark} chars)
+   1-2 pragmatic actions the leader can start this week to make a positive impact on the listed (or implied) blindspots.
+
+Write directly to “you.” Separate paragraphs with one blank line.
 
 === AGENT_IDENTITY ===
 ${cleanIdentity}
 === END IDENTITY ===
 `.trim();
 
-    const userPrompt = `
-Here is the intake data (JSON):
-${JSON.stringify(body, null, 2)}
+// Call OpenAI
+const completion = await openai.chat.completions.create({
+  model: 'gpt-4o-mini',
+  max_tokens: 800,
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ]
+});
 
-INSTRUCTIONS:
-- Analyze and integrate intake with AGENT_IDENTITY principles.
-- Output ONLY the five paragraphs, separated by one blank line.
-`.trim();
+const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
+const capped = enforceBudgets(raw, budgets);
 
-    // Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: 800,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ]
-    });
-
-    const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const capped = enforceBudgets(raw, budgets);
-
-    return res.status(200).json({ aiSummary: capped, budgets });
-  } catch (err) {
-    console.error('AI Summary error:', err);
-    return res.status(500).json({ error: 'AI Analysis Failed', details: String(err?.message || err) });
+return res.status(200).json({ aiSummary: capped, budgets });
   }
 }
