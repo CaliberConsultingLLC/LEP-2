@@ -25,17 +25,16 @@ function clipSentenceSafe(text, limit) {
 // Apply per-section budgets to exactly 5 paragraphs
 function enforceBudgets(text, budgets) {
   const parts = text.split(/\n\s*\n/).map(s => s.trim());
-  while (parts.length < 5) parts.push('');
-  const [p1, p2, p3, p4, p5] = parts.slice(0, 5);
+  while (parts.length < 3) parts.push('');
+  const [p1,p2,p3] = parts.slice(0,3);
 
-  const out1 = clipSentenceSafe(p1, budgets.snapshot);
-  const out2 = clipSentenceSafe(p2, budgets.strength);
-  const out3 = clipSentenceSafe(p3, budgets.blindSpots);
-  const out4 = clipSentenceSafe(p4, budgets.growthSpark);
-  const out5 = clipSentenceSafe(p5, budgets.societalNorms);
+  const out1 = clipToChars(p1, budgets.momentum);
+  const out2 = clipToChars(p2, budgets.blindSpots);
+  const out3 = clipToChars(p3, budgets.growthSpark);
 
-  return [out1, out2, out3, out4, out5].join('\n\n');
+  return [out1, out2, out3].join('\n\n');
 }
+
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -69,22 +68,13 @@ export default async function handler(req, res) {
 
     // Character budget allocation
     const TOTAL = Math.max(900, Math.min(Number(charLimit) || 2200, 2800));
-    const MAIN = Math.round(TOTAL * 0.9);
-    const budgets = {
-      snapshot: Math.round(MAIN * 0.25),
-      strength: Math.round(MAIN * 0.20),
-      blindSpots: Math.round(MAIN * 0.30),
-      growthSpark: Math.round(MAIN * 0.25),
-      societalNorms: Math.max(
-        120,
-        TOTAL - (
-          Math.round(MAIN * 0.25) +
-          Math.round(MAIN * 0.20) +
-          Math.round(MAIN * 0.30) +
-          Math.round(MAIN * 0.25)
-        )
-      )
-    };
+const MAIN  = Math.round(TOTAL * 0.9);
+const budgets = {
+  momentum:     Math.round(MAIN * 0.45), // snapshot+strength
+  blindSpots:   Math.round(MAIN * 0.30),
+  growthSpark:  Math.round(MAIN * 0.25),
+};
+
 
     const SOCIETAL_NORMS_LIST = [
       "A good fit is subservient to skill proficiency",
@@ -144,13 +134,14 @@ ${cleanIdentity}
 
 // Call OpenAI
 const completion = await openai.chat.completions.create({
-  model: 'gpt-4o-mini',
-  max_tokens: 800,
+  model: 'gpt-5', // per request
+  max_tokens: 600,
   messages: [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
+    { role: 'user',   content: userPrompt }
   ]
 });
+
 
 const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
 const capped = enforceBudgets(raw, budgets);
