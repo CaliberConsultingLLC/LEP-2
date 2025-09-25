@@ -165,20 +165,22 @@ function CampaignBuilder() {
 
   return (
     <Box
-      sx={{
-        p: 5,
-        minHeight: '100vh',
-        width: '100vw',
-        backgroundImage:
-          'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+  sx={{
+    p: 5,
+    minHeight: '100vh',
+    width: '100%',
+    overflowX: 'hidden',
+    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP2.jpg)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}
+>
+
       <Container maxWidth="md" sx={{ textAlign: 'center', position: 'relative' }}>
         {isLoading ? (
           <Stack

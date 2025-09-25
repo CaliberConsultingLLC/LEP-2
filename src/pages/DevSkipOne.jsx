@@ -743,10 +743,17 @@ if (data.aiSummary && data.aiSummary.trim()) {
 
   return (
     <Box sx={{
-      p: 5, minHeight: '100vh', width: '100vw',
-      backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP1.jpg)',
-      backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'
-    }}>
+  p: 5,
+  minHeight: '100vh',
+  width: '100%',
+  overflowX: 'hidden',
+  backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP2.jpg)',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  backgroundAttachment: 'fixed',
+}}>
+
       <Container maxWidth="lg">
         <Typography variant="h4" sx={{ mb: 3, fontFamily: 'Gemunu Libre, sans-serif' }}>
           Dev Skip 1 — Editable Intake + Re-run Summary
