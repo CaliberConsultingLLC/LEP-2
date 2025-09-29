@@ -1,50 +1,176 @@
-import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Slider,
-  Button,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Card,
-  CardContent,
-  CardActions,
-  Grid,
-  LinearProgress
+  Container, Box, Typography, TextField, Slider, Button, Stack,
+  ToggleButton, ToggleButtonGroup, Card, CardContent, CardActions, Grid, LinearProgress
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-// ---- Memoized MUI (minor perf nicety) ---------------------------------------
+// ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
 const MemoSlider = memo(Slider);
 const MemoButton = memo(Button);
 const MemoToggleButton = memo(ToggleButton);
+const MemoBox = memo(Box);
+const MemoCard = memo(Card);
 
-// ---- Intake Form -------------------------------------------------------------
+// ---------- Styled helpers ----------
+const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' }) => {
+  const progress = Math.min(100, Math.max(0, Math.round((step / total) * 100)));
+
+  return (
+    <Box
+      sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 5,
+        width: '100%',
+        backdropFilter: 'saturate(120%) blur(6px)',
+        background: 'linear-gradient(180deg, rgba(18,18,18,0.75), rgba(18,18,18,0.55))',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      <Container maxWidth="lg" sx={{ py: 1.25 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 56 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+  <Box sx={{ width: 26, height: 26 }}>
+    {/* If you have /public/lep-logo.svg it will render; otherwise fallback text */}
+    <img
+      src="/lep-logo.svg"
+      alt="LEP"
+      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+      style={{ width: 26, height: 26 }}
+    />
+    <Typography
+      variant="subtitle1"
+      sx={{
+        display: { xs: 'inline', sm: 'inline' },
+        ml: 0.5,
+        color: 'rgba(255,255,255,0.9)',
+        fontWeight: 700,
+        letterSpacing: 0.4,
+      }}
+    >
+      LEP
+    </Typography>
+  </Box>
+</Stack>
+
+
+          <Typography
+            variant="subtitle1"
+            sx={{
+              textAlign: 'center',
+              color: 'rgba(255,255,255,0.92)',
+              fontWeight: 600,
+              letterSpacing: 0.3,
+              flex: 1
+            }}
+          >
+            {sectionLabel}
+          </Typography>
+
+          <Typography
+            variant="subtitle2"
+            sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600, minWidth: 88, textAlign: 'right' }}
+          >
+            Step {step} / {total}
+          </Typography>
+        </Stack>
+      </Container>
+      <LinearProgress
+        variant="determinate"
+        value={progress}
+        sx={{
+          height: 4,
+          bgcolor: 'rgba(255,255,255,0.06)',
+          '& .MuiLinearProgress-bar': { backgroundColor: '#E07A3F' },
+        }}
+      />
+    </Box>
+  );
+};
+
+const SectionCard = ({ children }) => (
+  <MemoCard
+    elevation={0}
+    sx={{
+      width: '100%',
+      borderRadius: 3,
+      border: '1px solid rgba(255,255,255,0.14)',
+      background:
+        'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+      boxShadow:
+        '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+      overflow: 'hidden',
+    }}
+  >
+    <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
+  </MemoCard>
+);
+
+// “Card button” for radio / multi-select
+const OptionCard = ({ selected, children, onClick, disabled }) => (
+  <Box
+    onClick={disabled ? undefined : onClick}
+    role="button"
+    tabIndex={0}
+    onKeyDown={(e) => (e.key === 'Enter' ? onClick?.() : null)}
+    sx={{
+      userSelect: 'none',
+      p: 2.2,
+      borderRadius: 2,
+      border: selected ? '2px solid #E07A3F' : '1px solid rgba(0,0,0,0.12)',
+      bgcolor: selected ? 'rgba(224, 122, 63, 0.09)' : 'background.paper',
+      boxShadow: selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
+      transform: selected ? 'perspective(600px) rotateY(0deg)' : 'perspective(600px) rotateY(0deg)',
+      transition: 'box-shadow .25s ease, transform .25s ease, border-color .2s ease, background-color .2s ease',
+      cursor: disabled ? 'default' : 'pointer',
+      textAlign: 'center',
+      '&:hover': {
+        boxShadow: '0 10px 28px rgba(0,0,0,0.16)',
+        transform: selected ? 'perspective(600px) rotateY(0deg)' : 'perspective(600px) translateY(-2px)',
+      },
+      '&.flip': {
+        animation: 'flipIn .42s ease',
+      },
+      '@keyframes flipIn': {
+        '0%': { transform: 'perspective(600px) rotateY(90deg)', opacity: 0 },
+        '100%': { transform: 'perspective(600px) rotateY(0deg)', opacity: 1 },
+      },
+    }}
+  >
+    <Typography sx={{ fontSize: '1.05rem', fontWeight: 500 }}>{children}</Typography>
+  </Box>
+);
+
+// ---------- Component ----------
 function IntakeForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stepJustValidated, setStepJustValidated] = useState(false);
   const navigate = useNavigate();
 
-  // ----------------- QUESTIONS (same content you provided) --------------------
+  // fixed, immersive bg setup
+  useEffect(() => {
+    // nothing to do here now
+  }, []);
+
+  // ---------- Questions ----------
   const initialQuestionsPart1 = [
     { id: 'name', prompt: 'What is your name?', type: 'text' },
     { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
     { id: 'role', prompt: 'What is your current job title?', type: 'text' },
-    { id: 'responsibilities', prompt: 'Briefly describe what your team is responsible for within the organization.', type: 'text' }
+    { id: 'responsibilities', prompt: 'Briefly describe what your team is responsible for within the organization.', type: 'text' },
   ];
 
   const initialQuestionsPart2 = [
     { id: 'teamSize', prompt: 'How many people do you directly manage?', type: 'slider', min: 1, max: 10, labels: { 1: '1', 10: '10+' } },
     { id: 'leadershipExperience', prompt: 'How many years have you been in your current role?', type: 'slider', min: 0, max: 10, labels: { 0: '<1', 10: '10+' } },
-    { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 0, max: 20, labels: { 0: '<1', 20: '20+' } }
+    { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 0, max: 20, labels: { 0: '<1', 20: '20+' } },
   ];
 
   const mainQuestions = [
@@ -59,8 +185,8 @@ function IntakeForm() {
         'A mentor to guide your decision-making',
         "A team that just 'gets it'",
         'A dedicated time/space for reflection and planning',
-        'A high performer to share the load'
-      ]
+        'A high performer to share the load',
+      ],
     },
     {
       id: 'coffeeImpression',
@@ -74,21 +200,22 @@ function IntakeForm() {
         'They make our team better.',
         'They’re always thinking ahead.',
         'They hold a high bar for us.',
-        'They trust us to deliver.'
-      ]
+        'They trust us to deliver.',
+      ],
     },
     {
       id: 'projectApproach',
       theme: 'The Team Puzzle',
-      prompt: 'You’re given a complex project with a tight deadline. Choose the action you’d most likely take first',
+      prompt:
+        'You’re given a complex project with a tight deadline. Choose the action you’d most likely take first',
       type: 'radio',
       options: [
         'Create a detailed plan to guide the team.',
         'Dive into the most challenging aspect to lead by example.',
         'Gather the team for a collaborative brainstorming session.',
         'Focus on identifying and mitigating the biggest risks.',
-        'Distribute tasks to the team and set clear check-in points.'
-      ]
+        'Distribute tasks to the team and set clear check-in points.',
+      ],
     },
     {
       id: 'energyDrains',
@@ -103,34 +230,37 @@ function IntakeForm() {
         'Meetings with limited or no outcomes',
         'Mediating conflicts within the team',
         'Pursuing goals that lack clear direction',
-        'Balancing expectations from high-pressure stakeholders'
+        'Balancing expectations from high-pressure stakeholders',
       ],
-      limit: 3
+      limit: 3,
     },
     {
       id: 'crisisResponse',
       theme: 'The Fire Drill',
-      prompt: 'A crisis hits your team unexpectedly. Rank these responses based on how they reflect your approach:',
+      prompt:
+        'A crisis hits your team unexpectedly. Rank these responses based on how they reflect your approach:',
       type: 'ranking',
       options: [
         'I stay calm and provide clear direction.',
         'I rally everyone to brainstorm solutions.',
         'I focus on verifying details to ensure accuracy.',
         'I empower the team to take the lead while I support.',
-        'I take a hands-on role to address the issue quickly.'
+        'I take a hands-on role to address the issue quickly.',
       ],
-      scale: { top: 'like me', bottom: 'like me' }
+      scale: { top: 'like me', bottom: 'like me' },
     },
     {
       id: 'pushbackFeeling',
       theme: 'The Pushback Moment',
-      prompt: 'A team member disagrees with your plan in front of everyone. In your gut, how do you feel at that moment? Write one sentence about it.',
-      type: 'text'
+      prompt:
+        'A team member disagrees with your plan in front of everyone. In your gut, how do you feel at that moment? Write one sentence about it.',
+      type: 'text',
     },
     {
       id: 'roleModelTrait',
       theme: 'The Role Model',
-      prompt: 'Think of a leader you admire (real or fictional). Pick two things they do that you wish came more naturally to you.',
+      prompt:
+        'Think of a leader you admire (real or fictional). Pick two things they do that you wish came more naturally to you.',
       type: 'multi-select',
       options: [
         'Connecting with people effortlessly',
@@ -139,14 +269,15 @@ function IntakeForm() {
         'Painting a clear vision for the future',
         'Getting the best out of everyone',
         'Explaining complex ideas simply',
-        'Knowing when to step back and listen'
+        'Knowing when to step back and listen',
       ],
-      limit: 2
+      limit: 2,
     },
     {
       id: 'successMetric',
       theme: 'The Impact Check',
-      prompt: 'Picture yourself after the end of a long week. How do you know if you’ve been successful in your role?',
+      prompt:
+        'Picture yourself after the end of a long week. How do you know if you’ve been successful in your role?',
       type: 'radio',
       options: [
         'The team’s buzzing with energy and momentum.',
@@ -154,8 +285,8 @@ function IntakeForm() {
         'Team members stepped up with their own ideas.',
         'I cleared roadblocks that were holding us back.',
         'Collaboration was smooth and drama-free.',
-        'Someone acknowledged the progress we made.'
-      ]
+        'Someone acknowledged the progress we made.',
+      ],
     },
     {
       id: 'warningLabel',
@@ -168,8 +299,8 @@ function IntakeForm() {
         'Buckle up, we change directions quickly here.',
         'Flammable: Sparks fly under pressure.',
         'Fragile: Avoid too much pushback.',
-        'High voltage: Big ideas ahead.'
-      ]
+        'High voltage: Big ideas ahead.',
+      ],
     },
     {
       id: 'leaderFuel',
@@ -182,21 +313,21 @@ function IntakeForm() {
         'Solving a problem no one else could',
         'Hearing the team say they learned something',
         'My team getting the recognition it deserves',
-        'Turning chaos into order'
-      ]
+        'Turning chaos into order',
+      ],
     },
     {
       id: 'proudMoment',
       theme: 'The Highlight Reel',
       prompt: 'Provide an example of one of your proudest moments as a leader:',
-      type: 'text'
+      type: 'text',
     },
     {
       id: 'selfReflection',
       theme: 'The Mirror',
       prompt: 'Be honest with yourself. What do you need to work on?',
-      type: 'text'
-    }
+      type: 'text',
+    },
   ];
 
   const agentSelect = [
@@ -205,447 +336,435 @@ function IntakeForm() {
       options: [
         { id: 'bluntPracticalFriend', name: 'Blunt Practical Friend', description: 'A straightforward friend who gives no-nonsense, practical advice with a critical edge.' },
         { id: 'formalEmpatheticCoach', name: 'Formal Empathetic Coach', description: 'A professional coach who delivers polished, supportive feedback with visionary ideas.' },
-        { id: 'balancedMentor', name: 'Balanced Mentor', description: 'A mentor who provides a mix of professional and approachable feedback, blending practical and inspirational advice.' },
-        { id: 'comedyRoaster', name: 'Comedy Roaster', description: 'A highly blunt yet insightful guide who roasts your flaws with humor while offering sharp, actionable advice.' },
-        { id: 'pragmaticProblemSolver', name: 'Pragmatic Problem Solver', description: 'A solution-focused guide who breaks down challenges into actionable steps with a no-frills approach.' },
-        { id: 'highSchoolCoach', name: 'High School Coach', description: 'A coach who mixes good practical advice with simple inspiration, pushing you to grow like a seasoned mentor.' }
-      ]
-    }
+        { id: 'balancedMentor', name: 'Balanced Mentor', description: 'A mentor who blends practical and inspirational advice.' },
+        { id: 'comedyRoaster', name: 'Comedy Roaster', description: 'Humorous but sharp, with actionable advice.' },
+        { id: 'pragmaticProblemSolver', name: 'Pragmatic Problem Solver', description: 'Solution-first, simple steps. No fluff.' },
+        { id: 'highSchoolCoach', name: 'High School Coach', description: 'Encouraging with practical actions.' },
+      ],
+    },
   ];
 
-  // ----------------- Section meta for header label ---------------------------
-  const sections = useMemo(() => {
-    // 0: Welcome, 1: Profile, 2: Experience, 3..: Main, then Agent, then Submit
-    const mainStart = 3;
-    const mainEnd = 2 + mainQuestions.length;
-    const agentStep = mainEnd + 1;
+  // ---------- derived values ----------
+  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
+  const headerLabel = useMemo(() => {
+    if (currentStep === 0) return 'Welcome';
+    if (currentStep === 1) return 'About You';
+    if (currentStep === 2) return 'Role & Scope';
+    if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) return 'Styles & Scenarios';
+    if (currentStep > 2 + mainQuestions.length) return 'Choose Your Agent';
+    return 'LEP';
+  }, [currentStep, mainQuestions.length]);
 
-    return [
-      { range: [0, 0], label: 'Welcome' },
-      { range: [1, 1], label: 'Profile' },
-      { range: [2, 2], label: 'Experience' },
-      { range: [3, mainEnd], label: 'Styles & Scenarios' },
-      { range: [agentStep, agentStep], label: 'Agent' }
-    ];
-  }, [mainQuestions.length]);
-
-  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // (Submit dummy end)
-
-  const activeSectionLabel = useMemo(() => {
-    for (const s of sections) {
-      if (currentStep >= s.range[0] && currentStep <= s.range[1]) return s.label;
-    }
-    return '…';
-  }, [currentStep, sections]);
-
-  // ----------------- Handlers ------------------------------------------------
+  // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
 
-  const validateCurrentStep = useCallback(() => {
-    if (currentStep === 1) {
-      return !!(formData.name && formData.industry && formData.role && formData.responsibilities);
-    }
-    if (currentStep === 2) {
-      return !!(formData.teamSize || formData.teamSize === 0) &&
-             !!(formData.leadershipExperience || formData.leadershipExperience === 0) &&
-             !!(formData.careerExperience || formData.careerExperience === 0);
-    }
-    if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) {
-      const q = mainQuestions[currentStep - 3];
-      if (q.type === 'text') return !!formData[q.id];
-      if (q.type === 'multi-select') return (formData[q.id] && formData[q.id].length > 0);
-      if (q.type === 'ranking') return (formData[q.id] && formData[q.id].length === q.options.length);
-      if (q.type === 'radio') return !!formData[q.id];
-    }
-    if (currentStep === 3 + mainQuestions.length) {
-      return !!formData.selectedAgent;
-    }
-    // welcome or submit screen
-    return true;
-  }, [currentStep, formData, mainQuestions]);
+  const nextPulse = () => {
+    setStepJustValidated(true);
+    setTimeout(() => setStepJustValidated(false), 420);
+  };
 
   const handleNext = async () => {
-    const lastIndex = totalSteps - 1;
-    if (currentStep < lastIndex) {
-      if (!validateCurrentStep()) return;
-      setCurrentStep(prev => Math.min(prev + 1, lastIndex));
-    } else if (currentStep === lastIndex) {
-      // submit
+    if (currentStep < totalSteps - 1) {
+      if (currentStep === 1) {
+        if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
+      } else if (currentStep === 2) {
+        if (
+          formData.teamSize === undefined ||
+          formData.leadershipExperience === undefined ||
+          formData.careerExperience === undefined
+        ) return;
+      } else if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) {
+        const q = mainQuestions[currentStep - 3];
+        const v = formData[q.id];
+        if (q.type === 'text' && !v) return;
+        if (q.type === 'multi-select' && (!v || v.length === 0)) return;
+        if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
+        if (q.type === 'radio' && !v) return;
+      } else if (currentStep === 3 + mainQuestions.length) {
+        if (!formData.selectedAgent) return;
+      }
+      nextPulse();
+      setCurrentStep(s => s + 1);
+    } else if (currentStep === totalSteps - 1) {
       setIsSubmitting(true);
       await handleSubmit();
     }
   };
 
-  const handleBack = () => setCurrentStep(prev => Math.max(prev - 1, 0));
-
   const handleDragEnd = (result, questionId, options) => {
     if (!result.destination) return;
     const items = formData[questionId] ? [...formData[questionId]] : [...options];
-    const [reordered] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reordered);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
     handleChange(questionId, items);
   };
+
+  const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleSubmit = async () => {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
-      const updatedFormData = { ...formData, selectedAgent: selectedAgentId };
+      const updated = { ...formData, selectedAgent: selectedAgentId };
 
-      const docRef = await addDoc(collection(db, 'responses'), {
-        ...updatedFormData,
-        timestamp: new Date()
-      });
-
-      // local fallback
-      localStorage.setItem('latestFormData', JSON.stringify(updatedFormData));
-
-      navigate('/summary', { state: { formData: updatedFormData } });
-    } catch (err) {
-      console.error('Submission failed:', err);
+      const docRef = await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+      // fallback local
+      localStorage.setItem('latestFormData', JSON.stringify(updated));
+      navigate('/summary', { state: { formData: updated } });
+    } catch (e) {
+      console.error('Submit failed', e);
       alert('Failed to submit form. Please try again.');
       setIsSubmitting(false);
     }
   };
 
-  // ----------------- Helpers -------------------------------------------------
-  const progress = ((currentStep + 1) / totalSteps) * 100;
-
-  const cardEnterKey = (
-    <style>{`
-      @keyframes cardIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-    `}</style>
-  );
-
-  // ----------------- Render step content (card body) -------------------------
-  const renderStep = () => {
-    // 0: Welcome
-    if (currentStep === 0) {
-      return (
-        <Stack spacing={3} alignItems="center">
-          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: 0.2 }}>
-            Welcome to LEP
-          </Typography>
-          <Typography sx={{ opacity: 0.9, maxWidth: 720 }}>
-            This journey is intentionally reflective and practical. Take a breath—answer honestly.
-            We’ll translate your perspective into focused, actionable coaching.
-          </Typography>
-        </Stack>
-      );
-    }
-
-    // 1: Initial Part 1
-    if (currentStep === 1) {
-      return (
-        <Stack spacing={3}>
-          {initialQuestionsPart1.map(q => (
-            <Box key={q.id}>
-              <Typography sx={{ mb: 1.2, fontWeight: 600 }}>{q.prompt}</Typography>
-              <MemoTextField
-                value={formData[q.id] || ''}
-                onChange={(e) => handleChange(q.id, e.target.value)}
-                fullWidth
-              />
-            </Box>
-          ))}
-        </Stack>
-      );
-    }
-
-    // 2: Initial Part 2
-    if (currentStep === 2) {
-      return (
-        <Stack spacing={4}>
-          {initialQuestionsPart2.map(q => (
-            <Box key={q.id}>
-              <Typography sx={{ mb: 1.2, fontWeight: 600 }}>{q.prompt}</Typography>
-              <MemoSlider
-                value={typeof formData[q.id] === 'number' ? formData[q.id] : q.min}
-                onChange={(_, v) => handleChange(q.id, v)}
-                min={q.min}
-                max={q.max}
-              />
-              <Typography variant="body2" sx={{ opacity: 0.7, textAlign: 'right' }}>
-                {formData[q.id] === q.max ? `${q.max}+` : (formData[q.id] ?? q.min)}
-              </Typography>
-            </Box>
-          ))}
-        </Stack>
-      );
-    }
-
-    // 3..N: main questions
-    if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) {
-      const q = mainQuestions[currentStep - 3];
-
-      return (
-        <Stack spacing={3}>
-          <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8 }}>
-            {q.theme}
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>{q.prompt}</Typography>
-
-          {q.type === 'text' && (
-            <MemoTextField
-              fullWidth
-              value={formData[q.id] || ''}
-              onChange={(e) => handleChange(q.id, e.target.value)}
-            />
-          )}
-
-          {q.type === 'radio' && (
-            <ToggleButtonGroup
-              exclusive
-              value={formData[q.id] || ''}
-              onChange={(_, v) => v && handleChange(q.id, v)}
-              sx={{ flexWrap: 'wrap', gap: 1.2 }}
-            >
-              {q.options.map(opt => (
-                <MemoToggleButton
-                  key={opt}
-                  value={opt}
-                  sx={{
-                    textTransform: 'none',
-                    px: 2,
-                    py: 1.5,
-                    borderRadius: 2,
-                    borderColor: 'divider',
-                    '&.Mui-selected': { bgcolor: 'primary.main', color: 'white' }
-                  }}
-                >
-                  {opt}
-                </MemoToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          )}
-
-          {q.type === 'multi-select' && (
-            <>
-              <ToggleButtonGroup
-                value={formData[q.id] || []}
-                onChange={(_, newVal) => handleChange(q.id, newVal)}
-                sx={{ flexWrap: 'wrap', gap: 1.2 }}
-              >
-                {q.options.map(opt => {
-                  const picked = formData[q.id] || [];
-                  const atLimit = picked.length >= q.limit && !picked.includes(opt);
-                  return (
-                    <MemoToggleButton
-                      key={opt}
-                      value={opt}
-                      disabled={atLimit}
-                      sx={{
-                        textTransform: 'none',
-                        px: 2,
-                        py: 1.5,
-                        borderRadius: 2,
-                        borderColor: 'divider',
-                        '&.Mui-selected': { bgcolor: 'primary.main', color: 'white' }
-                      }}
-                    >
-                      {opt}
-                    </MemoToggleButton>
-                  );
-                })}
-              </ToggleButtonGroup>
-              <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                Choose up to {q.limit}. {Math.max(0, q.limit - (formData[q.id]?.length || 0))} remaining.
-              </Typography>
-            </>
-          )}
-
-          {q.type === 'ranking' && (
-            <DragDropContext onDragEnd={(r) => handleDragEnd(r, q.id, q.options)}>
-              <Droppable droppableId="ranking">
-                {(provided) => (
-                  <Stack ref={provided.innerRef} {...provided.droppableProps} spacing={1.2}>
-                    <Typography variant="caption" sx={{ opacity: 0.75 }}>
-                      Drag to rank — most {q.scale?.top || 'like me'} at the top.
-                    </Typography>
-                    {(formData[q.id] || q.options).map((opt, idx) => (
-                      <Draggable key={opt} draggableId={opt} index={idx}>
-                        {(prov) => (
-                          <Box
-                            ref={prov.innerRef}
-                            {...prov.draggableProps}
-                            {...prov.dragHandleProps}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 1.5,
-                              border: '1px solid',
-                              borderColor: 'divider',
-                              bgcolor: 'background.paper',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1
-                            }}
-                          >
-                            <Box sx={{
-                              width: 26, height: 26, borderRadius: '50%',
-                              bgcolor: 'primary.main', color: 'white',
-                              display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700
-                            }}>{idx + 1}</Box>
-                            <Typography>{opt}</Typography>
-                          </Box>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </Stack>
-                )}
-              </Droppable>
-            </DragDropContext>
-          )}
-        </Stack>
-      );
-    }
-
-    // Agent selection
-    if (currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length) {
-      const set = agentSelect[0];
-      return (
-        <Stack spacing={3}>
-          <Typography variant="h6" sx={{ fontWeight: 700, textAlign: 'center' }}>
-            Select Your AI Agent
-          </Typography>
-          <Typography sx={{ opacity: 0.9, textAlign: 'center' }}>
-            You’ll receive honest guidance in any voice—choose the tone that fits you.
-          </Typography>
-          <Grid container spacing={2} justifyContent="center">
-            {set.options.map(agent => (
-              <Grid item key={agent.id} xs={12} sm={6} md={4}>
-                <Card
-                  variant="outlined"
-                  sx={{
-                    borderWidth: formData.selectedAgent === agent.id ? 2 : 1,
-                    borderColor: formData.selectedAgent === agent.id ? 'primary.main' : 'divider',
-                    height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-                      {agent.name}
-                    </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9, textAlign: 'center' }}>
-                      {agent.description}
-                    </Typography>
-                  </CardContent>
-                  <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                    <Button
-                      variant={formData.selectedAgent === agent.id ? 'contained' : 'outlined'}
-                      onClick={() => handleChange('selectedAgent', agent.id)}
-                    >
-                      Choose
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Stack>
-      );
-    }
-
-    // final submit placeholder (we route on Next)
-    return (
-      <Stack alignItems="center">
-        <Typography>Ready to submit.</Typography>
-      </Stack>
-    );
-  };
-
-  // ----------------- Layout ---------------------------------------------------
+  // ---------- UI ----------
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        position: 'relative',
+        minHeight: '100svh',
         width: '100%',
-        // Framed canvas: subtle vignette + anchored gradient
-        backgroundImage:
-          'radial-gradient(1200px 700px at 60% 40%, rgba(255,255,255,0.70), rgba(255,255,255,0.20) 40%, rgba(255,255,255,0.05) 65%, rgba(0,0,0,0.15) 100%), url(/LEP2.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        display: 'flex',
-        flexDirection: 'column'
+        overflowX: 'hidden',
+        // full bleed bg
+        '&:before': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -2,
+          backgroundImage:
+            'url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+        },
+        // dark overlay
+        '&:after': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+        },
       }}
     >
-      {cardEnterKey}
+      <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
-      {/* Persistent header */}
-      <Box
-        sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-          backdropFilter: 'blur(6px)',
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.70))',
-          borderBottom: '1px solid',
-          borderColor: 'divider'
-        }}
-      >
-        <Container maxWidth="md" sx={{ py: 1.5 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Typography sx={{ fontWeight: 800, letterSpacing: 0.6 }}>LEP</Typography>
-            <Typography sx={{ opacity: 0.8 }}>{activeSectionLabel}</Typography>
-            <Typography sx={{ fontWeight: 600 }}>Step {currentStep + 1} of {totalSteps}</Typography>
-          </Stack>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              mt: 1,
-              height: 4,
-              borderRadius: 2,
-              '& .MuiLinearProgress-bar': { borderRadius: 2 }
-            }}
-          />
-        </Container>
-      </Box>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4 } }}>
+        {/* Welcome */}
+        {currentStep === 0 && (
+          <SectionCard>
+            <Stack spacing={3} alignItems="center" textAlign="center">
+              <Typography variant="h4" sx={{ fontWeight: 800 }}>Welcome to LEP</Typography>
+              <Typography sx={{ maxWidth: 780, lineHeight: 1.7 }}>
+                This journey is reflective and practical. Move one card at a time, answer honestly, and we’ll turn it into a focused leadership summary and growth plan.
+              </Typography>
+              <MemoButton
+                variant="contained"
+                color="primary"
+                onClick={handleNext}
+                sx={{ px: 5, py: 1.4, fontSize: '1.05rem' }}
+              >
+                I’M READY TO GROW
+              </MemoButton>
+            </Stack>
+          </SectionCard>
+        )}
 
-      {/* Card journey area */}
-      <Container maxWidth="md" sx={{ flex: 1, display: 'grid', placeItems: 'center', py: { xs: 3, md: 6 } }}>
-        <Card
-          elevation={0}
-          sx={{
-            width: '100%',
-            maxWidth: 860,
-            borderRadius: 3,
-            border: '1px solid',
-            borderColor: 'divider',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.88))',
-            boxShadow: '0 30px 80px rgba(20,20,40,0.18)',
-            animation: 'cardIn 220ms ease-out'
-          }}
-        >
-          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-            {renderStep()}
-          </CardContent>
+        {/* Part 1 */}
+        {currentStep === 1 && (
+          <SectionCard>
+            <Stack spacing={3} alignItems="center" textAlign="center">
+              {initialQuestionsPart1.map((q) => (
+                <MemoBox key={q.id} sx={{ width: '100%' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
+                  <MemoTextField
+                    value={formData[q.id] || ''}
+                    onChange={(e) => handleChange(q.id, e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </MemoBox>
+              ))}
+              <Stack direction="row" spacing={2}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)}>Back</MemoButton>
+                <MemoButton
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={!formData.name || !formData.industry || !formData.role || !formData.responsibilities}
+                  sx={{
+                    px: 5,
+                    py: 1.4,
+                    ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+                    '@keyframes pulse': {
+                      '0%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.04)' },
+                      '100%': { transform: 'scale(1)' },
+                    },
+                  }}
+                >
+                  Next
+                </MemoButton>
+              </Stack>
+            </Stack>
+          </SectionCard>
+        )}
 
-          {/* Sticky card footer (actions) */}
-          <CardActions
-            sx={{
-              px: { xs: 3, md: 5 },
-              pb: { xs: 3, md: 5 },
-              pt: 0,
-              display: 'flex',
-              justifyContent: 'space-between'
-            }}
-          >
-            <MemoButton variant="text" onClick={handleBack} disabled={currentStep === 0}>
-              Back
-            </MemoButton>
-            <MemoButton
-              variant="contained"
-              onClick={handleNext}
-              disabled={!validateCurrentStep() || isSubmitting}
-            >
-              {currentStep === totalSteps - 1 ? (isSubmitting ? 'Submitting…' : 'Submit') : 'Next'}
-            </MemoButton>
-          </CardActions>
-        </Card>
+        {/* Part 2 */}
+        {currentStep === 2 && (
+          <SectionCard>
+            <Stack spacing={4} alignItems="center" textAlign="center">
+              {initialQuestionsPart2.map((q) => (
+                <MemoBox key={q.id} sx={{ width: '100%' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
+                  <MemoSlider
+                    value={formData[q.id] ?? q.min}
+                    onChange={(e, value) => handleChange(q.id, value)}
+                    min={q.min}
+                    max={q.max}
+                    sx={{ maxWidth: 720, mx: 'auto' }}
+                  />
+                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                    {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
+                  </Typography>
+                </MemoBox>
+              ))}
+              <Stack direction="row" spacing={2}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
+                <MemoButton
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={
+                    formData.teamSize === undefined ||
+                    formData.leadershipExperience === undefined ||
+                    formData.careerExperience === undefined
+                  }
+                >
+                  Next
+                </MemoButton>
+              </Stack>
+            </Stack>
+          </SectionCard>
+        )}
+
+        {/* Main questions */}
+        {currentStep > 2 && currentStep <= 2 + mainQuestions.length && (
+          <SectionCard>
+            {(() => {
+              const q = mainQuestions[currentStep - 3];
+
+              return (
+                <Stack spacing={3} textAlign="center" alignItems="center">
+                  <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8 }}>
+                    {q.theme.toUpperCase()}
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, maxWidth: 900 }}>
+                    {q.prompt}
+                  </Typography>
+
+                  {/* RADIO / MULTI AS CARDS */}
+                  {(q.type === 'radio' || q.type === 'multi-select') && (
+                    <Grid container spacing={2} sx={{ maxWidth: 960 }}>
+                      {q.options.map((opt) => {
+                        const selected =
+                          q.type === 'radio'
+                            ? formData[q.id] === opt
+                            : (formData[q.id] || []).includes(opt);
+
+                        const disabled =
+                          q.type === 'multi-select' &&
+                          (formData[q.id]?.length >= q.limit) &&
+                          !selected;
+
+                        return (
+                          <Grid item xs={12} sm={6} key={opt}>
+                            <OptionCard
+                              selected={!!selected}
+                              disabled={disabled}
+                              onClick={() => {
+                                if (q.type === 'radio') {
+                                  handleSingleSelect(q.id, opt);
+                                } else {
+                                  const current = formData[q.id] || [];
+                                  if (selected) {
+                                    handleChange(q.id, current.filter((v) => v !== opt));
+                                  } else if (current.length < q.limit) {
+                                    handleChange(q.id, [...current, opt]);
+                                  }
+                                }
+                              }}
+                            >
+                              {opt}
+                            </OptionCard>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  )}
+
+                  {/* TEXT */}
+                  {q.type === 'text' && (
+                    <MemoTextField
+                      value={formData[q.id] || ''}
+                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      sx={{ maxWidth: 900 }}
+                    />
+                  )}
+
+                  {/* RANKING */}
+                  {q.type === 'ranking' && (
+                    <DragDropContext onDragEnd={(result) => handleDragEnd(result, q.id, q.options)}>
+                      <Droppable droppableId="ranking">
+                        {(provided) => (
+                          <Stack
+                            spacing={1.3}
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            sx={{ width: '100%', maxWidth: 900, mx: 'auto' }}
+                          >
+                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                              Most {q.scale?.top || 'like me'}
+                            </Typography>
+                            {(formData[q.id] || q.options).map((opt, index) => (
+                              <Draggable draggableId={opt} index={index} key={opt}>
+                                {(p) => (
+                                  <Box
+                                    ref={p.innerRef}
+                                    {...p.draggableProps}
+                                    {...p.dragHandleProps}
+                                    sx={{
+                                      p: 1.6,
+                                      borderRadius: 1.5,
+                                      bgcolor: 'rgba(0,0,0,0.04)',
+                                      border: '1px solid rgba(0,0,0,0.1)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        mr: 1.5,
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        bgcolor: 'rgba(224,122,63,0.15)',
+                                        color: '#E07A3F',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 700,
+                                      }}
+                                    >
+                                      {index + 1}
+                                    </Box>
+                                    {opt}
+                                  </Box>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                              Least {q.scale?.bottom || 'like me'}
+                            </Typography>
+                          </Stack>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  )}
+
+                  <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
+                    <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
+                      Back
+                    </MemoButton>
+                    <MemoButton
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={
+                        (q.type === 'text' && !formData[q.id]) ||
+                        (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
+                        (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
+                        (q.type === 'radio' && !formData[q.id])
+                      }
+                      sx={{
+                        ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+                      }}
+                    >
+                      Next
+                    </MemoButton>
+                  </Stack>
+                </Stack>
+              );
+            })()}
+          </SectionCard>
+        )}
+
+        {/* Agent select */}
+        {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
+          <SectionCard>
+            <Stack spacing={3} alignItems="center" textAlign="center">
+              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                Select Your AI Agent
+              </Typography>
+              <Typography sx={{ maxWidth: 820, opacity: 0.85 }}>
+                You’ll get honest feedback either way; choose the voice that fits your preference.
+              </Typography>
+
+              <Grid container spacing={2} sx={{ maxWidth: 960 }}>
+                {agentSelect[0].options.map((agent) => (
+                  <Grid item xs={12} sm={6} md={4} key={agent.id}>
+                    <MemoCard
+                      onClick={() => handleChange('selectedAgent', agent.id)}
+                      sx={{
+                        height: '100%',
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        border:
+                          formData.selectedAgent === agent.id
+                            ? '2px solid #E07A3F'
+                            : '1px solid rgba(0,0,0,0.12)',
+                        transition: 'transform .2s ease, box-shadow .2s ease',
+                        '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
+                      }}
+                    >
+                      <CardContent>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                          {agent.name}
+                        </Typography>
+                        <Typography sx={{ opacity: 0.9 }}>{agent.description}</Typography>
+                      </CardContent>
+                      <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                        <MemoButton
+                          variant={formData.selectedAgent === agent.id ? 'contained' : 'outlined'}
+                          onClick={() => handleChange('selectedAgent', agent.id)}
+                        >
+                          Choose
+                        </MemoButton>
+                      </CardActions>
+                    </MemoCard>
+                  </Grid>
+                ))}
+              </Grid>
+
+              <Stack direction="row" spacing={2}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
+                  Back
+                </MemoButton>
+                <MemoButton
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={isSubmitting || !formData.selectedAgent}
+                >
+                  {isSubmitting ? 'Submitting…' : 'Submit'}
+                </MemoButton>
+              </Stack>
+            </Stack>
+          </SectionCard>
+        )}
       </Container>
     </Box>
   );
