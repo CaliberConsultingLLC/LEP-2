@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Container, Box, Typography, TextField, Slider, Button, Stack, ToggleButton, ToggleButtonGroup, Card, CardContent, CardActions, Grid } from '@mui/material';
+import { Container, Box, Typography, TextField, Slider, Button, Stack, ToggleButton, ToggleButtonGroup, Card, CardContent, CardActions, Grid, LinearProgress } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -226,12 +226,25 @@ function IntakeForm() {
     }
   ];
 
+  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
+  const contentMaxWidth = 760;
+  const sections = [
+    { label: 'Welcome', start: 0, end: 0 },
+    { label: 'About You', start: 1, end: 1 },
+    { label: 'Role & Scope', start: 2, end: 2 },
+    { label: 'Leadership Moments', start: 3, end: 2 + mainQuestions.length },
+    { label: 'Choose Your Guide', start: 3 + mainQuestions.length, end: totalSteps - 1 },
+  ];
+  const currentSectionIndex = sections.findIndex(section => currentStep >= section.start && currentStep <= section.end);
+  const sectionPosition = currentSectionIndex !== -1 ? currentSectionIndex : 0;
+  const sectionMeta = sections[sectionPosition];
+  const progressValue = (currentStep / Math.max(totalSteps - 1, 1)) * 100;
+
   const handleChange = (id, value) => {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleNext = async () => {
-    const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
     if (currentStep < totalSteps - 1) {
       if (currentStep === 0) {
         // Welcome step, no validation needed
@@ -336,11 +349,47 @@ function IntakeForm() {
         justifyContent: 'center',
       }}
     >
-      <Container maxWidth={currentStep >= 2 + mainQuestions.length + 1 ? "lg" : "sm"} sx={{ textAlign: 'center' }}>
-        {currentStep === 0 && (
+      <Container
+        maxWidth={false}
+        sx={{
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          px: { xs: 2, sm: 4 },
+        }}
+      >
+        <Stack spacing={4} alignItems="center" sx={{ width: '100%', maxWidth: contentMaxWidth }}>
+          <Box
+            sx={{
+              width: '100%',
+              bgcolor: 'rgba(255, 255, 255, 0.92)',
+              borderRadius: 2,
+              boxShadow: 3,
+              px: { xs: 3, sm: 4 },
+              py: { xs: 2, sm: 3 },
+              textAlign: 'center',
+            }}
+          >
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1.5 }}>
+              Section {sectionPosition + 1}/{sections.length}
+            </Typography>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: { xs: '1.5rem', sm: '1.75rem' }, fontWeight: 600, color: 'text.primary', mt: 1 }}>
+              {sectionMeta.label}
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={Math.min(Math.max(progressValue, 0), 100)}
+              sx={{ mt: 2, height: 8, borderRadius: 5, bgcolor: 'grey.200', '& .MuiLinearProgress-bar': { borderRadius: 5, bgcolor: 'primary.main' } }}
+            />
+          </Box>
+          {currentStep === 0 && (
           <>
             <Box
               sx={{
+                width: '100%',
                 p: 6,
                 border: '2px solid',
                 borderColor: 'primary.main',
@@ -372,9 +421,10 @@ function IntakeForm() {
             </Box>
           </>
         )}
-        {currentStep === 1 && (
+          {currentStep === 1 && (
           <Box
             sx={{
+              width: '100%',
               p: 6,
               border: '2px solid',
               borderColor: 'primary.main',
@@ -386,7 +436,7 @@ function IntakeForm() {
           >
             <Stack spacing={4}>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[0].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -399,7 +449,7 @@ function IntakeForm() {
                 />
               </MemoizedBox>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[1].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -412,7 +462,7 @@ function IntakeForm() {
                 />
               </MemoizedBox>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[2].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -425,7 +475,7 @@ function IntakeForm() {
                 />
               </MemoizedBox>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[3].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -449,9 +499,10 @@ function IntakeForm() {
             </Stack>
           </Box>
         )}
-        {currentStep === 2 && (
+          {currentStep === 2 && (
           <Box
             sx={{
+              width: '100%',
               p: 6,
               border: '2px solid',
               borderColor: 'primary.main',
@@ -463,7 +514,7 @@ function IntakeForm() {
           >
             <Stack spacing={4}>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart2[0].prompt}
                 </Typography>
                 <MemoizedSlider
@@ -478,7 +529,7 @@ function IntakeForm() {
                 </Typography>
               </MemoizedBox>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart2[1].prompt}
                 </Typography>
                 <MemoizedSlider
@@ -493,7 +544,7 @@ function IntakeForm() {
                 </Typography>
               </MemoizedBox>
               <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart2[2].prompt}
                 </Typography>
                 <MemoizedSlider
@@ -519,9 +570,10 @@ function IntakeForm() {
             </Stack>
           </Box>
         )}
-        {currentStep > 2 && currentStep <= 2 + mainQuestions.length && (
+          {currentStep > 2 && currentStep <= 2 + mainQuestions.length && (
           <Box
             sx={{
+              width: '100%',
               p: 6,
               border: '2px solid',
               borderColor: 'primary.main',
@@ -531,10 +583,10 @@ function IntakeForm() {
               background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
             }}
           >
-            <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 2, textAlign: 'center', color: 'text.primary' }}>
+            <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '2rem', fontWeight: 'bold', mb: 2, textAlign: 'center', color: 'text.primary' }}>
               {mainQuestions[currentStep - 3].theme}
             </Typography>
-            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 4, textAlign: 'center', color: 'text.primary' }}>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', mb: 4, textAlign: 'center', color: 'text.primary' }}>
               {mainQuestions[currentStep - 3].prompt}
             </Typography>
             {mainQuestions[currentStep - 3].type === 'multi-select' && (
@@ -660,9 +712,10 @@ function IntakeForm() {
             </MemoizedButton>
           </Box>
         )}
-        {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
+          {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
           <Box
             sx={{
+              width: '100%',
               p: 6,
               border: '2px solid',
               borderColor: 'primary.main',
@@ -725,6 +778,7 @@ function IntakeForm() {
             </MemoizedButton>
           </Box>
         )}
+        </Stack>
       </Container>
     </Box>
   );
