@@ -36,6 +36,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 56 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <Box sx={{ width: 26, height: 26 }}>
+              {/* If you have /public/lep-logo.svg it will render; otherwise fallback text */}
               <img
                 src="/lep-logo.svg"
                 alt="LEP"
@@ -56,6 +57,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
               </Typography>
             </Box>
           </Stack>
+
           <Typography
             variant="subtitle1"
             sx={{
@@ -68,6 +70,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
           >
             {sectionLabel}
           </Typography>
+
           <Typography
             variant="subtitle2"
             sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600, minWidth: 88, textAlign: 'right' }}
@@ -89,33 +92,36 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
   );
 };
 
-// Centered SectionCard update
+// A single centered content rail we’ll use for *all* sections/cards.
+// This keeps everything naturally sized and centered on the entire page.
+const CenterRail = ({ children, max = 920 }) => (
+  <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <Box sx={{ width: '100%', maxWidth: max, mx: 'auto' }}>{children}</Box>
+  </Box>
+);
+
+// Section “card” that sits on the centered rail.
 const SectionCard = ({ children }) => (
-  <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+  <CenterRail>
     <MemoCard
       elevation={0}
       sx={{
         width: '100%',
-        maxWidth: 800,
         borderRadius: 3,
         border: '1px solid rgba(255,255,255,0.14)',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+        background:
+          'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+        boxShadow:
+          '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
         overflow: 'hidden',
       }}
     >
       <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
     </MemoCard>
-  </MemoBox>
+  </CenterRail>
 );
 
-// Fix broken navigation to /summary (ensure state gets passed)
-// Confirmed in handleSubmit — no change needed
-
-// Remaining component unchanged — all card layouts now updated to center consistently with max width
-
-
-// “Card button” for radio / multi-select
+// “Card button” for radio / multi-select — these live inside the same centered rail
 const OptionCard = ({ selected, children, onClick, disabled }) => (
   <Box
     onClick={disabled ? undefined : onClick}
@@ -349,7 +355,9 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
+  // IMPORTANT CHANGE: remove the trailing "+ 1" phantom submit step.
+  // We submit directly from the Agent step.
+  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length; // Welcome + Part1 + Part2 + Main + Agent
   const headerLabel = useMemo(() => {
     if (currentStep === 0) return 'Welcome';
     if (currentStep === 1) return 'About You';
@@ -358,6 +366,8 @@ function IntakeForm() {
     if (currentStep > 2 + mainQuestions.length) return 'Choose Your Agent';
     return 'LEP';
   }, [currentStep, mainQuestions.length]);
+
+  const agentStepIndex = 3 + mainQuestions.length - 0; // exact step when agent select renders
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -368,35 +378,38 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    if (currentStep < totalSteps - 1) {
-      if (currentStep === 1) {
-        if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
-      } else if (currentStep === 2) {
-        if (
-          formData.teamSize === undefined ||
-          formData.leadershipExperience === undefined ||
-          formData.careerExperience === undefined
-        ) return;
-      } else if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) {
-        const q = mainQuestions[currentStep - 3];
-        const v = formData[q.id];
-        if (q.type === 'text' && !v) return;
-        if (q.type === 'multi-select' && (!v || v.length === 0)) return;
-        if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
-        if (q.type === 'radio' && !v) return;
-      } else if (currentStep === 3 + mainQuestions.length) {
-  if (!formData.selectedAgent) return;
-  nextPulse();
-  setCurrentStep(s => s + 1);
-  return;
-}
-
-      nextPulse();
-      setCurrentStep(s => s + 1);
-    } else if (currentStep === totalSteps - 1) {
+    // If we're at the last step (agent), submit instead of advancing.
+    if (currentStep === totalSteps - 1) {
+      if (!formData.selectedAgent) return; // must pick an agent
       setIsSubmitting(true);
       await handleSubmit();
+      return;
     }
+
+    // Validation for each step before moving forward
+    if (currentStep === 1) {
+      if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
+    } else if (currentStep === 2) {
+      if (
+        formData.teamSize === undefined ||
+        formData.leadershipExperience === undefined ||
+        formData.careerExperience === undefined
+      ) return;
+    } else if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) {
+      const q = mainQuestions[currentStep - 3];
+      const v = formData[q.id];
+      if (q.type === 'text' && !v) return;
+      if (q.type === 'multi-select' && (!v || v.length === 0)) return;
+      if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
+      if (q.type === 'radio' && !v) return;
+    } else if (currentStep === agentStepIndex) {
+      // This branch won’t be hit because agent is the last step and handled above,
+      // but keep it defensive if structure changes later.
+      if (!formData.selectedAgent) return;
+    }
+
+    nextPulse();
+    setCurrentStep(s => s + 1);
   };
 
   const handleDragEnd = (result, questionId, options) => {
@@ -414,7 +427,7 @@ function IntakeForm() {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
       const updated = { ...formData, selectedAgent: selectedAgentId };
 
-      const docRef = await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+      await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
       // fallback local
       localStorage.setItem('latestFormData', JSON.stringify(updated));
       navigate('/summary', { state: { formData: updated } });
@@ -459,13 +472,12 @@ function IntakeForm() {
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
       <Container maxWidth={false} sx={{ py: { xs: 3, sm: 4 }, px: { xs: 2, sm: 8 } }}>
-
         {/* Welcome */}
         {currentStep === 0 && (
           <SectionCard>
             <Stack spacing={3} alignItems="center" textAlign="center">
               <Typography variant="h4" sx={{ fontWeight: 800 }}>Welcome to LEP</Typography>
-              <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
+              <Typography sx={{ maxWidth: 820, mx: 'auto', lineHeight: 1.7 }}>
                 This journey is reflective and practical. Move one card at a time, answer honestly, and we’ll turn it into a focused leadership summary and growth plan.
               </Typography>
               <MemoButton
@@ -483,9 +495,9 @@ function IntakeForm() {
         {/* Part 1 */}
         {currentStep === 1 && (
           <SectionCard>
-            <Stack spacing={3} alignItems="center" textAlign="center">
+            <Stack spacing={3} alignItems="stretch" textAlign="left">
               {initialQuestionsPart1.map((q) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
+                <MemoBox key={q.id}>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
                   <MemoTextField
                     value={formData[q.id] || ''}
@@ -495,7 +507,7 @@ function IntakeForm() {
                   />
                 </MemoBox>
               ))}
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={2} justifyContent="center">
                 <MemoButton variant="outlined" onClick={() => setCurrentStep(0)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
@@ -522,23 +534,23 @@ function IntakeForm() {
         {/* Part 2 */}
         {currentStep === 2 && (
           <SectionCard>
-            <Stack spacing={4} alignItems="center" textAlign="center">
+            <Stack spacing={4} alignItems="stretch" textAlign="left">
               {initialQuestionsPart2.map((q) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
+                <MemoBox key={q.id}>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
                   <MemoSlider
                     value={formData[q.id] ?? q.min}
                     onChange={(e, value) => handleChange(q.id, value)}
                     min={q.min}
                     max={q.max}
-                    sx={{ width: '100%', mx: 'auto' }}
+                    sx={{ maxWidth: 720, mx: 'auto' }}
                   />
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, textAlign: 'center' }}>
                     {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
                   </Typography>
                 </MemoBox>
               ))}
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={2} justifyContent="center">
                 <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
@@ -563,131 +575,134 @@ function IntakeForm() {
               const q = mainQuestions[currentStep - 3];
 
               return (
-                <Stack spacing={3} textAlign="center" alignItems="center">
+                <Stack spacing={3} textAlign="center" alignItems="stretch">
                   <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8 }}>
                     {q.theme.toUpperCase()}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, width: '100%' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, mx: 'auto', maxWidth: 900 }}>
                     {q.prompt}
                   </Typography>
 
                   {/* RADIO / MULTI AS CARDS */}
                   {(q.type === 'radio' || q.type === 'multi-select') && (
-                    <Grid container spacing={2} sx={{ width: '100%' }}>
-                      {q.options.map((opt) => {
-                        const selected =
-                          q.type === 'radio'
-                            ? formData[q.id] === opt
-                            : (formData[q.id] || []).includes(opt);
+                    <CenterRail max={920}>
+                      <Grid container spacing={2}>
+                        {q.options.map((opt) => {
+                          const selected =
+                            q.type === 'radio'
+                              ? formData[q.id] === opt
+                              : (formData[q.id] || []).includes(opt);
 
-                        const disabled =
-                          q.type === 'multi-select' &&
-                          (formData[q.id]?.length >= q.limit) &&
-                          !selected;
+                          const disabled =
+                            q.type === 'multi-select' &&
+                            (formData[q.id]?.length >= q.limit) &&
+                            !selected;
 
-                        return (
-                          <Grid item xs={12} sm={6} key={opt}>
-                            <OptionCard
-                              selected={!!selected}
-                              disabled={disabled}
-                              onClick={() => {
-                                if (q.type === 'radio') {
-                                  handleSingleSelect(q.id, opt);
-                                } else {
-                                  const current = formData[q.id] || [];
-                                  if (selected) {
-                                    handleChange(q.id, current.filter((v) => v !== opt));
-                                  } else if (current.length < q.limit) {
-                                    handleChange(q.id, [...current, opt]);
+                          return (
+                            <Grid item xs={12} sm={6} key={opt}>
+                              <OptionCard
+                                selected={!!selected}
+                                disabled={disabled}
+                                onClick={() => {
+                                  if (q.type === 'radio') {
+                                    handleSingleSelect(q.id, opt);
+                                  } else {
+                                    const current = formData[q.id] || [];
+                                    if (selected) {
+                                      handleChange(q.id, current.filter((v) => v !== opt));
+                                    } else if (current.length < q.limit) {
+                                      handleChange(q.id, [...current, opt]);
+                                    }
                                   }
-                                }
-                              }}
-                            >
-                              {opt}
-                            </OptionCard>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
+                                }}
+                              >
+                                {opt}
+                              </OptionCard>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </CenterRail>
                   )}
 
                   {/* TEXT */}
                   {q.type === 'text' && (
-                    <MemoTextField
-                      value={formData[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
-                      fullWidth
-                      multiline
-                      minRows={3}
-                      sx={{ width: '100%' }}
-
-                    />
+                    <CenterRail max={920}>
+                      <MemoTextField
+                        value={formData[q.id] || ''}
+                        onChange={(e) => handleChange(q.id, e.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                      />
+                    </CenterRail>
                   )}
 
                   {/* RANKING */}
                   {q.type === 'ranking' && (
-                    <DragDropContext onDragEnd={(result) => handleDragEnd(result, q.id, q.options)}>
-                      <Droppable droppableId="ranking">
-                        {(provided) => (
-                          <Stack
-                            spacing={1.3}
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            sx={{ width: '100%', width: '100%', mx: 'auto' }}
-                          >
-                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                              Most {q.scale?.top || 'like me'}
-                            </Typography>
-                            {(formData[q.id] || q.options).map((opt, index) => (
-                              <Draggable draggableId={opt} index={index} key={opt}>
-                                {(p) => (
-                                  <Box
-                                    ref={p.innerRef}
-                                    {...p.draggableProps}
-                                    {...p.dragHandleProps}
-                                    sx={{
-                                      p: 1.6,
-                                      borderRadius: 1.5,
-                                      bgcolor: 'rgba(0,0,0,0.04)',
-                                      border: '1px solid rgba(0,0,0,0.1)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      fontWeight: 500,
-                                    }}
-                                  >
+                    <CenterRail max={920}>
+                      <DragDropContext onDragEnd={(result) => handleDragEnd(result, q.id, q.options)}>
+                        <Droppable droppableId="ranking">
+                          {(provided) => (
+                            <Stack
+                              spacing={1.3}
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                            >
+                              <Typography variant="body2" sx={{ opacity: 0.7, textAlign: 'left' }}>
+                                Most {q.scale?.top || 'like me'}
+                              </Typography>
+                              {(formData[q.id] || q.options).map((opt, index) => (
+                                <Draggable draggableId={opt} index={index} key={opt}>
+                                  {(p) => (
                                     <Box
+                                      ref={p.innerRef}
+                                      {...p.draggableProps}
+                                      {...p.dragHandleProps}
                                       sx={{
-                                        mr: 1.5,
-                                        width: 28,
-                                        height: 28,
-                                        borderRadius: '50%',
-                                        bgcolor: 'rgba(224,122,63,0.15)',
-                                        color: '#E07A3F',
+                                        p: 1.6,
+                                        borderRadius: 1.5,
+                                        bgcolor: 'rgba(0,0,0,0.04)',
+                                        border: '1px solid rgba(0,0,0,0.1)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontWeight: 700,
+                                        fontWeight: 500,
                                       }}
                                     >
-                                      {index + 1}
+                                      <Box
+                                        sx={{
+                                          mr: 1.5,
+                                          width: 28,
+                                          height: 28,
+                                          borderRadius: '50%',
+                                          bgcolor: 'rgba(224,122,63,0.15)',
+                                          color: '#E07A3F',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        {index + 1}
+                                      </Box>
+                                      {opt}
                                     </Box>
-                                    {opt}
-                                  </Box>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                              Least {q.scale?.bottom || 'like me'}
-                            </Typography>
-                          </Stack>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                              <Typography variant="body2" sx={{ opacity: 0.7, textAlign: 'left' }}>
+                                Least {q.scale?.bottom || 'like me'}
+                              </Typography>
+                            </Stack>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                    </CenterRail>
                   )}
 
-                  <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
+                  <Stack direction="row" spacing={2} sx={{ pt: 1 }} justifyContent="center">
                     <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                       Back
                     </MemoButton>
@@ -713,54 +728,56 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Agent select */}
+        {/* Agent select (LAST STEP — submits directly) */}
         {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
           <SectionCard>
-            <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+            <Stack spacing={3} alignItems="stretch" textAlign="left">
+              <Typography variant="h5" sx={{ fontWeight: 800, textAlign: 'center' }}>
                 Select Your AI Agent
               </Typography>
-              <Typography sx={{ width: '100%', opacity: 0.85 }}>
+              <Typography sx={{ opacity: 0.85, textAlign: 'center', maxWidth: 820, mx: 'auto' }}>
                 You’ll get honest feedback either way; choose the voice that fits your preference.
               </Typography>
 
-              <Grid container spacing={2} sx={{ width: '100%' }}>
-                {agentSelect[0].options.map((agent) => (
-                  <Grid item xs={12} sm={6} md={4} key={agent.id}>
-                    <MemoCard
-                      onClick={() => handleChange('selectedAgent', agent.id)}
-                      sx={{
-                        height: '100%',
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        border:
-                          formData.selectedAgent === agent.id
-                            ? '2px solid #E07A3F'
-                            : '1px solid rgba(0,0,0,0.12)',
-                        transition: 'transform .2s ease, box-shadow .2s ease',
-                        '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
-                      }}
-                    >
-                      <CardContent>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                          {agent.name}
-                        </Typography>
-                        <Typography sx={{ opacity: 0.9 }}>{agent.description}</Typography>
-                      </CardContent>
-                      <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                        <MemoButton
-                          variant={formData.selectedAgent === agent.id ? 'contained' : 'outlined'}
-                          onClick={() => handleChange('selectedAgent', agent.id)}
-                        >
-                          Choose
-                        </MemoButton>
-                      </CardActions>
-                    </MemoCard>
-                  </Grid>
-                ))}
-              </Grid>
+              <CenterRail max={920}>
+                <Grid container spacing={2}>
+                  {agentSelect[0].options.map((agent) => (
+                    <Grid item xs={12} sm={6} md={4} key={agent.id}>
+                      <MemoCard
+                        onClick={() => handleChange('selectedAgent', agent.id)}
+                        sx={{
+                          height: '100%',
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          border:
+                            formData.selectedAgent === agent.id
+                              ? '2px solid #E07A3F'
+                              : '1px solid rgba(0,0,0,0.12)',
+                          transition: 'transform .2s ease, box-shadow .2s ease',
+                          '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
+                        }}
+                      >
+                        <CardContent>
+                          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                            {agent.name}
+                          </Typography>
+                          <Typography sx={{ opacity: 0.9 }}>{agent.description}</Typography>
+                        </CardContent>
+                        <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                          <MemoButton
+                            variant={formData.selectedAgent === agent.id ? 'contained' : 'outlined'}
+                            onClick={() => handleChange('selectedAgent', agent.id)}
+                          >
+                            Choose
+                          </MemoButton>
+                        </CardActions>
+                      </MemoCard>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CenterRail>
 
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={2} justifyContent="center">
                 <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                   Back
                 </MemoButton>
