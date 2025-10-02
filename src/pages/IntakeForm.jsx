@@ -381,8 +381,12 @@ function IntakeForm() {
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
       } else if (currentStep === 3 + mainQuestions.length) {
-        if (!formData.selectedAgent) return;
-      }
+  if (!formData.selectedAgent) return;
+  nextPulse();
+  setCurrentStep(s => s + 1);
+  return;
+}
+
       nextPulse();
       setCurrentStep(s => s + 1);
     } else if (currentStep === totalSteps - 1) {
@@ -450,13 +454,14 @@ function IntakeForm() {
     >
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
-      <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4 } }}>
+      <Container maxWidth={false} sx={{ py: { xs: 3, sm: 4 }, px: { xs: 2, sm: 8 } }}>
+
         {/* Welcome */}
         {currentStep === 0 && (
           <SectionCard>
             <Stack spacing={3} alignItems="center" textAlign="center">
               <Typography variant="h4" sx={{ fontWeight: 800 }}>Welcome to LEP</Typography>
-              <Typography sx={{ maxWidth: 780, lineHeight: 1.7 }}>
+              <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
                 This journey is reflective and practical. Move one card at a time, answer honestly, and we’ll turn it into a focused leadership summary and growth plan.
               </Typography>
               <MemoButton
@@ -522,7 +527,7 @@ function IntakeForm() {
                     onChange={(e, value) => handleChange(q.id, value)}
                     min={q.min}
                     max={q.max}
-                    sx={{ maxWidth: 720, mx: 'auto' }}
+                    sx={{ width: '100%', mx: 'auto' }}
                   />
                   <Typography variant="body2" sx={{ opacity: 0.8 }}>
                     {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
@@ -558,13 +563,13 @@ function IntakeForm() {
                   <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8 }}>
                     {q.theme.toUpperCase()}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, maxWidth: 900 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, width: '100%' }}>
                     {q.prompt}
                   </Typography>
 
                   {/* RADIO / MULTI AS CARDS */}
                   {(q.type === 'radio' || q.type === 'multi-select') && (
-                    <Grid container spacing={2} sx={{ maxWidth: 960 }}>
+                    <Grid container spacing={2} sx={{ width: '100%' }}>
                       {q.options.map((opt) => {
                         const selected =
                           q.type === 'radio'
@@ -610,7 +615,8 @@ function IntakeForm() {
                       fullWidth
                       multiline
                       minRows={3}
-                      sx={{ maxWidth: 900 }}
+                      sx={{ width: '100%' }}
+
                     />
                   )}
 
@@ -623,7 +629,7 @@ function IntakeForm() {
                             spacing={1.3}
                             {...provided.droppableProps}
                             ref={provided.innerRef}
-                            sx={{ width: '100%', maxWidth: 900, mx: 'auto' }}
+                            sx={{ width: '100%', width: '100%', mx: 'auto' }}
                           >
                             <Typography variant="body2" sx={{ opacity: 0.7 }}>
                               Most {q.scale?.top || 'like me'}
@@ -710,11 +716,11 @@ function IntakeForm() {
               <Typography variant="h5" sx={{ fontWeight: 800 }}>
                 Select Your AI Agent
               </Typography>
-              <Typography sx={{ maxWidth: 820, opacity: 0.85 }}>
+              <Typography sx={{ width: '100%', opacity: 0.85 }}>
                 You’ll get honest feedback either way; choose the voice that fits your preference.
               </Typography>
 
-              <Grid container spacing={2} sx={{ maxWidth: 960 }}>
+              <Grid container spacing={2} sx={{ width: '100%' }}>
                 {agentSelect[0].options.map((agent) => (
                   <Grid item xs={12} sm={6} md={4} key={agent.id}>
                     <MemoCard
