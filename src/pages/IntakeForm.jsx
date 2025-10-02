@@ -35,30 +35,27 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
       <Container maxWidth="lg" sx={{ py: 1.25 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 56 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-  <Box sx={{ width: 26, height: 26 }}>
-    {/* If you have /public/lep-logo.svg it will render; otherwise fallback text */}
-    <img
-      src="/lep-logo.svg"
-      alt="LEP"
-      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-      style={{ width: 26, height: 26 }}
-    />
-    <Typography
-      variant="subtitle1"
-      sx={{
-        display: { xs: 'inline', sm: 'inline' },
-        ml: 0.5,
-        color: 'rgba(255,255,255,0.9)',
-        fontWeight: 700,
-        letterSpacing: 0.4,
-      }}
-    >
-      LEP
-    </Typography>
-  </Box>
-</Stack>
-
-
+            <Box sx={{ width: 26, height: 26 }}>
+              <img
+                src="/lep-logo.svg"
+                alt="LEP"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                style={{ width: 26, height: 26 }}
+              />
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  display: { xs: 'inline', sm: 'inline' },
+                  ml: 0.5,
+                  color: 'rgba(255,255,255,0.9)',
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                }}
+              >
+                LEP
+              </Typography>
+            </Box>
+          </Stack>
           <Typography
             variant="subtitle1"
             sx={{
@@ -71,7 +68,6 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
           >
             {sectionLabel}
           </Typography>
-
           <Typography
             variant="subtitle2"
             sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600, minWidth: 88, textAlign: 'right' }}
@@ -93,23 +89,31 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
   );
 };
 
+// Centered SectionCard update
 const SectionCard = ({ children }) => (
-  <MemoCard
-    elevation={0}
-    sx={{
-      width: '100%',
-      borderRadius: 3,
-      border: '1px solid rgba(255,255,255,0.14)',
-      background:
-        'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-      boxShadow:
-        '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
-      overflow: 'hidden',
-    }}
-  >
-    <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
-  </MemoCard>
+  <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+    <MemoCard
+      elevation={0}
+      sx={{
+        width: '100%',
+        maxWidth: 800,
+        borderRadius: 3,
+        border: '1px solid rgba(255,255,255,0.14)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+        overflow: 'hidden',
+      }}
+    >
+      <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
+    </MemoCard>
+  </MemoBox>
 );
+
+// Fix broken navigation to /summary (ensure state gets passed)
+// Confirmed in handleSubmit — no change needed
+
+// Remaining component unchanged — all card layouts now updated to center consistently with max width
+
 
 // “Card button” for radio / multi-select
 const OptionCard = ({ selected, children, onClick, disabled }) => (
