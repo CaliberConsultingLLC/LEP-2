@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Container, Box, Typography, TextField, Slider, Button, Stack, ToggleButton, ToggleButtonGroup, Card, CardContent, CardActions, Grid } from '@mui/material';
+import { Container, Box, Typography, TextField, Slider, Button, Stack, ToggleButton, ToggleButtonGroup, Card, CardContent, CardActions, Grid, LinearProgress } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -226,12 +226,38 @@ function IntakeForm() {
     }
   ];
 
+  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
+  const lastInteractiveStep = 2 + mainQuestions.length + agentSelect.length;
+  const sections = [
+    { label: 'Welcome', start: 0, end: 0 },
+    { label: 'About You', start: 1, end: 1 },
+    { label: 'Role & Scope', start: 2, end: 2 },
+    { label: 'Leadership Pulse', start: 3, end: 2 + mainQuestions.length },
+    { label: 'Agent Selection', start: 3 + mainQuestions.length, end: lastInteractiveStep },
+  ];
+  const currentSectionIndex = sections.findIndex(section => currentStep >= section.start && currentStep <= section.end);
+  const activeSectionIndex = currentSectionIndex === -1 ? sections.length - 1 : currentSectionIndex;
+  const activeSectionLabel = sections[activeSectionIndex]?.label || sections[sections.length - 1].label;
+
+  const contentWidth = 860;
+  const sharedCardStyles = {
+    width: '100%',
+    maxWidth: { xs: '90vw', md: `${contentWidth}px` },
+    mx: 'auto',
+    p: { xs: 4, md: 6 },
+    border: '2px solid',
+    borderColor: 'primary.main',
+    borderRadius: 2,
+    boxShadow: 4,
+    bgcolor: 'rgba(255, 255, 255, 0.95)',
+    background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
+  };
+
   const handleChange = (id, value) => {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleNext = async () => {
-    const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
     if (currentStep < totalSteps - 1) {
       if (currentStep === 0) {
         // Welcome step, no validation needed
@@ -324,7 +350,7 @@ function IntakeForm() {
   return (
     <Box
       sx={{
-        p: 5,
+        p: { xs: 3, md: 5 },
         minHeight: '100vh',
         width: '100vw',
         backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
@@ -336,18 +362,78 @@ function IntakeForm() {
         justifyContent: 'center',
       }}
     >
-      <Container maxWidth={currentStep >= 2 + mainQuestions.length + 1 ? "lg" : "sm"} sx={{ textAlign: 'center' }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: { xs: 3, md: 4 },
+          width: '100%',
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: { xs: '90vw', md: `${contentWidth}px` },
+            mx: 'auto',
+            px: { xs: 3, md: 4 },
+            py: { xs: 2, md: 3 },
+            borderRadius: 2,
+            border: '2px solid',
+            borderColor: 'primary.main',
+            boxShadow: 4,
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: { xs: '0.95rem', md: '1.05rem' },
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              color: 'text.secondary',
+            }}
+          >
+            Section {activeSectionIndex + 1}/{sections.length}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: 'Poppins, sans-serif',
+              fontSize: { xs: '1.25rem', md: '1.5rem' },
+              fontWeight: 600,
+              color: 'text.primary',
+            }}
+          >
+            {activeSectionLabel}
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={Math.min((currentStep / (totalSteps - 1)) * 100, 100)}
+            sx={{
+              width: '100%',
+              height: 12,
+              borderRadius: 6,
+              bgcolor: 'grey.200',
+              mt: 1,
+              '& .MuiLinearProgress-bar': {
+                borderRadius: 6,
+                bgcolor: 'primary.main',
+              },
+            }}
+          />
+        </Box>
         {currentStep === 0 && (
           <>
             <Box
               sx={{
-                p: 6,
-                border: '2px solid',
-                borderColor: 'primary.main',
-                borderRadius: 2,
-                boxShadow: 4,
-                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
+                ...sharedCardStyles,
+                textAlign: 'center',
               }}
             >
               <Stack spacing={4} alignItems="center">
@@ -375,18 +461,13 @@ function IntakeForm() {
         {currentStep === 1 && (
           <Box
             sx={{
-              p: 6,
-              border: '2px solid',
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              boxShadow: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
+              ...sharedCardStyles,
+              textAlign: 'center',
             }}
           >
-            <Stack spacing={4}>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+            <Stack spacing={4} alignItems="center">
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[0].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -398,8 +479,8 @@ function IntakeForm() {
                   sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem' }}
                 />
               </MemoizedBox>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[1].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -411,8 +492,8 @@ function IntakeForm() {
                   sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem' }}
                 />
               </MemoizedBox>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[2].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -424,8 +505,8 @@ function IntakeForm() {
                   sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem' }}
                 />
               </MemoizedBox>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart1[3].prompt}
                 </Typography>
                 <MemoizedTextField
@@ -452,18 +533,13 @@ function IntakeForm() {
         {currentStep === 2 && (
           <Box
             sx={{
-              p: 6,
-              border: '2px solid',
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              boxShadow: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
+              ...sharedCardStyles,
+              textAlign: 'center',
             }}
           >
-            <Stack spacing={4}>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+            <Stack spacing={4} alignItems="center">
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart2[0].prompt}
                 </Typography>
                 <MemoizedSlider
@@ -477,8 +553,8 @@ function IntakeForm() {
                   {formData.teamSize === initialQuestionsPart2[0].max ? "10+" : formData.teamSize || 1}
                 </Typography>
               </MemoizedBox>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart2[1].prompt}
                 </Typography>
                 <MemoizedSlider
@@ -492,8 +568,8 @@ function IntakeForm() {
                   {formData.leadershipExperience === initialQuestionsPart2[1].max ? "10+" : formData.leadershipExperience || "<1"}
                 </Typography>
               </MemoizedBox>
-              <MemoizedBox>
-                <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 2, color: 'text.primary' }}>
+              <MemoizedBox sx={{ width: '100%' }}>
+                <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2, color: 'text.primary', fontWeight: 400 }}>
                   {initialQuestionsPart2[2].prompt}
                 </Typography>
                 <MemoizedSlider
@@ -522,19 +598,14 @@ function IntakeForm() {
         {currentStep > 2 && currentStep <= 2 + mainQuestions.length && (
           <Box
             sx={{
-              p: 6,
-              border: '2px solid',
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              boxShadow: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
+              ...sharedCardStyles,
+              textAlign: 'center',
             }}
           >
-            <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 2, textAlign: 'center', color: 'text.primary' }}>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: { xs: '2rem', md: '2.5rem' }, fontWeight: 700, mb: 2, textAlign: 'center', color: 'text.primary' }}>
               {mainQuestions[currentStep - 3].theme}
             </Typography>
-            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 4, textAlign: 'center', color: 'text.primary' }}>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: { xs: '1rem', md: '1.125rem' }, mb: 4, textAlign: 'center', color: 'text.primary' }}>
               {mainQuestions[currentStep - 3].prompt}
             </Typography>
             {mainQuestions[currentStep - 3].type === 'multi-select' && (
@@ -550,7 +621,7 @@ function IntakeForm() {
                       value={option}
                       sx={{
                         fontFamily: 'Poppins, sans-serif',
-                        fontSize: '1.125rem',
+                        fontSize: { xs: '0.95rem', md: '1.05rem' },
                         textTransform: 'none',
                         width: '100%',
                         py: 1.5,
@@ -625,7 +696,7 @@ function IntakeForm() {
                     value={option}
                     sx={{
                       fontFamily: 'Poppins, sans-serif',
-                      fontSize: '1.125rem',
+                      fontSize: { xs: '0.95rem', md: '1.05rem' },
                       textTransform: 'none',
                       width: '100%',
                       py: 1.5,
@@ -663,19 +734,14 @@ function IntakeForm() {
         {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
           <Box
             sx={{
-              p: 6,
-              border: '2px solid',
-              borderColor: 'primary.main',
-              borderRadius: 2,
-              boxShadow: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(200,220,255,0.9))',
+              ...sharedCardStyles,
+              textAlign: 'center',
             }}
           >
-            <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', mb: 4, textAlign: 'center', color: 'text.primary' }}>
+            <Typography variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.75rem', mb: 2.5, textAlign: 'center', color: 'text.primary', fontWeight: 600 }}>
               Select Your AI Agent
             </Typography>
-            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', mb: 4, textAlign: 'center', color: 'text.primary' }}>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: { xs: '1rem', md: '1.125rem' }, mb: 4, textAlign: 'center', color: 'text.primary' }}>
               An AI agent will provide you with honest feedback regardless, but you can choose the agent that suits your preferences.
             </Typography>
             <Grid container spacing={3} justifyContent="center">
@@ -693,7 +759,7 @@ function IntakeForm() {
                     }}
                   >
                     <CardContent>
-                      <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', textAlign: 'center', mb: 2, color: 'text.primary' }}>
+                      <Typography variant="h6" sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', textAlign: 'center', mb: 2, color: 'text.primary', fontWeight: 600 }}>
                         {agent.name}
                       </Typography>
                       <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', textAlign: 'center', lineHeight: 1.5, color: 'text.primary' }}>
