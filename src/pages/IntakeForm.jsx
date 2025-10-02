@@ -1,3 +1,4 @@
+// src/pages/IntakeForm.jsx
 import React, { useState, useEffect, memo, useMemo } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack,
@@ -15,10 +16,6 @@ const MemoButton = memo(Button);
 const MemoToggleButton = memo(ToggleButton);
 const MemoBox = memo(Box);
 const MemoCard = memo(Card);
-
-// Width caps (natural widths; centered)
-const CARD_WIDTH = 'clamp(320px, 92vw, 880px)';
-const INNER_WIDTH = 'clamp(280px, 90vw, 720px)';
 
 // ---------- Styled helpers ----------
 const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' }) => {
@@ -95,24 +92,39 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
   );
 };
 
-// Centered, natural-width SectionCard
-const SectionCard = ({ children }) => (
-  <MemoCard
-    elevation={0}
+// A centered page container that keeps everything naturally sized
+const PageContainer = ({ children }) => (
+  <Container
+    maxWidth={false}
     sx={{
-      mx: 'auto',                     // center horizontally
-      width: CARD_WIDTH,              // natural width with cap
-      borderRadius: 3,
-      border: '1px solid rgba(255,255,255,0.14)',
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
-      overflow: 'hidden',
+      py: { xs: 3, sm: 4 },
+      px: { xs: 2, sm: 4 },
+      display: 'flex',
+      justifyContent: 'center',
     }}
   >
-    <CardContent sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}>
-      {children}
-    </CardContent>
-  </MemoCard>
+    <Box sx={{ width: '100%', maxWidth: 880 }}>{children}</Box>
+  </Container>
+);
+
+// Centered card with natural width (never full-bleed)
+const SectionCard = ({ children }) => (
+  <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+    <MemoCard
+      elevation={0}
+      sx={{
+        width: '100%',
+        maxWidth: 880,
+        borderRadius: 3,
+        border: '1px solid rgba(255,255,255,0.14)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+        overflow: 'hidden',
+      }}
+    >
+      <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
+    </MemoCard>
+  </MemoBox>
 );
 
 // “Card button” for radio / multi-select
@@ -133,11 +145,9 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
       transition: 'box-shadow .25s ease, transform .25s ease, border-color .2s ease, background-color .2s ease',
       cursor: disabled ? 'default' : 'pointer',
       textAlign: 'center',
-      '&:hover': { boxShadow: '0 10px 28px rgba(0,0,0,0.16)', transform: 'translateY(-2px)' },
-      '&.flip': { animation: 'flipIn .42s ease' },
-      '@keyframes flipIn': {
-        '0%': { transform: 'perspective(600px) rotateY(90deg)', opacity: 0 },
-        '100%': { transform: 'perspective(600px) rotateY(0deg)', opacity: 1 },
+      '&:hover': {
+        boxShadow: '0 10px 28px rgba(0,0,0,0.16)',
+        transform: 'translateY(-2px)',
       },
     }}
   >
@@ -154,7 +164,9 @@ function IntakeForm() {
   const navigate = useNavigate();
 
   // fixed, immersive bg setup
-  useEffect(() => {}, []);
+  useEffect(() => {
+    // nothing to do here now
+  }, []);
 
   // ---------- Questions ----------
   const initialQuestionsPart1 = [
@@ -342,7 +354,8 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length + 1; // Welcome + Part1 + Part2 + Main + Agent + Submit
+  // Removed the phantom "+1" submit step. We submit from the Agent step.
+  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length; // Welcome + Part1 + Part2 + Main + Agent
   const headerLabel = useMemo(() => {
     if (currentStep === 0) return 'Welcome';
     if (currentStep === 1) return 'About You';
@@ -360,19 +373,10 @@ function IntakeForm() {
     setTimeout(() => setStepJustValidated(false), 420);
   };
 
-  // Prefill slider values when entering Step 2 (prevents disabled Next)
-  useEffect(() => {
-    if (currentStep === 2) {
-      setFormData(prev => ({
-        ...prev,
-        teamSize: prev.teamSize ?? initialQuestionsPart2[0].min,
-        leadershipExperience: prev.leadershipExperience ?? initialQuestionsPart2[1].min,
-        careerExperience: prev.careerExperience ?? initialQuestionsPart2[2].min,
-      }));
-    }
-  }, [currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleNext = async () => {
+    // Agent step index:
+    const agentStepIndex = 3 + mainQuestions.length;
+
     if (currentStep < totalSteps - 1) {
       if (currentStep === 1) {
         if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
@@ -389,17 +393,16 @@ function IntakeForm() {
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
-      } else if (currentStep === 3 + mainQuestions.length) {
+      } else if (currentStep === agentStepIndex) {
+        // Submit directly from Agent step
         if (!formData.selectedAgent) return;
-        nextPulse();
-        setCurrentStep(s => s + 1);
+        setIsSubmitting(true);
+        await handleSubmit();
         return;
       }
+
       nextPulse();
       setCurrentStep(s => s + 1);
-    } else if (currentStep === totalSteps - 1) {
-      setIsSubmitting(true);
-      await handleSubmit();
     }
   };
 
@@ -417,7 +420,6 @@ function IntakeForm() {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
       const updated = { ...formData, selectedAgent: selectedAgentId };
-
       await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
       localStorage.setItem('latestFormData', JSON.stringify(updated));
       navigate('/summary', { state: { formData: updated } });
@@ -436,6 +438,7 @@ function IntakeForm() {
         minHeight: '100svh',
         width: '100%',
         overflowX: 'hidden',
+        // full bleed bg
         '&:before': {
           content: '""',
           position: 'fixed',
@@ -447,6 +450,7 @@ function IntakeForm() {
           backgroundRepeat: 'no-repeat',
           transform: 'translateZ(0)',
         },
+        // dark overlay
         '&:after': {
           content: '""',
           position: 'fixed',
@@ -458,22 +462,11 @@ function IntakeForm() {
     >
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
-      {/* Page content area: force centered children */}
-      <Container
-        maxWidth={false}
-        sx={{
-          py: { xs: 3, sm: 4 },
-          px: { xs: 2, sm: 8 },
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',     // center all SectionCards
-          gap: { xs: 2, sm: 3 },
-        }}
-      >
+      <PageContainer>
         {/* Welcome */}
         {currentStep === 0 && (
           <SectionCard>
-            <Stack spacing={3} alignItems="center">
+            <Stack spacing={3} alignItems="center" textAlign="center">
               <Typography variant="h4" sx={{ fontWeight: 800 }}>Welcome to LEP</Typography>
               <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
                 This journey is reflective and practical. Move one card at a time, answer honestly, and we’ll turn it into a focused leadership summary and growth plan.
@@ -493,10 +486,10 @@ function IntakeForm() {
         {/* Part 1 */}
         {currentStep === 1 && (
           <SectionCard>
-            <Stack spacing={3} alignItems="center">
+            <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart1.map((q) => (
-                <MemoBox key={q.id} sx={{ width: INNER_WIDTH, mx: 'auto' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
+                <MemoBox key={q.id} sx={{ width: '100%' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25, textAlign: 'left' }}>{q.prompt}</Typography>
                   <MemoTextField
                     value={formData[q.id] || ''}
                     onChange={(e) => handleChange(q.id, e.target.value)}
@@ -532,19 +525,19 @@ function IntakeForm() {
         {/* Part 2 */}
         {currentStep === 2 && (
           <SectionCard>
-            <Stack spacing={4} alignItems="center">
+            <Stack spacing={4} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
               {initialQuestionsPart2.map((q) => (
-                <MemoBox key={q.id} sx={{ width: INNER_WIDTH, mx: 'auto' }}>
+                <MemoBox key={q.id} sx={{ width: '100%' }}>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
                   <MemoSlider
                     value={formData[q.id] ?? q.min}
                     onChange={(e, value) => handleChange(q.id, value)}
                     min={q.min}
                     max={q.max}
-                    sx={{ width: '100%', mx: 'auto' }}
+                    sx={{ width: '100%' }}
                   />
                   <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    {String(formData[q.id] ?? (q.min === 0 ? 0 : q.min))}
+                    {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
                   </Typography>
                 </MemoBox>
               ))}
@@ -573,22 +566,17 @@ function IntakeForm() {
               const q = mainQuestions[currentStep - 3];
 
               return (
-                <Stack spacing={3} alignItems="center">
-                  <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8 }}>
+                <Stack spacing={3} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
+                  <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8, textAlign: 'center' }}>
                     {q.theme.toUpperCase()}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, width: '100%' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
                     {q.prompt}
                   </Typography>
 
                   {/* RADIO / MULTI AS CARDS */}
                   {(q.type === 'radio' || q.type === 'multi-select') && (
-                    <Grid
-                      container
-                      spacing={2}
-                      justifyContent="center"
-                      sx={{ width: '100%', maxWidth: '880px', mx: 'auto' }}
-                    >
+                    <Grid container spacing={2}>
                       {q.options.map((opt) => {
                         const selected =
                           q.type === 'radio'
@@ -634,7 +622,6 @@ function IntakeForm() {
                       fullWidth
                       multiline
                       minRows={3}
-                      sx={{ width: INNER_WIDTH, mx: 'auto' }}
                     />
                   )}
 
@@ -647,7 +634,7 @@ function IntakeForm() {
                             spacing={1.3}
                             {...provided.droppableProps}
                             ref={provided.innerRef}
-                            sx={{ width: INNER_WIDTH, mx: 'auto' }}
+                            sx={{ width: '100%' }}
                           >
                             <Typography variant="body2" sx={{ opacity: 0.7 }}>
                               Most {q.scale?.top || 'like me'}
@@ -701,7 +688,7 @@ function IntakeForm() {
                     </DragDropContext>
                   )}
 
-                  <Stack direction="row" spacing={2} sx={{ pt: 1 }}>
+                  <Stack direction="row" spacing={2} sx={{ pt: 1, justifyContent: 'center' }}>
                     <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                       Back
                     </MemoButton>
@@ -714,7 +701,9 @@ function IntakeForm() {
                         (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
                         (q.type === 'radio' && !formData[q.id])
                       }
-                      sx={{ ...(stepJustValidated && { animation: 'pulse 420ms ease' }) }}
+                      sx={{
+                        ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+                      }}
                     >
                       Next
                     </MemoButton>
@@ -725,10 +714,10 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Agent select */}
+        {/* Agent select (final step now submits) */}
         {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
           <SectionCard>
-            <Stack spacing={3} alignItems="center">
+            <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               <Typography variant="h5" sx={{ fontWeight: 800 }}>
                 Select Your AI Agent
               </Typography>
@@ -736,12 +725,7 @@ function IntakeForm() {
                 You’ll get honest feedback either way; choose the voice that fits your preference.
               </Typography>
 
-              <Grid
-                container
-                spacing={2}
-                justifyContent="center"
-                sx={{ width: '100%', maxWidth: '880px', mx: 'auto' }}
-              >
+              <Grid container spacing={2}>
                 {agentSelect[0].options.map((agent) => (
                   <Grid item xs={12} sm={6} md={4} key={agent.id}>
                     <MemoCard
@@ -758,7 +742,7 @@ function IntakeForm() {
                         '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
                       }}
                     >
-                      <CardContent sx={{ textAlign: 'center' }}>
+                      <CardContent>
                         <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                           {agent.name}
                         </Typography>
@@ -777,7 +761,7 @@ function IntakeForm() {
                 ))}
               </Grid>
 
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={2} justifyContent="center">
                 <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                   Back
                 </MemoButton>
@@ -792,7 +776,7 @@ function IntakeForm() {
             </Stack>
           </SectionCard>
         )}
-      </Container>
+      </PageContainer>
     </Box>
   );
 }
