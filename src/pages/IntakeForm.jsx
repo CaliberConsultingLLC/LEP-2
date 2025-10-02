@@ -102,23 +102,20 @@ const CenterRail = ({ children, max = 920 }) => (
 
 // Section “card” that sits on the centered rail.
 const SectionCard = ({ children }) => (
-  <CenterRail>
-    <MemoCard
-      elevation={0}
-      sx={{
-        width: '100%',
-        borderRadius: 3,
-        border: '1px solid rgba(255,255,255,0.14)',
-        background:
-          'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-        boxShadow:
-          '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
-        overflow: 'hidden',
-      }}
-    >
-      <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
-    </MemoCard>
-  </CenterRail>
+  <MemoCard
+    elevation={0}
+    sx={{
+      mx: 'auto',                 // <-- centers horizontally regardless of parent
+      width: 'min(100%, 880px)',  // <-- natural width with breathing room
+      borderRadius: 3,
+      border: '1px solid rgba(255,255,255,0.14)',
+      background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+      overflow: 'hidden',
+    }}
+  >
+    <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
+  </MemoCard>
 );
 
 // “Card button” for radio / multi-select — these live inside the same centered rail
@@ -471,7 +468,11 @@ function IntakeForm() {
     >
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
-      <Container maxWidth={false} sx={{ py: { xs: 3, sm: 4 }, px: { xs: 2, sm: 8 } }}>
+      <Container
+  maxWidth={false}
+  sx={{ py: { xs: 3, sm: 4 }, px: { xs: 2, sm: 8 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+>
+
         {/* Welcome */}
         {currentStep === 0 && (
           <SectionCard>
