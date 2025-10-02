@@ -27,13 +27,13 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
         position: 'sticky',
         top: 0,
         zIndex: 5,
-        width: '100%',
+        width: '100vw', // Changed to stretch across the entire page
         backdropFilter: 'saturate(120%) blur(6px)',
         background: 'linear-gradient(180deg, rgba(18,18,18,0.75), rgba(18,18,18,0.55))',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}
     >
-      <Container maxWidth="lg" sx={{ py: 1.25 }}>
+      <Container maxWidth={false} sx={{ py: 1.25, width: '100%' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 56 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <Box sx={{ width: 26, height: 26 }}>
@@ -101,6 +101,7 @@ const PageContainer = ({ children }) => (
       px: { xs: 2, sm: 4 },
       display: 'flex',
       justifyContent: 'center',
+      width: '100vw', // Ensure full width to center content properly
     }}
   >
     <Box sx={{ width: '100%', maxWidth: 880 }}>{children}</Box>
@@ -394,7 +395,7 @@ function IntakeForm() {
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
       } else if (currentStep === agentStepIndex) {
-        // Submit directly from Agent step
+        // Submit directly from Agent step and navigate to /summary
         if (!formData.selectedAgent) return;
         setIsSubmitting(true);
         await handleSubmit();
@@ -422,7 +423,7 @@ function IntakeForm() {
       const updated = { ...formData, selectedAgent: selectedAgentId };
       await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
       localStorage.setItem('latestFormData', JSON.stringify(updated));
-      navigate('/summary', { state: { formData: updated } });
+      navigate('/summary', { state: { formData: updated } }); // Navigate to /summary
     } catch (e) {
       console.error('Submit failed', e);
       alert('Failed to submit form. Please try again.');
