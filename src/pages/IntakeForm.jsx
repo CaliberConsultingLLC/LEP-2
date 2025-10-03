@@ -109,13 +109,13 @@ const PageContainer = ({ children }) => (
 );
 
 // Centered card with natural width (never full-bleed)
-const SectionCard = ({ children }) => (
+const SectionCard = ({ children, narrow = false }) => (
   <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
     <MemoCard
       elevation={0}
       sx={{
         width: '100%',
-        maxWidth: 880,
+        maxWidth: narrow ? 748 : 880,
         borderRadius: 3,
         border: '1px solid rgba(255,255,255,0.14)',
         background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
@@ -466,7 +466,7 @@ function IntakeForm() {
       <PageContainer>
         {/* Welcome */}
         {currentStep === 0 && (
-          <SectionCard>
+          <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Welcome to LEP</Typography>
               <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
@@ -486,11 +486,11 @@ function IntakeForm() {
 
         {/* Part 1 */}
         {currentStep === 1 && (
-          <SectionCard>
+          <SectionCard narrow={true}>
             <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart1.map((q) => (
                 <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
                   <MemoTextField
                     value={formData[q.id] || ''}
                     onChange={(e) => handleChange(q.id, e.target.value)}
@@ -525,11 +525,11 @@ function IntakeForm() {
 
         {/* Part 2 */}
         {currentStep === 2 && (
-          <SectionCard>
+          <SectionCard narrow={true}>
             <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart2.map((q) => (
                 <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
                   <MemoSlider
                     value={formData[q.id] ?? q.min}
                     onChange={(e, value) => handleChange(q.id, value)}
@@ -562,7 +562,7 @@ function IntakeForm() {
 
         {/* Main questions */}
         {currentStep > 2 && currentStep <= 2 + mainQuestions.length && (
-          <SectionCard>
+          <SectionCard narrow={false}>
             {(() => {
               const q = mainQuestions[currentStep - 3];
 
@@ -717,7 +717,7 @@ function IntakeForm() {
 
         {/* Agent select (final step now submits) */}
         {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
-          <SectionCard>
+          <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
                 Select Your AI Agent
