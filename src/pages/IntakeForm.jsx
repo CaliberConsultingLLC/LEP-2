@@ -397,14 +397,10 @@ function IntakeForm() {
       } else if (currentStep === agentStepIndex) {
   if (!formData.selectedAgent) return;
   setIsSubmitting(true);
-  try {
-    await handleSubmit();
-  } finally {
-    // always ensure navigation
-    navigate('/summary', { state: { formData } });
-  }
-  return;
+  await handleSubmit();   // ✅ submit & navigate directly
+  return;                 // ✅ stop here, don’t increment step
 }
+
 
 
       nextPulse();
@@ -423,18 +419,23 @@ function IntakeForm() {
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleSubmit = async () => {
-    try {
-      const selectedAgentId = formData.selectedAgent || 'balancedMentor';
-      const updated = { ...formData, selectedAgent: selectedAgentId };
-      await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
-      localStorage.setItem('latestFormData', JSON.stringify(updated));
-      navigate('/summary', { state: { formData: updated } }); // Navigate to /summary
-    } catch (e) {
-      console.error('Submit failed', e);
-      alert('Failed to submit form. Please try again.');
-      setIsSubmitting(false);
-    }
-  };
+  try {
+    console.log("Submitting formData:", formData); // ✅ debug check
+
+    const selectedAgentId = formData.selectedAgent || 'balancedMentor';
+    const updated = { ...formData, selectedAgent: selectedAgentId };
+
+    await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+    localStorage.setItem('latestFormData', JSON.stringify(updated));
+
+    console.log("Navigating to summary now..."); // ✅ debug check
+    navigate('/summary', { state: { formData: updated } });
+  } catch (e) {
+    console.error('Submit failed', e);
+    alert('Failed to submit form. Please try again.');
+    setIsSubmitting(false);
+  }
+};
 
   // ---------- UI ----------
   return (
