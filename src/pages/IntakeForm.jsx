@@ -9,10 +9,6 @@ import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-// Optional: Add Gemunu Libre font for Societal Norms match (uncomment if using CDN in index.html)
-// import '@fontsource/gemunu-libre';
-
-
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
 const MemoSlider = memo(Slider);
@@ -180,15 +176,29 @@ function IntakeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [reflectionText, setReflectionText] = useState(''); // For AI-generated reflection
   const navigate = useNavigate();
 
   // Reset dialog for message steps
   useEffect(() => {
-    const messageSteps = [1, 4, 12]; // Profile Msg, Beh Msg, Mindset Msg
+    const messageSteps = [1, 4, learningStep + 1]; // Profile Msg, Beh Msg, Mindset Msg
     if (messageSteps.includes(currentStep)) {
       setDialogOpen(true);
+    } else {
+      setDialogOpen(false);
     }
   }, [currentStep]);
+
+  // Generate reflection on entering Reflection Moment step (placeholder AI call simulation)
+  useEffect(() => {
+    if (currentStep === learningStep) {
+      // Simulate AI reflection based on formData (e.g., from behaviors)
+      const behaviorIds = behaviorQuestions.map(q => q.id);
+      const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+      setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
+      // TODO: Replace with actual xAI API call if integrated: fetch('/api/reflect', { method: 'POST', body: JSON.stringify(formData) })
+    }
+  }, [currentStep, formData]);
 
   // fixed, immersive bg setup
   useEffect(() => {
@@ -420,11 +430,11 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + 1 + agentSelect.length; // Intro + Profile Msg + Profile(2p) + Beh Msg + Beh Qs + Learn + Mind Msg + Mind Qs + Soc(1p) + Agent
+  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + 1 + agentSelect.length; // Intro + Profile Msg + Profile(2p) + Beh Msg + Beh Qs + Reflect + Mind Msg + Mind Qs + Soc(1p) + Agent
   const behaviorStart = 5;
   const behaviorEnd = behaviorStart + behaviorQuestions.length - 1;
-  const learningStep = behaviorEnd + 1;
-  const mindsetStart = learningStep + 2;
+  const reflectionStep = behaviorEnd + 1;
+  const mindsetStart = reflectionStep + 2;
   const mindsetEnd = mindsetStart + mindsetQuestions.length - 1;
   const societalStep = mindsetEnd + 1;
   const agentStep = societalStep + 1;
@@ -433,12 +443,12 @@ function IntakeForm() {
     if (currentStep === 0) return 'Welcome';
     if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
     if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
-    if (currentStep === learningStep) return 'Learning Moment';
-    if (currentStep === learningStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
+    if (currentStep === reflectionStep) return 'Reflection Moment';
+    if (currentStep === reflectionStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
     if (currentStep === societalStep) return 'Societal Norms';
     if (currentStep === agentStep) return 'Choose Your Agent';
     return 'LEP';
-  }, [currentStep, behaviorStart, behaviorEnd, learningStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
+  }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -455,7 +465,7 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    const isMessageStep = [1, 4, learningStep + 1].includes(currentStep); // Auto-advance messages
+    const isMessageStep = [1, 4, reflectionStep + 1].includes(currentStep); // Auto-advance messages
 
     if (isMessageStep) {
       setDialogOpen(false);
@@ -479,9 +489,9 @@ function IntakeForm() {
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
-      // Learning Moment (step 11)
-      } else if (currentStep === learningStep) {
-        if (!formData.learningReflection) return;
+      // Reflection Moment (step 11) - no validation, buttons handle
+      } else if (currentStep === reflectionStep) {
+        return; // Buttons handle progression
       // Societal Norms (step 18) - all answered
       } else if (currentStep === societalStep) {
         if (societalResponses.some(r => r === 5)) return; // Default 5 means unanswered
@@ -512,6 +522,12 @@ function IntakeForm() {
   };
 
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
+
+  const handleStartOver = () => {
+    setFormData({});
+    setSocietalResponses(Array(35).fill(5));
+    setCurrentStep(0);
+  };
 
   const handleSubmit = async () => {
     try {
@@ -564,7 +580,7 @@ function IntakeForm() {
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
       {/* Message Pop-ups */}
-      {(currentStep === 1 || currentStep === 4 || currentStep === learningStep + 1) && (
+      {(currentStep === 1 || currentStep === 4 || currentStep === reflectionStep + 1) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
@@ -821,26 +837,25 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Learning Moment (Step 11) */}
-        {currentStep === learningStep && (
+        {/* Reflection Moment (Step 11) */}
+        {currentStep === reflectionStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Learning Moment</Typography>
-              <Typography sx={{ mb: 2, opacity: 0.9 }}>Take a breath. What's one key insight from the Behaviors section that surprised you?</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Reflection Moment</Typography>
+              <Typography sx={{ mb: 2, opacity: 0.9 }}>{reflectionText || 'Generating reflection...'}</Typography>
               <MemoTextField
-                value={formData.learningReflection || ''}
-                onChange={(e) => handleChange('learningReflection', e.target.value)}
+                value={formData.userReflection || ''}
+                onChange={(e) => handleChange('userReflection', e.target.value)}
                 fullWidth
                 multiline
                 minRows={3}
-                placeholder="One sentence reflection..."
+                placeholder="Your thoughts on the reflection..."
               />
               <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(behaviorEnd)}>Back</MemoButton>
+                <MemoButton variant="outlined" onClick={handleStartOver}>Start Over</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
-                  disabled={!formData.learningReflection}
                 >
                   Proceed to Mindset
                 </MemoButton>
@@ -1058,7 +1073,7 @@ function IntakeForm() {
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
-                  disabled={societalResponses.some(r => r === 5)} // Unanswered defaults
+                  disabled={societalResponses.some(r => r === 5)} // Default 5 means unanswered
                 >
                   Next
                 </MemoButton>
