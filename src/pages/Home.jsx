@@ -27,7 +27,7 @@ function Home() {
     >
       <Container sx={{ textAlign: 'center' }}>
         <Box sx={{ mb: 6 }}>
-          <img src="/logo.jpg" alt="LEP Logo" style={{ width: '600px', height: 'auto' }} />
+          <img src="/CompassLogo.png" alt="LEP Logo" style={{ width: '600px', height: 'auto' }} />
         </Box>
         <Stack spacing={2} direction="column" alignItems="center">
   {/* Normal flow */}
