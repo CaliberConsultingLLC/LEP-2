@@ -428,6 +428,9 @@ useEffect(() => {
   ];
 
   // ---------- derived values ----------
+// keep questions and agentSelect defined first
+
+// ---------- derived values ----------
 const stepVars = useMemo(() => {
   const behaviorStart = 5;
   const behaviorEnd = behaviorStart + behaviorQuestions.length - 1;
@@ -436,11 +439,33 @@ const stepVars = useMemo(() => {
   const mindsetEnd = mindsetStart + mindsetQuestions.length - 1;
   const societalStep = mindsetEnd + 1;
   const agentStep = societalStep + 1;
-  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + 1 + agentSelect.length;
+  const totalSteps =
+    1 + 1 + 2 + 1 +
+    behaviorQuestions.length +
+    1 + 1 +
+    mindsetQuestions.length +
+    1 + agentSelect.length;
   return { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps };
 }, [behaviorQuestions.length, mindsetQuestions.length, agentSelect.length]);
 
 const { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps } = stepVars;
+
+// ---- now these effects can safely use reflectionStep, behaviorQuestions ----
+useEffect(() => {
+  const messageSteps = [1, 4, reflectionStep + 1];
+  setDialogOpen(messageSteps.includes(currentStep));
+}, [currentStep, reflectionStep]);
+
+useEffect(() => {
+  if (currentStep === reflectionStep) {
+    const behaviorIds = behaviorQuestions.map(q => q.id);
+    const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+    setReflectionText(
+      `Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`
+    );
+  }
+}, [currentStep, formData, reflectionStep, behaviorQuestions]);
+
 
 const headerLabel = useMemo(() => {
   if (currentStep === 0) return 'Welcome';
