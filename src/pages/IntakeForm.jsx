@@ -180,25 +180,25 @@ function IntakeForm() {
   const navigate = useNavigate();
 
   // Reset dialog for message steps
-  useEffect(() => {
-    const messageSteps = [1, 4, learningStep + 1]; // Profile Msg, Beh Msg, Mindset Msg
-    if (messageSteps.includes(currentStep)) {
-      setDialogOpen(true);
-    } else {
-      setDialogOpen(false);
-    }
-  }, [currentStep]);
+useEffect(() => {
+  const messageSteps = [1, 4, reflectionStep + 1]; // Changed from learningStep
+  if (messageSteps.includes(currentStep)) {
+    setDialogOpen(true);
+  } else {
+    setDialogOpen(false);
+  }
+}, [currentStep, reflectionStep]); // Add reflectionStep dep
 
   // Generate reflection on entering Reflection Moment step (placeholder AI call simulation)
   useEffect(() => {
-    if (currentStep === learningStep) {
+    if (currentStep === reflectionStep) {
       // Simulate AI reflection based on formData (e.g., from behaviors)
       const behaviorIds = behaviorQuestions.map(q => q.id);
       const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
       setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
       // TODO: Replace with actual xAI API call if integrated: fetch('/api/reflect', { method: 'POST', body: JSON.stringify(formData) })
     }
-  }, [currentStep, formData]);
+  }, [currentStep, formData, reflectionStep]); // Add reflectionStep dep
 
   // fixed, immersive bg setup
   useEffect(() => {
@@ -490,10 +490,10 @@ function IntakeForm() {
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
       // Reflection Moment (step 11) - no validation, buttons handle
-      } else if (currentStep === reflectionStep) {
-        return; // Buttons handle progression
-      // Societal Norms (step 18) - all answered
-      } else if (currentStep === societalStep) {
+      } else if (currentStep === reflectionStep) { // Changed from learningStep
+      return; // Buttons handle progression
+    // ... rest unchanged
+  } else if (currentStep === societalStep) {
         if (societalResponses.some(r => r === 5)) return; // Default 5 means unanswered
       // Agent step (step 20)
       } else if (currentStep === agentStep) {
