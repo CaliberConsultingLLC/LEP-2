@@ -177,6 +177,7 @@ function IntakeForm() {
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState('');
+const [isLoadingReflection, setIsLoadingReflection] = useState(false);
   const navigate = useNavigate();
 
   // fixed, immersive bg setup
