@@ -172,19 +172,19 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
 function IntakeForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
-  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(5));
+  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(null)); // null = unanswered
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState('');
   const navigate = useNavigate();
 
-   // fixed, immersive bg setup
+  // fixed, immersive bg setup
   useEffect(() => {
     // nothing to do here now
   }, []);
 
-  // ---------- Questions (split and new) ----------
+  // ---------- Questions ----------
   const initialQuestionsPart1 = [
     { id: 'name', prompt: 'What is your name?', type: 'text' },
     { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
@@ -198,7 +198,8 @@ function IntakeForm() {
     { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 0, max: 20, labels: { 0: '<1', 20: '20+' } },
   ];
 
-  const behaviorQuestions = [  // First 6 from mainQuestions (radio/multi)
+  // Original 6 behavior-style questions
+  const behaviorSetA = [
     {
       id: 'resourcePick',
       theme: 'The Quick Pick',
@@ -283,7 +284,8 @@ function IntakeForm() {
     },
   ];
 
-  const mindsetQuestions = [  // Last 6 from mainQuestions (text/ranking)
+  // The 6 that used to be "mindsetQuestions" are now part of Behaviors (total 12)
+  const behaviorSetB = [
     {
       id: 'roleModelTrait',
       theme: 'The Role Model',
@@ -332,7 +334,7 @@ function IntakeForm() {
     },
     {
       id: 'leaderFuel',
-      theme: 'The Leader\'s Fuel',
+      theme: "The Leader's Fuel",
       prompt: 'Rank the following outcomes that energize you most.',
       type: 'ranking',
       options: [
@@ -358,7 +360,9 @@ function IntakeForm() {
     },
   ];
 
-  // Full Societal Norms questions from provided code
+  const behaviorQuestions = [...behaviorSetA, ...behaviorSetB]; // 12 total
+
+  // 35 societal norms (now the "Mindset" section, 5 per page)
   const societalNormsQuestions = [
     "When challenges arise, I determine the solution from my experience and expertise.",
     "I am careful to acknowledge and admit my mistakes to my team.",
@@ -409,56 +413,60 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-// keep questions and agentSelect defined first
+  const SOCIETAL_GROUP_SIZE = 5;
+  const societalGroups = useMemo(() => {
+    const groups = [];
+    for (let i = 0; i < societalNormsQuestions.length; i += SOCIETAL_GROUP_SIZE) {
+      groups.push(societalNormsQuestions.slice(i, i + SOCIETAL_GROUP_SIZE));
+    }
+    return groups; // 7 groups of 5 (35 total)
+  }, [societalNormsQuestions]);
 
-// ---------- derived values ----------
-const stepVars = useMemo(() => {
-  const behaviorStart = 5;
-  const behaviorEnd = behaviorStart + behaviorQuestions.length - 1;
-  const reflectionStep = behaviorEnd + 1;
-  const mindsetStart = reflectionStep + 2;
-  const mindsetEnd = mindsetStart + mindsetQuestions.length - 1;
-  const societalStep = mindsetEnd + 1;
-  const agentStep = societalStep + 1;
-  const totalSteps =
-    1 + 1 + 2 + 1 +
-    behaviorQuestions.length +
-    1 + 1 +
-    mindsetQuestions.length +
-    1 + agentSelect.length;
-  return { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps };
-}, [behaviorQuestions.length, mindsetQuestions.length, agentSelect.length]);
+  const stepVars = useMemo(() => {
+    const behaviorStart = 5; // after behaviors intro popup (step 4)
+    const behaviorEnd = behaviorStart + behaviorQuestions.length - 1; // 5..16 (12 qs)
+    const reflectionStep = behaviorEnd + 1; // 17
+    const mindsetIntroStep = reflectionStep + 1; // 18 (popup)
+    const societalStart = mindsetIntroStep + 1; // 19
+    const societalEnd = societalStart + societalGroups.length - 1; // 19..25 (7 pages)
+    const agentStep = societalEnd + 1; // 26
+    const totalSteps = agentStep + 1; // 27 total steps (0..26 displayed as 1..27)
+    return {
+      behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
+      societalStart, societalEnd, agentStep, totalSteps
+    };
+  }, [behaviorQuestions.length, societalGroups.length]);
 
-const { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps } = stepVars;
+  const {
+    behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
+    societalStart, societalEnd, agentStep, totalSteps
+  } = stepVars;
 
-const headerLabel = useMemo(() => {
+  const headerLabel = useMemo(() => {
     if (currentStep === 0) return 'Welcome';
     if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
     if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
     if (currentStep === reflectionStep) return 'Reflection Moment';
-    if (currentStep === reflectionStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
-    if (currentStep === societalStep) return 'Societal Norms';
+    if (currentStep === mindsetIntroStep || (currentStep >= societalStart && currentStep <= societalEnd)) return 'Mindset';
     if (currentStep === agentStep) return 'Choose Your Agent';
     return 'LEP';
-  }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
+  }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep, societalStart, societalEnd, agentStep]);
 
-  // ---- now these effects can safely use reflectionStep, behaviorQuestions ----
-useEffect(() => {
-  const messageSteps = [1, 4, reflectionStep + 1];
-  if (messageSteps.includes(currentStep)) {
-    setDialogOpen(true);
-  } else {
-    setDialogOpen(false);
-  }
-}, [currentStep, reflectionStep]);
+  // ---- dialogs and reflection text ----
+  useEffect(() => {
+    const messageSteps = [1, 4, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
+    setDialogOpen(messageSteps.includes(currentStep));
+  }, [currentStep, mindsetIntroStep]);
 
   useEffect(() => {
-  if (currentStep === reflectionStep) {
-    const behaviorIds = behaviorQuestions.map(q => q.id);
-    const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-    setReflectionText(`Based on your behaviors ...`);
-  }
-}, [currentStep, formData, reflectionStep, behaviorQuestions]);
+    if (currentStep === reflectionStep) {
+      const behaviorIds = behaviorQuestions.map(q => q.id);
+      const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+      setReflectionText(
+        `Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), take a brief pause. What patterns do you notice in how you lead day-to-day? What would you keep, and what might you adjust next week?`
+      );
+    }
+  }, [currentStep, formData, reflectionStep, behaviorQuestions]);
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -475,48 +483,55 @@ useEffect(() => {
   };
 
   const handleNext = async () => {
-  const isMessageStep = [1, 4, reflectionStep + 1].includes(currentStep); // Auto-advance messages
+    const isMessageStep = [1, 4, mindsetIntroStep].includes(currentStep); // auto-advance popups
 
-  if (isMessageStep) {
-    setDialogOpen(false);
-    setCurrentStep(s => s + 1);
-    return;
-  }
-
-  if (currentStep < totalSteps - 1) {
-    // Profile validation (steps 2-3)
-    if (currentStep === 2) {
-      if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
-    } else if (currentStep === 3) {
-      if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
-    // Behaviors/Mindset validation (steps 5+, 13+)
-    } else if ((currentStep >= behaviorStart && currentStep <= behaviorEnd) || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) {
-      const questions = currentStep >= behaviorStart ? behaviorQuestions : mindsetQuestions;
-      const qIndex = currentStep >= behaviorStart ? currentStep - behaviorStart : currentStep - mindsetStart;
-      const q = questions[qIndex];
-      const v = formData[q.id];
-      if (q.type === 'text' && !v) return;
-      if (q.type === 'multi-select' && (!v || v.length === 0)) return;
-      if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
-      if (q.type === 'radio' && !v) return;
-    // Reflection Moment (step 11) - no validation, buttons handle
-    } else if (currentStep === reflectionStep) {
-      return; // Buttons handle progression
-    // Societal Norms (step 18) - all answered
-    } else if (currentStep === societalStep) {
-      if (societalResponses.some(r => r === 5)) return; // Default 5 means unanswered
-    // Agent step (step 20)
-    } else if (currentStep === agentStep) {
-      if (!formData.selectedAgent) return;
-      setIsSubmitting(true);
-      await handleSubmit();
+    if (isMessageStep) {
+      setDialogOpen(false);
+      setCurrentStep(s => s + 1);
       return;
     }
 
-    nextPulse();
-    setCurrentStep(s => s + 1);
-  }
-};
+    if (currentStep < totalSteps - 1) {
+      // Profile validation (steps 2-3)
+      if (currentStep === 2) {
+        if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
+      } else if (currentStep === 3) {
+        if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
+
+      // Behaviors validation (steps 5..16)
+      } else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
+        const qIndex = currentStep - behaviorStart;
+        const q = behaviorQuestions[qIndex];
+        const v = formData[q.id];
+        if (q.type === 'text' && !v) return;
+        if (q.type === 'multi-select' && (!v || v.length === 0)) return;
+        if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
+        if (q.type === 'radio' && !v) return;
+
+      // Reflection step - no validation; buttons control navigation
+      } else if (currentStep === reflectionStep) {
+        return;
+
+      // Societal (Mindset) validation: only current 5 in the shown group must be answered
+      } else if (currentStep >= societalStart && currentStep <= societalEnd) {
+        const groupIdx = currentStep - societalStart; // 0..6
+        const start = groupIdx * SOCIETAL_GROUP_SIZE;
+        const end = start + SOCIETAL_GROUP_SIZE; // not inclusive
+        const groupValues = societalResponses.slice(start, end);
+        if (groupValues.some(v => v == null)) return;
+
+      // Agent
+      } else if (currentStep === agentStep) {
+        if (!formData.selectedAgent) return;
+        setIsSubmitting(true);
+        await handleSubmit();
+        return;
+      }
+
+      nextPulse();
+      setCurrentStep(s => s + 1);
+    }
+  };
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -535,17 +550,17 @@ useEffect(() => {
 
   const handleStartOver = () => {
     setFormData({});
-    setSocietalResponses(Array(35).fill(5));
+    setSocietalResponses(Array(35).fill(null));
     setCurrentStep(0);
   };
 
   const handleSubmit = async () => {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
-      const updated = { 
-        ...formData, 
+      const updated = {
+        ...formData,
         selectedAgent: selectedAgentId,
-        societalResponses // Add societal array to form data
+        societalResponses
       };
       await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
       localStorage.setItem('latestFormData', JSON.stringify(updated));
@@ -590,16 +605,23 @@ useEffect(() => {
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
       {/* Message Pop-ups */}
-      {(currentStep === 1 || currentStep === 4 || currentStep === reflectionStep + 1) && (
+      {(currentStep === 1 || currentStep === 4 || currentStep === mindsetIntroStep) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
-          title={currentStep === 1 ? 'Why Profile Matters' : currentStep === 4 ? 'Why Behaviors Matter' : 'Mindset & Norms'}
-          content={currentStep === 1 
-            ? 'Understanding your background helps tailor insights to your unique context.' 
-            : currentStep === 4 
-            ? 'Behaviors reveal how you show up daily—let\'s uncover patterns.' 
-            : 'Mindset shapes decisions; societal norms often influence them unconsciously.'
+          title={
+            currentStep === 1
+              ? 'Why Profile Matters'
+              : currentStep === 4
+              ? 'Why Behaviors Matter'
+              : 'Mindset & Norms'
+          }
+          content={
+            currentStep === 1
+              ? 'Understanding your background helps tailor insights to your unique context.'
+              : currentStep === 4
+              ? "Behaviors reveal how you show up daily—let's uncover patterns."
+              : 'Mindset shapes decisions; societal norms often influence them unconsciously.'
           }
         />
       )}
@@ -701,7 +723,7 @@ useEffect(() => {
           </SectionCard>
         )}
 
-        {/* Behaviors Questions (Steps 5-10) */}
+        {/* Behaviors Questions (Steps 5..16) */}
         {currentStep >= behaviorStart && currentStep <= behaviorEnd && (
           <SectionCard narrow={false}>
             {(() => {
@@ -717,7 +739,6 @@ useEffect(() => {
                     {q.prompt}
                   </Typography>
 
-                  {/* RADIO / MULTI AS CARDS */}
                   {(q.type === 'radio' || q.type === 'multi-select') && (
                     <Grid container spacing={2}>
                       {q.options.map((opt) => {
@@ -749,7 +770,6 @@ useEffect(() => {
                     </Grid>
                   )}
 
-                  {/* TEXT */}
                   {q.type === 'text' && (
                     <MemoTextField
                       value={formData[q.id] || ''}
@@ -760,7 +780,6 @@ useEffect(() => {
                     />
                   )}
 
-                  {/* RANKING */}
                   {q.type === 'ranking' && (
                     <DragDropContext onDragEnd={(result) => handleDragEnd(result, q.id, q.options)}>
                       <Droppable droppableId="ranking">
@@ -847,7 +866,7 @@ useEffect(() => {
           </SectionCard>
         )}
 
-        {/* Reflection Moment (Step 11) */}
+        {/* Reflection Moment (Step 17) */}
         {currentStep === reflectionStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
@@ -865,7 +884,7 @@ useEffect(() => {
                 <MemoButton variant="outlined" onClick={handleStartOver}>Start Over</MemoButton>
                 <MemoButton
                   variant="contained"
-                  onClick={handleNext}
+                  onClick={() => setCurrentStep(mindsetIntroStep)} // proceed to Mindset intro popup
                 >
                   Proceed to Mindset
                 </MemoButton>
@@ -874,140 +893,91 @@ useEffect(() => {
           </SectionCard>
         )}
 
-        {/* Mindset Questions (Steps 13-18) */}
-        {currentStep >= mindsetStart && currentStep <= mindsetEnd && (
+        {/* Mindset (Societal Norms) – 7 pages, 5 sliders each (Steps 19..25) */}
+        {currentStep >= societalStart && currentStep <= societalEnd && (
           <SectionCard narrow={false}>
             {(() => {
-              const qIndex = currentStep - mindsetStart;
-              const q = mindsetQuestions[qIndex];
+              const groupIdx = currentStep - societalStart; // 0..6
+              const start = groupIdx * SOCIETAL_GROUP_SIZE;
+              const end = start + SOCIETAL_GROUP_SIZE;
 
               return (
-                <Stack spacing={3} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
-                  <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8, textAlign: 'center' }}>
-                    {q.theme.toUpperCase()}
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
-                    {q.prompt}
+                <Stack spacing={3} alignItems="center" textAlign="center">
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Mindset Check</Typography>
+                  <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
+                    Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
                   </Typography>
 
-                  {/* Same rendering as Behaviors (radio/multi/text/ranking) */}
-                  {(q.type === 'radio' || q.type === 'multi-select') && (
-                    <Grid container spacing={2}>
-                      {q.options.map((opt) => {
-                        const selected = q.type === 'radio' ? formData[q.id] === opt : (formData[q.id] || []).includes(opt);
-                        const disabled = q.type === 'multi-select' && (formData[q.id]?.length >= q.limit) && !selected;
-                        return (
-                          <Grid item xs={12} sm={6} key={opt}>
-                            <OptionCard
-                              selected={!!selected}
-                              disabled={disabled}
-                              onClick={() => {
-                                if (q.type === 'radio') {
-                                  handleSingleSelect(q.id, opt);
-                                } else {
-                                  const current = formData[q.id] || [];
-                                  if (selected) {
-                                    handleChange(q.id, current.filter((v) => v !== opt));
-                                  } else if (current.length < q.limit) {
-                                    handleChange(q.id, [...current, opt]);
-                                  }
-                                }
-                              }}
-                            >
-                              {opt}
-                            </OptionCard>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  )}
-
-                  {q.type === 'text' && (
-                    <MemoTextField
-                      value={formData[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
-                      fullWidth
-                      multiline
-                      minRows={3}
-                    />
-                  )}
-
-                  {q.type === 'ranking' && (
-                    <DragDropContext onDragEnd={(result) => handleDragEnd(result, q.id, q.options)}>
-                      <Droppable droppableId="ranking">
-                        {(provided) => (
-                          <Stack
-                            spacing={1.3}
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            sx={{ width: '100%' }}
+                  <Stack spacing={2} sx={{ width: '100%' }}>
+                    {societalNormsQuestions.slice(start, end).map((q, idx) => {
+                      const absoluteIdx = start + idx;
+                      const val = societalResponses[absoluteIdx];
+                      return (
+                        <Paper
+                          key={absoluteIdx}
+                          elevation={4}
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 2,
+                            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                            border: '1px solid',
+                            borderColor: 'primary.main',
+                            textAlign: 'center',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontWeight: 700,
+                              mb: 2,
+                              wordBreak: 'break-word',
+                              overflowWrap: 'anywhere'
+                            }}
                           >
-                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                              Most {q.scale?.top || 'like me'}
-                            </Typography>
-                            {(formData[q.id] || q.options).map((opt, index) => (
-                              <Draggable draggableId={opt} index={index} key={opt}>
-                                {(p) => (
-                                  <Box
-                                    ref={p.innerRef}
-                                    {...p.draggableProps}
-                                    {...p.dragHandleProps}
-                                    sx={{
-                                      p: 1.6,
-                                      borderRadius: 1.5,
-                                      bgcolor: 'rgba(0,0,0,0.04)',
-                                      border: '1px solid rgba(0,0,0,0.1)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      fontWeight: 500,
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        mr: 1.5,
-                                        width: 28,
-                                        height: 28,
-                                        borderRadius: '50%',
-                                        bgcolor: 'rgba(224,122,63,0.15)',
-                                        color: '#E07A3F',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 700,
-                                      }}
-                                    >
-                                      {index + 1}
-                                    </Box>
-                                    {opt}
-                                  </Box>
-                                )}
-                              </Draggable>
-                            ))}
-                            {provided.placeholder}
-                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                              Least {q.scale?.bottom || 'like me'}
-                            </Typography>
-                          </Stack>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
-                  )}
+                            {q}
+                          </Typography>
+                          <MemoSlider
+                            value={val ?? 5}
+                            onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
+                            step={1}
+                            min={1}
+                            max={10}
+                            marks={[
+                              { value: 1, label: "Never" },
+                              { value: 10, label: "Always" }
+                            ]}
+                            valueLabelDisplay="on"
+                            sx={{
+                              mx: 1,
+                              '& .MuiSlider-markLabel': {
+                                fontSize: '0.9rem',
+                                whiteSpace: 'nowrap',
+                                transform: 'translateY(4px)'
+                              },
+                              '& .MuiSlider-valueLabel': {
+                                fontSize: '0.9rem'
+                              }
+                            }}
+                          />
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
 
-                  <Stack direction="row" spacing={2} sx={{ pt: 1, justifyContent: 'center' }}>
-                    <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
+                  <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+                    <MemoButton
+                      variant="outlined"
+                      onClick={() => setCurrentStep(s => Math.max(s - 1, societalStart))}
+                    >
                       Back
                     </MemoButton>
                     <MemoButton
                       variant="contained"
                       onClick={handleNext}
                       disabled={
-                        (q.type === 'text' && !formData[q.id]) ||
-                        (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
-                        (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
-                        (q.type === 'radio' && !formData[q.id])
+                        societalResponses.slice(start, end).some(v => v == null)
                       }
-                      sx={{ ...(stepJustValidated && { animation: 'pulse 420ms ease' }) }}
                     >
                       Next
                     </MemoButton>
@@ -1018,81 +988,7 @@ useEffect(() => {
           </SectionCard>
         )}
 
-        {/* Societal Norms (Single Step 18: All 35 sliders) */}
-        {currentStep === societalStep && (
-          <SectionCard narrow={false}>
-            <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Societal Norms Assessment</Typography>
-              <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
-                Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
-              </Typography>
-              <Stack spacing={2} sx={{ width: '100%' }}>
-                {societalNormsQuestions.map((q, idx) => (
-                  <Paper
-                    key={idx}
-                    elevation={4}
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 2,
-                      background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                      border: '1px solid',
-                      borderColor: 'primary.main',
-                      textAlign: 'center',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 700,
-                        mb: 2,
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere'
-                      }}
-                    >
-                      {q}
-                    </Typography>
-                    <MemoSlider
-                      value={societalResponses[idx]}
-                      onChange={(_, v) => setSocietalValue(idx, v)}
-                      step={1}
-                      min={1}
-                      max={10}
-                      marks={[
-                        { value: 1, label: "Never" },
-                        { value: 10, label: "Always" }
-                      ]}
-                      valueLabelDisplay="on"
-                      sx={{
-                        mx: 1,
-                        '& .MuiSlider-markLabel': {
-                          fontSize: '0.9rem',
-                          whiteSpace: 'nowrap',
-                          transform: 'translateY(4px)'
-                        },
-                        '& .MuiSlider-valueLabel': {
-                          fontSize: '0.9rem'
-                        }
-                      }}
-                    />
-                  </Paper>
-                ))}
-              </Stack>
-              <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(mindsetEnd)}>Back</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={isSubmitting || societalResponses.some(r => r === 5)} // Default 5 means unanswered
-                >
-                  Next
-                </MemoButton>
-              </Stack>
-            </Stack>
-          </SectionCard>
-        )}
-
-        {/* Agent Select (Step 20) */}
+        {/* Agent Select (Step 26) */}
         {currentStep === agentStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
@@ -1137,7 +1033,7 @@ useEffect(() => {
               </Grid>
 
               <Stack direction="row" spacing={2} justifyContent="center">
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(societalStep)}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(societalEnd)}>
                   Back
                 </MemoButton>
                 <MemoButton
