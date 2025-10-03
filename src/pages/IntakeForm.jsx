@@ -180,25 +180,23 @@ function IntakeForm() {
   const navigate = useNavigate();
 
   // Reset dialog for message steps
-  useEffect(() => {
-    const messageSteps = [1, 4, reflectionStep + 1];
-    if (messageSteps.includes(currentStep)) {
-      setDialogOpen(true);
-    } else {
-      setDialogOpen(false);
-    }
-  }, [currentStep, reflectionStep]);
+useEffect(() => {
+  const messageSteps = [1, 4, reflectionStep + 1];
+  if (messageSteps.includes(currentStep)) {
+    setDialogOpen(true);
+  } else {
+    setDialogOpen(false);
+  }
+}, [currentStep, reflectionStep]);
 
-  // Generate reflection on entering Reflection Moment step (placeholder AI call simulation)
-  useEffect(() => {
-    if (currentStep === reflectionStep) {
-      // Simulate AI reflection based on formData (e.g., from behaviors)
-      const behaviorIds = behaviorQuestions.map(q => q.id);
-      const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-      setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
-      // TODO: Replace with actual xAI API call if integrated: fetch('/api/reflect', { method: 'POST', body: JSON.stringify(formData) })
-    }
-  }, [currentStep, formData, reflectionStep]);
+ // Generate reflection on entering Reflection Moment step
+useEffect(() => {
+  if (currentStep === reflectionStep) {
+    const behaviorIds = behaviorQuestions.map(q => q.id);
+    const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+    setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
+  }
+}, [currentStep, formData, reflectionStep, behaviorQuestions]);
 
   // fixed, immersive bg setup
   useEffect(() => {
@@ -430,7 +428,7 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + 1 + agentSelect.length; // Intro + Profile Msg + Profile(2p) + Beh Msg + Beh Qs + Reflect + Mind Msg + Mind Qs + Soc(1p) + Agent
+const stepVars = useMemo(() => {
   const behaviorStart = 5;
   const behaviorEnd = behaviorStart + behaviorQuestions.length - 1;
   const reflectionStep = behaviorEnd + 1;
@@ -438,17 +436,22 @@ function IntakeForm() {
   const mindsetEnd = mindsetStart + mindsetQuestions.length - 1;
   const societalStep = mindsetEnd + 1;
   const agentStep = societalStep + 1;
+  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + 1 + agentSelect.length;
+  return { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps };
+}, [behaviorQuestions.length, mindsetQuestions.length, agentSelect.length]);
 
-  const headerLabel = useMemo(() => {
-    if (currentStep === 0) return 'Welcome';
-    if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
-    if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
-    if (currentStep === reflectionStep) return 'Reflection Moment';
-    if (currentStep === reflectionStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
-    if (currentStep === societalStep) return 'Societal Norms';
-    if (currentStep === agentStep) return 'Choose Your Agent';
-    return 'LEP';
-  }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
+const { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps } = stepVars;
+
+const headerLabel = useMemo(() => {
+  if (currentStep === 0) return 'Welcome';
+  if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
+  if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
+  if (currentStep === reflectionStep) return 'Reflection Moment';
+  if (currentStep === reflectionStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
+  if (currentStep === societalStep) return 'Societal Norms';
+  if (currentStep === agentStep) return 'Choose Your Agent';
+  return 'LEP';
+}, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -465,48 +468,48 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    const isMessageStep = [1, 4, reflectionStep + 1].includes(currentStep); // Auto-advance messages
+  const isMessageStep = [1, 4, reflectionStep + 1].includes(currentStep); // Auto-advance messages
 
-    if (isMessageStep) {
-      setDialogOpen(false);
-      setCurrentStep(s => s + 1);
+  if (isMessageStep) {
+    setDialogOpen(false);
+    setCurrentStep(s => s + 1);
+    return;
+  }
+
+  if (currentStep < totalSteps - 1) {
+    // Profile validation (steps 2-3)
+    if (currentStep === 2) {
+      if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
+    } else if (currentStep === 3) {
+      if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
+    // Behaviors/Mindset validation (steps 5+, 13+)
+    } else if ((currentStep >= behaviorStart && currentStep <= behaviorEnd) || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) {
+      const questions = currentStep >= behaviorStart ? behaviorQuestions : mindsetQuestions;
+      const qIndex = currentStep >= behaviorStart ? currentStep - behaviorStart : currentStep - mindsetStart;
+      const q = questions[qIndex];
+      const v = formData[q.id];
+      if (q.type === 'text' && !v) return;
+      if (q.type === 'multi-select' && (!v || v.length === 0)) return;
+      if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
+      if (q.type === 'radio' && !v) return;
+    // Reflection Moment (step 11) - no validation, buttons handle
+    } else if (currentStep === reflectionStep) {
+      return; // Buttons handle progression
+    // Societal Norms (step 18) - all answered
+    } else if (currentStep === societalStep) {
+      if (societalResponses.some(r => r === 5)) return; // Default 5 means unanswered
+    // Agent step (step 20)
+    } else if (currentStep === agentStep) {
+      if (!formData.selectedAgent) return;
+      setIsSubmitting(true);
+      await handleSubmit();
       return;
     }
 
-    if (currentStep < totalSteps - 1) {
-      // Profile validation (steps 2-3)
-      if (currentStep === 2) {
-        if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
-      } else if (currentStep === 3) {
-        if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
-      // Behaviors/Mindset validation (steps 5+, 13+)
-      } else if ((currentStep >= behaviorStart && currentStep <= behaviorEnd) || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) {
-        const questions = currentStep >= behaviorStart ? behaviorQuestions : mindsetQuestions;
-        const qIndex = currentStep >= behaviorStart ? currentStep - behaviorStart : currentStep - mindsetStart;
-        const q = questions[qIndex];
-        const v = formData[q.id];
-        if (q.type === 'text' && !v) return;
-        if (q.type === 'multi-select' && (!v || v.length === 0)) return;
-        if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
-        if (q.type === 'radio' && !v) return;
-      // Reflection Moment (step 11) - no validation, buttons handle
-      } else if (currentStep === reflectionStep) {
-        return; // Buttons handle progression
-      // Societal Norms (step 18) - all answered
-      } else if (currentStep === societalStep) {
-        if (societalResponses.some(r => r === 5)) return; // Default 5 means unanswered
-      // Agent step (step 20)
-      } else if (currentStep === agentStep) {
-        if (!formData.selectedAgent) return;
-        setIsSubmitting(true);
-        await handleSubmit();
-        return;
-      }
-
-      nextPulse();
-      setCurrentStep(s => s + 1);
-    }
-  };
+    nextPulse();
+    setCurrentStep(s => s + 1);
+  }
+};
 
   const handleDialogClose = () => {
     setDialogOpen(false);
