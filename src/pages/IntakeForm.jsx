@@ -459,14 +459,22 @@ function IntakeForm() {
   }, [currentStep, mindsetIntroStep]);
 
   useEffect(() => {
-    if (currentStep === reflectionStep) {
-      const behaviorIds = behaviorQuestions.map(q => q.id);
-      const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-      setReflectionText(
-        `Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), take a brief pause. What patterns do you notice in how you lead day-to-day? What would you keep, and what might you adjust next week?`
-      );
-    }
-  }, [currentStep, formData, reflectionStep, behaviorQuestions]);
+  if (currentStep === reflectionStep) {
+    setReflectionText(''); 
+    setIsLoadingReflection(true);
+
+    fetch('/get-ai-reflection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...formData, selectedAgent: formData.selectedAgent || 'balancedMentor' }),
+    })
+      .then(r => r.json())
+      .then(data => setReflectionText(data?.reflection || ''))
+      .catch(() => setReflectionText('Failed to generate reflection.'))
+      .finally(() => setIsLoadingReflection(false));
+  }
+}, [currentStep, reflectionStep, formData]);
+
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -547,10 +555,10 @@ function IntakeForm() {
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleStartOver = () => {
-    setFormData({});
-    setSocietalResponses(Array(35).fill(null));
-    setCurrentStep(0);
-  };
+  // keep profile answers, just restart behaviors
+  setCurrentStep(behaviorStart);
+};
+
 
   const handleSubmit = async () => {
     try {
@@ -865,31 +873,58 @@ function IntakeForm() {
         )}
 
         {/* Reflection Moment (Step 17) */}
-        {currentStep === reflectionStep && (
-          <SectionCard narrow={false}>
-            <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Reflection Moment</Typography>
-              <Typography sx={{ mb: 2, opacity: 0.9 }}>{reflectionText || 'Generating reflection...'}</Typography>
-              <MemoTextField
-                value={formData.userReflection || ''}
-                onChange={(e) => handleChange('userReflection', e.target.value)}
-                fullWidth
-                multiline
-                minRows={3}
-                placeholder="Your thoughts on the reflection..."
-              />
-              <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={handleStartOver}>Start Over</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={() => setCurrentStep(mindsetIntroStep)} // proceed to Mindset intro popup
-                >
-                  Proceed to Mindset
-                </MemoButton>
-              </Stack>
-            </Stack>
-          </SectionCard>
-        )}
+{currentStep === reflectionStep && (
+  <SectionCard narrow={false}>
+    <Stack spacing={3} alignItems="center" textAlign="center">
+      <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
+        Reflection Moment
+      </Typography>
+
+      {/* AI Reflection Text */}
+      <Typography
+        sx={{
+          mb: 2,
+          opacity: 0.9,
+          fontStyle: 'italic',
+          fontSize: '1.05rem',
+          color: 'text.secondary',
+        }}
+      >
+        {reflectionText || 'Generating reflection...'}
+      </Typography>
+
+      {/* User Input Box */}
+      <MemoTextField
+        value={formData.userReflection || ''}
+        onChange={(e) => handleChange('userReflection', e.target.value)}
+        fullWidth
+        multiline
+        minRows={3}
+        placeholder="What are your thoughts on this reflection?"
+        sx={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 2 }}
+      />
+
+      {/* Action Buttons */}
+      <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 2 }}>
+        <MemoButton
+          variant="outlined"
+          onClick={() => setCurrentStep(behaviorStart)} // jump back to first behavior question
+        >
+          Start Fresh
+        </MemoButton>
+        <MemoButton
+          variant="contained"
+          color="primary"
+          onClick={() => setCurrentStep(mindsetIntroStep)} // proceed to Mindset intro popup
+        >
+          Let's Dig Deeper
+        </MemoButton>
+      </Stack>
+    </Stack>
+  </SectionCard>
+)}
+
+
 
         {/* Mindset (Societal Norms) – 7 pages, 5 sliders each (Steps 19..25) */}
 {currentStep >= societalStart && currentStep <= societalEnd && (
