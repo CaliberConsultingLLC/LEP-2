@@ -1,8 +1,8 @@
 // src/pages/IntakeForm.jsx
 import React, { useState, useEffect, memo, useMemo } from 'react';
 import {
-  Container, Box, Typography, TextField, Slider, Button, Stack,
-  ToggleButton, ToggleButtonGroup, Card, CardContent, CardActions, Grid, LinearProgress
+  Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
+  Card, CardContent, CardActions, Grid, LinearProgress
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
@@ -13,9 +13,21 @@ import { useNavigate } from 'react-router-dom';
 const MemoTextField = memo(TextField);
 const MemoSlider = memo(Slider);
 const MemoButton = memo(Button);
-const MemoToggleButton = memo(ToggleButton);
 const MemoBox = memo(Box);
 const MemoCard = memo(Card);
+
+// ---------- Message Dialog (reusable for pop-ups) ----------
+const MessageDialog = ({ open, onClose, title, content }) => (
+  <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <DialogTitle sx={{ fontWeight: 800, textAlign: 'center' }}>{title}</DialogTitle>
+    <DialogContent sx={{ textAlign: 'center', py: 2 }}>
+      <Typography sx={{ lineHeight: 1.6, opacity: 0.9 }}>{content}</Typography>
+    </DialogContent>
+    <DialogActions sx={{ justifyContent: 'center' }}>
+      <MemoButton variant="contained" onClick={onClose}>Continue</MemoButton>
+    </DialogActions>
+  </Dialog>
+);
 
 // ---------- Styled helpers ----------
 const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' }) => {
@@ -162,6 +174,7 @@ function IntakeForm() {
   const [formData, setFormData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(true); // For message pop-ups
   const navigate = useNavigate();
 
   // fixed, immersive bg setup
@@ -169,7 +182,7 @@ function IntakeForm() {
     // nothing to do here now
   }, []);
 
-  // ---------- Questions ----------
+  // ---------- Questions (split and new) ----------
   const initialQuestionsPart1 = [
     { id: 'name', prompt: 'What is your name?', type: 'text' },
     { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
@@ -183,7 +196,7 @@ function IntakeForm() {
     { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 0, max: 20, labels: { 0: '<1', 20: '20+' } },
   ];
 
-  const mainQuestions = [
+  const behaviorQuestions = [  // First 6 from mainQuestions (radio/multi)
     {
       id: 'resourcePick',
       theme: 'The Quick Pick',
@@ -266,6 +279,9 @@ function IntakeForm() {
         'A team member disagrees with your plan in front of everyone. In your gut, how do you feel at that moment? Write one sentence about it.',
       type: 'text',
     },
+  ];
+
+  const mindsetQuestions = [  // Last 6 from mainQuestions (text/ranking)
     {
       id: 'roleModelTrait',
       theme: 'The Role Model',
@@ -340,6 +356,12 @@ function IntakeForm() {
     },
   ];
 
+  const societalNormsQuestions = [  // New 1-10 scale sliders (adapted from repo themes)
+    { id: 'normEquity', prompt: 'On a scale of 1-10, how much do societal expectations around equity influence your leadership decisions?', type: 'slider', min: 1, max: 10, labels: { 1: 'Minimal', 10: 'Major' } },
+    { id: 'normHierarchy', prompt: 'On a scale of 1-10, to what extent do traditional hierarchy norms shape how you delegate authority?', type: 'slider', min: 1, max: 10, labels: { 1: 'Minimal', 10: 'Major' } },
+    { id: 'normDiversity', prompt: 'Rate 1-10 how much cultural norms around diversity impact your team-building approach.', type: 'slider', min: 1, max: 10, labels: { 1: 'Minimal', 10: 'Major' } },
+  ];
+
   const agentSelect = [
     {
       prompt: 'Choose the AI agent that will provide your feedback (select one):',
@@ -355,16 +377,25 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  // Removed the phantom "+1" submit step. We submit from the Agent step.
-  const totalSteps = 1 + 1 + 1 + mainQuestions.length + agentSelect.length; // Welcome + Part1 + Part2 + Main + Agent
+  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + societalNormsQuestions.length + agentSelect.length; // Intro + Profile Msg + Profile(2p) + Beh Msg + Beh Qs + Learn + Mind Msg + Mind Qs + Soc Norms + Agent
+  const behaviorStart = 5;
+  const behaviorEnd = behaviorStart + behaviorQuestions.length - 1;
+  const learningStep = behaviorEnd + 1;
+  const mindsetStart = learningStep + 2;
+  const mindsetEnd = mindsetStart + mindsetQuestions.length - 1;
+  const societalStart = mindsetEnd + 1;
+  const agentStep = societalStart + societalNormsQuestions.length;
+
   const headerLabel = useMemo(() => {
     if (currentStep === 0) return 'Welcome';
-    if (currentStep === 1) return 'About You';
-    if (currentStep === 2) return 'Role & Scope';
-    if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) return 'Styles & Scenarios';
-    if (currentStep > 2 + mainQuestions.length) return 'Choose Your Agent';
+    if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
+    if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
+    if (currentStep === learningStep) return 'Learning Moment';
+    if (currentStep === learningStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
+    if (currentStep >= societalStart && currentStep < agentStep) return 'Societal Norms';
+    if (currentStep === agentStep) return 'Choose Your Agent';
     return 'LEP';
-  }, [currentStep, mainQuestions.length]);
+  }, [currentStep, behaviorStart, behaviorEnd, learningStep, mindsetStart, mindsetEnd, societalStart, agentStep]);
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -375,27 +406,40 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    // Agent step index:
-    const agentStepIndex = 3 + mainQuestions.length;
+    const isMessageStep = [1, 4, learningStep + 1].includes(currentStep); // Auto-advance messages
+
+    if (isMessageStep) {
+      setDialogOpen(false);
+      setCurrentStep(s => s + 1);
+      return;
+    }
 
     if (currentStep < totalSteps - 1) {
-      if (currentStep === 1) {
+      // Profile validation (steps 2-3)
+      if (currentStep === 2) {
         if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
-      } else if (currentStep === 2) {
-        if (
-          formData.teamSize === undefined ||
-          formData.leadershipExperience === undefined ||
-          formData.careerExperience === undefined
-        ) return;
-      } else if (currentStep > 2 && currentStep <= 2 + mainQuestions.length) {
-        const q = mainQuestions[currentStep - 3];
+      } else if (currentStep === 3) {
+        if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
+      // Behaviors/Mindset validation (steps 5+, 13+)
+      } else if ((currentStep >= behaviorStart && currentStep <= behaviorEnd) || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) {
+        const questions = currentStep >= behaviorStart ? behaviorQuestions : mindsetQuestions;
+        const qIndex = currentStep >= behaviorStart ? currentStep - behaviorStart : currentStep - mindsetStart;
+        const q = questions[qIndex];
         const v = formData[q.id];
         if (q.type === 'text' && !v) return;
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
-      } else if (currentStep === agentStepIndex) {
-        // Submit directly from Agent step
+      // Societal Norms validation (steps 19-21)
+      } else if (currentStep >= societalStart && currentStep < agentStep) {
+        const qIndex = currentStep - societalStart;
+        const q = societalNormsQuestions[qIndex];
+        if (formData[q.id] === undefined) return;
+      // Learning Moment (step 11)
+      } else if (currentStep === learningStep) {
+        if (!formData.learningReflection) return;
+      // Agent step (step 22)
+      } else if (currentStep === agentStep) {
         if (!formData.selectedAgent) return;
         setIsSubmitting(true);
         await handleSubmit();
@@ -405,6 +449,11 @@ function IntakeForm() {
       nextPulse();
       setCurrentStep(s => s + 1);
     }
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    handleNext();
   };
 
   const handleDragEnd = (result, questionId, options) => {
@@ -463,8 +512,23 @@ function IntakeForm() {
     >
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
+      {/* Message Pop-ups */}
+      {(currentStep === 1 || currentStep === 4 || currentStep === learningStep + 1) && (
+        <MessageDialog
+          open={dialogOpen}
+          onClose={handleDialogClose}
+          title={currentStep === 1 ? 'Why Profile Matters' : currentStep === 4 ? 'Why Behaviors Matter' : 'Mindset & Norms'}
+          content={currentStep === 1 
+            ? 'Understanding your background helps tailor insights to your unique context.' 
+            : currentStep === 4 
+            ? 'Behaviors reveal how you show up daily—let\'s uncover patterns.' 
+            : 'Mindset shapes decisions; societal norms often influence them unconsciously.'
+          }
+        />
+      )}
+
       <PageContainer>
-        {/* Welcome */}
+        {/* Intro */}
         {currentStep === 0 && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
@@ -484,8 +548,8 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Part 1 */}
-        {currentStep === 1 && (
+        {/* Profile Page 1 (Step 2) */}
+        {currentStep === 2 && (
           <SectionCard narrow={true}>
             <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart1.map((q) => (
@@ -500,7 +564,7 @@ function IntakeForm() {
                 </MemoBox>
               ))}
               <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)}>Back</MemoButton>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
@@ -523,8 +587,8 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Part 2 */}
-        {currentStep === 2 && (
+        {/* Profile Page 2 (Step 3) */}
+        {currentStep === 3 && (
           <SectionCard narrow={true}>
             <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart2.map((q) => (
@@ -543,7 +607,7 @@ function IntakeForm() {
                 </MemoBox>
               ))}
               <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(2)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
@@ -560,11 +624,12 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Main questions */}
-        {currentStep > 2 && currentStep <= 2 + mainQuestions.length && (
+        {/* Behaviors Questions (Steps 5-10) */}
+        {currentStep >= behaviorStart && currentStep <= behaviorEnd && (
           <SectionCard narrow={false}>
             {(() => {
-              const q = mainQuestions[currentStep - 3];
+              const qIndex = currentStep - behaviorStart;
+              const q = behaviorQuestions[qIndex];
 
               return (
                 <Stack spacing={3} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
@@ -579,16 +644,8 @@ function IntakeForm() {
                   {(q.type === 'radio' || q.type === 'multi-select') && (
                     <Grid container spacing={2}>
                       {q.options.map((opt) => {
-                        const selected =
-                          q.type === 'radio'
-                            ? formData[q.id] === opt
-                            : (formData[q.id] || []).includes(opt);
-
-                        const disabled =
-                          q.type === 'multi-select' &&
-                          (formData[q.id]?.length >= q.limit) &&
-                          !selected;
-
+                        const selected = q.type === 'radio' ? formData[q.id] === opt : (formData[q.id] || []).includes(opt);
+                        const disabled = q.type === 'multi-select' && (formData[q.id]?.length >= q.limit) && !selected;
                         return (
                           <Grid item xs={12} sm={6} key={opt}>
                             <OptionCard
@@ -702,9 +759,7 @@ function IntakeForm() {
                         (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
                         (q.type === 'radio' && !formData[q.id])
                       }
-                      sx={{
-                        ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
-                      }}
+                      sx={{ ...(stepJustValidated && { animation: 'pulse 420ms ease' }) }}
                     >
                       Next
                     </MemoButton>
@@ -715,8 +770,216 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Agent select (final step now submits) */}
-        {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
+        {/* Learning Moment (Step 11) */}
+        {currentStep === learningStep && (
+          <SectionCard narrow={false}>
+            <Stack spacing={3} alignItems="center" textAlign="center">
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Learning Moment</Typography>
+              <Typography sx={{ mb: 2, opacity: 0.9 }}>Take a breath. What\'s one key insight from the Behaviors section that surprised you?</Typography>
+              <MemoTextField
+                value={formData.learningReflection || ''}
+                onChange={(e) => handleChange('learningReflection', e.target.value)}
+                fullWidth
+                multiline
+                minRows={3}
+                placeholder="One sentence reflection..."
+              />
+              <Stack direction="row" spacing={2}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(behaviorEnd)}>Back</MemoButton>
+                <MemoButton
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={!formData.learningReflection}
+                >
+                  Proceed to Mindset
+                </MemoButton>
+              </Stack>
+            </Stack>
+          </SectionCard>
+        )}
+
+        {/* Mindset Questions (Steps 13-18) */}
+        {currentStep >= mindsetStart && currentStep <= mindsetEnd && (
+          <SectionCard narrow={false}>
+            {(() => {
+              const qIndex = currentStep - mindsetStart;
+              const q = mindsetQuestions[qIndex];
+
+              return (
+                <Stack spacing={3} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
+                  <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8, textAlign: 'center' }}>
+                    {q.theme.toUpperCase()}
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
+                    {q.prompt}
+                  </Typography>
+
+                  {/* Same rendering as Behaviors (radio/multi/text/ranking) */}
+                  {(q.type === 'radio' || q.type === 'multi-select') && (
+                    <Grid container spacing={2}>
+                      {q.options.map((opt) => {
+                        const selected = q.type === 'radio' ? formData[q.id] === opt : (formData[q.id] || []).includes(opt);
+                        const disabled = q.type === 'multi-select' && (formData[q.id]?.length >= q.limit) && !selected;
+                        return (
+                          <Grid item xs={12} sm={6} key={opt}>
+                            <OptionCard
+                              selected={!!selected}
+                              disabled={disabled}
+                              onClick={() => {
+                                if (q.type === 'radio') {
+                                  handleSingleSelect(q.id, opt);
+                                } else {
+                                  const current = formData[q.id] || [];
+                                  if (selected) {
+                                    handleChange(q.id, current.filter((v) => v !== opt));
+                                  } else if (current.length < q.limit) {
+                                    handleChange(q.id, [...current, opt]);
+                                  }
+                                }
+                              }}
+                            >
+                              {opt}
+                            </OptionCard>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  )}
+
+                  {q.type === 'text' && (
+                    <MemoTextField
+                      value={formData[q.id] || ''}
+                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      fullWidth
+                      multiline
+                      minRows={3}
+                    />
+                  )}
+
+                  {q.type === 'ranking' && (
+                    <DragDropContext onDragEnd={(result) => handleDragEnd(result, q.id, q.options)}>
+                      <Droppable droppableId="ranking">
+                        {(provided) => (
+                          <Stack
+                            spacing={1.3}
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            sx={{ width: '100%' }}
+                          >
+                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                              Most {q.scale?.top || 'like me'}
+                            </Typography>
+                            {(formData[q.id] || q.options).map((opt, index) => (
+                              <Draggable draggableId={opt} index={index} key={opt}>
+                                {(p) => (
+                                  <Box
+                                    ref={p.innerRef}
+                                    {...p.draggableProps}
+                                    {...p.dragHandleProps}
+                                    sx={{
+                                      p: 1.6,
+                                      borderRadius: 1.5,
+                                      bgcolor: 'rgba(0,0,0,0.04)',
+                                      border: '1px solid rgba(0,0,0,0.1)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        mr: 1.5,
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: '50%',
+                                        bgcolor: 'rgba(224,122,63,0.15)',
+                                        color: '#E07A3F',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 700,
+                                      }}
+                                    >
+                                      {index + 1}
+                                    </Box>
+                                    {opt}
+                                  </Box>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                            <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                              Least {q.scale?.bottom || 'like me'}
+                            </Typography>
+                          </Stack>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  )}
+
+                  <Stack direction="row" spacing={2} sx={{ pt: 1, justifyContent: 'center' }}>
+                    <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
+                      Back
+                    </MemoButton>
+                    <MemoButton
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={
+                        (q.type === 'text' && !formData[q.id]) ||
+                        (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
+                        (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
+                        (q.type === 'radio' && !formData[q.id])
+                      }
+                      sx={{ ...(stepJustValidated && { animation: 'pulse 420ms ease' }) }}
+                    >
+                      Next
+                    </MemoButton>
+                  </Stack>
+                </Stack>
+              );
+            })()}
+          </SectionCard>
+        )}
+
+        {/* Societal Norms (Steps 19-21, 1-10 sliders) */}
+        {currentStep >= societalStart && currentStep < agentStep && (
+          <SectionCard narrow={false}>
+            {(() => {
+              const qIndex = currentStep - societalStart;
+              const q = societalNormsQuestions[qIndex];
+
+              return (
+                <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
+                  <MemoSlider
+                    value={formData[q.id] ?? q.min}
+                    onChange={(e, value) => handleChange(q.id, value)}
+                    min={q.min}
+                    max={q.max}
+                    sx={{ width: '100%' }}
+                  />
+                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                    {q.labels[formData[q.id] ?? q.min]}
+                  </Typography>
+                  <Stack direction="row" spacing={2}>
+                    <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>Back</MemoButton>
+                    <MemoButton
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={formData[q.id] === undefined}
+                    >
+                      Next
+                    </MemoButton>
+                  </Stack>
+                </Stack>
+              );
+            })()}
+          </SectionCard>
+        )}
+
+        {/* Agent Select (Step 22) */}
+        {currentStep === agentStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
@@ -735,10 +998,7 @@ function IntakeForm() {
                         height: '100%',
                         borderRadius: 2,
                         cursor: 'pointer',
-                        border:
-                          formData.selectedAgent === agent.id
-                            ? '2px solid #E07A3F'
-                            : '1px solid rgba(0,0,0,0.12)',
+                        border: formData.selectedAgent === agent.id ? '2px solid #E07A3F' : '1px solid rgba(0,0,0,0.12)',
                         transition: 'transform .2s ease, box-shadow .2s ease',
                         '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
                       }}
