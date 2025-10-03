@@ -395,12 +395,17 @@ function IntakeForm() {
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
       } else if (currentStep === agentStepIndex) {
-        // Submit directly from Agent step and navigate to /summary
-        if (!formData.selectedAgent) return;
-        setIsSubmitting(true);
-        await handleSubmit();
-        return;
-      }
+  if (!formData.selectedAgent) return;
+  setIsSubmitting(true);
+  try {
+    await handleSubmit();
+  } finally {
+    // always ensure navigation
+    navigate('/summary', { state: { formData } });
+  }
+  return;
+}
+
 
       nextPulse();
       setCurrentStep(s => s + 1);
