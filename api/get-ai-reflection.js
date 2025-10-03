@@ -59,7 +59,7 @@ ${cleanIdentity}
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 80, // ~100 characters
+      max_tokens: 100, // ~100 characters
       temperature: agent.params.temperature,
       frequency_penalty: agent.params.frequency_penalty,
       presence_penalty: agent.params.presence_penalty,
