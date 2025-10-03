@@ -2,12 +2,16 @@
 import React, { useState, useEffect, memo, useMemo } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, CardActions, Grid, LinearProgress
+  Card, CardContent, CardActions, Grid, LinearProgress, Paper
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+
+// Optional: Add Gemunu Libre font for Societal Norms match (uncomment if using CDN in index.html)
+// import '@fontsource/gemunu-libre';
+
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -172,10 +176,19 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
 function IntakeForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
+  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(5)); // For 35 questions
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(true); // For message pop-ups
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Reset dialog for message steps
+  useEffect(() => {
+    const messageSteps = [1, 4, 12]; // Profile Msg, Beh Msg, Mindset Msg
+    if (messageSteps.includes(currentStep)) {
+      setDialogOpen(true);
+    }
+  }, [currentStep]);
 
   // fixed, immersive bg setup
   useEffect(() => {
@@ -356,10 +369,40 @@ function IntakeForm() {
     },
   ];
 
-  const societalNormsQuestions = [  // New 1-10 scale sliders (adapted from repo themes)
-    { id: 'normEquity', prompt: 'On a scale of 1-10, how much do societal expectations around equity influence your leadership decisions?', type: 'slider', min: 1, max: 10, labels: { 1: 'Minimal', 10: 'Major' } },
-    { id: 'normHierarchy', prompt: 'On a scale of 1-10, to what extent do traditional hierarchy norms shape how you delegate authority?', type: 'slider', min: 1, max: 10, labels: { 1: 'Minimal', 10: 'Major' } },
-    { id: 'normDiversity', prompt: 'Rate 1-10 how much cultural norms around diversity impact your team-building approach.', type: 'slider', min: 1, max: 10, labels: { 1: 'Minimal', 10: 'Major' } },
+  // Full Societal Norms questions from provided code
+  const societalNormsQuestions = [
+    "When challenges arise, I determine the solution from my experience and expertise.",
+    "I am careful to acknowledge and admit my mistakes to my team.",
+    "I communicate the long-term vision to the company often and in different ways.",
+    "I have a visible reaction to difficult or bad news that is shared with me about the company/team/project (i.e., non-verbal, emotional, or sounds)",
+    "I consistently ask for honest feedback from my employees in different ways.",
+    "I consistently dialogue with employees about their lives to demonstrate that I care about them.",
+    "When speaking with individual employees, I make sure to connect what they do to the company's continued success.",
+    "I empower my immediate team to do their jobs without handholding.",
+    "I talk about the vision and purpose of the company at every team and company gathering.",
+    "I consistently expresses detailed gratitude for both high AND low performing employees.",
+    "When the learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
+    "I vocally encourage employees to reserve time for creativity or process improvement within their role.",
+    "I am intentional about hiring employees that equally fit the need and the company culture and values.",
+    "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation.",
+    "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"we're in this together.\"  (Perhaps, even jokes about it exist among employees.)",
+    "I have more answers than I do questions in our team discussions or meetings.",
+    "It is important that our employee performance metrics are directly connected to their work AND in their full control.",
+    "I consistently seek interactions with employees “organically” to hear their thoughts about a project, idea, or recent decision.",
+    "I make time to review both the good and bad of a project or experience so that we can improve for next time.",
+    "I consistently communicate what matters for our work.",
+    "Affirming a team too much can lead to complacency and entitlement.",
+    "I solicit employee opinions, concerns, and ideas in a genuine and diversified way.",
+    "I openly share with my team when I am struggling professionally.",
+    "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
+    "It is important to me that we celebrate our employees' big moments like the first day, work anniversaries, personal-milestones, etc.",
+    "I am confident we have a shared language at work that goes beyond product codes, acronyms, and job related shorthand.",
+    "I communicate that failure is inevitable and celebrate the associated learning.",
+    "I regularly meet with my immediate team members to discuss their professional goals and the adjustments I see they could make that can help them reach those goals.",
+    "I regularly and intentionally seek to learn from our employees, especially the newer ones.",
+    "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line",
+    "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
+    "I know the limits of my natural strengths and that I need others to successfully achieve the height of the company's mission and vision."
   ];
 
   const agentSelect = [
@@ -377,14 +420,14 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + societalNormsQuestions.length + agentSelect.length; // Intro + Profile Msg + Profile(2p) + Beh Msg + Beh Qs + Learn + Mind Msg + Mind Qs + Soc Norms + Agent
+  const totalSteps = 1 + 1 + 2 + 1 + behaviorQuestions.length + 1 + 1 + mindsetQuestions.length + 1 + agentSelect.length; // Intro + Profile Msg + Profile(2p) + Beh Msg + Beh Qs + Learn + Mind Msg + Mind Qs + Soc(1p) + Agent
   const behaviorStart = 5;
   const behaviorEnd = behaviorStart + behaviorQuestions.length - 1;
   const learningStep = behaviorEnd + 1;
   const mindsetStart = learningStep + 2;
   const mindsetEnd = mindsetStart + mindsetQuestions.length - 1;
-  const societalStart = mindsetEnd + 1;
-  const agentStep = societalStart + societalNormsQuestions.length;
+  const societalStep = mindsetEnd + 1;
+  const agentStep = societalStep + 1;
 
   const headerLabel = useMemo(() => {
     if (currentStep === 0) return 'Welcome';
@@ -392,13 +435,19 @@ function IntakeForm() {
     if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
     if (currentStep === learningStep) return 'Learning Moment';
     if (currentStep === learningStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
-    if (currentStep >= societalStart && currentStep < agentStep) return 'Societal Norms';
+    if (currentStep === societalStep) return 'Societal Norms';
     if (currentStep === agentStep) return 'Choose Your Agent';
     return 'LEP';
-  }, [currentStep, behaviorStart, behaviorEnd, learningStep, mindsetStart, mindsetEnd, societalStart, agentStep]);
+  }, [currentStep, behaviorStart, behaviorEnd, learningStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
+
+  const setSocietalValue = (index, value) => {
+    const next = [...societalResponses];
+    next[index] = value;
+    setSocietalResponses(next);
+  };
 
   const nextPulse = () => {
     setStepJustValidated(true);
@@ -430,15 +479,13 @@ function IntakeForm() {
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
-      // Societal Norms validation (steps 19-21)
-      } else if (currentStep >= societalStart && currentStep < agentStep) {
-        const qIndex = currentStep - societalStart;
-        const q = societalNormsQuestions[qIndex];
-        if (formData[q.id] === undefined) return;
       // Learning Moment (step 11)
       } else if (currentStep === learningStep) {
         if (!formData.learningReflection) return;
-      // Agent step (step 22)
+      // Societal Norms (step 18) - all answered
+      } else if (currentStep === societalStep) {
+        if (societalResponses.some(r => r === 5)) return; // Default 5 means unanswered
+      // Agent step (step 20)
       } else if (currentStep === agentStep) {
         if (!formData.selectedAgent) return;
         setIsSubmitting(true);
@@ -469,7 +516,11 @@ function IntakeForm() {
   const handleSubmit = async () => {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
-      const updated = { ...formData, selectedAgent: selectedAgentId };
+      const updated = { 
+        ...formData, 
+        selectedAgent: selectedAgentId,
+        societalResponses // Add societal array to form data
+      };
       await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
       localStorage.setItem('latestFormData', JSON.stringify(updated));
       navigate('/summary', { state: { formData: updated } });
@@ -775,7 +826,7 @@ function IntakeForm() {
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Learning Moment</Typography>
-              <Typography sx={{ mb: 2, opacity: 0.9 }}>Take a breath. What\'s one key insight from the Behaviors section that surprised you?</Typography>
+              <Typography sx={{ mb: 2, opacity: 0.9 }}>Take a breath. What's one key insight from the Behaviors section that surprised you?</Typography>
               <MemoTextField
                 value={formData.learningReflection || ''}
                 onChange={(e) => handleChange('learningReflection', e.target.value)}
@@ -942,43 +993,81 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Societal Norms (Steps 19-21, 1-10 sliders) */}
-        {currentStep >= societalStart && currentStep < agentStep && (
+        {/* Societal Norms (Single Step 18: All 35 sliders) */}
+        {currentStep === societalStep && (
           <SectionCard narrow={false}>
-            {(() => {
-              const qIndex = currentStep - societalStart;
-              const q = societalNormsQuestions[qIndex];
-
-              return (
-                <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
-                  <MemoSlider
-                    value={formData[q.id] ?? q.min}
-                    onChange={(e, value) => handleChange(q.id, value)}
-                    min={q.min}
-                    max={q.max}
-                    sx={{ width: '100%' }}
-                  />
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    {q.labels[formData[q.id] ?? q.min]}
-                  </Typography>
-                  <Stack direction="row" spacing={2}>
-                    <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>Back</MemoButton>
-                    <MemoButton
-                      variant="contained"
-                      onClick={handleNext}
-                      disabled={formData[q.id] === undefined}
+            <Stack spacing={3} alignItems="center" textAlign="center">
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Societal Norms Assessment</Typography>
+              <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
+                Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
+              </Typography>
+              <Stack spacing={2} sx={{ width: '100%' }}>
+                {societalNormsQuestions.map((q, idx) => (
+                  <Paper
+                    key={idx}
+                    elevation={4}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                      border: '1px solid',
+                      borderColor: 'primary.main',
+                      textAlign: 'center',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 700,
+                        mb: 2,
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere'
+                      }}
                     >
-                      Next
-                    </MemoButton>
-                  </Stack>
-                </Stack>
-              );
-            })()}
+                      {q}
+                    </Typography>
+                    <MemoSlider
+                      value={societalResponses[idx]}
+                      onChange={(_, v) => setSocietalValue(idx, v)}
+                      step={1}
+                      min={1}
+                      max={10}
+                      marks={[
+                        { value: 1, label: "Never" },
+                        { value: 10, label: "Always" }
+                      ]}
+                      valueLabelDisplay="on"
+                      sx={{
+                        mx: 1,
+                        '& .MuiSlider-markLabel': {
+                          fontSize: '0.9rem',
+                          whiteSpace: 'nowrap',
+                          transform: 'translateY(4px)'
+                        },
+                        '& .MuiSlider-valueLabel': {
+                          fontSize: '0.9rem'
+                        }
+                      }}
+                    />
+                  </Paper>
+                ))}
+              </Stack>
+              <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(mindsetEnd)}>Back</MemoButton>
+                <MemoButton
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={societalResponses.some(r => r === 5)} // Unanswered defaults
+                >
+                  Next
+                </MemoButton>
+              </Stack>
+            </Stack>
           </SectionCard>
         )}
 
-        {/* Agent Select (Step 22) */}
+        {/* Agent Select (Step 20) */}
         {currentStep === agentStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
@@ -1023,7 +1112,7 @@ function IntakeForm() {
               </Grid>
 
               <Stack direction="row" spacing={2} justifyContent="center">
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(societalStep)}>
                   Back
                 </MemoButton>
                 <MemoButton
