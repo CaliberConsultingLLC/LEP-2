@@ -179,26 +179,7 @@ function IntakeForm() {
   const [reflectionText, setReflectionText] = useState('');
   const navigate = useNavigate();
 
-  // Reset dialog for message steps
-useEffect(() => {
-  const messageSteps = [1, 4, reflectionStep + 1];
-  if (messageSteps.includes(currentStep)) {
-    setDialogOpen(true);
-  } else {
-    setDialogOpen(false);
-  }
-}, [currentStep, reflectionStep]);
-
- // Generate reflection on entering Reflection Moment step
-useEffect(() => {
-  if (currentStep === reflectionStep) {
-    const behaviorIds = behaviorQuestions.map(q => q.id);
-    const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-    setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
-  }
-}, [currentStep, formData, reflectionStep, behaviorQuestions]);
-
-  // fixed, immersive bg setup
+   // fixed, immersive bg setup
   useEffect(() => {
     // nothing to do here now
   }, []);
@@ -463,20 +444,22 @@ const headerLabel = useMemo(() => {
 
   // ---- now these effects can safely use reflectionStep, behaviorQuestions ----
 useEffect(() => {
-    const messageSteps = [1, 4, reflectionStep + 1];
-    setDialogOpen(messageSteps.includes(currentStep));
-  }, [currentStep, reflectionStep]);
+  const messageSteps = [1, 4, reflectionStep + 1];
+  if (messageSteps.includes(currentStep)) {
+    setDialogOpen(true);
+  } else {
+    setDialogOpen(false);
+  }
+}, [currentStep, reflectionStep]);
 
   useEffect(() => {
-    if (currentStep === reflectionStep) {
-      const behaviorIds = behaviorQuestions.map(q => q.id);
-      const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-      setReflectionText(
-        `Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`
-      );
-    }
-  }, [currentStep, formData, reflectionStep, behaviorQuestions]);
-  
+  if (currentStep === reflectionStep) {
+    const behaviorIds = behaviorQuestions.map(q => q.id);
+    const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+    setReflectionText(`Based on your behaviors ...`);
+  }
+}, [currentStep, formData, reflectionStep, behaviorQuestions]);
+
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
 
