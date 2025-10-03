@@ -513,12 +513,10 @@ function IntakeForm() {
         return;
 
       // Societal (Mindset) validation: only current 5 in the shown group must be answered
-      } else if (currentStep >= societalStart && currentStep <= societalEnd) {
-        const groupIdx = currentStep - societalStart; // 0..6
-        const start = groupIdx * SOCIETAL_GROUP_SIZE;
-        const end = start + SOCIETAL_GROUP_SIZE; // not inclusive
-        const groupValues = societalResponses.slice(start, end);
-        if (groupValues.some(v => v == null)) return;
+      // Societal (Mindset): no validation required
+} else if (currentStep >= societalStart && currentStep <= societalEnd) {
+  // allow skipping unanswered
+
 
       // Agent
       } else if (currentStep === agentStep) {
@@ -982,12 +980,12 @@ function IntakeForm() {
                 Back
               </MemoButton>
               <MemoButton
-                variant="contained"
-                onClick={handleNext}
-                disabled={societalResponses.slice(start, end).some(v => v == null)}
-              >
-                Next
-              </MemoButton>
+  variant="contained"
+  onClick={handleNext}
+>
+  Next
+</MemoButton>
+
             </Stack>
           )}
 
@@ -995,13 +993,12 @@ function IntakeForm() {
           {currentStep === societalEnd && (
             <Stack alignItems="center" sx={{ pt: 3 }}>
               <MemoButton
-                variant="contained"
-                color="primary"
-                onClick={() => setCurrentStep(agentStep)}
-                disabled={societalResponses.slice(start, end).some(v => v == null)}
-              >
-                Choose my AI Agent
-              </MemoButton>
+  variant="contained"
+  color="primary"
+  onClick={() => setCurrentStep(agentStep)}
+>
+  Choose my AI Agent
+</MemoButton>
             </Stack>
           )}
         </Stack>
