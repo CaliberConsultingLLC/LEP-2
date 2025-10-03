@@ -172,11 +172,11 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
 function IntakeForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
-  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(5)); // For 35 questions
+  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(5));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [reflectionText, setReflectionText] = useState(''); // For AI-generated reflection
+  const [reflectionText, setReflectionText] = useState('');
   const navigate = useNavigate();
 
   // Reset dialog for message steps
@@ -450,34 +450,33 @@ const stepVars = useMemo(() => {
 
 const { behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep, totalSteps } = stepVars;
 
-// ---- now these effects can safely use reflectionStep, behaviorQuestions ----
-useEffect(() => {
-  const messageSteps = [1, 4, reflectionStep + 1];
-  setDialogOpen(messageSteps.includes(currentStep));
-}, [currentStep, reflectionStep]);
-
-useEffect(() => {
-  if (currentStep === reflectionStep) {
-    const behaviorIds = behaviorQuestions.map(q => q.id);
-    const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-    setReflectionText(
-      `Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`
-    );
-  }
-}, [currentStep, formData, reflectionStep, behaviorQuestions]);
-
-
 const headerLabel = useMemo(() => {
-  if (currentStep === 0) return 'Welcome';
-  if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
-  if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
-  if (currentStep === reflectionStep) return 'Reflection Moment';
-  if (currentStep === reflectionStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
-  if (currentStep === societalStep) return 'Societal Norms';
-  if (currentStep === agentStep) return 'Choose Your Agent';
-  return 'LEP';
-}, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
+    if (currentStep === 0) return 'Welcome';
+    if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
+    if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
+    if (currentStep === reflectionStep) return 'Reflection Moment';
+    if (currentStep === reflectionStep + 1 || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
+    if (currentStep === societalStep) return 'Societal Norms';
+    if (currentStep === agentStep) return 'Choose Your Agent';
+    return 'LEP';
+  }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetStart, mindsetEnd, societalStep, agentStep]);
 
+  // ---- now these effects can safely use reflectionStep, behaviorQuestions ----
+useEffect(() => {
+    const messageSteps = [1, 4, reflectionStep + 1];
+    setDialogOpen(messageSteps.includes(currentStep));
+  }, [currentStep, reflectionStep]);
+
+  useEffect(() => {
+    if (currentStep === reflectionStep) {
+      const behaviorIds = behaviorQuestions.map(q => q.id);
+      const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+      setReflectionText(
+        `Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`
+      );
+    }
+  }, [currentStep, formData, reflectionStep, behaviorQuestions]);
+  
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
 
