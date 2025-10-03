@@ -27,7 +27,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
         position: 'sticky',
         top: 0,
         zIndex: 5,
-        width: '100vw', // Changed to stretch across the entire page
+        width: '100vw',
         backdropFilter: 'saturate(120%) blur(6px)',
         background: 'linear-gradient(180deg, rgba(18,18,18,0.75), rgba(18,18,18,0.55))',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -101,7 +101,7 @@ const PageContainer = ({ children }) => (
       px: { xs: 2, sm: 4 },
       display: 'flex',
       justifyContent: 'center',
-      width: '100vw', // Ensure full width to center content properly
+      width: '100vw',
     }}
   >
     <Box sx={{ width: '100%', maxWidth: 880 }}>{children}</Box>
@@ -128,7 +128,7 @@ const SectionCard = ({ children }) => (
   </MemoBox>
 );
 
-// “Card button” for radio / multi-select
+// "Card button" for radio / multi-select
 const OptionCard = ({ selected, children, onClick, disabled }) => (
   <Box
     onClick={disabled ? undefined : onClick}
@@ -201,14 +201,14 @@ function IntakeForm() {
     {
       id: 'coffeeImpression',
       theme: 'The Coffee Break',
-      prompt: 'You’re grabbing coffee with your team. What’s the impression you try to leave with them?',
+      prompt: "You're grabbing coffee with your team. What's the impression you try to leave with them?",
       type: 'radio',
       options: [
         'They really listen to us.',
-        'They’ve got everything under control.',
+        "They've got everything under control.",
         'They make us want to step up.',
         'They make our team better.',
-        'They’re always thinking ahead.',
+        "They're always thinking ahead.",
         'They hold a high bar for us.',
         'They trust us to deliver.',
       ],
@@ -217,7 +217,7 @@ function IntakeForm() {
       id: 'projectApproach',
       theme: 'The Team Puzzle',
       prompt:
-        'You’re given a complex project with a tight deadline. Choose the action you’d most likely take first',
+        "You're given a complex project with a tight deadline. Choose the action you'd most likely take first",
       type: 'radio',
       options: [
         'Create a detailed plan to guide the team.',
@@ -234,7 +234,7 @@ function IntakeForm() {
       type: 'multi-select',
       options: [
         'Repeating myself to ensure understanding',
-        'Addressing a team member’s inconsistent contributions',
+        "Addressing a team member's inconsistent contributions",
         'Decoding unspoken concerns from the team',
         'Navigating frequent changes in priorities',
         'Meetings with limited or no outcomes',
@@ -287,10 +287,10 @@ function IntakeForm() {
       id: 'successMetric',
       theme: 'The Impact Check',
       prompt:
-        'Picture yourself after the end of a long week. How do you know if you’ve been successful in your role?',
+        "Picture yourself after the end of a long week. How do you know if you've been successful in your role?",
       type: 'radio',
       options: [
-        'The team’s buzzing with energy and momentum.',
+        "The team's buzzing with energy and momentum.",
         'We hit our big goals or deadlines.',
         'Team members stepped up with their own ideas.',
         'I cleared roadblocks that were holding us back.',
@@ -301,7 +301,7 @@ function IntakeForm() {
     {
       id: 'warningLabel',
       theme: 'The Warning Label',
-      prompt: 'If your leadership style had a ‘warning label,’ what would it be?',
+      prompt: 'If your leadership style had a "warning label," what would it be?',
       type: 'radio',
       options: [
         'Caution: May overthink the details.',
@@ -314,7 +314,7 @@ function IntakeForm() {
     },
     {
       id: 'leaderFuel',
-      theme: 'The Leader’s Fuel',
+      theme: 'The Leader\'s Fuel',
       prompt: 'Rank the following outcomes that energize you most.',
       type: 'ranking',
       options: [
@@ -395,13 +395,12 @@ function IntakeForm() {
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
       } else if (currentStep === agentStepIndex) {
-  if (!formData.selectedAgent) return;
-  setIsSubmitting(true);
-  await handleSubmit();   // ✅ submit & navigate directly
-  return;                 // ✅ stop here, don’t increment step
-}
-
-
+        // Submit directly from Agent step
+        if (!formData.selectedAgent) return;
+        setIsSubmitting(true);
+        await handleSubmit();
+        return;
+      }
 
       nextPulse();
       setCurrentStep(s => s + 1);
@@ -419,23 +418,18 @@ function IntakeForm() {
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleSubmit = async () => {
-  try {
-    console.log("Submitting formData:", formData); // ✅ debug check
-
-    const selectedAgentId = formData.selectedAgent || 'balancedMentor';
-    const updated = { ...formData, selectedAgent: selectedAgentId };
-
-    await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
-    localStorage.setItem('latestFormData', JSON.stringify(updated));
-
-    console.log("Navigating to summary now..."); // ✅ debug check
-    navigate('/summary', { state: { formData: updated } });
-  } catch (e) {
-    console.error('Submit failed', e);
-    alert('Failed to submit form. Please try again.');
-    setIsSubmitting(false);
-  }
-};
+    try {
+      const selectedAgentId = formData.selectedAgent || 'balancedMentor';
+      const updated = { ...formData, selectedAgent: selectedAgentId };
+      await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+      localStorage.setItem('latestFormData', JSON.stringify(updated));
+      navigate('/summary', { state: { formData: updated } });
+    } catch (e) {
+      console.error('Submit failed', e);
+      alert('Failed to submit form. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
 
   // ---------- UI ----------
   return (
@@ -474,9 +468,9 @@ function IntakeForm() {
         {currentStep === 0 && (
           <SectionCard>
             <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>Welcome to LEP</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Welcome to LEP</Typography>
               <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
-                This journey is reflective and practical. Move one card at a time, answer honestly, and we’ll turn it into a focused leadership summary and growth plan.
+                This journey is reflective and practical. Move one card at a time, answer honestly, and we'll turn it into a focused leadership summary and growth plan.
               </Typography>
               <MemoButton
                 variant="contained"
@@ -484,7 +478,7 @@ function IntakeForm() {
                 onClick={handleNext}
                 sx={{ px: 5, py: 1.4, fontSize: '1.05rem' }}
               >
-                I’M READY TO GROW
+                I'M READY TO GROW
               </MemoButton>
             </Stack>
           </SectionCard>
@@ -496,7 +490,7 @@ function IntakeForm() {
             <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart1.map((q) => (
                 <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25, textAlign: 'left' }}>{q.prompt}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
                   <MemoTextField
                     value={formData[q.id] || ''}
                     onChange={(e) => handleChange(q.id, e.target.value)}
@@ -532,10 +526,10 @@ function IntakeForm() {
         {/* Part 2 */}
         {currentStep === 2 && (
           <SectionCard>
-            <Stack spacing={4} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
+            <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart2.map((q) => (
                 <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.25 }}>{q.prompt}</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
                   <MemoSlider
                     value={formData[q.id] ?? q.min}
                     onChange={(e, value) => handleChange(q.id, value)}
@@ -725,11 +719,11 @@ function IntakeForm() {
         {currentStep > 2 + mainQuestions.length && currentStep <= 2 + mainQuestions.length + agentSelect.length && (
           <SectionCard>
             <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
                 Select Your AI Agent
               </Typography>
               <Typography sx={{ width: '100%', opacity: 0.85 }}>
-                You’ll get honest feedback either way; choose the voice that fits your preference.
+                You'll get honest feedback either way; choose the voice that fits your preference.
               </Typography>
 
               <Grid container spacing={2}>
@@ -777,7 +771,7 @@ function IntakeForm() {
                   onClick={handleNext}
                   disabled={isSubmitting || !formData.selectedAgent}
                 >
-                  {isSubmitting ? 'Submitting…' : 'Submit'}
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </MemoButton>
               </Stack>
             </Stack>
