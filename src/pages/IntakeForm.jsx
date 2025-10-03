@@ -177,7 +177,7 @@ function IntakeForm() {
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState('');
-const [isLoadingReflection, setIsLoadingReflection] = useState(false);
+  const [isLoadingReflection, setIsLoadingReflection] = useState(false);
   const navigate = useNavigate();
 
   // fixed, immersive bg setup
@@ -461,18 +461,28 @@ const [isLoadingReflection, setIsLoadingReflection] = useState(false);
 
   useEffect(() => {
   if (currentStep === reflectionStep) {
-    setReflectionText(''); 
+    setReflectionText('');
     setIsLoadingReflection(true);
 
-    fetch('/get-ai-reflection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...formData, selectedAgent: formData.selectedAgent || 'balancedMentor' }),
-    })
-      .then(r => r.json())
-      .then(data => setReflectionText(data?.reflection || ''))
-      .catch(() => setReflectionText('Failed to generate reflection.'))
-      .finally(() => setIsLoadingReflection(false));
+    const timer = setTimeout(() => {
+      fetch('/get-ai-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, selectedAgent: 'bluntPracticalFriend' }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data?.reflection) {
+            setReflectionText(data.reflection);
+          } else {
+            setReflectionText("We couldn’t generate a reflection right now. Try again or continue.");
+          }
+        })
+        .catch(() => setReflectionText("Reflection generation failed. Please continue."))
+        .finally(() => setIsLoadingReflection(false));
+    }, 500); // wait half a second
+
+    return () => clearTimeout(timer);
   }
 }, [currentStep, reflectionStep, formData]);
 
