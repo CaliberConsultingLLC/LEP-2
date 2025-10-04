@@ -211,7 +211,7 @@ const SOCIETAL_QUESTIONS = [
   "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line",
   "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
   "I know the limits of my natural strengths and that I need others to successfully achieve the height of the company's mission and vision.",
-  // Added 3 to reach 35 (the original list in IntakeForm showed 32-35 existing)
+  // Added 3 to reach 35
   "I block time weekly to think, not just react.",
   "I make tradeoffs explicit to my team.",
   "I close the loop on decisions and share why."
@@ -360,12 +360,8 @@ export default function DevSkipOne() {
       const payload = generateRandomPayload(sessionId);
 
       try {
-        // Save responses scaffold for parity with app flow
         await setDoc(doc(db, 'responses', sessionId), { ...payload }, { merge: true });
-        // Persist mindset locally (we keep in DevSkip only; summary consumes if included in body)
         localStorage.setItem('societalResponses', JSON.stringify(societalResponses));
-
-        // Fetch both Reflection + Summary
         await rerunBoth(payload, societalResponses, false);
       } catch (e) {
         console.error('[DevSkipOne] init error:', e);
@@ -381,10 +377,12 @@ export default function DevSkipOne() {
     if (setBusy) setLoading(true);
     try {
       const sessionId = payload?.sessionId || localStorage.getItem('sessionId') || `sess-${Date.now()}`;
-      // save latest data
-      await setDoc(doc(db, 'responses', sessionId), { ...payload, societalResponses: norms, timestamp: new Date().toISOString() }, { merge: true });
+      await setDoc(
+        doc(db, 'responses', sessionId),
+        { ...payload, societalResponses: norms, timestamp: new Date().toISOString() },
+        { merge: true }
+      );
 
-      // reflection (use the rewrite path)
       const refRes = await fetch('/get-ai-reflection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -394,7 +392,6 @@ export default function DevSkipOne() {
       const refJson = await refRes?.json().catch(() => ({}));
       setReflection(refJson?.reflection || '(no reflection returned)');
 
-      // summary
       const sumRes = await fetch('/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -423,7 +420,6 @@ export default function DevSkipOne() {
 
   const openReflectionPage = () => {
     if (!formData) return;
-    // Send user to IntakeForm with prefill and a jump hint
     navigate('/', { state: { formData, societalResponses, jumpTo: 'reflection' } });
   };
 
@@ -669,71 +665,69 @@ export default function DevSkipOne() {
 
   return (
     <Box
-  sx={{
-    position: 'relative',
-    minHeight: '100svh',
-    width: '100%',
-    overflowX: 'hidden',
-    // Background image (same as IntakeForm)
-    '&:before': {
-      content: '""',
-      position: 'fixed',
-      inset: 0,
-      zIndex: -2,
-      backgroundImage: 'url(/LEP2.jpg)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      transform: 'translateZ(0)',
-    },
-    // Dark gradient overlay (same as IntakeForm)
-    '&:after': {
-      content: '""',
-      position: 'fixed',
-      inset: 0,
-      zIndex: -1,
-      background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-    },
-  }}
->
-  <Container
-    maxWidth={false}
-    sx={{
-      py: { xs: 3, sm: 4 },
-      px: { xs: 2, sm: 4 },
-      display: 'flex',
-      justifyContent: 'center',
-      width: '100vw',
-    }}
-  >
+      sx={{
+        position: 'relative',
+        minHeight: '100svh',
+        width: '100%',
+        overflowX: 'hidden',
+        '&:before': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -2,
+          backgroundImage: 'url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+        },
+        '&:after': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+        },
+      }}
+    >
+      {/* Sticky Header OUTSIDE container */}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1000,
+          width: '100%',
+          textAlign: 'center',
+          py: 2,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(4px)',
+          borderBottom: '1px solid rgba(255,255,255,0.2)',
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            fontFamily: 'Gemunu Libre, sans-serif',
+            fontWeight: 700,
+            color: 'white',
+            textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
+          }}
+        >
+          Dev Skip — Profile • Behaviors • Mindset
+        </Typography>
+      </Box>
 
-        <Box
-  sx={{
-    position: 'sticky',
-    top: 0,
-    zIndex: 1000,
-    width: '100%',
-    textAlign: 'center',
-    py: 2,
-    mb: 3,
-    background: 'rgba(0,0,0,0.6)', // subtle overlay to stand out
-    backdropFilter: 'blur(4px)',    // frosted-glass effect
-    borderBottom: '1px solid rgba(255,255,255,0.2)',
-  }}
->
-  <Typography
-    variant="h4"
-    sx={{
-      fontFamily: 'Gemunu Libre, sans-serif',
-      fontWeight: 700,
-      color: 'white',
-      textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
-    }}
-  >
-    Dev Skip — Profile • Behaviors • Mindset
-  </Typography>
-</Box>
-
+      {/* Main content below */}
+      <Container
+        maxWidth={false}
+        sx={{
+          py: { xs: 3, sm: 4 },
+          px: { xs: 2, sm: 4 },
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100vw',
+        }}
+      >
         <Grid container spacing={2} alignItems="flex-start">
           {/* Column 1: Actions + Reflection + Summary */}
           <Grid item xs={12} md={4}>
@@ -810,15 +804,10 @@ export default function DevSkipOne() {
           {/* Column 2: Profile (6) + Behaviors (12) */}
           <Grid item xs={12} md={4}>
             <Section title="Profile" dense>
-              {/* name */}
               {renderText('name', QUESTION_META.name)}
-
-              {/* industry / role / responsibilities (open-choice with Free Text toggle) */}
               {renderOpenChoice('industry', QUESTION_META.industry)}
               {renderOpenChoice('role', QUESTION_META.role)}
               {renderOpenChoice('responsibilities', QUESTION_META.responsibilities)}
-
-              {/* numbers */}
               {renderNumber('teamSize', QUESTION_META.teamSize)}
               {renderNumber('leadershipExperience', QUESTION_META.leadershipExperience)}
               {renderNumber('careerExperience', QUESTION_META.careerExperience)}
@@ -841,7 +830,6 @@ export default function DevSkipOne() {
               {renderOpenChoice('proudMoment', QUESTION_META.proudMoment)}
               {renderOpenChoice('selfReflection', QUESTION_META.selfReflection)}
 
-              {/* Agent selector */}
               <FieldCard dense>
                 <FormControl fullWidth size="small">
                   <InputLabel>{QUESTION_META.selectedAgent.label}</InputLabel>
