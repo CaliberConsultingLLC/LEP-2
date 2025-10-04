@@ -17,56 +17,31 @@ import {
   ListItemText,
   TextField,
   Divider,
-  FormHelperText,
   Card,
   CardContent,
+  CardActions,
   Grid,
+  Slider,
 } from '@mui/material';
-
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
+// ---------- helpers ----------
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
 
+// ---------- data pools ----------
 const INDUSTRY_POOL = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Manufacturing',
-  'Retail',
-  'Government',
-  'Nonprofit',
-  'Energy',
-  'Media',
-  'Logistics',
-  'Hospitality',
-  'Professional Services',
-  'Telecommunications',
-  'Consumer Goods',
+  'Technology','Healthcare','Finance','Education','Manufacturing','Retail','Government','Nonprofit',
+  'Energy','Media','Logistics','Hospitality','Professional Services','Telecommunications','Consumer Goods',
 ];
-
 const ROLE_TITLE_POOL = [
-  'Team Lead',
-  'Engineering Manager',
-  'Product Manager',
-  'Operations Manager',
-  'Program Manager',
-  'Director of Engineering',
-  'Technical Lead',
-  'Head of Operations',
-  'Customer Success Lead',
-  'Data Team Lead',
-  'Project Manager',
-  'Sales Manager',
-  'People Manager',
-  'Strategy Lead',
-  'Innovation Lead',
+  'Team Lead','Engineering Manager','Product Manager','Operations Manager','Program Manager',
+  'Director of Engineering','Technical Lead','Head of Operations','Customer Success Lead','Data Team Lead',
+  'Project Manager','Sales Manager','People Manager','Strategy Lead','Innovation Lead',
 ];
-
 const RESOURCE_PICK = [
   "More time in the day to focus on priorities",
   "A larger budget to work with",
@@ -202,27 +177,44 @@ const SELF_REFLECTION_POOL = [
   "I can separate urgency from importance better.",
 ];
 
-const QUESTION_META_ORDER = [
-  'name',
-  'industry',
-  'role',
-  'responsibilities',
-  'teamSize',
-  'leadershipExperience',
-  'careerExperience',
-  'resourcePick',
-  'coffeeImpression',
-  'projectApproach',
-  'energyDrains',
-  'crisisResponse',
-  'pushbackFeeling',
-  'roleModelTrait',
-  'successMetric',
-  'warningLabel',
-  'leaderFuel',
-  'proudMoment',
-  'selfReflection',
-  'selectedAgent',
+// 35 societal/mindset items
+const SOCIETAL_QUESTIONS = [
+  "When challenges arise, I determine the solution from my experience and expertise.",
+  "I am careful to acknowledge and admit my mistakes to my team.",
+  "I communicate the long-term vision to the company often and in different ways.",
+  "I have a visible reaction to difficult or bad news that is shared with me about the company/team/project (i.e., non-verbal, emotional, or sounds)",
+  "I consistently ask for honest feedback from my employees in different ways.",
+  "I consistently dialogue with employees about their lives to demonstrate that I care about them.",
+  "When speaking with individual employees, I make sure to connect what they do to the company's continued success.",
+  "I empower my immediate team to do their jobs without handholding.",
+  "I talk about the vision and purpose of the company at every team and company gathering.",
+  "I consistently expresses detailed gratitude for both high AND low performing employees.",
+  "When the learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
+  "I vocally encourage employees to reserve time for creativity or process improvement within their role.",
+  "I am intentional about hiring employees that equally fit the need and the company culture and values.",
+  "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation.",
+  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"we're in this together.\"  (Perhaps, even jokes about it exist among employees.)",
+  "I have more answers than I do questions in our team discussions or meetings.",
+  "It is important that our employee performance metrics are directly connected to their work AND in their full control.",
+  "I consistently seek interactions with employees “organically” to hear their thoughts about a project, idea, or recent decision.",
+  "I make time to review both the good and bad of a project or experience so that we can improve for next time.",
+  "I consistently communicate what matters for our work.",
+  "Affirming a team too much can lead to complacency and entitlement.",
+  "I solicit employee opinions, concerns, and ideas in a genuine and diversified way.",
+  "I openly share with my team when I am struggling professionally.",
+  "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
+  "It is important to me that we celebrate our employees' big moments like the first day, work anniversaries, personal-milestones, etc.",
+  "I am confident we have a shared language at work that goes beyond product codes, acronyms, and job related shorthand.",
+  "I communicate that failure is inevitable and celebrate the associated learning.",
+  "I regularly meet with my immediate team members to discuss their professional goals and the adjustments I see they could make that can help them reach those goals.",
+  "I regularly and intentionally seek to learn from our employees, especially the newer ones.",
+  "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line",
+  "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
+  "I know the limits of my natural strengths and that I need others to successfully achieve the height of the company's mission and vision.",
+  // Added 3 to reach 35 (the original list in IntakeForm showed 32-35 existing)
+  "I block time weekly to think, not just react.",
+  "I make tradeoffs explicit to my team.",
+  "I close the loop on decisions and share why."
 ];
 
 const QUESTION_META = {
@@ -265,53 +257,17 @@ const QUESTION_META = {
     placeholder: 'Describe your primary responsibilities…',
   },
 
-  teamSize: {
-    label: 'Team Size',
-    type: 'number',
-    min: 1,
-    max: 10,
-  },
-  leadershipExperience: {
-    label: 'Leadership Experience (years)',
-    type: 'number',
-    min: 0,
-    max: 10,
-  },
-  careerExperience: {
-    label: 'Career Experience (years)',
-    type: 'number',
-    min: 0,
-    max: 20,
-  },
+  teamSize: { label: 'Team Size', type: 'number', min: 1, max: 10 },
+  leadershipExperience: { label: 'Leadership Experience (years)', type: 'number', min: 0, max: 10 },
+  careerExperience: { label: 'Career Experience (years)', type: 'number', min: 0, max: 20 },
 
-  resourcePick: {
-    label: 'If you could add one resource right now, what would help most?',
-    type: 'select',
-    options: RESOURCE_PICK,
-  },
-  coffeeImpression: {
-    label: 'If your team chatted about you over coffee, what would they say?',
-    type: 'select',
-    options: COFFEE_IMPRESSION,
-  },
-  projectApproach: {
-    label: 'Faced with a new critical project, which approach resonates most?',
-    type: 'select',
-    options: PROJECT_APPROACH,
-  },
+  resourcePick: { label: 'If you could add one resource right now, what would help most?', type: 'select', options: RESOURCE_PICK },
+  coffeeImpression: { label: 'If your team chatted about you over coffee, what would they say?', type: 'select', options: COFFEE_IMPRESSION },
+  projectApproach: { label: 'Faced with a new critical project, which approach resonates most?', type: 'select', options: PROJECT_APPROACH },
 
-  energyDrains: {
-    label: 'Which of these drain your energy most? (choose up to 3)',
-    type: 'multi',
-    options: ENERGY_DRAINS,
-    max: 3,
-  },
+  energyDrains: { label: 'Which of these drain your energy most? (choose up to 3)', type: 'multi', options: ENERGY_DRAINS, max: 3 },
 
-  crisisResponse: {
-    label: 'Crisis Response — rank from 1 (most like you) to N',
-    type: 'rank',
-    options: CRISIS_RESPONSE,
-  },
+  crisisResponse: { label: 'Crisis Response — rank from 1 (most like you) to N', type: 'rank', options: CRISIS_RESPONSE },
 
   pushbackFeeling: {
     label: 'When someone pushes back on your plan, how do you feel/respond?',
@@ -320,56 +276,59 @@ const QUESTION_META = {
     placeholder: 'Describe how you feel/respond to pushback…',
   },
 
-  roleModelTrait: {
-    label: 'What do people admire about you as a role model? (choose up to 2)',
-    type: 'multi',
-    options: ROLE_MODEL_TRAIT,
-    max: 2,
-  },
+  roleModelTrait: { label: 'What do people admire about you as a role model? (choose up to 2)', type: 'multi', options: ROLE_MODEL_TRAIT, max: 2 },
 
-  successMetric: {
-    label: 'How do you know a week went really well?',
-    type: 'select',
-    options: SUCCESS_METRIC,
-  },
+  successMetric: { label: 'How do you know a week went really well?', type: 'select', options: SUCCESS_METRIC },
 
-  warningLabel: {
-    label: 'If you had a tongue-in-cheek warning label, what would it say?',
-    type: 'select',
-    options: WARNING_LABEL,
-  },
+  warningLabel: { label: 'If you had a tongue-in-cheek warning label, what would it say?', type: 'select', options: WARNING_LABEL },
 
-  leaderFuel: {
-    label: 'What fuels you as a leader? — rank from 1 (most) to N',
-    type: 'rank',
-    options: LEADER_FUEL,
-  },
+  leaderFuel: { label: 'What fuels you as a leader? — rank from 1 (most) to N', type: 'rank', options: LEADER_FUEL },
 
-  proudMoment: {
-    label: 'Share a recent moment you’re proud of',
-    type: 'open-choice',
-    options: PROUD_MOMENT_POOL,
-    placeholder: 'Describe a recent proud moment…',
-  },
+  proudMoment: { label: 'Share a recent moment you’re proud of', type: 'open-choice', options: PROUD_MOMENT_POOL, placeholder: 'Describe a recent proud moment…' },
 
-  selfReflection: {
-    label: 'A self-reflection that would improve your leadership',
-    type: 'open-choice',
-    options: SELF_REFLECTION_POOL,
-    placeholder: 'Share a self-reflection…',
-  },
+  selfReflection: { label: 'A self-reflection that would improve your leadership', type: 'open-choice', options: SELF_REFLECTION_POOL, placeholder: 'Share a self-reflection…' },
 
-  selectedAgent: {
-    label: 'Agent Persona',
-    type: 'select',
-    options: AGENTS,
-  },
+  selectedAgent: { label: 'Agent Persona', type: 'select', options: AGENTS },
 };
 
+// ---------- generator ----------
+const generateRandomPayload = (sessionId) => ({
+  sessionId,
+  name: "Dev User",
+  industry: pick(INDUSTRY_POOL),
+  role: pick(ROLE_TITLE_POOL),
+  responsibilities: pick(QUESTION_META.responsibilities.options),
+
+  teamSize: rnd(1, 10),
+  leadershipExperience: rnd(0, 10),
+  careerExperience: rnd(0, 20),
+
+  resourcePick: pick(RESOURCE_PICK),
+  coffeeImpression: pick(COFFEE_IMPRESSION),
+  projectApproach: pick(PROJECT_APPROACH),
+  energyDrains: shuffle(ENERGY_DRAINS).slice(0, 3),
+  crisisResponse: shuffle(CRISIS_RESPONSE),
+  pushbackFeeling: pick(PUSHBACK_FEELING_POOL),
+  roleModelTrait: shuffle(ROLE_MODEL_TRAIT).slice(0, 2),
+  successMetric: pick(SUCCESS_METRIC),
+  warningLabel: pick(WARNING_LABEL),
+  leaderFuel: shuffle(LEADER_FUEL),
+  proudMoment: pick(PROUD_MOMENT_POOL),
+  selfReflection: pick(SELF_REFLECTION_POOL),
+  selectedAgent: pick(AGENTS),
+
+  userReflection: '',
+  timestamp: new Date().toISOString(),
+});
+
+// ---------- component ----------
 export default function DevSkipOne() {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState(null);
+  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(5));
   const [aiSummary, setAiSummary] = useState('');
+  const [reflection, setReflection] = useState('');
   const [loading, setLoading] = useState(true);
 
   const [freeTextToggles, setFreeTextToggles] = useState({
@@ -390,6 +349,7 @@ export default function DevSkipOne() {
     };
   }, []);
 
+  // init
   useEffect(() => {
     (async () => {
       let sessionId = localStorage.getItem('sessionId');
@@ -397,58 +357,82 @@ export default function DevSkipOne() {
         sessionId = `sess-${Date.now()}`;
         localStorage.setItem('sessionId', sessionId);
       }
-
-      const payload = {
-        sessionId,
-        name: "Dev User",
-        industry: pick(INDUSTRY_POOL),
-        role: pick(ROLE_TITLE_POOL),
-        responsibilities: pick(QUESTION_META.responsibilities.options),
-
-        teamSize: rnd(1, 10),
-        leadershipExperience: rnd(0, 10),
-        careerExperience: rnd(0, 20),
-
-        resourcePick: pick(RESOURCE_PICK),
-        coffeeImpression: pick(COFFEE_IMPRESSION),
-        projectApproach: pick(PROJECT_APPROACH),
-        energyDrains: shuffle(ENERGY_DRAINS).slice(0, 3),
-        crisisResponse: shuffle(CRISIS_RESPONSE),
-        pushbackFeeling: pick(PUSHBACK_FEELING_POOL),
-        roleModelTrait: shuffle(ROLE_MODEL_TRAIT).slice(0, 2),
-        successMetric: pick(SUCCESS_METRIC),
-        warningLabel: pick(WARNING_LABEL),
-        leaderFuel: shuffle(LEADER_FUEL),
-        proudMoment: pick(PROUD_MOMENT_POOL),
-        selfReflection: pick(SELF_REFLECTION_POOL),
-        selectedAgent: pick(AGENTS),
-
-        timestamp: new Date().toISOString(),
-      };
+      const payload = generateRandomPayload(sessionId);
 
       try {
-        await setDoc(doc(db, 'responses', sessionId), payload, { merge: true });
+        // Save responses scaffold for parity with app flow
+        await setDoc(doc(db, 'responses', sessionId), { ...payload }, { merge: true });
+        // Persist mindset locally (we keep in DevSkip only; summary consumes if included in body)
+        localStorage.setItem('societalResponses', JSON.stringify(societalResponses));
 
-        const res = await fetch('/get-ai-summary', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-setFormData(payload);
-setAiSummary(data.aiSummary || '(no summary returned)');
-if (data.aiSummary && data.aiSummary.trim()) {
-  localStorage.setItem('aiSummary', data.aiSummary);
-}
-
+        // Fetch both Reflection + Summary
+        await rerunBoth(payload, societalResponses, false);
       } catch (e) {
-        console.error('[DevSkip1] error:', e);
+        console.error('[DevSkipOne] init error:', e);
       } finally {
+        setFormData(payload);
         setLoading(false);
       }
     })();
-  }, []);
+  }, []); // eslint-disable-line
 
+  // ---------- actions ----------
+  const rerunBoth = async (payload, norms, setBusy = true) => {
+    if (setBusy) setLoading(true);
+    try {
+      const sessionId = payload?.sessionId || localStorage.getItem('sessionId') || `sess-${Date.now()}`;
+      // save latest data
+      await setDoc(doc(db, 'responses', sessionId), { ...payload, societalResponses: norms, timestamp: new Date().toISOString() }, { merge: true });
+
+      // reflection (use the rewrite path)
+      const refRes = await fetch('/get-ai-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ...payload, societalResponses: norms }),
+      }).catch(() => null);
+
+      const refJson = await refRes?.json().catch(() => ({}));
+      setReflection(refJson?.reflection || '(no reflection returned)');
+
+      // summary
+      const sumRes = await fetch('/get-ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ...payload, societalResponses: norms }),
+      }).catch(() => null);
+
+      const sumJson = await sumRes?.json().catch(() => ({}));
+      setAiSummary(sumJson?.aiSummary || '(no summary returned)');
+      if (sumJson?.aiSummary?.trim()) localStorage.setItem('aiSummary', sumJson.aiSummary);
+    } catch (e) {
+      console.error('[DevSkipOne] rerunBoth error:', e);
+    } finally {
+      if (setBusy) setLoading(false);
+    }
+  };
+
+  const handleRandomize = async () => {
+    if (!formData) return;
+    const sessionId = formData.sessionId || localStorage.getItem('sessionId') || `sess-${Date.now()}`;
+    const fresh = generateRandomPayload(sessionId);
+    const freshNorms = Array.from({ length: 35 }, () => rnd(1, 10));
+    setFormData(fresh);
+    setSocietalResponses(freshNorms);
+    await rerunBoth(fresh, freshNorms);
+  };
+
+  const openReflectionPage = () => {
+    if (!formData) return;
+    // Send user to IntakeForm with prefill and a jump hint
+    navigate('/', { state: { formData, societalResponses, jumpTo: 'reflection' } });
+  };
+
+  const openSummaryPage = () => {
+    if (!formData) return;
+    navigate('/summary', { state: { formData: { ...formData, societalResponses } } });
+  };
+
+  // ---------- field handlers ----------
   const handleSingleChange = (key) => (e) => {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -498,104 +482,45 @@ if (data.aiSummary && data.aiSummary.trim()) {
     const value = e.target.value;
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
-
-  const rerunSummary = async () => {
-    if (!formData) return;
-    setLoading(true);
-    try {
-      await setDoc(doc(db, 'responses', formData.sessionId), {
-        ...formData,
-        timestamp: new Date().toISOString(),
-      }, { merge: true });
-
-      const res = await fetch('/get-ai-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-setAiSummary(data.aiSummary || '(no summary returned)');
-if (data.aiSummary && data.aiSummary.trim()) {
-  localStorage.setItem('aiSummary', data.aiSummary);
-}
-
-    } catch (e) {
-      console.error('[DevSkip1] rerun summary error:', e);
-    } finally {
-      setLoading(false);
-    }
+  const setNorm = (index, value) => {
+    setSocietalResponses((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
   };
 
-  const saveRandomNormsAndGo = async () => {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) return;
-    const responses = Array.from({ length: 32 }, () => Math.floor(Math.random() * 10) + 1);
-    try {
-      await setDoc(
-        doc(db, 'societalNorms', sessionId),
-        { sessionId, responses, timestamp: new Date().toISOString() },
-        { merge: true }
-      );
-      if (aiSummary && aiSummary.trim() !== '') {
-        localStorage.setItem('aiSummary', aiSummary);
-      }
-      navigate('/campaign-builder', { replace: true, state: { aiSummary: aiSummary || null } });
-    } catch (e) {
-      console.error('[DevSkip1] Failed to save norms:', e);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Box p={6}>
-        <Typography>Building scenario…</Typography>
-      </Box>
-    );
-  }
-  if (!formData) {
-    return (
-      <Box p={6}>
-        <Typography>Dev Skip failed to initialize.</Typography>
-      </Box>
-    );
-  }
-
-  const Section = ({ title, children }) => (
+  // ---------- small UI helpers ----------
+  const Section = ({ title, children, dense = false }) => (
     <Paper
       elevation={0}
       sx={{
-        p: 2,
+        p: dense ? 1.5 : 2,
         mb: 2,
         borderRadius: 3,
         border: '1px solid',
         borderColor: 'divider',
-        background:
-          'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85))',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85))',
         backdropFilter: 'blur(2px)',
       }}
     >
       <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
         {title}
       </Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Stack spacing={1.5}>{children}</Stack>
+      <Divider sx={{ mb: dense ? 1.25 : 2 }} />
+      <Stack spacing={dense ? 1 : 1.5}>{children}</Stack>
     </Paper>
   );
 
-  const FieldCard = ({ children }) => (
-    <Card
-      variant="outlined"
-      sx={{
-        borderRadius: 2,
-        '&:hover': { borderColor: 'primary.light' },
-      }}
-    >
-      <CardContent sx={{ py: 1.5 }}>{children}</CardContent>
+  const FieldCard = ({ children, dense = false }) => (
+    <Card variant="outlined" sx={{ borderRadius: 2, '&:hover': { borderColor: 'primary.light' } }}>
+      <CardContent sx={{ py: dense ? 1 : 1.5 }}>{children}</CardContent>
     </Card>
   );
 
+  // ---------- renderers ----------
   const renderNumber = (key, meta) => (
-    <FieldCard>
+    <FieldCard dense>
       <FormControl fullWidth size="small">
         <InputLabel>{meta.label}</InputLabel>
         <Select
@@ -604,7 +529,7 @@ if (data.aiSummary && data.aiSummary.trim()) {
           onChange={handleNumberChange(key)}
           input={<OutlinedInput label={meta.label} />}
         >
-          {numberOptions[key].map((n) => (
+          {Array.from({ length: meta.max - meta.min + 1 }, (_, i) => meta.min + i).map((n) => (
             <MenuItem key={n} value={n}>{n}</MenuItem>
           ))}
         </Select>
@@ -613,7 +538,7 @@ if (data.aiSummary && data.aiSummary.trim()) {
   );
 
   const renderSelect = (key, meta) => (
-    <FieldCard>
+    <FieldCard dense>
       <FormControl fullWidth size="small">
         <InputLabel>{meta.label}</InputLabel>
         <Select
@@ -633,7 +558,7 @@ if (data.aiSummary && data.aiSummary.trim()) {
   const renderMulti = (key, meta) => {
     const selected = Array.isArray(formData[key]) ? formData[key] : [];
     return (
-      <FieldCard>
+      <FieldCard dense>
         <FormControl fullWidth size="small">
           <InputLabel>{meta.label}</InputLabel>
           <Select
@@ -651,9 +576,9 @@ if (data.aiSummary && data.aiSummary.trim()) {
             ))}
           </Select>
           {meta.max && (
-            <FormHelperText>
+            <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary' }}>
               {(selected || []).length}/{meta.max} selected
-            </FormHelperText>
+            </Typography>
           )}
         </FormControl>
       </FieldCard>
@@ -664,7 +589,7 @@ if (data.aiSummary && data.aiSummary.trim()) {
     const arr = Array.isArray(formData[key]) ? formData[key] : [];
     const options = meta.options;
     return (
-      <FieldCard>
+      <FieldCard dense>
         <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
           {meta.label}
         </Typography>
@@ -692,13 +617,10 @@ if (data.aiSummary && data.aiSummary.trim()) {
   const renderOpenChoice = (key, meta) => {
     const isFree = !!freeTextToggles[key];
     return (
-      <FieldCard>
+      <FieldCard dense>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>{meta.label}</Typography>
-          <FormControlLabel
-            control={<Checkbox checked={isFree} onChange={toggleFreeText(key)} />}
-            label="Free Text"
-          />
+          <FormControlLabel control={<Checkbox checked={isFree} onChange={toggleFreeText(key)} />} label="Free Text" />
         </Stack>
 
         {!isFree ? (
@@ -714,7 +636,9 @@ if (data.aiSummary && data.aiSummary.trim()) {
                 <MenuItem key={opt} value={opt}>{opt}</MenuItem>
               ))}
             </Select>
-            <FormHelperText>Random value pre-selected; change to test scenarios.</FormHelperText>
+            <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary' }}>
+              Random value pre-selected; change to test scenarios.
+            </Typography>
           </FormControl>
         ) : (
           <TextField
@@ -730,120 +654,255 @@ if (data.aiSummary && data.aiSummary.trim()) {
   };
 
   const renderText = (key, meta) => (
-    <FieldCard>
-      <TextField
-        fullWidth
-        size="small"
-        label={meta.label}
-        value={formData[key] ?? ''}
-        onChange={handleSingleChange(key)}
-      />
+    <FieldCard dense>
+      <TextField fullWidth size="small" label={meta.label} value={formData[key] ?? ''} onChange={handleSingleChange(key)} />
     </FieldCard>
   );
 
+  if (loading || !formData) {
+    return (
+      <Box p={6}>
+        <Typography>Setting up Dev Skip One…</Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{
-  p: 5,
-  minHeight: '100vh',
-  width: '100%',
-  overflowX: 'hidden',
-  backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP2.jpg)',
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  backgroundAttachment: 'fixed',
-}}>
-
-      <Container maxWidth="lg">
-        <Typography variant="h4" sx={{ mb: 3, fontFamily: 'Gemunu Libre, sans-serif' }}>
-          Dev Skip 1 — Editable Intake + Re-run Summary
-        </Typography>
-
-        <Grid container spacing={2} alignItems="flex-start">
-  <Grid item xs={12} md={6}>
-    <Box sx={{ minWidth: 0 }}>
-      <Section title="Actions">
-  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-    <Button variant="contained" onClick={rerunSummary}>Re-run Summary</Button>
-    <Button variant="outlined" onClick={() => navigate('/summary')}>Open Summary Page</Button>
-    <Button
-  variant="outlined"
-  onClick={() => {
-    if (aiSummary && aiSummary.trim()) {
-      localStorage.setItem('aiSummary', aiSummary);
-    }
-    navigate('/dev-skip-two', { state: { aiSummary } });
+    <Box
+  sx={{
+    position: 'relative',
+    minHeight: '100svh',
+    width: '100%',
+    overflowX: 'hidden',
+    // Background image (same as IntakeForm)
+    '&:before': {
+      content: '""',
+      position: 'fixed',
+      inset: 0,
+      zIndex: -2,
+      backgroundImage: 'url(/LEP2.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      transform: 'translateZ(0)',
+    },
+    // Dark gradient overlay (same as IntakeForm)
+    '&:after': {
+      content: '""',
+      position: 'fixed',
+      inset: 0,
+      zIndex: -1,
+      background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+    },
   }}
 >
-  Dev Skip Norms →
-</Button>
+  <Container
+    maxWidth={false}
+    sx={{
+      py: { xs: 3, sm: 4 },
+      px: { xs: 2, sm: 4 },
+      display: 'flex',
+      justifyContent: 'center',
+      width: '100vw',
+    }}
+  >
 
-  </Stack>
-</Section>
-
-      <Section title="Profile">
-        {['name', 'industry', 'role', 'responsibilities'].map((key) => {
-          const meta = QUESTION_META[key];
-          if (!meta) return null;
-          if (meta.type === 'open-choice') return renderOpenChoice(key, meta);
-          if (meta.type === 'text') return renderText(key, meta);
-          return null;
-        })}
-      </Section>
-
-      <Section title="Experience & Team">
-        {['teamSize', 'leadershipExperience', 'careerExperience'].map((key) =>
-          renderNumber(key, QUESTION_META[key])
-        )}
-      </Section>
-
-      <Section title="Styles & Preferences">
-        {['resourcePick', 'coffeeImpression', 'projectApproach', 'successMetric', 'warningLabel'].map((key) =>
-          renderSelect(key, QUESTION_META[key])
-        )}
-        {['energyDrains', 'roleModelTrait'].map((key) =>
-          renderMulti(key, QUESTION_META[key])
-        )}
-        {['crisisResponse', 'leaderFuel'].map((key) =>
-          renderRank(key, QUESTION_META[key])
-        )}
-        {['pushbackFeeling', 'proudMoment', 'selfReflection'].map((key) =>
-          renderOpenChoice(key, QUESTION_META[key])
-        )}
-      </Section>
-    </Box>
-  </Grid>
-
-  <Grid item xs={12} md={6}>
-    <Paper sx={{ p: 2, minWidth: 0, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
-          {QUESTION_META.selectedAgent.label}
-        </Typography>
-        <FormControl fullWidth size="small">
-          <InputLabel>{QUESTION_META.selectedAgent.label}</InputLabel>
-          <Select
-            label={QUESTION_META.selectedAgent.label}
-            value={formData.selectedAgent ?? ''}
-            onChange={handleSingleChange('selectedAgent')}
-            input={<OutlinedInput label={QUESTION_META.selectedAgent.label} />}
-          >
-            {QUESTION_META.selectedAgent.options.map((opt) => (
-              <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      <Typography variant="h6" sx={{ mb: 1 }}>AI Summary</Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Typography sx={{ whiteSpace: 'pre-wrap' }}>{aiSummary}</Typography>
-    </Paper>
-  </Grid>
-</Grid>
+        <Typography
+  variant="h4"
+  sx={{
+    mb: 3,
+    fontFamily: 'Gemunu Libre, sans-serif',
+    fontWeight: 800,
+    color: 'rgba(255,255,255,0.92)',
+    textAlign: 'center',
+  }}
+>
+  Dev Skip 1 — All-in-One (Actions • Profile/Behaviors • Mindset)
+</Typography>
 
 
-    
+        <Grid container spacing={2} alignItems="flex-start">
+          {/* Column 1: Actions + Reflection + Summary */}
+          <Grid item xs={12} md={4}>
+            <Section title="Actions" dense>
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                <Button
+                  variant="contained"
+                  onClick={() => rerunBoth({ ...formData }, [...societalResponses])}
+                >
+                  Re-Run Reflection & Summary
+                </Button>
+                <Button variant="outlined" onClick={openReflectionPage}>Open Reflection Page</Button>
+                <Button variant="outlined" onClick={openSummaryPage}>Open Summary Page</Button>
+                <Button variant="outlined" color="secondary" onClick={handleRandomize}>
+                  Randomize Answers
+                </Button>
+              </Stack>
+            </Section>
+
+            <Section title="AI Reflection" dense>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
+                }}
+              >
+                <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                  <Box sx={{ color: 'primary.main', fontSize: 28, lineHeight: 1 }}>❝</Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      color: 'text.primary',
+                      textAlign: 'left',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <strong>Agent Insight:</strong> {reflection || '—'}
+                  </Typography>
+                </Stack>
+              </Paper>
+
+              <TextField
+                fullWidth
+                multiline
+                minRows={3}
+                placeholder="Your response to the reflection…"
+                value={formData.userReflection || ''}
+                onChange={(e) => setFormData((p) => ({ ...p, userReflection: e.target.value }))}
+                sx={{ mt: 1 }}
+              />
+              <CardActions sx={{ justifyContent: 'flex-end', p: 0, pt: 1 }}>
+                <Button
+                  size="small"
+                  onClick={() => rerunBoth({ ...formData }, [...societalResponses])}
+                >
+                  Save & Re-Run
+                </Button>
+              </CardActions>
+            </Section>
+
+            <Section title="AI Summary (plain text)" dense>
+              <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: '.98rem', lineHeight: 1.5 }}>
+                {aiSummary || '(no summary yet)'}
+              </Typography>
+            </Section>
+          </Grid>
+
+          {/* Column 2: Profile (6) + Behaviors (12) */}
+          <Grid item xs={12} md={4}>
+            <Section title="Profile" dense>
+              {/* name */}
+              {renderText('name', QUESTION_META.name)}
+
+              {/* industry / role / responsibilities (open-choice with Free Text toggle) */}
+              {renderOpenChoice('industry', QUESTION_META.industry)}
+              {renderOpenChoice('role', QUESTION_META.role)}
+              {renderOpenChoice('responsibilities', QUESTION_META.responsibilities)}
+
+              {/* numbers */}
+              {renderNumber('teamSize', QUESTION_META.teamSize)}
+              {renderNumber('leadershipExperience', QUESTION_META.leadershipExperience)}
+              {renderNumber('careerExperience', QUESTION_META.careerExperience)}
+            </Section>
+
+            <Section title="Behaviors" dense>
+              {renderSelect('resourcePick', QUESTION_META.resourcePick)}
+              {renderSelect('coffeeImpression', QUESTION_META.coffeeImpression)}
+              {renderSelect('projectApproach', QUESTION_META.projectApproach)}
+
+              {renderMulti('energyDrains', QUESTION_META.energyDrains)}
+              {renderRank('crisisResponse', QUESTION_META.crisisResponse)}
+              {renderOpenChoice('pushbackFeeling', QUESTION_META.pushbackFeeling)}
+
+              {renderMulti('roleModelTrait', QUESTION_META.roleModelTrait)}
+              {renderSelect('successMetric', QUESTION_META.successMetric)}
+              {renderSelect('warningLabel', QUESTION_META.warningLabel)}
+              {renderRank('leaderFuel', QUESTION_META.leaderFuel)}
+
+              {renderOpenChoice('proudMoment', QUESTION_META.proudMoment)}
+              {renderOpenChoice('selfReflection', QUESTION_META.selfReflection)}
+
+              {/* Agent selector */}
+              <FieldCard dense>
+                <FormControl fullWidth size="small">
+                  <InputLabel>{QUESTION_META.selectedAgent.label}</InputLabel>
+                  <Select
+                    label={QUESTION_META.selectedAgent.label}
+                    value={formData.selectedAgent ?? ''}
+                    onChange={handleSingleChange('selectedAgent')}
+                    input={<OutlinedInput label={QUESTION_META.selectedAgent.label} />}
+                  >
+                    {QUESTION_META.selectedAgent.options.map((opt) => (
+                      <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </FieldCard>
+            </Section>
+          </Grid>
+
+          {/* Column 3: Mindset (35 sliders) */}
+          <Grid item xs={12} md={4}>
+            <Section title="Mindset (Societal Norms)" dense>
+              <Typography variant="body2" sx={{ mb: 1.5, opacity: 0.8 }}>
+                Rate each 1–10 (tight layout).
+              </Typography>
+
+              <Stack spacing={1.25}>
+                {SOCIETAL_QUESTIONS.map((q, idx) => (
+                  <Card key={idx} variant="outlined" sx={{ borderRadius: 2 }}>
+                    <CardContent sx={{ py: 1.25 }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          mb: 0.75,
+                          lineHeight: 1.3,
+                          wordBreak: 'break-word',
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        {q}
+                      </Typography>
+                      <Slider
+                        value={societalResponses[idx] ?? 5}
+                        onChange={(_, v) => setNorm(idx, Number(v))}
+                        step={1}
+                        min={1}
+                        max={10}
+                        valueLabelDisplay="on"
+                        marks={[
+                          { value: 1, label: '1' },
+                          { value: 10, label: '10' },
+                        ]}
+                        sx={{
+                          mx: 0.5,
+                          '& .MuiSlider-markLabel': { fontSize: '0.7rem' },
+                          '& .MuiSlider-valueLabel': { fontSize: '0.7rem', top: -26 },
+                        }}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </Stack>
+
+              <CardActions sx={{ justifyContent: 'flex-end', p: 0, pt: 1.5 }}>
+                <Button
+                  size="small"
+                  onClick={() => rerunBoth({ ...formData }, [...societalResponses])}
+                >
+                  Save & Re-Run Summary
+                </Button>
+              </CardActions>
+            </Section>
+          </Grid>
+        </Grid>
       </Container>
     </Box>
   );
