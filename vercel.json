@@ -1,10 +1,15 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1.js" },
+    { "source": "/get-latest-response", "destination": "/api/get-latest-response.js" },
+    { "source": "/get-ai-summary", "destination": "/api/get-ai-summary.js" },
+    { "source": "/get-ai-reflection", "destination": "/api/get-ai-reflection.js" },
+    { "source": "/test-firestore", "destination": "/api/test-firestore.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/**/*.js": { "maxDuration": 30 }
+    "api/get-ai-summary.js": { "maxDuration": 30 },
+    "api/get-latest-response.js": { "maxDuration": 30 },
+    "api/get-ai-reflection.js": { "maxDuration": 30 },
+    "api/test-firestore.js": { "maxDuration": 30 }
   }
 }
- 
