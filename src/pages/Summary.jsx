@@ -79,11 +79,12 @@ function Summary() {
           headers: { Accept: 'application/json' },
         });
         if (!resp.ok) {
-          // fall back
-          data = formDataFromRoute;
-        } else {
-          data = await resp.json();
-        }
+  data = formDataFromRoute;
+} else {
+  const latest = await resp.json();
+  data = latest?.societalResponses?.length ? latest : formDataFromRoute;
+}
+
       } catch {
         data = formDataFromRoute;
       }

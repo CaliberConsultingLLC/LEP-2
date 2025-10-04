@@ -892,17 +892,33 @@ function IntakeForm() {
       </Typography>
 
       {/* AI Reflection Text */}
-      <Typography
-        sx={{
-          mb: 2,
-          opacity: 0.9,
-          fontStyle: 'italic',
-          fontSize: '1.05rem',
-          color: 'text.secondary',
-        }}
-      >
-        {reflectionText || 'Generating reflection...'}
-      </Typography>
+      <Paper
+  elevation={3}
+  sx={{
+    p: 2.5,
+    borderRadius: 2,
+    background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
+    border: '1px solid rgba(0,0,0,0.08)',
+    maxWidth: 700,
+    mx: 'auto',
+  }}
+>
+  <Stack direction="row" spacing={2} alignItems="flex-start">
+    <Box sx={{ color: 'primary.main', fontSize: 32, lineHeight: 1 }}>
+      ❝
+    </Box>
+    <Typography
+      sx={{
+        fontWeight: 600,
+        fontSize: '1.1rem',
+        color: 'text.primary',
+        textAlign: 'left',
+      }}
+    >
+      <strong>Agent Insight:</strong> {reflectionText || 'Generating reflection...'}
+    </Typography>
+  </Stack>
+</Paper>
 
       {/* User Input Box */}
       <MemoTextField
