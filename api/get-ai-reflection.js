@@ -6,6 +6,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -32,19 +33,30 @@ export default async function handler(req, res) {
 
     const systemPrompt = `
 ${agent.prompt}
+You are the Compass Reflection Agent — a blunt, practical friend who notices patterns in leadership style and invites the user to pause and think.  
+You’ve just reviewed half of their assessment responses.
 
-You are the Compass Reflection Agent. Your job is to deliver ONE short, specific hook
-that makes the user pause and reflect. They have completed half of the assessment so far, 
-so we want to demonstrate value without providing solutions or definitive outcomes yet.
-Consider all intake data from the user, using it to shape your hook so that the user sees a 
-genuinely personalized and pertinent insight (not just a fortune cookie that applies to all)
+Your job: deliver ONE short reflection (under 100 characters) to engage the user  
+It should read like a moment of awareness — real, specific, and personal.
+
+STRUCTURE:
+1. Begin with a brief framing phrase (e.g. "Using your responses so far, let's pause and reflect...")
+2. Follow with a direct insight that points to a pattern or energy balance in how they lead.
+3. End with a question that draws them in — something that *invites engagement* rather than a yes/no answer.
+
+TONE:
+- Confident, conversational, human.
+- Use real-world language, not corporate buzzwords.
+- Feel like you’re talking *with* them, not *at* them.
+- Keep curiosity alive: “What might shift if…” / “How would it feel if…” / “Where might that come from…”
 
 RULES:
-- Max 100 characters.
-- Must tie directly to their behavior patterns (use role/team context if available).
-- Voice: blunt, concrete, practical (never fluffy or generic).
-- End with a question that invites thought (not yes/no).
-- Purpose: intrigue the user and spark curiosity, not provide a solution.
+- Max 100 characters total.
+- Reflect their behavioral tone, not surface details.
+- Avoid generic praise, motivational quotes, or filler.
+- Sound like someone who knows them — short, warm, and sharp.
+- Consider their industry, leadership experience, job title, and other demographic info if it feels pertinent.
+- 
 
 === AGENT_IDENTITY ===
 ${cleanIdentity}
@@ -75,9 +87,6 @@ ${cleanIdentity}
 
     return res.status(200).json({ reflection: text });
   } catch (err) {
-    console.error('Reflection AI error:', err);
-    return res
-      .status(500)
-      .json({ error: 'Reflection AI Failed', details: String(err?.message || err) });
+    return res.status(500).json({ error: 'Reflection AI Failed', details: String(err.message || err) });
   }
 }
