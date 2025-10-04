@@ -71,7 +71,7 @@ ${cleanIdentity}
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 100, // ~100 characters
+      max_tokens: 250, // ~250 characters
       temperature: agent.params.temperature,
       frequency_penalty: agent.params.frequency_penalty,
       presence_penalty: agent.params.presence_penalty,
@@ -82,8 +82,9 @@ ${cleanIdentity}
     });
 
     let text = completion?.choices?.[0]?.message?.content?.trim() || '';
-    // enforce 100 chars max
-    if (text.length > 100) text = text.slice(0, 100).trim();
+    // enforce 250 chars max
+    if (text.length > 250) text = text.slice(0, 250).trim();
+
 
     return res.status(200).json({ reflection: text });
   } catch (err) {

@@ -883,42 +883,47 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Reflection Moment (Step 17) */}
+       {/* Reflection Moment (Step 17) */}
 {currentStep === reflectionStep && (
   <SectionCard narrow={false}>
-    <Stack spacing={3} alignItems="center" textAlign="center">
+    <Stack spacing={4} alignItems="center" textAlign="center">
       <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
         Reflection Moment
       </Typography>
 
       {/* AI Reflection Text */}
       <Paper
-  elevation={3}
-  sx={{
-    p: 2.5,
-    borderRadius: 2,
-    background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
-    border: '1px solid rgba(0,0,0,0.08)',
-    maxWidth: 700,
-    mx: 'auto',
-  }}
->
-  <Stack direction="row" spacing={2} alignItems="flex-start">
-    <Box sx={{ color: 'primary.main', fontSize: 32, lineHeight: 1 }}>
-      ❝
-    </Box>
-    <Typography
-      sx={{
-        fontWeight: 600,
-        fontSize: '1.1rem',
-        color: 'text.primary',
-        textAlign: 'left',
-      }}
-    >
-      <strong>Agent Insight:</strong> {reflectionText || 'Generating reflection...'}
-    </Typography>
-  </Stack>
-</Paper>
+        elevation={3}
+        sx={{
+          p: 3,
+          borderRadius: 3,
+          background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          maxWidth: 720,
+          mx: 'auto',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="flex-start">
+          <Box sx={{ color: 'primary.main', fontSize: 36, lineHeight: 1 }}>
+            ❝
+          </Box>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '1.1rem',
+              color: 'text.primary',
+              textAlign: 'left',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              lineHeight: 1.6,
+            }}
+          >
+            <strong>Agent Insight:</strong>{' '}
+            {reflectionText || 'Generating reflection...'}
+          </Typography>
+        </Stack>
+      </Paper>
 
       {/* User Input Box */}
       <MemoTextField
@@ -928,11 +933,20 @@ function IntakeForm() {
         multiline
         minRows={3}
         placeholder="What are your thoughts on this reflection?"
-        sx={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 2 }}
+        sx={{
+          backgroundColor: 'rgba(255,255,255,0.85)',
+          borderRadius: 2,
+          maxWidth: 720,
+        }}
       />
 
       {/* Action Buttons */}
-      <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 2 }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        justifyContent="center"
+        sx={{ pt: 2 }}
+      >
         <MemoButton
           variant="outlined"
           onClick={() => setCurrentStep(behaviorStart)} // jump back to first behavior question
@@ -950,6 +964,7 @@ function IntakeForm() {
     </Stack>
   </SectionCard>
 )}
+
 
 
 
