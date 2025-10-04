@@ -707,19 +707,32 @@ export default function DevSkipOne() {
     }}
   >
 
-        <Typography
-  variant="h4"
+        <Box
   sx={{
-    mb: 3,
-    fontFamily: 'Gemunu Libre, sans-serif',
-    fontWeight: 800,
-    color: 'rgba(255,255,255,0.92)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 1000,
+    width: '100%',
     textAlign: 'center',
+    py: 2,
+    mb: 3,
+    background: 'rgba(0,0,0,0.6)', // subtle overlay to stand out
+    backdropFilter: 'blur(4px)',    // frosted-glass effect
+    borderBottom: '1px solid rgba(255,255,255,0.2)',
   }}
 >
-  Dev Skip 1 — All-in-One (Actions • Profile/Behaviors • Mindset)
-</Typography>
-
+  <Typography
+    variant="h4"
+    sx={{
+      fontFamily: 'Gemunu Libre, sans-serif',
+      fontWeight: 700,
+      color: 'white',
+      textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
+    }}
+  >
+    Dev Skip — Profile • Behaviors • Mindset
+  </Typography>
+</Box>
 
         <Grid container spacing={2} alignItems="flex-start">
           {/* Column 1: Actions + Reflection + Summary */}
