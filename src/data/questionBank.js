@@ -1,6 +1,7 @@
-// ==============================
-// Compass Question Bank (Flattened)
-// ==============================
+// src/data/questionBank.js
+// ---------------------------------------------------------
+// Centralized LEP Question Bank for Profile, Behaviors, Mindset, and Agent Selection
+// ---------------------------------------------------------
 
 export const questionBank = {
   profile: [
@@ -71,7 +72,7 @@ export const questionBank = {
     {
       id: 'projectApproach',
       theme: 'The Team Puzzle',
-      prompt: "You're given a complex project with a tight deadline. Choose the action you'd most likely take first",
+      prompt: "You're given a complex project with a tight deadline. Choose the action you'd most likely take first.",
       type: 'radio',
       options: [
         'Create a detailed plan to guide the team.',
@@ -92,7 +93,7 @@ export const questionBank = {
         "Addressing a team member's inconsistent contributions",
         'Decoding unspoken concerns from the team',
         'Navigating frequent changes in priorities',
-        'Meetings with limited or no outcomes',
+        'Meetings with no outcomes',
         'Mediating conflicts within the team',
         'Pursuing goals that lack clear direction',
         'Balancing expectations from high-pressure stakeholders',
@@ -103,6 +104,7 @@ export const questionBank = {
       theme: 'The Fire Drill',
       prompt: 'A crisis hits your team unexpectedly. Rank these responses based on how they reflect your approach:',
       type: 'ranking',
+      scale: { top: 'like me', bottom: 'like me' },
       options: [
         'I stay calm and provide clear direction.',
         'I rally everyone to brainstorm solutions.',
@@ -110,7 +112,6 @@ export const questionBank = {
         'I empower the team to take the lead while I support.',
         'I take a hands-on role to address the issue quickly.',
       ],
-      scale: { top: 'like me', bottom: 'like me' },
     },
     {
       id: 'pushbackFeeling',
@@ -193,16 +194,294 @@ export const questionBank = {
   ],
 
   mindset: [
-    "When challenges arise, I determine the solution from my experience and expertise.",
-    "I am careful to acknowledge and admit my mistakes to my team.",
-    "I communicate the long-term vision to the company often and in different ways.",
-    "I consistently dialogue with employees about their lives to demonstrate that I care about them.",
-    "I empower my immediate team to do their jobs without handholding.",
-    "I vocally encourage employees to reserve time for creativity or process improvement within their role.",
-    "I am intentional about hiring employees that equally fit the need and the company culture and values.",
-    "I talk about the vision and purpose of the company at every team and company gathering.",
-    "I consistently expresses detailed gratitude for both high AND low performing employees.",
-    "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
+    {
+      id: 'norm_challenges',
+      prompt: "When challenges arise, I determine the solution from my experience and expertise.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_mistakes',
+      prompt: "I am careful to acknowledge and admit my mistakes to my team.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_vision',
+      prompt: "I communicate the long-term vision to the company often and in different ways.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_reaction',
+      prompt: "I have a visible reaction to difficult or bad news that is shared with me about the company/team/project (i.e., non-verbal, emotional, or sounds).",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_feedback',
+      prompt: "I consistently ask for honest feedback from my employees in different ways.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_dialogue',
+      prompt: "I consistently dialogue with employees about their lives to demonstrate that I care about them.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_connection',
+      prompt: "When speaking with individual employees, I make sure to connect what they do to the company's continued success.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_empowerment',
+      prompt: "I empower my immediate team to do their jobs without handholding.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_vision_purpose',
+      prompt: "I talk about the vision and purpose of the company at every team and company gathering.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_gratitude',
+      prompt: "I consistently express detailed gratitude for both high AND low performing employees.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_learning',
+      prompt: "When the learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_creativity',
+      prompt: "I vocally encourage employees to reserve time for creativity or process improvement within their role.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_hiring',
+      prompt: "I am intentional about hiring employees that equally fit the need and the company culture and values.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_dissent',
+      prompt: "My response to dissenting viewpoints shows the team that challenging one another is a good thing that leads to growth and innovation.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_phrases',
+      prompt: "I am known among employees for one-line phrases like 'do what's right,' 'challenges mean learning,' or 'we're in this together.'",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_answers',
+      prompt: "I have more answers than I do questions in our team discussions or meetings.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_metrics',
+      prompt: "It is important that our employee performance metrics are directly connected to their work AND in their full control.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_interactions',
+      prompt: "I consistently seek interactions with employees 'organically' to hear their thoughts about a project, idea, or recent decision.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_review',
+      prompt: "I make time to review both the good and bad of a project or experience so that we can improve for next time.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_communicate',
+      prompt: "I consistently communicate what matters for our work.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_affirming',
+      prompt: "Affirming a team too much can lead to complacency and entitlement.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_opinions',
+      prompt: "I solicit employee opinions, concerns, and ideas in a genuine and diversified way.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_struggling',
+      prompt: "I openly share with my team when I am struggling professionally.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_expectations',
+      prompt: "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_celebrate',
+      prompt: "It is important to me that we celebrate our employees' big moments like the first day, work anniversaries, personal milestones, etc.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_language',
+      prompt: "I am confident we have a shared language at work that goes beyond product codes, acronyms, and job-related shorthand.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_failure',
+      prompt: "I communicate that failure is inevitable and celebrate the associated learning.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_goals',
+      prompt: "I regularly meet with my immediate team members to discuss their professional goals and the adjustments I see they could make that can help them reach those goals.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_learning_employees',
+      prompt: "I regularly and intentionally seek to learn from our employees, especially the newer ones.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_mission',
+      prompt: "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_delegation',
+      prompt: "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
+    {
+      id: 'norm_strengths',
+      prompt: "I know the limits of my natural strengths and that I need others to successfully achieve the height of the company's mission and vision.",
+      type: 'slider',
+      min: 1,
+      max: 10,
+      marks: [{ value: 1, label: 'Never' }, { value: 10, label: 'Always' }],
+      valueLabelDisplay: 'on',
+    },
   ],
 
   agents: [
@@ -215,8 +494,21 @@ export const questionBank = {
   ],
 };
 
-// ---------- Helper Exports ----------
+// ---------------------------------------------------------
+// Helper utilities for modular access
+// ---------------------------------------------------------
 export const getSection = (key) => questionBank[key] || null;
-export const getQuestionById = (id) =>
-  Object.values(questionBank).flat().find((q) => q.id === id) || null;
-export const getAllQuestions = () => Object.values(questionBank).flat();
+export const getQuestionById = (id) => {
+  for (const section of Object.values(questionBank)) {
+    const found = section.find((q) => q.id === id);
+    if (found) return found;
+  }
+  return null;
+};
+export const getAllQuestions = () => {
+  const result = [];
+  for (const section of Object.values(questionBank)) {
+    if (Array.isArray(section)) result.push(...section);
+  }
+  return result;
+};
