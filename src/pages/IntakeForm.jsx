@@ -8,6 +8,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { questionBank } from '../data/questionBank';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -665,80 +666,104 @@ function IntakeForm() {
         )}
 
         {/* Profile Page 1 (Step 2) */}
-        {currentStep === 2 && (
-          <SectionCard narrow={true}>
-            <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
-              {initialQuestionsPart1.map((q) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
-                  <MemoTextField
-                    value={formData[q.id] || ''}
-                    onChange={(e) => handleChange(q.id, e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                  />
-                </MemoBox>
-              ))}
-              <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={!formData.name || !formData.industry || !formData.role || !formData.responsibilities}
-                  sx={{
-                    px: 5,
-                    py: 1.4,
-                    ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
-                    '@keyframes pulse': {
-                      '0%': { transform: 'scale(1)' },
-                      '50%': { transform: 'scale(1.04)' },
-                      '100%': { transform: 'scale(1)' },
-                    },
-                  }}
-                >
-                  Next
-                </MemoButton>
-              </Stack>
-            </Stack>
-          </SectionCard>
-        )}
+{currentStep === 2 && (
+  <SectionCard narrow={true}>
+    <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
+      {questionBank.profile.part1.map((q) => (
+        <MemoBox key={q.id} sx={{ width: '100%' }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}
+          >
+            {q.prompt}
+          </Typography>
+          <MemoTextField
+            value={formData[q.id] || ''}
+            onChange={(e) => handleChange(q.id, e.target.value)}
+            fullWidth
+            variant="outlined"
+          />
+        </MemoBox>
+      ))}
+      <Stack direction="row" spacing={2}>
+        <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>
+          Back
+        </MemoButton>
+        <MemoButton
+          variant="contained"
+          onClick={handleNext}
+          disabled={
+            !formData.name ||
+            !formData.industry ||
+            !formData.role ||
+            !formData.responsibilities
+          }
+          sx={{
+            px: 5,
+            py: 1.4,
+            ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+            '@keyframes pulse': {
+              '0%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.04)' },
+              '100%': { transform: 'scale(1)' },
+            },
+          }}
+        >
+          Next
+        </MemoButton>
+      </Stack>
+    </Stack>
+  </SectionCard>
+)}
 
         {/* Profile Page 2 (Step 3) */}
-        {currentStep === 3 && (
-          <SectionCard narrow={true}>
-            <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              {initialQuestionsPart2.map((q) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
-                  <MemoSlider
-                    value={formData[q.id] ?? q.min}
-                    onChange={(e, value) => handleChange(q.id, value)}
-                    min={q.min}
-                    max={q.max}
-                    sx={{ width: '100%' }}
-                  />
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
-                  </Typography>
-                </MemoBox>
-              ))}
-              <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(2)}>Back</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={
-                    formData.teamSize === undefined ||
-                    formData.leadershipExperience === undefined ||
-                    formData.careerExperience === undefined
-                  }
-                >
-                  Next
-                </MemoButton>
-              </Stack>
-            </Stack>
-          </SectionCard>
-        )}
+{currentStep === 3 && (
+  <SectionCard narrow={true}>
+    <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
+      {questionBank.profile.part2.map((q) => (
+        <MemoBox key={q.id} sx={{ width: '100%' }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}
+          >
+            {q.prompt}
+          </Typography>
+          {q.type === 'slider' && (
+            <>
+              <MemoSlider
+                value={formData[q.id] ?? q.min}
+                onChange={(e, value) => handleChange(q.id, value)}
+                min={q.min}
+                max={q.max}
+                sx={{ width: '100%' }}
+              />
+              <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
+              </Typography>
+            </>
+          )}
+        </MemoBox>
+      ))}
+
+      <Stack direction="row" spacing={2}>
+        <MemoButton variant="outlined" onClick={() => setCurrentStep(2)}>
+          Back
+        </MemoButton>
+        <MemoButton
+          variant="contained"
+          onClick={handleNext}
+          disabled={
+            formData.teamSize === undefined ||
+            formData.leadershipExperience === undefined ||
+            formData.careerExperience === undefined
+          }
+        >
+          Next
+        </MemoButton>
+      </Stack>
+    </Stack>
+  </SectionCard>
+)}
 
         {/* Behaviors Questions (Steps 5..16) */}
         {currentStep >= behaviorStart && currentStep <= behaviorEnd && (
