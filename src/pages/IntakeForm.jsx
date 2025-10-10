@@ -52,7 +52,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
             <Box sx={{ width: 26, height: 26 }}>
               <img
                 src="/lep-logo.svg"
-                alt="LEP"
+                alt="The Compass"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 style={{ width: 26, height: 26 }}
               />
@@ -66,7 +66,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
                   letterSpacing: 0.4,
                 }}
               >
-                LEP
+                The Compass
               </Typography>
             </Box>
           </Stack>
@@ -171,33 +171,27 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
 
 // ---------- Component ----------
 function IntakeForm() {
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pageJustValidated, setPageJustValidated] = useState(false);
+  const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState('');
   const [isLoadingReflection, setIsLoadingReflection] = useState(false);
   const navigate = useNavigate();
 
-  // fixed, immersive bg setup
+  // Reset dialog for message steps
   useEffect(() => {
-    // nothing to do here now
-  }, []);
+    const messageSteps = [1, 3, 16]; // Profile Msg, Behaviors Msg, Mindset Msg
+    setDialogOpen(messageSteps.includes(currentStep));
+  }, [currentStep]);
 
-  // Reset dialog for message pages
+  // Generate reflection on entering Reflection Moment step
   useEffect(() => {
-    const messagePages = [1, 3, 6]; // Profile Msg, Behaviors Msg, Mindset Msg
-    setDialogOpen(messagePages.includes(currentPage));
-  }, [currentPage]);
-
-  // Generate reflection on entering Reflection Moment page
-  useEffect(() => {
-    if (currentPage === 5) { // reflectionPage
+    if (currentStep === 15) { // reflectionStep
       setReflectionText('');
       setIsLoadingReflection(true);
       const timer = setTimeout(() => {
-        // Simulate AI reflection based on formData
         const behaviorIds = questionBank.behaviors.map(q => q.id);
         const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
         setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
@@ -205,66 +199,93 @@ function IntakeForm() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [currentPage, formData]);
+  }, [currentStep, formData]);
 
   // ---------- derived values ----------
-  const pageVars = useMemo(() => {
-    const introPage = 0;
-    const profileMsgPage = 1;
-    const profilePage = 2;
-    const behaviorsMsgPage = 3;
-    const behaviorsPage = 4;
-    const reflectionPage = 5;
-    const mindsetMsgPage = 6;
-    const mindsetPage = 7;
-    const agentPage = 8;
-    const totalPages = 9;
-    return {
-      introPage, profileMsgPage, profilePage, behaviorsMsgPage, behaviorsPage,
-      reflectionPage, mindsetMsgPage, mindsetPage, agentPage, totalPages
-    };
+  const MINDSET_GROUP_SIZE = 5;
+  const mindsetGroups = useMemo(() => {
+    const groups = [];
+    for (let i = 0; i < questionBank.mindset.length; i += MINDSET_GROUP_SIZE) {
+      groups.push(questionBank.mindset.slice(i, i + MINDSET_GROUP_SIZE));
+    }
+    return groups; // 7 groups (6x5 + 1x2)
   }, []);
 
+  const stepVars = useMemo(() => {
+    const introStep = 0;
+    const profileMsgStep = 1;
+    const profileStep = 2;
+    const behaviorsMsgStep = 3;
+    const behaviorsStart = 4;
+    const behaviorsEnd = behaviorsStart + questionBank.behaviors.length - 1; // 4..15 (12 questions)
+    const reflectionStep = behaviorsEnd + 1; // 16
+    const mindsetMsgStep = reflectionStep + 1; // 17
+    const mindsetStart = mindsetMsgStep + 1; // 18
+    const mindsetEnd = mindsetStart + mindsetGroups.length - 1; // 18..24 (7 groups)
+    const agentStep = mindsetEnd + 1; // 25
+    // Count only main steps: Profile (1), Behaviors (12), Reflection (1), Mindset (7), Agent (1)
+    const totalSteps = 1 + questionBank.behaviors.length + 1 + mindsetGroups.length + 1; // 22
+    return {
+      introStep, profileMsgStep, profileStep, behaviorsMsgStep, behaviorsStart, behaviorsEnd,
+      reflectionStep, mindsetMsgStep, mindsetStart, mindsetEnd, agentStep, totalSteps
+    };
+  }, [mindsetGroups.length]);
+
   const {
-    introPage, profileMsgPage, profilePage, behaviorsMsgPage, behaviorsPage,
-    reflectionPage, mindsetMsgPage, mindsetPage, agentPage, totalPages
-  } = pageVars;
+    introStep, profileMsgStep, profileStep, behaviorsMsgStep, behaviorsStart, behaviorsEnd,
+    reflectionStep, mindsetMsgStep, mindsetStart, mindsetEnd, agentStep, totalSteps
+  } = stepVars;
 
   const headerLabel = useMemo(() => {
-    if (currentPage === introPage) return 'Welcome';
-    if (currentPage === profileMsgPage || currentPage === profilePage) return 'Profile';
-    if (currentPage === behaviorsMsgPage || currentPage === behaviorsPage) return 'Behaviors';
-    if (currentPage === reflectionPage) return 'Reflection Moment';
-    if (currentPage === mindsetMsgPage || currentPage === mindsetPage) return 'Mindset';
-    if (currentPage === agentPage) return 'Choose Your Agent';
-    return 'LEP';
-  }, [currentPage, introPage, profileMsgPage, profilePage, behaviorsMsgPage, behaviorsPage, reflectionPage, mindsetMsgPage, mindsetPage, agentPage]);
+    if (currentStep === introStep) return 'Welcome';
+    if (currentStep === profileMsgStep || currentStep === profileStep) return 'Profile';
+    if (currentStep === behaviorsMsgStep || (currentStep >= behaviorsStart && currentStep <= behaviorsEnd)) return 'Behaviors';
+    if (currentStep === reflectionStep) return 'Reflection Moment';
+    if (currentStep === mindsetMsgStep || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) return 'Mindset';
+    if (currentStep === agentStep) return 'Choose Your Agent';
+    return 'The Compass';
+  }, [currentStep, introStep, profileMsgStep, profileStep, behaviorsMsgStep, behaviorsStart, behaviorsEnd, reflectionStep, mindsetMsgStep, mindsetStart, mindsetEnd, agentStep]);
+
+  // Calculate displayed step number (exclude message steps)
+  const displayedStep = useMemo(() => {
+    if (currentStep === introStep) return 1;
+    if (currentStep === profileMsgStep || currentStep === profileStep) return 1;
+    if (currentStep === behaviorsMsgStep || (currentStep >= behaviorsStart && currentStep <= behaviorsEnd)) {
+      return 2 + (currentStep >= behaviorsStart ? currentStep - behaviorsStart : 0);
+    }
+    if (currentStep === reflectionStep) return 14;
+    if (currentStep === mindsetMsgStep || (currentStep >= mindsetStart && currentStep <= mindsetEnd)) {
+      return 15 + (currentStep >= mindsetStart ? currentStep - mindsetStart : 0);
+    }
+    if (currentStep === agentStep) return 22;
+    return 1;
+  }, [currentStep, introStep, profileMsgStep, profileStep, behaviorsMsgStep, behaviorsStart, behaviorsEnd, reflectionStep, mindsetMsgStep, mindsetStart, mindsetEnd, agentStep]);
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
 
   const setMindsetValue = (index, value) => {
-    const next = [...formData.mindsetResponses || Array(questionBank.mindset.length).fill(null)];
+    const next = [...(formData.mindsetResponses || Array(questionBank.mindset.length).fill(null))];
     next[index] = value;
     handleChange('mindsetResponses', next);
   };
 
   const nextPulse = () => {
-    setPageJustValidated(true);
-    setTimeout(() => setPageJustValidated(false), 420);
+    setStepJustValidated(true);
+    setTimeout(() => setStepJustValidated(false), 420);
   };
 
   const handleNext = async () => {
-    const isMessagePage = [profileMsgPage, behaviorsMsgPage, mindsetMsgPage].includes(currentPage);
-    if (isMessagePage) {
+    const isMessageStep = [profileMsgStep, behaviorsMsgStep, mindsetMsgStep].includes(currentStep);
+    if (isMessageStep) {
       setDialogOpen(false);
-      setCurrentPage(s => s + 1);
+      setCurrentStep(s => s + 1);
       return;
     }
 
-    if (currentPage < totalPages - 1) {
+    if (currentStep < totalSteps - 1) {
       // Profile validation
-      if (currentPage === profilePage) {
+      if (currentStep === profileStep) {
         if (
           !formData.name ||
           !formData.industry ||
@@ -274,25 +295,27 @@ function IntakeForm() {
           formData.leadershipExperience === undefined ||
           formData.careerExperience === undefined
         ) return;
-      // Behaviors validation
-      } else if (currentPage === behaviorsPage) {
-        const unanswered = questionBank.behaviors.some(q => {
-          const v = formData[q.id];
-          if (q.type === 'text') return !v;
-          if (q.type === 'multi-select') return !v || v.length === 0;
-          if (q.type === 'ranking') return !v || v.length !== q.options.length;
-          if (q.type === 'radio') return !v;
-          return false;
-        });
-        if (unanswered) return;
-      // Reflection page - no validation
-      } else if (currentPage === reflectionPage) {
+      // Behaviors validation (one question per step)
+      } else if (currentStep >= behaviorsStart && currentStep <= behaviorsEnd) {
+        const qIndex = currentStep - behaviorsStart;
+        const q = questionBank.behaviors[qIndex];
+        const v = formData[q.id];
+        if (q.type === 'text' && !v) return;
+        if (q.type === 'multi-select' && (!v || v.length === 0)) return;
+        if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
+        if (q.type === 'radio' && !v) return;
+      // Reflection step - no validation
+      } else if (currentStep === reflectionStep) {
         return; // Buttons handle progression
-      // Mindset validation
-      } else if (currentPage === mindsetPage) {
-        if (!formData.mindsetResponses || formData.mindsetResponses.some(r => r === null)) return;
-      // Agent page
-      } else if (currentPage === agentPage) {
+      // Mindset validation (5 questions per page)
+      } else if (currentStep >= mindsetStart && currentStep <= mindsetEnd) {
+        const groupIdx = currentStep - mindsetStart;
+        const start = groupIdx * MINDSET_GROUP_SIZE;
+        const end = Math.min(start + MINDSET_GROUP_SIZE, questionBank.mindset.length);
+        const groupResponses = (formData.mindsetResponses || []).slice(start, end);
+        if (groupResponses.some(r => r === null)) return;
+      // Agent step
+      } else if (currentStep === agentStep) {
         if (!formData.selectedAgent) return;
         setIsSubmitting(true);
         await handleSubmit();
@@ -300,7 +323,7 @@ function IntakeForm() {
       }
 
       nextPulse();
-      setCurrentPage(s => s + 1);
+      setCurrentStep(s => s + 1);
     }
   };
 
@@ -321,7 +344,7 @@ function IntakeForm() {
 
   const handleStartOver = () => {
     setFormData({});
-    setCurrentPage(0);
+    setCurrentStep(0);
   };
 
   const handleSubmit = async () => {
@@ -366,20 +389,20 @@ function IntakeForm() {
         },
       }}
     >
-      <HeaderBar step={Math.min(currentPage + 1, totalPages)} total={totalPages} sectionLabel={headerLabel} />
+      <HeaderBar step={displayedStep} total={22} sectionLabel={headerLabel} />
 
       {/* Message Pop-ups */}
-      {(currentPage === profileMsgPage || currentPage === behaviorsMsgPage || currentPage === mindsetMsgPage) && (
+      {(currentStep === profileMsgStep || currentStep === behaviorsMsgStep || currentStep === mindsetMsgStep) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
           title={
-            currentPage === profileMsgPage ? 'Why Profile Matters' :
-            currentPage === behaviorsMsgPage ? 'Why Behaviors Matter' : 'Mindset & Norms'
+            currentStep === profileMsgStep ? 'Why Profile Matters' :
+            currentStep === behaviorsMsgStep ? 'Why Behaviors Matter' : 'Mindset & Norms'
           }
           content={
-            currentPage === profileMsgPage ? 'Understanding your background helps tailor insights to your unique context.' :
-            currentPage === behaviorsMsgPage ? "Behaviors reveal how you show up daily—let's uncover patterns." :
+            currentStep === profileMsgStep ? 'Understanding your background helps tailor insights to your unique context.' :
+            currentStep === behaviorsMsgStep ? "Behaviors reveal how you show up daily—let's uncover patterns." :
             'Mindset shapes decisions; societal norms often influence them unconsciously.'
           }
         />
@@ -387,12 +410,12 @@ function IntakeForm() {
 
       <PageContainer>
         {/* Intro */}
-        {currentPage === introPage && (
+        {currentStep === introStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Welcome to LEP</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Welcome to The Compass</Typography>
               <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
-                This journey is reflective and practical. Move one page at a time, answer honestly, and we'll turn it into a focused leadership summary and growth plan.
+                This journey is reflective and practical. Answer honestly, and we'll turn it into a focused leadership summary and growth plan.
               </Typography>
               <MemoButton
                 variant="contained"
@@ -406,8 +429,8 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Profile Page */}
-        {currentPage === profilePage && (
+        {/* Profile Step */}
+        {currentStep === profileStep && (
           <SectionCard narrow={true}>
             <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Your Profile</Typography>
@@ -441,7 +464,7 @@ function IntakeForm() {
                 </MemoBox>
               ))}
               <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentPage(profileMsgPage)}>Back</MemoButton>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(profileMsgStep)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
@@ -457,7 +480,7 @@ function IntakeForm() {
                   sx={{
                     px: 5,
                     py: 1.4,
-                    ...(pageJustValidated && { animation: 'pulse 420ms ease' }),
+                    ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
                     '@keyframes pulse': {
                       '0%': { transform: 'scale(1)' },
                       '50%': { transform: 'scale(1.04)' },
@@ -472,17 +495,19 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Behaviors Page */}
-        {currentPage === behaviorsPage && (
+        {/* Behaviors Steps (one question per step) */}
+        {currentStep >= behaviorsStart && currentStep <= behaviorsEnd && (
           <SectionCard narrow={false}>
-            <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Your Behaviors</Typography>
-              {questionBank.behaviors.map((q, index) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
+            {(() => {
+              const qIndex = currentStep - behaviorsStart;
+              const q = questionBank.behaviors[qIndex];
+
+              return (
+                <Stack spacing={3} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
                   <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8, textAlign: 'center' }}>
                     {q.theme.toUpperCase()}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
                     {q.prompt}
                   </Typography>
                   {(q.type === 'radio' || q.type === 'multi-select') && (
@@ -585,39 +610,39 @@ function IntakeForm() {
                       </Droppable>
                     </DragDropContext>
                   )}
-                </MemoBox>
-              ))}
-              <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
-                <MemoButton variant="outlined" onClick={() => setCurrentPage(behaviorsMsgPage)}>Back</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={questionBank.behaviors.some(q => {
-                    const v = formData[q.id];
-                    if (q.type === 'text') return !v;
-                    if (q.type === 'multi-select') return !v || v.length === 0;
-                    if (q.type === 'ranking') return !v || v.length !== q.options.length;
-                    if (q.type === 'radio') return !v;
-                    return false;
-                  })}
-                  sx={{
-                    ...(pageJustValidated && { animation: 'pulse 420ms ease' }),
-                    '@keyframes pulse': {
-                      '0%': { transform: 'scale(1)' },
-                      '50%': { transform: 'scale(1.04)' },
-                      '100%': { transform: 'scale(1)' },
-                    },
-                  }}
-                >
-                  Reflection Moment
-                </MemoButton>
-              </Stack>
-            </Stack>
+                  <Stack direction="row" spacing={2} sx={{ pt: 1, justifyContent: 'center' }}>
+                    <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
+                      Back
+                    </MemoButton>
+                    <MemoButton
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={
+                        (q.type === 'text' && !formData[q.id]) ||
+                        (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
+                        (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
+                        (q.type === 'radio' && !formData[q.id])
+                      }
+                      sx={{
+                        ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+                        '@keyframes pulse': {
+                          '0%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.04)' },
+                          '100%': { transform: 'scale(1)' },
+                        },
+                      }}
+                    >
+                      {currentStep === behaviorsEnd ? 'Reflection Moment' : 'Next'}
+                    </MemoButton>
+                  </Stack>
+                </Stack>
+              );
+            })()}
           </SectionCard>
         )}
 
-        {/* Reflection Moment */}
-        {currentPage === reflectionPage && (
+        {/* Reflection Step */}
+        {currentStep === reflectionStep && (
           <SectionCard narrow={false}>
             <Stack spacing={4} alignItems="center" textAlign="center">
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
@@ -672,7 +697,7 @@ function IntakeForm() {
                 <MemoButton variant="outlined" onClick={handleStartOver}>Start Over</MemoButton>
                 <MemoButton
                   variant="contained"
-                  onClick={() => setCurrentPage(mindsetMsgPage)}
+                  onClick={() => setCurrentStep(mindsetMsgStep)}
                 >
                   Proceed to Mindset
                 </MemoButton>
@@ -681,8 +706,8 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Mindset Page */}
-        {currentPage === mindsetPage && (
+        {/* Mindset Steps (5 questions per step) */}
+        {currentStep >= mindsetStart && currentStep <= mindsetEnd && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="center" textAlign="center">
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Mindset Check</Typography>
@@ -690,66 +715,77 @@ function IntakeForm() {
                 Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
               </Typography>
               <Stack spacing={2} sx={{ width: '100%' }}>
-                {questionBank.mindset.map((q, index) => (
-                  <Paper
-                    key={q.id}
-                    elevation={4}
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 2,
-                      background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                      border: '1px solid',
-                      borderColor: 'primary.main',
-                      textAlign: 'center',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Typography
-                      variant="body1"
+                {mindsetGroups[currentStep - mindsetStart].map((q, index) => {
+                  const absoluteIndex = (currentStep - mindsetStart) * MINDSET_GROUP_SIZE + index;
+                  return (
+                    <Paper
+                      key={q.id}
+                      elevation={4}
                       sx={{
-                        fontWeight: 600,
-                        mb: 1.5,
-                        lineHeight: 1.4,
-                        fontSize: '0.95rem',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere',
+                        p: 2.5,
+                        borderRadius: 2,
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                        border: '1px solid',
+                        borderColor: 'primary.main',
+                        textAlign: 'center',
+                        overflow: 'hidden',
                       }}
                     >
-                      {q.prompt}
-                    </Typography>
-                    <MemoSlider
-                      value={formData.mindsetResponses?.[index] ?? 5}
-                      onChange={(_, v) => setMindsetValue(index, v)}
-                      step={1}
-                      min={q.min}
-                      max={q.max}
-                      marks={q.marks}
-                      valueLabelDisplay={q.valueLabelDisplay}
-                      sx={{
-                        mx: 1,
-                        '& .MuiSlider-root': { height: 4 },
-                        '& .MuiSlider-markLabel': {
-                          fontSize: '0.75rem',
-                          whiteSpace: 'nowrap',
-                          transform: 'translateY(6px)',
-                        },
-                        '& .MuiSlider-valueLabel': {
-                          fontSize: '0.75rem',
-                          top: -28,
-                        },
-                      }}
-                    />
-                  </Paper>
-                ))}
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          mb: 1.5,
+                          lineHeight: 1.4,
+                          fontSize: '0.95rem',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'anywhere',
+                        }}
+                      >
+                        {q.prompt}
+                      </Typography>
+                      <MemoSlider
+                        value={formData.mindsetResponses?.[absoluteIndex] ?? 5}
+                        onChange={(_, v) => setMindsetValue(absoluteIndex, v)}
+                        step={1}
+                        min={q.min}
+                        max={q.max}
+                        marks={q.marks}
+                        valueLabelDisplay={q.valueLabelDisplay}
+                        sx={{
+                          mx: 1,
+                          '& .MuiSlider-root': { height: 4 },
+                          '& .MuiSlider-markLabel': {
+                            fontSize: '0.75rem',
+                            whiteSpace: 'nowrap',
+                            transform: 'translateY(6px)',
+                          },
+                          '& .MuiSlider-valueLabel': {
+                            fontSize: '0.75rem',
+                            top: -28,
+                          },
+                        }}
+                      />
+                    </Paper>
+                  );
+                })}
               </Stack>
               <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
-                <MemoButton variant="outlined" onClick={() => setCurrentPage(mindsetMsgPage)}>Back</MemoButton>
+                <MemoButton
+                  variant="outlined"
+                  onClick={() => setCurrentStep(s => Math.max(s - 1, mindsetMsgStep))}
+                >
+                  Back
+                </MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
-                  disabled={formData.mindsetResponses?.some(r => r === null)}
+                  disabled={(formData.mindsetResponses || []).slice(
+                    (currentStep - mindsetStart) * MINDSET_GROUP_SIZE,
+                    Math.min((currentStep - mindsetStart + 1) * MINDSET_GROUP_SIZE, questionBank.mindset.length)
+                  ).some(r => r === null)}
                   sx={{
-                    ...(pageJustValidated && { animation: 'pulse 420ms ease' }),
+                    ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
                     '@keyframes pulse': {
                       '0%': { transform: 'scale(1)' },
                       '50%': { transform: 'scale(1.04)' },
@@ -757,15 +793,15 @@ function IntakeForm() {
                     },
                   }}
                 >
-                  Choose my AI Agent
+                  {currentStep === mindsetEnd ? 'Choose my AI Agent' : 'Next'}
                 </MemoButton>
               </Stack>
             </Stack>
           </SectionCard>
         )}
 
-        {/* Agent Select */}
-        {currentPage === agentPage && (
+        {/* Agent Step */}
+        {currentStep === agentStep && (
           <SectionCard narrow={false}>
             <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
