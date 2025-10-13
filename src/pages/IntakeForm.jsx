@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
   Card, CardContent, CardActions, Grid, LinearProgress, Paper
@@ -480,31 +480,32 @@ function IntakeForm() {
   }, [currentStep, mindsetIntroStep]);
 
   useEffect(() => {
-    if (currentStep === reflectionStep) {
-      setReflectionText('');
-      setIsLoadingReflection(true);
+  if (currentStep === reflectionStep) {
+    setReflectionText('');
+    setIsLoadingReflection(true);
 
-      const timer = setTimeout(() => {
-        fetch('/api/get-ai-reflection', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...formData, selectedAgent: 'bluntPracticalFriend' }),
+    const timer = setTimeout(() => {
+      fetch('/api/get-ai-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, selectedAgent: 'bluntPracticalFriend' }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data?.reflection) {
+            setReflectionText(data.reflection);
+          } else {
+            setReflectionText("We couldn’t generate a reflection right now. Try again or continue.");
+          }
         })
-          .then(r => r.json())
-          .then(data => {
-            if (data?.reflection) {
-              setReflectionText(data.reflection);
-            } else {
-              setReflectionText("We couldn’t generate a reflection right now. Try again or continue.");
-            }
-          })
-          .catch(() => setReflectionText("Reflection generation failed. Please continue."))
-          .finally(() => setIsLoadingReflection(false));
-      }, 500); // wait half a second
+        .catch(() => setReflectionText("Reflection generation failed. Please continue."))
+        .finally(() => setIsLoadingReflection(false));
+    }, 500); // wait half a second
 
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep, reflectionStep, formData]);
+    return () => clearTimeout(timer);
+  }
+}, [currentStep, reflectionStep, formData]);
+
 
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
@@ -552,8 +553,9 @@ function IntakeForm() {
 
       // Societal (Mindset) validation: only current 5 in the shown group must be answered
       // Societal (Mindset): no validation required
-      } else if (currentStep >= societalStart && currentStep <= societalEnd) {
-        // allow skipping unanswered
+} else if (currentStep >= societalStart && currentStep <= societalEnd) {
+  // allow skipping unanswered
+
 
       // Agent
       } else if (currentStep === agentStep) {
@@ -584,9 +586,10 @@ function IntakeForm() {
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleStartOver = () => {
-    // keep profile answers, just restart behaviors
-    setCurrentStep(behaviorStart);
-  };
+  // keep profile answers, just restart behaviors
+  setCurrentStep(behaviorStart);
+};
+
 
   const handleSubmit = async () => {
     try {
@@ -681,7 +684,7 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Profile Page 1 (Step 2) */}
+                {/* Profile Page 1 (Step 2) */}
         {currentStep === 2 && (
           <SectionCard narrow={true}>
             <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
@@ -756,6 +759,7 @@ function IntakeForm() {
             </Stack>
           </SectionCard>
         )}
+
 
         {/* Behaviors Questions (Steps 5..16) */}
         {currentStep >= behaviorStart && currentStep <= behaviorEnd && (
@@ -900,262 +904,267 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Reflection Moment (Step 17) */}
-        {currentStep === reflectionStep && (
-          <SectionCard narrow={false}>
-            <Stack spacing={4} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
-                Reflection Moment
-              </Typography>
+       {/* Reflection Moment (Step 17) */}
+{currentStep === reflectionStep && (
+  <SectionCard narrow={false}>
+    <Stack spacing={4} alignItems="center" textAlign="center">
+      <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
+        Reflection Moment
+      </Typography>
 
-              {/* AI Reflection Text */}
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 3,
-                  borderRadius: 3,
-                  background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  maxWidth: 720,
-                  mx: 'auto',
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="flex-start">
-                  <Box sx={{ color: 'primary.main', fontSize: 36, lineHeight: 1 }}>
-                    ❝
-                  </Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '1.1rem',
-                      color: 'text.primary',
-                      textAlign: 'left',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    <strong>Agent Insight:</strong>{' '}
-                    {reflectionText || 'Generating reflection...'}
-                  </Typography>
-                </Stack>
-              </Paper>
+      {/* AI Reflection Text */}
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          borderRadius: 3,
+          background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          maxWidth: 720,
+          mx: 'auto',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="flex-start">
+          <Box sx={{ color: 'primary.main', fontSize: 36, lineHeight: 1 }}>
+            ❝
+          </Box>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '1.1rem',
+              color: 'text.primary',
+              textAlign: 'left',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              lineHeight: 1.6,
+            }}
+          >
+            <strong>Agent Insight:</strong>{' '}
+            {reflectionText || 'Generating reflection...'}
+          </Typography>
+        </Stack>
+      </Paper>
 
-              {/* User Input Box */}
-              <MemoTextField
-                value={formData.userReflection || ''}
-                onChange={(e) => handleChange('userReflection', e.target.value)}
-                fullWidth
-                multiline
-                minRows={3}
-                placeholder="What are your thoughts on this reflection?"
-                sx={{
-                  backgroundColor: 'rgba(255,255,255,0.85)',
-                  borderRadius: 2,
-                  maxWidth: 720,
-                }}
-              />
+      {/* User Input Box */}
+      <MemoTextField
+        value={formData.userReflection || ''}
+        onChange={(e) => handleChange('userReflection', e.target.value)}
+        fullWidth
+        multiline
+        minRows={3}
+        placeholder="What are your thoughts on this reflection?"
+        sx={{
+          backgroundColor: 'rgba(255,255,255,0.85)',
+          borderRadius: 2,
+          maxWidth: 720,
+        }}
+      />
 
-              {/* Action Buttons */}
-              <Stack
-                direction="row"
-                spacing={2}
-                justifyContent="center"
-                sx={{ pt: 2 }}
-              >
-                <MemoButton
-                  variant="outlined"
-                  onClick={() => setCurrentStep(behaviorStart)} // jump back to first behavior question
-                >
-                  Start Fresh
-                </MemoButton>
-                <MemoButton
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setCurrentStep(mindsetIntroStep)} // proceed to Mindset intro popup
-                >
-                  Let's Dig Deeper
-                </MemoButton>
-              </Stack>
-            </Stack>
-          </SectionCard>
-        )}
+      {/* Action Buttons */}
+      <Stack
+        direction="row"
+        spacing={2}
+        justifyContent="center"
+        sx={{ pt: 2 }}
+      >
+        <MemoButton
+          variant="outlined"
+          onClick={() => setCurrentStep(behaviorStart)} // jump back to first behavior question
+        >
+          Start Fresh
+        </MemoButton>
+        <MemoButton
+          variant="contained"
+          color="primary"
+          onClick={() => setCurrentStep(mindsetIntroStep)} // proceed to Mindset intro popup
+        >
+          Let's Dig Deeper
+        </MemoButton>
+      </Stack>
+    </Stack>
+  </SectionCard>
+)}
+
+
+
 
         {/* Mindset (Societal Norms) – 7 pages, 5 sliders each (Steps 19..25) */}
-        {currentStep >= societalStart && currentStep <= societalEnd && (
-          <SectionCard narrow={false}>
-            {(() => {
-              const groupIdx = currentStep - societalStart; // 0..6
-              const start = groupIdx * SOCIETAL_GROUP_SIZE;
-              const end = start + SOCIETAL_GROUP_SIZE;
+{currentStep >= societalStart && currentStep <= societalEnd && (
+  <SectionCard narrow={false}>
+    {(() => {
+      const groupIdx = currentStep - societalStart; // 0..6
+      const start = groupIdx * SOCIETAL_GROUP_SIZE;
+      const end = start + SOCIETAL_GROUP_SIZE;
 
+      return (
+        <Stack spacing={3} alignItems="center" textAlign="center">
+          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Mindset Check</Typography>
+          <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
+            Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
+          </Typography>
+
+          <Stack spacing={2} sx={{ width: '100%' }}>
+            {societalNormsQuestions.slice(start, end).map((q, idx) => {
+              const absoluteIdx = start + idx;
+              const val = societalResponses[absoluteIdx];
               return (
-                <Stack spacing={3} alignItems="center" textAlign="center">
-                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Mindset Check</Typography>
-                  <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
-                    Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
-                  </Typography>
-
-                  <Stack spacing={2} sx={{ width: '100%' }}>
-                    {societalNormsQuestions.slice(start, end).map((q, idx) => {
-                      const absoluteIdx = start + idx;
-                      const val = societalResponses[absoluteIdx];
-                      return (
-                        <Paper
-                          key={absoluteIdx}
-                          elevation={4}
-                          sx={{
-                            p: 2.5,
-                            borderRadius: 2,
-                            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                            border: '1px solid',
-                            borderColor: 'primary.main',
-                            textAlign: 'center',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              fontWeight: 600,
-                              mb: 1.5,
-                              lineHeight: 1.4,
-                              fontSize: '0.95rem',
-                              wordBreak: 'break-word',
-                              overflowWrap: 'anywhere'
-                            }}
-                          >
-                            {q}
-                          </Typography>
-                          <MemoSlider
-                            value={val ?? 5}
-                            onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
-                            step={1}
-                            min={1}
-                            max={10}
-                            marks={[
-                              { value: 1, label: "Never" },
-                              { value: 10, label: "Always" }
-                            ]}
-                            valueLabelDisplay="on"
-                            sx={{
-                              mx: 1,
-                              '& .MuiSlider-root': {
-                                height: 4,
-                              },
-                              '& .MuiSlider-markLabel': {
-                                fontSize: '0.75rem',
-                                whiteSpace: 'nowrap',
-                                transform: 'translateY(6px)',
-                              },
-                              '& .MuiSlider-valueLabel': {
-                                fontSize: '0.75rem',
-                                top: -28,
-                              }
-                            }}
-                          />
-                        </Paper>
-                      );
-                    })}
-                  </Stack>
-
-                  {/* If NOT the last group → show Back/Next */}
-                  {currentStep < societalEnd && (
-                    <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
-                      <MemoButton
-                        variant="outlined"
-                        onClick={() => setCurrentStep(s => Math.max(s - 1, societalStart))}
-                      >
-                        Back
-                      </MemoButton>
-                      <MemoButton
-                        variant="contained"
-                        onClick={handleNext}
-                      >
-                        Next
-                      </MemoButton>
-                    </Stack>
-                  )}
-
-                  {/* If it IS the last group → show "Choose my AI Agent" */}
-                  {currentStep === societalEnd && (
-                    <Stack alignItems="center" sx={{ pt: 3 }}>
-                      <MemoButton
-                        variant="contained"
-                        color="primary"
-                        onClick={() => setCurrentStep(agentStep)}
-                      >
-                        Choose my AI Agent
-                      </MemoButton>
-                    </Stack>
-                  )}
-                </Stack>
-              );
-            })()}
-          </SectionCard>
-        )}
-
-        {/* Agent Select (Step 26) */}
-        {currentStep === agentStep && (
-          <SectionCard narrow={false}>
-            <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
-                Select Your AI Agent
-              </Typography>
-              <Typography sx={{ width: '100%', opacity: 0.85 }}>
-                You'll get honest feedback either way; choose the voice that fits your preference.
-              </Typography>
-
-              <Grid container spacing={2}>
-                {agentSelect[0].options.map((agent) => (
-                  <Grid item xs={12} sm={6} md={4} key={agent.id}>
-                    <MemoCard
-                      onClick={() => handleChange('selectedAgent', agent.id)}
-                      sx={{
-                        height: '100%',
-                        borderRadius: 2,
-                        cursor: 'pointer',
-                        border: formData.selectedAgent === agent.id ? '2px solid #E07A3F' : '1px solid rgba(0,0,0,0.12)',
-                        transition: 'transform .2s ease, box-shadow .2s ease',
-                        '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
-                      }}
-                    >
-                      <CardContent>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                          {agent.name}
-                        </Typography>
-                        <Typography sx={{ opacity: 0.9 }}>{agent.description}</Typography>
-                      </CardContent>
-                      <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                        <MemoButton
-                          variant={formData.selectedAgent === agent.id ? 'contained' : 'outlined'}
-                          onClick={() => handleChange('selectedAgent', agent.id)}
-                        >
-                          Choose
-                        </MemoButton>
-                      </CardActions>
-                    </MemoCard>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <Stack alignItems="center" sx={{ pt: 3 }}>
-                <MemoButton
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.selectedAgent}
+                <Paper
+                  key={absoluteIdx}
+                  elevation={4}
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 2,
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                    border: '1px solid',
+                    borderColor: 'primary.main',
+                    textAlign: 'center',
+                    overflow: 'hidden'
+                  }}
                 >
-                  {isSubmitting ? 'Submitting...' : 'Leadership Insights'}
-                </MemoButton>
-              </Stack>
+                  <Typography
+  variant="body1" // smaller than h6
+  sx={{
+    fontWeight: 600,
+    mb: 1.5,
+    lineHeight: 1.4,
+    fontSize: '0.95rem',  // explicitly smaller
+    wordBreak: 'break-word',
+    overflowWrap: 'anywhere'
+  }}
+>
+  {q}
+</Typography>
+<MemoSlider
+  value={val ?? 5}
+  onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
+  step={1}
+  min={1}
+  max={10}
+  marks={[
+    { value: 1, label: "Never" },
+    { value: 10, label: "Always" }
+  ]}
+  valueLabelDisplay="on"
+  sx={{
+    mx: 1,
+    '& .MuiSlider-root': {
+      height: 4,
+    },
+    '& .MuiSlider-markLabel': {
+      fontSize: '0.75rem',   // smaller text for Never/Always
+      whiteSpace: 'nowrap',
+      transform: 'translateY(6px)', // moves labels down so they fit
+    },
+    '& .MuiSlider-valueLabel': {
+      fontSize: '0.75rem',
+      top: -28, // pull the bubble closer
+    }
+  }}
+/>
+
+                </Paper>
+              );
+            })}
+          </Stack>
+
+          {/* If NOT the last group → show Back/Next */}
+          {currentStep < societalEnd && (
+            <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+              <MemoButton
+                variant="outlined"
+                onClick={() => setCurrentStep(s => Math.max(s - 1, societalStart))}
+              >
+                Back
+              </MemoButton>
+              <MemoButton
+  variant="contained"
+  onClick={handleNext}
+>
+  Next
+</MemoButton>
+
             </Stack>
-          </SectionCard>
-        )}
-      </PageContainer>
-    </Box>
-  );
+          )}
+
+          {/* If it IS the last group → show "Choose my AI Agent" */}
+          {currentStep === societalEnd && (
+            <Stack alignItems="center" sx={{ pt: 3 }}>
+              <MemoButton
+  variant="contained"
+  color="primary"
+  onClick={() => setCurrentStep(agentStep)}
+>
+  Choose my AI Agent
+</MemoButton>
+            </Stack>
+          )}
+        </Stack>
+      );
+    })()}
+  </SectionCard>
+)}
+
+{/* Agent Select (Step 26) */}
+{currentStep === agentStep && (
+  <SectionCard narrow={false}>
+    <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
+      <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
+        Select Your AI Agent
+      </Typography>
+      <Typography sx={{ width: '100%', opacity: 0.85 }}>
+        You'll get honest feedback either way; choose the voice that fits your preference.
+      </Typography>
+
+      <Grid container spacing={2}>
+        {agentSelect[0].options.map((agent) => (
+          <Grid item xs={12} sm={6} md={4} key={agent.id}>
+            <MemoCard
+              onClick={() => handleChange('selectedAgent', agent.id)}
+              sx={{
+                height: '100%',
+                borderRadius: 2,
+                cursor: 'pointer',
+                border: formData.selectedAgent === agent.id ? '2px solid #E07A3F' : '1px solid rgba(0,0,0,0.12)',
+                transition: 'transform .2s ease, box-shadow .2s ease',
+                '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 },
+              }}
+            >
+              <CardContent>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                  {agent.name}
+                </Typography>
+                <Typography sx={{ opacity: 0.9 }}>{agent.description}</Typography>
+              </CardContent>
+              <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                <MemoButton
+                  variant={formData.selectedAgent === agent.id ? 'contained' : 'outlined'}
+                  onClick={() => handleChange('selectedAgent', agent.id)}
+                >
+                  Choose
+                </MemoButton>
+              </CardActions>
+            </MemoCard>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Stack alignItems="center" sx={{ pt: 3 }}>
+        <MemoButton
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={isSubmitting || !formData.selectedAgent}
+        >
+          {isSubmitting ? 'Submitting...' : 'Leadership Insights'}
+        </MemoButton>
+      </Stack>
+    </Stack>
+  </SectionCard>
+)}
+</PageContainer>
+</Box>
+);
 }
 
 export default IntakeForm;
