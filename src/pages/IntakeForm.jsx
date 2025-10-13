@@ -182,28 +182,7 @@ function IntakeForm() {
   const [isLoadingReflection, setIsLoadingReflection] = useState(false);
   const navigate = useNavigate();
 
-  // Reset dialog for message steps
-  useEffect(() => {
-    const messageSteps = [1, 3, 16]; // Profile Msg, Behaviors Msg, Mindset Msg
-    setDialogOpen(messageSteps.includes(currentStep));
-  }, [currentStep]);
-
-  // Generate reflection on entering Reflection Moment step
-  useEffect(() => {
-    if (currentStep === 15) { // reflectionStep
-      setReflectionText('');
-      setIsLoadingReflection(true);
-      const timer = setTimeout(() => {
-        const behaviorIds = questionBank.behaviors.map(q => q.id);
-        const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
-        setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
-        setIsLoadingReflection(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep, formData]);
-
-  // ---------- derived values ----------
+  
   const MINDSET_GROUP_SIZE = 5;
   const mindsetGroups = useMemo(() => {
     const groups = [];
@@ -237,6 +216,29 @@ function IntakeForm() {
     introStep, profileMsgStep, profileStep, behaviorsMsgStep, behaviorsStart, behaviorsEnd,
     reflectionStep, mindsetMsgStep, mindsetStart, mindsetEnd, agentStep, totalSteps
   } = stepVars;
+
+  // Reset dialog for message steps
+  useEffect(() => {
+    const messageSteps = [1, 3, 16]; // Profile Msg, Behaviors Msg, Mindset Msg
+    setDialogOpen(messageSteps.includes(currentStep));
+  }, [currentStep]);
+
+  // Generate reflection on entering Reflection Moment step
+  useEffect(() => {
+    if (currentStep === 15) { // reflectionStep
+      setReflectionText('');
+      setIsLoadingReflection(true);
+      const timer = setTimeout(() => {
+        const behaviorIds = questionBank.behaviors.map(q => q.id);
+        const sampleResponse = behaviorIds.map(id => formData[id] || 'not answered').join(', ');
+        setReflectionText(`Based on your behaviors (e.g., responses like "${sampleResponse.substring(0, 50)}..."), reflect on how these patterns influence your team. Pause and consider adjustments.`);
+        setIsLoadingReflection(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, formData]);
+
+  // ---------- derived values ----------
 
   const headerLabel = useMemo(() => {
     if (currentStep === introStep) return 'Welcome';
