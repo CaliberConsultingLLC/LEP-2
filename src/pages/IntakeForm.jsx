@@ -66,7 +66,7 @@ const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' })
                   letterSpacing: 0.4,
                 }}
               >
-                LEP
+                The Compass
               </Typography>
             </Box>
           </Stack>
@@ -201,41 +201,18 @@ function IntakeForm() {
   ];
 
   // Original 6 behavior-style questions
-  const behaviorSetA = [
+  const behaviorSet = [
     {
       id: 'resourcePick',
       theme: 'The Quick Pick',
-      prompt: 'If you had to pick one resource to make your leadership life easier, what would it be?',
+      prompt: 'When resources are tight, which do you usually adjust first — time, budget, or expectations?',
       type: 'radio',
-      options: [
-        'More time in the day to focus on priorities',
-        'A larger budget to work with',
-        'A mentor to guide your decision-making',
-        "A team that just 'gets it'",
-        'A dedicated time/space for reflection and planning',
-        'A high performer to share the load',
-      ],
-    },
-    {
-      id: 'coffeeImpression',
-      theme: 'The Coffee Break',
-      prompt: "You're grabbing coffee with your team. What's the impression you try to leave with them?",
-      type: 'radio',
-      options: [
-        'They really listen to us.',
-        "They've got everything under control.",
-        'They make us want to step up.',
-        'They make our team better.',
-        "They're always thinking ahead.",
-        'They hold a high bar for us.',
-        'They trust us to deliver.',
-      ],
+      options: ['Time', 'Budget', 'Expectations'],
     },
     {
       id: 'projectApproach',
       theme: 'The Team Puzzle',
-      prompt:
-        "You're given a complex project with a tight deadline. Choose the action you'd most likely take first",
+      prompt: "You're given a complex project with a tight deadline. Choose the action you'd most likely take first.",
       type: 'radio',
       options: [
         'Create a detailed plan to guide the team.',
@@ -265,8 +242,7 @@ function IntakeForm() {
     {
       id: 'crisisResponse',
       theme: 'The Fire Drill',
-      prompt:
-        'A crisis hits your team unexpectedly. Rank these responses based on how they reflect your approach:',
+      prompt: 'A crisis hits your team unexpectedly. Rank these responses based on how they reflect your approach:',
       type: 'ranking',
       options: [
         'I stay calm and provide clear direction.',
@@ -281,44 +257,22 @@ function IntakeForm() {
       id: 'pushbackFeeling',
       theme: 'The Pushback Moment',
       prompt:
-        'A team member disagrees with your plan in front of everyone. In your gut, how do you feel at that moment? Write one sentence about it.',
-      type: 'text',
+        'When someone challenges your authority, questions your judgment, or pushes back on your plan — what emotions do you feel most often? (Select all that apply.)',
+      type: 'multi-select',
+      options: [
+        'Defensive', 'Frustrated', 'Curious', 'Dismissive', 'Apprehensive',
+        'Motivated', 'Insecure', 'Irritated', 'Open', 'Doubtful',
+        'Calm', 'Competitive', 'Humbled', 'Surprised', 'Relieved',
+        'Anxious', 'Encouraged', 'Conflicted',
+      ],
     },
-  ];
-
-  // The 6 that used to be "mindsetQuestions" are now part of Behaviors (total 12)
-  const behaviorSetB = [
     {
       id: 'roleModelTrait',
       theme: 'The Role Model',
       prompt:
-        'Think of a leader you admire (real or fictional). Pick two things they do that you wish came more naturally to you.',
-      type: 'multi-select',
-      options: [
-        'Connecting with people effortlessly',
-        'Making tough decisions without hesitation',
-        'Staying calm under pressure',
-        'Painting a clear vision for the future',
-        'Getting the best out of everyone',
-        'Explaining complex ideas simply',
-        'Knowing when to step back and listen',
-      ],
-      limit: 2,
-    },
-    {
-      id: 'successMetric',
-      theme: 'The Impact Check',
-      prompt:
-        "Picture yourself after the end of a long week. How do you know if you've been successful in your role?",
+        'Think of a leader you admire. When you try to emulate them, which part feels most natural — their calm, decisiveness, or connection?',
       type: 'radio',
-      options: [
-        "The team's buzzing with energy and momentum.",
-        'We hit our big goals or deadlines.',
-        'Team members stepped up with their own ideas.',
-        'I cleared roadblocks that were holding us back.',
-        'Collaboration was smooth and drama-free.',
-        'Someone acknowledged the progress we made.',
-      ],
+      options: ['Their calm', 'Their decisiveness', 'Their connection'],
     },
     {
       id: 'warningLabel',
@@ -351,18 +305,84 @@ function IntakeForm() {
     {
       id: 'proudMoment',
       theme: 'The Highlight Reel',
-      prompt: 'Provide an example of one of your proudest moments as a leader:',
+      prompt: 'Consider one of your proudest moments in leadership and describe how your leadership made that moment possible.',
       type: 'text',
     },
     {
-      id: 'selfReflection',
-      theme: 'The Mirror',
-      prompt: 'Be honest with yourself. What do you need to work on?',
-      type: 'text',
+      id: 'behaviorDichotomies',
+      theme: 'The Balance Line',
+      prompt:
+        'Consider the following behaviors and select where you most naturally fit on the scale. Each slider has 4 points — there is no neutral middle.',
+      type: 'sliders',
+      sliders: [
+        { left: 'Prone to listen', right: 'Prone to speak', min: 1, max: 4, step: 1 },
+        { left: 'Critical', right: 'Affirming', min: 1, max: 4, step: 1 },
+        { left: 'Detail-focused', right: 'Big-picture-oriented', min: 1, max: 4, step: 1 },
+        { left: 'Directive', right: 'Empowering', min: 1, max: 4, step: 1 },
+        { left: 'Risk-averse', right: 'Risk-tolerant', min: 1, max: 4, step: 1 },
+      ],
+    },
+    {
+      id: 'visibilityComfort',
+      theme: 'The Spotlight',
+      prompt:
+        'How comfortable are you leading in high-visibility situations (presentations, crises, or leadership reviews)?',
+      type: 'radio',
+      options: [
+        'Very comfortable — I thrive in the spotlight.',
+        'Somewhat comfortable — I can handle it but prefer smaller settings.',
+        'Neutral — I don’t think much about it either way.',
+        'Uncomfortable — I prefer to lead behind the scenes.',
+      ],
+    },
+    {
+      id: 'decisionPace',
+      theme: 'The Clock',
+      prompt: 'When faced with incomplete information, how do you usually move forward?',
+      type: 'radio',
+      options: [
+        'Act quickly and adjust later.',
+        'Gather enough input before deciding.',
+        'Wait until I’m confident in the data.',
+        'Defer to the team’s consensus before acting.',
+      ],
+    },
+    {
+      id: 'teamPerception',
+      theme: 'The Read',
+      prompt: 'When your team seems disengaged, what do you notice first?',
+      type: 'radio',
+      options: [
+        'Body language or tone changes.',
+        'Drop in performance or follow-through.',
+        'Reduced participation or initiative.',
+        'Tension or silence in meetings.',
+        'Side conversations or subtle pushback.',
+        'I usually don’t notice until someone mentions it.',
+      ],
+    },
+    {
+      id: 'coreDrive',
+      theme: 'The Inner Engine',
+      prompt: 'What most often drives your leadership actions day-to-day?',
+      type: 'radio',
+      options: [
+        'Achieving results and meeting goals.',
+        'Creating harmony and collaboration.',
+        'Building others’ confidence and growth.',
+        'Challenging the status quo and innovating.',
+        'Fulfilling a larger purpose or mission.',
+      ],
     },
   ];
 
-  const behaviorQuestions = [...behaviorSetA, ...behaviorSetB]; // 12 total
+  const behaviorClusters = {
+    emotional_regulation: ['pushbackFeeling', 'energyDrains'],
+    decision_cadence: ['decisionPace', 'crisisResponse', 'projectApproach'],
+    team_awareness: ['teamPerception', 'visibilityComfort', 'roleModelTrait'],
+    motivational_drive: ['coreDrive', 'leaderFuel', 'resourcePick'],
+    self_reflection: ['warningLabel', 'proudMoment', 'behaviorDichotomies'],
+  };
 
   // 35 societal norms (now the "Mindset" section, 5 per page)
   const societalNormsQuestions = [
