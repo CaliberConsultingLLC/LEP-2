@@ -172,7 +172,9 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
 // ---------- Component ----------
 function IntakeForm() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    mindsetResponses: Array(questionBank.mindset.length).fill(null)
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -343,7 +345,9 @@ function IntakeForm() {
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleStartOver = () => {
-    setFormData({});
+    setFormData({
+      mindsetResponses: Array(questionBank.mindset.length).fill(null)
+    });
     setCurrentStep(0);
   };
 
