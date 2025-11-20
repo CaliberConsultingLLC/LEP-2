@@ -1,18 +1,14 @@
 import React from 'react';
 import { Container, Box, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-// Firestore imports removed – dev skips will navigate to dedicated tester pages
-
 
 function Home() {
   const navigate = useNavigate();
 
-
-
-  const handleGetStarted = () => {
-  console.log('Get Started button clicked, navigating to /form');
-  navigate('/form');
-};
+  const handleBeginJourney = () => {
+    console.log('Begin Your Journey button clicked, navigating to /landing');
+    navigate('/landing');
+  };
 
   return (
     <Box
@@ -30,28 +26,26 @@ function Home() {
           <img src="/CompassLogo.png" alt="LEP Logo" style={{ width: '600px', height: 'auto' }} />
         </Box>
         <Stack spacing={2} direction="column" alignItems="center">
-  {/* Normal flow */}
-  <Button
-    variant="contained"
-    color="primary"
-    onClick={handleGetStarted}   // navigates to /form
-    sx={{ fontSize: '1.125rem', px: 4, py: 2, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
-  >
-    Get Started
-  </Button>
+          {/* Normal flow */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleBeginJourney}
+            sx={{ fontSize: '1.125rem', px: 4, py: 2, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
+          >
+            Begin Your Journey
+          </Button>
 
-  {/* Dev tester flow */}
-  <Button
-    variant="outlined"
-    color="primary"
-    onClick={() => navigate('/dev-skip-1')}
-    sx={{ fontSize: '1.125rem', px: 4, py: 2 }}
-  >
-    Dev Skip — Random Intake + Summary
-  </Button>
-</Stack>
-
-
+          {/* Dev tester flow */}
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate('/dev-skip-1')}
+            sx={{ fontSize: '1.125rem', px: 4, py: 2 }}
+          >
+            Dev Skip — Random Intake + Summary
+          </Button>
+        </Stack>
       </Container>
     </Box>
   );

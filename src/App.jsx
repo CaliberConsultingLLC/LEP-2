@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import IntakeForm from './pages/IntakeForm';
 import Summary from './pages/Summary';
 import CampaignIntro from './pages/CampaignIntro';
@@ -19,6 +20,7 @@ function App() {
     <Router>
       <Routes>
   <Route path="/" element={<Home />} />
+  <Route path="/landing" element={<Landing />} />
   <Route path="/form" element={<IntakeForm />} />
   <Route path="/summary" element={<Summary />} />
   <Route path="/campaign-intro" element={<CampaignIntro />} />

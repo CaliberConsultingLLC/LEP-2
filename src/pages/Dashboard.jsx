@@ -151,9 +151,11 @@ function Dashboard() {
 
     const avgLEP = traits.reduce((sum, t) => sum + t.lepScore, 0) / traits.length;
     const avgDelta = traits.reduce((sum, t) => sum + t.delta, 0) / traits.length;
+    const avgEfficacy = traits.reduce((sum, t) => sum + t.efficacy, 0) / traits.length;
+    const avgEffort = traits.reduce((sum, t) => sum + t.effort, 0) / traits.length;
     const highGapCount = traits.filter(t => t.delta > 30).length;
 
-    return { avgLEP, avgDelta, highGapCount, totalTraits: traits.length };
+    return { avgLEP, avgDelta, avgEfficacy, avgEffort, highGapCount, totalTraits: traits.length };
   }, [traitData]);
 
   // Map intake responses to insights
@@ -200,7 +202,7 @@ function Dashboard() {
       <Container maxWidth="xl">
         <Stack spacing={4}>
           {/* Header */}
-          <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
@@ -218,97 +220,431 @@ function Dashboard() {
             </Typography>
           </Box>
 
-          {/* Executive Summary Cards */}
+          {/* Section 1: Compass Score and Key Metrics */}
           {overallMetrics && (
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 3,
-                  boxShadow: 4,
-                }}>
-                  <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                      <TrendingUp sx={{ color: '#38A169', fontSize: 28 }} />
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
-                        Overall LEP Score
+            <Box sx={{ mb: 4 }}>
+              <Grid container spacing={4} alignItems="center">
+                {/* Left Third: Large Compass Score */}
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* Compass Logo - doubled in size */}
+                    <img 
+                      src="/CompassLogo.png" 
+                      alt="Compass Logo" 
+                      style={{ 
+                        width: '100%',
+                        maxWidth: '800px',
+                        height: 'auto',
+                        position: 'relative',
+                        zIndex: 1
+                      }} 
+                    />
+                    {/* Semi-transparent circle overlay with score */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '200px',
+                        height: '200px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 255, 255, 0.85)',
+                        border: '3px solid',
+                        borderColor: 'primary.main',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 2,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '4rem', fontWeight: 700, color: 'text.primary', lineHeight: 1, mb: 0.5 }}>
+                        {overallMetrics.avgLEP.toFixed(1)}
                       </Typography>
-                    </Stack>
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                      {overallMetrics.avgLEP.toFixed(1)}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 3,
-                  boxShadow: 4,
-                }}>
-                  <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                      <Warning sx={{ color: '#ECC94B', fontSize: 28 }} />
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
-                        Critical Gaps
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: 'text.secondary' }}>
+                        Compass Score
                       </Typography>
-                    </Stack>
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                      {overallMetrics.highGapCount}
-                    </Typography>
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: 'text.secondary' }}>
-                      of {overallMetrics.totalTraits} traits
-                    </Typography>
-                  </CardContent>
-                </Card>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                {/* Right Side: Two Columns of Two Boxes Each */}
+                <Grid item xs={12} md={8}>
+                  <Grid container spacing={3}>
+                    {/* Top Row: Average Efficacy Score */}
+                    <Grid item xs={12} sm={6}>
+                      <Card sx={{ 
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                        border: '1px solid',
+                        borderColor: 'primary.main',
+                        borderRadius: 3,
+                        boxShadow: 4,
+                        height: '100%',
+                      }}>
+                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
+                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <TrendingUp sx={{ color: '#6393AA', fontSize: 40 }} />
+                          </Box>
+                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
+                              Average Efficacy Score
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
+                              {overallMetrics.avgEfficacy.toFixed(1)}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    {/* Top Row: Average Effort Score */}
+                    <Grid item xs={12} sm={6}>
+                      <Card sx={{ 
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,235,220,0.8))',
+                        border: '1px solid',
+                        borderColor: 'secondary.main',
+                        borderRadius: 3,
+                        boxShadow: 4,
+                        height: '100%',
+                      }}>
+                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
+                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <TrendingUp sx={{ color: '#E07A3F', fontSize: 40 }} />
+                          </Box>
+                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
+                              Average Effort Score
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
+                              {overallMetrics.avgEffort.toFixed(1)}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    {/* Bottom Row: Ave Effort/Efficacy Gap */}
+                    <Grid item xs={12} sm={6}>
+                      <Card sx={{ 
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                        border: '1px solid',
+                        borderColor: 'primary.main',
+                        borderRadius: 3,
+                        boxShadow: 4,
+                        height: '100%',
+                      }}>
+                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
+                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Psychology sx={{ color: '#6393AA', fontSize: 40 }} />
+                          </Box>
+                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
+                              Avg Effort/Efficacy Gap
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
+                              {overallMetrics.avgDelta.toFixed(1)}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    {/* Bottom Row: Team Responses */}
+                    <Grid item xs={12} sm={6}>
+                      <Card sx={{ 
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                        border: '1px solid',
+                        borderColor: 'primary.main',
+                        borderRadius: 3,
+                        boxShadow: 4,
+                        height: '100%',
+                      }}>
+                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
+                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Insights sx={{ color: '#E07A3F', fontSize: 40 }} />
+                          </Box>
+                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
+                              Team Responses
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
+                              {fakeData.responses.length}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 3,
-                  boxShadow: 4,
-                }}>
-                  <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                      <Psychology sx={{ color: '#6393AA', fontSize: 28 }} />
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
-                        Avg Effort/Efficacy Gap
+
+              {/* Horizontal Divider */}
+              <Divider sx={{ mt: 4, borderWidth: 2, borderColor: 'rgba(224,122,63,0.4)' }} />
+            </Box>
+          )}
+
+          {/* Section 2: Rest of Dashboard Content */}
+          <Stack spacing={4}>
+
+          {/* Combined Trait Circular Graph */}
+          {Object.keys(traitData).length > 0 && (
+            <Card sx={{ 
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              borderRadius: 3,
+              boxShadow: 4,
+            }}>
+              <CardContent>
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.8rem', fontWeight: 700, mb: 3, color: 'text.primary', textAlign: 'center' }}>
+                  Overall Trait Performance
+                </Typography>
+                <Box sx={{ position: 'relative', width: '100%', height: 600, mb: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Box sx={{ position: 'relative', width: 600, height: 600 }}>
+                    <svg width="600" height="600" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
+                      {(() => {
+                        const centerX = 300;
+                        const centerY = 300;
+                        const traits = Object.entries(traitData);
+                        const radius1 = 120;  // Inner track - first trait
+                        const radius2 = 160;  // Middle track - second trait
+                        const radius3 = 200;  // Outer track - third trait
+                        const radii = [radius1, radius2, radius3];
+                        
+                        // Coordinate system conversion
+                        const toSVGAngle = (userAngle) => {
+                          let svgAngle = (userAngle - 90) % 360;
+                          if (svgAngle < 0) svgAngle += 360;
+                          return (svgAngle * Math.PI) / 180;
+                        };
+                        
+                        // Helper to create arc path
+                        const createArcPath = (radius, startAngleUser, endAngleUser, sweepFlag = 1) => {
+                          const startAngleSVG = toSVGAngle(startAngleUser);
+                          const endAngleSVG = toSVGAngle(endAngleUser);
+                          
+                          const start = {
+                            x: centerX + radius * Math.cos(startAngleSVG),
+                            y: centerY + radius * Math.sin(startAngleSVG)
+                          };
+                          const end = {
+                            x: centerX + radius * Math.cos(endAngleSVG),
+                            y: centerY + radius * Math.sin(endAngleSVG)
+                          };
+                          
+                          const largeArcFlag = 1;
+                          return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.x} ${end.y}`;
+                        };
+
+                        // Calculate arc length for 180-degree arc
+                        const getArcLength = (radius) => Math.PI * radius;
+
+                        const efficacyStartAngle = 180; // 6 o'clock
+                        const efficacyEndAngle = 0; // 12 o'clock
+                        const effortStartAngle = 180; // 6 o'clock
+                        const effortEndAngle = 0; // 12 o'clock
+
+                        return (
+                          <>
+                            {/* Left side: Efficacy arcs for each trait (3 concentric tracks) */}
+                            {traits.map(([trait, data], traitIdx) => {
+                              const radius = radii[traitIdx];
+                              const arcLength = getArcLength(radius);
+                              const filledLength = (data.efficacy / 100) * arcLength;
+                              
+                              // Calculate end point of the arc for the circle marker
+                              const endAngleUser = 180 - (data.efficacy / 100) * 180;
+                              const endAngleSVG = toSVGAngle(endAngleUser);
+                              const endX = centerX + radius * Math.cos(endAngleSVG);
+                              const endY = centerY + radius * Math.sin(endAngleSVG);
+                              
+                              return (
+                                <g key={`efficacy-trait-${traitIdx}`}>
+                                  {/* Background track */}
+                                  <path
+                                    d={createArcPath(radius, efficacyStartAngle, efficacyEndAngle, 1)}
+                                    fill="none"
+                                    stroke="rgba(0,0,0,0.1)"
+                                    strokeWidth="16"
+                                    strokeLinecap="round"
+                                  />
+                                  {/* Subtle border/outline - drawn first */}
+                                  <path
+                                    d={createArcPath(radius, efficacyStartAngle, efficacyEndAngle, 1)}
+                                    fill="none"
+                                    stroke="rgba(0,0,0,0.2)"
+                                    strokeWidth="18"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${filledLength} ${arcLength}`}
+                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                                  />
+                                  {/* Filled arc based on efficacy value - drawn on top */}
+                                  <path
+                                    d={createArcPath(radius, efficacyStartAngle, efficacyEndAngle, 1)}
+                                    fill="none"
+                                    stroke="#6393AA"
+                                    strokeWidth="16"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${filledLength} ${arcLength}`}
+                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                                  />
+                                  {/* Circle marker at end of data point */}
+                                  <circle
+                                    cx={endX}
+                                    cy={endY}
+                                    r="8"
+                                    fill="#457089"
+                                    stroke="#000"
+                                    strokeWidth="2"
+                                  />
+                                </g>
+                              );
+                            })}
+
+                            {/* Right side: Effort arcs for each trait (3 concentric tracks) */}
+                            {traits.map(([trait, data], traitIdx) => {
+                              const radius = radii[traitIdx];
+                              const arcLength = getArcLength(radius);
+                              const filledLength = (data.effort / 100) * arcLength;
+                              
+                              // Calculate end point of the arc for the circle marker
+                              const endAngleUser = 180 + (data.effort / 100) * 180;
+                              const endAngleSVG = toSVGAngle(endAngleUser);
+                              const endX = centerX + radius * Math.cos(endAngleSVG);
+                              const endY = centerY + radius * Math.sin(endAngleSVG);
+                              
+                              return (
+                                <g key={`effort-trait-${traitIdx}`}>
+                                  {/* Background track */}
+                                  <path
+                                    d={createArcPath(radius, effortStartAngle, effortEndAngle, 0)}
+                                    fill="none"
+                                    stroke="rgba(0,0,0,0.1)"
+                                    strokeWidth="16"
+                                    strokeLinecap="round"
+                                  />
+                                  {/* Subtle border/outline - drawn first */}
+                                  <path
+                                    d={createArcPath(radius, effortStartAngle, effortEndAngle, 0)}
+                                    fill="none"
+                                    stroke="rgba(0,0,0,0.2)"
+                                    strokeWidth="18"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${filledLength} ${arcLength}`}
+                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                                  />
+                                  {/* Filled arc based on effort value - drawn on top */}
+                                  <path
+                                    d={createArcPath(radius, effortStartAngle, effortEndAngle, 0)}
+                                    fill="none"
+                                    stroke="#E07A3F"
+                                    strokeWidth="16"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${filledLength} ${arcLength}`}
+                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
+                                  />
+                                  {/* Circle marker at end of data point */}
+                                  <circle
+                                    cx={endX}
+                                    cy={endY}
+                                    r="8"
+                                    fill="#C85A2A"
+                                    stroke="#000"
+                                    strokeWidth="2"
+                                  />
+                                </g>
+                              );
+                            })}
+
+                            {/* Trait title labels - positioned on the arcs */}
+                            {traits.map(([trait, data], traitIdx) => {
+                              const radius = radii[traitIdx];
+                              // Position labels at the top of each arc (around 12 o'clock, but slightly offset)
+                              const labelAngle = 0; // 12 o'clock
+                              const svgAngle = toSVGAngle(labelAngle);
+                              const labelX = centerX + radius * Math.cos(svgAngle);
+                              const labelY = centerY + radius * Math.sin(svgAngle) - 20; // Offset upward
+                              
+                              return (
+                                <g key={`label-${traitIdx}`}>
+                                  {/* Rounded rectangle background */}
+                                  <rect
+                                    x={labelX - 60}
+                                    y={labelY - 12}
+                                    width={120}
+                                    height={24}
+                                    rx={12}
+                                    fill="rgba(255, 255, 255, 0.95)"
+                                    stroke="#6393AA"
+                                    strokeWidth="2"
+                                  />
+                                  <text
+                                    x={labelX}
+                                    y={labelY + 4}
+                                    textAnchor="middle"
+                                    fontSize="12"
+                                    fontFamily="Gemunu Libre, sans-serif"
+                                    fontWeight="600"
+                                    fill="#6393AA"
+                                  >
+                                    {trait}
+                                  </text>
+                                </g>
+                              );
+                            })}
+                          </>
+                        );
+                      })()}
+                    </svg>
+
+                    {/* Center: Overall Compass Score */}
+                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
+                      <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 140,
+                        height: 140,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                        border: '2px solid',
+                        borderColor: 'primary.main',
+                        zIndex: -1,
+                      }} />
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: 'text.secondary', mb: 0.5 }}>
+                        Compass
                       </Typography>
-                    </Stack>
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                      {overallMetrics.avgDelta.toFixed(1)}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 3,
-                  boxShadow: 4,
-                }}>
-                  <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                      <Insights sx={{ color: '#E07A3F', fontSize: 28 }} />
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
-                        Team Responses
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '3.5rem', fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                        {overallMetrics.avgLEP.toFixed(1)}
                       </Typography>
-                    </Stack>
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                      {fakeData.responses.length}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+                    </Box>
+
+                    {/* Left: Average Efficacy Score (outside the graph) */}
+                    <Box sx={{ position: 'absolute', top: '50%', left: '-10%', transform: 'translateY(-50%)', textAlign: 'center', zIndex: 10 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2rem', fontWeight: 700, color: '#6393AA', mb: 0.5 }}>
+                        {overallMetrics.avgEfficacy.toFixed(1)}
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 600, color: 'text.secondary' }}>
+                        EFFICACY
+                      </Typography>
+                    </Box>
+
+                    {/* Right: Average Effort Score (outside the graph) */}
+                    <Box sx={{ position: 'absolute', top: '50%', right: '-10%', transform: 'translateY(-50%)', textAlign: 'center', zIndex: 10 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2rem', fontWeight: 700, color: '#E07A3F', mb: 0.5 }}>
+                        {overallMetrics.avgEffort.toFixed(1)}
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 600, color: 'text.secondary' }}>
+                        EFFORT
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
           )}
 
           {/* Primary Opportunity Spotlight */}
@@ -799,6 +1135,7 @@ function Dashboard() {
               </Stack>
             </CardContent>
           </Card>
+          </Stack>
         </Stack>
       </Container>
     </Box>

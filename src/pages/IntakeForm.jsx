@@ -436,14 +436,14 @@ function IntakeForm() {
   }, [societalNormsQuestions]);
 
   const stepVars = useMemo(() => {
-    const behaviorStart = 5; // after behaviors intro popup (step 4)
-    const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 5..16 (12 qs)
-    const reflectionStep = behaviorEnd + 1; // 17
-    const mindsetIntroStep = reflectionStep + 1; // 18 (popup)
-    const societalStart = mindsetIntroStep + 1; // 19
-    const societalEnd = societalStart + societalGroups.length - 1; // 19..25 (7 pages)
-    const agentStep = societalEnd + 1; // 26
-    const totalSteps = agentStep + 1; // 27 total steps (0..26 displayed as 1..27)
+    const behaviorStart = 4; // after behaviors intro popup (step 3)
+    const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 4..15 (12 qs)
+    const reflectionStep = behaviorEnd + 1; // 16
+    const mindsetIntroStep = reflectionStep + 1; // 17 (popup)
+    const societalStart = mindsetIntroStep + 1; // 18
+    const societalEnd = societalStart + societalGroups.length - 1; // 18..24 (7 pages)
+    const agentStep = societalEnd + 1; // 25
+    const totalSteps = agentStep + 1; // 26 total steps (0..25 displayed as 1..26)
     return {
       behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
       societalStart, societalEnd, agentStep, totalSteps
@@ -456,9 +456,8 @@ function IntakeForm() {
   } = stepVars;
 
   const headerLabel = useMemo(() => {
-    if (currentStep === 0) return 'Welcome';
-    if (currentStep === 1 || currentStep === 2 || currentStep === 3) return 'Profile';
-    if (currentStep === 4 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
+    if (currentStep === 0 || currentStep === 1 || currentStep === 2) return 'Profile';
+    if (currentStep === 3 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
     if (currentStep === reflectionStep) return 'Reflection Moment';
     if (currentStep === mindsetIntroStep || (currentStep >= societalStart && currentStep <= societalEnd)) return 'Mindset';
     if (currentStep === agentStep) return 'Choose Your Agent';
@@ -467,7 +466,7 @@ function IntakeForm() {
 
   // ---- dialogs and reflection text ----
   useEffect(() => {
-    const messageSteps = [1, 4, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
+    const messageSteps = [0, 3, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
     setDialogOpen(messageSteps.includes(currentStep));
   }, [currentStep, mindsetIntroStep]);
 
@@ -517,7 +516,7 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    const isMessageStep = [1, 4, mindsetIntroStep].includes(currentStep); // auto-advance popups
+    const isMessageStep = [0, 3, mindsetIntroStep].includes(currentStep); // auto-advance popups
 
     if (isMessageStep) {
       setDialogOpen(false);
@@ -526,10 +525,10 @@ function IntakeForm() {
     }
 
     if (currentStep < totalSteps - 1) {
-      // Profile validation (steps 2-3)
-      if (currentStep === 2) {
+      // Profile validation (steps 1-2)
+      if (currentStep === 1) {
         if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
-      } else if (currentStep === 3) {
+      } else if (currentStep === 2) {
         if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
 
       // Behaviors validation (steps 5..16)
@@ -637,50 +636,30 @@ function IntakeForm() {
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
       {/* Message Pop-ups */}
-      {(currentStep === 1 || currentStep === 4 || currentStep === mindsetIntroStep) && (
+      {(currentStep === 0 || currentStep === 3 || currentStep === mindsetIntroStep) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
           title={
-            currentStep === 1
-              ? 'Why Profile Matters'
-              : currentStep === 4
-              ? 'Why Behaviors Matter'
-              : 'Mindset & Norms'
+            currentStep === 0
+              ? 'Leader Profile'
+              : currentStep === 3
+              ? 'Leader Behaviors'
+              : 'Leader Mindset & Instincts'
           }
           content={
-            currentStep === 1
-              ? 'Understanding your background helps tailor insights to your unique context.'
-              : currentStep === 4
-              ? "Behaviors reveal how you show up daily—let's uncover patterns."
-              : 'Mindset shapes decisions; societal norms often influence them unconsciously.'
+            currentStep === 0
+              ? 'The Compass is considerate of your specific leadership environment! Think of the leader profile as context that helps both the insights and growth plan you receive be more pertinent.'
+              : currentStep === 3
+              ? 'The Compass also takes into account the actions that are most natural to you as a leader, so that your insights and growth plan are considerate of your natural flow state.'
+              : 'The Compass is committed to facilitating awareness of a person\'s mindset and leader instincts, which are the most influential and challenging elements to recognize and change.'
           }
         />
       )}
 
       <PageContainer>
-        {/* Intro */}
-        {currentStep === 0 && (
-          <SectionCard narrow={false}>
-            <Stack spacing={3} alignItems="center" textAlign="center">
-              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Welcome to LEP</Typography>
-              <Typography sx={{ width: '100%', lineHeight: 1.7 }}>
-                This journey is reflective and practical. Move one card at a time, answer honestly, and we'll turn it into a focused leadership summary and growth plan.
-              </Typography>
-              <MemoButton
-                variant="contained"
-                color="primary"
-                onClick={handleNext}
-                sx={{ px: 5, py: 1.4, fontSize: '1.05rem' }}
-              >
-                I'M READY TO GROW
-              </MemoButton>
-            </Stack>
-          </SectionCard>
-        )}
-
-                {/* Profile Page 1 (Step 2) */}
-        {currentStep === 2 && (
+        {/* Profile Page 1 (Step 1) */}
+        {currentStep === 1 && (
           <SectionCard narrow={true}>
             <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart1.map((q) => (
@@ -695,7 +674,7 @@ function IntakeForm() {
                 </MemoBox>
               ))}
               <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
@@ -718,8 +697,8 @@ function IntakeForm() {
           </SectionCard>
         )}
 
-        {/* Profile Page 2 (Step 3) */}
-        {currentStep === 3 && (
+        {/* Profile Page 2 (Step 2) */}
+        {currentStep === 2 && (
           <SectionCard narrow={true}>
             <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestionsPart2.map((q) => (
@@ -738,7 +717,7 @@ function IntakeForm() {
                 </MemoBox>
               ))}
               <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(2)}>Back</MemoButton>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
