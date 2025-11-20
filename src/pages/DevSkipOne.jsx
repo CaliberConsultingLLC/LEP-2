@@ -177,44 +177,18 @@ const SELF_REFLECTION_POOL = [
   "I can separate urgency from importance better.",
 ];
 
-// 35 societal/mindset items
+// 10 societal/mindset items
 const SOCIETAL_QUESTIONS = [
-  "When challenges arise, I determine the solution from my experience and expertise.",
-  "I am careful to acknowledge and admit my mistakes to my team.",
-  "I communicate the long-term vision to the company often and in different ways.",
-  "I have a visible reaction to difficult or bad news that is shared with me about the company/team/project (i.e., non-verbal, emotional, or sounds)",
-  "I consistently ask for honest feedback from my employees in different ways.",
-  "I consistently dialogue with employees about their lives to demonstrate that I care about them.",
-  "When speaking with individual employees, I make sure to connect what they do to the company's continued success.",
-  "I empower my immediate team to do their jobs without handholding.",
-  "I talk about the vision and purpose of the company at every team and company gathering.",
-  "I consistently expresses detailed gratitude for both high AND low performing employees.",
-  "When the learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
-  "I vocally encourage employees to reserve time for creativity or process improvement within their role.",
+  "When challenges arise, I share the answer from my experience and expertise.",
+  "I visibly react before I respond to difficult or bad news that is shared with me about the company",
+  "When the correction/learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
   "I am intentional about hiring employees that equally fit the need and the company culture and values.",
-  "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation.",
-  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"we're in this together.\"  (Perhaps, even jokes about it exist among employees.)",
-  "I have more answers than I do questions in our team discussions or meetings.",
-  "It is important that our employee performance metrics are directly connected to their work AND in their full control.",
-  "I consistently seek interactions with employees “organically” to hear their thoughts about a project, idea, or recent decision.",
-  "I make time to review both the good and bad of a project or experience so that we can improve for next time.",
-  "I consistently communicate what matters for our work.",
-  "Affirming a team too much can lead to complacency and entitlement.",
-  "I solicit employee opinions, concerns, and ideas in a genuine and diversified way.",
-  "I openly share with my team when I am struggling professionally.",
+  "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation",
+  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"We're in this together.\" Perhaps, jokes about it exist among employees.",
+  "I have more answers than I do questions in our team discussions.",
+  "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
   "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
-  "It is important to me that we celebrate our employees' big moments like the first day, work anniversaries, personal-milestones, etc.",
-  "I am confident we have a shared language at work that goes beyond product codes, acronyms, and job related shorthand.",
-  "I communicate that failure is inevitable and celebrate the associated learning.",
-  "I regularly meet with my immediate team members to discuss their professional goals and the adjustments I see they could make that can help them reach those goals.",
-  "I regularly and intentionally seek to learn from our employees, especially the newer ones.",
-  "Our company metrics are clearly and directly aimed at the mission and NOT just the bottom line",
-  "I hand projects over to others and trust them to have equal or greater success than I would doing it myself.",
-  "I know the limits of my natural strengths and that I need others to successfully achieve the height of the company's mission and vision.",
-  // Added 3 to reach 35
-  "I block time weekly to think, not just react.",
-  "I make tradeoffs explicit to my team.",
-  "I close the loop on decisions and share why."
+  "I hand projects over to others and trust them to have equal or more success than I would doing it myself."
 ];
 
 const QUESTION_META = {
@@ -326,7 +300,7 @@ export default function DevSkipOne() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState(null);
-  const [societalResponses, setSocietalResponses] = useState(Array(35).fill(5));
+  const [societalResponses, setSocietalResponses] = useState(Array(10).fill(5));
   const [aiSummary, setAiSummary] = useState('');
   const [reflection, setReflection] = useState('');
   const [loading, setLoading] = useState(true);

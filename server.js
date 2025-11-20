@@ -65,6 +65,66 @@ app.get('/get-latest-response', async (req, res) => {
   }
 });
 
+// Reflection endpoint: generate a short reflection using only prior saved answers
+app.post('/api/get-ai-reflection', async (req, res) => {
+  try {
+    // Prefer the most recent saved intake, not transient UI text
+    let latestResponse = null;
+    const snapshot = await withRetry(() =>
+      db.collection('responses').orderBy('timestamp', 'desc').limit(1).get()
+    );
+    if (!snapshot.empty) {
+      latestResponse = snapshot.docs[0].data();
+    }
+
+    // As a fallback, allow using provided body fields EXCEPT any free-form reflection text
+    const { userReflection, ...safeBody } = req.body || {};
+    const sourceData = latestResponse || safeBody || {};
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.json({ reflection: 'We could not generate a reflection right now. Please continue.' });
+    }
+
+    const agent = safeBody.selectedAgent || latestResponse?.selectedAgent || 'balancedMentor';
+    const personaByAgent = {
+      bluntPracticalFriend: 'Speak like a blunt but caring friend. Be direct and practical.',
+      formalEmpatheticCoach: 'Speak like a professional, empathetic executive coach. Polished and supportive.',
+      balancedMentor: 'Speak like a balanced mentor: encouraging yet concrete.',
+      comedyRoaster: 'Use light humor with sharp, actionable insight. Avoid being mean.',
+      pragmaticProblemSolver: 'Be concise and solution-first. Focus on next best steps.',
+      highSchoolCoach: 'Be motivating, clear, and practical. Keep it encouraging.'
+    };
+
+    const persona = personaByAgent[agent] || personaByAgent.balancedMentor;
+
+    const reflectionPrompt = `
+      ${persona}
+      Generate a brief reflection (3-5 sentences) to help a leader interpret their current patterns.
+      Base the reflection ONLY on the prior intake answers provided below. Do not ask questions. Do not reference any live text box input.
+      Avoid buzzwords. Make it specific, human, and actionable.
+
+      Prior answers (JSON): ${JSON.stringify(sourceData)}
+    `;
+
+    const completion = await withRetry(() =>
+      openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        max_tokens: 180,
+        messages: [
+          { role: 'system', content: 'You are a concise leadership reflection assistant.' },
+          { role: 'user', content: reflectionPrompt }
+        ]
+      })
+    );
+
+    const text = completion.choices?.[0]?.message?.content?.trim() || '';
+    return res.json({ reflection: text || 'We could not generate a reflection right now. Please continue.' });
+  } catch (error) {
+    console.error('Error generating reflection:', error.message, error.stack);
+    return res.status(500).json({ error: 'Error generating reflection', details: error.message });
+  }
+});
+
 app.get('/get-ai-summary', async (req, res) => {
   try {
     const snapshot = await withRetry(() =>

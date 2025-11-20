@@ -351,11 +351,11 @@ function Summary() {
                 Return to Home
               </Button>
 
-              {/* Go to norms next – summary no longer contains norms */}
+              {/* Go to Campaign Builder */}
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => navigate('/societal-norms')}
+                onClick={() => navigate('/campaign-builder')}
                 sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
               >
                 I want to dig deeper...
