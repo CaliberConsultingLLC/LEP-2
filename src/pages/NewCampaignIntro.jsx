@@ -65,7 +65,7 @@ function NewCampaignIntro() {
   if (enteredPassword === campaignData?.password) {
     localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
     setIsNavigating(true);
-    navigate('/societal-norms', { replace: true });
+    navigate(`/campaign/${id}/survey`, { replace: true });
     setTimeout(() => setIsNavigating(false), 100);
   } else {
     alert('Incorrect password. Please try again.');
