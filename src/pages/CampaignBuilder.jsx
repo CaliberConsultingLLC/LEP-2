@@ -13,8 +13,6 @@ import {
   Stack
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 
 function CampaignBuilder() {
   const [campaign, setCampaign] = useState(null);
@@ -38,35 +36,21 @@ function CampaignBuilder() {
   const aiSummary = aiSummaryFromState || aiSummaryFromStorage || null;
 
   useEffect(() => {
-    // Relax summary guard — allow flow if norms are present
+    // Get summary from state, localStorage, or location state
     const storedSummary = localStorage.getItem('aiSummary');
     const effectiveSummary =
       (aiSummary && aiSummary.trim() !== '') ? aiSummary :
       (storedSummary && storedSummary.trim() !== '') ? storedSummary :
       null;
 
-    // Guard: Ensure Societal Norms assessment is completed
-    const sessionId = localStorage.getItem('sessionId');
-    if (sessionId) {
-      const checkNorms = async () => {
-        try {
-          const docRef = doc(db, 'societalNorms', sessionId);
-          const snap = await getDoc(docRef);
-          if (!snap.exists()) {
-            console.warn('Societal Norms not completed, redirecting...');
-            navigate('/societal-norms');
-          }
-        } catch (err) {
-          console.error('Error checking norms:', err);
-          navigate('/societal-norms');
-        }
-      };
-      checkNorms();
-    } else {
-      console.error('Missing sessionId – redirecting to intake form');
+    // If no summary available, redirect to form
+    if (!effectiveSummary) {
+      console.warn('No summary available – redirecting to form');
       navigate('/form');
+      return;
     }
 
+    // Proceed with campaign generation
     setIsLoading(true);
     fetch('/api/get-campaign', {
       method: 'POST',

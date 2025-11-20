@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
   Card, CardContent, CardActions, Grid, LinearProgress, Paper
@@ -183,6 +183,7 @@ function IntakeForm() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState('');
   const [isLoadingReflection, setIsLoadingReflection] = useState(false);
+  const reflectionGeneratedRef = useRef(false); // Track if reflection has been generated
   const navigate = useNavigate();
 
   // fixed, immersive bg setup
@@ -470,32 +471,35 @@ function IntakeForm() {
     setDialogOpen(messageSteps.includes(currentStep));
   }, [currentStep, mindsetIntroStep]);
 
+  // Generate reflection only once when reaching the step, not when formData changes
   useEffect(() => {
-  if (currentStep === reflectionStep) {
-    setReflectionText('');
-    setIsLoadingReflection(true);
+    if (currentStep === reflectionStep && !reflectionGeneratedRef.current) {
+      reflectionGeneratedRef.current = true; // Mark as generated
+      setIsLoadingReflection(true);
 
-    const timer = setTimeout(() => {
-      fetch('/api/get-ai-reflection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, selectedAgent: 'bluntPracticalFriend' }),
-      })
-        .then(r => r.json())
-        .then(data => {
-          if (data?.reflection) {
-            setReflectionText(data.reflection);
-          } else {
-            setReflectionText("We couldn’t generate a reflection right now. Try again or continue.");
-          }
+      const timer = setTimeout(() => {
+        // Exclude userReflection from the data sent to API to prevent regeneration
+        const { userReflection, ...dataForReflection } = formData;
+        fetch('/api/get-ai-reflection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...dataForReflection, selectedAgent: 'bluntPracticalFriend' }),
         })
-        .catch(() => setReflectionText("Reflection generation failed. Please continue."))
-        .finally(() => setIsLoadingReflection(false));
-    }, 500); // wait half a second
+          .then(r => r.json())
+          .then(data => {
+            if (data?.reflection) {
+              setReflectionText(data.reflection);
+            } else {
+              setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
+            }
+          })
+          .catch(() => setReflectionText("Reflection generation failed. Please continue."))
+          .finally(() => setIsLoadingReflection(false));
+      }, 500); // wait half a second
 
-    return () => clearTimeout(timer);
-  }
-}, [currentStep, reflectionStep, formData]);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, reflectionStep, formData]); // formData needed for initial generation, but ref prevents re-generation
 
 
   // ---------- state helpers ----------

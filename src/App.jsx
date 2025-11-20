@@ -11,7 +11,6 @@ import NewCampaignIntro from './pages/NewCampaignIntro';
 import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
-import SocietalNormAssessment from './pages/SocietalNormAssessment';
 import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
 
@@ -22,7 +21,6 @@ function App() {
   <Route path="/" element={<Home />} />
   <Route path="/form" element={<IntakeForm />} />
   <Route path="/summary" element={<Summary />} />
-  <Route path="/societal-norms" element={<SocietalNormAssessment />} />   {/* NEW */}
   <Route path="/campaign-intro" element={<CampaignIntro />} />
   <Route path="/campaign-builder" element={<CampaignBuilder />} />
   <Route path="/campaign-verify" element={<CampaignVerify />} />
