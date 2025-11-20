@@ -1,0 +1,520 @@
+import React, { useState } from 'react';
+import { 
+  Container, 
+  Box, 
+  Button, 
+  Stack, 
+  Typography, 
+  Card, 
+  CardContent,
+  Checkbox,
+  FormControlLabel,
+  Divider,
+  Grid
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Psychology, 
+  Insights, 
+  TrendingUp, 
+  Group,
+  Security
+} from '@mui/icons-material';
+
+function Landing() {
+  const navigate = useNavigate();
+  const [consentAgreed, setConsentAgreed] = useState(false);
+
+  const handleGetStarted = () => {
+    if (!consentAgreed) {
+      return;
+    }
+    console.log('Get Started button clicked, navigating to /form');
+    navigate('/form');
+  };
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100vw',
+        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url(/LEP2.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 6,
+      }}
+    >
+      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Stack spacing={4}>
+          {/* Hero Section */}
+          <Box sx={{ textAlign: 'center', mb: 2 }}>
+            <Box sx={{ mb: 4 }}>
+              <img 
+                src="/CompassLogo.png" 
+                alt="The Compass Logo" 
+                style={{ 
+                  maxWidth: '100%', 
+                  height: 'auto',
+                  maxHeight: '200px',
+                  width: 'auto'
+                }} 
+              />
+            </Box>
+            <Typography 
+              sx={{ 
+                fontFamily: 'Gemunu Libre, sans-serif', 
+                fontSize: { xs: '2rem', md: '2.5rem' }, 
+                fontWeight: 700,
+                color: 'text.primary',
+                mb: 2,
+                lineHeight: 1.2
+              }}
+            >
+              Discover Your Leadership Compass
+            </Typography>
+            <Typography 
+              sx={{ 
+                fontFamily: 'Gemunu Libre, sans-serif', 
+                fontSize: { xs: '1.1rem', md: '1.25rem' }, 
+                color: 'text.secondary',
+                maxWidth: '700px',
+                mx: 'auto',
+                lineHeight: 1.6
+              }}
+            >
+              A personalized leadership development tool that combines your self-perception with team feedback to create a clear path for growth.
+            </Typography>
+          </Box>
+
+          {/* Information Cards */}
+          <Grid container spacing={3} sx={{ mb: 2 }}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  boxShadow: 4,
+                  transition: 'transform 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 6,
+                  }
+                }}
+              >
+                <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                  <Psychology sx={{ fontSize: 48, color: 'primary.main', mb: 1.5 }} />
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '1.1rem', 
+                      fontWeight: 700,
+                      mb: 1,
+                      color: 'text.primary'
+                    }}
+                  >
+                    Self-Awareness
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '0.95rem',
+                      color: 'text.secondary',
+                      lineHeight: 1.5
+                    }}
+                  >
+                    Understand your leadership style, preferences, and how you navigate challenges.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,235,220,0.8))',
+                  border: '1px solid',
+                  borderColor: 'secondary.main',
+                  boxShadow: 4,
+                  transition: 'transform 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 6,
+                  }
+                }}
+              >
+                <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                  <Group sx={{ fontSize: 48, color: 'secondary.main', mb: 1.5 }} />
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '1.1rem', 
+                      fontWeight: 700,
+                      mb: 1,
+                      color: 'text.primary'
+                    }}
+                  >
+                    Team Alignment
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '0.95rem',
+                      color: 'text.secondary',
+                      lineHeight: 1.5
+                    }}
+                  >
+                    Compare your self-perception with direct feedback from your team members.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: '100%',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,255,240,0.8))',
+                  border: '1px solid',
+                  borderColor: 'success.main',
+                  boxShadow: 4,
+                  transition: 'transform 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: 6,
+                  }
+                }}
+              >
+                <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                  <TrendingUp sx={{ fontSize: 48, color: 'success.main', mb: 1.5 }} />
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '1.1rem', 
+                      fontWeight: 700,
+                      mb: 1,
+                      color: 'text.primary'
+                    }}
+                  >
+                    Targeted Growth
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '0.95rem',
+                      color: 'text.secondary',
+                      lineHeight: 1.5
+                    }}
+                  >
+                    Receive a personalized development plan focused on your unique opportunities.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* How It Works Section */}
+          <Card
+            sx={{
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              boxShadow: 4,
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography 
+                sx={{ 
+                  fontFamily: 'Gemunu Libre, sans-serif', 
+                  fontSize: '1.5rem', 
+                  fontWeight: 700,
+                  mb: 3,
+                  color: 'text.primary',
+                  textAlign: 'center'
+                }}
+              >
+                How It Works
+              </Typography>
+              <Stack spacing={2}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box sx={{ 
+                    minWidth: 32, 
+                    height: 32, 
+                    borderRadius: '50%', 
+                    bgcolor: 'primary.main', 
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}>
+                    1
+                  </Box>
+                  <Box>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '1.1rem', 
+                        fontWeight: 600,
+                        mb: 0.5,
+                        color: 'text.primary'
+                      }}
+                    >
+                      Complete Your Leadership Profile
+                    </Typography>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '0.95rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.6
+                      }}
+                    >
+                      Answer questions about your leadership style, decision-making approach, and how you handle challenges.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box sx={{ 
+                    minWidth: 32, 
+                    height: 32, 
+                    borderRadius: '50%', 
+                    bgcolor: 'secondary.main', 
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}>
+                    2
+                  </Box>
+                  <Box>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '1.1rem', 
+                        fontWeight: 600,
+                        mb: 0.5,
+                        color: 'text.primary'
+                      }}
+                    >
+                      Receive Your Leadership Summary
+                    </Typography>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '0.95rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.6
+                      }}
+                    >
+                      Get AI-powered insights that highlight your strengths and identify key growth opportunities.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box sx={{ 
+                    minWidth: 32, 
+                    height: 32, 
+                    borderRadius: '50%', 
+                    bgcolor: 'primary.main', 
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}>
+                    3
+                  </Box>
+                  <Box>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '1.1rem', 
+                        fontWeight: 600,
+                        mb: 0.5,
+                        color: 'text.primary'
+                      }}
+                    >
+                      Build Your Development Campaign
+                    </Typography>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '0.95rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.6
+                      }}
+                    >
+                      Create a personalized campaign with specific leadership traits and statements for your team to evaluate.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                  <Box sx={{ 
+                    minWidth: 32, 
+                    height: 32, 
+                    borderRadius: '50%', 
+                    bgcolor: 'secondary.main', 
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}>
+                    4
+                  </Box>
+                  <Box>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '1.1rem', 
+                        fontWeight: 600,
+                        mb: 0.5,
+                        color: 'text.primary'
+                      }}
+                    >
+                      Analyze Your Results
+                    </Typography>
+                    <Typography 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontSize: '0.95rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.6
+                      }}
+                    >
+                      Compare your self-perception with team feedback to discover gaps and opportunities for improvement.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          {/* Consent Agreement Section */}
+          <Card
+            sx={{
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
+              border: '2px solid',
+              borderColor: consentAgreed ? 'success.main' : 'warning.main',
+              boxShadow: 6,
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Security sx={{ fontSize: 32, color: 'primary.main' }} />
+                <Typography 
+                  sx={{ 
+                    fontFamily: 'Gemunu Libre, sans-serif', 
+                    fontSize: '1.5rem', 
+                    fontWeight: 700,
+                    color: 'text.primary'
+                  }}
+                >
+                  Consent to Participate
+                </Typography>
+              </Box>
+
+              <Typography 
+                sx={{ 
+                  fontFamily: 'Gemunu Libre, sans-serif', 
+                  fontSize: '1rem',
+                  color: 'text.secondary',
+                  lineHeight: 1.8,
+                  mb: 3
+                }}
+              >
+                This leadership development tool collects information about your background, experiences, and leadership preferences to create a personalized leadership development plan. Your responses will be stored securely and used by North Star Partners, LLC to generate your plan, provide insights or feedback, and improve the quality of this tool. All personally identifying information will be kept strictly confidential and will not be shared with any employer or third party without your consent. Participation is voluntary, and you can exit the tool at any time.
+              </Typography>
+
+              <Typography 
+                sx={{ 
+                  fontFamily: 'Gemunu Libre, sans-serif', 
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'text.primary',
+                  mb: 2
+                }}
+              >
+                By selecting "I Agree," you consent to the collection and use of your data by North Star Partners, LLC as described above.
+              </Typography>
+
+              <Divider sx={{ my: 3 }} />
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={consentAgreed}
+                    onChange={(e) => setConsentAgreed(e.target.checked)}
+                    sx={{
+                      color: 'primary.main',
+                      '&.Mui-checked': {
+                        color: 'primary.main',
+                      },
+                    }}
+                  />
+                }
+                label={
+                  <Typography 
+                    sx={{ 
+                      fontFamily: 'Gemunu Libre, sans-serif', 
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                      color: 'text.primary'
+                    }}
+                  >
+                    I Agree to Participate
+                  </Typography>
+                }
+                sx={{ mb: 3 }}
+              />
+
+              <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleGetStarted}
+                  disabled={!consentAgreed}
+                  sx={{ 
+                    fontFamily: 'Gemunu Libre, sans-serif', 
+                    fontSize: '1.125rem', 
+                    px: 5, 
+                    py: 1.5,
+                    minWidth: '200px',
+                    '&:disabled': {
+                      opacity: 0.5
+                    }
+                  }}
+                >
+                  I'm Ready to Grow
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Stack>
+      </Container>
+    </Box>
+  );
+}
+
+export default Landing;
+
