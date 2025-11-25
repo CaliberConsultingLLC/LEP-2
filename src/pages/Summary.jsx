@@ -19,7 +19,8 @@ import {
 import { Person, Warning, Lightbulb, ExpandMore, CheckCircle } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-// Curated list of traits with examples and risks
+// Curated list of 5 traits with examples and risks - these should be personalized based on user responses
+// For now, we'll use a static list, but this should ideally be generated based on the user's intake data
 const TRAITS = [
   {
     id: 'communication',
@@ -50,12 +51,6 @@ const TRAITS = [
     name: 'Vision & Strategic Thinking',
     example: 'Your team may struggle to see how their daily work connects to bigger goals, or you find it challenging to articulate a clear direction.',
     risk: 'Without a clear vision, teams lack motivation, make misaligned decisions, and miss opportunities for strategic impact.',
-  },
-  {
-    id: 'adaptability',
-    name: 'Adaptability & Change Management',
-    example: 'When plans change or unexpected challenges arise, you might resist pivoting or struggle to help your team navigate transitions.',
-    risk: 'Rigidity can lead to missed opportunities, team frustration, and an inability to respond effectively to market or organizational changes.',
   },
 ];
 
@@ -197,12 +192,16 @@ function Summary() {
     await runSummary(newAgent);
   };
 
-  // parse EXACTLY 3 paragraphs (Momentum, Blind Spots, Growth Spark)
+  // parse summary sections - now expects: Foundation, Blind Spots Part 1, Blind Spots Part 2, Trajectory
   const summarySections = aiSummary ? aiSummary.split(/\n\s*\n/) : [];
-  while (summarySections.length < 3) summarySections.push('Section not available.');
-  const momentumText = summarySections[0] || '';
-  const blindSpotsText = summarySections[1] || '';
-  const growthSparkText = summarySections[2] || '';
+  const strengthsText = summarySections[0] || '';
+  // Blind spots: combine sections 1 and 2 (the two parts)
+  const blindSpotsPart1 = summarySections[1] || '';
+  const blindSpotsPart2 = summarySections[2] || '';
+  const blindSpotsText = blindSpotsPart1 && blindSpotsPart2 
+    ? `${blindSpotsPart1}\n\n${blindSpotsPart2}`.trim()
+    : (blindSpotsPart1 || blindSpotsPart2 || '');
+  const trajectoryText = summarySections[3] || '';
 
   return (
     <Box sx={{
@@ -298,45 +297,26 @@ function Summary() {
           </Alert>
         ) : (
           <Stack spacing={3} sx={{ width: '100%' }}>
-            {/* Personalized Opening */}
-            <Paper
-              sx={{
-                borderRadius: 3,
-                border: '1px solid rgba(255,255,255,0.14)',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
-                overflow: 'hidden',
-                p: 4,
-                textAlign: 'center',
-              }}
-            >
+            {/* Title - Leader Snapshot */}
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
               <Typography
-                variant="h3"
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
-                  fontWeight: 700,
+                  fontSize: '2.5rem',
+                  fontWeight: 800,
+                  mb: 1,
                   color: 'text.primary',
-                  mb: 2,
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
                 }}
               >
-                {userName ? `Welcome, ${userName}` : 'Your Leadership Compass'}
+                Leader Snapshot
               </Typography>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.1rem',
-                  color: 'text.secondary',
-                  lineHeight: 1.7,
-                  maxWidth: '700px',
-                  mx: 'auto',
-                }}
-              >
-                Based on your reflection and responses, we've created a personalized assessment of your leadership approach. 
-                What follows are insights drawn directly from what you've shared—your strengths, patterns, and opportunities for growth.
+              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: 'text.secondary' }}>
+                Insights from your reflection and leadership assessment
               </Typography>
-            </Paper>
+            </Box>
 
-            {/* What We See in You - Strengths & Patterns */}
+            {/* Your Leadership Foundation - Strengths & Patterns */}
             <Accordion
               defaultExpanded={true}
               sx={{
@@ -353,10 +333,10 @@ function Summary() {
                   <Person sx={{ color: 'primary.main', fontSize: 40 }} />
                   <Box>
                     <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
-                      What We See in You
+                      Your Leadership Foundation
                     </Typography>
                     <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
-                      Your strengths and leadership patterns
+                      The strengths and patterns that define your leadership approach
                     </Typography>
                   </Box>
                 </Stack>
@@ -371,7 +351,7 @@ function Summary() {
                     textAlign: 'left',
                   }}
                 >
-                  {momentumText || 'No insights available.'}
+                  {strengthsText || 'No insights available.'}
                 </Typography>
               </AccordionDetails>
             </Accordion>
@@ -416,7 +396,7 @@ function Summary() {
               </AccordionDetails>
             </Accordion>
 
-            {/* Your Path Forward - Growth Spark */}
+            {/* Trajectory - Future Impact */}
             <Accordion
               defaultExpanded={false}
               sx={{
@@ -430,13 +410,13 @@ function Summary() {
             >
               <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Lightbulb sx={{ color: 'primary.main', fontSize: 40 }} />
+                  <Warning sx={{ color: 'warning.main', fontSize: 40 }} />
                   <Box>
                     <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
-                      Your Path Forward
+                      Trajectory
                     </Typography>
                     <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
-                      How to leverage your insights for meaningful change
+                      The potential impact of unaddressed leadership gaps
                     </Typography>
                   </Box>
                 </Stack>
@@ -451,7 +431,7 @@ function Summary() {
                     textAlign: 'left',
                   }}
                 >
-                  {growthSparkText || 'No path forward identified.'}
+                  {trajectoryText || 'No trajectory analysis available.'}
                 </Typography>
               </AccordionDetails>
             </Accordion>
@@ -473,13 +453,18 @@ function Summary() {
               <Typography
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '0.95rem',
+                  fontSize: '1rem',
                   color: 'text.secondary',
                   mb: 3,
                   textAlign: 'center',
+                  lineHeight: 1.6,
+                  maxWidth: '700px',
+                  mx: 'auto',
                 }}
               >
-                Select exactly 3 traits you'd like to focus on in your leadership development journey.
+                Based on your assessment, we've identified specific leadership areas where focused development could have the greatest impact. 
+                Below are five targeted focus areas, each with concrete examples of how they show up in leadership and the risks of not addressing them. 
+                Select exactly 3 traits that resonate most with your current leadership challenges and growth goals.
               </Typography>
 
               <Stack spacing={1.5}>
@@ -565,16 +550,17 @@ function Summary() {
                               borderColor: 'divider',
                               display: 'flex',
                               flexDirection: 'column',
+                              bgcolor: 'primary.main',
                             }}
                           >
                             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                              <Lightbulb sx={{ color: 'primary.main', fontSize: 18 }} />
+                              <Lightbulb sx={{ color: 'white', fontSize: 18 }} />
                               <Typography
                                 sx={{
                                   fontFamily: 'Gemunu Libre, sans-serif',
                                   fontSize: '0.85rem',
                                   fontWeight: 600,
-                                  color: 'primary.main',
+                                  color: 'white',
                                 }}
                               >
                                 Example:
@@ -584,7 +570,7 @@ function Summary() {
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
                                 fontSize: '0.8rem',
-                                color: 'text.secondary',
+                                color: 'white',
                                 lineHeight: 1.4,
                               }}
                             >
@@ -599,16 +585,17 @@ function Summary() {
                               p: 2,
                               display: 'flex',
                               flexDirection: 'column',
+                              bgcolor: 'warning.main',
                             }}
                           >
                             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                              <Warning sx={{ color: 'warning.main', fontSize: 18 }} />
+                              <Warning sx={{ color: 'white', fontSize: 18 }} />
                               <Typography
                                 sx={{
                                   fontFamily: 'Gemunu Libre, sans-serif',
                                   fontSize: '0.85rem',
                                   fontWeight: 600,
-                                  color: 'warning.main',
+                                  color: 'white',
                                 }}
                               >
                                 Risk:
@@ -618,7 +605,7 @@ function Summary() {
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
                                 fontSize: '0.8rem',
-                                color: 'text.secondary',
+                                color: 'white',
                                 lineHeight: 1.4,
                               }}
                             >
