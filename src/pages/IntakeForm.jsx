@@ -539,7 +539,7 @@ function IntakeForm() {
     if (currentStep < totalSteps - 1) {
       // Profile validation (steps 1-2)
       if (currentStep === 1) {
-        if (!formData.name || !formData.industry || !formData.role || !formData.responsibilities) return;
+        if (!formData.industry || !formData.role || !formData.responsibilities) return;
       } else if (currentStep === 2) {
         if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
 
@@ -690,7 +690,7 @@ function IntakeForm() {
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
-                  disabled={!formData.name || !formData.industry || !formData.role || !formData.responsibilities}
+                  disabled={!formData.industry || !formData.role || !formData.responsibilities}
                   sx={{
                     px: 5,
                     py: 1.4,
