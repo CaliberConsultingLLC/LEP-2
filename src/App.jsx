@@ -3,8 +3,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
+import UserInfo from './pages/UserInfo';
 import IntakeForm from './pages/IntakeForm';
 import Summary from './pages/Summary';
+import TraitSelection from './pages/TraitSelection';
 import CampaignIntro from './pages/CampaignIntro';
 import CampaignBuilder from './pages/CampaignBuilder';
 import CampaignVerify from './pages/CampaignVerify';
@@ -21,8 +23,10 @@ function App() {
       <Routes>
   <Route path="/" element={<Home />} />
   <Route path="/landing" element={<Landing />} />
+  <Route path="/user-info" element={<UserInfo />} />
   <Route path="/form" element={<IntakeForm />} />
   <Route path="/summary" element={<Summary />} />
+  <Route path="/trait-selection" element={<TraitSelection />} />
   <Route path="/campaign-intro" element={<CampaignIntro />} />
   <Route path="/campaign-builder" element={<CampaignBuilder />} />
   <Route path="/campaign-verify" element={<CampaignVerify />} />

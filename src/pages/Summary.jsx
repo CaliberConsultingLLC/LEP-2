@@ -351,11 +351,11 @@ function Summary() {
                 Return to Home
               </Button>
 
-              {/* Go to Campaign Builder */}
+              {/* Go to Trait Selection */}
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => navigate('/campaign-builder')}
+                onClick={() => navigate('/trait-selection')}
                 sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
               >
                 I want to dig deeper...

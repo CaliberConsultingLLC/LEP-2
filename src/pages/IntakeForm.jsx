@@ -186,14 +186,26 @@ function IntakeForm() {
   const reflectionGeneratedRef = useRef(false); // Track if reflection has been generated
   const navigate = useNavigate();
 
-  // fixed, immersive bg setup
+  // Load user info (name, email) from localStorage if available
   useEffect(() => {
-    // nothing to do here now
+    try {
+      const savedUserInfo = localStorage.getItem('userInfo');
+      if (savedUserInfo) {
+        const userInfo = JSON.parse(savedUserInfo);
+        setFormData((prev) => ({
+          ...prev,
+          name: userInfo.name || '',
+          email: userInfo.email || '',
+        }));
+      }
+    } catch (err) {
+      console.warn('Could not load user info from localStorage:', err);
+    }
   }, []);
 
   // ---------- Questions ----------
+  // Note: Name is now collected in UserInfo page, so we get it from localStorage
   const initialQuestionsPart1 = [
-    { id: 'name', prompt: 'What is your name?', type: 'text' },
     { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
     { id: 'role', prompt: 'What is your current job title?', type: 'text' },
     { id: 'responsibilities', prompt: 'Briefly describe what your team is responsible for within the organization.', type: 'text' },
