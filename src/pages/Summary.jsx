@@ -192,18 +192,26 @@ function Summary() {
 
   return (
     <Box sx={{
-  p:5,
-  minHeight:'100vh',
-  width:'100%',
-  overflowX:'hidden',
-  backgroundImage:'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP2.jpg)',
-  backgroundSize:'cover',
-  backgroundPosition:'center',
-  backgroundRepeat:'no-repeat',
-  backgroundAttachment:'fixed',
-}}>
-
-      <Container maxWidth="lg">
+      minHeight: '100vh',
+      width: '100%',
+      overflowX: 'hidden',
+      backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP2.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+    }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          py: { xs: 3, sm: 4 },
+          px: { xs: 2, sm: 4 },
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100vw',
+        }}
+      >
+        <Box sx={{ width: '100%', maxWidth: 880 }}>
         {isLoading ? (
           <Stack alignItems="center" spacing={2} sx={{ mt: 6 }}>
             <Stack direction="row" spacing={2} alignItems="center">
@@ -275,7 +283,7 @@ function Summary() {
             {error}
           </Alert>
         ) : (
-          <Stack spacing={2} sx={{ width: '800px', mx: 'auto' }}>
+          <Stack spacing={2} sx={{ width: '100%' }}>
             <Typography
               variant="h4"
               sx={{
@@ -292,15 +300,15 @@ function Summary() {
             <Accordion
               defaultExpanded={false}
               sx={{
-                border: '2px solid',
-                borderColor: 'primary.main',
-                borderRadius: 2,
-                boxShadow: 4,
-                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                borderRadius: 3,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                overflow: 'hidden',
+                '&:before': { display: 'none' },
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />} sx={{ bgcolor: 'rgba(255, 255, 255, 0.95)' }}>
+              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Person sx={{ color: 'primary.main', fontSize: 40 }} />
                   <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold' }}>
@@ -327,15 +335,15 @@ function Summary() {
             <Accordion
               defaultExpanded={false}
               sx={{
-                border: '1px solid',
-                borderColor: 'primary.main',
-                borderRadius: 2,
-                boxShadow: 4,
-                bgcolor: 'rgba(255, 255, 237, 0.95)',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                borderRadius: 3,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                overflow: 'hidden',
+                '&:before': { display: 'none' },
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />} sx={{ bgcolor: 'rgba(255, 255, 255, 0.95)' }}>
+              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Warning sx={{ color: 'primary.main', fontSize: 40 }} />
                   <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold' }}>
@@ -354,15 +362,15 @@ function Summary() {
             <Accordion
               defaultExpanded={false}
               sx={{
-                border: '2px solid',
-                borderColor: 'primary.main',
-                borderRadius: 2,
-                boxShadow: 4,
-                bgcolor: 'rgba(255, 255, 255, 0.95)',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                borderRadius: 3,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                overflow: 'hidden',
+                '&:before': { display: 'none' },
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />} sx={{ bgcolor: 'rgba(255, 255, 255, 0.95)' }}>
+              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Lightbulb sx={{ color: 'primary.main', fontSize: 40 }} />
                   <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold' }}>
@@ -433,16 +441,18 @@ function Summary() {
                       }}
                       sx={{
                         cursor: isDisabled ? 'not-allowed' : 'pointer',
-                        border: isSelected ? '2px solid' : '1px solid',
-                        borderColor: isSelected ? 'primary.main' : 'divider',
-                        borderRadius: 2,
-                        boxShadow: isSelected ? 4 : 1,
-                        bgcolor: isSelected ? 'rgba(240, 245, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
+                        border: isSelected ? '2px solid #E07A3F' : '1px solid rgba(255,255,255,0.14)',
+                        borderRadius: 3,
+                        boxShadow: isSelected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
+                        bgcolor: isSelected ? 'rgba(224, 122, 63, 0.09)' : 'rgba(255,255,255,0.92)',
+                        background: isSelected 
+                          ? 'linear-gradient(180deg, rgba(240,245,255,0.95), rgba(255,255,255,0.9))'
+                          : 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
                         opacity: isDisabled ? 0.5 : 1,
-                        transition: 'all 0.2s ease',
+                        transition: 'all 0.25s ease',
                         '&:hover': {
                           transform: isDisabled ? 'none' : 'translateY(-2px)',
-                          boxShadow: isDisabled ? 1 : 3,
+                          boxShadow: isDisabled ? '0 2px 10px rgba(0,0,0,0.06)' : '0 10px 28px rgba(0,0,0,0.16)',
                         },
                       }}
                     >
@@ -494,17 +504,19 @@ function Summary() {
                               flexDirection: 'column',
                             }}
                           >
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                color: 'primary.main',
-                                mb: 1,
-                              }}
-                            >
-                              Example:
-                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                              <Lightbulb sx={{ color: 'primary.main', fontSize: 18 }} />
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  color: 'primary.main',
+                                }}
+                              >
+                                Example:
+                              </Typography>
+                            </Stack>
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
@@ -526,17 +538,19 @@ function Summary() {
                               flexDirection: 'column',
                             }}
                           >
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.85rem',
-                                fontWeight: 600,
-                                color: 'warning.main',
-                                mb: 1,
-                              }}
-                            >
-                              Risk:
-                            </Typography>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                              <Warning sx={{ color: 'warning.main', fontSize: 18 }} />
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.85rem',
+                                  fontWeight: 600,
+                                  color: 'warning.main',
+                                }}
+                              >
+                                Risk:
+                              </Typography>
+                            </Stack>
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
@@ -639,6 +653,7 @@ function Summary() {
             </Stack>
           </Stack>
         )}
+        </Box>
       </Container>
     </Box>
   );
