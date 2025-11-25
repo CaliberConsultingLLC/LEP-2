@@ -73,7 +73,6 @@ function UserInfo() {
   return (
     <Box
       sx={{
-        p: 5,
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
@@ -84,18 +83,29 @@ function UserInfo() {
         backgroundAttachment: 'fixed',
       }}
     >
-      <Container maxWidth="sm">
-        <Card
-          sx={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-            border: '1px solid',
-            borderColor: 'primary.main',
-            borderRadius: 3,
-            boxShadow: 8,
-            mt: 4,
-          }}
-        >
-          <CardContent sx={{ p: 4 }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          py: { xs: 3, sm: 4 },
+          px: { xs: 2, sm: 4 },
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100vw',
+        }}
+      >
+        <Box sx={{ width: '100%', maxWidth: 880, display: 'flex', justifyContent: 'center' }}>
+          <Card
+            sx={{
+              width: '100%',
+              maxWidth: 600,
+              borderRadius: 3,
+              border: '1px solid rgba(255,255,255,0.14)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+              overflow: 'hidden',
+            }}
+          >
+          <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
@@ -215,6 +225,7 @@ function UserInfo() {
             </Stack>
           </CardContent>
         </Card>
+        </Box>
       </Container>
     </Box>
   );
