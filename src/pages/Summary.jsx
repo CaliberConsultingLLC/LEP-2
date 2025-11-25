@@ -12,9 +12,52 @@ import {
   AccordionDetails,
   Select,
   MenuItem,
+  Checkbox,
+  Paper,
+  Divider,
 } from '@mui/material';
-import { Person, Warning, Lightbulb, ExpandMore } from '@mui/icons-material';
+import { Person, Warning, Lightbulb, ExpandMore, CheckCircle } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+
+// Curated list of traits with examples and risks
+const TRAITS = [
+  {
+    id: 'communication',
+    name: 'Communication',
+    example: 'During team meetings, you may find yourself explaining concepts multiple times or noticing that team members seem confused about priorities.',
+    risk: 'Without improvement, you risk misalignment, repeated work, and decreased team confidence in your direction.',
+  },
+  {
+    id: 'delegation',
+    name: 'Delegation & Empowerment',
+    example: 'You might find yourself taking on tasks that could be handled by others, or team members frequently ask for approval on decisions they should make.',
+    risk: 'This can lead to burnout, bottlenecked workflows, and missed opportunities for team growth and development.',
+  },
+  {
+    id: 'feedback',
+    name: 'Giving & Receiving Feedback',
+    example: 'Difficult conversations get postponed, or feedback is delivered in ways that don\'t lead to change. You may also avoid seeking feedback yourself.',
+    risk: 'Performance issues persist, team members don\'t grow, and you miss opportunities to improve your own leadership approach.',
+  },
+  {
+    id: 'conflict',
+    name: 'Conflict Resolution',
+    example: 'When disagreements arise, you might avoid addressing them directly, or conflicts escalate because they\'re not handled constructively.',
+    risk: 'Team dynamics suffer, resentment builds, and productivity decreases as unresolved issues fester.',
+  },
+  {
+    id: 'vision',
+    name: 'Vision & Strategic Thinking',
+    example: 'Your team may struggle to see how their daily work connects to bigger goals, or you find it challenging to articulate a clear direction.',
+    risk: 'Without a clear vision, teams lack motivation, make misaligned decisions, and miss opportunities for strategic impact.',
+  },
+  {
+    id: 'adaptability',
+    name: 'Adaptability & Change Management',
+    example: 'When plans change or unexpected challenges arise, you might resist pivoting or struggle to help your team navigate transitions.',
+    risk: 'Rigidity can lead to missed opportunities, team frustration, and an inability to respond effectively to market or organizational changes.',
+  },
+];
 
 function Summary() {
   const navigate = useNavigate();
@@ -25,6 +68,7 @@ function Summary() {
   const [aiSummary, setAiSummary] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTraits, setSelectedTraits] = useState([]);
 
   // quotes + simple animation rotation (kept from prior UX)
   const quotes = [
@@ -341,6 +385,232 @@ function Summary() {
               </AccordionDetails>
             </Accordion>
 
+            {/* Trait Selection Section */}
+            <Box sx={{ mt: 6, mb: 4 }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontWeight: 700,
+                  color: 'text.primary',
+                  mb: 2,
+                  textAlign: 'center',
+                }}
+              >
+                Choose Your Focus Areas
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '0.95rem',
+                  color: 'text.secondary',
+                  mb: 3,
+                  textAlign: 'center',
+                }}
+              >
+                Select exactly 3 traits you'd like to focus on in your leadership development journey.
+              </Typography>
+
+              <Stack spacing={1.5}>
+                {TRAITS.map((trait) => {
+                  const isSelected = selectedTraits.includes(trait.id);
+                  const isDisabled = !isSelected && selectedTraits.length >= 3;
+
+                  return (
+                    <Paper
+                      key={trait.id}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          setSelectedTraits((prev) => {
+                            if (prev.includes(trait.id)) {
+                              return prev.filter((id) => id !== trait.id);
+                            } else if (prev.length < 3) {
+                              return [...prev, trait.id];
+                            }
+                            return prev;
+                          });
+                        }
+                      }}
+                      sx={{
+                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        border: isSelected ? '2px solid' : '1px solid',
+                        borderColor: isSelected ? 'primary.main' : 'divider',
+                        borderRadius: 2,
+                        boxShadow: isSelected ? 4 : 1,
+                        bgcolor: isSelected ? 'rgba(240, 245, 255, 0.6)' : 'rgba(255, 255, 255, 0.9)',
+                        opacity: isDisabled ? 0.5 : 1,
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          transform: isDisabled ? 'none' : 'translateY(-2px)',
+                          boxShadow: isDisabled ? 1 : 3,
+                        },
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '100px' }}>
+                        {/* Left Half: Name with Checkbox */}
+                        <Box
+                          sx={{
+                            width: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            p: 2,
+                            borderRight: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            disabled={isDisabled}
+                            sx={{
+                              color: 'primary.main',
+                              mr: 1.5,
+                              '&.Mui-checked': {
+                                color: 'primary.main',
+                              },
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '1.1rem',
+                              fontWeight: 600,
+                              color: 'text.primary',
+                            }}
+                          >
+                            {trait.name}
+                          </Typography>
+                        </Box>
+
+                        {/* Right Half: Example and Risk */}
+                        <Box sx={{ width: '50%', display: 'flex' }}>
+                          {/* Example - First Quarter */}
+                          <Box
+                            sx={{
+                              width: '50%',
+                              p: 2,
+                              borderRight: '1px solid',
+                              borderColor: 'divider',
+                              display: 'flex',
+                              flexDirection: 'column',
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                color: 'primary.main',
+                                mb: 1,
+                              }}
+                            >
+                              Example:
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.8rem',
+                                color: 'text.secondary',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {trait.example}
+                            </Typography>
+                          </Box>
+
+                          {/* Risk - Second Quarter */}
+                          <Box
+                            sx={{
+                              width: '50%',
+                              p: 2,
+                              display: 'flex',
+                              flexDirection: 'column',
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                color: 'warning.main',
+                                mb: 1,
+                              }}
+                            >
+                              Risk:
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.8rem',
+                                color: 'text.secondary',
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {trait.risk}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+
+              {/* Selection Counter and Continue Button */}
+              <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    color: selectedTraits.length === 3 ? 'success.main' : 'text.primary',
+                    mb: 2,
+                  }}
+                >
+                  {selectedTraits.length} of 3 selected
+                </Typography>
+
+                {selectedTraits.length !== 3 && (
+                  <Alert
+                    severity="info"
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      mb: 2,
+                      maxWidth: '600px',
+                      mx: 'auto',
+                    }}
+                  >
+                    Please select exactly 3 traits to continue.
+                  </Alert>
+                )}
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  onClick={() => {
+                    if (selectedTraits.length === 3) {
+                      localStorage.setItem('selectedTraits', JSON.stringify(selectedTraits));
+                      navigate('/campaign-builder');
+                    }
+                  }}
+                  disabled={selectedTraits.length !== 3}
+                  startIcon={selectedTraits.length === 3 ? <CheckCircle /> : null}
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1.1rem',
+                    px: 6,
+                    py: 1.5,
+                    minWidth: '250px',
+                    '&:disabled': {
+                      opacity: 0.5,
+                    },
+                  }}
+                >
+                  {selectedTraits.length === 3 ? 'Build My Growth Campaign' : `Select ${3 - selectedTraits.length} more`}
+                </Button>
+              </Box>
+            </Box>
+
             <Stack direction="row" spacing={3} justifyContent="center" alignItems="center" sx={{ mt: 4 }}>
               <Button
                 variant="contained"
@@ -349,16 +619,6 @@ function Summary() {
                 sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
               >
                 Return to Home
-              </Button>
-
-              {/* Go to Trait Selection */}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate('/trait-selection')}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
-              >
-                I want to dig deeper...
               </Button>
 
               <Select

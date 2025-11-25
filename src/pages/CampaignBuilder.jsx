@@ -36,6 +36,29 @@ function CampaignBuilder() {
   const aiSummary = aiSummaryFromState || aiSummaryFromStorage || null;
 
   useEffect(() => {
+    // Get selected traits from localStorage
+    const selectedTraitsStr = localStorage.getItem('selectedTraits');
+    if (!selectedTraitsStr) {
+      console.warn('No selected traits found – redirecting to trait selection');
+      navigate('/trait-selection');
+      return;
+    }
+
+    let selectedTraits;
+    try {
+      selectedTraits = JSON.parse(selectedTraitsStr);
+    } catch (err) {
+      console.error('Error parsing selected traits:', err);
+      navigate('/trait-selection');
+      return;
+    }
+
+    if (!Array.isArray(selectedTraits) || selectedTraits.length !== 3) {
+      console.warn('Invalid selected traits – redirecting to trait selection');
+      navigate('/trait-selection');
+      return;
+    }
+
     // Get summary from state, localStorage, or location state
     const storedSummary = localStorage.getItem('aiSummary');
     const effectiveSummary =
@@ -50,12 +73,15 @@ function CampaignBuilder() {
       return;
     }
 
-    // Proceed with campaign generation
+    // Proceed with campaign generation using selected traits
     setIsLoading(true);
     fetch('/api/get-campaign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ aiSummary: effectiveSummary })
+      body: JSON.stringify({ 
+        aiSummary: effectiveSummary,
+        selectedTraits: selectedTraits
+      })
     })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
