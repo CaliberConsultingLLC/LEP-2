@@ -193,15 +193,24 @@ function Summary() {
   };
 
   // parse summary sections - now expects: Foundation, Blind Spots Part 1, Blind Spots Part 2, Trajectory
-  const summarySections = aiSummary ? aiSummary.split(/\n\s*\n/) : [];
+  // Handle both old 3-paragraph format and new 4-paragraph format
+  const summarySections = aiSummary ? aiSummary.split(/\n\s*\n/).filter(s => s.trim().length > 0) : [];
+  
   const strengthsText = summarySections[0] || '';
+  
   // Blind spots: combine sections 1 and 2 (the two parts)
+  // If we have 3 paragraphs (old format), use paragraph 1 as blind spots
+  // If we have 4+ paragraphs (new format), combine paragraphs 1 and 2
   const blindSpotsPart1 = summarySections[1] || '';
   const blindSpotsPart2 = summarySections[2] || '';
   const blindSpotsText = blindSpotsPart1 && blindSpotsPart2 
     ? `${blindSpotsPart1}\n\n${blindSpotsPart2}`.trim()
     : (blindSpotsPart1 || blindSpotsPart2 || '');
-  const trajectoryText = summarySections[3] || '';
+  
+  // Trajectory: if we have 4+ paragraphs, use paragraph 3; otherwise try paragraph 2 (old format fallback)
+  const trajectoryText = summarySections.length >= 4 
+    ? summarySections[3] || ''
+    : (summarySections.length === 3 ? summarySections[2] || '' : '');
 
   return (
     <Box sx={{
@@ -320,39 +329,92 @@ function Summary() {
             <Accordion
               defaultExpanded={true}
               sx={{
-                borderRadius: 3,
-                border: '1px solid rgba(255,255,255,0.14)',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                borderRadius: 4,
+                border: '2px solid',
+                borderColor: 'primary.main',
+                background: 'linear-gradient(135deg, rgba(224,122,63,0.08) 0%, rgba(255,255,255,0.95) 50%, rgba(99,147,170,0.08) 100%)',
+                boxShadow: '0 8px 32px rgba(224,122,63,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
                 overflow: 'hidden',
+                transition: 'all 0.3s ease',
                 '&:before': { display: 'none' },
+                '&:hover': {
+                  boxShadow: '0 12px 40px rgba(224,122,63,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+                  transform: 'translateY(-2px)',
+                },
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Person sx={{ color: 'primary.main', fontSize: 40 }} />
+              <AccordionSummary 
+                expandIcon={<ExpandMore sx={{ color: 'primary.main', fontSize: 32 }} />}
+                sx={{
+                  background: 'linear-gradient(90deg, rgba(224,122,63,0.05) 0%, transparent 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, rgba(224,122,63,0.1) 0%, transparent 100%)',
+                  },
+                }}
+              >
+                <Stack direction="row" spacing={2.5} alignItems="center">
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, rgba(224,122,63,0.15), rgba(224,122,63,0.05))',
+                      border: '1px solid rgba(224,122,63,0.2)',
+                    }}
+                  >
+                    <Person sx={{ color: 'primary.main', fontSize: 36 }} />
+                  </Box>
                   <Box>
-                    <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontWeight: 700,
+                        fontSize: '1.3rem',
+                        color: 'primary.main',
+                        mb: 0.5,
+                      }}
+                    >
                       Your Leadership Foundation
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        color: 'text.secondary', 
+                        fontSize: '0.9rem',
+                        fontStyle: 'italic',
+                      }}
+                    >
                       The strengths and patterns that define your leadership approach
                     </Typography>
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails>
-                <Typography
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.4)' }}>
+                <Box
                   sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    lineHeight: 1.8,
-                    whiteSpace: 'pre-wrap',
-                    textAlign: 'left',
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(250,250,255,0.8))',
+                    borderLeft: '4px solid',
+                    borderColor: 'primary.main',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                   }}
                 >
-                  {strengthsText || 'No insights available.'}
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.05rem',
+                      lineHeight: 1.9,
+                      whiteSpace: 'pre-wrap',
+                      textAlign: 'left',
+                      color: 'text.primary',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {strengthsText || 'No insights available.'}
+                  </Typography>
+                </Box>
               </AccordionDetails>
             </Accordion>
 
@@ -360,39 +422,92 @@ function Summary() {
             <Accordion
               defaultExpanded={false}
               sx={{
-                borderRadius: 3,
-                border: '1px solid rgba(255,255,255,0.14)',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                borderRadius: 4,
+                border: '2px solid',
+                borderColor: 'warning.main',
+                background: 'linear-gradient(135deg, rgba(237,108,2,0.08) 0%, rgba(255,255,255,0.95) 50%, rgba(237,108,2,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(237,108,2,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
                 overflow: 'hidden',
+                transition: 'all 0.3s ease',
                 '&:before': { display: 'none' },
+                '&:hover': {
+                  boxShadow: '0 12px 40px rgba(237,108,2,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+                  transform: 'translateY(-2px)',
+                },
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Warning sx={{ color: 'warning.main', fontSize: 40 }} />
+              <AccordionSummary 
+                expandIcon={<ExpandMore sx={{ color: 'warning.main', fontSize: 32 }} />}
+                sx={{
+                  background: 'linear-gradient(90deg, rgba(237,108,2,0.05) 0%, transparent 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, rgba(237,108,2,0.1) 0%, transparent 100%)',
+                  },
+                }}
+              >
+                <Stack direction="row" spacing={2.5} alignItems="center">
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, rgba(237,108,2,0.15), rgba(237,108,2,0.05))',
+                      border: '1px solid rgba(237,108,2,0.2)',
+                    }}
+                  >
+                    <Warning sx={{ color: 'warning.main', fontSize: 36 }} />
+                  </Box>
                   <Box>
-                    <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontWeight: 700,
+                        fontSize: '1.3rem',
+                        color: 'warning.main',
+                        mb: 0.5,
+                      }}
+                    >
                       Areas for Growth
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        color: 'text.secondary', 
+                        fontSize: '0.9rem',
+                        fontStyle: 'italic',
+                      }}
+                    >
                       Opportunities to expand your leadership impact
                     </Typography>
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails>
-                <Typography
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.4)' }}>
+                <Box
                   sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    lineHeight: 1.8,
-                    whiteSpace: 'pre-wrap',
-                    textAlign: 'left',
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,250,245,0.8))',
+                    borderLeft: '4px solid',
+                    borderColor: 'warning.main',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                   }}
                 >
-                  {blindSpotsText || 'No growth areas identified.'}
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.05rem',
+                      lineHeight: 1.9,
+                      whiteSpace: 'pre-wrap',
+                      textAlign: 'left',
+                      color: 'text.primary',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {blindSpotsText || 'No growth areas identified.'}
+                  </Typography>
+                </Box>
               </AccordionDetails>
             </Accordion>
 
@@ -400,39 +515,92 @@ function Summary() {
             <Accordion
               defaultExpanded={false}
               sx={{
-                borderRadius: 3,
-                border: '1px solid rgba(255,255,255,0.14)',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                borderRadius: 4,
+                border: '2px solid',
+                borderColor: 'error.main',
+                background: 'linear-gradient(135deg, rgba(211,47,47,0.08) 0%, rgba(255,255,255,0.95) 50%, rgba(211,47,47,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(211,47,47,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
                 overflow: 'hidden',
+                transition: 'all 0.3s ease',
                 '&:before': { display: 'none' },
+                '&:hover': {
+                  boxShadow: '0 12px 40px rgba(211,47,47,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+                  transform: 'translateY(-2px)',
+                },
               }}
             >
-              <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Warning sx={{ color: 'warning.main', fontSize: 40 }} />
+              <AccordionSummary 
+                expandIcon={<ExpandMore sx={{ color: 'error.main', fontSize: 32 }} />}
+                sx={{
+                  background: 'linear-gradient(90deg, rgba(211,47,47,0.05) 0%, transparent 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, rgba(211,47,47,0.1) 0%, transparent 100%)',
+                  },
+                }}
+              >
+                <Stack direction="row" spacing={2.5} alignItems="center">
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, rgba(211,47,47,0.15), rgba(211,47,47,0.05))',
+                      border: '1px solid rgba(211,47,47,0.2)',
+                    }}
+                  >
+                    <Warning sx={{ color: 'error.main', fontSize: 36 }} />
+                  </Box>
                   <Box>
-                    <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        fontWeight: 700,
+                        fontSize: '1.3rem',
+                        color: 'error.main',
+                        mb: 0.5,
+                      }}
+                    >
                       Trajectory
                     </Typography>
-                    <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontFamily: 'Gemunu Libre, sans-serif', 
+                        color: 'text.secondary', 
+                        fontSize: '0.9rem',
+                        fontStyle: 'italic',
+                      }}
+                    >
                       The potential impact of unaddressed leadership gaps
                     </Typography>
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails>
-                <Typography
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.4)' }}>
+                <Box
                   sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    lineHeight: 1.8,
-                    whiteSpace: 'pre-wrap',
-                    textAlign: 'left',
+                    p: 3,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,245,245,0.8))',
+                    borderLeft: '4px solid',
+                    borderColor: 'error.main',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                   }}
                 >
-                  {trajectoryText || 'No trajectory analysis available.'}
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.05rem',
+                      lineHeight: 1.9,
+                      whiteSpace: 'pre-wrap',
+                      textAlign: 'left',
+                      color: 'text.primary',
+                      fontWeight: 400,
+                    }}
+                  >
+                    {trajectoryText || (aiSummary ? 'Trajectory analysis is being generated. Please refresh if this message persists.' : 'No trajectory analysis available.')}
+                  </Typography>
+                </Box>
               </AccordionDetails>
             </Accordion>
 
