@@ -69,6 +69,20 @@ function Summary() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTraits, setSelectedTraits] = useState([]);
+  const [userName, setUserName] = useState('');
+
+  // Load user name from localStorage
+  useEffect(() => {
+    try {
+      const savedUserInfo = localStorage.getItem('userInfo');
+      if (savedUserInfo) {
+        const userInfo = JSON.parse(savedUserInfo);
+        setUserName(userInfo.name || '');
+      }
+    } catch (err) {
+      console.warn('Could not load user info:', err);
+    }
+  }, []);
 
   // quotes + simple animation rotation (kept from prior UX)
   const quotes = [
@@ -283,22 +297,48 @@ function Summary() {
             {error}
           </Alert>
         ) : (
-          <Stack spacing={2} sx={{ width: '100%' }}>
-            <Typography
-              variant="h4"
+          <Stack spacing={3} sx={{ width: '100%' }}>
+            {/* Personalized Opening */}
+            <Paper
               sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                color: 'text.primary',
-                mb: 4,
-                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                borderRadius: 3,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                overflow: 'hidden',
+                p: 4,
+                textAlign: 'center',
               }}
             >
-              Leadership Summary
-            </Typography>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontWeight: 700,
+                  color: 'text.primary',
+                  mb: 2,
+                }}
+              >
+                {userName ? `Welcome, ${userName}` : 'Your Leadership Compass'}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '1.1rem',
+                  color: 'text.secondary',
+                  lineHeight: 1.7,
+                  maxWidth: '700px',
+                  mx: 'auto',
+                }}
+              >
+                Based on your reflection and responses, we've created a personalized assessment of your leadership approach. 
+                What follows are insights drawn directly from what you've shared—your strengths, patterns, and opportunities for growth.
+              </Typography>
+            </Paper>
 
-            {/* Momentum */}
+            {/* What We See in You - Strengths & Patterns */}
             <Accordion
-              defaultExpanded={false}
+              defaultExpanded={true}
               sx={{
                 borderRadius: 3,
                 border: '1px solid rgba(255,255,255,0.14)',
@@ -311,9 +351,14 @@ function Summary() {
               <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Person sx={{ color: 'primary.main', fontSize: 40 }} />
-                  <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold' }}>
-                    Momentum
-                  </Typography>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
+                      What We See in You
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
+                      Your strengths and leadership patterns
+                    </Typography>
+                  </Box>
                 </Stack>
               </AccordionSummary>
               <AccordionDetails>
@@ -321,17 +366,17 @@ function Summary() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
-                    lineHeight: 1.6,
+                    lineHeight: 1.8,
                     whiteSpace: 'pre-wrap',
-                    textAlign: 'center',
+                    textAlign: 'left',
                   }}
                 >
-                  {momentumText || 'No momentum available.'}
+                  {momentumText || 'No insights available.'}
                 </Typography>
               </AccordionDetails>
             </Accordion>
 
-            {/* Blind Spots */}
+            {/* Areas for Growth - Blind Spots & Challenges */}
             <Accordion
               defaultExpanded={false}
               sx={{
@@ -345,20 +390,33 @@ function Summary() {
             >
               <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Warning sx={{ color: 'primary.main', fontSize: 40 }} />
-                  <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold' }}>
-                    Blind Spots
-                  </Typography>
+                  <Warning sx={{ color: 'warning.main', fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
+                      Areas for Growth
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
+                      Opportunities to expand your leadership impact
+                    </Typography>
+                  </Box>
                 </Stack>
               </AccordionSummary>
               <AccordionDetails>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', whiteSpace: 'pre-wrap', textAlign: 'center' }}>
-                  {blindSpotsText || 'No blind spots available.'}
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    lineHeight: 1.8,
+                    whiteSpace: 'pre-wrap',
+                    textAlign: 'left',
+                  }}
+                >
+                  {blindSpotsText || 'No growth areas identified.'}
                 </Typography>
               </AccordionDetails>
             </Accordion>
 
-            {/* Growth Spark */}
+            {/* Your Path Forward - Growth Spark */}
             <Accordion
               defaultExpanded={false}
               sx={{
@@ -373,9 +431,14 @@ function Summary() {
               <AccordionSummary expandIcon={<ExpandMore sx={{ color: 'primary.main' }} />}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Lightbulb sx={{ color: 'primary.main', fontSize: 40 }} />
-                  <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 'bold' }}>
-                    Growth Spark
-                  </Typography>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700 }}>
+                      Your Path Forward
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary', fontSize: '0.85rem' }}>
+                      How to leverage your insights for meaningful change
+                    </Typography>
+                  </Box>
                 </Stack>
               </AccordionSummary>
               <AccordionDetails>
@@ -383,12 +446,12 @@ function Summary() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
-                    lineHeight: 1.6,
+                    lineHeight: 1.8,
                     whiteSpace: 'pre-wrap',
-                    textAlign: 'center',
+                    textAlign: 'left',
                   }}
                 >
-                  {growthSparkText || 'No growth spark available.'}
+                  {growthSparkText || 'No path forward identified.'}
                 </Typography>
               </AccordionDetails>
             </Accordion>
