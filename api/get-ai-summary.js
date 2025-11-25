@@ -32,20 +32,21 @@ function clipToChars(text, limit) {
   return clipSentenceSafe(text, n);
 }
 
-// Apply per-section budgets to exactly 3 paragraphs
+// Apply per-section budgets to exactly 4 paragraphs (Foundation, Blind Spots Part 1, Blind Spots Part 2, Trajectory)
 function enforceBudgets(text, budgets) {
   const parts = String(text || '')
     .split(/\n\s*\n/)
     .map((s) => s.trim());
 
-  while (parts.length < 3) parts.push('');
-  const [p1, p2, p3] = parts.slice(0, 3);
+  while (parts.length < 4) parts.push('');
+  const [p1, p2, p3, p4] = parts.slice(0, 4);
 
   const out1 = clipToChars(p1, budgets.momentum);
-  const out2 = clipToChars(p2, budgets.blindSpots);
-  const out3 = clipToChars(p3, budgets.growthSpark);
+  const out2 = clipToChars(p2, Math.round(budgets.blindSpots * 0.4));
+  const out3 = clipToChars(p3, Math.round(budgets.blindSpots * 0.6));
+  const out4 = clipToChars(p4, budgets.growthSpark);
 
-  return [out1, out2, out3].join('\n\n');
+  return [out1, out2, out3, out4].join('\n\n');
 }
 
 // ---- handler -------------------------------------------------------------
@@ -246,19 +247,29 @@ We want the summary to align to their specific leadership experience.
 Use AGENT_IDENTITY (below) as the source of boundaries and operating philosophy.
 Do not quote AGENT_IDENTITY; apply it implicitly and consistently.
 
-Produce exactly three paragraphs (no headings or bullets), in this order:
+Produce exactly four paragraphs (no headings or bullets), in this order:
 
-1) Momentum — (~${budgets.momentum} chars)
-   A tight synthesis of current leadership posture and what’s working.
-   Highlight concrete signals of momentum and credible strengths (briefly).
+1) Your Leadership Foundation — (~${budgets.momentum} chars)
+   A positive but authentic synthesis of current leadership posture and what's working.
+   Highlight concrete signals of strength and credible patterns. Be genuine, not cheesy.
+   Focus on what genuinely serves this leader well.
 
-2) Blind Spots — (~${budgets.blindSpots} chars)
-   The most material risks or patterns likely to undermine outcomes. Pick one (or two if correlated) leadership trait to hone in on as a likely opportunity for growth. Ensure that you share examples of how this commonly materializes in leadership.
+2) Areas for Growth (Part 1) — (~${Math.round(budgets.blindSpots * 0.4)} chars)
+   Begin identifying the most material risks or patterns likely to undermine outcomes.
+   Start with a brief acknowledgment of positive intent, then transition to the gap.
 
-3) Growth Spark — (~${budgets.growthSpark} chars)
-   1–2 pragmatic actions the leader can start this week to make a positive impact on the listed (or implied) blind spots.
+3) Areas for Growth (Part 2) — (~${Math.round(budgets.blindSpots * 0.6)} chars)
+   Deep dive into specific opportunities for growth. Pick one (or two if correlated) leadership trait to hone in on.
+   Provide concrete examples of how this commonly materializes in leadership.
+   Spend more time on growth opportunities than positive reflections.
 
-Write directly to “you.” Separate paragraphs with one blank line.
+4) Trajectory — (~${budgets.growthSpark} chars)
+   Predict the user's leadership impact down the road if the blind spots are never addressed.
+   Be forthright but careful in wording. Bring stark attention to negative impacts of poor leadership behavior without being doom and gloom.
+   Focus on realistic consequences: team dynamics, trust erosion, missed opportunities, organizational impact.
+   Write with respect but clarity about what happens when leadership gaps persist.
+
+Write directly to "you." Separate paragraphs with one blank line.
 
 === AGENT_IDENTITY ===
 ${cleanIdentity}
