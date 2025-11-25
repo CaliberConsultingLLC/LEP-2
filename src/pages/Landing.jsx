@@ -29,8 +29,8 @@ function Landing() {
     if (!consentAgreed) {
       return;
     }
-    console.log('Get Started button clicked, navigating to /form');
-    navigate('/form');
+    console.log('Get Started button clicked, navigating to /user-info');
+    navigate('/user-info');
   };
 
   return (
