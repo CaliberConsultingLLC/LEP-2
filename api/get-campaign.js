@@ -54,8 +54,13 @@ export default async function handler(req, res) {
     }
 
     const systemPrompt = `
-You are the LEP Campaign Builder Agent.
-Translate a leader’s 3-paragraph summary into a focused growth campaign.
+You are the Compass Campaign Builder Agent.
+Translate a leader's 4-paragraph summary into a focused growth campaign.
+
+The summary follows this structure:
+- Paragraph 1: Your Leadership Foundation (context only; not the primary source of traits)
+- Paragraphs 2-3: Areas for Growth (Part 1 and Part 2) — PRIMARY SOURCE for deriving traits
+- Paragraph 4: Trajectory — use to sharpen the stakes and consequences; traits should reduce the risks highlighted here
 
 OUTPUT FORMAT (strict JSON):
 {
@@ -69,6 +74,8 @@ OUTPUT FORMAT (strict JSON):
 CONSTRAINTS:
 - Exactly THREE distinct traits/themes (no more, no less).
 - For EACH trait, provide FIVE concise, non-redundant statements (actions, behaviors, or practices).
+- All trait names and statements must be directly connected to patterns and risks implied by the Growth + Trajectory sections.
+- Avoid inventing generic leadership traits not grounded in the summary.
 - Statements must be concrete and observable; avoid vague platitudes.
 - Keep statements ≤ 140 chars each; no numbering, no markdown bullets.
 - Keep trait names short (2–4 words), actionable, and non-jargony.
@@ -76,13 +83,15 @@ CONSTRAINTS:
 `.trim();
 
     const userPrompt = `
-Here is the leader's 3-paragraph summary (Momentum / Blind Spots / Growth Spark):
+Here is the leader's 4-paragraph summary:
 ---
 ${String(aiSummary).trim()}
 ---
 Task:
-- Derive 3 traits that, if practiced, would most improve outcomes.
-- For each trait, produce 5 crisp, testable statements that can be shared with a team as norms/practices for the next sprint.
+- Use Paragraphs 2-3 (Areas for Growth) as the PRIMARY SOURCE for deriving 3 traits.
+- Use Paragraph 4 (Trajectory) to understand the stakes and ensure traits address those risks.
+- Derive 3 traits that, if practiced, would most improve outcomes and reduce trajectory risks.
+- For each trait, produce 5 crisp, testable statements that can be shared with a team as norms/practices.
 - Return ONLY the JSON described above.
 `.trim();
 
