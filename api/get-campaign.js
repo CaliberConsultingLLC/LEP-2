@@ -47,10 +47,9 @@ export default async function handler(req, res) {
     const body = req.body || {};
     const { aiSummary, sessionId } = body;
 
-    // The API expects aiSummary from the caller (DevSkipTwo or Summary flow).
-    // If not present, fail fast (no Firestore read here).
-    if (!aiSummary || !String(aiSummary).trim()) {
-      return res.status(400).json({ error: 'Missing aiSummary in request body', sessionId: sessionId || null });
+    // Input validation: aiSummary must be a non-empty string
+    if (!aiSummary || typeof aiSummary !== 'string' || !aiSummary.trim()) {
+      return res.status(400).json({ error: 'Missing or invalid aiSummary in request body (must be non-empty string)', sessionId: sessionId || null });
     }
 
     const systemPrompt = `
@@ -58,9 +57,9 @@ You are the Compass Campaign Builder Agent.
 Translate a leader's 4-paragraph summary into a focused growth campaign.
 
 The summary follows this structure:
-- Paragraph 1: Your Leadership Foundation (context only; not the primary source of traits)
-- Paragraphs 2-3: Areas for Growth (Part 1 and Part 2) — PRIMARY SOURCE for deriving traits
-- Paragraph 4: Trajectory — use to sharpen the stakes and consequences; traits should reduce the risks highlighted here
+- Paragraph 1: Your Leadership Foundation (use as context, not the main source of traits)
+- Paragraphs 2 and 3: Areas for Growth (Part 1 and Part 2) — PRIMARY SOURCE for traits and statements
+- Paragraph 4: Trajectory (use to sharpen stakes and consequences; traits should reduce the risks highlighted)
 
 OUTPUT FORMAT (strict JSON):
 {
@@ -74,30 +73,32 @@ OUTPUT FORMAT (strict JSON):
 CONSTRAINTS:
 - Exactly THREE distinct traits/themes (no more, no less).
 - For EACH trait, provide FIVE concise, non-redundant statements (actions, behaviors, or practices).
-- All trait names and statements must be directly connected to patterns and risks implied by the Growth + Trajectory sections.
-- Avoid inventing generic leadership traits not grounded in the summary.
 - Statements must be concrete and observable; avoid vague platitudes.
 - Keep statements ≤ 140 chars each; no numbering, no markdown bullets.
 - Keep trait names short (2–4 words), actionable, and non-jargony.
+- All trait names and statements must be directly connected to patterns and risks implied by the Growth + Trajectory sections.
+- Avoid inventing generic leadership traits not grounded in the summary.
 - Do not include any text outside of the JSON object.
 `.trim();
 
     const userPrompt = `
 Here is the leader's 4-paragraph summary:
+- Paragraph 1: Your Leadership Foundation
+- Paragraphs 2-3: Areas for Growth (Part 1 and Part 2)
+- Paragraph 4: Trajectory
 ---
 ${String(aiSummary).trim()}
 ---
 Task:
-- Use Paragraphs 2-3 (Areas for Growth) as the PRIMARY SOURCE for deriving 3 traits.
-- Use Paragraph 4 (Trajectory) to understand the stakes and ensure traits address those risks.
-- Derive 3 traits that, if practiced, would most improve outcomes and reduce trajectory risks.
+- Derive 3 traits from the Growth paragraphs (2-3) that, if practiced, would most improve outcomes and reduce the risks highlighted in the Trajectory paragraph (4).
 - For each trait, produce 5 crisp, testable statements that can be shared with a team as norms/practices.
+- Ground all traits and statements in the specific patterns and risks described in the summary, not generic leadership advice.
 - Return ONLY the JSON described above.
 `.trim();
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',          // keep aligned with your summary route; change if your org requires
-      max_tokens: 600,         // hard cap per your directive
+      model: 'gpt-4o-mini', // Aligned with get-ai-summary model
+      max_tokens: 600,      // Sufficient for 3 traits × 5 statements
       temperature: 0.35,
       frequency_penalty: 0.2,
       presence_penalty: 0.0,

@@ -11,23 +11,21 @@ const firebaseConfig = {
   measurementId: "G-SYC0JYQ79D"
 };
 
-// Avoid re-initializing Firebase if already initialized (important for serverless)
+// Avoid re-initializing Firebase if app already exists (important for serverless environments)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
 export default async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   try {
-    console.log('Attempting Firestore query...');
     const q = query(collection(db, 'responses'), orderBy('timestamp', 'desc'), limit(1));
     const querySnapshot = await getDocs(q);
-    console.log('Query result size:', querySnapshot.size);
+    
     if (querySnapshot.empty) {
-      console.log('No documents found, returning mock data');
       return res.status(200).json({ sample: "No real data available" });
     }
+    
     const latestResponse = querySnapshot.docs[0].data();
-    console.log('Fetched data:', latestResponse);
     res.status(200).json(latestResponse);
   } catch (error) {
     console.error('Firestore error:', error.message);

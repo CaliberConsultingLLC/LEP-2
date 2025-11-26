@@ -19,9 +19,9 @@ import {
 import { Person, Warning, Lightbulb, ExpandMore, CheckCircle } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-// Static fallback traits (used if AI campaign is not available)
-// In production, these should be replaced by AI-generated traits from /api/get-campaign
-const STATIC_TRAITS = [
+// Curated list of 5 traits with examples and risks - these should be personalized based on user responses
+// For now, we'll use a static list, but this should ideally be generated based on the user's intake data
+const TRAITS = [
   {
     id: 'communication',
     name: 'Communication',
@@ -61,18 +61,30 @@ function Summary() {
 
   const [summaryData, setSummaryData] = useState(null);
   const [aiSummary, setAiSummary] = useState('');
+  const [aiCampaign, setAiCampaign] = useState(null); // AI-generated campaign traits
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [userName, setUserName] = useState('');
 
-  // Load user name from localStorage
+  // Load user name and AI campaign from localStorage
   useEffect(() => {
     try {
       const savedUserInfo = localStorage.getItem('userInfo');
       if (savedUserInfo) {
         const userInfo = JSON.parse(savedUserInfo);
         setUserName(userInfo.name || '');
+      }
+      
+      // Load AI campaign if available
+      const savedCampaign = localStorage.getItem('aiCampaign');
+      if (savedCampaign) {
+        try {
+          const campaign = JSON.parse(savedCampaign);
+          setAiCampaign(campaign);
+        } catch (err) {
+          console.warn('Could not parse saved campaign:', err);
+        }
       }
     } catch (err) {
       console.warn('Could not load user info:', err);
@@ -186,6 +198,7 @@ function Summary() {
           if (campaignResp.ok) {
             const campaignData = await campaignResp.json();
             if (campaignData?.campaign) {
+              setAiCampaign(campaignData.campaign);
               localStorage.setItem('aiCampaign', JSON.stringify(campaignData.campaign));
             }
           }
@@ -678,13 +691,13 @@ function Summary() {
                         example: item.statements?.[0] || 'This trait addresses key growth opportunities identified in your assessment.',
                         risk: item.statements?.[1] || 'Without addressing this area, you may miss critical opportunities for leadership development.',
                       }))
-                    : STATIC_TRAITS;
+                    : TRAITS;
                   
                   return availableTraits.slice(0, 5).map((trait) => {
                     const isSelected = selectedTraits.includes(trait.id);
                     const isDisabled = !isSelected && selectedTraits.length >= 3;
 
-                    return (
+                  return (
                     <Paper
                       key={trait.id}
                       onClick={() => {
@@ -827,7 +840,7 @@ function Summary() {
                         </Box>
                       </Box>
                     </Paper>
-                    );
+                  );
                   });
                 })()}
               </Stack>
