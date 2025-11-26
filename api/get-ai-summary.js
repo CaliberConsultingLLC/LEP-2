@@ -5,13 +5,12 @@ import path from 'path';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Cache AgentIdentity.txt at module scope (read once per serverless instance)
+// Cache AgentIdentity.txt at module scope to avoid re-reading on every request
 let cachedAgentIdentity = '';
+const identityPath = path.join(process.cwd(), 'api', 'AgentIdentity.txt');
 try {
-  const identityPath = path.join(process.cwd(), 'api', 'AgentIdentity.txt');
   cachedAgentIdentity = fs.readFileSync(identityPath, 'utf8').replace(/\r/g, '').trim();
 } catch {
-  // File missing or unreadable - will use empty string
   cachedAgentIdentity = '';
 }
 
@@ -43,14 +42,16 @@ function clipToChars(text, limit) {
 }
 
 /**
- * Apply per-section budgets to exactly 4 paragraphs.
- * Contract: Foundation, Areas for Growth (Part 1), Areas for Growth (Part 2), Trajectory
+ * Apply per-section budgets to exactly 4 paragraphs (canonical format):
+ * [0] Your Leadership Foundation
+ * [1] Areas for Growth (Part 1)
+ * [2] Areas for Growth (Part 2)
+ * [3] Trajectory
  */
 function enforceBudgets(text, budgets) {
   const parts = String(text || '')
     .split(/\n\s*\n/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+    .map((s) => s.trim());
 
   while (parts.length < 4) parts.push('');
   const [p1, p2, p3, p4] = parts.slice(0, 4);
@@ -72,15 +73,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Input validation
     const body = req.body || {};
-    if (typeof body !== 'object' || Array.isArray(body)) {
-      return res.status(400).json({ error: 'Invalid request body: expected object' });
+    
+    // Input validation: ensure body is an object
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body: must be an object' });
     }
-
+    
     const { selectedAgent = 'balancedMentor', charLimit } = body;
-
-    // Use cached AgentIdentity (loaded at module scope)
+    
+    // Log missing expected fields (non-blocking)
+    if (!body.societalResponses && !body.selectedAgent) {
+      console.warn('get-ai-summary: Missing expected fields (societalResponses, selectedAgent)');
+    }
+    
+    // Use cached Agent Identity (loaded at module scope)
     const cleanIdentity = cachedAgentIdentity;
 
     // Agent personas (tone/voice only)
@@ -221,27 +228,21 @@ const agents = {
     }
 
     /**
-     * Character budgets aligned with token limits.
-     * Heuristic: ~4 characters per token.
-     * max_tokens: 600 → ~2400 characters max output.
-     * We allocate ~90% of that to the 4 paragraphs (2160 chars).
-     * Distribution:
-     * - Foundation: 45% (most important, sets context)
-     * - Growth Part 1: 15% (brief intro to gaps)
-     * - Growth Part 2: 20% (deep dive into opportunities)
-     * - Trajectory: 20% (consequences if unaddressed)
+     * Character budgets aligned with max_tokens (600 tokens ≈ 2400 chars at ~4 chars/token).
+     * We use a conservative TOTAL of 2000 chars to ensure model output fits comfortably.
+     * Per-section budgets are allocated across 4 paragraphs:
+     * - Foundation: 40% (primary strengths)
+     * - Growth Part 1: 15% (acknowledgment + transition)
+     * - Growth Part 2: 25% (deep dive into opportunities)
+     * - Trajectory: 20% (future impact)
      */
-    const MAX_TOKENS = 600;
-    const CHARS_PER_TOKEN = 4;
-    const MAX_CHARS = MAX_TOKENS * CHARS_PER_TOKEN; // ~2400 chars
-    const TOTAL = Math.max(900, Math.min(Number(charLimit) || Math.round(MAX_CHARS * 0.9), MAX_CHARS));
-    const MAIN = Math.round(TOTAL * 0.95); // Use 95% to leave buffer
-
+    const TOTAL = Math.max(1600, Math.min(Number(charLimit) || 2000, 2400));
+    const MAIN = Math.round(TOTAL * 0.95); // Use 95% to leave room for paragraph separators
     const budgets = {
-      foundation: Math.round(MAIN * 0.45),      // ~972 chars
-      growthPart1: Math.round(MAIN * 0.15),      // ~324 chars
-      growthPart2: Math.round(MAIN * 0.20),      // ~432 chars
-      trajectory: Math.round(MAIN * 0.20),      // ~432 chars
+      foundation: Math.round(MAIN * 0.40),      // Your Leadership Foundation
+      growthPart1: Math.round(MAIN * 0.15),    // Areas for Growth (Part 1)
+      growthPart2: Math.round(MAIN * 0.25),    // Areas for Growth (Part 2)
+      trajectory: Math.round(MAIN * 0.20),      // Trajectory
     };
 
     // Prompt assembly
@@ -280,39 +281,39 @@ AGENT_IDENTITY CORE PRINCIPLES (apply throughout):
 - Growth paragraphs: Surface blind spots in terms of impact on belonging, vulnerability, and shared purpose.
 - Trajectory: Describe realistic consequences for team dynamics, trust, and shared purpose if gaps are not addressed.
 
-You must keep the overall response concise; the four paragraphs together should fit in approximately ${TOTAL} characters.
+=== AGENT_IDENTITY ===
+${cleanIdentity}
+=== END IDENTITY ===
 
-Produce exactly four paragraphs (no headings or bullets), in this order:
+OUTPUT FORMAT:
+Produce exactly four paragraphs (no headings or bullets), in this order.
+You must keep the overall response concise; the four paragraphs together should fit in approximately ${TOTAL} characters.
 
 1) Your Leadership Foundation — (~${budgets.foundation} chars)
    A positive but authentic synthesis of current leadership posture and what's working.
    Highlight concrete signals of strength and credible patterns. Be genuine, not cheesy.
    Focus on what genuinely serves this leader well.
-   Connect strengths to how they foster belonging, enable vulnerability, and advance shared purpose.
+   Connect strengths to human experience (belonging, vulnerability, shared purpose) as appropriate.
 
 2) Areas for Growth (Part 1) — (~${budgets.growthPart1} chars)
    Begin identifying the most material risks or patterns likely to undermine outcomes.
    Start with a brief acknowledgment of positive intent, then transition to the gap.
-   Frame the gap in terms of its impact on team belonging, psychological safety, or shared purpose.
+   Frame the gap in terms of impact on belonging, vulnerability, or shared purpose.
 
 3) Areas for Growth (Part 2) — (~${budgets.growthPart2} chars)
    Deep dive into specific opportunities for growth. Pick one (or two if correlated) leadership trait to hone in on.
    Provide concrete examples of how this commonly materializes in leadership.
    Spend more time on growth opportunities than positive reflections.
-   Show how addressing this gap would improve belonging, vulnerability, or shared purpose.
+   Surface blind spots in terms of impact on belonging, vulnerability, and shared purpose.
 
 4) Trajectory — (~${budgets.trajectory} chars)
    Predict the user's leadership impact down the road if the blind spots are never addressed.
    Be forthright but careful in wording. Bring stark attention to negative impacts of poor leadership behavior without being doom and gloom.
    Focus on realistic consequences: team dynamics, trust erosion, missed opportunities, organizational impact.
-   Specifically address how unaddressed gaps will affect belonging, vulnerability, and shared purpose.
+   Describe realistic consequences for team dynamics, trust, and shared purpose if gaps are not addressed.
    Write with respect but clarity about what happens when leadership gaps persist.
 
 Write directly to "you." Separate paragraphs with one blank line.
-
-=== AGENT_IDENTITY ===
-${cleanIdentity}
-=== END IDENTITY ===
 `.trim();
 
 
@@ -326,19 +327,19 @@ INSTRUCTIONS:
 `.trim();
 
     // Call OpenAI
-    // max_tokens: 600 aligns with ~2400 character budget (4 chars per token heuristic)
+    // max_tokens: 600 ≈ 2400 chars at ~4 chars/token, aligned with TOTAL budget of 2000 chars
     const p = agents[selectedAgent]?.params || {};
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: MAX_TOKENS,
-      temperature: agents[selectedAgent]?.params?.temperature ?? 0.35,
-      frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
-      presence_penalty: agents[selectedAgent]?.params?.presence_penalty ?? 0.0,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-    });
+const completion = await openai.chat.completions.create({
+  model: 'gpt-4o-mini',
+  max_tokens: 600, // Aligned with TOTAL char budget (~2000 chars ≈ 500 tokens, using 600 for safety margin)
+  temperature: agents[selectedAgent]?.params?.temperature ?? 0.35,
+  frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
+  presence_penalty: agents[selectedAgent]?.params?.presence_penalty ?? 0.0,
+  messages: [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ],
+});
 
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
