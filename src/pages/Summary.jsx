@@ -19,9 +19,9 @@ import {
 import { Person, Warning, Lightbulb, ExpandMore, CheckCircle } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-// Curated list of 5 traits with examples and risks - these should be personalized based on user responses
-// For now, we'll use a static list, but this should ideally be generated based on the user's intake data
-const TRAITS = [
+// Static fallback traits (used if AI campaign is not available)
+// In production, these should be replaced by AI-generated traits from /api/get-campaign
+const STATIC_TRAITS = [
   {
     id: 'communication',
     name: 'Communication',
@@ -151,8 +151,8 @@ function Summary() {
         (data?.selectedAgent && validAgentIds.includes(data.selectedAgent) && data.selectedAgent) ||
         'balancedMentor';
 
-      // 3) request the 3-paragraph summary
-      const summaryResp = await fetch('/get-ai-summary', {
+      // 3) request the 4-paragraph summary (canonical format)
+      const summaryResp = await fetch('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ ...data, selectedAgent: baseAgent }),
@@ -172,7 +172,28 @@ function Summary() {
       const payload = await summaryResp.json();
       const text = payload?.aiSummary || '';
       setAiSummary(text);
-      if (text) localStorage.setItem('aiSummary', text);
+      if (text) {
+        localStorage.setItem('aiSummary', text);
+        
+        // 4) Generate campaign immediately after summary is received
+        try {
+          const campaignResp = await fetch('/api/get-campaign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null }),
+          });
+          
+          if (campaignResp.ok) {
+            const campaignData = await campaignResp.json();
+            if (campaignData?.campaign) {
+              localStorage.setItem('aiCampaign', JSON.stringify(campaignData.campaign));
+            }
+          }
+        } catch (campaignErr) {
+          // Non-fatal: campaign generation failed, but summary is available
+          console.warn('Campaign generation failed:', campaignErr);
+        }
+      }
     } catch (e) {
       setError('Failed to generate summary: ' + (e?.message || e));
       setAiSummary('');
@@ -192,24 +213,35 @@ function Summary() {
     await runSummary(newAgent);
   };
 
-  // parse summary sections - now expects: Foundation, Blind Spots Part 1, Blind Spots Part 2, Trajectory
-  // Handle both old 3-paragraph format and new 4-paragraph format
+  /**
+   * Parse summary sections according to canonical 4-paragraph contract:
+   * [0] Your Leadership Foundation
+   * [1] Areas for Growth (Part 1)
+   * [2] Areas for Growth (Part 2)
+   * [3] Trajectory
+   * 
+   * Backward compatibility: If only 3 paragraphs exist (old format):
+   * [0] = Foundation
+   * [1] = Growth (combined)
+   * [2] = Trajectory
+   */
   const summarySections = aiSummary ? aiSummary.split(/\n\s*\n/).filter(s => s.trim().length > 0) : [];
   
-  const strengthsText = summarySections[0] || '';
+  // Canonical format: 4 paragraphs
+  const isCanonicalFormat = summarySections.length >= 4;
   
-  // Blind spots: combine sections 1 and 2 (the two parts)
-  // If we have 3 paragraphs (old format), use paragraph 1 as blind spots
-  // If we have 4+ paragraphs (new format), combine paragraphs 1 and 2
+  const strengthsText = summarySections[0] || ''; // Foundation (always paragraph 0)
+  
+  // Growth: combine parts 1 and 2 in canonical format, or use single paragraph in old format
   const blindSpotsPart1 = summarySections[1] || '';
   const blindSpotsPart2 = summarySections[2] || '';
-  const blindSpotsText = blindSpotsPart1 && blindSpotsPart2 
+  const blindSpotsText = isCanonicalFormat && blindSpotsPart1 && blindSpotsPart2
     ? `${blindSpotsPart1}\n\n${blindSpotsPart2}`.trim()
     : (blindSpotsPart1 || blindSpotsPart2 || '');
   
-  // Trajectory: if we have 4+ paragraphs, use paragraph 3; otherwise try paragraph 2 (old format fallback)
-  const trajectoryText = summarySections.length >= 4 
-    ? summarySections[3] || ''
+  // Trajectory: paragraph 3 in canonical format, paragraph 2 in old format
+  const trajectoryText = isCanonicalFormat
+    ? (summarySections[3] || '')
     : (summarySections.length === 3 ? summarySections[2] || '' : '');
 
   return (
@@ -636,11 +668,23 @@ function Summary() {
               </Typography>
 
               <Stack spacing={1.5}>
-                {TRAITS.map((trait) => {
-                  const isSelected = selectedTraits.includes(trait.id);
-                  const isDisabled = !isSelected && selectedTraits.length >= 3;
+                {/* Use AI-generated traits if available, otherwise fall back to static traits */}
+                {(() => {
+                  // Convert AI campaign to trait selection format
+                  const availableTraits = aiCampaign && aiCampaign.length > 0
+                    ? aiCampaign.map((item, idx) => ({
+                        id: `trait-${idx}`,
+                        name: item.trait || `Trait ${idx + 1}`,
+                        example: item.statements?.[0] || 'This trait addresses key growth opportunities identified in your assessment.',
+                        risk: item.statements?.[1] || 'Without addressing this area, you may miss critical opportunities for leadership development.',
+                      }))
+                    : STATIC_TRAITS;
+                  
+                  return availableTraits.slice(0, 5).map((trait) => {
+                    const isSelected = selectedTraits.includes(trait.id);
+                    const isDisabled = !isSelected && selectedTraits.length >= 3;
 
-                  return (
+                    return (
                     <Paper
                       key={trait.id}
                       onClick={() => {
@@ -783,8 +827,9 @@ function Summary() {
                         </Box>
                       </Box>
                     </Paper>
-                  );
-                })}
+                    );
+                  });
+                })()}
               </Stack>
 
               {/* Selection Counter and Continue Button */}

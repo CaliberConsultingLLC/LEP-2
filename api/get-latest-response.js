@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -11,7 +11,8 @@ const firebaseConfig = {
   measurementId: "G-SYC0JYQ79D"
 };
 
-const app = initializeApp(firebaseConfig);
+// Avoid re-initializing Firebase if already initialized (important for serverless)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 
 export default async (req, res) => {
