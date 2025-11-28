@@ -219,12 +219,10 @@ function CampaignBuilder() {
           <Stack
             direction="column"
             alignItems="center"
+            spacing={3}
             sx={{
-              position: 'absolute',
-              top: '20%',
-              left: '50%',
-              transform: 'translateX(-50%)',
               width: '100%',
+              py: 8,
             }}
           >
             <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
@@ -263,8 +261,8 @@ function CampaignBuilder() {
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1.125rem',
-                color: 'text.primary',
-                mb: 4,
+                color: 'white',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
               Generating your leadership campaign...
@@ -273,10 +271,12 @@ function CampaignBuilder() {
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1.25rem',
-                color: 'text.primary',
+                color: 'white',
                 fontStyle: 'italic',
                 animation: 'fadeInOut 3s ease-in-out infinite',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                textAlign: 'center',
+                maxWidth: '600px',
               }}
             >
               {quotes[currentQuoteIndex]}
@@ -322,14 +322,14 @@ function CampaignBuilder() {
         ) : campaign ? (
           <Box
             sx={{
-              p: 3,
+              p: 4,
               border: '2px solid',
               borderColor: 'primary.main',
-              borderRadius: 2,
-              boxShadow: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
+              borderRadius: 3,
+              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+              bgcolor: 'rgba(255, 255, 255, 0.98)',
               background:
-                'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
               width: '100%',
             }}
           >
@@ -409,69 +409,101 @@ function CampaignBuilder() {
               click “Rebuild my Growth Campaign” to refresh.
             </Typography>
 
-            <Table sx={{ mb: 4 }}>
-              <TableBody>
-                {(campaign || []).map((traitItem, traitIndex) => {
-                  const statements = (Array.isArray(traitItem?.statements) ? traitItem.statements : [])
-                    .map((s) => String(s || '').trim())
-                    .filter(Boolean)
-                    .slice(0, 5); // ensure ≤5 items
+            <Stack spacing={4} sx={{ mb: 4 }}>
+              {(campaign || []).map((traitItem, traitIndex) => {
+                const statements = (Array.isArray(traitItem?.statements) ? traitItem.statements : [])
+                  .map((s) => String(s || '').trim())
+                  .filter(Boolean)
+                  .slice(0, 5); // ensure ≤5 items
 
-                  if (statements.length === 0) {
-                    return (
-                      <TableRow key={`trait-${traitIndex}-empty`}>
-                        <TableCell colSpan={3} sx={{ p: 1 }}>
-                          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
-                            {traitItem?.trait || 'Trait'} — no statements provided.
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  }
+                if (statements.length === 0) {
+                  return (
+                    <Box
+                      key={`trait-${traitIndex}-empty`}
+                      sx={{
+                        p: 3,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.9)',
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
+                        {traitItem?.trait || 'Trait'} — no statements provided.
+                      </Typography>
+                    </Box>
+                  );
+                }
 
-                  return statements.map((stmt, sIdx) => (
-                    <TableRow key={`trait-${traitIndex}-row-${sIdx}`}>
-                      {sIdx === 0 && (
-                        <TableCell rowSpan={statements.length} sx={{ verticalAlign: 'middle', p: 1 }}>
+                return (
+                  <Box
+                    key={`trait-${traitIndex}`}
+                    sx={{
+                      p: 3,
+                      border: '2px solid',
+                      borderColor: 'primary.main',
+                      borderRadius: 3,
+                      bgcolor: 'rgba(255,255,255,0.95)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        fontSize: '1.5rem',
+                        fontWeight: 700,
+                        color: 'primary.main',
+                        mb: 3,
+                        pb: 2,
+                        borderBottom: '2px solid',
+                        borderColor: 'primary.main',
+                      }}
+                    >
+                      {traitItem.trait}
+                    </Typography>
+                    <Stack spacing={2}>
+                      {statements.map((stmt, sIdx) => (
+                        <Box
+                          key={`stmt-${sIdx}`}
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.05)',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 2,
+                            '&:hover': {
+                              bgcolor: 'rgba(224,122,63,0.08)',
+                            },
+                          }}
+                        >
+                          <Checkbox
+                            checked={dismissedStatements.some(
+                              (ds) => ds.trait === traitItem.trait && ds.index === sIdx
+                            )}
+                            onChange={(e) =>
+                              handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
+                            }
+                            color="error"
+                            sx={{ mt: 0.5 }}
+                          />
                           <Typography
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.25rem',
-                              fontWeight: 'bold',
+                              fontSize: '1rem',
                               color: 'text.primary',
+                              flex: 1,
                             }}
                           >
-                            {traitItem.trait}
+                            {sIdx + 1}. {stmt}
                           </Typography>
-                        </TableCell>
-                      )}
-                      <TableCell sx={{ p: 1 }}>
-                        <Typography
-                          sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '1rem',
-                            color: 'text.primary',
-                          }}
-                        >
-                          {stmt}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ p: 1, verticalAlign: 'middle' }}>
-                        <Checkbox
-                          checked={dismissedStatements.some(
-                            (ds) => ds.trait === traitItem.trait && ds.index === sIdx
-                          )}
-                          onChange={(e) =>
-                            handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
-                          }
-                          color="error"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ));
-                })}
-              </TableBody>
-            </Table>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </Stack>
 
             <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2 }}>
               <Button
