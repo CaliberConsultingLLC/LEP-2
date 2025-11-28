@@ -459,13 +459,13 @@ function Summary() {
                   fontSize: '2.5rem',
                   fontWeight: 800,
                   mb: 1,
-                  color: 'text.primary',
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                  color: 'white',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                 }}
               >
                 Leader Snapshot
               </Typography>
-              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: 'text.secondary' }}>
+              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)', textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}>
                 Insights from your reflection and leadership assessment
               </Typography>
             </Box>
@@ -477,13 +477,13 @@ function Summary() {
                 borderRadius: 4,
                 border: '2px solid',
                 borderColor: 'primary.main',
-                background: 'linear-gradient(135deg, rgba(224,122,63,0.08) 0%, rgba(255,255,255,0.95) 50%, rgba(99,147,170,0.08) 100%)',
-                boxShadow: '0 8px 32px rgba(224,122,63,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
+                background: 'linear-gradient(135deg, rgba(224,122,63,0.15) 0%, rgba(255,255,255,0.98) 50%, rgba(99,147,170,0.15) 100%)',
+                boxShadow: '0 8px 32px rgba(224,122,63,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease',
                 '&:before': { display: 'none' },
                 '&:hover': {
-                  boxShadow: '0 12px 40px rgba(224,122,63,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+                  boxShadow: '0 12px 40px rgba(224,122,63,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
                   transform: 'translateY(-2px)',
                 },
               }}
@@ -535,15 +535,15 @@ function Summary() {
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.4)' }}>
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.6)' }}>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(250,250,255,0.8))',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(250,250,255,0.95))',
                     borderLeft: '4px solid',
                     borderColor: 'primary.main',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                   }}
                 >
                   <Typography
@@ -573,13 +573,13 @@ function Summary() {
                 borderRadius: 4,
                 border: '2px solid',
                 borderColor: 'warning.main',
-                background: 'linear-gradient(135deg, rgba(237,108,2,0.08) 0%, rgba(255,255,255,0.95) 50%, rgba(237,108,2,0.05) 100%)',
-                boxShadow: '0 8px 32px rgba(237,108,2,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
+                background: 'linear-gradient(135deg, rgba(237,108,2,0.15) 0%, rgba(255,255,255,0.98) 50%, rgba(237,108,2,0.15) 100%)',
+                boxShadow: '0 8px 32px rgba(237,108,2,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease',
                 '&:before': { display: 'none' },
                 '&:hover': {
-                  boxShadow: '0 12px 40px rgba(237,108,2,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+                  boxShadow: '0 12px 40px rgba(237,108,2,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
                   transform: 'translateY(-2px)',
                 },
               }}
@@ -631,15 +631,15 @@ function Summary() {
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.4)' }}>
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.6)' }}>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,250,245,0.8))',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,250,245,0.95))',
                     borderLeft: '4px solid',
                     borderColor: 'warning.main',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                   }}
                 >
                   <Typography
@@ -669,13 +669,13 @@ function Summary() {
                 borderRadius: 4,
                 border: '2px solid',
                 borderColor: 'error.main',
-                background: 'linear-gradient(135deg, rgba(211,47,47,0.08) 0%, rgba(255,255,255,0.95) 50%, rgba(211,47,47,0.05) 100%)',
-                boxShadow: '0 8px 32px rgba(211,47,47,0.15), inset 0 1px 0 rgba(255,255,255,0.6)',
+                background: 'linear-gradient(135deg, rgba(211,47,47,0.15) 0%, rgba(255,255,255,0.98) 50%, rgba(211,47,47,0.15) 100%)',
+                boxShadow: '0 8px 32px rgba(211,47,47,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease',
                 '&:before': { display: 'none' },
                 '&:hover': {
-                  boxShadow: '0 12px 40px rgba(211,47,47,0.25), inset 0 1px 0 rgba(255,255,255,0.6)',
+                  boxShadow: '0 12px 40px rgba(211,47,47,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
                   transform: 'translateY(-2px)',
                 },
               }}
@@ -727,15 +727,15 @@ function Summary() {
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.4)' }}>
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.6)' }}>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,245,245,0.8))',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,245,245,0.95))',
                     borderLeft: '4px solid',
                     borderColor: 'error.main',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                   }}
                 >
                   <Typography
@@ -765,9 +765,10 @@ function Summary() {
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontWeight: 700,
-                  color: 'text.primary',
+                  color: 'white',
                   mb: 2,
                   textAlign: 'center',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                 }}
               >
                 Choose Your Focus Areas
@@ -776,17 +777,18 @@ function Summary() {
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontSize: '1rem',
-                  color: 'text.secondary',
+                  color: 'rgba(255,255,255,0.9)',
                   mb: 3,
                   textAlign: 'center',
                   lineHeight: 1.6,
                   maxWidth: '700px',
                   mx: 'auto',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
                 }}
               >
                 Based on your assessment, we've identified specific leadership areas where focused development could have the greatest impact. 
-                Below are three targeted focus areas, each with concrete examples of how they show up in leadership and the risks of not addressing them. 
-                Select all 3 traits to build your personalized growth campaign.
+                Below are five targeted focus areas, each with concrete examples of how they show up in leadership and the risks of not addressing them. 
+                Select exactly 3 traits that resonate most with your current leadership challenges and growth goals.
               </Typography>
 
               <Stack spacing={1.5}>
@@ -802,7 +804,7 @@ function Summary() {
                       }))
                     : TRAITS;
                   
-                  return availableTraits.slice(0, 3).map((trait) => {
+                  return availableTraits.slice(0, 5).map((trait) => {
                     const isSelected = selectedTraits.includes(trait.id);
                     const isDisabled = !isSelected && selectedTraits.length >= 3;
 
