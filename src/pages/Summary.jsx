@@ -257,16 +257,116 @@ function Summary() {
     ? (summarySections[3] || '')
     : (summarySections.length === 3 ? summarySections[2] || '' : '');
 
+  /**
+   * Bold important words and concepts in summary text
+   * Identifies key leadership terms, action words, and important concepts
+   */
+  const boldImportantWords = (text) => {
+    if (!text) return '';
+    
+    // Key leadership and development terms to bold
+    const importantTerms = [
+      // Leadership concepts
+      /\b(leadership|leader|leading)\b/gi,
+      /\b(team|teams|teamwork|collaboration)\b/gi,
+      /\b(trust|trustworthy|credibility)\b/gi,
+      /\b(communication|communicate|communicating)\b/gi,
+      /\b(vision|visionary|strategic|strategy)\b/gi,
+      /\b(delegation|delegate|empowerment|empower)\b/gi,
+      /\b(feedback|coaching|mentoring|development)\b/gi,
+      /\b(conflict|resolution|disagreement)\b/gi,
+      /\b(accountability|responsible|responsibility)\b/gi,
+      /\b(decision|decisions|judgment)\b/gi,
+      // Human experience anchors
+      /\b(belonging|inclusion|inclusive)\b/gi,
+      /\b(vulnerability|vulnerable|openness)\b/gi,
+      /\b(purpose|shared purpose|meaningful)\b/gi,
+      // Action/impact words
+      /\b(impact|influence|effect|outcome|outcomes)\b/gi,
+      /\b(growth|improve|improvement|develop|development)\b/gi,
+      /\b(opportunity|opportunities|potential)\b/gi,
+      /\b(challenge|challenges|obstacle|barrier)\b/gi,
+      /\b(strength|strengths|capability|capabilities)\b/gi,
+      /\b(blind spot|blind spots|gap|gaps)\b/gi,
+      // Important qualifiers
+      /\b(critical|crucial|essential|vital|important)\b/gi,
+      /\b(significant|substantial|meaningful)\b/gi,
+    ];
+    
+    // Collect all matches from all patterns, then process in order
+    const allMatches = [];
+    importantTerms.forEach((pattern) => {
+      let match;
+      const regex = new RegExp(pattern.source, pattern.flags);
+      while ((match = regex.exec(text)) !== null) {
+        allMatches.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          text: match[0],
+        });
+      }
+    });
+    
+    // Sort by start position, then by length (longer first) to prioritize longer matches
+    allMatches.sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      return b.end - a.end; // Longer matches first at same position
+    });
+    
+    // Build result by processing matches in order, avoiding overlaps
+    let result = '';
+    let lastIndex = 0;
+    const processedRanges = [];
+    
+    allMatches.forEach(({ start, end, text: matchText }) => {
+      // Check for overlap with already processed ranges
+      const overlaps = processedRanges.some(
+        (range) => !(end <= range.start || start >= range.end)
+      );
+      
+      if (!overlaps && start >= lastIndex) {
+        // Add text before this match
+        result += text.substring(lastIndex, start);
+        // Add bolded match
+        result += `<strong>${matchText}</strong>`;
+        // Update tracking
+        lastIndex = end;
+        processedRanges.push({ start, end });
+      }
+    });
+    
+    // Add remaining text
+    result += text.substring(lastIndex);
+    
+    return result;
+  };
+
   return (
     <Box sx={{
+      position: 'relative',
       minHeight: '100vh',
       width: '100%',
       overflowX: 'hidden',
-      backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP2.jpg)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed',
+      // full bleed bg
+      '&:before': {
+        content: '""',
+        position: 'fixed',
+        inset: 0,
+        zIndex: -2,
+        backgroundImage: 'url(/LEP2.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        transform: 'translateZ(0)',
+      },
+      // dark overlay
+      '&:after': {
+        content: '""',
+        position: 'fixed',
+        inset: 0,
+        zIndex: -1,
+        background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+      },
     }}>
       <Container
         maxWidth={false}
@@ -455,10 +555,13 @@ function Summary() {
                       textAlign: 'left',
                       color: 'text.primary',
                       fontWeight: 400,
+                      '& strong': {
+                        fontWeight: 700,
+                        color: 'primary.main',
+                      },
                     }}
-                  >
-                    {strengthsText || 'No insights available.'}
-                  </Typography>
+                    dangerouslySetInnerHTML={{ __html: boldImportantWords(strengthsText || 'No insights available.') }}
+                  />
                 </Box>
               </AccordionDetails>
             </Accordion>
@@ -548,10 +651,13 @@ function Summary() {
                       textAlign: 'left',
                       color: 'text.primary',
                       fontWeight: 400,
+                      '& strong': {
+                        fontWeight: 700,
+                        color: 'warning.main',
+                      },
                     }}
-                  >
-                    {blindSpotsText || 'No growth areas identified.'}
-                  </Typography>
+                    dangerouslySetInnerHTML={{ __html: boldImportantWords(blindSpotsText || 'No growth areas identified.') }}
+                  />
                 </Box>
               </AccordionDetails>
             </Accordion>
@@ -641,10 +747,13 @@ function Summary() {
                       textAlign: 'left',
                       color: 'text.primary',
                       fontWeight: 400,
+                      '& strong': {
+                        fontWeight: 700,
+                        color: 'error.main',
+                      },
                     }}
-                  >
-                    {trajectoryText || (aiSummary ? 'Trajectory analysis is being generated. Please refresh if this message persists.' : 'No trajectory analysis available.')}
-                  </Typography>
+                    dangerouslySetInnerHTML={{ __html: boldImportantWords(trajectoryText || (aiSummary ? 'Trajectory analysis is being generated. Please refresh if this message persists.' : 'No trajectory analysis available.')) }}
+                  />
                 </Box>
               </AccordionDetails>
             </Accordion>
@@ -676,8 +785,8 @@ function Summary() {
                 }}
               >
                 Based on your assessment, we've identified specific leadership areas where focused development could have the greatest impact. 
-                Below are five targeted focus areas, each with concrete examples of how they show up in leadership and the risks of not addressing them. 
-                Select exactly 3 traits that resonate most with your current leadership challenges and growth goals.
+                Below are three targeted focus areas, each with concrete examples of how they show up in leadership and the risks of not addressing them. 
+                Select all 3 traits to build your personalized growth campaign.
               </Typography>
 
               <Stack spacing={1.5}>
@@ -693,7 +802,7 @@ function Summary() {
                       }))
                     : TRAITS;
                   
-                  return availableTraits.slice(0, 5).map((trait) => {
+                  return availableTraits.slice(0, 3).map((trait) => {
                     const isSelected = selectedTraits.includes(trait.id);
                     const isDisabled = !isSelected && selectedTraits.length >= 3;
 
