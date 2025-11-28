@@ -77,16 +77,33 @@ function NewCampaignIntro() {
     return (
       <Box
         sx={{
+          position: 'relative',
           p: 5,
           minHeight: '100vh',
           width: '100vw',
-          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          // full bleed bg
+          '&:before': {
+            content: '""',
+            position: 'fixed',
+            inset: 0,
+            zIndex: -2,
+            backgroundImage: 'url(/LEP1.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            transform: 'translateZ(0)',
+          },
+          // dark overlay
+          '&:after': {
+            content: '""',
+            position: 'fixed',
+            inset: 0,
+            zIndex: -1,
+            background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+          },
         }}
       >
         <Container maxWidth="sm" sx={{ textAlign: 'center', position: 'relative' }}>
@@ -172,16 +189,33 @@ function NewCampaignIntro() {
   return (
     <Box
       sx={{
+        position: 'relative',
         p: 5,
         minHeight: '100vh',
         width: '100vw',
-        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP1.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        // full bleed bg
+        '&:before': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -2,
+          backgroundImage: 'url(/LEP1.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+        },
+        // dark overlay
+        '&:after': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+        },
       }}
     >
       <Container maxWidth="sm" sx={{ textAlign: 'center' }}>

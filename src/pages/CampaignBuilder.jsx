@@ -175,23 +175,46 @@ function CampaignBuilder() {
 
   return (
     <Box
-  sx={{
-    p: 5,
-    minHeight: '100vh',
-    width: '100%',
-    overflowX: 'hidden',
-    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(/LEP2.jpg)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    backgroundAttachment: 'fixed',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }}
->
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        width: '100%',
+        overflowX: 'hidden',
+        py: 4,
+        // full bleed bg
+        '&:before': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -2,
+          backgroundImage: 'url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+        },
+        // dark overlay
+        '&:after': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+        },
+      }}
+    >
 
-      <Container maxWidth="md" sx={{ textAlign: 'center', position: 'relative' }}>
+      <Container 
+        maxWidth={false}
+        sx={{ 
+          textAlign: 'center', 
+          position: 'relative',
+          px: { xs: 2, sm: 4 },
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <Box sx={{ width: '100%', maxWidth: 880 }}>
         {isLoading ? (
           <Stack
             direction="column"
@@ -495,6 +518,7 @@ function CampaignBuilder() {
             No campaign data available.
           </Typography>
         )}
+        </Box>
       </Container>
     </Box>
   );
