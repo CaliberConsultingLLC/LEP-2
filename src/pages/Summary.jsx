@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { Person, Warning, Lightbulb, ExpandMore, CheckCircle } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import traitSystem from '../data/traitSystem';
 
 // Curated list of 5 traits with examples and risks - these should be personalized based on user responses
 // For now, we'll use a static list, but this should ideally be generated based on the user's intake data
@@ -791,167 +792,272 @@ function Summary() {
                 Select exactly 3 traits that resonate most with your current leadership challenges and growth goals.
               </Typography>
 
-              <Stack spacing={1.5}>
-                {/* Use AI-generated traits if available, otherwise fall back to static traits */}
+              <Stack spacing={2}>
                 {(() => {
-                  // Convert AI campaign to trait selection format
-                  const availableTraits = aiCampaign && aiCampaign.length > 0
-                    ? aiCampaign.map((item, idx) => ({
-                        id: `trait-${idx}`,
-                        name: item.trait || `Trait ${idx + 1}`,
-                        example: item.statements?.[0] || 'This trait addresses key growth opportunities identified in your assessment.',
-                        risk: item.statements?.[1] || 'Without addressing this area, you may miss critical opportunities for leadership development.',
-                      }))
-                    : TRAITS;
+                  // Use trait system
+                  const CORE_TRAITS = traitSystem.CORE_TRAITS || [];
                   
-                  return availableTraits.slice(0, 5).map((trait) => {
-                    const isSelected = selectedTraits.includes(trait.id);
+                  // Generate 5 focus areas from trait system
+                  // For now, select diverse traits and sub-traits
+                  // In the future, this could be AI-driven based on assessment
+                  const generateFocusAreas = () => {
+                    const focusAreas = [];
+                    const selectedTraitIndices = new Set();
+                    const maxAttempts = 50; // Prevent infinite loops
+                    let attempts = 0;
+                    
+                    // Select 5 unique trait/sub-trait combinations
+                    while (focusAreas.length < 5 && attempts < maxAttempts) {
+                      attempts++;
+                      
+                      // Pick a random trait
+                      const traitIndex = Math.floor(Math.random() * CORE_TRAITS.length);
+                      
+                      // Skip if we've already used this trait (unless we've used all traits)
+                      if (selectedTraitIndices.has(traitIndex) && selectedTraitIndices.size < CORE_TRAITS.length) {
+                        continue;
+                      }
+                      
+                      selectedTraitIndices.add(traitIndex);
+                      const trait = CORE_TRAITS[traitIndex];
+                      
+                      // Skip if trait has no sub-traits
+                      if (!trait.subTraits || trait.subTraits.length === 0) {
+                        selectedTraitIndices.delete(traitIndex);
+                        continue;
+                      }
+                      
+                      // Pick a random sub-trait
+                      const subTraitIndex = Math.floor(Math.random() * trait.subTraits.length);
+                      const subTrait = trait.subTraits[subTraitIndex];
+                      
+                      // Get example from strength signals and risk from risk signals
+                      const example = subTrait.strengthSignals && subTrait.strengthSignals.length > 0
+                        ? subTrait.strengthSignals[0]
+                        : subTrait.shortDescription;
+                      
+                      const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
+                        ? subTrait.riskSignals.underuse[0]
+                        : `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities for leadership development.`;
+                      
+                      focusAreas.push({
+                        id: `${trait.id}-${subTrait.id}`,
+                        traitName: trait.name,
+                        subTraitName: subTrait.name,
+                        example: example,
+                        risk: risk,
+                      });
+                    }
+                    
+                    // If we don't have 5, fill with defaults
+                    while (focusAreas.length < 5) {
+                      const trait = CORE_TRAITS[focusAreas.length % CORE_TRAITS.length];
+                      if (trait.subTraits && trait.subTraits.length > 0) {
+                        const subTrait = trait.subTraits[0];
+                        focusAreas.push({
+                          id: `${trait.id}-${subTrait.id}-${focusAreas.length}`,
+                          traitName: trait.name,
+                          subTraitName: subTrait.name,
+                          example: subTrait.strengthSignals?.[0] || subTrait.shortDescription,
+                          risk: subTrait.riskSignals?.underuse?.[0] || `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities.`,
+                        });
+                      }
+                    }
+                    
+                    return focusAreas.slice(0, 5); // Ensure exactly 5
+                  };
+                  
+                  const focusAreas = generateFocusAreas();
+                  
+                  return focusAreas.map((focusArea) => {
+                    const isSelected = selectedTraits.includes(focusArea.id);
                     const isDisabled = !isSelected && selectedTraits.length >= 3;
 
-                  return (
-                    <Paper
-                      key={trait.id}
-                      onClick={() => {
-                        if (!isDisabled) {
-                          setSelectedTraits((prev) => {
-                            if (prev.includes(trait.id)) {
-                              return prev.filter((id) => id !== trait.id);
-                            } else if (prev.length < 3) {
-                              return [...prev, trait.id];
-                            }
-                            return prev;
-                          });
-                        }
-                      }}
-                      sx={{
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                        border: isSelected ? '2px solid #E07A3F' : '1px solid rgba(255,255,255,0.14)',
-                        borderRadius: 3,
-                        boxShadow: isSelected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
-                        bgcolor: isSelected ? 'rgba(224, 122, 63, 0.09)' : 'rgba(255,255,255,0.92)',
-                        background: isSelected 
-                          ? 'linear-gradient(180deg, rgba(240,245,255,0.95), rgba(255,255,255,0.9))'
-                          : 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-                        opacity: isDisabled ? 0.5 : 1,
-                        transition: 'all 0.25s ease',
-                        '&:hover': {
-                          transform: isDisabled ? 'none' : 'translateY(-2px)',
-                          boxShadow: isDisabled ? '0 2px 10px rgba(0,0,0,0.06)' : '0 10px 28px rgba(0,0,0,0.16)',
-                        },
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '100px' }}>
-                        {/* Left Half: Name with Checkbox */}
-                        <Box
-                          sx={{
-                            width: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            p: 2,
-                            borderRight: '1px solid',
-                            borderColor: 'divider',
-                          }}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            disabled={isDisabled}
-                            sx={{
-                              color: 'primary.main',
-                              mr: 1.5,
-                              '&.Mui-checked': {
-                                color: 'primary.main',
-                              },
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.1rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                            }}
-                          >
-                            {trait.name}
-                          </Typography>
-                        </Box>
-
-                        {/* Right Half: Example and Risk */}
-                        <Box sx={{ width: '50%', display: 'flex' }}>
-                          {/* Example - First Quarter */}
+                    return (
+                      <Paper
+                        key={focusArea.id}
+                        onClick={() => {
+                          if (!isDisabled) {
+                            setSelectedTraits((prev) => {
+                              if (prev.includes(focusArea.id)) {
+                                return prev.filter((id) => id !== focusArea.id);
+                              } else if (prev.length < 3) {
+                                return [...prev, focusArea.id];
+                              }
+                              return prev;
+                            });
+                          }
+                        }}
+                        sx={{
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          border: isSelected ? '2px solid #E07A3F' : '2px solid rgba(255,255,255,0.2)',
+                          borderRadius: 3,
+                          boxShadow: isSelected 
+                            ? '0 8px 24px rgba(224,122,63,0.35)' 
+                            : '0 4px 16px rgba(0,0,0,0.1)',
+                          bgcolor: isSelected 
+                            ? 'rgba(255,255,255,0.98)' 
+                            : 'rgba(255,255,255,0.95)',
+                          background: isSelected 
+                            ? 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(250,245,255,0.95))'
+                            : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
+                          opacity: isDisabled ? 0.5 : 1,
+                          transition: 'all 0.3s ease',
+                          overflow: 'hidden',
+                          '&:hover': {
+                            transform: isDisabled ? 'none' : 'translateY(-3px)',
+                            boxShadow: isDisabled 
+                              ? '0 4px 16px rgba(0,0,0,0.1)' 
+                              : '0 12px 32px rgba(224,122,63,0.25)',
+                            borderColor: isDisabled ? 'rgba(255,255,255,0.2)' : '#E07A3F',
+                          },
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '120px' }}>
+                          {/* Left Third: Trait Name with Checkbox */}
                           <Box
                             sx={{
-                              width: '50%',
-                              p: 2,
-                              borderRight: '1px solid',
+                              width: '33.33%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              p: 2.5,
+                              borderRight: '2px solid',
                               borderColor: 'divider',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              bgcolor: 'primary.main',
+                              bgcolor: isSelected ? 'rgba(224,122,63,0.05)' : 'transparent',
                             }}
                           >
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                              <Lightbulb sx={{ color: 'white', fontSize: 18 }} />
-                              <Typography
-                                sx={{
-                                  fontFamily: 'Gemunu Libre, sans-serif',
-                                  fontSize: '0.85rem',
-                                  fontWeight: 600,
-                                  color: 'white',
-                                }}
-                              >
-                                Example:
-                              </Typography>
-                            </Stack>
+                            <Checkbox
+                              checked={isSelected}
+                              disabled={isDisabled}
+                              sx={{
+                                color: 'primary.main',
+                                mr: 1.5,
+                                '&.Mui-checked': {
+                                  color: 'primary.main',
+                                },
+                              }}
+                            />
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.8rem',
-                                color: 'white',
-                                lineHeight: 1.4,
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                color: 'primary.main',
+                                lineHeight: 1.3,
                               }}
                             >
-                              {trait.example}
+                              {focusArea.traitName}
                             </Typography>
                           </Box>
 
-                          {/* Risk - Second Quarter */}
+                          {/* Middle Third: Sub-Trait Name */}
                           <Box
                             sx={{
-                              width: '50%',
-                              p: 2,
+                              width: '33.33%',
                               display: 'flex',
-                              flexDirection: 'column',
-                              bgcolor: 'warning.main',
+                              alignItems: 'center',
+                              p: 2.5,
+                              borderRight: '2px solid',
+                              borderColor: 'divider',
+                              bgcolor: isSelected ? 'rgba(99,147,170,0.05)' : 'transparent',
                             }}
                           >
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                              <Warning sx={{ color: 'white', fontSize: 18 }} />
-                              <Typography
-                                sx={{
-                                  fontFamily: 'Gemunu Libre, sans-serif',
-                                  fontSize: '0.85rem',
-                                  fontWeight: 600,
-                                  color: 'white',
-                                }}
-                              >
-                                Risk:
-                              </Typography>
-                            </Stack>
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.8rem',
-                                color: 'white',
-                                lineHeight: 1.4,
+                                fontSize: '0.95rem',
+                                fontWeight: 600,
+                                color: 'secondary.main',
+                                lineHeight: 1.3,
                               }}
                             >
-                              {trait.risk}
+                              {focusArea.subTraitName}
                             </Typography>
                           </Box>
+
+                          {/* Right Third: Example and Risk (each 50% of this third) */}
+                          <Box sx={{ width: '33.33%', display: 'flex' }}>
+                            {/* Example - Left Half of Right Third */}
+                            <Box
+                              sx={{
+                                width: '50%',
+                                p: 2,
+                                borderRight: '1px solid',
+                                borderColor: 'rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                bgcolor: 'primary.main',
+                                background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
+                              }}
+                            >
+                              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                                <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
+                                <Typography
+                                  sx={{
+                                    fontFamily: 'Gemunu Libre, sans-serif',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                  }}
+                                >
+                                  Example
+                                </Typography>
+                              </Stack>
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.75rem',
+                                  color: 'white',
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {focusArea.example}
+                              </Typography>
+                            </Box>
+
+                            {/* Risk - Right Half of Right Third */}
+                            <Box
+                              sx={{
+                                width: '50%',
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                bgcolor: 'warning.main',
+                                background: 'linear-gradient(135deg, #ED6C02, #D84315)',
+                              }}
+                            >
+                              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                                <Warning sx={{ color: 'white', fontSize: 16 }} />
+                                <Typography
+                                  sx={{
+                                    fontFamily: 'Gemunu Libre, sans-serif',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                  }}
+                                >
+                                  Risk
+                                </Typography>
+                              </Stack>
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.75rem',
+                                  color: 'white',
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {focusArea.risk}
+                              </Typography>
+                            </Box>
+                          </Box>
                         </Box>
-                      </Box>
-                    </Paper>
-                  );
+                      </Paper>
+                    );
                   });
                 })()}
               </Stack>
