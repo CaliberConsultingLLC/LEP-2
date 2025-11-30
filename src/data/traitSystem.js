@@ -74,8 +74,8 @@ const CORE_TRAITS = [
         riskSignals: {
           underuse: [
             'Team members frequently ask "What do you mean?" or "Can you clarify?"',
-            'Misunderstandings lead to rework or missed deadlines',
-            'Your messages require multiple follow-ups to be understood',
+            'Team productivity suffers as misunderstandings lead to rework, missed deadlines, and wasted effort',
+            'Team confidence erodes as members lose trust in your direction and hesitate to act without multiple confirmations',
           ],
           overuse: [
             'You oversimplify to the point of losing nuance or important context',
@@ -128,8 +128,8 @@ const CORE_TRAITS = [
         riskSignals: {
           underuse: [
             'Your messages are consistently long-winded or rambling',
-            'Team members skim or skip your communications',
-            'You include unnecessary background in every message',
+            'Team members disengage, missing critical information and making decisions without full context',
+            'Team efficiency decreases as members spend excessive time parsing lengthy communications instead of executing',
           ],
           overuse: [
             'You omit critical context, leading to misunderstandings',
@@ -180,8 +180,8 @@ const CORE_TRAITS = [
         riskSignals: {
           underuse: [
             'Your ideas are frequently dismissed or ignored',
-            'You struggle to get buy-in for initiatives',
-            'You rely primarily on authority rather than persuasion',
+            'Initiatives stall or fail to gain momentum as team members resist rather than embrace your direction',
+            'Team engagement decreases as members comply out of obligation rather than genuine commitment',
           ],
           overuse: [
             'You manipulate rather than influence',
@@ -232,9 +232,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You interrupt others frequently',
-            'Team members say "You\'re not listening" or "You don\'t understand"',
-            'You formulate responses while others are still speaking',
+            'You interrupt others frequently or formulate responses while they\'re still speaking',
+            'Team members stop sharing ideas and concerns, leading to missed opportunities and unresolved issues',
+            'Team trust erodes as members feel unheard and undervalued, reducing collaboration and innovation',
           ],
           overuse: [
             'You listen but never take action on what you hear',
@@ -285,9 +285,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You miss emotional cues in conversations',
-            'Team members say you "don\'t get it" or seem disconnected',
-            'You make decisions without considering human impact',
+            'You miss emotional cues in conversations or make decisions without considering human impact',
+            'Team members feel disconnected and unsupported, leading to decreased morale and increased turnover risk',
+            'Team performance suffers as members struggle with unaddressed concerns and feel their needs are ignored',
           ],
           overuse: [
             'You become overwhelmed by others\' emotions',
@@ -338,9 +338,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You use the same communication style with everyone',
-            'Some audiences consistently misunderstand your messages',
-            'You struggle to communicate effectively with certain groups',
+            'You use the same communication style with everyone, regardless of audience',
+            'Key stakeholders disengage or make decisions without your input, reducing your influence and impact',
+            'Team alignment breaks down as different groups interpret your messages differently, creating confusion and conflict',
           ],
           overuse: [
             'You change your core message to please different audiences',
@@ -391,9 +391,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You\'re overlooked in important meetings or discussions',
-            'Your ideas don\'t get the consideration they deserve',
-            'You struggle to project confidence in high-stakes situations',
+            'You\'re overlooked in important meetings or struggle to project confidence in high-stakes situations',
+            'Your ideas and recommendations are overlooked, limiting your ability to drive change and advance initiatives',
+            'Team members and stakeholders lose confidence in your leadership, reducing your effectiveness and career advancement',
           ],
           overuse: [
             'You come across as arrogant or dismissive',
@@ -452,9 +452,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'Decisions take so long that opportunities are missed',
-            'Team members describe you as "indecisive"',
-            'You over-analyze when action is needed',
+            'Decisions take so long that opportunities are missed or you over-analyze when action is needed',
+            'Team momentum stalls as members wait for direction, leading to missed deadlines and lost opportunities',
+            'Team frustration increases as indecision creates uncertainty and reduces confidence in your leadership',
           ],
           overuse: [
             'You make hasty decisions without sufficient consideration',
@@ -505,9 +505,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'Your decisions frequently lead to negative outcomes',
-            'You make decisions based on incomplete information',
-            'You don\'t consider long-term consequences',
+            'Your decisions frequently lead to negative outcomes or you don\'t consider long-term consequences',
+            'Team performance suffers as poor decisions create setbacks, wasted resources, and lost trust',
+            'Team confidence erodes as members question your judgment and hesitate to commit to your direction',
           ],
           overuse: [
             'You over-analyze to the point of paralysis',
@@ -558,9 +558,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You wait for perfect information before deciding',
-            'Uncertainty causes you to delay or avoid decisions',
-            'You struggle to move forward without complete clarity',
+            'You wait for perfect information before deciding or struggle to move forward without complete clarity',
+            'Team progress stalls as opportunities pass and competitors gain advantage while you delay',
+            'Team members lose confidence in your ability to lead through ambiguity, reducing their willingness to take risks',
           ],
           overuse: [
             'You make decisions without gathering available information',
@@ -611,9 +611,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You make decisions without considering broader impact',
-            'Stakeholders are surprised or negatively affected by your decisions',
-            'You focus only on immediate outcomes',
+            'You make decisions without considering broader impact or focus only on immediate outcomes',
+            'Stakeholder relationships deteriorate as people feel excluded and resist your decisions, creating roadblocks',
+            'Team alignment breaks down as different groups are negatively impacted, leading to conflict and reduced collaboration',
           ],
           overuse: [
             'You try to please everyone, leading to weak decisions',
@@ -664,9 +664,9 @@ const CORE_TRAITS = [
         ],
         riskSignals: {
           underuse: [
-            'You don\'t reflect on decision outcomes',
-            'You repeat the same decision-making mistakes',
-            'You can\'t explain why decisions succeeded or failed',
+            'You don\'t reflect on decision outcomes or can\'t explain why decisions succeeded or failed',
+            'Team performance stagnates as the same mistakes are repeated and decision quality doesn\'t improve',
+            'Team trust erodes as members see patterns of poor judgment that could have been prevented with reflection',
           ],
           overuse: [
             'You over-analyze past decisions to the point of inaction',
