@@ -67,8 +67,80 @@ function Summary() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [userName, setUserName] = useState('');
+  const [focusAreas, setFocusAreas] = useState([]);
 
-  // Load user name and AI campaign from localStorage
+  // Generate focus areas function (defined outside useEffect to avoid recreation)
+  const generateAndSetFocusAreas = () => {
+    const CORE_TRAITS = traitSystem.CORE_TRAITS || [];
+    const generatedAreas = [];
+    const selectedTraitIndices = new Set();
+    const maxAttempts = 50;
+    let attempts = 0;
+    
+    // Select 5 unique trait/sub-trait combinations
+    while (generatedAreas.length < 5 && attempts < maxAttempts) {
+      attempts++;
+      
+      // Pick a random trait
+      const traitIndex = Math.floor(Math.random() * CORE_TRAITS.length);
+      
+      // Skip if we've already used this trait (unless we've used all traits)
+      if (selectedTraitIndices.has(traitIndex) && selectedTraitIndices.size < CORE_TRAITS.length) {
+        continue;
+      }
+      
+      selectedTraitIndices.add(traitIndex);
+      const trait = CORE_TRAITS[traitIndex];
+      
+      // Skip if trait has no sub-traits
+      if (!trait.subTraits || trait.subTraits.length === 0) {
+        selectedTraitIndices.delete(traitIndex);
+        continue;
+      }
+      
+      // Pick a random sub-trait
+      const subTraitIndex = Math.floor(Math.random() * trait.subTraits.length);
+      const subTrait = trait.subTraits[subTraitIndex];
+      
+      // Get example from strength signals and risk from risk signals
+      const example = subTrait.strengthSignals && subTrait.strengthSignals.length > 0
+        ? subTrait.strengthSignals[0]
+        : subTrait.shortDescription;
+      
+      const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
+        ? subTrait.riskSignals.underuse[0]
+        : `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities for leadership development.`;
+      
+      generatedAreas.push({
+        id: `${trait.id}-${subTrait.id}`,
+        traitName: trait.name,
+        subTraitName: subTrait.name,
+        example: example,
+        risk: risk,
+      });
+    }
+    
+    // If we don't have 5, fill with defaults
+    while (generatedAreas.length < 5) {
+      const trait = CORE_TRAITS[generatedAreas.length % CORE_TRAITS.length];
+      if (trait.subTraits && trait.subTraits.length > 0) {
+        const subTrait = trait.subTraits[0];
+        generatedAreas.push({
+          id: `${trait.id}-${subTrait.id}-${generatedAreas.length}`,
+          traitName: trait.name,
+          subTraitName: subTrait.name,
+          example: subTrait.strengthSignals?.[0] || subTrait.shortDescription,
+          risk: subTrait.riskSignals?.underuse?.[0] || `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities.`,
+        });
+      }
+    }
+    
+    const finalAreas = generatedAreas.slice(0, 5);
+    setFocusAreas(finalAreas);
+    localStorage.setItem('focusAreas', JSON.stringify(finalAreas));
+  };
+
+  // Load user name, AI campaign, and focus areas from localStorage
   useEffect(() => {
     try {
       const savedUserInfo = localStorage.getItem('userInfo');
@@ -87,9 +159,29 @@ function Summary() {
           console.warn('Could not parse saved campaign:', err);
         }
       }
+      
+      // Load or generate focus areas
+      const storedFocusAreas = localStorage.getItem('focusAreas');
+      if (storedFocusAreas) {
+        try {
+          const parsed = JSON.parse(storedFocusAreas);
+          if (Array.isArray(parsed) && parsed.length === 5) {
+            setFocusAreas(parsed);
+          } else {
+            generateAndSetFocusAreas();
+          }
+        } catch (e) {
+          console.warn('Failed to parse focusAreas from localStorage:', e);
+          generateAndSetFocusAreas();
+        }
+      } else {
+        generateAndSetFocusAreas();
+      }
     } catch (err) {
       console.warn('Could not load user info:', err);
+      generateAndSetFocusAreas();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // quotes + simple animation rotation (kept from prior UX)
@@ -793,83 +885,7 @@ function Summary() {
               </Typography>
 
               <Stack spacing={2}>
-                {(() => {
-                  // Use trait system
-                  const CORE_TRAITS = traitSystem.CORE_TRAITS || [];
-                  
-                  // Generate 5 focus areas from trait system
-                  // For now, select diverse traits and sub-traits
-                  // In the future, this could be AI-driven based on assessment
-                  const generateFocusAreas = () => {
-                    const focusAreas = [];
-                    const selectedTraitIndices = new Set();
-                    const maxAttempts = 50; // Prevent infinite loops
-                    let attempts = 0;
-                    
-                    // Select 5 unique trait/sub-trait combinations
-                    while (focusAreas.length < 5 && attempts < maxAttempts) {
-                      attempts++;
-                      
-                      // Pick a random trait
-                      const traitIndex = Math.floor(Math.random() * CORE_TRAITS.length);
-                      
-                      // Skip if we've already used this trait (unless we've used all traits)
-                      if (selectedTraitIndices.has(traitIndex) && selectedTraitIndices.size < CORE_TRAITS.length) {
-                        continue;
-                      }
-                      
-                      selectedTraitIndices.add(traitIndex);
-                      const trait = CORE_TRAITS[traitIndex];
-                      
-                      // Skip if trait has no sub-traits
-                      if (!trait.subTraits || trait.subTraits.length === 0) {
-                        selectedTraitIndices.delete(traitIndex);
-                        continue;
-                      }
-                      
-                      // Pick a random sub-trait
-                      const subTraitIndex = Math.floor(Math.random() * trait.subTraits.length);
-                      const subTrait = trait.subTraits[subTraitIndex];
-                      
-                      // Get example from strength signals and risk from risk signals
-                      const example = subTrait.strengthSignals && subTrait.strengthSignals.length > 0
-                        ? subTrait.strengthSignals[0]
-                        : subTrait.shortDescription;
-                      
-                      const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
-                        ? subTrait.riskSignals.underuse[0]
-                        : `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities for leadership development.`;
-                      
-                      focusAreas.push({
-                        id: `${trait.id}-${subTrait.id}`,
-                        traitName: trait.name,
-                        subTraitName: subTrait.name,
-                        example: example,
-                        risk: risk,
-                      });
-                    }
-                    
-                    // If we don't have 5, fill with defaults
-                    while (focusAreas.length < 5) {
-                      const trait = CORE_TRAITS[focusAreas.length % CORE_TRAITS.length];
-                      if (trait.subTraits && trait.subTraits.length > 0) {
-                        const subTrait = trait.subTraits[0];
-                        focusAreas.push({
-                          id: `${trait.id}-${subTrait.id}-${focusAreas.length}`,
-                          traitName: trait.name,
-                          subTraitName: subTrait.name,
-                          example: subTrait.strengthSignals?.[0] || subTrait.shortDescription,
-                          risk: subTrait.riskSignals?.underuse?.[0] || `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities.`,
-                        });
-                      }
-                    }
-                    
-                    return focusAreas.slice(0, 5); // Ensure exactly 5
-                  };
-                  
-                  const focusAreas = generateFocusAreas();
-                  
-                  return focusAreas.map((focusArea) => {
+                {focusAreas.length > 0 ? focusAreas.map((focusArea) => {
                     const isSelected = selectedTraits.includes(focusArea.id);
                     const isDisabled = !isSelected && selectedTraits.length >= 3;
 
@@ -1058,8 +1074,13 @@ function Summary() {
                         </Box>
                       </Paper>
                     );
-                  });
-                })()}
+                  }) : (
+                    <Box sx={{ textAlign: 'center', p: 4 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', color: 'text.secondary' }}>
+                        Loading focus areas...
+                      </Typography>
+                    </Box>
+                  )}
               </Stack>
 
               {/* Selection Counter and Continue Button */}
