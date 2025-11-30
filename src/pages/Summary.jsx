@@ -111,12 +111,22 @@ function Summary() {
         ? subTrait.riskSignals.underuse[0]
         : `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities for leadership development.`;
       
+      // Get impact - the positive effect of meaningful growth/improvement
+      const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} will create positive ripple effects across your team, enhancing collaboration, trust, and overall performance.`;
+      
+      // Get definitions
+      const traitDefinition = trait.definition || trait.description;
+      const subTraitDefinition = subTrait.definition || subTrait.shortDescription;
+      
       generatedAreas.push({
         id: `${trait.id}-${subTrait.id}`,
         traitName: trait.name,
+        traitDefinition: traitDefinition,
         subTraitName: subTrait.name,
+        subTraitDefinition: subTraitDefinition,
         example: example,
         risk: risk,
+        impact: impact,
       });
     }
     
@@ -125,12 +135,19 @@ function Summary() {
       const trait = CORE_TRAITS[generatedAreas.length % CORE_TRAITS.length];
       if (trait.subTraits && trait.subTraits.length > 0) {
         const subTrait = trait.subTraits[0];
+        const traitDef = trait.definition || trait.description;
+        const subTraitDef = subTrait.definition || subTrait.shortDescription;
+        const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} will create positive ripple effects across your team, enhancing collaboration, trust, and overall performance.`;
+        
         generatedAreas.push({
           id: `${trait.id}-${subTrait.id}-${generatedAreas.length}`,
           traitName: trait.name,
+          traitDefinition: traitDef,
           subTraitName: subTrait.name,
+          subTraitDefinition: subTraitDef,
           example: subTrait.strengthSignals?.[0] || subTrait.shortDescription,
           risk: subTrait.riskSignals?.underuse?.[0] || `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities.`,
+          impact: impact,
         });
       }
     }
@@ -929,30 +946,22 @@ function Summary() {
                           },
                         }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '120px' }}>
-                          {/* Left Third: Trait Name with Checkbox */}
+                        <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '140px' }}>
+                          {/* Left Third: Trait Name - Centered */}
                           <Box
                             sx={{
                               width: '33.33%',
                               display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'center',
                               alignItems: 'center',
+                              textAlign: 'center',
                               p: 2.5,
                               borderRight: '2px solid',
                               borderColor: 'divider',
                               bgcolor: isSelected ? 'rgba(224,122,63,0.05)' : 'transparent',
                             }}
                           >
-                            <Checkbox
-                              checked={isSelected}
-                              disabled={isDisabled}
-                              sx={{
-                                color: 'primary.main',
-                                mr: 1.5,
-                                '&.Mui-checked': {
-                                  color: 'primary.main',
-                                },
-                              }}
-                            />
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
@@ -960,18 +969,35 @@ function Summary() {
                                 fontWeight: 700,
                                 color: 'primary.main',
                                 lineHeight: 1.3,
+                                mb: 0.5,
                               }}
                             >
                               {focusArea.traitName}
                             </Typography>
+                            {focusArea.traitDefinition && (
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.75rem',
+                                  fontStyle: 'italic',
+                                  color: 'text.secondary',
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {focusArea.traitDefinition}
+                              </Typography>
+                            )}
                           </Box>
 
-                          {/* Middle Third: Sub-Trait Name */}
+                          {/* Middle Third: Sub-Trait Name - Centered */}
                           <Box
                             sx={{
                               width: '33.33%',
                               display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'center',
                               alignItems: 'center',
+                              textAlign: 'center',
                               p: 2.5,
                               borderRight: '2px solid',
                               borderColor: 'divider',
@@ -985,92 +1011,145 @@ function Summary() {
                                 fontWeight: 600,
                                 color: 'secondary.main',
                                 lineHeight: 1.3,
+                                mb: 0.5,
                               }}
                             >
                               {focusArea.subTraitName}
                             </Typography>
+                            {focusArea.subTraitDefinition && (
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.7rem',
+                                  fontStyle: 'italic',
+                                  color: 'text.secondary',
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {focusArea.subTraitDefinition}
+                              </Typography>
+                            )}
                           </Box>
 
-                          {/* Right Third: Example and Risk (each 50% of this third) */}
-                          <Box sx={{ width: '33.33%', display: 'flex' }}>
-                            {/* Example - Left Half of Right Third */}
+                          {/* Right Third: Conditional - Example/Risk when unselected, Impact when selected */}
+                          {isSelected ? (
+                            /* Impact - Full Right Third when Selected */
                             <Box
                               sx={{
-                                width: '50%',
-                                p: 2,
-                                borderRight: '1px solid',
-                                borderColor: 'rgba(0,0,0,0.1)',
+                                width: '33.33%',
+                                p: 2.5,
                                 display: 'flex',
                                 flexDirection: 'column',
-                                bgcolor: 'primary.main',
-                                background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
+                                bgcolor: '#457089',
+                                background: 'linear-gradient(135deg, #457089, #375d78)',
                               }}
                             >
-                              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                                <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
-                                <Typography
-                                  sx={{
-                                    fontFamily: 'Gemunu Libre, sans-serif',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 700,
-                                    color: 'white',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
-                                  }}
-                                >
-                                  Example
-                                </Typography>
-                              </Stack>
                               <Typography
                                 sx={{
                                   fontFamily: 'Gemunu Libre, sans-serif',
                                   fontSize: '0.75rem',
+                                  fontWeight: 700,
                                   color: 'white',
-                                  lineHeight: 1.4,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px',
+                                  mb: 1.5,
                                 }}
                               >
-                                {focusArea.example}
+                                Impact
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.85rem',
+                                  color: 'white',
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                {focusArea.impact}
                               </Typography>
                             </Box>
-
-                            {/* Risk - Right Half of Right Third */}
-                            <Box
-                              sx={{
-                                width: '50%',
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                bgcolor: 'warning.main',
-                                background: 'linear-gradient(135deg, #ED6C02, #D84315)',
-                              }}
-                            >
-                              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                                <Warning sx={{ color: 'white', fontSize: 16 }} />
+                          ) : (
+                            /* Example and Risk - Split when Unselected */
+                            <Box sx={{ width: '33.33%', display: 'flex' }}>
+                              {/* Example - Left Half of Right Third */}
+                              <Box
+                                sx={{
+                                  width: '50%',
+                                  p: 2,
+                                  borderRight: '1px solid',
+                                  borderColor: 'rgba(0,0,0,0.1)',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  bgcolor: 'primary.main',
+                                  background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
+                                }}
+                              >
+                                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                                  <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
+                                  <Typography
+                                    sx={{
+                                      fontFamily: 'Gemunu Libre, sans-serif',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 700,
+                                      color: 'white',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px',
+                                    }}
+                                  >
+                                    Example
+                                  </Typography>
+                                </Stack>
                                 <Typography
                                   sx={{
                                     fontFamily: 'Gemunu Libre, sans-serif',
                                     fontSize: '0.75rem',
-                                    fontWeight: 700,
                                     color: 'white',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.5px',
+                                    lineHeight: 1.4,
                                   }}
                                 >
-                                  Risk
+                                  {focusArea.example}
                                 </Typography>
-                              </Stack>
-                              <Typography
+                              </Box>
+
+                              {/* Risk - Right Half of Right Third */}
+                              <Box
                                 sx={{
-                                  fontFamily: 'Gemunu Libre, sans-serif',
-                                  fontSize: '0.75rem',
-                                  color: 'white',
-                                  lineHeight: 1.4,
+                                  width: '50%',
+                                  p: 2,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  bgcolor: 'warning.main',
+                                  background: 'linear-gradient(135deg, #ED6C02, #D84315)',
                                 }}
                               >
-                                {focusArea.risk}
-                              </Typography>
+                                <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                                  <Warning sx={{ color: 'white', fontSize: 16 }} />
+                                  <Typography
+                                    sx={{
+                                      fontFamily: 'Gemunu Libre, sans-serif',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 700,
+                                      color: 'white',
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px',
+                                    }}
+                                  >
+                                    Risk
+                                  </Typography>
+                                </Stack>
+                                <Typography
+                                  sx={{
+                                    fontFamily: 'Gemunu Libre, sans-serif',
+                                    fontSize: '0.75rem',
+                                    color: 'white',
+                                    lineHeight: 1.4,
+                                  }}
+                                >
+                                  {focusArea.risk}
+                                </Typography>
+                              </Box>
                             </Box>
-                          </Box>
+                          )}
                         </Box>
                       </Paper>
                     );

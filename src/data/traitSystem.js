@@ -57,11 +57,13 @@ const CORE_TRAITS = [
     id: 'communication',
     name: 'Communication',
     description: 'The ability to convey ideas, listen effectively, and adapt messaging to different audiences.',
+    definition: 'Communication is the foundation of effective leadership, enabling you to align your team, share vision, and build trust through clear, authentic, and adaptive messaging.',
     subTraits: [
       {
         id: 'clarity',
         name: 'Clarity',
         shortDescription: 'Expressing ideas in clear, understandable terms',
+        definition: 'The ability to break down complex concepts into simple, digestible messages.',
         longDescription: 'The ability to break down complex concepts into simple, digestible messages that resonate with your audience. Strong clarity means your team understands expectations, priorities, and direction without confusion.',
         strengthSignals: [
           'Team members rarely ask for clarification on your instructions',
@@ -102,6 +104,7 @@ const CORE_TRAITS = [
             'Establish regular feedback loops to assess message clarity',
           ],
         },
+        impact: 'When clarity is strong, your team moves with confidence and alignment. Misunderstandings decrease, execution improves, and team members feel empowered because they know exactly what\'s expected. This creates a culture of efficiency where time isn\'t wasted on clarification and rework.',
         toneTags: {
           // How tone shifts based on agent selection
           default: 'Clear and direct communication',
@@ -114,6 +117,7 @@ const CORE_TRAITS = [
         id: 'brevity',
         name: 'Brevity',
         shortDescription: 'Conveying essential information concisely',
+        definition: 'Distilling messages to their core essence without losing critical information.',
         longDescription: 'The skill of distilling messages to their core essence without losing critical information. Effective brevity respects others\' time while ensuring nothing important is missed.',
         strengthSignals: [
           'Your emails are consistently under 5 sentences for routine matters',
@@ -154,6 +158,7 @@ const CORE_TRAITS = [
             'Regularly audit your communication patterns for efficiency',
           ],
         },
+        impact: 'When brevity is mastered, your team saves time, stays focused, and acts faster. Meetings become more productive, decisions happen quicker, and your team appreciates your respect for their time. This efficiency creates momentum and reduces communication fatigue.',
         toneTags: {
           default: 'Concise and focused',
           bluntPracticalFriend: 'Get to the point. Fast.',
@@ -205,6 +210,7 @@ const CORE_TRAITS = [
             'Study the communication styles of leaders you find influential',
           ],
         },
+        impact: 'When influence is strong, your team moves in alignment without coercion. Initiatives gain momentum, ideas spread organically, and your team feels ownership because they chose to follow, not because they were told. This creates a culture of engagement where people are motivated by shared purpose, not just compliance.',
         toneTags: {
           default: 'Persuasive and inspiring',
           bluntPracticalFriend: 'Make the case. Get alignment.',
@@ -216,6 +222,7 @@ const CORE_TRAITS = [
         id: 'listening',
         name: 'Listening',
         shortDescription: 'Actively hearing and understanding others',
+        definition: 'Fully engaging with what others are saying, understanding intent, emotion, and context.',
         longDescription: 'The practice of fully engaging with what others are saying, both verbally and non-verbally. Strong listening means you understand not just words, but intent, emotion, and context.',
         strengthSignals: [
           'Team members seek you out to discuss ideas or concerns',
@@ -256,6 +263,7 @@ const CORE_TRAITS = [
             'Model listening behavior in team meetings by asking others to speak first',
           ],
         },
+        impact: 'When listening is strong, your team feels valued and understood. They share more openly, offer better ideas, and trust increases because they know you hear them. This creates a culture of psychological safety where people contribute fully, leading to better decisions and stronger team cohesion.',
         toneTags: {
           default: 'Attentive and understanding',
           bluntPracticalFriend: 'Listen to understand, not to respond',
@@ -267,6 +275,7 @@ const CORE_TRAITS = [
         id: 'empathy',
         name: 'Empathy',
         shortDescription: 'Understanding and acknowledging others\' perspectives and feelings',
+        definition: 'Recognizing, understanding, and responding to the emotions and experiences of others.',
         longDescription: 'The capacity to recognize, understand, and respond to the emotions and experiences of others. Strong empathy helps you connect with your team on a human level.',
         strengthSignals: [
           'You can sense when team members are struggling before they say so',
@@ -307,6 +316,7 @@ const CORE_TRAITS = [
             'Balance empathy with accountability in performance management',
           ],
         },
+        impact: 'When empathy is strong, your team feels seen and supported. They bring their whole selves to work, share challenges openly, and trust that you understand their experience. This creates deeper connections, reduces conflict, and enables you to make decisions that honor both people and performance.',
         toneTags: {
           default: 'Understanding and compassionate',
           bluntPracticalFriend: 'Get where they\'re coming from. Then move forward.',
@@ -318,6 +328,7 @@ const CORE_TRAITS = [
         id: 'audienceAdaptability',
         name: 'Audience Adaptability',
         shortDescription: 'Adjusting communication style to different audiences',
+        definition: 'Recognizing different communication needs and adapting your approach accordingly.',
         longDescription: 'The ability to recognize different communication needs and adapt your approach accordingly. Strong adaptability means you can effectively communicate with executives, peers, direct reports, and external stakeholders.',
         strengthSignals: [
           'You adjust your communication style based on who you\'re talking to',
@@ -358,6 +369,7 @@ const CORE_TRAITS = [
             'Build relationships across different organizational levels',
           ],
         },
+        impact: 'When audience adaptability is strong, your messages resonate across all levels of the organization. Executives trust your judgment, peers collaborate effectively, and your team feels understood. This creates alignment and buy-in regardless of who you\'re communicating with, accelerating decision-making and execution.',
         toneTags: {
           default: 'Flexible and context-aware',
           bluntPracticalFriend: 'Know your audience. Adjust. Deliver.',
@@ -369,6 +381,7 @@ const CORE_TRAITS = [
         id: 'executivePresence',
         name: 'Executive Presence',
         shortDescription: 'Commanding respect and attention through presence',
+        definition: 'Projecting confidence, competence, and credibility in professional settings.',
         longDescription: 'The ability to project confidence, competence, and credibility in professional settings. Strong executive presence means others take you seriously and trust your judgment.',
         strengthSignals: [
           'You command attention when you speak in meetings',
@@ -409,6 +422,7 @@ const CORE_TRAITS = [
             'Build a track record of delivering on commitments',
           ],
         },
+        impact: 'When executive presence is strong, your ideas get the consideration they deserve. Senior leaders seek your input, your team trusts your judgment, and you can drive initiatives forward with credibility. This opens doors to opportunities, accelerates your influence, and positions you as a leader others want to follow.',
         toneTags: {
           default: 'Confident and credible',
           bluntPracticalFriend: 'Show up. Own the room. Execute.',
@@ -422,11 +436,13 @@ const CORE_TRAITS = [
     id: 'decisionMaking',
     name: 'Decision-Making & Judgment',
     description: 'The ability to make sound decisions efficiently, balancing analysis with action.',
+    definition: 'Making sound decisions efficiently by balancing analysis with action, considering stakeholders, and learning from outcomes.',
     subTraits: [
       {
         id: 'speed',
         name: 'Decision Speed',
         shortDescription: 'Making timely decisions without unnecessary delay',
+        definition: 'Gathering necessary information and making decisions quickly enough to maintain momentum.',
         longDescription: 'The ability to gather necessary information and make decisions quickly enough to maintain momentum, without rushing into poor choices.',
         strengthSignals: [
           'You make decisions in a timeframe that keeps projects moving',
@@ -467,6 +483,7 @@ const CORE_TRAITS = [
             'Create a culture where good decisions are rewarded, even if outcomes vary',
           ],
         },
+        impact: 'When decision speed is strong, your team maintains momentum and seizes opportunities. Projects move forward without delays, team members don\'t wait unnecessarily, and you can respond quickly to changing circumstances. This creates a culture of action where progress happens consistently.',
         toneTags: {
           default: 'Timely and decisive',
           bluntPracticalFriend: 'Decide. Move. Iterate.',
@@ -478,6 +495,7 @@ const CORE_TRAITS = [
         id: 'quality',
         name: 'Decision Quality',
         shortDescription: 'Making well-reasoned, effective decisions',
+        definition: 'Considering relevant factors, weighing options, and choosing paths that lead to positive outcomes.',
         longDescription: 'The ability to consider relevant factors, weigh options, and choose paths that lead to positive outcomes. Strong decision quality means your choices consistently produce good results.',
         strengthSignals: [
           'Your decisions lead to positive outcomes more often than not',
@@ -518,6 +536,7 @@ const CORE_TRAITS = [
             'Develop expertise in areas where you make frequent decisions',
           ],
         },
+        impact: 'When decision quality is strong, your choices consistently lead to positive outcomes. Your team trusts your judgment, initiatives succeed more often, and you build a track record of sound decision-making. This creates confidence in your leadership and enables the organization to move forward with certainty.',
         toneTags: {
           default: 'Sound and well-reasoned',
           bluntPracticalFriend: 'Make the call. Own the outcome.',
@@ -529,6 +548,7 @@ const CORE_TRAITS = [
         id: 'underUncertainty',
         name: 'Decision-Making Under Uncertainty',
         shortDescription: 'Making effective decisions with incomplete information',
+        definition: 'Moving forward confidently when you don\'t have all the facts, making progress without perfect clarity.',
         longDescription: 'The ability to move forward confidently when you don\'t have all the facts. Strong uncertainty management means you can make progress without perfect clarity.',
         strengthSignals: [
           'You can make progress even when information is incomplete',
@@ -569,6 +589,7 @@ const CORE_TRAITS = [
             'Create a culture that accepts "good enough" decisions',
           ],
         },
+        impact: 'When you handle uncertainty well, your team can move forward even in ambiguous situations. You don\'t get paralyzed by incomplete information, you adapt as new data emerges, and you create momentum when others would stall. This enables your organization to seize opportunities and navigate change effectively.',
         toneTags: {
           default: 'Comfortable with ambiguity',
           bluntPracticalFriend: 'Uncertainty is normal. Decide anyway.',
@@ -580,6 +601,7 @@ const CORE_TRAITS = [
         id: 'stakeholderConsideration',
         name: 'Stakeholder Consideration',
         shortDescription: 'Considering impact on all affected parties',
+        definition: 'Understanding how decisions affect different stakeholders and balancing competing interests.',
         longDescription: 'The ability to understand how decisions affect different stakeholders and balance competing interests. Strong stakeholder consideration means decisions account for broader impact.',
         strengthSignals: [
           'You consider how decisions affect different groups',
@@ -620,6 +642,7 @@ const CORE_TRAITS = [
             'Develop skills in negotiation and compromise',
           ],
         },
+        impact: 'When stakeholder consideration is strong, your decisions account for broader impact and gain broader support. Stakeholders feel heard, resistance decreases, and initiatives succeed because they consider all affected parties. This builds trust, reduces conflict, and creates sustainable solutions.',
         toneTags: {
           default: 'Considerate of all parties',
           bluntPracticalFriend: 'Consider stakeholders. Then decide.',
@@ -631,6 +654,7 @@ const CORE_TRAITS = [
         id: 'learningFromOutcomes',
         name: 'Learning from Outcomes',
         shortDescription: 'Reflecting on and improving decision-making based on results',
+        definition: 'Reviewing decisions, understanding what worked and what didn\'t, and applying learnings to future choices.',
         longDescription: 'The practice of reviewing decisions, understanding what worked and what didn\'t, and applying those learnings to future choices. Strong learning means you continuously improve your judgment.',
         strengthSignals: [
           'You regularly review past decisions to understand outcomes',
@@ -671,6 +695,7 @@ const CORE_TRAITS = [
             'Develop decision-making frameworks based on experience',
           ],
         },
+        impact: 'When you learn from outcomes, your decision-making improves over time. You avoid repeating mistakes, you build better judgment, and you create a culture of continuous improvement. This accelerates your growth as a leader and enables your team to benefit from your increasing wisdom.',
         toneTags: {
           default: 'Reflective and adaptive',
           bluntPracticalFriend: 'Review. Learn. Improve.',
