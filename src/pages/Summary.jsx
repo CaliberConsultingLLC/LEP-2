@@ -16,7 +16,7 @@ import {
   Paper,
   Divider,
 } from '@mui/material';
-import { Person, Warning, Lightbulb, ExpandMore, CheckCircle } from '@mui/icons-material';
+import { Person, Warning, Lightbulb, ExpandMore, CheckCircle, TrendingUp } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import traitSystem from '../data/traitSystem';
 
@@ -102,14 +102,17 @@ function Summary() {
       const subTraitIndex = Math.floor(Math.random() * trait.subTraits.length);
       const subTrait = trait.subTraits[subTraitIndex];
       
-      // Get example from strength signals and risk from risk signals
-      const example = subTrait.strengthSignals && subTrait.strengthSignals.length > 0
-        ? subTrait.strengthSignals[0]
-        : subTrait.shortDescription;
-      
-      const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
+      // Get example from underuse signals (shows what struggling looks like)
+      const example = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
         ? subTrait.riskSignals.underuse[0]
-        : `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities for leadership development.`;
+        : `Struggling with ${subTrait.name.toLowerCase()} manifests in unclear communication and missed opportunities.`;
+      
+      // Get risk - should be outcome-based (team/performance outcomes)
+      const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 1
+        ? subTrait.riskSignals.underuse[1] // Use second underuse signal for outcome
+        : subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
+        ? subTrait.riskSignals.underuse[0] // Fallback to first if only one exists
+        : `Team performance suffers, trust erodes, and critical opportunities are missed when ${subTrait.name.toLowerCase()} is not addressed.`;
       
       // Get impact - the positive effect of meaningful growth/improvement
       const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} will create positive ripple effects across your team, enhancing collaboration, trust, and overall performance.`;
@@ -139,14 +142,26 @@ function Summary() {
         const subTraitDef = subTrait.definition || subTrait.shortDescription;
         const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} will create positive ripple effects across your team, enhancing collaboration, trust, and overall performance.`;
         
+        // Get example from underuse signals (shows what struggling looks like)
+        const example = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
+          ? subTrait.riskSignals.underuse[0]
+          : `Struggling with ${subTrait.name.toLowerCase()} manifests in unclear communication and missed opportunities.`;
+        
+        // Get risk - should be outcome-based (team/performance outcomes)
+        const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 1
+          ? subTrait.riskSignals.underuse[1] // Use second underuse signal for outcome
+          : subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
+          ? subTrait.riskSignals.underuse[0] // Fallback to first if only one exists
+          : `Team performance suffers, trust erodes, and critical opportunities are missed when ${subTrait.name.toLowerCase()} is not addressed.`;
+        
         generatedAreas.push({
           id: `${trait.id}-${subTrait.id}-${generatedAreas.length}`,
           traitName: trait.name,
           traitDefinition: traitDef,
           subTraitName: subTrait.name,
           subTraitDefinition: subTraitDef,
-          example: subTrait.strengthSignals?.[0] || subTrait.shortDescription,
-          risk: subTrait.riskSignals?.underuse?.[0] || `Without addressing ${subTrait.name.toLowerCase()}, you may miss critical opportunities.`,
+          example: example,
+          risk: risk,
           impact: impact,
         });
       }
@@ -923,10 +938,10 @@ function Summary() {
                         }}
                         sx={{
                           cursor: isDisabled ? 'not-allowed' : 'pointer',
-                          border: isSelected ? '2px solid #E07A3F' : '2px solid rgba(255,255,255,0.2)',
+                          border: isSelected ? '2px solid #2d4a5a' : '2px solid rgba(255,255,255,0.2)',
                           borderRadius: 3,
                           boxShadow: isSelected 
-                            ? '0 8px 24px rgba(224,122,63,0.35)' 
+                            ? '0 8px 24px rgba(45,74,90,0.35)' 
                             : '0 4px 16px rgba(0,0,0,0.1)',
                           bgcolor: isSelected 
                             ? 'rgba(255,255,255,0.98)' 
@@ -941,8 +956,8 @@ function Summary() {
                             transform: isDisabled ? 'none' : 'translateY(-3px)',
                             boxShadow: isDisabled 
                               ? '0 4px 16px rgba(0,0,0,0.1)' 
-                              : '0 12px 32px rgba(224,122,63,0.25)',
-                            borderColor: isDisabled ? 'rgba(255,255,255,0.2)' : '#E07A3F',
+                              : '0 12px 32px rgba(45,74,90,0.25)',
+                            borderColor: isDisabled ? 'rgba(255,255,255,0.2)' : (isSelected ? '#2d4a5a' : '#E07A3F'),
                           },
                         }}
                       >
@@ -1033,36 +1048,38 @@ function Summary() {
 
                           {/* Right Third: Conditional - Example/Risk when unselected, Impact when selected */}
                           {isSelected ? (
-                            /* Impact - Full Right Third when Selected */
+                            /* Impact - Full Right Third when Selected (same width as Example + Risk combined) */
                             <Box
                               sx={{
                                 width: '33.33%',
-                                p: 2.5,
+                                p: 2,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 bgcolor: '#457089',
                                 background: 'linear-gradient(135deg, #457089, #375d78)',
                               }}
                             >
+                              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                                <TrendingUp sx={{ color: 'white', fontSize: 16 }} />
+                                <Typography
+                                  sx={{
+                                    fontFamily: 'Gemunu Libre, sans-serif',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    color: 'white',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.5px',
+                                  }}
+                                >
+                                  Impact
+                                </Typography>
+                              </Stack>
                               <Typography
                                 sx={{
                                   fontFamily: 'Gemunu Libre, sans-serif',
                                   fontSize: '0.75rem',
-                                  fontWeight: 700,
                                   color: 'white',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.5px',
-                                  mb: 1.5,
-                                }}
-                              >
-                                Impact
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontFamily: 'Gemunu Libre, sans-serif',
-                                  fontSize: '0.85rem',
-                                  color: 'white',
-                                  lineHeight: 1.5,
+                                  lineHeight: 1.4,
                                 }}
                               >
                                 {focusArea.impact}
