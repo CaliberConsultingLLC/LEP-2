@@ -45,21 +45,33 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {};
-    const { aiSummary, sessionId } = body;
+    const { aiSummary, sessionId, selectedTraits } = body;
 
     // Input validation: aiSummary must be a non-empty string
     if (!aiSummary || typeof aiSummary !== 'string' || !aiSummary.trim()) {
       return res.status(400).json({ error: 'Missing or invalid aiSummary in request body (must be non-empty string)', sessionId: sessionId || null });
     }
 
+    // Input validation: selectedTraits must be an array of 3 trait IDs
+    if (!Array.isArray(selectedTraits) || selectedTraits.length !== 3) {
+      return res.status(400).json({ error: 'Missing or invalid selectedTraits (must be array of 3 trait IDs)' });
+    }
+
+    // Parse selected trait IDs to get trait and sub-trait names
+    // Format: "communication-clarity" or "decisionMaking-speed"
+    // We'll pass these to the AI to generate statements for these specific traits
+    const traitInfo = selectedTraits.map((traitId) => {
+      const parts = traitId.split('-');
+      const coreTraitId = parts[0];
+      const subTraitId = parts.slice(1).join('-'); // Handle multi-part sub-trait IDs
+      return { coreTraitId, subTraitId, fullId: traitId };
+    });
+
     const systemPrompt = `
 You are the Compass Campaign Builder Agent.
-Translate a leader's 4-paragraph summary into a focused growth campaign.
+Generate measurable team-facing survey statements for specific leadership traits/sub-traits.
 
-The summary follows this structure:
-- Paragraph 1: Your Leadership Foundation (use as context, not the main source of traits)
-- Paragraphs 2 and 3: Areas for Growth (Part 1 and Part 2) — PRIMARY SOURCE for traits and statements
-- Paragraph 4: Trajectory (use to sharpen stakes and consequences; traits should reduce the risks highlighted)
+The user has selected 3 specific leadership focus areas. For each, you must generate 5 concrete, observable statements that their team can rate using a dual-axis system (Effort vs. Efficacy).
 
 OUTPUT FORMAT (strict JSON):
 {
@@ -71,28 +83,38 @@ OUTPUT FORMAT (strict JSON):
 }
 
 CONSTRAINTS:
-- Exactly THREE distinct traits/themes (no more, no less).
-- For EACH trait, provide FIVE concise, non-redundant statements (actions, behaviors, or practices).
-- Statements must be concrete and observable; avoid vague platitudes.
-- Keep statements ≤ 140 chars each; no numbering, no markdown bullets.
-- Keep trait names short (2–4 words), actionable, and non-jargony.
-- All trait names and statements must be directly connected to patterns and risks implied by the Growth + Trajectory sections.
-- Avoid inventing generic leadership traits not grounded in the summary.
+- Exactly THREE traits (matching the selected traits provided).
+- For EACH trait, provide FIVE concise, measurable statements.
+- Statements must be:
+  * Observable behaviors or actions the team can witness
+  * Measurable on a scale (team can rate how often/well the leader does this)
+  * Specific to the trait/sub-trait (not generic leadership advice)
+  * Written from the team's perspective (what they observe)
+  * ≤ 140 chars each; no numbering, no markdown bullets
+- Trait names should match the selected traits provided.
+- Statements should reflect what the team would actually see and be able to rate.
 - Do not include any text outside of the JSON object.
 `.trim();
 
     const userPrompt = `
-Here is the leader's 4-paragraph summary:
-- Paragraph 1: Your Leadership Foundation
-- Paragraphs 2-3: Areas for Growth (Part 1 and Part 2)
-- Paragraph 4: Trajectory
+The leader has selected these 3 specific focus areas (format: coreTrait-subTrait):
+${traitInfo.map((t, idx) => `${idx + 1}. ${t.fullId}`).join('\n')}
+
+Here is the leader's 4-paragraph summary for context:
 ---
 ${String(aiSummary).trim()}
 ---
+
 Task:
-- Derive 3 traits from the Growth paragraphs (2-3) that, if practiced, would most improve outcomes and reduce the risks highlighted in the Trajectory paragraph (4).
-- For each trait, produce 5 crisp, testable statements that can be shared with a team as norms/practices.
-- Ground all traits and statements in the specific patterns and risks described in the summary, not generic leadership advice.
+- Generate exactly 3 traits matching the selected focus areas above.
+- For each trait, create 5 team-facing survey statements that are:
+  * Observable behaviors the team can witness and rate
+  * Measurable on a dual-axis scale (Effort vs. Efficacy)
+  * Specific to the trait/sub-trait (e.g., for "communication-clarity": statements about clear communication)
+  * Written from the team's perspective (what they observe about the leader)
+  * Grounded in the leader's specific context from the summary
+- Example statements: "Clearly explains priorities in team meetings", "Listens actively before responding", "Makes decisions within agreed timeframes"
+- Trait names should reflect the core trait (e.g., "Communication", "Decision-Making", "Team Development")
 - Return ONLY the JSON described above.
 `.trim();
 
