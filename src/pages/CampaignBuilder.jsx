@@ -25,7 +25,7 @@ function CampaignBuilder() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dismissedStatements, setDismissedStatements] = useState([]);
-  const [showWelcomeDialog, setShowWelcomeDialog] = useState(!localStorage.getItem('campaignWelcomeDismissed'));
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
 
@@ -124,6 +124,10 @@ function CampaignBuilder() {
           // Expect exactly 3 traits with up to 5 statements each
           setCampaign(Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : []);
           setError(null);
+          // Show welcome dialog after campaign loads
+          if (!localStorage.getItem('campaignWelcomeDismissed')) {
+            setShowWelcomeDialog(true);
+          }
         }
       })
       .catch((err) => {
@@ -290,22 +294,19 @@ function CampaignBuilder() {
       <Container 
         maxWidth={false}
         sx={{ 
-          textAlign: 'center', 
           position: 'relative',
           px: { xs: 2, sm: 4 },
-          display: 'flex',
-          justifyContent: 'center',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 880 }}>
+        <Box sx={{ width: '100%', maxWidth: 880, mx: 'auto' }}>
         {isLoading ? (
           <Stack
             direction="column"
             alignItems="center"
-            spacing={3}
+            spacing={2}
             sx={{
               width: '100%',
-              py: 8,
+              py: 4,
             }}
           >
             <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
@@ -403,14 +404,14 @@ function CampaignBuilder() {
             </Button>
           </Box>
         ) : campaign ? (
-          <Box>
+          <>
             <Typography
               variant="h4"
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontWeight: 700,
                 color: 'white',
-                mb: 3,
+                mb: 2,
                 textAlign: 'center',
                 textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
@@ -420,7 +421,7 @@ function CampaignBuilder() {
             
             <Paper
               sx={{
-                p: 4,
+                p: 3,
                 border: '1px solid',
                 borderColor: 'rgba(255,255,255,0.14)',
                 borderRadius: 3,
@@ -436,7 +437,7 @@ function CampaignBuilder() {
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1rem',
-                mb: 4,
+                mb: 2,
                 color: 'text.primary',
                 textAlign: 'center',
               }}
@@ -447,7 +448,7 @@ function CampaignBuilder() {
               click "Rebuild my Growth Campaign" to refresh.
             </Typography>
 
-            <Stack spacing={4} sx={{ mb: 4 }}>
+            <Stack spacing={2} sx={{ mb: 2 }}>
               {(campaign || []).map((traitItem, traitIndex) => {
                 const statements = (Array.isArray(traitItem?.statements) ? traitItem.statements : [])
                   .map((s) => String(s || '').trim())
@@ -484,9 +485,9 @@ function CampaignBuilder() {
                     key={`trait-${traitIndex}`}
                     sx={{
                       p: 0,
-                      mb: 4,
+                      mb: 2,
                       border: '1px solid',
-                      borderColor: 'primary.main',
+                      borderColor: '#457089',
                       borderRadius: 3,
                       bgcolor: 'rgba(255,255,255,0.95)',
                       background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
@@ -495,7 +496,7 @@ function CampaignBuilder() {
                     }}
                   >
                     {/* Header matching Summary page style */}
-                    <Box sx={{ p: 2.5, bgcolor: 'primary.main', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+                    <Box sx={{ p: 2, bgcolor: '#457089', background: 'linear-gradient(135deg, #457089, #375d78)', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
                       <Typography
                         sx={{
                           fontFamily: 'Gemunu Libre, sans-serif',
@@ -523,8 +524,8 @@ function CampaignBuilder() {
                         </Typography>
                       )}
                     </Box>
-                    <Box sx={{ p: 2.5 }}>
-                      <Stack spacing={1}>
+                    <Box sx={{ p: 2 }}>
+                      <Stack spacing={0.75}>
                         {statements.map((stmt, sIdx) => (
                           <Box
                             key={`stmt-${sIdx}`}
@@ -572,7 +573,7 @@ function CampaignBuilder() {
               })}
             </Stack>
 
-            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2, mt: 4 }}>
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2, mt: 2 }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -595,7 +596,7 @@ function CampaignBuilder() {
               </Button>
             </Stack>
 
-            <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Box sx={{ textAlign: 'center', mt: 1.5 }}>
               <Button
                 variant="outlined"
                 color="primary"
@@ -606,7 +607,7 @@ function CampaignBuilder() {
               </Button>
             </Box>
             </Paper>
-          </Box>
+          </>
         ) : (
           <Typography
             sx={{
