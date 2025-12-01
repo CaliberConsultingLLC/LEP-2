@@ -43,24 +43,95 @@ function CampaignBuilder() {
   }, []);
 
   useEffect(() => {
-    const selectedTraits = JSON.parse(localStorage.getItem('selectedTraits') || '[]');
-    if (!selectedTraits || selectedTraits.length === 0) {
+    try {
+      const selectedTraitsStr = localStorage.getItem('selectedTraits');
+      if (!selectedTraitsStr) {
+        console.warn('No selectedTraits found in localStorage');
+        navigate('/summary');
+        return;
+      }
+
+      let selectedTraits;
+      try {
+        selectedTraits = JSON.parse(selectedTraitsStr);
+      } catch (parseError) {
+        console.error('Failed to parse selectedTraits:', parseError);
+        navigate('/summary');
+        return;
+      }
+
+      if (!Array.isArray(selectedTraits) || selectedTraits.length === 0) {
+        console.warn('selectedTraits is not a valid array or is empty');
+        navigate('/summary');
+        return;
+      }
+
+      // Parse trait IDs to get display names with proper error handling
+      const traitInfo = selectedTraits.map((traitId) => {
+        try {
+          if (!traitId || typeof traitId !== 'string') {
+            console.warn('Invalid traitId:', traitId);
+            return {
+              coreTraitName: '',
+              subTraitName: '',
+              fullDisplayName: `Trait ${traitId || 'unknown'}`,
+            };
+          }
+
+          const parts = traitId.split('-');
+          const coreTraitId = parts[0];
+          const subTraitId = parts[1];
+
+          // Check if traitSystem and CORE_TRAITS exist
+          const coreTraits = traitSystem?.CORE_TRAITS || traitSystem?.coreTraits;
+          if (!traitSystem || !coreTraits || !Array.isArray(coreTraits)) {
+            console.warn('traitSystem.CORE_TRAITS is not available');
+            return {
+              coreTraitName: '',
+              subTraitName: '',
+              fullDisplayName: traitId,
+            };
+          }
+
+          const coreTrait = coreTraits.find((t) => t && t.id === coreTraitId);
+          
+          if (!coreTrait) {
+            console.warn(`Core trait not found for ID: ${coreTraitId}`);
+            return {
+              coreTraitName: '',
+              subTraitName: '',
+              fullDisplayName: traitId,
+            };
+          }
+
+          let subTrait = null;
+          if (subTraitId && coreTrait.subTraits && Array.isArray(coreTrait.subTraits)) {
+            subTrait = coreTrait.subTraits.find((st) => st && st.id === subTraitId);
+          }
+
+          return {
+            coreTraitName: coreTrait.name || '',
+            subTraitName: subTrait?.name || '',
+            fullDisplayName: subTrait 
+              ? `${coreTrait.name || ''} - ${subTrait.name || ''}`.trim()
+              : (coreTrait.name || traitId),
+          };
+        } catch (err) {
+          console.error('Error parsing trait info for', traitId, ':', err);
+          return {
+            coreTraitName: '',
+            subTraitName: '',
+            fullDisplayName: traitId || 'Unknown Trait',
+          };
+        }
+      });
+      setSelectedTraitInfo(traitInfo);
+    } catch (err) {
+      console.error('Error in CampaignBuilder useEffect:', err);
+      setError('Failed to load trait information. Please try again.');
       navigate('/summary');
       return;
     }
-
-    // Parse trait IDs to get display names
-    const traitInfo = selectedTraits.map((traitId) => {
-      const [coreTraitId, subTraitId] = traitId.split('-');
-      const coreTrait = traitSystem.coreTraits.find((t) => t.id === coreTraitId);
-      const subTrait = coreTrait?.subTraits.find((st) => st.id === subTraitId);
-      return {
-        coreTraitName: coreTrait?.name || '',
-        subTraitName: subTrait?.name || '',
-        fullDisplayName: subTrait ? `${coreTrait?.name} - ${subTrait.name}` : coreTrait?.name || '',
-      };
-    });
-    setSelectedTraitInfo(traitInfo);
 
     // Get summary from state, localStorage, or location state
     const storedSummary = localStorage.getItem('aiSummary');
@@ -78,6 +149,8 @@ function CampaignBuilder() {
 
     // Proceed with campaign generation using selected traits
     setIsLoading(true);
+    setError(null);
+    
     fetch('/api/get-campaign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -88,17 +161,46 @@ function CampaignBuilder() {
     })
       .then(async (resp) => {
         if (!resp.ok) {
-          const errText = await resp.text();
-          throw new Error(`Campaign HTTP ${resp.status}: ${errText}`);
+          let errorMessage = `Server error (${resp.status})`;
+          try {
+            const errData = await resp.json();
+            errorMessage = errData.error || errData.message || errorMessage;
+          } catch {
+            try {
+              const errText = await resp.text();
+              if (errText) errorMessage = errText.substring(0, 200);
+            } catch {
+              // Use default errorMessage
+            }
+          }
+          throw new Error(errorMessage);
         }
-        return resp.json();
+        
+        try {
+          return await resp.json();
+        } catch (parseError) {
+          console.error('Failed to parse campaign response:', parseError);
+          throw new Error('Invalid response from server');
+        }
       })
       .then((data) => {
+        if (!data) {
+          throw new Error('No data received from server');
+        }
+
         if (data.error) {
           setError(data.error);
+          setIsLoading(false);
+          return;
+        }
+
+        // Expect exactly 3 traits with up to 5 statements each
+        const campaignData = Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : [];
+        if (campaignData.length === 0) {
+          console.warn('No campaign data received');
+          setError('No campaign data was generated. Please try again.');
         } else {
-          // Expect exactly 3 traits with up to 5 statements each
-          setCampaign(Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : []);
+          setCampaign(campaignData);
           setError(null);
           // Show welcome dialog after campaign loads
           if (!localStorage.getItem('campaignWelcomeDismissed')) {
@@ -108,7 +210,8 @@ function CampaignBuilder() {
       })
       .catch((err) => {
         console.error('Campaign fetch error:', err);
-        setError(err.message || 'Failed to generate campaign');
+        const errorMessage = err.message || 'Failed to generate campaign. Please check your connection and try again.';
+        setError(errorMessage);
       })
       .finally(() => {
         setIsLoading(false);
@@ -124,46 +227,95 @@ function CampaignBuilder() {
   };
 
   const handleRebuildCampaign = () => {
-    const storedSummary = localStorage.getItem('aiSummary');
-    const selectedTraits = JSON.parse(localStorage.getItem('selectedTraits') || '[]');
-    
-    if (!storedSummary || selectedTraits.length === 0) {
-      setError('Missing summary or selected traits');
-      return;
-    }
+    try {
+      const storedSummary = localStorage.getItem('aiSummary');
+      if (!storedSummary || storedSummary.trim() === '') {
+        setError('No summary found. Please complete the assessment first.');
+        return;
+      }
 
-    setIsLoading(true);
-    setError(null);
-    fetch('/api/get-campaign', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ 
-        aiSummary: storedSummary,
-        selectedTraits: selectedTraits,
-      }),
-    })
-      .then(async (resp) => {
-        if (!resp.ok) {
-          const errText = await resp.text();
-          throw new Error(`Campaign HTTP ${resp.status}: ${errText}`);
-        }
-        return resp.json();
+      let selectedTraits;
+      try {
+        const traitsStr = localStorage.getItem('selectedTraits') || '[]';
+        selectedTraits = JSON.parse(traitsStr);
+      } catch (parseError) {
+        console.error('Failed to parse selectedTraits:', parseError);
+        setError('Invalid trait selection data. Please return to the summary page.');
+        return;
+      }
+      
+      if (!Array.isArray(selectedTraits) || selectedTraits.length === 0) {
+        setError('No traits selected. Please return to the summary page to select traits.');
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+      
+      fetch('/api/get-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ 
+          aiSummary: storedSummary,
+          selectedTraits: selectedTraits,
+        }),
       })
-      .then((data) => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setCampaign(Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : []);
-          setDismissedStatements([]);
-        }
-      })
-      .catch((err) => {
-        console.error('Campaign rebuild error:', err);
-        setError(err.message || 'Failed to rebuild campaign');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+        .then(async (resp) => {
+          if (!resp.ok) {
+            let errorMessage = `Server error (${resp.status})`;
+            try {
+              const errData = await resp.json();
+              errorMessage = errData.error || errData.message || errorMessage;
+            } catch {
+              try {
+                const errText = await resp.text();
+                if (errText) errorMessage = errText.substring(0, 200);
+              } catch {
+                // Use default errorMessage
+              }
+            }
+            throw new Error(errorMessage);
+          }
+          
+          try {
+            return await resp.json();
+          } catch (parseError) {
+            console.error('Failed to parse campaign response:', parseError);
+            throw new Error('Invalid response from server');
+          }
+        })
+        .then((data) => {
+          if (!data) {
+            throw new Error('No data received from server');
+          }
+
+          if (data.error) {
+            setError(data.error);
+            return;
+          }
+
+          const campaignData = Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : [];
+          if (campaignData.length === 0) {
+            setError('No campaign data was generated. Please try again.');
+          } else {
+            setCampaign(campaignData);
+            setDismissedStatements([]);
+            setError(null);
+          }
+        })
+        .catch((err) => {
+          console.error('Campaign rebuild error:', err);
+          const errorMessage = err.message || 'Failed to rebuild campaign. Please check your connection and try again.';
+          setError(errorMessage);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } catch (err) {
+      console.error('Error in handleRebuildCampaign:', err);
+      setError('An unexpected error occurred. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const handleDialogClose = () => {
