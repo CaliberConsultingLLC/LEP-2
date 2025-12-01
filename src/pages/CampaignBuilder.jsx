@@ -43,6 +43,8 @@ function CampaignBuilder() {
   }, []);
 
   useEffect(() => {
+    // Load selectedTraits first
+    let selectedTraits = null;
     try {
       const selectedTraitsStr = localStorage.getItem('selectedTraits');
       if (!selectedTraitsStr) {
@@ -51,23 +53,31 @@ function CampaignBuilder() {
         return;
       }
 
-      let selectedTraits;
-      try {
-        selectedTraits = JSON.parse(selectedTraitsStr);
-      } catch (parseError) {
-        console.error('Failed to parse selectedTraits:', parseError);
-        navigate('/summary');
-        return;
-      }
-
+      selectedTraits = JSON.parse(selectedTraitsStr);
+      
       if (!Array.isArray(selectedTraits) || selectedTraits.length === 0) {
         console.warn('selectedTraits is not a valid array or is empty');
         navigate('/summary');
         return;
       }
+    } catch (err) {
+      console.error('Error loading selectedTraits:', err);
+      setError('Failed to load trait information. Please try again.');
+      navigate('/summary');
+      return;
+    }
 
-      // Parse trait IDs to get display names with proper error handling
-      const traitInfo = selectedTraits.map((traitId) => {
+    // Ensure selectedTraits is valid before proceeding
+    if (!selectedTraits || !Array.isArray(selectedTraits) || selectedTraits.length === 0) {
+      console.error('selectedTraits validation failed');
+      navigate('/summary');
+      return;
+    }
+
+    // Parse trait IDs to get display names with proper error handling
+    let traitInfo = [];
+    try {
+      traitInfo = selectedTraits.map((traitId) => {
         try {
           if (!traitId || typeof traitId !== 'string') {
             console.warn('Invalid traitId:', traitId);
@@ -127,23 +137,39 @@ function CampaignBuilder() {
       });
       setSelectedTraitInfo(traitInfo);
     } catch (err) {
-      console.error('Error in CampaignBuilder useEffect:', err);
-      setError('Failed to load trait information. Please try again.');
-      navigate('/summary');
-      return;
+      console.error('Error parsing trait info:', err);
+      // Set default trait info to prevent crashes
+      setSelectedTraitInfo(selectedTraits.map((traitId) => ({
+        coreTraitName: '',
+        subTraitName: '',
+        fullDisplayName: String(traitId || 'Unknown Trait'),
+      })));
     }
 
     // Get summary from state, localStorage, or location state
-    const storedSummary = localStorage.getItem('aiSummary');
-    const effectiveSummary =
-      (location.state?.aiSummary && location.state.aiSummary.trim() !== '') ? location.state.aiSummary :
-      (storedSummary && storedSummary.trim() !== '') ? storedSummary :
-      null;
+    let effectiveSummary = null;
+    try {
+      const storedSummary = localStorage.getItem('aiSummary');
+      effectiveSummary =
+        (location.state?.aiSummary && location.state.aiSummary.trim() !== '') ? location.state.aiSummary :
+        (storedSummary && storedSummary.trim() !== '') ? storedSummary :
+        null;
+    } catch (err) {
+      console.error('Error loading summary:', err);
+    }
 
     // If no summary available, redirect to form
     if (!effectiveSummary) {
       console.warn('No summary available – redirecting to form');
       navigate('/form');
+      return;
+    }
+
+    // Ensure selectedTraits is available before making the request
+    if (!selectedTraits || !Array.isArray(selectedTraits) || selectedTraits.length === 0) {
+      console.error('selectedTraits is not available for API call');
+      setError('Invalid trait selection. Please return to the summary page.');
+      setIsLoading(false);
       return;
     }
 
