@@ -660,12 +660,12 @@ function Summary() {
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.6)' }}>
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.85)' }}>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(250,250,255,0.95))',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
                     borderLeft: '4px solid',
                     borderColor: 'primary.main',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
@@ -756,12 +756,12 @@ function Summary() {
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.6)' }}>
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.85)' }}>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,250,245,0.95))',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
                     borderLeft: '4px solid',
                     borderColor: 'warning.main',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
@@ -852,12 +852,12 @@ function Summary() {
                   </Box>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.6)' }}>
+              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.85)' }}>
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,245,245,0.95))',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
                     borderLeft: '4px solid',
                     borderColor: 'error.main',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
@@ -1086,12 +1086,12 @@ function Summary() {
                               </Typography>
                             </Box>
                           ) : (
-                            /* Example and Risk - Split when Unselected */
-                            <Box sx={{ width: '33.33%', display: 'flex' }}>
-                              {/* Example - Left Half of Right Third */}
+                            /* Example and Risk - Split Right Third in Half when Unselected */
+                            <>
+                              {/* Example - Left Half of Right Third (16.67% of total) */}
                               <Box
                                 sx={{
-                                  width: '50%',
+                                  width: '16.67%',
                                   p: 2,
                                   borderRight: '1px solid',
                                   borderColor: 'rgba(0,0,0,0.1)',
@@ -1128,10 +1128,10 @@ function Summary() {
                                 </Typography>
                               </Box>
 
-                              {/* Risk - Right Half of Right Third */}
+                              {/* Risk - Right Half of Right Third (16.67% of total) */}
                               <Box
                                 sx={{
-                                  width: '50%',
+                                  width: '16.67%',
                                   p: 2,
                                   display: 'flex',
                                   flexDirection: 'column',
@@ -1165,7 +1165,7 @@ function Summary() {
                                   {focusArea.risk}
                                 </Typography>
                               </Box>
-                            </Box>
+                            </>
                           )}
                         </Box>
                       </Paper>
