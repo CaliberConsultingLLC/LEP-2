@@ -320,93 +320,48 @@ function CampaignBuilder() {
             </Button>
           </Box>
         ) : campaign ? (
-          <Box
-            sx={{
-              p: 4,
-              border: '2px solid',
-              borderColor: 'primary.main',
-              borderRadius: 3,
-              boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-              bgcolor: 'rgba(255, 255, 255, 0.98)',
-              background:
-                'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
-              width: '100%',
-            }}
-          >
-            {showAnnouncement && (
-              <Box
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 2,
-                  bgcolor: 'rgba(255, 255, 255, 0.95)',
-                  background:
-                    'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  position: 'relative',
-                  textAlign: 'center',
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    mb: 1,
-                    color: 'text.primary',
-                  }}
-                >
-                  Building Your Leadership Campaign
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    mb: 2,
-                    color: 'text.primary',
-                  }}
-                >
-                  Based on your leadership summary, we’ve created a personalized continuous
-                  improvement campaign. This includes <strong>3 core leadership traits</strong> to
-                  focus on, each with <strong>5 team-facing survey statements</strong> for your team
-                  to rate. Let’s get started!
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="error"
-                  size="small"
-                  onClick={handleDismissAnnouncement}
-                  sx={{ position: 'absolute', top: 8, right: 8 }}
-                >
-                  Dismiss
-                </Button>
-              </Box>
-            )}
-
+          <Box>
             <Typography
+              variant="h4"
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
+                fontWeight: 700,
+                color: 'white',
                 mb: 3,
-                color: 'text.primary',
+                textAlign: 'center',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
-              Your Leadership Continuous Improvement Campaign
+              Your Leadership Campaign
             </Typography>
+            
+            <Box
+              sx={{
+                p: 4,
+                border: '2px solid',
+                borderColor: 'primary.main',
+                borderRadius: 3,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+                bgcolor: 'rgba(255, 255, 255, 0.98)',
+                background:
+                  'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
+                width: '100%',
+              }}
+            >
+
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1rem',
                 mb: 4,
                 color: 'text.primary',
+                textAlign: 'center',
               }}
             >
               Below are <strong>3 core leadership traits</strong> to focus on improving, each with{' '}
               <strong>5 team-facing survey statements</strong>. Your team can rate these using a
-              dual-axis 9-box grid (Effort vs. Efficacy). Check boxes to dismiss statements, then
-              click “Rebuild my Growth Campaign” to refresh.
+              dual-axis system (Effort vs. Efficacy). Check boxes to dismiss statements, then
+              click "Rebuild my Growth Campaign" to refresh.
             </Typography>
 
             <Stack spacing={4} sx={{ mb: 4 }}>
@@ -440,40 +395,43 @@ function CampaignBuilder() {
                     key={`trait-${traitIndex}`}
                     sx={{
                       p: 3,
-                      border: '2px solid',
+                      mb: 4,
+                      border: '1px solid',
                       borderColor: 'primary.main',
                       borderRadius: 3,
                       bgcolor: 'rgba(255,255,255,0.95)',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(220,230,255,0.85))',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <Typography
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: '1.5rem',
-                        fontWeight: 700,
-                        color: 'primary.main',
-                        mb: 3,
-                        pb: 2,
-                        borderBottom: '2px solid',
-                        borderColor: 'primary.main',
-                      }}
-                    >
-                      {traitItem.trait}
-                    </Typography>
-                    <Stack spacing={2}>
+                    <Box sx={{ p: 2, mb: 2, bgcolor: 'primary.main', borderRadius: 2 }}>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '1.5rem',
+                          fontWeight: 700,
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {traitItem.trait}
+                      </Typography>
+                    </Box>
+                    <Stack spacing={1.5}>
                       {statements.map((stmt, sIdx) => (
                         <Box
                           key={`stmt-${sIdx}`}
                           sx={{
                             p: 2,
                             borderRadius: 2,
-                            bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.05)',
+                            bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)',
                             display: 'flex',
                             alignItems: 'flex-start',
                             gap: 2,
+                            transition: 'all 0.2s ease',
                             '&:hover': {
                               bgcolor: 'rgba(224,122,63,0.08)',
+                              transform: 'translateX(4px)',
                             },
                           }}
                         >
@@ -493,6 +451,7 @@ function CampaignBuilder() {
                               fontSize: '1rem',
                               color: 'text.primary',
                               flex: 1,
+                              lineHeight: 1.6,
                             }}
                           >
                             {sIdx + 1}. {stmt}
@@ -505,13 +464,13 @@ function CampaignBuilder() {
               })}
             </Stack>
 
-            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2, mt: 4 }}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleRebuildCampaign}
                 disabled={isLoading}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1.5 }}
               >
                 Rebuild my Growth Campaign
               </Button>
@@ -522,20 +481,23 @@ function CampaignBuilder() {
                   localStorage.setItem('currentCampaign', JSON.stringify(campaign || []));
                   navigate('/campaign-verify');
                 }}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1.5 }}
               >
                 Verify Campaign
               </Button>
             </Stack>
 
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => navigate('/summary')}
-              sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
-            >
-              Back to Summary
-            </Button>
+            <Box sx={{ textAlign: 'center', mt: 3 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => navigate('/summary')}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1.5 }}
+              >
+                Back to Summary
+              </Button>
+            </Box>
+          </Box>
           </Box>
         ) : (
           <Typography
