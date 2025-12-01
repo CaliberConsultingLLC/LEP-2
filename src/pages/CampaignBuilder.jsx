@@ -604,11 +604,9 @@ function CampaignBuilder() {
               >
                 Back to Summary
               </Button>
+            </Box>
             </Paper>
           </Box>
-        </Box>
-      </Box>
-    </>
         ) : (
           <Typography
             sx={{
@@ -625,7 +623,9 @@ function CampaignBuilder() {
         </Box>
       </Container>
     </Box>
+    </>
   );
 }
 
 export default CampaignBuilder;
+
