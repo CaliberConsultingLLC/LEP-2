@@ -10,17 +10,24 @@ import {
   TableCell,
   Button,
   Checkbox,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Paper,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import traitSystem from '../data/traitSystem';
 
 function CampaignBuilder() {
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dismissedStatements, setDismissedStatements] = useState([]);
-  const [showAnnouncement, setShowAnnouncement] = useState(!localStorage.getItem('campaignAnnouncementDismissed'));
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(!localStorage.getItem('campaignWelcomeDismissed'));
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -55,9 +62,30 @@ function CampaignBuilder() {
 
     if (!Array.isArray(selectedTraits) || selectedTraits.length !== 3) {
       console.warn('Invalid selected traits – redirecting to trait selection');
-      navigate('/trait-selection');
+      navigate('/summary');
       return;
     }
+
+    // Parse trait IDs to get proper names from trait system
+    const traitInfo = selectedTraits.map((traitId) => {
+      const parts = traitId.split('-');
+      const coreTraitId = parts[0];
+      const subTraitId = parts.slice(1).join('-');
+      
+      const coreTrait = traitSystem.CORE_TRAITS.find(t => t.id === coreTraitId);
+      const subTrait = coreTrait?.subTraits?.find(st => st.id === subTraitId);
+      
+      return {
+        id: traitId,
+        coreTraitId,
+        subTraitId,
+        coreTraitName: coreTrait?.name || coreTraitId,
+        subTraitName: subTrait?.name || subTraitId,
+        fullDisplayName: `${coreTrait?.name || coreTraitId} - ${subTrait?.name || subTraitId}`,
+      };
+    });
+    
+    setSelectedTraitInfo(traitInfo);
 
     // Get summary from state, localStorage, or location state
     const storedSummary = localStorage.getItem('aiSummary');
@@ -168,41 +196,96 @@ function CampaignBuilder() {
     });
   };
 
-  const handleDismissAnnouncement = () => {
-    localStorage.setItem('campaignAnnouncementDismissed', 'true');
-    setShowAnnouncement(false);
+  const handleDismissWelcomeDialog = () => {
+    localStorage.setItem('campaignWelcomeDismissed', 'true');
+    setShowWelcomeDialog(false);
   };
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        minHeight: '100vh',
-        width: '100%',
-        overflowX: 'hidden',
-        py: 4,
-        // full bleed bg
-        '&:before': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          backgroundImage: 'url(/LEP2.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          transform: 'translateZ(0)',
-        },
-        // dark overlay
-        '&:after': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-        },
-      }}
-    >
+    <>
+      {/* Welcome Dialog - matching IntakeForm style */}
+      <Dialog 
+        open={showWelcomeDialog} 
+        onClose={handleDismissWelcomeDialog} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            fontWeight: 800, 
+            textAlign: 'center',
+            fontFamily: 'Gemunu Libre, sans-serif',
+            fontSize: '1.5rem',
+            color: 'primary.main',
+          }}
+        >
+          Building Your Leadership Campaign
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', py: 2 }}>
+          <Typography 
+            sx={{ 
+              lineHeight: 1.6, 
+              opacity: 0.9,
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '1rem',
+            }}
+          >
+            Based on your leadership summary and selected focus areas, we've created a personalized continuous
+            improvement campaign. This includes <strong>3 core leadership traits</strong> to
+            focus on, each with <strong>5 team-facing survey statements</strong> for your team
+            to rate using a dual-axis system (Effort vs. Efficacy).
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
+          <Button 
+            variant="contained" 
+            onClick={handleDismissWelcomeDialog}
+            sx={{ 
+              fontFamily: 'Gemunu Libre, sans-serif',
+              px: 4,
+              py: 1,
+            }}
+          >
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Box
+        sx={{
+          position: 'relative',
+          minHeight: '100vh',
+          width: '100%',
+          overflowX: 'hidden',
+          py: 4,
+          // full bleed bg
+          '&:before': {
+            content: '""',
+            position: 'fixed',
+            inset: 0,
+            zIndex: -2,
+            backgroundImage: 'url(/LEP2.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            transform: 'translateZ(0)',
+          },
+          // dark overlay
+          '&:after': {
+            content: '""',
+            position: 'fixed',
+            inset: 0,
+            zIndex: -1,
+            background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+          },
+        }}
+      >
 
       <Container 
         maxWidth={false}
@@ -335,16 +418,16 @@ function CampaignBuilder() {
               Your Leadership Campaign
             </Typography>
             
-            <Box
+            <Paper
               sx={{
                 p: 4,
-                border: '2px solid',
-                borderColor: 'primary.main',
+                border: '1px solid',
+                borderColor: 'rgba(255,255,255,0.14)',
                 borderRadius: 3,
-                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
-                bgcolor: 'rgba(255, 255, 255, 0.98)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+                bgcolor: 'rgba(255, 255, 255, 0.92)',
                 background:
-                  'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
+                  'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
                 width: '100%',
               }}
             >
@@ -390,76 +473,101 @@ function CampaignBuilder() {
                   );
                 }
 
+                // Get proper trait name from selectedTraitInfo
+                const traitInfo = selectedTraitInfo[traitIndex];
+                const displayName = traitInfo?.fullDisplayName || traitItem.trait || `Trait ${traitIndex + 1}`;
+                const coreTraitName = traitInfo?.coreTraitName || '';
+                const subTraitName = traitInfo?.subTraitName || '';
+
                 return (
-                  <Box
+                  <Paper
                     key={`trait-${traitIndex}`}
                     sx={{
-                      p: 3,
+                      p: 0,
                       mb: 4,
                       border: '1px solid',
                       borderColor: 'primary.main',
                       borderRadius: 3,
                       bgcolor: 'rgba(255,255,255,0.95)',
-                      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(220,230,255,0.85))',
+                      background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                      overflow: 'hidden',
                     }}
                   >
-                    <Box sx={{ p: 2, mb: 2, bgcolor: 'primary.main', borderRadius: 2 }}>
+                    {/* Header matching Summary page style */}
+                    <Box sx={{ p: 2.5, bgcolor: 'primary.main', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
                       <Typography
                         sx={{
                           fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '1.5rem',
+                          fontSize: '1.3rem',
                           fontWeight: 700,
                           color: 'white',
                           textAlign: 'center',
+                          mb: 0.5,
                         }}
                       >
-                        {traitItem.trait}
+                        {coreTraitName}
                       </Typography>
-                    </Box>
-                    <Stack spacing={1.5}>
-                      {statements.map((stmt, sIdx) => (
-                        <Box
-                          key={`stmt-${sIdx}`}
+                      {subTraitName && (
+                        <Typography
                           sx={{
-                            p: 2,
-                            borderRadius: 2,
-                            bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)',
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: 2,
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              bgcolor: 'rgba(224,122,63,0.08)',
-                              transform: 'translateX(4px)',
-                            },
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            color: 'rgba(255,255,255,0.9)',
+                            textAlign: 'center',
+                            fontStyle: 'italic',
                           }}
                         >
-                          <Checkbox
-                            checked={dismissedStatements.some(
-                              (ds) => ds.trait === traitItem.trait && ds.index === sIdx
-                            )}
-                            onChange={(e) =>
-                              handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
-                            }
-                            color="error"
-                            sx={{ mt: 0.5 }}
-                          />
-                          <Typography
+                          {subTraitName}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ p: 2.5 }}>
+                      <Stack spacing={1}>
+                        {statements.map((stmt, sIdx) => (
+                          <Box
+                            key={`stmt-${sIdx}`}
                             sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1rem',
-                              color: 'text.primary',
-                              flex: 1,
-                              lineHeight: 1.6,
+                              p: 2,
+                              borderRadius: 2,
+                              bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: 2,
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                bgcolor: 'rgba(224,122,63,0.08)',
+                                transform: 'translateX(2px)',
+                              },
                             }}
                           >
-                            {sIdx + 1}. {stmt}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Box>
+                            <Checkbox
+                              checked={dismissedStatements.some(
+                                (ds) => ds.trait === traitItem.trait && ds.index === sIdx
+                              )}
+                              onChange={(e) =>
+                                handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
+                              }
+                              color="error"
+                              sx={{ mt: 0.5 }}
+                            />
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '1rem',
+                                color: 'text.primary',
+                                flex: 1,
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              {sIdx + 1}. {stmt}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </Box>
+                  </Paper>
                 );
               })}
             </Stack>
@@ -496,9 +604,11 @@ function CampaignBuilder() {
               >
                 Back to Summary
               </Button>
-            </Box>
+            </Paper>
           </Box>
-          </Box>
+        </Box>
+      </Box>
+    </>
         ) : (
           <Typography
             sx={{

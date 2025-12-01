@@ -86,13 +86,16 @@ CONSTRAINTS:
 - Exactly THREE traits (matching the selected traits provided).
 - For EACH trait, provide FIVE concise, measurable statements.
 - Statements must be:
-  * Observable behaviors or actions the team can witness
-  * Measurable on a scale (team can rate how often/well the leader does this)
+  * Observable behaviors or actions the team can witness and rate
+  * Rateable on TWO dimensions: EFFORT (how much the leader tries/commits) and EFFICACY (how effective/successful the leader is)
   * Specific to the trait/sub-trait (not generic leadership advice)
-  * Written from the team's perspective (what they observe)
+  * Written from the team's perspective (what they observe about the leader)
+  * Clear enough that team members can distinguish between effort and effectiveness
   * ≤ 140 chars each; no numbering, no markdown bullets
-- Trait names should match the selected traits provided.
-- Statements should reflect what the team would actually see and be able to rate.
+- Trait names should be the core trait name (e.g., "Communication", "Decision-Making", "Team Development").
+- Statements should be behaviors that can be rated on both effort (commitment/trying) and efficacy (results/effectiveness).
+- Example good statement: "Clearly explains priorities in team meetings" (team can rate both: how much effort leader puts in AND how effective it is)
+- Example bad statement: "Is a good communicator" (too vague, not observable, can't distinguish effort vs efficacy)
 - Do not include any text outside of the JSON object.
 `.trim();
 
@@ -109,11 +112,13 @@ Task:
 - Generate exactly 3 traits matching the selected focus areas above.
 - For each trait, create 5 team-facing survey statements that are:
   * Observable behaviors the team can witness and rate
-  * Measurable on a dual-axis scale (Effort vs. Efficacy)
+  * Rateable on TWO dimensions: EFFORT (how much the leader tries/commits) and EFFICACY (how effective/successful the leader is)
   * Specific to the trait/sub-trait (e.g., for "communication-clarity": statements about clear communication)
   * Written from the team's perspective (what they observe about the leader)
+  * Clear enough that team members can distinguish between effort and effectiveness
   * Grounded in the leader's specific context from the summary
-- Example statements: "Clearly explains priorities in team meetings", "Listens actively before responding", "Makes decisions within agreed timeframes"
+- Example good statements: "Clearly explains priorities in team meetings" (team can rate both effort AND effectiveness), "Listens actively before responding" (observable, rateable on both dimensions), "Makes decisions within agreed timeframes" (can rate effort to decide AND effectiveness of decisions)
+- Example bad statements: "Is a good communicator" (too vague), "Tries hard" (can't rate efficacy), "Is effective" (can't rate effort)
 - Trait names should reflect the core trait (e.g., "Communication", "Decision-Making", "Team Development")
 - Return ONLY the JSON described above.
 `.trim();
