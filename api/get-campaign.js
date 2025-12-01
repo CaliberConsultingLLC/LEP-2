@@ -39,33 +39,62 @@ function normalizeCampaign(data) {
 // --- handler ---------------------------------------------------------------
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
+  
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
   try {
-    const body = req.body || {};
+    // Validate request body exists
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body. Expected JSON object.' });
+    }
+
+    const body = req.body;
     const { aiSummary, sessionId, selectedTraits } = body;
 
     // Input validation: aiSummary must be a non-empty string
     if (!aiSummary || typeof aiSummary !== 'string' || !aiSummary.trim()) {
-      return res.status(400).json({ error: 'Missing or invalid aiSummary in request body (must be non-empty string)', sessionId: sessionId || null });
+      return res.status(400).json({ 
+        error: 'Missing or invalid aiSummary in request body (must be non-empty string)',
+        sessionId: sessionId || null 
+      });
     }
 
-    // Input validation: selectedTraits must be an array of 3 trait IDs
-    if (!Array.isArray(selectedTraits) || selectedTraits.length !== 3) {
-      return res.status(400).json({ error: 'Missing or invalid selectedTraits (must be array of 3 trait IDs)' });
+    // Input validation: selectedTraits must be an array
+    if (!selectedTraits) {
+      return res.status(400).json({ error: 'Missing selectedTraits in request body' });
+    }
+
+    if (!Array.isArray(selectedTraits)) {
+      return res.status(400).json({ error: 'selectedTraits must be an array' });
+    }
+
+    if (selectedTraits.length === 0) {
+      return res.status(400).json({ error: 'selectedTraits array cannot be empty' });
+    }
+
+    // Allow any number of traits, but warn if not 3
+    if (selectedTraits.length !== 3) {
+      console.warn(`Expected 3 selectedTraits, but received ${selectedTraits.length}`);
     }
 
     // Parse selected trait IDs to get trait and sub-trait names
     // Format: "communication-clarity" or "decisionMaking-speed"
     // We'll pass these to the AI to generate statements for these specific traits
-    const traitInfo = selectedTraits.map((traitId) => {
-      const parts = traitId.split('-');
-      const coreTraitId = parts[0];
-      const subTraitId = parts.slice(1).join('-'); // Handle multi-part sub-trait IDs
-      return { coreTraitId, subTraitId, fullId: traitId };
-    });
+    const traitInfo = selectedTraits
+      .filter((traitId) => traitId && typeof traitId === 'string' && traitId.trim())
+      .map((traitId) => {
+        const parts = traitId.split('-');
+        const coreTraitId = parts[0] || '';
+        const subTraitId = parts.slice(1).join('-') || '';
+        return { coreTraitId, subTraitId, fullId: traitId.trim() };
+      })
+      .filter((info) => info.coreTraitId); // Remove invalid entries
+
+    if (traitInfo.length === 0) {
+      return res.status(400).json({ error: 'No valid trait IDs found in selectedTraits' });
+    }
 
     const systemPrompt = `
 You are the Compass Campaign Builder Agent.
@@ -157,6 +186,34 @@ Task:
     return res.status(200).json(normalized);
   } catch (err) {
     console.error('get-campaign error:', err);
-    return res.status(500).json({ error: 'Campaign generation failed', details: String(err?.message || err) });
+    
+    // Handle specific error types
+    if (err?.response?.status === 401 || err?.status === 401) {
+      return res.status(500).json({ 
+        error: 'OpenAI API authentication failed. Please check API key configuration.',
+        details: 'Authentication error'
+      });
+    }
+    
+    if (err?.response?.status === 429 || err?.status === 429) {
+      return res.status(503).json({ 
+        error: 'OpenAI API rate limit exceeded. Please try again later.',
+        details: 'Rate limit error'
+      });
+    }
+    
+    if (err?.code === 'ENOTFOUND' || err?.code === 'ECONNREFUSED') {
+      return res.status(503).json({ 
+        error: 'Unable to connect to OpenAI API. Please check your network connection.',
+        details: 'Connection error'
+      });
+    }
+    
+    // Generic error response
+    const errorMessage = err?.message || String(err) || 'Unknown error';
+    return res.status(500).json({ 
+      error: 'Campaign generation failed',
+      details: errorMessage.substring(0, 200) // Limit error message length
+    });
   }
 }
