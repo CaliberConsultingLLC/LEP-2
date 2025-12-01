@@ -1,7 +1,6 @@
 // src/pages/CampaignBuilder.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Box,
   Typography,
   Table,
@@ -291,14 +290,16 @@ function CampaignBuilder() {
         }}
       >
 
-      <Container 
-        maxWidth={false}
-        sx={{ 
-          position: 'relative',
+      <Box
+        sx={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
           px: { xs: 2, sm: 4 },
+          py: { xs: 3, sm: 4 },
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 880, mx: 'auto' }}>
+        <Box sx={{ width: '100%', maxWidth: 880 }}>
         {isLoading ? (
           <Stack
             direction="column"
@@ -622,7 +623,7 @@ function CampaignBuilder() {
           </Typography>
         )}
         </Box>
-      </Container>
+      </Box>
     </Box>
     </>
   );
