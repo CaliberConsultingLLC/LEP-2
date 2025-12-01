@@ -1,6 +1,7 @@
 // src/pages/CampaignBuilder.jsx
 import React, { useState, useEffect } from 'react';
 import {
+  Container,
   Box,
   Typography,
   Button,
@@ -431,14 +432,17 @@ function CampaignBuilder() {
           },
         }}
       >
-        <Box
+        <Container
+          maxWidth={false}
           sx={{
-            width: '100%',
-            maxWidth: 880,
-            mx: 'auto',
+            py: { xs: 3, sm: 4 },
             px: { xs: 2, sm: 4 },
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100vw',
           }}
         >
+          <Box sx={{ width: '100%', maxWidth: 880 }}>
           {isLoading ? (
             <Stack
               direction="column"
@@ -761,7 +765,8 @@ function CampaignBuilder() {
               No campaign data available.
             </Typography>
           )}
-        </Box>
+          </Box>
+        </Container>
       </Box>
     </>
   );
