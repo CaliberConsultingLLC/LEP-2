@@ -24,8 +24,8 @@ import {
   Insights,
   ArrowForward,
 } from '@mui/icons-material';
-import fakeCampaign from '../data/fakeCampaign.js';
-import fakeData from '../data/fakeData.js';
+import fakeCampaign from '../../data/fakeCampaign.js';
+import fakeData from '../../data/fakeData.js';
 
 function ResultsTab() {
   const [traitData, setTraitData] = useState({});
