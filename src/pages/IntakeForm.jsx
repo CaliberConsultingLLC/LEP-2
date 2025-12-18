@@ -184,7 +184,37 @@ function IntakeForm() {
   const [reflectionText, setReflectionText] = useState('');
   const [isLoadingReflection, setIsLoadingReflection] = useState(false);
   const reflectionGeneratedRef = useRef(false); // Track if reflection has been generated
+  const [customAnswerDialogOpen, setCustomAnswerDialogOpen] = useState(false);
+  const [customAnswerText, setCustomAnswerText] = useState('');
+  const [roleModelElaborationDialogOpen, setRoleModelElaborationDialogOpen] = useState(false);
+  const [selectedRoleModelTrait, setSelectedRoleModelTrait] = useState(null);
+  const [roleModelElaborationText, setRoleModelElaborationText] = useState('');
   const navigate = useNavigate();
+
+  const handleCustomAnswerSubmit = () => {
+    if (customAnswerText.trim()) {
+      handleChange('projectApproach', customAnswerText.trim());
+      setCustomAnswerDialogOpen(false);
+      setCustomAnswerText('');
+    }
+  };
+
+  const handleRoleModelTraitSelect = (traitOption) => {
+    setSelectedRoleModelTrait(traitOption);
+    setRoleModelElaborationText('');
+    setRoleModelElaborationDialogOpen(true);
+  };
+
+  const handleRoleModelElaborationSubmit = () => {
+    if (selectedRoleModelTrait && roleModelElaborationText.trim()) {
+      // Store both the selected trait and the elaboration
+      handleChange('roleModelTrait', selectedRoleModelTrait);
+      handleChange('roleModelTraitElaboration', roleModelElaborationText.trim());
+      setRoleModelElaborationDialogOpen(false);
+      setSelectedRoleModelTrait(null);
+      setRoleModelElaborationText('');
+    }
+  };
 
   // Load user info (name, email) from localStorage if available
   useEffect(() => {
@@ -205,16 +235,14 @@ function IntakeForm() {
 
   // ---------- Questions ----------
   // Note: Name is now collected in UserInfo page, so we get it from localStorage
-  const initialQuestionsPart1 = [
+  const initialQuestions = [
     { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
     { id: 'role', prompt: 'What is your current job title?', type: 'text' },
     { id: 'responsibilities', prompt: 'Briefly describe what your team is responsible for within the organization.', type: 'text' },
-  ];
-
-  const initialQuestionsPart2 = [
+    { id: 'birthYear', prompt: 'What year were you born?', type: 'slider', min: 1950, max: 2005, labels: { 1950: '1950', 2005: '2005+' } },
     { id: 'teamSize', prompt: 'How many people do you directly manage?', type: 'slider', min: 1, max: 10, labels: { 1: '1', 10: '10+' } },
-    { id: 'leadershipExperience', prompt: 'How many years have you been in your current role?', type: 'slider', min: 0, max: 10, labels: { 0: '<1', 10: '10+' } },
-    { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 0, max: 20, labels: { 0: '<1', 20: '20+' } },
+    { id: 'leadershipExperience', prompt: 'How many years have you been in your current role?', type: 'slider', min: 1, max: 20, labels: { 1: '1', 20: '20+' } },
+    { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 1, max: 20, labels: { 1: '1', 20: '20+' } },
   ];
 
   // Behavior Questions
@@ -237,6 +265,7 @@ function IntakeForm() {
         'Gather the team for a collaborative brainstorming session.',
         'Focus on identifying and mitigating the biggest risks.',
         'Distribute tasks to the team and set clear check-in points.',
+        'Ask clarifying questions before diving in.',
       ],
     },
     {
@@ -252,21 +281,21 @@ function IntakeForm() {
         'Meetings with limited or no outcomes',
         'Mediating conflicts within the team',
         'Pursuing goals that lack clear direction',
-        'Balancing expectations from high-pressure stakeholders',
+        'Balancing differing expectations from stakeholders',
       ],
       limit: 3,
     },
     {
       id: 'crisisResponse',
       theme: 'The Fire Drill',
-      prompt: 'A crisis hits your team unexpectedly. Rank these responses based on how they reflect your approach:',
+      prompt: 'A crisis hits your team unexpectedly. Rank the following responses:',
       type: 'ranking',
       options: [
-        'I stay calm and provide clear direction.',
-        'I rally everyone to brainstorm solutions.',
-        'I focus on verifying details to ensure accuracy.',
-        'I empower the team to take the lead while I support.',
-        'I take a hands-on role to address the issue quickly.',
+        'Maintain composure and provide clear, decisive direction to the team.',
+        'Immediately gather the team to collaborate on potential solutions.',
+        'First verify all facts and details before taking any action.',
+        'Delegate ownership to team members while providing support from the sidelines.',
+        'Jump in directly to handle the most critical aspects myself.',
       ],
       scale: { top: 'like me', bottom: 'like me' },
     },
@@ -274,29 +303,32 @@ function IntakeForm() {
       id: 'pushbackFeeling',
       theme: 'The Pushback Moment',
       prompt:
-        'When someone challenges your authority, questions your judgment, or pushes back on your plan — what emotions do you feel most often? (Select all that apply.)',
+        'When someone challenges your authority, questions your judgment, or pushes back on your plan — what emotions do you feel in the moment? (Select all that apply.)',
       type: 'multi-select',
       options: [
         'Defensive', 'Frustrated', 'Curious', 'Dismissive', 'Apprehensive',
         'Motivated', 'Insecure', 'Irritated', 'Open', 'Doubtful',
-        'Calm', 'Competitive', 'Humbled', 'Surprised', 'Relieved'
+        'Calm', 'Competitive', 'Humbled', 'Surprised', 'Relieved',
+        'Proud', 'Confused', 'Nothing'
       ],
     },
     {
       id: 'roleModelTrait',
       theme: 'The Role Model',
       prompt:
-        'Think of a fictional leader that you admire. If you were to emulate their approach, which part would feel most natural to you?',
+        'Think of a leader you admire (real or fictional). Pick something they do that you wish came more naturally to you.',
       type: 'radio',
       options: [
-        'Connecting with people effortlessly',
-        'Making tough decisions without hesitation',
-        'Staying calm under pressure',
-        'Painting a clear vision for the future',
-        'Getting the best out of everyone',
-        'Explaining complex ideas simply',
-        'Knowing when to step back and listen',
-        'Earning trust quickly'
+        'How They Communicate',
+        'How They Make Decisions',
+        'How They Think Strategically',
+        'How They Execute & Follow Through',
+        'How They Develop Their Team',
+        'How They Shape Culture',
+        'How They Build Relationships',
+        'How They Handle Challenges',
+        'How They Inspire Others',
+        'How They Balance Priorities',
       ],
     },
     {
@@ -305,12 +337,14 @@ function IntakeForm() {
       prompt: 'If your leadership style had a "warning label," what would it be?',
       type: 'radio',
       options: [
-        'Caution: May overthink the details.',
+        'Caution: May overthink the details',
         'Warning: Moves fast—keep up!',
-        'Buckle up, we change directions quickly here.',
-        'Flammable: Sparks fly under pressure.',
-        'Fragile: Avoid too much pushback.',
-        'High voltage: Big ideas ahead.',
+        'Buckle up, we change directions quickly here',
+        'Flammable: Sparks fly under pressure',
+        'Fragile: Avoid too much pushback',
+        'Falling Rocks: Tendency to over-delegate',
+        'Deer Crossing: May jump into your lane',
+        'Wrong Way: My way or the highway',
       ],
     },
     {
@@ -326,11 +360,12 @@ function IntakeForm() {
         'My team getting the recognition it deserves',
         'Turning chaos into order',
       ],
+      scale: { top: 'Energize Me Most', bottom: 'Energize Me Least' },
     },
     {
       id: 'proudMoment',
       theme: 'The Highlight Reel',
-      prompt: 'Consider one of your proudest moments in leadership and describe how your leadership made that moment possible.',
+      prompt: 'Consider a significant team accomplishment and describe how your contribution made it possible.',
       type: 'text',
     },
     {
@@ -341,8 +376,8 @@ function IntakeForm() {
       type: 'sliders',
       sliders: [
         { left: 'Prone to listen', right: 'Prone to speak', min: 1, max: 10, step: 1 },
-        { left: 'Critical', right: 'Affirming', min: 1, max: 10, step: 1 },
-        { left: 'Detail-focused', right: 'Big-picture-oriented', min: 1, max: 10, step: 1 },
+        { left: 'Critical', right: 'Encouraging', min: 1, max: 10, step: 1 },
+        { left: 'Detail-Oriented', right: 'Big-picture-oriented', min: 1, max: 10, step: 1 },
         { left: 'Directive', right: 'Empowering', min: 1, max: 10, step: 1 },
         { left: 'Risk-averse', right: 'Risk-tolerant', min: 1, max: 10, step: 1 },
       ],
@@ -362,14 +397,12 @@ function IntakeForm() {
     },
     {
       id: 'decisionPace',
-      theme: 'The Clock',
-      prompt: 'When faced with incomplete information, how do you usually move forward?',
+      theme: 'The Lesson Loop',
+      prompt: 'When something goes wrong, what do you usually focus on first?',
       type: 'radio',
       options: [
-        'Act quickly and adjust later.',
-        'Gather enough input before deciding.',
-        'Wait until I’m confident in the data.',
-        'Defer to the team’s consensus before acting.',
+        'Fix',
+        'Feedback',
       ],
     },
     {
@@ -448,14 +481,14 @@ function IntakeForm() {
   }, [societalNormsQuestions]);
 
   const stepVars = useMemo(() => {
-    const behaviorStart = 4; // after behaviors intro popup (step 3)
-    const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 4..15 (12 qs)
-    const reflectionStep = behaviorEnd + 1; // 16
-    const mindsetIntroStep = reflectionStep + 1; // 17 (popup)
-    const societalStart = mindsetIntroStep + 1; // 18
-    const societalEnd = societalStart + societalGroups.length - 1; // 18..24 (7 pages)
-    const agentStep = societalEnd + 1; // 25
-    const totalSteps = agentStep + 1; // 26 total steps (0..25 displayed as 1..26)
+    const behaviorStart = 3; // after profile (step 1) and behaviors intro popup (step 2)
+    const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 3..14 (12 qs)
+    const reflectionStep = behaviorEnd + 1; // 15
+    const mindsetIntroStep = reflectionStep + 1; // 16 (popup)
+    const societalStart = mindsetIntroStep + 1; // 17
+    const societalEnd = societalStart + societalGroups.length - 1; // 17..23 (7 pages)
+    const agentStep = societalEnd + 1; // 24
+    const totalSteps = agentStep + 1; // 25 total steps (0..24 displayed as 1..25)
     return {
       behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
       societalStart, societalEnd, agentStep, totalSteps
@@ -468,8 +501,8 @@ function IntakeForm() {
   } = stepVars;
 
   const headerLabel = useMemo(() => {
-    if (currentStep === 0 || currentStep === 1 || currentStep === 2) return 'Profile';
-    if (currentStep === 3 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
+    if (currentStep === 0 || currentStep === 1) return 'Profile';
+    if (currentStep === 2 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
     if (currentStep === reflectionStep) return 'Reflection Moment';
     if (currentStep === mindsetIntroStep || (currentStep >= societalStart && currentStep <= societalEnd)) return 'Mindset';
     if (currentStep === agentStep) return 'Choose Your Agent';
@@ -478,7 +511,7 @@ function IntakeForm() {
 
   // ---- dialogs and reflection text ----
   useEffect(() => {
-    const messageSteps = [0, 3, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
+    const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
     setDialogOpen(messageSteps.includes(currentStep));
   }, [currentStep, mindsetIntroStep]);
 
@@ -537,11 +570,11 @@ function IntakeForm() {
     }
 
     if (currentStep < totalSteps - 1) {
-      // Profile validation (steps 1-2)
+      // Profile validation (step 1)
       if (currentStep === 1) {
-        if (!formData.industry || !formData.role || !formData.responsibilities) return;
-      } else if (currentStep === 2) {
-        if (formData.teamSize === undefined || formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
+        if (!formData.industry || !formData.role || !formData.responsibilities || 
+            formData.birthYear === undefined || formData.teamSize === undefined || 
+            formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
 
       // Behaviors validation (steps 5..16)
       } else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
@@ -552,6 +585,8 @@ function IntakeForm() {
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
+        // For Role Model question, also require elaboration
+        if (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration) return;
 
       // Reflection step - no validation; buttons control navigation
       } else if (currentStep === reflectionStep) {
@@ -648,21 +683,21 @@ function IntakeForm() {
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
       {/* Message Pop-ups */}
-      {(currentStep === 0 || currentStep === 3 || currentStep === mindsetIntroStep) && (
+      {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
           title={
             currentStep === 0
               ? 'Leader Profile'
-              : currentStep === 3
+              : currentStep === 2
               ? 'Leader Behaviors'
               : 'Leader Mindset & Instincts'
           }
           content={
             currentStep === 0
               ? 'The Compass is considerate of your specific leadership environment! Think of the leader profile as context that helps both the insights and growth plan you receive be more pertinent.'
-              : currentStep === 3
+              : currentStep === 2
               ? 'The Compass also takes into account the actions that are most natural to you as a leader, so that your insights and growth plan are considerate of your natural flow state.'
               : 'The Compass is committed to facilitating awareness of a person\'s mindset and leader instincts, which are the most influential and challenging elements to recognize and change.'
           }
@@ -670,19 +705,36 @@ function IntakeForm() {
       )}
 
       <PageContainer>
-        {/* Profile Page 1 (Step 1) */}
+        {/* Profile Page (Step 1) - Combined */}
         {currentStep === 1 && (
           <SectionCard narrow={true}>
-            <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
-              {initialQuestionsPart1.map((q) => (
+            <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
+              {initialQuestions.map((q) => (
                 <MemoBox key={q.id} sx={{ width: '100%' }}>
                   <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
-                  <MemoTextField
-                    value={formData[q.id] || ''}
-                    onChange={(e) => handleChange(q.id, e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                  />
+                  {q.type === 'text' ? (
+                    <MemoTextField
+                      value={formData[q.id] || ''}
+                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      fullWidth
+                      variant="outlined"
+                    />
+                  ) : (
+                    <>
+                      <MemoSlider
+                        value={formData[q.id] ?? q.min}
+                        onChange={(e, value) => handleChange(q.id, value)}
+                        min={q.min}
+                        max={q.max}
+                        sx={{ width: '100%' }}
+                      />
+                      <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                        {q.id === 'birthYear' 
+                          ? (formData[q.id] ?? q.min)
+                          : (formData[q.id] ?? q.min)}
+                      </Typography>
+                    </>
+                  )}
                 </MemoBox>
               ))}
               <Stack direction="row" spacing={2}>
@@ -690,7 +742,11 @@ function IntakeForm() {
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
-                  disabled={!formData.industry || !formData.role || !formData.responsibilities}
+                  disabled={
+                    !formData.industry || !formData.role || !formData.responsibilities ||
+                    formData.birthYear === undefined || formData.teamSize === undefined ||
+                    formData.leadershipExperience === undefined || formData.careerExperience === undefined
+                  }
                   sx={{
                     px: 5,
                     py: 1.4,
@@ -701,43 +757,6 @@ function IntakeForm() {
                       '100%': { transform: 'scale(1)' },
                     },
                   }}
-                >
-                  Next
-                </MemoButton>
-              </Stack>
-            </Stack>
-          </SectionCard>
-        )}
-
-        {/* Profile Page 2 (Step 2) */}
-        {currentStep === 2 && (
-          <SectionCard narrow={true}>
-            <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              {initialQuestionsPart2.map((q) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
-                  <MemoSlider
-                    value={formData[q.id] ?? q.min}
-                    onChange={(e, value) => handleChange(q.id, value)}
-                    min={q.min}
-                    max={q.max}
-                    sx={{ width: '100%' }}
-                  />
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                    {formData[q.id] ?? (q.min === 0 ? '<1' : q.min)}
-                  </Typography>
-                </MemoBox>
-              ))}
-              <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(1)}>Back</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={
-                    formData.teamSize === undefined ||
-                    formData.leadershipExperience === undefined ||
-                    formData.careerExperience === undefined
-                  }
                 >
                   Next
                 </MemoButton>
@@ -760,7 +779,17 @@ function IntakeForm() {
                     {q.theme.toUpperCase()}
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
-                    {q.prompt}
+                    {q.id === 'proudMoment' ? (
+                      <>
+                        Consider a significant team accomplishment and <em>describe</em> how your contribution made it possible.
+                      </>
+                    ) : q.id === 'decisionPace' ? (
+                      <>
+                        When something goes wrong, what do you usually focus on <u>first</u>?
+                      </>
+                    ) : (
+                      q.prompt
+                    )}
                   </Typography>
 
                   {(q.type === 'radio' || q.type === 'multi-select') && (
@@ -786,7 +815,12 @@ function IntakeForm() {
                               disabled={disabled}
                               onClick={() => {
                                 if (q.type === 'radio') {
-                                  handleSingleSelect(q.id, opt);
+                                  if (q.id === 'roleModelTrait') {
+                                    // Open elaboration dialog for Role Model question
+                                    handleRoleModelTraitSelect(opt);
+                                  } else {
+                                    handleSingleSelect(q.id, opt);
+                                  }
                                 } else {
                                   const current = formData[q.id] || [];
                                   if (selected) {
@@ -825,8 +859,8 @@ function IntakeForm() {
                             ref={provided.innerRef}
                             sx={{ width: '100%' }}
                           >
-                            <Typography variant="body2" sx={{ opacity: 0.7, textAlign: 'center' }}>
-                              Most {q.scale?.top || 'like me'}
+                            <Typography variant="body1" sx={{ opacity: 0.8, textAlign: 'center', fontWeight: 700, fontSize: '1.05rem' }}>
+                              {q.scale?.top && (q.scale.top.includes('Most') || q.scale.top.includes('Least')) ? q.scale.top : `Most ${q.scale?.top || 'like me'}`}
                             </Typography>
                             {(formData[q.id] || q.options).map((opt, index) => (
                               <Draggable draggableId={opt} index={index} key={opt}>
@@ -868,8 +902,8 @@ function IntakeForm() {
                               </Draggable>
                             ))}
                             {provided.placeholder}
-                            <Typography variant="body2" sx={{ opacity: 0.7, textAlign: 'center' }}>
-                              Least {q.scale?.bottom || 'like me'}
+                            <Typography variant="body1" sx={{ opacity: 0.8, textAlign: 'center', fontWeight: 700, fontSize: '1.05rem' }}>
+                              {q.scale?.bottom && (q.scale.bottom.includes('Most') || q.scale.bottom.includes('Least')) ? q.scale.bottom : `Least ${q.scale?.bottom || 'like me'}`}
                             </Typography>
                           </Stack>
                         )}
@@ -881,7 +915,11 @@ function IntakeForm() {
                     <Stack spacing={3} sx={{ width: '100%' }}>
                       {q.sliders.map((s, idx) => {
                         const currentValues = Array.isArray(formData[q.id]) ? formData[q.id] : [];
-                        const currentValue = currentValues[idx] ?? Math.round(((s.min ?? 1) + (s.max ?? 10)) / 2);
+                        // For Balance Line question, start at exact middle (5.5) for visual centering
+                        const defaultValue = q.id === 'behaviorDichotomies' 
+                          ? ((s.min ?? 1) + (s.max ?? 10)) / 2 
+                          : Math.round(((s.min ?? 1) + (s.max ?? 10)) / 2);
+                        const currentValue = currentValues[idx] ?? defaultValue;
                         const marks = Array.from({ length: 10 }, (_, i) => ({ value: i + 1 }));
                         return (
                           <Box key={`${q.id}_${idx}`} sx={{ position: 'relative' }}>
@@ -978,6 +1016,15 @@ function IntakeForm() {
                     <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                       Back
                     </MemoButton>
+                    {q.id === 'projectApproach' && (
+                      <MemoButton
+                        variant="outlined"
+                        onClick={() => setCustomAnswerDialogOpen(true)}
+                        sx={{ borderColor: 'rgba(224,122,63,0.5)', color: '#E07A3F' }}
+                      >
+                        I don't see my action above
+                      </MemoButton>
+                    )}
                     <MemoButton
                       variant="contained"
                       onClick={handleNext}
@@ -985,7 +1032,8 @@ function IntakeForm() {
                         (q.type === 'text' && !formData[q.id]) ||
                         (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
                         (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
-                          (q.type === 'radio' && !formData[q.id])
+                        (q.type === 'radio' && !formData[q.id]) ||
+                        (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration)
                       }
                       sx={{ ...(stepJustValidated && { animation: 'pulse 420ms ease' }) }}
                     >
@@ -1257,6 +1305,107 @@ function IntakeForm() {
   </SectionCard>
 )}
 </PageContainer>
+
+      {/* Custom Answer Dialog for Team Puzzle */}
+      <Dialog
+        open={customAnswerDialogOpen}
+        onClose={() => {
+          setCustomAnswerDialogOpen(false);
+          setCustomAnswerText('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center' }}>
+          Custom Answer
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2, fontWeight: 600 }}>
+            When I'm given a complex project with a tight deadline, I would lead with:
+          </Typography>
+          <TextField
+            value={customAnswerText}
+            onChange={(e) => setCustomAnswerText(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="Describe your approach..."
+            variant="outlined"
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setCustomAnswerDialogOpen(false);
+              setCustomAnswerText('');
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCustomAnswerSubmit}
+            disabled={!customAnswerText.trim()}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Role Model Elaboration Dialog */}
+      <Dialog
+        open={roleModelElaborationDialogOpen}
+        onClose={() => {
+          setRoleModelElaborationDialogOpen(false);
+          setSelectedRoleModelTrait(null);
+          setRoleModelElaborationText('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center' }}>
+          Tell Us More
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+            You selected: <strong>{selectedRoleModelTrait}</strong>
+          </Typography>
+          <Typography sx={{ mb: 2, fontWeight: 600 }}>
+            Tell us more about your choice:
+          </Typography>
+          <TextField
+            value={roleModelElaborationText}
+            onChange={(e) => setRoleModelElaborationText(e.target.value)}
+            fullWidth
+            multiline
+            rows={5}
+            placeholder="Describe what you admire about how they do this..."
+            variant="outlined"
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setRoleModelElaborationDialogOpen(false);
+              setSelectedRoleModelTrait(null);
+              setRoleModelElaborationText('');
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleRoleModelElaborationSubmit}
+            disabled={!roleModelElaborationText.trim()}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
 </Box>
 );
 }
