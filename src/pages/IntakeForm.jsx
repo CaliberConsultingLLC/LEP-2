@@ -140,7 +140,7 @@ const SectionCard = ({ children, narrow = false }) => (
   </MemoBox>
 );
 
-// Warning label icon component
+// Warning label icon component - Embossed road sign style
 const WarningLabelIcon = ({ type }) => {
   const iconStyle = {
     width: '100%',
@@ -150,184 +150,318 @@ const WarningLabelIcon = ({ type }) => {
     justifyContent: 'center',
   };
 
+  // Embossed effect styling
+  const embossedStyle = {
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(200,200,200,0.3) 50%, rgba(100,100,100,0.2) 100%)',
+    boxShadow: `
+      inset 0 2px 4px rgba(255,255,255,0.8),
+      inset 0 -2px 4px rgba(0,0,0,0.2),
+      0 1px 2px rgba(0,0,0,0.1)
+    `,
+    border: '2px solid rgba(120,120,120,0.4)',
+    filter: 'grayscale(100%)',
+  };
+
   const getIcon = () => {
     switch (type) {
       case 'Caution':
+        // Diamond shape (standard caution sign)
         return (
-          <Box sx={{ ...iconStyle, color: '#FFA500' }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                border: '3px solid',
-                borderColor: 'currentColor',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                '&::before': {
-                  content: '"!"',
-                  fontSize: '24px',
-                  fontWeight: 800,
-                  lineHeight: 1,
-                },
-              }}
-            />
-          </Box>
-        );
-      case 'Warning':
-        return (
-          <Box sx={{ ...iconStyle, color: '#FF6B35' }}>
-            <Box
-              sx={{
-                width: 0,
-                height: 0,
-                borderLeft: '20px solid transparent',
-                borderRight: '20px solid transparent',
-                borderBottom: '35px solid',
-                borderBottomColor: 'currentColor',
-                position: 'relative',
-                '&::before': {
-                  content: '"!"',
-                  position: 'absolute',
-                  top: '8px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  fontSize: '20px',
-                  fontWeight: 800,
-                  color: '#fff',
-                  lineHeight: 1,
-                },
-              }}
-            />
-          </Box>
-        );
-      case 'Winding Road':
-        return (
-          <Box sx={{ ...iconStyle, color: '#6393AA' }}>
+          <Box sx={iconStyle}>
             <Box
               component="svg"
               viewBox="0 0 40 40"
-              sx={{ width: 40, height: 40 }}
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
             >
+              <defs>
+                <linearGradient id="cautionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <polygon
+                points="20,8 32,20 20,32 8,20"
+                fill="url(#cautionGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
+              <text
+                x="20"
+                y="24"
+                textAnchor="middle"
+                fontSize="18"
+                fontWeight="800"
+                fill="rgba(60,60,60,0.9)"
+                fontFamily="Arial, sans-serif"
+              >
+                !
+              </text>
+            </Box>
+          </Box>
+        );
+      case 'Warning':
+        // Triangle (yield/warning sign)
+        return (
+          <Box sx={iconStyle}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
+            >
+              <defs>
+                <linearGradient id="warningGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <polygon
+                points="20,6 34,32 6,32"
+                fill="url(#warningGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
+              <text
+                x="20"
+                y="26"
+                textAnchor="middle"
+                fontSize="16"
+                fontWeight="800"
+                fill="rgba(60,60,60,0.9)"
+                fontFamily="Arial, sans-serif"
+              >
+                !
+              </text>
+            </Box>
+          </Box>
+        );
+      case 'Winding Road':
+        // Curved arrow (standard winding road sign)
+        return (
+          <Box sx={iconStyle}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
+            >
+              <defs>
+                <linearGradient id="windingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="4"
+                y="4"
+                width="32"
+                height="32"
+                rx="2"
+                fill="url(#windingGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
               <path
                 d="M 8 20 Q 12 12, 16 20 T 24 20 T 32 20"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2.5"
                 strokeLinecap="round"
               />
               <path
                 d="M 8 24 Q 12 16, 16 24 T 24 24 T 32 24"
                 fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-            </Box>
-          </Box>
-        );
-      case 'Flammable':
-        return (
-          <Box sx={{ ...iconStyle, color: '#E07A3F' }}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                border: '3px solid',
-                borderColor: 'currentColor',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                '&::before': {
-                  content: '"🔥"',
-                  fontSize: '20px',
-                },
-              }}
-            />
-          </Box>
-        );
-      case 'Fragile':
-        return (
-          <Box sx={{ ...iconStyle, color: '#8B7355' }}>
-            <Box
-              component="svg"
-              viewBox="0 0 40 40"
-              sx={{ width: 40, height: 40 }}
-            >
-              <path
-                d="M 20 8 L 20 32 M 12 16 L 28 16 M 12 24 L 28 24"
-                stroke="currentColor"
+                stroke="rgba(60,60,60,0.9)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
             </Box>
           </Box>
         );
-      case 'Falling Rocks':
+      case 'Flammable':
+        // Diamond with flame (hazmat sign)
         return (
-          <Box sx={{ ...iconStyle, color: '#8B4513' }}>
+          <Box sx={iconStyle}>
             <Box
               component="svg"
               viewBox="0 0 40 40"
-              sx={{ width: 40, height: 40 }}
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
             >
+              <defs>
+                <linearGradient id="flammableGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <polygon
+                points="20,8 32,20 20,32 8,20"
+                fill="url(#flammableGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
               <path
-                d="M 10 12 L 15 8 L 20 12 L 25 8 L 30 12 M 10 20 L 15 16 L 20 20 L 25 16 L 30 20"
-                fill="none"
-                stroke="currentColor"
+                d="M 20 12 Q 18 14, 18 18 Q 18 20, 20 22 Q 22 20, 22 18 Q 22 16, 20 14 L 20 12 Z"
+                fill="rgba(60,60,60,0.9)"
+              />
+              <path
+                d="M 20 18 L 20 24"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </Box>
+          </Box>
+        );
+      case 'Fragile':
+        // Box with broken glass symbol
+        return (
+          <Box sx={iconStyle}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
+            >
+              <defs>
+                <linearGradient id="fragileGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="6"
+                y="6"
+                width="28"
+                height="28"
+                rx="2"
+                fill="url(#fragileGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
+              <path
+                d="M 20 10 L 20 30 M 12 18 L 28 18 M 12 22 L 28 22"
+                stroke="rgba(60,60,60,0.9)"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
-              <circle cx="12" cy="14" r="2" fill="currentColor" />
-              <circle cx="22" cy="14" r="2" fill="currentColor" />
-              <circle cx="28" cy="14" r="2" fill="currentColor" />
+            </Box>
+          </Box>
+        );
+      case 'Falling Rocks':
+        // Mountain with falling rocks
+        return (
+          <Box sx={iconStyle}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
+            >
+              <defs>
+                <linearGradient id="rocksGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="4"
+                y="4"
+                width="32"
+                height="32"
+                rx="2"
+                fill="url(#rocksGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
+              <path
+                d="M 8 28 L 12 20 L 16 24 L 20 16 L 24 20 L 28 18 L 32 24 L 32 28 Z"
+                fill="rgba(100,100,100,0.4)"
+                stroke="rgba(60,60,60,0.7)"
+                strokeWidth="1.5"
+              />
+              <circle cx="14" cy="22" r="1.5" fill="rgba(60,60,60,0.9)" />
+              <circle cx="22" cy="18" r="1.5" fill="rgba(60,60,60,0.9)" />
+              <circle cx="28" cy="20" r="1.5" fill="rgba(60,60,60,0.9)" />
             </Box>
           </Box>
         );
       case 'Deer Crossing':
+        // Deer silhouette
         return (
-          <Box sx={{ ...iconStyle, color: '#8B7355' }}>
+          <Box sx={iconStyle}>
             <Box
               component="svg"
               viewBox="0 0 40 40"
-              sx={{ width: 40, height: 40 }}
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
             >
-              <ellipse cx="20" cy="20" rx="12" ry="8" fill="none" stroke="currentColor" strokeWidth="2" />
+              <defs>
+                <linearGradient id="deerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="4"
+                y="4"
+                width="32"
+                height="32"
+                rx="2"
+                fill="url(#deerGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
+              <ellipse
+                cx="20"
+                cy="20"
+                rx="10"
+                ry="6"
+                fill="rgba(60,60,60,0.9)"
+              />
               <path
                 d="M 16 16 L 14 12 M 24 16 L 26 12 M 18 24 L 16 28 M 22 24 L 24 28"
-                stroke="currentColor"
-                strokeWidth="2"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="1.5"
                 strokeLinecap="round"
               />
             </Box>
           </Box>
         );
       case 'Wrong Way':
+        // Square with X (wrong way sign)
         return (
-          <Box sx={{ ...iconStyle, color: '#DC143C' }}>
+          <Box sx={iconStyle}>
             <Box
-              sx={{
-                width: 40,
-                height: 40,
-                border: '3px solid',
-                borderColor: 'currentColor',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                '&::before': {
-                  content: '"✕"',
-                  fontSize: '24px',
-                  fontWeight: 800,
-                  lineHeight: 1,
-                },
-              }}
-            />
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40, filter: 'grayscale(100%)' }}
+            >
+              <defs>
+                <linearGradient id="wrongGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
+                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
+                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="6"
+                y="6"
+                width="28"
+                height="28"
+                rx="2"
+                fill="url(#wrongGrad)"
+                stroke="rgba(80,80,80,0.6)"
+                strokeWidth="2"
+              />
+              <path
+                d="M 12 12 L 28 28 M 28 12 L 12 28"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </Box>
           </Box>
         );
       default:
@@ -405,6 +539,14 @@ function IntakeForm() {
       handleChange('projectApproach', customAnswerText.trim());
       setCustomAnswerDialogOpen(false);
       setCustomAnswerText('');
+    }
+  };
+
+  const handleRoleModelCustomAnswerSubmit = () => {
+    if (roleModelCustomAnswerText.trim()) {
+      handleChange('roleModelTrait', roleModelCustomAnswerText.trim());
+      setRoleModelCustomAnswerDialogOpen(false);
+      setRoleModelCustomAnswerText('');
     }
   };
 
@@ -600,7 +742,7 @@ function IntakeForm() {
       options: [
         'I thrive in the spotlight.',
         'I can handle it but prefer smaller settings.',
-        'I don't think much about it either way.',
+          "I don't think much about it either way.",
         'I prefer to lead behind the scenes.',
       ],
     },
@@ -649,7 +791,7 @@ function IntakeForm() {
     "I have more answers than I do questions in our team discussions.",
     "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
     "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
-    "I hand projects over to others and trust them to have equal or more success than I would doing it myself."
+    "When I am struggling professionally, I openly share that information with my team."
   ];
 
   const agentSelect = [
@@ -774,8 +916,6 @@ function IntakeForm() {
       // Profile validation (step 1)
       if (currentStep === 1) {
         if (!formData.industry || !formData.role || !formData.responsibilities || 
-            !formData.birthYear || formData.birthYear.trim() === '' || 
-            parseInt(formData.birthYear, 10) < 1920 || parseInt(formData.birthYear, 10) > new Date().getFullYear() ||
             formData.teamSize === undefined || 
             formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
 
@@ -918,26 +1058,10 @@ function IntakeForm() {
                   {q.type === 'text' ? (
                     <MemoTextField
                       value={formData[q.id] || ''}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (q.id === 'birthYear') {
-                          // Only allow numbers and validate range
-                          if (value === '' || /^\d+$/.test(value)) {
-                            const year = value === '' ? undefined : parseInt(value, 10);
-                            const currentYear = new Date().getFullYear();
-                            if (value === '' || (year >= 1920 && year <= currentYear)) {
-                              handleChange(q.id, value);
-                            }
-                          }
-                        } else {
-                          handleChange(q.id, value);
-                        }
-                      }}
+                      onChange={(e) => handleChange(q.id, e.target.value)}
                       fullWidth
                       variant="outlined"
                       placeholder={q.id === 'birthYear' ? 'e.g., 1985' : ''}
-                      error={q.id === 'birthYear' && formData[q.id] && (parseInt(formData[q.id], 10) < 1920 || parseInt(formData[q.id], 10) > new Date().getFullYear())}
-                      helperText={q.id === 'birthYear' && formData[q.id] && (parseInt(formData[q.id], 10) < 1920 || parseInt(formData[q.id], 10) > new Date().getFullYear()) ? 'Please enter a year between 1920 and ' + new Date().getFullYear() : ''}
                     />
                   ) : (
                     <>
@@ -964,8 +1088,6 @@ function IntakeForm() {
                   onClick={handleNext}
                   disabled={
                     !formData.industry || !formData.role || !formData.responsibilities ||
-                    !formData.birthYear || formData.birthYear.trim() === '' ||
-                    parseInt(formData.birthYear, 10) < 1920 || parseInt(formData.birthYear, 10) > new Date().getFullYear() ||
                     formData.teamSize === undefined ||
                     formData.leadershipExperience === undefined || formData.careerExperience === undefined
                   }
@@ -1009,8 +1131,8 @@ function IntakeForm() {
                       <>
                         {q.prompt}
                         <br />
-                        <Typography component="span" sx={{ fontWeight: 800, fontSize: '1.1em', mt: 1, display: 'block' }}>
-                          I wish how they <strong style={{ textDecoration: 'underline' }}>__________</strong> came more naturally to me.
+                        <Typography component="span" sx={{ fontWeight: 400, fontSize: '0.9rem', fontStyle: 'italic', mt: 1, display: 'block', opacity: 0.85 }}>
+                          I wish how they <span style={{ textDecoration: 'underline' }}>__________</span> came more naturally to me.
                         </Typography>
                       </>
                     ) : (
@@ -1064,7 +1186,7 @@ function IntakeForm() {
                               }}
                             >
                               {q.id === 'roleModelTrait' ? (
-                                <>I wish how they <strong>{optValue}</strong> came more naturally to me.</>
+                                optValue
                               ) : typeof opt === 'object' && opt.primary ? (
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                   <Typography sx={{ fontWeight: 600, mb: 0.5 }}>{opt.primary}</Typography>
@@ -1170,7 +1292,7 @@ function IntakeForm() {
                         const currentValue = currentValues[idx] ?? defaultValue;
                         const marks = Array.from({ length: 10 }, (_, i) => ({ value: i + 1 }));
                         return (
-                          <Box key={`${q.id}_${idx}`} sx={{ position: 'relative' }}>
+                          <Box key={`${q.id}_${idx}`} sx={{ position: 'relative', width: '100%', maxWidth: 600 }}>
                             <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
                               <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.left}</Typography>
                               <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.right}</Typography>
@@ -1222,6 +1344,7 @@ function IntakeForm() {
                                   position: 'relative',
                                   zIndex: 2,
                                   height: 8,
+                                  width: '100%',
                                   '& .MuiSlider-track': {
                                     display: 'none', // Hide default track, using gradient background instead
                                   },
@@ -1349,7 +1472,7 @@ function IntakeForm() {
         fullWidth
         multiline
         minRows={3}
-        placeholder={reflectionNumber === 1 ? "How does your energy impact the team?" : "How do your strengths create both risk and advantage?"}
+        placeholder={reflectionNumber === 1 ? "How does your energy impact the team?" : "How does this attribute create both risk and advantage?"}
         sx={{
           backgroundColor: 'rgba(255,255,255,0.85)',
           borderRadius: 2,
@@ -1458,18 +1581,19 @@ function IntakeForm() {
                   }}
                 >
                   <Typography
-  variant="body1" // smaller than h6
-  sx={{
-    fontWeight: 600,
-    mb: 1.5,
-    lineHeight: 1.4,
-    fontSize: '0.95rem',  // explicitly smaller
-    wordBreak: 'break-word',
-    overflowWrap: 'anywhere'
-  }}
->
-  {q}
-</Typography>
+                    variant="body1"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 1.5,
+                      lineHeight: 1.4,
+                      fontSize: '0.95rem',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {q}
+                  </Typography>
 <MemoSlider
   value={val ?? 5}
   onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
@@ -1487,13 +1611,22 @@ function IntakeForm() {
       height: 4,
     },
     '& .MuiSlider-markLabel': {
-      fontSize: '0.75rem',   // smaller text for Never/Always
+      fontSize: '0.75rem',
       whiteSpace: 'nowrap',
-      transform: 'translateY(6px)', // moves labels down so they fit
+      transform: 'translateY(6px)',
+      '&:first-of-type': {
+        textAlign: 'left',
+      },
+      '&:last-of-type': {
+        textAlign: 'right',
+        right: 0,
+        left: 'auto',
+      },
     },
     '& .MuiSlider-valueLabel': {
       fontSize: '0.75rem',
-      top: -28, // pull the bubble closer
+      top: 'auto',
+      bottom: -28, // Move number below the node
     }
   }}
 />
@@ -1522,16 +1655,22 @@ function IntakeForm() {
             </Stack>
           )}
 
-          {/* If it IS the last group → show "Choose my AI Agent" */}
+          {/* If it IS the last group → show Back/Next */}
           {currentStep === societalEnd && (
-            <Stack alignItems="center" sx={{ pt: 3 }}>
+            <Stack direction="row" spacing={2} sx={{ pt: 2, justifyContent: 'center' }}>
               <MemoButton
-  variant="contained"
-  color="primary"
-  onClick={() => setCurrentStep(agentStep)}
->
-  Choose my AI Agent
-</MemoButton>
+                variant="outlined"
+                onClick={() => setCurrentStep(s => Math.max(s - 1, societalStart))}
+              >
+                Back
+              </MemoButton>
+              <MemoButton
+                variant="contained"
+                color="primary"
+                onClick={() => setCurrentStep(agentStep)}
+              >
+                Next
+              </MemoButton>
             </Stack>
           )}
         </Stack>
@@ -1655,13 +1794,10 @@ function IntakeForm() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center' }}>
-          Tell Us More
+        <DialogTitle sx={{ fontWeight: 400, textAlign: 'center', fontStyle: 'italic', fontSize: '0.95rem', pb: 1 }}>
+          I wish how they {selectedRoleModelTrait} came more naturally to me.
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-            You selected: <strong>{selectedRoleModelTrait}</strong>
-          </Typography>
           <Typography sx={{ mb: 2, fontWeight: 600 }}>
             Tell us more about your choice:
           </Typography>
