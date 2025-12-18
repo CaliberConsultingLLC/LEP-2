@@ -140,8 +140,206 @@ const SectionCard = ({ children, narrow = false }) => (
   </MemoBox>
 );
 
+// Warning label icon component
+const WarningLabelIcon = ({ type }) => {
+  const iconStyle = {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case 'Caution':
+        return (
+          <Box sx={{ ...iconStyle, color: '#FFA500' }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                border: '3px solid',
+                borderColor: 'currentColor',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                '&::before': {
+                  content: '"!"',
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  lineHeight: 1,
+                },
+              }}
+            />
+          </Box>
+        );
+      case 'Warning':
+        return (
+          <Box sx={{ ...iconStyle, color: '#FF6B35' }}>
+            <Box
+              sx={{
+                width: 0,
+                height: 0,
+                borderLeft: '20px solid transparent',
+                borderRight: '20px solid transparent',
+                borderBottom: '35px solid',
+                borderBottomColor: 'currentColor',
+                position: 'relative',
+                '&::before': {
+                  content: '"!"',
+                  position: 'absolute',
+                  top: '8px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '20px',
+                  fontWeight: 800,
+                  color: '#fff',
+                  lineHeight: 1,
+                },
+              }}
+            />
+          </Box>
+        );
+      case 'Winding Road':
+        return (
+          <Box sx={{ ...iconStyle, color: '#6393AA' }}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40 }}
+            >
+              <path
+                d="M 8 20 Q 12 12, 16 20 T 24 20 T 32 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 8 24 Q 12 16, 16 24 T 24 24 T 32 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </Box>
+          </Box>
+        );
+      case 'Flammable':
+        return (
+          <Box sx={{ ...iconStyle, color: '#E07A3F' }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                border: '3px solid',
+                borderColor: 'currentColor',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                '&::before': {
+                  content: '"🔥"',
+                  fontSize: '20px',
+                },
+              }}
+            />
+          </Box>
+        );
+      case 'Fragile':
+        return (
+          <Box sx={{ ...iconStyle, color: '#8B7355' }}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40 }}
+            >
+              <path
+                d="M 20 8 L 20 32 M 12 16 L 28 16 M 12 24 L 28 24"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </Box>
+          </Box>
+        );
+      case 'Falling Rocks':
+        return (
+          <Box sx={{ ...iconStyle, color: '#8B4513' }}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40 }}
+            >
+              <path
+                d="M 10 12 L 15 8 L 20 12 L 25 8 L 30 12 M 10 20 L 15 16 L 20 20 L 25 16 L 30 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <circle cx="12" cy="14" r="2" fill="currentColor" />
+              <circle cx="22" cy="14" r="2" fill="currentColor" />
+              <circle cx="28" cy="14" r="2" fill="currentColor" />
+            </Box>
+          </Box>
+        );
+      case 'Deer Crossing':
+        return (
+          <Box sx={{ ...iconStyle, color: '#8B7355' }}>
+            <Box
+              component="svg"
+              viewBox="0 0 40 40"
+              sx={{ width: 40, height: 40 }}
+            >
+              <ellipse cx="20" cy="20" rx="12" ry="8" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path
+                d="M 16 16 L 14 12 M 24 16 L 26 12 M 18 24 L 16 28 M 22 24 L 24 28"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </Box>
+          </Box>
+        );
+      case 'Wrong Way':
+        return (
+          <Box sx={{ ...iconStyle, color: '#DC143C' }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                border: '3px solid',
+                borderColor: 'currentColor',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                '&::before': {
+                  content: '"✕"',
+                  fontSize: '24px',
+                  fontWeight: 800,
+                  lineHeight: 1,
+                },
+              }}
+            />
+          </Box>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{getIcon()}</Box>;
+};
+
 // "Card button" for radio / multi-select
-const OptionCard = ({ selected, children, onClick, disabled }) => (
+const OptionCard = ({ selected, children, onClick, disabled, compact, showWarningIcon, warningType }) => (
   <Box
     onClick={disabled ? undefined : onClick}
     role="button"
@@ -150,11 +348,11 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
     sx={{
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: showWarningIcon ? 'flex-start' : 'center',
       width: '100%',
-      minHeight: 68,
+      minHeight: compact ? 48 : 68,
       userSelect: 'none',
-      p: 1.6,
+      p: compact ? 1 : 1.6,
       borderRadius: 2,
       border: selected ? '2px solid #E07A3F' : '1px solid rgba(0,0,0,0.12)',
       bgcolor: selected ? 'rgba(224, 122, 63, 0.09)' : 'background.paper',
@@ -162,14 +360,21 @@ const OptionCard = ({ selected, children, onClick, disabled }) => (
       transform: 'perspective(600px) rotateY(0deg)',
       transition: 'box-shadow .25s ease, transform .25s ease, border-color .2s ease, background-color .2s ease',
       cursor: disabled ? 'default' : 'pointer',
-      textAlign: 'center',
+      textAlign: showWarningIcon ? 'left' : 'center',
       '&:hover': {
         boxShadow: '0 10px 28px rgba(0,0,0,0.16)',
         transform: 'translateY(-2px)',
       },
     }}
   >
-    <Typography sx={{ fontSize: '1.05rem', fontWeight: 500 }}>{children}</Typography>
+    {showWarningIcon && (
+      <Box sx={{ width: '33%', display: 'flex', alignItems: 'center', justifyContent: 'center', pr: 1.5 }}>
+        <WarningLabelIcon type={warningType} />
+      </Box>
+    )}
+    <Box sx={{ flex: showWarningIcon ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: showWarningIcon ? 'flex-start' : 'center' }}>
+      <Typography sx={{ fontSize: compact ? '0.9rem' : '1.05rem', fontWeight: 500 }}>{children}</Typography>
+    </Box>
   </Box>
 );
 
@@ -183,12 +388,16 @@ function IntakeForm() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reflectionText, setReflectionText] = useState('');
   const [isLoadingReflection, setIsLoadingReflection] = useState(false);
-  const reflectionGeneratedRef = useRef(false); // Track if reflection has been generated
+  const [reflectionNumber, setReflectionNumber] = useState(1); // Track which reflection (1 or 2)
+  const reflectionGeneratedRef = useRef(false); // Track if first reflection has been generated
+  const secondReflectionGeneratedRef = useRef(false); // Track if second reflection has been generated
   const [customAnswerDialogOpen, setCustomAnswerDialogOpen] = useState(false);
   const [customAnswerText, setCustomAnswerText] = useState('');
   const [roleModelElaborationDialogOpen, setRoleModelElaborationDialogOpen] = useState(false);
   const [selectedRoleModelTrait, setSelectedRoleModelTrait] = useState(null);
   const [roleModelElaborationText, setRoleModelElaborationText] = useState('');
+  const [roleModelCustomAnswerDialogOpen, setRoleModelCustomAnswerDialogOpen] = useState(false);
+  const [roleModelCustomAnswerText, setRoleModelCustomAnswerText] = useState('');
   const navigate = useNavigate();
 
   const handleCustomAnswerSubmit = () => {
@@ -239,7 +448,7 @@ function IntakeForm() {
     { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
     { id: 'role', prompt: 'What is your current job title?', type: 'text' },
     { id: 'responsibilities', prompt: 'Briefly describe what your team is responsible for within the organization.', type: 'text' },
-    { id: 'birthYear', prompt: 'What year were you born?', type: 'slider', min: 1950, max: 2005, labels: { 1950: '1950', 2005: '2005+' } },
+    { id: 'birthYear', prompt: 'What year were you born?', type: 'text' },
     { id: 'teamSize', prompt: 'How many people do you directly manage?', type: 'slider', min: 1, max: 10, labels: { 1: '1', 10: '10+' } },
     { id: 'leadershipExperience', prompt: 'How many years have you been in your current role?', type: 'slider', min: 1, max: 20, labels: { 1: '1', 20: '20+' } },
     { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 1, max: 20, labels: { 1: '1', 20: '20+' } },
@@ -316,19 +525,19 @@ function IntakeForm() {
       id: 'roleModelTrait',
       theme: 'The Role Model',
       prompt:
-        'Think of a leader you admire (real or fictional). Pick something they do that you wish came more naturally to you.',
+        'Think of a leader you admire (real or fictional) and complete this sentence:',
       type: 'radio',
       options: [
-        'How They Communicate',
-        'How They Make Decisions',
-        'How They Think Strategically',
-        'How They Execute & Follow Through',
-        'How They Develop Their Team',
-        'How They Shape Culture',
-        'How They Build Relationships',
-        'How They Handle Challenges',
-        'How They Inspire Others',
-        'How They Balance Priorities',
+        'communicate',
+        'make decisions',
+        'think strategically',
+        'execute & follow through',
+        'develop their team',
+        'shape culture',
+        'build relationships',
+        'handle challenges',
+        'inspire others',
+        'balance priorities',
       ],
     },
     {
@@ -339,7 +548,7 @@ function IntakeForm() {
       options: [
         'Caution: May overthink the details',
         'Warning: Moves fast—keep up!',
-        'Buckle up, we change directions quickly here',
+        'Winding Road: we change directions quickly',
         'Flammable: Sparks fly under pressure',
         'Fragile: Avoid too much pushback',
         'Falling Rocks: Tendency to over-delegate',
@@ -389,47 +598,34 @@ function IntakeForm() {
         'How comfortable are you leading in high-visibility situations (presentations, crises, or leadership reviews)?',
       type: 'radio',
       options: [
-        'Very comfortable — I thrive in the spotlight.',
-        'Somewhat comfortable — I can handle it but prefer smaller settings.',
-        'Neutral — I don’t think much about it either way.',
-        'Uncomfortable — I prefer to lead behind the scenes.',
+        'I thrive in the spotlight.',
+        'I can handle it but prefer smaller settings.',
+        'I don't think much about it either way.',
+        'I prefer to lead behind the scenes.',
       ],
     },
     {
       id: 'decisionPace',
       theme: 'The Lesson Loop',
-      prompt: 'When something goes wrong, what do you usually focus on first?',
+      prompt: 'When something goes wrong, what do you prioritize?',
       type: 'radio',
       options: [
-        'Fix',
-        'Feedback',
+        { primary: 'The Fix', secondary: 'Get things back on track' },
+        { primary: 'The Feedback', secondary: 'Learn where things went wrong' },
       ],
     },
     {
       id: 'teamPerception',
-      theme: 'The Read',
-      prompt: 'When your team seems disengaged, what do you notice first?',
+      theme: 'The Performance Check',
+      prompt: 'How do you handle a team member that is underperforming?',
       type: 'radio',
       options: [
-        'Body language or tone changes.',
-        'Drop in performance or follow-through.',
-        'Reduced participation or initiative.',
-        'Tension or silence in meetings.',
-        'Side conversations or subtle pushback.',
-        'I usually don’t notice until someone mentions it.',
-      ],
-    },
-    {
-      id: 'coreDrive',
-      theme: 'The Inner Engine',
-      prompt: 'What most often drives your leadership actions day-to-day?',
-      type: 'radio',
-      options: [
-        'Achieving results and meeting goals.',
-        'Creating harmony and collaboration.',
-        'Building others’ confidence and growth.',
-        'Challenging the status quo and innovating.',
-        'Fulfilling a larger purpose or mission.',
+        'Address it directly and immediately in a private conversation.',
+        'Observe for patterns and gather context before taking action.',
+        'Provide additional support and resources to help them improve.',
+        'Reassign tasks or adjust their responsibilities to better fit their strengths.',
+        'Set clear expectations and create a performance improvement plan.',
+        'Involve HR or escalate to higher management for guidance.',
       ],
     },
   ];
@@ -438,7 +634,7 @@ function IntakeForm() {
     emotional_regulation: ['pushbackFeeling', 'energyDrains'],
     decision_cadence: ['decisionPace', 'crisisResponse', 'projectApproach'],
     team_awareness: ['teamPerception', 'visibilityComfort', 'roleModelTrait'],
-    motivational_drive: ['coreDrive', 'leaderFuel', 'resourcePick'],
+    motivational_drive: ['leaderFuel', 'resourcePick'],
     self_reflection: ['warningLabel', 'proudMoment', 'behaviorDichotomies'],
   };
 
@@ -512,7 +708,8 @@ function IntakeForm() {
   // ---- dialogs and reflection text ----
   useEffect(() => {
     const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
-    setDialogOpen(messageSteps.includes(currentStep));
+    const reflectionIntro = currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current;
+    setDialogOpen(messageSteps.includes(currentStep) || reflectionIntro);
   }, [currentStep, mindsetIntroStep]);
 
   // Generate reflection only once when reaching the step, not when formData changes
@@ -522,12 +719,16 @@ function IntakeForm() {
       setIsLoadingReflection(true);
 
       const timer = setTimeout(() => {
-        // Exclude userReflection from the data sent to API to prevent regeneration
-        const { userReflection, ...dataForReflection } = formData;
+        // Only include energyDrains and leaderFuel for reflection generation
+        const reflectionData = {
+          energyDrains: formData.energyDrains,
+          leaderFuel: formData.leaderFuel,
+          selectedAgent: 'bluntPracticalFriend',
+        };
         fetch('/api/get-ai-reflection', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...dataForReflection, selectedAgent: 'bluntPracticalFriend' }),
+          body: JSON.stringify(reflectionData),
         })
           .then(r => r.json())
           .then(data => {
@@ -561,7 +762,7 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    const isMessageStep = [0, 3, mindsetIntroStep].includes(currentStep); // auto-advance popups
+    const isMessageStep = [0, 3, mindsetIntroStep].includes(currentStep) || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current); // auto-advance popups
 
     if (isMessageStep) {
       setDialogOpen(false);
@@ -573,7 +774,9 @@ function IntakeForm() {
       // Profile validation (step 1)
       if (currentStep === 1) {
         if (!formData.industry || !formData.role || !formData.responsibilities || 
-            formData.birthYear === undefined || formData.teamSize === undefined || 
+            !formData.birthYear || formData.birthYear.trim() === '' || 
+            parseInt(formData.birthYear, 10) < 1920 || parseInt(formData.birthYear, 10) > new Date().getFullYear() ||
+            formData.teamSize === undefined || 
             formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
 
       // Behaviors validation (steps 5..16)
@@ -585,8 +788,8 @@ function IntakeForm() {
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
         if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
         if (q.type === 'radio' && !v) return;
-        // For Role Model question, also require elaboration
-        if (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration) return;
+        // For Role Model question, also require elaboration (unless custom answer was used)
+        if (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v)) return;
 
       // Reflection step - no validation; buttons control navigation
       } else if (currentStep === reflectionStep) {
@@ -683,7 +886,7 @@ function IntakeForm() {
       <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
 
       {/* Message Pop-ups */}
-      {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep) && (
+      {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
@@ -711,13 +914,30 @@ function IntakeForm() {
             <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               {initialQuestions.map((q) => (
                 <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25, lineHeight: 1.35, textAlign: 'center' }}>{q.prompt}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 400, mb: 1.25, lineHeight: 1.5, textAlign: 'center', fontSize: '1.1rem' }}>{q.prompt}</Typography>
                   {q.type === 'text' ? (
                     <MemoTextField
                       value={formData[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (q.id === 'birthYear') {
+                          // Only allow numbers and validate range
+                          if (value === '' || /^\d+$/.test(value)) {
+                            const year = value === '' ? undefined : parseInt(value, 10);
+                            const currentYear = new Date().getFullYear();
+                            if (value === '' || (year >= 1920 && year <= currentYear)) {
+                              handleChange(q.id, value);
+                            }
+                          }
+                        } else {
+                          handleChange(q.id, value);
+                        }
+                      }}
                       fullWidth
                       variant="outlined"
+                      placeholder={q.id === 'birthYear' ? 'e.g., 1985' : ''}
+                      error={q.id === 'birthYear' && formData[q.id] && (parseInt(formData[q.id], 10) < 1920 || parseInt(formData[q.id], 10) > new Date().getFullYear())}
+                      helperText={q.id === 'birthYear' && formData[q.id] && (parseInt(formData[q.id], 10) < 1920 || parseInt(formData[q.id], 10) > new Date().getFullYear()) ? 'Please enter a year between 1920 and ' + new Date().getFullYear() : ''}
                     />
                   ) : (
                     <>
@@ -729,8 +949,8 @@ function IntakeForm() {
                         sx={{ width: '100%' }}
                       />
                       <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                        {q.id === 'birthYear' 
-                          ? (formData[q.id] ?? q.min)
+                        {q.id === 'leadershipExperience' || q.id === 'careerExperience'
+                          ? (formData[q.id] === 20 ? '20+' : (formData[q.id] ?? q.min))
                           : (formData[q.id] ?? q.min)}
                       </Typography>
                     </>
@@ -744,7 +964,9 @@ function IntakeForm() {
                   onClick={handleNext}
                   disabled={
                     !formData.industry || !formData.role || !formData.responsibilities ||
-                    formData.birthYear === undefined || formData.teamSize === undefined ||
+                    !formData.birthYear || formData.birthYear.trim() === '' ||
+                    parseInt(formData.birthYear, 10) < 1920 || parseInt(formData.birthYear, 10) > new Date().getFullYear() ||
+                    formData.teamSize === undefined ||
                     formData.leadershipExperience === undefined || formData.careerExperience === undefined
                   }
                   sx={{
@@ -774,18 +996,22 @@ function IntakeForm() {
               const q = behaviorSet[qIndex];
 
               return (
-                <Stack spacing={3} alignItems="stretch" textAlign="left" sx={{ width: '100%' }}>
+                <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
                   <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8, textAlign: 'center' }}>
                     {q.theme.toUpperCase()}
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
                     {q.id === 'proudMoment' ? (
                       <>
-                        Consider a significant team accomplishment and <em>describe</em> how your contribution made it possible.
+                        Consider a significant team accomplishment and <u>describe</u> how your contribution made it possible.
                       </>
-                    ) : q.id === 'decisionPace' ? (
+                    ) : q.id === 'roleModelTrait' ? (
                       <>
-                        When something goes wrong, what do you usually focus on <u>first</u>?
+                        {q.prompt}
+                        <br />
+                        <Typography component="span" sx={{ fontWeight: 800, fontSize: '1.1em', mt: 1, display: 'block' }}>
+                          I wish how they <strong style={{ textDecoration: 'underline' }}>__________</strong> came more naturally to me.
+                        </Typography>
                       </>
                     ) : (
                       q.prompt
@@ -795,43 +1021,60 @@ function IntakeForm() {
                   {(q.type === 'radio' || q.type === 'multi-select') && (
                     <Grid
                       container
-                      spacing={2}
+                      spacing={q.id === 'pushbackFeeling' ? 1.5 : 2}
                       alignItems="stretch"
+                      justifyContent="center"
                     >
                       {q.options.map((opt) => {
-                        const selected = q.type === 'radio' ? formData[q.id] === opt : (formData[q.id] || []).includes(opt);
+                        const optValue = typeof opt === 'object' && opt.primary ? opt.primary : opt;
+                        const optKey = typeof opt === 'object' && opt.primary ? opt.primary : opt;
+                        const selected = q.type === 'radio' ? formData[q.id] === optValue : (formData[q.id] || []).includes(optValue);
                         const disabled = q.type === 'multi-select' && q.limit != null && (formData[q.id]?.length >= q.limit) && !selected;
                         return (
                           <Grid
                             item
                             xs={12}
-                            sm={q.id === 'pushbackFeeling' ? 6 : 6}
-                            md={q.id === 'pushbackFeeling' ? 4 : 6}
-                            key={opt}
+                            sm={q.id === 'pushbackFeeling' ? 4 : 6}
+                            md={q.id === 'pushbackFeeling' ? 3 : 6}
+                            key={optKey}
                             sx={{ display: 'flex' }}
                           >
                             <OptionCard
                               selected={!!selected}
                               disabled={disabled}
+                              compact={q.id === 'pushbackFeeling'}
+                              showWarningIcon={q.id === 'warningLabel'}
+                              warningType={q.id === 'warningLabel' ? (typeof opt === 'string' ? opt.split(':')[0].trim() : opt.primary?.split(':')[0].trim()) : null}
                               onClick={() => {
                                 if (q.type === 'radio') {
                                   if (q.id === 'roleModelTrait') {
                                     // Open elaboration dialog for Role Model question
-                                    handleRoleModelTraitSelect(opt);
+                                    handleRoleModelTraitSelect(optValue);
                                   } else {
-                                    handleSingleSelect(q.id, opt);
+                                    handleSingleSelect(q.id, optValue);
                                   }
                                 } else {
                                   const current = formData[q.id] || [];
                                   if (selected) {
-                                    handleChange(q.id, current.filter((v) => v !== opt));
+                                    handleChange(q.id, current.filter((v) => v !== optValue));
                                   } else if (current.length < (q.limit ?? Infinity)) {
-                                    handleChange(q.id, [...current, opt]);
+                                    handleChange(q.id, [...current, optValue]);
                                   }
                                 }
                               }}
                             >
-                              {opt}
+                              {q.id === 'roleModelTrait' ? (
+                                <>I wish how they <strong>{optValue}</strong> came more naturally to me.</>
+                              ) : typeof opt === 'object' && opt.primary ? (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <Typography sx={{ fontWeight: 600, mb: 0.5 }}>{opt.primary}</Typography>
+                                  <Typography sx={{ fontSize: '0.9rem', opacity: 0.8 }}>{opt.secondary}</Typography>
+                                </Box>
+                              ) : q.id === 'warningLabel' ? (
+                                opt.split(':').slice(1).join(':').trim()
+                              ) : (
+                                opt
+                              )}
                             </OptionCard>
                           </Grid>
                         );
@@ -840,13 +1083,16 @@ function IntakeForm() {
                   )}
 
                   {q.type === 'text' && (
-                    <MemoTextField
-                      value={formData[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
-                      fullWidth
-                      multiline
-                      minRows={3}
-                    />
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                      <MemoTextField
+                        value={formData[q.id] || ''}
+                        onChange={(e) => handleChange(q.id, e.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={3}
+                        sx={{ maxWidth: '100%' }}
+                      />
+                    </Box>
                   )}
 
                   {q.type === 'ranking' && (
@@ -865,21 +1111,22 @@ function IntakeForm() {
                             {(formData[q.id] || q.options).map((opt, index) => (
                               <Draggable draggableId={opt} index={index} key={opt}>
                                 {(p) => (
-                                  <Box
-                                    ref={p.innerRef}
-                                    {...p.draggableProps}
-                                    {...p.dragHandleProps}
-                                    sx={{
-                                      p: 1.6,
-                                      borderRadius: 1.5,
-                                      bgcolor: 'rgba(0,0,0,0.04)',
-                                      border: '1px solid rgba(0,0,0,0.1)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      fontWeight: 500,
-                                    }}
-                                  >
+                                    <Box
+                                      ref={p.innerRef}
+                                      {...p.draggableProps}
+                                      {...p.dragHandleProps}
+                                      sx={{
+                                        p: 1.6,
+                                        borderRadius: 1.5,
+                                        bgcolor: 'rgba(0,0,0,0.04)',
+                                        border: '1px solid rgba(0,0,0,0.1)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 500,
+                                        textAlign: 'center',
+                                      }}
+                                    >
                                     <Box
                                       sx={{
                                         mr: 1.5,
@@ -892,11 +1139,12 @@ function IntakeForm() {
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         fontWeight: 700,
+                                        flexShrink: 0,
                                       }}
                                     >
                                       {index + 1}
                                     </Box>
-                                    {opt}
+                                    <Typography sx={{ textAlign: 'center', flex: 1 }}>{opt}</Typography>
                                   </Box>
                                 )}
                               </Draggable>
@@ -912,7 +1160,7 @@ function IntakeForm() {
                   )}
 
                   {q.type === 'sliders' && Array.isArray(q.sliders) && (
-                    <Stack spacing={3} sx={{ width: '100%' }}>
+                    <Stack spacing={3} sx={{ width: '100%', alignItems: 'center' }}>
                       {q.sliders.map((s, idx) => {
                         const currentValues = Array.isArray(formData[q.id]) ? formData[q.id] : [];
                         // For Balance Line question, start at exact middle (5.5) for visual centering
@@ -1016,13 +1264,19 @@ function IntakeForm() {
                     <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                       Back
                     </MemoButton>
-                    {q.id === 'projectApproach' && (
+                    {(q.id === 'projectApproach' || q.id === 'roleModelTrait') && (
                       <MemoButton
                         variant="outlined"
-                        onClick={() => setCustomAnswerDialogOpen(true)}
+                        onClick={() => {
+                          if (q.id === 'projectApproach') {
+                            setCustomAnswerDialogOpen(true);
+                          } else if (q.id === 'roleModelTrait') {
+                            setRoleModelCustomAnswerDialogOpen(true);
+                          }
+                        }}
                         sx={{ borderColor: 'rgba(224,122,63,0.5)', color: '#E07A3F' }}
                       >
-                        I don't see my action above
+                        I don't see my choice above
                       </MemoButton>
                     )}
                     <MemoButton
@@ -1033,7 +1287,7 @@ function IntakeForm() {
                         (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
                         (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
                         (q.type === 'radio' && !formData[q.id]) ||
-                        (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration)
+                        (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(formData[q.id]))
                       }
                       sx={{ ...(stepJustValidated && { animation: 'pulse 420ms ease' }) }}
                     >
@@ -1090,12 +1344,12 @@ function IntakeForm() {
 
       {/* User Input Box */}
       <MemoTextField
-        value={formData.userReflection || ''}
-        onChange={(e) => handleChange('userReflection', e.target.value)}
+        value={formData[reflectionNumber === 1 ? 'userReflection' : 'userReflection2'] || ''}
+        onChange={(e) => handleChange(reflectionNumber === 1 ? 'userReflection' : 'userReflection2', e.target.value)}
         fullWidth
         multiline
         minRows={3}
-        placeholder="What are your thoughts on this reflection?"
+        placeholder={reflectionNumber === 1 ? "How does your energy impact the team?" : "How do your strengths create both risk and advantage?"}
         sx={{
           backgroundColor: 'rgba(255,255,255,0.85)',
           borderRadius: 2,
@@ -1112,16 +1366,55 @@ function IntakeForm() {
       >
         <MemoButton
           variant="outlined"
-          onClick={() => setCurrentStep(behaviorStart)} // jump back to first behavior question
+          onClick={() => {
+            if (reflectionNumber === 1) {
+              setCurrentStep(behaviorEnd); // go back to last behavior question
+            } else {
+              setReflectionNumber(1);
+              setReflectionText('');
+              secondReflectionGeneratedRef.current = false;
+            }
+          }}
         >
-          Start Fresh
+          Back
         </MemoButton>
         <MemoButton
           variant="contained"
           color="primary"
-          onClick={() => setCurrentStep(mindsetIntroStep)} // proceed to Mindset intro popup
+          onClick={() => {
+            if (reflectionNumber === 1) {
+              // Generate second reflection
+              setReflectionNumber(2);
+              setIsLoadingReflection(true);
+              const reflectionData = {
+                warningLabel: formData.warningLabel,
+                proudMoment: formData.proudMoment,
+                reflectionNumber: 2,
+                selectedAgent: 'bluntPracticalFriend',
+              };
+              fetch('/api/get-ai-reflection', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reflectionData),
+              })
+                .then(r => r.json())
+                .then(data => {
+                  if (data?.reflection) {
+                    setReflectionText(data.reflection);
+                  } else {
+                    setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
+                  }
+                })
+                .catch(() => setReflectionText("Reflection generation failed. Please continue."))
+                .finally(() => setIsLoadingReflection(false));
+            } else {
+              // Move to Mindset
+              setCurrentStep(mindsetIntroStep);
+            }
+          }}
+          disabled={isLoadingReflection}
         >
-          Let's Dig Deeper
+          {reflectionNumber === 1 ? 'Next' : 'Move onto Mindset'}
         </MemoButton>
       </Stack>
     </Stack>
@@ -1316,10 +1609,7 @@ function IntakeForm() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center' }}>
-          Custom Answer
-        </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 3 }}>
           <Typography sx={{ mb: 2, fontWeight: 600 }}>
             When I'm given a complex project with a tight deadline, I would lead with:
           </Typography>
@@ -1401,6 +1691,54 @@ function IntakeForm() {
             variant="contained"
             onClick={handleRoleModelElaborationSubmit}
             disabled={!roleModelElaborationText.trim()}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Custom Answer Dialog for Role Model */}
+      <Dialog
+        open={roleModelCustomAnswerDialogOpen}
+        onClose={() => {
+          setRoleModelCustomAnswerDialogOpen(false);
+          setRoleModelCustomAnswerText('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography sx={{ mb: 2, fontWeight: 600 }}>
+            Think of a leader you admire (real or fictional) and complete this sentence:
+          </Typography>
+          <Typography sx={{ mb: 2, fontWeight: 600, fontSize: '1.1em' }}>
+            I wish how they <strong style={{ textDecoration: 'underline' }}>__________</strong> came more naturally to me.
+          </Typography>
+          <TextField
+            value={roleModelCustomAnswerText}
+            onChange={(e) => setRoleModelCustomAnswerText(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="Enter your answer..."
+            variant="outlined"
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setRoleModelCustomAnswerDialogOpen(false);
+              setRoleModelCustomAnswerText('');
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleRoleModelCustomAnswerSubmit}
+            disabled={!roleModelCustomAnswerText.trim()}
           >
             Submit
           </Button>
