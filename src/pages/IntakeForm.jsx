@@ -800,7 +800,7 @@ function IntakeForm() {
     self_reflection: ['warningLabel', 'proudMoment', 'behaviorDichotomies'],
   };
 
-  // 10 societal norms (now the "Mindset" section, 5 per page)
+  // 10 societal norms (now the "Insights" section, 5 per page)
   const societalNormsQuestions = [
     "When challenges arise, I share the answer from my experience and expertise.",
     "I visibly react before I respond to difficult or bad news that is shared with me about the company",
@@ -844,7 +844,7 @@ function IntakeForm() {
     const reflectionStep = behaviorEnd + 1; // 15
     const mindsetIntroStep = reflectionStep + 1; // 16 (popup)
     const societalStart = mindsetIntroStep + 1; // 17
-    const societalEnd = societalStart + societalGroups.length - 1; // 17..23 (7 pages)
+    const societalEnd = societalStart + societalGroups.length - 1; // 17..18 (2 pages)
     const agentStep = societalEnd + 1; // 24
     const totalSteps = agentStep + 1; // 25 total steps (0..24 displayed as 1..25)
     return {
@@ -862,14 +862,14 @@ function IntakeForm() {
     if (currentStep === 0 || currentStep === 1) return 'Profile';
     if (currentStep === 2 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
     if (currentStep === reflectionStep) return 'Reflection Moment';
-    if (currentStep === mindsetIntroStep || (currentStep >= societalStart && currentStep <= societalEnd)) return 'Mindset';
+    if (currentStep === mindsetIntroStep || (currentStep >= societalStart && currentStep <= societalEnd)) return 'Insights';
     if (currentStep === agentStep) return 'Choose Your Agent';
     return 'LEP';
   }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep, societalStart, societalEnd, agentStep]);
 
   // ---- dialogs and reflection text ----
   useEffect(() => {
-    const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Mindset intro
+    const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Insights intro
     const reflectionIntro = currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current;
     setDialogOpen(messageSteps.includes(currentStep) || reflectionIntro);
   }, [currentStep, mindsetIntroStep]);
@@ -955,8 +955,8 @@ function IntakeForm() {
       } else if (currentStep === reflectionStep) {
         return;
 
-      // Societal (Mindset) validation: only current 5 in the shown group must be answered
-      // Societal (Mindset): no validation required
+      // Societal (Insights) validation: only current 5 in the shown group must be answered
+      // Societal (Insights): no validation required
 } else if (currentStep >= societalStart && currentStep <= societalEnd) {
   // allow skipping unanswered
 
@@ -1055,14 +1055,14 @@ function IntakeForm() {
               ? 'Leader Profile'
               : currentStep === 2
               ? 'Leader Behaviors'
-              : 'Leader Mindset & Instincts'
+              : 'Leader Insights'
           }
           content={
             currentStep === 0
               ? 'The Compass is considerate of your specific leadership environment! Think of the leader profile as context that helps both the insights and growth plan you receive be more pertinent.'
               : currentStep === 2
               ? 'The Compass also takes into account the actions that are most natural to you as a leader, so that your insights and growth plan are considerate of your natural flow state.'
-              : 'The Compass is committed to facilitating awareness of a person\'s mindset and leader instincts, which are the most influential and challenging elements to recognize and change.'
+              : 'The Compass is committed to facilitating awareness of a person\'s instincts and insights, which are the most influential and challenging elements to recognize and change.'
           }
         />
       )}
@@ -1551,13 +1551,13 @@ function IntakeForm() {
                 .catch(() => setReflectionText("Reflection generation failed. Please continue."))
                 .finally(() => setIsLoadingReflection(false));
             } else {
-              // Move to Mindset
+              // Move to Insights
               setCurrentStep(mindsetIntroStep);
             }
           }}
           disabled={isLoadingReflection}
         >
-          {reflectionNumber === 1 ? 'Next' : 'Move onto Mindset'}
+          {reflectionNumber === 1 ? 'Next' : 'Move onto Insights'}
         </MemoButton>
       </Stack>
     </Stack>
@@ -1567,138 +1567,141 @@ function IntakeForm() {
 
 
 
-        {/* Mindset (Societal Norms) – 7 pages, 5 sliders each (Steps 19..25) */}
+        {/* Insights (Societal Norms) – 2 pages, 5 sliders each (Steps 17..18) */}
 {currentStep >= societalStart && currentStep <= societalEnd && (
   <SectionCard narrow={false}>
     {(() => {
-      const groupIdx = currentStep - societalStart; // 0..6
+      const groupIdx = currentStep - societalStart; // 0..1
       const start = groupIdx * SOCIETAL_GROUP_SIZE;
       const end = start + SOCIETAL_GROUP_SIZE;
+      const currentGroup = societalNormsQuestions.slice(start, end);
 
       return (
         <Stack spacing={3} alignItems="center" textAlign="center">
-          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Mindset Check</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Insights</Typography>
           <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
             Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
           </Typography>
 
-          <Stack spacing={2} sx={{ width: '100%' }}>
-            {societalNormsQuestions.slice(start, end).map((q, idx) => {
-              const absoluteIdx = start + idx;
-              const val = societalResponses[absoluteIdx];
-              return (
-                <Paper
-                  key={absoluteIdx}
-                  elevation={4}
-                  sx={{
-                    p: 2.5,
-                    pb: 4, // Extra padding at bottom for value label
-                    borderRadius: 2,
-                    background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                    border: '1px solid',
-                    borderColor: 'primary.main',
-                    textAlign: 'center',
-                    overflow: 'visible' // Changed from 'hidden' to 'visible' so labels aren't cut off
-                  }}
-                >
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 600,
-                      mb: 1.5,
-                      lineHeight: 1.4,
-                      fontSize: '0.95rem',
-                      wordBreak: 'break-word',
-                      overflowWrap: 'anywhere',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {q}
-                  </Typography>
-<Box sx={{ position: 'relative', width: '100%', px: 2, pb: 3 }}>
-  <MemoSlider
-    value={val ?? 5}
-    onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
-    step={1}
-    min={1}
-    max={10}
-    marks={[
-      { value: 1, label: "Never" },
-      { value: 10, label: "Always" }
-    ]}
-    valueLabelDisplay="off"
-    sx={{
-      '& .MuiSlider-root': {
-        height: 4,
-      },
-      '& .MuiSlider-markLabel': {
-        fontSize: '0.75rem',
-        whiteSpace: 'nowrap',
-        transform: 'translateY(6px)',
-        '&:first-of-type': {
-          textAlign: 'left',
-          left: '0 !important',
-        },
-        '&:last-of-type': {
-          textAlign: 'right',
-          right: '0 !important',
-          left: 'auto !important',
-          transform: 'translateY(6px)',
-          width: 'auto',
-          maxWidth: 'none',
-        },
-      },
-    }}
-  />
-  {/* Custom value label below the thumb */}
-  <Box
-    sx={{
-      position: 'absolute',
-      left: `${((val ?? 5) - 1) / 9 * 100}%`,
-      top: '100%',
-      mt: 1.5,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      transform: 'translateX(-50%)',
-      zIndex: 10,
-      pointerEvents: 'none',
-    }}
-  >
-    {/* Small triangle pointing up */}
-    <Box
-      sx={{
-        width: 0,
-        height: 0,
-        borderLeft: '6px solid transparent',
-        borderRight: '6px solid transparent',
-        borderBottom: '8px solid rgba(0, 0, 0, 0.87)',
-        mb: -0.5,
-      }}
-    />
-    {/* Number value */}
-    <Box
-      sx={{
-        bgcolor: 'rgba(0, 0, 0, 0.87)',
-        color: '#fff',
-        px: 1,
-        py: 0.5,
-        borderRadius: 1,
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        minWidth: 24,
-        textAlign: 'center',
-      }}
-    >
-      {val ?? 5}
-    </Box>
-  </Box>
-</Box>
-
-                </Paper>
-              );
-            })}
-          </Stack>
+          <Paper
+            elevation={4}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              width: '100%',
+              textAlign: 'left',
+            }}
+          >
+            <Stack spacing={2}>
+              {currentGroup.map((q, idx) => {
+                const absoluteIdx = start + idx;
+                const val = societalResponses[absoluteIdx];
+                const displayVal = val ?? '____';
+                return (
+                  <Box key={absoluteIdx} sx={{ width: '100%' }}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={4}>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 700,
+                            lineHeight: 1.5,
+                            fontSize: '0.95rem',
+                            wordBreak: 'break-word',
+                            overflowWrap: 'anywhere',
+                          }}
+                        >
+                          {q}{' '}
+                          <Box
+                            component="span"
+                            sx={{
+                              display: 'inline-block',
+                              minWidth: 34,
+                              textAlign: 'center',
+                              borderBottom: '2px solid rgba(0,0,0,0.5)',
+                              fontWeight: 800,
+                              px: 0.5,
+                              ml: 0.5,
+                            }}
+                          >
+                            {displayVal}
+                          </Box>
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={8}>
+                        <Box sx={{ position: 'relative', width: '100%', px: { xs: 1, md: 2 } }}>
+                          <MemoSlider
+                            value={val ?? 5}
+                            onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
+                            step={1}
+                            min={1}
+                            max={10}
+                            marks={[
+                              { value: 1, label: "Never" },
+                              { value: 10, label: "Always" }
+                            ]}
+                            valueLabelDisplay="off"
+                            slotProps={{
+                              thumb: { 'data-value': val ?? 5 }
+                            }}
+                            sx={{
+                              '& .MuiSlider-markLabel': {
+                                fontSize: '0.75rem',
+                                whiteSpace: 'nowrap',
+                                transform: 'translateY(6px)',
+                                '&:first-of-type': {
+                                  textAlign: 'left',
+                                  left: '0 !important',
+                                },
+                                '&:last-of-type': {
+                                  textAlign: 'right',
+                                  right: '0 !important',
+                                  left: 'auto !important',
+                                  transform: 'translateY(6px)',
+                                  width: 'auto',
+                                  maxWidth: 'none',
+                                },
+                              },
+                              '& .MuiSlider-thumb': {
+                                width: 36,
+                                height: 36,
+                                backgroundColor: '#457089',
+                                border: '2px solid #2f4f5f',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                                '&:after': {
+                                  content: 'attr(data-value)',
+                                  color: '#fff',
+                                  fontWeight: 700,
+                                  fontSize: '0.9rem',
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                },
+                              },
+                              '& .MuiSlider-track': {
+                                bgcolor: '#6393AA',
+                              },
+                              '& .MuiSlider-rail': {
+                                bgcolor: 'rgba(0,0,0,0.12)',
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Grid>
+                    </Grid>
+                    {idx < currentGroup.length - 1 && (
+                      <Divider sx={{ my: 2 }} />
+                    )}
+                  </Box>
+                );
+              })}
+            </Stack>
+          </Paper>
 
           {/* If NOT the last group → show Back/Next */}
           {currentStep < societalEnd && (
