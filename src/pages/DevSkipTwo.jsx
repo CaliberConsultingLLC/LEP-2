@@ -23,40 +23,18 @@ import { db } from '../firebase';
 
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-// 32 societal norm question texts
+// 10 societal norm question texts (Insights)
 const SOCIETAL_NORMS_QUESTIONS = [
-  'I speak up even when my view is unpopular.',
-  'I change my mind when presented with new evidence.',
-  'I proactively seek feedback from my team.',
-  'I give direct feedback even when it’s uncomfortable.',
-  'I prioritize outcomes over optics.',
-  'I default to transparency unless there’s a clear reason not to.',
-  'I share credit publicly and own mistakes personally.',
-  'I separate urgency from importance when deciding.',
-  'I invite dissent and protect the time for discussion.',
-  'I close the loop on decisions with context.',
-  'I document the “why” behind changes.',
-  'I optimize for long-term trust over short-term wins.',
-  'I ensure quieter voices are heard in meetings.',
-  'I escalate only when truly blocked.',
-  'I time-box experiments to reduce risk.',
-  'I prefer clear ownership over consensus by default.',
-  'I trade scope for quality when timelines are fixed.',
-  'I choose simplicity over cleverness in plans.',
-  'I default to “just enough process.”',
-  'I measure progress with leading indicators.',
-  'I balance speed and safety in production work.',
-  'I write decisions down before socializing them.',
-  'I distinguish hard constraints from preferences.',
-  'I actively reduce toil for the team.',
-  'I set expectations explicitly and early.',
-  'I revisit decisions when assumptions change.',
-  'I choose candor over comfort.',
-  'I make space for reflection after delivery.',
-  'I invite customers into problem framing.',
-  'I treat incidents as learning opportunities.',
-  'I bias toward action when uncertainty is high.',
-  'I manage energy (not just time) for myself and the team.',
+  "When challenges arise, I share the answer from my experience and expertise.",
+  "I visibly react before I respond to difficult or bad news that is shared with me about the company",
+  "When the correction/learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
+  "I am intentional about hiring employees that equally fit the need and the company culture and values.",
+  "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation",
+  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"We're in this together.\" Perhaps, jokes about it exist among employees.",
+  "I have more answers than I do questions in our team discussions.",
+  "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
+  "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
+  "When I am struggling professionally, I openly share that information with my team."
 ];
 
 const FieldCard = ({ children }) => (
@@ -88,7 +66,7 @@ export default function DevSkipTwo() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sessionId, setSessionId] = useState(null);
-const [norms, setNorms] = useState(Array.from({ length: 32 }, () => rnd(1, 10)));
+const [norms, setNorms] = useState(Array.from({ length: 10 }, () => rnd(1, 10)));
 const [loading, setLoading] = useState(true);
 
 const [summary, setSummary] = useState('');
@@ -187,16 +165,16 @@ useEffect(() => {
 
         if (normsSnap.exists()) {
           const data = normsSnap.data();
-          if (Array.isArray(data.responses) && data.responses.length === 32) {
+          if (Array.isArray(data.responses) && data.responses.length === 10) {
             setNorms(data.responses);
           } else {
-            // normalize to 32 values if legacy doc is wrong length
-            const fresh = Array.from({ length: 32 }, () => rnd(1, 10));
+            // normalize to 10 values if legacy doc is wrong length
+            const fresh = Array.from({ length: 10 }, () => rnd(1, 10));
             setNorms(fresh);
             await setDoc(normsRef, { sessionId: sess, responses: fresh, timestamp: new Date().toISOString() }, { merge: true });
           }
         } else {
-          const fresh = Array.from({ length: 32 }, () => rnd(1, 10));
+          const fresh = Array.from({ length: 10 }, () => rnd(1, 10));
           setNorms(fresh);
           await setDoc(normsRef, { sessionId: sess, responses: fresh, timestamp: new Date().toISOString() }, { merge: true });
         }
@@ -296,7 +274,7 @@ useEffect(() => {
               </Stack>
             </Section>
 
-            <Section title="Societal Norms (1–10)">
+            <Section title="Insights (1–10)">
               <Grid container spacing={1}>
                 {norms.map((val, idx) => (
                   <Grid item xs={12} sm={12} md={6} key={`norm-${idx}`}>
