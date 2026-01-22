@@ -1490,37 +1490,30 @@ function IntakeForm() {
           boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="flex-start">
-          <Box sx={{ color: 'primary.main', fontSize: 36, lineHeight: 1 }}>
-            ❝
-          </Box>
-          <Typography
-            sx={{
-              fontWeight: 600,
-              fontSize: '1.1rem',
-              color: 'text.primary',
-              textAlign: 'left',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              lineHeight: 1.6,
-            }}
-          >
-            <strong>Observation:</strong>{' '}
-            {reflectionText || 'Generating observation...'}
-          </Typography>
-        </Stack>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '1.1rem',
+            color: 'text.primary',
+            textAlign: 'left',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            lineHeight: 1.6,
+          }}
+        >
+          <strong>Agent Observation:</strong>{' '}
+          {reflectionText || 'Generating observation...'}
+        </Typography>
       </Paper>
 
       {/* User Input Box */}
       <MemoTextField
-        value={formData[reflectionNumber === 1 ? 'userReflection' : 'userReflection2'] || ''}
-        onChange={(e) => handleChange(reflectionNumber === 1 ? 'userReflection' : 'userReflection2', e.target.value)}
+        value={formData.userReflection || ''}
+        onChange={(e) => handleChange('userReflection', e.target.value)}
         fullWidth
         multiline
         minRows={3}
-        placeholder={reflectionNumber === 1
-          ? "What does that observation make you notice about your leadership energy?"
-          : "What does that observation reveal about where your strengths can create risk?"}
+        placeholder="What does that observation make you notice about your leadership energy?"
         sx={{
           backgroundColor: 'rgba(255,255,255,0.85)',
           borderRadius: 2,
@@ -1528,42 +1521,15 @@ function IntakeForm() {
         }}
       />
 
-      {/* Action Buttons */}
-      <Stack
-        direction="row"
-        spacing={2}
-        justifyContent="center"
-        sx={{ pt: 2 }}
-      >
-        <MemoButton
-          variant="outlined"
-          onClick={() => {
-            if (reflectionNumber === 1) {
-              setCurrentStep(behaviorEnd); // go back to last behavior question
-            } else {
-              setReflectionNumber(1);
-              setReflectionText('');
-              secondReflectionGeneratedRef.current = false;
-            }
-          }}
-        >
-          Back
-        </MemoButton>
+      {/* Action Button */}
+      <Stack direction="row" justifyContent="center" sx={{ pt: 2 }}>
         <MemoButton
           variant="contained"
           color="primary"
-          onClick={() => {
-            if (reflectionNumber === 1) {
-              // Generate second reflection
-              setReflectionNumber(2);
-            } else {
-              // Move to Insights
-              setCurrentStep(mindsetIntroStep);
-            }
-          }}
-          disabled={isLoadingReflection}
+          onClick={() => setCurrentStep(mindsetIntroStep)}
+          disabled={isLoadingReflection || !formData.userReflection?.trim()}
         >
-          {reflectionNumber === 1 ? 'Next' : 'Move onto Insights'}
+          Next
         </MemoButton>
       </Stack>
     </Stack>
