@@ -10,6 +10,11 @@ function Home() {
     navigate('/landing');
   };
 
+  const handleResumeJourney = () => {
+    console.log('Resume Your Journey button clicked, navigating to /dashboard');
+    navigate('/dashboard');
+  };
+
   return (
     <Box
       sx={{
@@ -34,6 +39,14 @@ function Home() {
             sx={{ fontSize: '1.125rem', px: 4, py: 2, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
           >
             Begin Your Journey
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleResumeJourney}
+            sx={{ fontSize: '1.125rem', px: 4, py: 2, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
+          >
+            Resume Your Journey
           </Button>
 
           {/* Dev tester flow */}

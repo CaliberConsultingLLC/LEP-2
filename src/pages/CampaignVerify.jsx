@@ -31,9 +31,16 @@ function CampaignVerify() {
   const navigate = useNavigate();
   const [campaignLink, setCampaignLink] = useState('');
   const [campaignPassword, setCampaignPassword] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
   const [isGenerating, setIsGenerating] = useState(true);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState({ link: false, password: false });
+
+  const generatePassword = (length = 10) => {
+    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    return Array.from({ length }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
+  };
 
   useEffect(() => {
     const generateCampaign = async () => {
@@ -41,6 +48,16 @@ function CampaignVerify() {
         // Get user info from localStorage (collected earlier)
         const userInfoStr = localStorage.getItem('userInfo');
         const userInfo = userInfoStr ? JSON.parse(userInfoStr) : { name: '', email: '' };
+        const storedCredentialsStr = localStorage.getItem('dashboardCredentials');
+        const storedCredentials = storedCredentialsStr ? JSON.parse(storedCredentialsStr) : null;
+        const dashboardPassword = storedCredentials?.password || generatePassword(10);
+
+        setUserEmail(userInfo.email || '');
+        setUserPassword(dashboardPassword);
+        localStorage.setItem('dashboardCredentials', JSON.stringify({
+          email: userInfo.email || '',
+          password: dashboardPassword,
+        }));
 
         // Get campaign data from localStorage
         const campaignData = JSON.parse(localStorage.getItem('currentCampaign') || '[]');
@@ -429,6 +446,96 @@ function CampaignVerify() {
                       sx={{
                         p: 2.5,
                         borderRadius: 2,
+                        bgcolor: 'rgba(99,147,170,0.08)',
+                        border: '1px solid',
+                        borderColor: 'rgba(99,147,170,0.2)',
+                      }}
+                    >
+                      <Stack direction="row" spacing={2} alignItems="flex-start">
+                        <Box
+                          sx={{
+                            minWidth: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            bgcolor: 'secondary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '1.2rem',
+                          }}
+                        >
+                          1
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '1.2rem',
+                              fontWeight: 600,
+                              color: 'text.primary',
+                              mb: 1,
+                            }}
+                          >
+                            Access Your Dashboard
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '1rem',
+                              color: 'text.secondary',
+                              lineHeight: 1.6,
+                              mb: 2,
+                            }}
+                          >
+                            Visit your dashboard to see results, resources, your action plan, and journey map. Use the credentials below to sign in.
+                          </Typography>
+                          <Box sx={{ mb: 2 }}>
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.95rem',
+                                color: 'text.primary',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Email: <Box component="span" sx={{ fontWeight: 700 }}>{userEmail || '—'}</Box>
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.95rem',
+                                color: 'text.primary',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Password: <Box component="span" sx={{ fontWeight: 700 }}>{userPassword || '—'}</Box>
+                            </Typography>
+                          </Box>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate('/dashboard')}
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '1rem',
+                              px: 3,
+                              py: 1,
+                              borderRadius: 2,
+                            }}
+                          >
+                            Go to Dashboard
+                          </Button>
+                        </Box>
+                      </Stack>
+                    </Box>
+
+                    {/* Step 2 */}
+                    <Box
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
                         bgcolor: 'rgba(224,122,63,0.08)',
                         border: '1px solid',
                         borderColor: 'rgba(224,122,63,0.2)',
@@ -449,7 +556,7 @@ function CampaignVerify() {
                             fontSize: '1.2rem',
                           }}
                         >
-                          1
+                          2
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography
@@ -477,7 +584,7 @@ function CampaignVerify() {
                       </Stack>
                     </Box>
 
-                    {/* Step 2 */}
+                    {/* Step 3 */}
                     <Box
                       sx={{
                         p: 2.5,
@@ -502,7 +609,7 @@ function CampaignVerify() {
                             fontSize: '1.2rem',
                           }}
                         >
-                          2
+                          3
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography
@@ -530,7 +637,7 @@ function CampaignVerify() {
                       </Stack>
                     </Box>
 
-                    {/* Step 3 */}
+                    {/* Step 4 */}
                     <Box
                       sx={{
                         p: 2.5,
@@ -555,7 +662,7 @@ function CampaignVerify() {
                             fontSize: '1.2rem',
                           }}
                         >
-                          3
+                          4
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <Typography
