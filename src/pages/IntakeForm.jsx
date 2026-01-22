@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, CardActions, Grid, LinearProgress, Paper
+  Card, CardContent, CardActions, Grid, LinearProgress, Paper, Divider
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
