@@ -42,71 +42,53 @@ const ROLE_TITLE_POOL = [
   'Director of Engineering','Technical Lead','Head of Operations','Customer Success Lead','Data Team Lead',
   'Project Manager','Sales Manager','People Manager','Strategy Lead','Innovation Lead',
 ];
-const RESOURCE_PICK = [
-  "More time in the day to focus on priorities",
-  "A larger budget to work with",
-  "A mentor to guide your decision-making",
-  "A team that just 'gets it'",
-  "A dedicated time/space for reflection and planning",
-  "A high performer to share the load",
-];
-const COFFEE_IMPRESSION = [
-  "They really listen to us.",
-  "They’ve got everything under control.",
-  "They make us want to step up.",
-  "They make our team better.",
-  "They’re always thinking ahead.",
-  "They hold a high bar for us.",
-  "They trust us to deliver.",
-];
+const RESOURCE_PICK = ['Time', 'Budget', 'Expectations', 'Scope'];
 const PROJECT_APPROACH = [
-  "Create a detailed plan to guide the team.",
-  "Dive into the most challenging aspect to lead by example.",
-  "Gather the team for a collaborative brainstorming session.",
-  "Focus on identifying and mitigating the biggest risks.",
-  "Distribute tasks to the team and set clear check-in points.",
+  'Create a detailed plan to guide the team.',
+  'Dive into the most challenging aspect to lead by example.',
+  'Gather the team for a collaborative brainstorming session.',
+  'Focus on identifying and mitigating the biggest risks.',
+  'Distribute tasks to the team and set clear check-in points.',
+  'Ask clarifying questions before diving in.',
 ];
 const ENERGY_DRAINS = [
-  "Repeating myself to ensure understanding",
-  "Addressing a team member’s inconsistent contributions",
-  "Decoding unspoken concerns from the team",
-  "Navigating frequent changes in priorities",
-  "Meetings with limited or no outcomes",
-  "Mediating conflicts within the team",
-  "Pursuing goals that lack clear direction",
-  "Balancing expectations from high-pressure stakeholders",
+  'Repeating myself to ensure understanding',
+  "Addressing a team member's inconsistent contributions",
+  'Decoding unspoken concerns from the team',
+  'Navigating frequent changes in priorities',
+  'Meetings with limited or no outcomes',
+  'Mediating conflicts within the team',
+  'Pursuing goals that lack clear direction',
+  'Balancing differing expectations from stakeholders',
 ];
 const CRISIS_RESPONSE = [
-  "I stay calm and provide clear direction.",
-  "I rally everyone to brainstorm solutions.",
-  "I focus on verifying details to ensure accuracy.",
-  "I empower the team to take the lead while I support.",
-  "I take a hands-on role to address the issue quickly.",
+  'Maintain composure and provide clear, decisive direction to the team.',
+  'Immediately gather the team to collaborate on potential solutions.',
+  'First verify all facts and details before taking any action.',
+  'Delegate ownership to team members while providing support from the sidelines.',
+  'Jump in directly to handle the most critical aspects myself.',
 ];
 const ROLE_MODEL_TRAIT = [
-  "Connecting with people effortlessly",
-  "Making tough decisions without hesitation",
-  "Staying calm under pressure",
-  "Painting a clear vision for the future",
-  "Getting the best out of everyone",
-  "Explaining complex ideas simply",
-  "Knowing when to step back and listen",
-];
-const SUCCESS_METRIC = [
-  "The team’s buzzing with energy and momentum.",
-  "We hit our big goals or deadlines.",
-  "Team members stepped up with their own ideas.",
-  "I cleared roadblocks that were holding us back.",
-  "Collaboration was smooth and drama-free.",
-  "Someone acknowledged the progress we made.",
+  'communicated',
+  'made decisions',
+  'thought strategically',
+  'executed & followed through',
+  'developed their team',
+  'shaped culture',
+  'built relationships',
+  'handled challenges',
+  'inspired others',
+  'balanced priorities',
 ];
 const WARNING_LABEL = [
-  "Caution: May overthink the details.",
-  "Warning: Moves fast—keep up!",
-  "Buckle up, we change directions quickly here.",
-  "Flammable: Sparks fly under pressure.",
-  "Fragile: Avoid too much pushback.",
-  "High voltage: Big ideas ahead.",
+  'Caution: May overthink the details',
+  'Warning: Moves fast—keep up!',
+  'Winding Road: we change directions quickly',
+  'Flammable: Sparks fly under pressure',
+  'Fragile: Avoid too much pushback',
+  'Falling Rocks: Tendency to over-delegate',
+  'Deer Crossing: May jump into your lane',
+  'Wrong Way: My way or the highway',
 ];
 const LEADER_FUEL = [
   "Seeing the team gel and succeed together",
@@ -126,58 +108,42 @@ const AGENTS = [
 ];
 
 const PUSHBACK_FEELING_POOL = [
-  "I feel energized by challenge and curious about the reasoning.",
-  "A bit anxious but open to feedback and iteration.",
-  "Defensive at first, then I regroup and listen.",
-  "Confident if the data supports my call.",
-  "I slow down and ask clarifying questions.",
-  "I look for the shared goal before debating details.",
-  "I get terse—working on staying open.",
-  "I welcome dissent if it improves the plan.",
-  "I pause decisions to gather more context.",
-  "I try to separate ego from outcome.",
-  "I ask for a concrete alternative to compare.",
-  "I reframe it as a learning opportunity.",
-  "I ask what success would look like to them.",
-  "I propose a time-boxed experiment.",
-  "I escalate only if we’re blocked on delivery.",
-];
-const PROUD_MOMENT_POOL = [
-  "Led a cross-team delivery under a tight deadline.",
-  "Turned a failing project into a stable release.",
-  "Mentored a junior into a lead role.",
-  "Reduced cycle time with a simple process change.",
-  "Aligned stakeholders around a clear metric.",
-  "Recovered trust after a production incident.",
-  "Launched an MVP that unlocked executive buy-in.",
-  "Built a culture of blameless postmortems.",
-  "Negotiated scope to protect quality.",
-  "Grew a strong peer feedback habit.",
-  "Shipped a customer-loved feature from idea to launch.",
-  "Facilitated a conflict into a durable agreement.",
-  "Drove an initiative that improved customer satisfaction.",
-  "Established a feedback ritual the team actually uses.",
-  "Unlocked a stuck negotiation with a simple reframing.",
-];
-const SELF_REFLECTION_POOL = [
-  "I need to delegate earlier and more clearly.",
-  "I over-optimize details when speed matters.",
-  "I can improve how I incorporate dissenting views.",
-  "I need to state priorities and tradeoffs explicitly.",
-  "I should ask for help before I’m overloaded.",
-  "I could celebrate wins more consistently.",
-  "I should schedule deeper work blocks.",
-  "I need to close the loop on decisions publicly.",
-  "I can listen longer before proposing solutions.",
-  "I should define success criteria up front.",
-  "I can be clearer with expectations and timelines.",
-  "I should revisit decisions as new data arrives.",
-  "I need to make space for quieter voices.",
-  "I should narrate my decision process explicitly.",
-  "I can separate urgency from importance better.",
+  'Defensive', 'Frustrated', 'Curious', 'Dismissive', 'Apprehensive',
+  'Motivated', 'Insecure', 'Irritated', 'Open', 'Doubtful',
+  'Calm', 'Competitive', 'Humbled', 'Surprised', 'Relieved',
+  'Proud', 'Confused', 'Nothing'
 ];
 
-// 10 societal/mindset items
+const VISIBILITY_COMFORT = [
+  'I thrive in the spotlight.',
+  'I can handle it but prefer smaller settings.',
+  "I don't think much about it either way.",
+  'I prefer to lead behind the scenes.',
+];
+
+const DECISION_PACE = [
+  'The Fix — Get things back on track',
+  'The Feedback — Learn where things went wrong',
+];
+
+const TEAM_PERCEPTION = [
+  'Address it directly and immediately in a private conversation.',
+  'Observe for patterns and gather context before taking action.',
+  'Provide additional support and resources to help them improve.',
+  'Reassign tasks or adjust their responsibilities to better fit their strengths.',
+  'Set clear expectations and create a performance improvement plan.',
+  'Involve HR or escalate to higher management for guidance.',
+];
+
+const BEHAVIOR_DICHOTOMIES = [
+  { left: 'Prone to listen', right: 'Prone to speak' },
+  { left: 'Critical', right: 'Encouraging' },
+  { left: 'Detail-Oriented', right: 'Big-picture-oriented' },
+  { left: 'Directive', right: 'Empowering' },
+  { left: 'Risk-averse', right: 'Risk-tolerant' },
+];
+
+// 10 societal/insights items
 const SOCIETAL_QUESTIONS = [
   "When challenges arise, I share the answer from my experience and expertise.",
   "I visibly react before I respond to difficult or bad news that is shared with me about the company",
@@ -188,28 +154,26 @@ const SOCIETAL_QUESTIONS = [
   "I have more answers than I do questions in our team discussions.",
   "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
   "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
-  "I hand projects over to others and trust them to have equal or more success than I would doing it myself."
+  "When I am struggling professionally, I openly share that information with my team."
 ];
 
 const QUESTION_META = {
-  name: { label: 'Your Name', type: 'text' },
-
   industry: {
-    label: 'Your Industry',
+    label: 'What industry do you work in?',
     type: 'open-choice',
     options: INDUSTRY_POOL,
     placeholder: 'Enter industry…',
   },
 
   role: {
-    label: 'Your Role/Title',
+    label: 'What is your current job title?',
     type: 'open-choice',
     options: ROLE_TITLE_POOL,
     placeholder: 'Enter role/title…',
   },
 
   responsibilities: {
-    label: 'Your Primary Responsibilities',
+    label: 'Briefly describe what your team is responsible for within the organization.',
     type: 'open-choice',
     options: [
       "Set strategy and translate it into quarterly goals.",
@@ -231,36 +195,39 @@ const QUESTION_META = {
     placeholder: 'Describe your primary responsibilities…',
   },
 
-  teamSize: { label: 'Team Size', type: 'number', min: 1, max: 10 },
-  leadershipExperience: { label: 'Leadership Experience (years)', type: 'number', min: 0, max: 10 },
-  careerExperience: { label: 'Career Experience (years)', type: 'number', min: 0, max: 20 },
+  birthYear: { label: 'What year were you born?', type: 'text' },
+  teamSize: { label: 'How many people do you directly manage?', type: 'number', min: 1, max: 10 },
+  leadershipExperience: { label: 'How many years have you been in your current role?', type: 'number', min: 1, max: 20 },
+  careerExperience: { label: 'How many years have you been in a leadership role?', type: 'number', min: 1, max: 20 },
 
-  resourcePick: { label: 'If you could add one resource right now, what would help most?', type: 'select', options: RESOURCE_PICK },
-  coffeeImpression: { label: 'If your team chatted about you over coffee, what would they say?', type: 'select', options: COFFEE_IMPRESSION },
-  projectApproach: { label: 'Faced with a new critical project, which approach resonates most?', type: 'select', options: PROJECT_APPROACH },
+  resourcePick: { label: 'When resources are tight, which do you usually adjust first?', type: 'select', options: RESOURCE_PICK },
+  projectApproach: { label: "You're given a complex project with a tight deadline. Choose the action you'd most likely take first.", type: 'select', options: PROJECT_APPROACH },
 
-  energyDrains: { label: 'Which of these drain your energy most? (choose up to 3)', type: 'multi', options: ENERGY_DRAINS, max: 3 },
+  energyDrains: { label: 'Which three situations would you most prefer to minimize throughout the day?', type: 'multi', options: ENERGY_DRAINS, max: 3 },
 
-  crisisResponse: { label: 'Crisis Response — rank from 1 (most like you) to N', type: 'rank', options: CRISIS_RESPONSE },
+  crisisResponse: { label: 'A crisis hits your team unexpectedly. Rank the following responses:', type: 'rank', options: CRISIS_RESPONSE },
 
   pushbackFeeling: {
-    label: 'When someone pushes back on your plan, how do you feel/respond?',
-    type: 'open-choice',
+    label: 'When someone challenges your authority, questions your judgment, or pushes back on your plan — what emotions do you feel in the moment?',
+    type: 'multi',
     options: PUSHBACK_FEELING_POOL,
-    placeholder: 'Describe how you feel/respond to pushback…',
   },
 
-  roleModelTrait: { label: 'What do people admire about you as a role model? (choose up to 2)', type: 'multi', options: ROLE_MODEL_TRAIT, max: 2 },
+  roleModelTrait: { label: 'Think of a leader you admire and choose the verb that fits best.', type: 'select', options: ROLE_MODEL_TRAIT },
 
-  successMetric: { label: 'How do you know a week went really well?', type: 'select', options: SUCCESS_METRIC },
+  warningLabel: { label: 'If your leadership style had a "warning label," what would it be?', type: 'select', options: WARNING_LABEL },
 
-  warningLabel: { label: 'If you had a tongue-in-cheek warning label, what would it say?', type: 'select', options: WARNING_LABEL },
+  leaderFuel: { label: 'Rank the following outcomes that energize you most.', type: 'rank', options: LEADER_FUEL },
 
-  leaderFuel: { label: 'What fuels you as a leader? — rank from 1 (most) to N', type: 'rank', options: LEADER_FUEL },
+  proudMoment: { label: 'Consider a significant team accomplishment and describe how your contribution made it possible.', type: 'text' },
 
-  proudMoment: { label: 'Share a recent moment you’re proud of', type: 'open-choice', options: PROUD_MOMENT_POOL, placeholder: 'Describe a recent proud moment…' },
+  behaviorDichotomies: { label: 'Consider the following behaviors and select where you most naturally fit on the scale.', type: 'sliders', sliders: BEHAVIOR_DICHOTOMIES },
 
-  selfReflection: { label: 'A self-reflection that would improve your leadership', type: 'open-choice', options: SELF_REFLECTION_POOL, placeholder: 'Share a self-reflection…' },
+  visibilityComfort: { label: 'How comfortable are you leading in high-visibility situations?', type: 'select', options: VISIBILITY_COMFORT },
+
+  decisionPace: { label: 'When something goes wrong, what do you prioritize?', type: 'select', options: DECISION_PACE },
+
+  teamPerception: { label: 'How do you handle a team member that is underperforming?', type: 'select', options: TEAM_PERCEPTION },
 
   selectedAgent: { label: 'Agent Persona', type: 'select', options: AGENTS },
 };
@@ -268,27 +235,28 @@ const QUESTION_META = {
 // ---------- generator ----------
 const generateRandomPayload = (sessionId) => ({
   sessionId,
-  name: "Dev User",
   industry: pick(INDUSTRY_POOL),
   role: pick(ROLE_TITLE_POOL),
   responsibilities: pick(QUESTION_META.responsibilities.options),
+  birthYear: String(rnd(1965, 2002)),
 
   teamSize: rnd(1, 10),
-  leadershipExperience: rnd(0, 10),
-  careerExperience: rnd(0, 20),
+  leadershipExperience: rnd(1, 20),
+  careerExperience: rnd(1, 20),
 
   resourcePick: pick(RESOURCE_PICK),
-  coffeeImpression: pick(COFFEE_IMPRESSION),
   projectApproach: pick(PROJECT_APPROACH),
   energyDrains: shuffle(ENERGY_DRAINS).slice(0, 3),
   crisisResponse: shuffle(CRISIS_RESPONSE),
-  pushbackFeeling: pick(PUSHBACK_FEELING_POOL),
-  roleModelTrait: shuffle(ROLE_MODEL_TRAIT).slice(0, 2),
-  successMetric: pick(SUCCESS_METRIC),
+  pushbackFeeling: shuffle(PUSHBACK_FEELING_POOL).slice(0, 3),
+  roleModelTrait: pick(ROLE_MODEL_TRAIT),
   warningLabel: pick(WARNING_LABEL),
   leaderFuel: shuffle(LEADER_FUEL),
-  proudMoment: pick(PROUD_MOMENT_POOL),
-  selfReflection: pick(SELF_REFLECTION_POOL),
+  proudMoment: 'Led a cross-team delivery under a tight deadline.',
+  behaviorDichotomies: BEHAVIOR_DICHOTOMIES.map(() => rnd(1, 10)),
+  visibilityComfort: pick(VISIBILITY_COMFORT),
+  decisionPace: pick(DECISION_PACE),
+  teamPerception: pick(TEAM_PERCEPTION),
   selectedAgent: pick(AGENTS),
 
   userReflection: '',
@@ -309,9 +277,6 @@ export default function DevSkipOne() {
     industry: false,
     role: false,
     responsibilities: false,
-    pushbackFeeling: false,
-    proudMoment: false,
-    selfReflection: false,
   });
 
   const numberOptions = useMemo(() => {
@@ -357,7 +322,7 @@ export default function DevSkipOne() {
         { merge: true }
       );
 
-      const refRes = await fetch('/get-ai-reflection', {
+      const refRes = await fetch('/api/get-ai-reflection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ ...payload, societalResponses: norms }),
@@ -366,7 +331,7 @@ export default function DevSkipOne() {
       const refJson = await refRes?.json().catch(() => ({}));
       setReflection(refJson?.reflection || '(no reflection returned)');
 
-      const sumRes = await fetch('/get-ai-summary', {
+      const sumRes = await fetch('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ ...payload, societalResponses: norms }),
@@ -386,7 +351,7 @@ export default function DevSkipOne() {
     if (!formData) return;
     const sessionId = formData.sessionId || localStorage.getItem('sessionId') || `sess-${Date.now()}`;
     const fresh = generateRandomPayload(sessionId);
-    const freshNorms = Array.from({ length: 35 }, () => rnd(1, 10));
+    const freshNorms = Array.from({ length: 10 }, () => rnd(1, 10));
     setFormData(fresh);
     setSocietalResponses(freshNorms);
     await rerunBoth(fresh, freshNorms);
@@ -579,6 +544,41 @@ export default function DevSkipOne() {
               </Select>
             </FormControl>
           ))}
+        </Stack>
+      </FieldCard>
+    );
+  };
+
+  const renderSliders = (key, meta) => {
+    const values = Array.isArray(formData[key]) ? formData[key] : [];
+    return (
+      <FieldCard dense>
+        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+          {meta.label}
+        </Typography>
+        <Stack spacing={2}>
+          {meta.sliders.map((pair, idx) => {
+            const currentValue = values[idx] ?? 5.5;
+            return (
+              <Box key={`${key}-${idx}`}>
+                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{pair.left}</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{pair.right}</Typography>
+                </Stack>
+                <Slider
+                  value={currentValue}
+                  min={1}
+                  max={10}
+                  step={1}
+                  onChange={(_, v) => {
+                    const next = [...values];
+                    next[idx] = v;
+                    setFormData((prev) => ({ ...prev, [key]: next }));
+                  }}
+                />
+              </Box>
+            );
+          })}
         </Stack>
       </FieldCard>
     );
@@ -778,10 +778,10 @@ export default function DevSkipOne() {
           {/* Column 2: Profile (6) + Behaviors (12) */}
           <Grid item xs={12} md={4}>
             <Section title="Profile" dense>
-              {renderText('name', QUESTION_META.name)}
               {renderOpenChoice('industry', QUESTION_META.industry)}
               {renderOpenChoice('role', QUESTION_META.role)}
               {renderOpenChoice('responsibilities', QUESTION_META.responsibilities)}
+              {renderText('birthYear', QUESTION_META.birthYear)}
               {renderNumber('teamSize', QUESTION_META.teamSize)}
               {renderNumber('leadershipExperience', QUESTION_META.leadershipExperience)}
               {renderNumber('careerExperience', QUESTION_META.careerExperience)}
@@ -789,20 +789,21 @@ export default function DevSkipOne() {
 
             <Section title="Behaviors" dense>
               {renderSelect('resourcePick', QUESTION_META.resourcePick)}
-              {renderSelect('coffeeImpression', QUESTION_META.coffeeImpression)}
               {renderSelect('projectApproach', QUESTION_META.projectApproach)}
 
               {renderMulti('energyDrains', QUESTION_META.energyDrains)}
               {renderRank('crisisResponse', QUESTION_META.crisisResponse)}
-              {renderOpenChoice('pushbackFeeling', QUESTION_META.pushbackFeeling)}
+              {renderMulti('pushbackFeeling', QUESTION_META.pushbackFeeling)}
 
-              {renderMulti('roleModelTrait', QUESTION_META.roleModelTrait)}
-              {renderSelect('successMetric', QUESTION_META.successMetric)}
+              {renderSelect('roleModelTrait', QUESTION_META.roleModelTrait)}
               {renderSelect('warningLabel', QUESTION_META.warningLabel)}
               {renderRank('leaderFuel', QUESTION_META.leaderFuel)}
 
-              {renderOpenChoice('proudMoment', QUESTION_META.proudMoment)}
-              {renderOpenChoice('selfReflection', QUESTION_META.selfReflection)}
+              {renderText('proudMoment', QUESTION_META.proudMoment)}
+              {renderSliders('behaviorDichotomies', QUESTION_META.behaviorDichotomies)}
+              {renderSelect('visibilityComfort', QUESTION_META.visibilityComfort)}
+              {renderSelect('decisionPace', QUESTION_META.decisionPace)}
+              {renderSelect('teamPerception', QUESTION_META.teamPerception)}
 
               <FieldCard dense>
                 <FormControl fullWidth size="small">
