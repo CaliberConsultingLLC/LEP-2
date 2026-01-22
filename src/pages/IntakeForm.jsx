@@ -830,6 +830,18 @@ function IntakeForm() {
 
   // ---------- derived values ----------
   const SOCIETAL_GROUP_SIZE = 5;
+  const societalScaleLabels = {
+    1: 'Never',
+    2: 'Rarely',
+    3: 'Seldom',
+    4: 'Occasionally',
+    5: 'Sometimes',
+    6: 'Often',
+    7: 'Usually',
+    8: 'Frequently',
+    9: 'Almost Always',
+    10: 'Always',
+  };
   const societalGroups = useMemo(() => {
     const groups = [];
     for (let i = 0; i < societalNormsQuestions.length; i += SOCIETAL_GROUP_SIZE) {
@@ -1599,7 +1611,7 @@ function IntakeForm() {
               {currentGroup.map((q, idx) => {
                 const absoluteIdx = start + idx;
                 const val = societalResponses[absoluteIdx];
-                const displayVal = val ?? '____';
+                const displayVal = val ? (societalScaleLabels[val] || val) : '____';
                 return (
                   <Box key={absoluteIdx} sx={{ width: '100%' }}>
                     <Grid container spacing={2} alignItems="center">
