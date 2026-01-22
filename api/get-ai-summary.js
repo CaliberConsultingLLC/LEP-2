@@ -14,6 +14,26 @@ try {
   cachedAgentIdentity = '';
 }
 
+const SOCIETAL_NORM_STATEMENTS = [
+  "When challenges arise, I share the answer from my experience and expertise.",
+  "I visibly react before I respond to difficult or bad news that is shared with me about the company",
+  "When the correction/learning from a team member’s mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
+  "I am intentional about hiring employees that equally fit the need and the company culture and values.",
+  "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation",
+  "I am known among employees for one-line phrases like ‘do what’s right,’ ‘challenges mean learning,’ or ‘We’re in this together.’ Perhaps, jokes about it exist among employees.",
+  "I have more answers than I do questions in our team discussions.",
+  "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
+  "I openly share with my team when I am struggling professionally.",
+  "I communicate processes, vision, and expectations so much that I am tired of hearing it."
+];
+
+const SOCIETAL_NORM_REVERSE = new Set([
+  "When challenges arise, I share the answer from my experience and expertise.",
+  "I visibly react before I respond to difficult or bad news that is shared with me about the company",
+  "When the correction/learning from a team member’s mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
+  "I have more answers than I do questions in our team discussions."
+]);
+
 // ---- utils ---------------------------------------------------------------
 
 function clipSentenceSafe(text, limit) {
@@ -264,7 +284,7 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 `.trim();
 })();
 
-const systemPrompt = `
+    const systemPrompt = `
 ${agents[selectedAgent].prompt}
 ${voiceGuide}
 
@@ -275,6 +295,18 @@ We want the summary to align to their specific leadership experience.
 
 Use AGENT_IDENTITY (below) as the source of boundaries and operating philosophy.
 Do not quote AGENT_IDENTITY; apply it implicitly and consistently.
+
+SOCIAL NORMS / SUBCONSCIOUS DRIVERS (if societalResponses is present):
+- societalResponses is an array of 10 raw scores (1–10) in the exact order of SOCIETAL_NORM_STATEMENTS below.
+- Apply reverse scoring to statements listed in SOCIETAL_NORM_REVERSE using: reverse_score = 11 - raw_score.
+- Use the training guide in AGENT_IDENTITY for mapping (norm/driver, trait undermined, value when balanced, risks when out of balance).
+- Only analyze items with scored value <= 3. If none <= 3, analyze items scored 4 or 5 as refinement opportunities.
+- Use everyday language; no advice-heavy prescriptions; keep tone calm, curious, growth-oriented.
+
+SOCIETAL_NORM_STATEMENTS (index order for societalResponses):
+${SOCIETAL_NORM_STATEMENTS.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+SOCIETAL_NORM_REVERSE:
+${Array.from(SOCIETAL_NORM_REVERSE).map((s) => `- ${s}`).join('\n')}
 
 AGENT_IDENTITY CORE PRINCIPLES (apply throughout):
 - Foundation paragraph: Connect strengths to human experience (belonging, vulnerability, shared purpose) as appropriate.
@@ -320,6 +352,8 @@ Write directly to "you." Separate paragraphs with one blank line.
     const userPrompt = `
 Here is the intake data (JSON):
 ${JSON.stringify(body, null, 2)}
+
+If societalResponses is present, treat it as the raw 1–10 scores aligned to the SOCIETAL_NORM_STATEMENTS order above.
 
 INSTRUCTIONS:
 - Analyze and integrate the input with AGENT_IDENTITY principles.
