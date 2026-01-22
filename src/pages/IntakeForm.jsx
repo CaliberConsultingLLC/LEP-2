@@ -140,7 +140,7 @@ const SectionCard = ({ children, narrow = false }) => (
   </MemoBox>
 );
 
-// Warning label icon component - Embossed road sign style
+// Warning label icon component - Standardized American road signs
 const WarningLabelIcon = ({ type }) => {
   const iconStyle = {
     width: '100%',
@@ -150,22 +150,10 @@ const WarningLabelIcon = ({ type }) => {
     justifyContent: 'center',
   };
 
-  // Embossed effect styling
-  const embossedStyle = {
-    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(200,200,200,0.3) 50%, rgba(100,100,100,0.2) 100%)',
-    boxShadow: `
-      inset 0 2px 4px rgba(255,255,255,0.8),
-      inset 0 -2px 4px rgba(0,0,0,0.2),
-      0 1px 2px rgba(0,0,0,0.1)
-    `,
-    border: '2px solid rgba(120,120,120,0.4)',
-    filter: 'grayscale(100%)',
-  };
-
   const getIcon = () => {
     switch (type) {
       case 'Caution':
-        // Diamond shape (standard caution sign)
+        // Standard yellow diamond warning sign with exclamation mark
         return (
           <Box sx={iconStyle}>
             <Box
@@ -175,33 +163,36 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="cautionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
               <polygon
-                points="20,8 32,20 20,32 8,20"
+                points="20,6 34,20 20,34 6,20"
                 fill="url(#cautionGrad)"
-                stroke="rgba(80,80,80,0.6)"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
+              />
+              <circle
+                cx="20"
+                cy="20"
+                r="6"
+                fill="none"
+                stroke="rgba(60,60,60,0.9)"
                 strokeWidth="2"
               />
-              <text
-                x="20"
-                y="24"
-                textAnchor="middle"
-                fontSize="18"
-                fontWeight="800"
-                fill="rgba(60,60,60,0.9)"
-                fontFamily="Arial, sans-serif"
-              >
-                !
-              </text>
+              <path
+                d="M 20 14 L 20 20 M 20 22 L 20 24"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
             </Box>
           </Box>
         );
       case 'Warning':
-        // Triangle (yield/warning sign)
+        // Standard yellow triangle warning sign with exclamation mark
         return (
           <Box sx={iconStyle}>
             <Box
@@ -211,33 +202,36 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="warningGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
               <polygon
-                points="20,6 34,32 6,32"
+                points="20,5 35,33 5,33"
                 fill="url(#warningGrad)"
-                stroke="rgba(80,80,80,0.6)"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
+              />
+              <circle
+                cx="20"
+                cy="24"
+                r="5"
+                fill="none"
+                stroke="rgba(60,60,60,0.9)"
                 strokeWidth="2"
               />
-              <text
-                x="20"
-                y="26"
-                textAnchor="middle"
-                fontSize="16"
-                fontWeight="800"
-                fill="rgba(60,60,60,0.9)"
-                fontFamily="Arial, sans-serif"
-              >
-                !
-              </text>
+              <path
+                d="M 20 18 L 20 23 M 20 25 L 20 27"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
             </Box>
           </Box>
         );
       case 'Winding Road':
-        // Curved arrow (standard winding road sign)
+        // Standard yellow diamond with winding road symbol (S-curve)
         return (
           <Box sx={iconStyle}>
             <Box
@@ -247,40 +241,38 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="windingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
-              <rect
-                x="4"
-                y="4"
-                width="32"
-                height="32"
-                rx="2"
+              <polygon
+                points="20,6 34,20 20,34 6,20"
                 fill="url(#windingGrad)"
-                stroke="rgba(80,80,80,0.6)"
-                strokeWidth="2"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
               />
               <path
-                d="M 8 20 Q 12 12, 16 20 T 24 20 T 32 20"
+                d="M 10 20 Q 15 12, 20 20 T 30 20"
                 fill="none"
                 stroke="rgba(60,60,60,0.9)"
-                strokeWidth="2.5"
+                strokeWidth="3"
                 strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <path
-                d="M 8 24 Q 12 16, 16 24 T 24 24 T 32 24"
+                d="M 10 24 Q 15 16, 20 24 T 30 24"
                 fill="none"
                 stroke="rgba(60,60,60,0.9)"
-                strokeWidth="2.5"
+                strokeWidth="3"
                 strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </Box>
           </Box>
         );
       case 'Flammable':
-        // Diamond with flame (hazmat sign)
+        // Standard orange diamond hazmat sign with flame symbol
         return (
           <Box sx={iconStyle}>
             <Box
@@ -290,23 +282,29 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="flammableGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
               <polygon
-                points="20,8 32,20 20,32 8,20"
+                points="20,6 34,20 20,34 6,20"
                 fill="url(#flammableGrad)"
-                stroke="rgba(80,80,80,0.6)"
-                strokeWidth="2"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
               />
               <path
                 d="M 20 12 Q 18 14, 18 18 Q 18 20, 20 22 Q 22 20, 22 18 Q 22 16, 20 14 L 20 12 Z"
                 fill="rgba(60,60,60,0.9)"
               />
               <path
-                d="M 20 18 L 20 24"
+                d="M 20 18 L 20 26"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 18 20 L 22 20"
                 stroke="rgba(60,60,60,0.9)"
                 strokeWidth="1.5"
                 strokeLinecap="round"
@@ -315,7 +313,7 @@ const WarningLabelIcon = ({ type }) => {
           </Box>
         );
       case 'Fragile':
-        // Box with broken glass symbol
+        // Standard yellow diamond "Bump" or "Rough Road" sign (closest road sign equivalent)
         return (
           <Box sx={iconStyle}>
             <Box
@@ -325,32 +323,32 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="fragileGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
-              <rect
-                x="6"
-                y="6"
-                width="28"
-                height="28"
-                rx="2"
+              <polygon
+                points="20,6 34,20 20,34 6,20"
                 fill="url(#fragileGrad)"
-                stroke="rgba(80,80,80,0.6)"
-                strokeWidth="2"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
               />
               <path
-                d="M 20 10 L 20 30 M 12 18 L 28 18 M 12 22 L 28 22"
+                d="M 10 20 Q 15 14, 20 20 T 30 20"
+                fill="none"
                 stroke="rgba(60,60,60,0.9)"
-                strokeWidth="2"
+                strokeWidth="3"
                 strokeLinecap="round"
               />
+              <circle cx="15" cy="17" r="1.5" fill="rgba(60,60,60,0.9)" />
+              <circle cx="20" cy="16" r="1.5" fill="rgba(60,60,60,0.9)" />
+              <circle cx="25" cy="17" r="1.5" fill="rgba(60,60,60,0.9)" />
             </Box>
           </Box>
         );
       case 'Falling Rocks':
-        // Mountain with falling rocks
+        // Standard yellow diamond with falling rocks symbol
         return (
           <Box sx={iconStyle}>
             <Box
@@ -360,35 +358,37 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="rocksGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
-              <rect
-                x="4"
-                y="4"
-                width="32"
-                height="32"
-                rx="2"
+              <polygon
+                points="20,6 34,20 20,34 6,20"
                 fill="url(#rocksGrad)"
-                stroke="rgba(80,80,80,0.6)"
-                strokeWidth="2"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
               />
               <path
                 d="M 8 28 L 12 20 L 16 24 L 20 16 L 24 20 L 28 18 L 32 24 L 32 28 Z"
-                fill="rgba(100,100,100,0.4)"
-                stroke="rgba(60,60,60,0.7)"
+                fill="rgba(80,80,80,0.5)"
+                stroke="rgba(60,60,60,0.8)"
                 strokeWidth="1.5"
               />
-              <circle cx="14" cy="22" r="1.5" fill="rgba(60,60,60,0.9)" />
-              <circle cx="22" cy="18" r="1.5" fill="rgba(60,60,60,0.9)" />
-              <circle cx="28" cy="20" r="1.5" fill="rgba(60,60,60,0.9)" />
+              <circle cx="12" cy="22" r="2" fill="rgba(60,60,60,0.9)" />
+              <circle cx="20" cy="18" r="2" fill="rgba(60,60,60,0.9)" />
+              <circle cx="28" cy="20" r="2" fill="rgba(60,60,60,0.9)" />
+              <path
+                d="M 12 20 L 10 14 M 20 16 L 18 10 M 28 18 L 26 12"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </Box>
           </Box>
         );
       case 'Deer Crossing':
-        // Deer silhouette
+        // Standard yellow diamond with deer silhouette
         return (
           <Box sx={iconStyle}>
             <Box
@@ -398,39 +398,48 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="deerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
-              <rect
-                x="4"
-                y="4"
-                width="32"
-                height="32"
-                rx="2"
+              <polygon
+                points="20,6 34,20 20,34 6,20"
                 fill="url(#deerGrad)"
-                stroke="rgba(80,80,80,0.6)"
-                strokeWidth="2"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
               />
               <ellipse
                 cx="20"
-                cy="20"
-                rx="10"
-                ry="6"
+                cy="18"
+                rx="8"
+                ry="5"
+                fill="rgba(60,60,60,0.9)"
+              />
+              <ellipse
+                cx="20"
+                cy="24"
+                rx="6"
+                ry="4"
                 fill="rgba(60,60,60,0.9)"
               />
               <path
-                d="M 16 16 L 14 12 M 24 16 L 26 12 M 18 24 L 16 28 M 22 24 L 24 28"
+                d="M 16 14 L 14 10 M 24 14 L 26 10"
                 stroke="rgba(60,60,60,0.9)"
-                strokeWidth="1.5"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 16 26 L 14 30 M 24 26 L 26 30"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2"
                 strokeLinecap="round"
               />
             </Box>
           </Box>
         );
       case 'Wrong Way':
-        // Square with X (wrong way sign)
+        // Standard red square "WRONG WAY" sign
         return (
           <Box sx={iconStyle}>
             <Box
@@ -440,9 +449,9 @@ const WarningLabelIcon = ({ type }) => {
             >
               <defs>
                 <linearGradient id="wrongGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.9)" />
-                  <stop offset="50%" stopColor="rgba(200,200,200,0.3)" />
-                  <stop offset="100%" stopColor="rgba(100,100,100,0.2)" />
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="50%" stopColor="rgba(220,220,220,0.4)" />
+                  <stop offset="100%" stopColor="rgba(140,140,140,0.25)" />
                 </linearGradient>
               </defs>
               <rect
@@ -452,14 +461,22 @@ const WarningLabelIcon = ({ type }) => {
                 height="28"
                 rx="2"
                 fill="url(#wrongGrad)"
-                stroke="rgba(80,80,80,0.6)"
-                strokeWidth="2"
+                stroke="rgba(100,100,100,0.7)"
+                strokeWidth="2.5"
               />
               <path
-                d="M 12 12 L 28 28 M 28 12 L 12 28"
+                d="M 10 20 L 30 20 M 20 10 L 20 30"
                 stroke="rgba(60,60,60,0.9)"
-                strokeWidth="3"
+                strokeWidth="3.5"
                 strokeLinecap="round"
+              />
+              <circle
+                cx="20"
+                cy="20"
+                r="8"
+                fill="none"
+                stroke="rgba(60,60,60,0.9)"
+                strokeWidth="2"
               />
             </Box>
           </Box>
@@ -473,9 +490,11 @@ const WarningLabelIcon = ({ type }) => {
 };
 
 // "Card button" for radio / multi-select
-const OptionCard = ({ selected, children, onClick, disabled, compact, showWarningIcon, warningType }) => (
+const OptionCard = ({ selected, children, onClick, disabled, compact, showWarningIcon, warningType, onMouseEnter, onMouseLeave }) => (
   <Box
     onClick={disabled ? undefined : onClick}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
     role="button"
     tabIndex={0}
     onKeyDown={(e) => (e.key === 'Enter' ? onClick?.() : null)}
@@ -532,6 +551,7 @@ function IntakeForm() {
   const [roleModelElaborationText, setRoleModelElaborationText] = useState('');
   const [roleModelCustomAnswerDialogOpen, setRoleModelCustomAnswerDialogOpen] = useState(false);
   const [roleModelCustomAnswerText, setRoleModelCustomAnswerText] = useState('');
+  const [hoveredRoleModelOption, setHoveredRoleModelOption] = useState(null);
   const navigate = useNavigate();
 
   const handleCustomAnswerSubmit = () => {
@@ -670,16 +690,16 @@ function IntakeForm() {
         'Think of a leader you admire (real or fictional) and complete this sentence:',
       type: 'radio',
       options: [
-        'communicate',
-        'make decisions',
-        'think strategically',
-        'execute & follow through',
-        'develop their team',
-        'shape culture',
-        'build relationships',
-        'handle challenges',
-        'inspire others',
-        'balance priorities',
+        'communicated',
+        'made decisions',
+        'thought strategically',
+        'executed & followed through',
+        'developed their team',
+        'shaped culture',
+        'built relationships',
+        'handled challenges',
+        'inspired others',
+        'balanced priorities',
       ],
     },
     {
@@ -1131,8 +1151,8 @@ function IntakeForm() {
                       <>
                         {q.prompt}
                         <br />
-                        <Typography component="span" sx={{ fontWeight: 400, fontSize: '0.9rem', fontStyle: 'italic', mt: 1, display: 'block', opacity: 0.85 }}>
-                          I wish how they <span style={{ textDecoration: 'underline' }}>__________</span> came more naturally to me.
+                        <Typography component="span" sx={{ fontWeight: 400, fontSize: '1rem', fontStyle: 'italic', mt: 1, display: 'block', opacity: 0.85 }}>
+                          I wish how they <span style={{ textDecoration: 'underline' }}>{hoveredRoleModelOption || '__________'}</span> came more naturally to me.
                         </Typography>
                       </>
                     ) : (
@@ -1165,8 +1185,8 @@ function IntakeForm() {
                               selected={!!selected}
                               disabled={disabled}
                               compact={q.id === 'pushbackFeeling'}
-                              showWarningIcon={q.id === 'warningLabel'}
-                              warningType={q.id === 'warningLabel' ? (typeof opt === 'string' ? opt.split(':')[0].trim() : opt.primary?.split(':')[0].trim()) : null}
+                              onMouseEnter={q.id === 'roleModelTrait' ? () => setHoveredRoleModelOption(optValue) : undefined}
+                              onMouseLeave={q.id === 'roleModelTrait' ? () => setHoveredRoleModelOption(null) : undefined}
                               onClick={() => {
                                 if (q.type === 'radio') {
                                   if (q.id === 'roleModelTrait') {
@@ -1193,7 +1213,7 @@ function IntakeForm() {
                                   <Typography sx={{ fontSize: '0.9rem', opacity: 0.8 }}>{opt.secondary}</Typography>
                                 </Box>
                               ) : q.id === 'warningLabel' ? (
-                                opt.split(':').slice(1).join(':').trim()
+                                opt
                               ) : (
                                 opt
                               )}
@@ -1572,12 +1592,13 @@ function IntakeForm() {
                   elevation={4}
                   sx={{
                     p: 2.5,
+                    pb: 4, // Extra padding at bottom for value label
                     borderRadius: 2,
                     background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
                     border: '1px solid',
                     borderColor: 'primary.main',
                     textAlign: 'center',
-                    overflow: 'hidden'
+                    overflow: 'visible' // Changed from 'hidden' to 'visible' so labels aren't cut off
                   }}
                 >
                   <Typography
@@ -1594,42 +1615,85 @@ function IntakeForm() {
                   >
                     {q}
                   </Typography>
-<MemoSlider
-  value={val ?? 5}
-  onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
-  step={1}
-  min={1}
-  max={10}
-  marks={[
-    { value: 1, label: "Never" },
-    { value: 10, label: "Always" }
-  ]}
-  valueLabelDisplay="on"
-  sx={{
-    mx: 1,
-    '& .MuiSlider-root': {
-      height: 4,
-    },
-    '& .MuiSlider-markLabel': {
-      fontSize: '0.75rem',
-      whiteSpace: 'nowrap',
-      transform: 'translateY(6px)',
-      '&:first-of-type': {
-        textAlign: 'left',
+<Box sx={{ position: 'relative', width: '100%', px: 2, pb: 3 }}>
+  <MemoSlider
+    value={val ?? 5}
+    onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
+    step={1}
+    min={1}
+    max={10}
+    marks={[
+      { value: 1, label: "Never" },
+      { value: 10, label: "Always" }
+    ]}
+    valueLabelDisplay="off"
+    sx={{
+      '& .MuiSlider-root': {
+        height: 4,
       },
-      '&:last-of-type': {
-        textAlign: 'right',
-        right: 0,
-        left: 'auto',
+      '& .MuiSlider-markLabel': {
+        fontSize: '0.75rem',
+        whiteSpace: 'nowrap',
+        transform: 'translateY(6px)',
+        '&:first-of-type': {
+          textAlign: 'left',
+          left: '0 !important',
+        },
+        '&:last-of-type': {
+          textAlign: 'right',
+          right: '0 !important',
+          left: 'auto !important',
+          transform: 'translateY(6px)',
+          width: 'auto',
+          maxWidth: 'none',
+        },
       },
-    },
-    '& .MuiSlider-valueLabel': {
-      fontSize: '0.75rem',
-      top: 'auto',
-      bottom: -28, // Move number below the node
-    }
-  }}
-/>
+    }}
+  />
+  {/* Custom value label below the thumb */}
+  <Box
+    sx={{
+      position: 'absolute',
+      left: `${((val ?? 5) - 1) / 9 * 100}%`,
+      top: '100%',
+      mt: 1.5,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      transform: 'translateX(-50%)',
+      zIndex: 10,
+      pointerEvents: 'none',
+    }}
+  >
+    {/* Small triangle pointing up */}
+    <Box
+      sx={{
+        width: 0,
+        height: 0,
+        borderLeft: '6px solid transparent',
+        borderRight: '6px solid transparent',
+        borderBottom: '8px solid rgba(0, 0, 0, 0.87)',
+        mb: -0.5,
+      }}
+    />
+    {/* Number value */}
+    <Box
+      sx={{
+        bgcolor: 'rgba(0, 0, 0, 0.87)',
+        color: '#fff',
+        px: 1,
+        py: 0.5,
+        borderRadius: 1,
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        minWidth: 24,
+        textAlign: 'center',
+      }}
+    >
+      {val ?? 5}
+    </Box>
+  </Box>
+</Box>
 
                 </Paper>
               );

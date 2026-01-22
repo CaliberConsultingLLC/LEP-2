@@ -16,6 +16,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Divider,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -30,10 +31,13 @@ const { CORE_TRAITS } = traitSystem;
 
 function JourneyTab() {
   const [actionPlans, setActionPlans] = useState({});
-  const [traitData, setTraitData] = useState({});
+  const [subTraitData, setSubTraitData] = useState([]);
+  const [subTraitData124, setSubTraitData124] = useState([]);
   const [expandedNode, setExpandedNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [nodes, setNodes] = useState([]);
+  const [startNodeExpanded, setStartNodeExpanded] = useState(false);
+  const [secondNodeExpanded, setSecondNodeExpanded] = useState(false);
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -49,43 +53,60 @@ function JourneyTab() {
     }
   }, []);
 
-  // Calculate trait data
-  useEffect(() => {
-    const calculatedData = {};
-    const traits = fakeCampaign["campaign_123"].campaign;
+  // Calculate subtrait data for campaign 123 and 124
+  const calculateSubTraitData = (campaignId) => {
+    const calculatedSubTraitData = [];
+    const campaign = fakeCampaign[`campaign_${campaignId}`].campaign;
+    const responses = fakeData.responses.filter(r => r.campaignId === String(campaignId));
 
-    traits.forEach((traitObj, traitIndex) => {
-      const traitRatings = { efficacy: [], effort: [] };
+    // Each subtrait has 5 questions: Clarity (0-4), Decision Quality (5-9), Prioritization (10-14)
+    campaign.forEach((item, subtraitIndex) => {
+      const subTraitRatings = { efficacy: [], effort: [] };
       
-      fakeData.responses.forEach(response => {
+      // Each subtrait uses all 5 of its questions
+      const startIndex = subtraitIndex * 5; // 0, 5, or 10
+      
+      responses.forEach(response => {
         for (let i = 0; i < 5; i++) {
-          const statementIndex = traitIndex * 5 + i;
+          const statementIndex = startIndex + i;
           if (response.ratings[statementIndex]) {
-            traitRatings.efficacy.push(response.ratings[statementIndex].efficacy);
-            traitRatings.effort.push(response.ratings[statementIndex].effort);
+            subTraitRatings.efficacy.push(response.ratings[statementIndex].efficacy);
+            subTraitRatings.effort.push(response.ratings[statementIndex].effort);
           }
         }
       });
 
-      const avgEfficacy = traitRatings.efficacy.reduce((sum, val) => sum + val, 0) / traitRatings.efficacy.length;
-      const avgEffort = traitRatings.effort.reduce((sum, val) => sum + val, 0) / traitRatings.effort.length;
-      const delta = Math.abs(avgEffort - avgEfficacy);
-      const lepScore = (avgEfficacy * 2 + avgEffort) / 3;
+      if (subTraitRatings.efficacy.length > 0) {
+        const avgEfficacy = subTraitRatings.efficacy.reduce((sum, val) => sum + val, 0) / subTraitRatings.efficacy.length;
+        const avgEffort = subTraitRatings.effort.reduce((sum, val) => sum + val, 0) / subTraitRatings.effort.length;
+        const totalScore = (avgEfficacy * 2 + avgEffort) / 3;
 
-      calculatedData[traitObj.trait] = { 
-        efficacy: avgEfficacy, 
-        effort: avgEffort, 
-        delta,
-        lepScore,
-      };
+        calculatedSubTraitData.push({
+          name: item.subTrait,
+          trait: item.trait,
+          efficacy: avgEfficacy,
+          effort: avgEffort,
+          totalScore,
+        });
+      }
     });
 
-    setTraitData(calculatedData);
+    return calculatedSubTraitData;
+  };
+
+  useEffect(() => {
+    setSubTraitData(calculateSubTraitData(123));
+    setSubTraitData124(calculateSubTraitData(124));
   }, []);
 
-  // Calculate overall Compass score
-  const overallCompassScore = Object.values(traitData).length > 0
-    ? Object.values(traitData).reduce((sum, t) => sum + t.lepScore, 0) / Object.values(traitData).length
+  // Calculate overall Compass score from subtrait scores
+  const overallCompassScore = subTraitData.length > 0
+    ? subTraitData.reduce((sum, st) => sum + st.totalScore, 0) / subTraitData.length
+    : 0;
+
+  // Calculate overall Compass score for campaign 124
+  const overallCompassScore124 = subTraitData124.length > 0
+    ? subTraitData124.reduce((sum, st) => sum + st.totalScore, 0) / subTraitData124.length
     : 0;
 
   // Generate nodes for verified action items
@@ -93,14 +114,25 @@ function JourneyTab() {
     const newNodes = [];
     let nodeIndex = 0;
 
-    // Starting node (bottom of map)
+    // Starting node (Trailhead) - further left, near bottom
     newNodes.push({
       id: 'start',
-      x: 50, // percentage
+      x: 12, // further left
       y: 85, // near bottom
       type: 'start',
       compassScore: overallCompassScore,
       expanded: expandedNode === 'start',
+    });
+
+    // Second node (campaign 124) - even further right and up from start
+    newNodes.push({
+      id: 'campaign124',
+      x: 82, // even further right
+      y: 55, // up from start
+      type: 'campaign',
+      campaignId: 124,
+      compassScore: overallCompassScore124,
+      expanded: secondNodeExpanded,
     });
 
     // Add nodes for verified action items
@@ -150,11 +182,17 @@ function JourneyTab() {
     }
 
     setNodes(newNodes);
-  }, [actionPlans, overallCompassScore, expandedNode]);
+  }, [actionPlans, overallCompassScore, overallCompassScore124, expandedNode, secondNodeExpanded]);
 
   const toggleNode = (nodeId) => {
-    setExpandedNode(expandedNode === nodeId ? null : nodeId);
-    setSelectedNode(expandedNode === nodeId ? null : nodeId);
+    if (nodeId === 'start') {
+      setStartNodeExpanded(!startNodeExpanded);
+    } else if (nodeId === 'campaign124') {
+      setSecondNodeExpanded(!secondNodeExpanded);
+    } else {
+      setExpandedNode(expandedNode === nodeId ? null : nodeId);
+      setSelectedNode(expandedNode === nodeId ? null : nodeId);
+    }
   };
 
   const getTraitFromId = (traitId) => {
@@ -294,9 +332,67 @@ function JourneyTab() {
               viewBox="0 0 1000 700"
               style={{ position: 'absolute', top: 0, left: 0 }}
             >
-              {/* Draw paths between nodes */}
+              {/* Draw Indiana Jones-style trail from start to campaign124 */}
+              {(() => {
+                const startNode = nodes.find(n => n.type === 'start');
+                const campaign124Node = nodes.find(n => n.id === 'campaign124');
+                if (!startNode || !campaign124Node) return null;
+
+                const x1 = (startNode.x / 100) * 1000;
+                const y1 = (startNode.y / 100) * 700;
+                const x2 = (campaign124Node.x / 100) * 1000;
+                const y2 = (campaign124Node.y / 100) * 700;
+
+                // Create a more complex, winding path with multiple curves
+                // This creates a longer, more challenging journey appearance
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                
+                // Multiple control points for a winding path with more curves
+                const cp1x = x1 + dx * 0.1;
+                const cp1y = y1 - 50;
+                const cp2x = x1 + dx * 0.2;
+                const cp2y = y1 - 70;
+                const cp3x = x1 + dx * 0.3;
+                const cp3y = y1 - 85;
+                const cp4x = x1 + dx * 0.4;
+                const cp4y = y1 - 75;
+                const cp5x = x1 + dx * 0.5;
+                const cp5y = y1 - 60;
+                const cp6x = x1 + dx * 0.6;
+                const cp6y = y1 - 40;
+                const cp7x = x1 + dx * 0.7;
+                const cp7y = y2 + 25;
+                const cp8x = x1 + dx * 0.8;
+                const cp8y = y2 + 15;
+                const cp9x = x1 + dx * 0.9;
+                const cp9y = y2 + 5;
+                
+                // Create a path with multiple curves using cubic bezier segments
+                // More segments = more curves = more challenging journey
+                const path = `M ${x1} ${y1} 
+                  C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x1 + dx * 0.25} ${y1 - 80}
+                  C ${cp3x} ${cp3y}, ${cp4x} ${cp4y}, ${x1 + dx * 0.45} ${y1 - 70}
+                  C ${cp5x} ${cp5y}, ${cp6x} ${cp6y}, ${x1 + dx * 0.65} ${y1 - 30}
+                  C ${cp7x} ${cp7y}, ${cp8x} ${cp8y}, ${x1 + dx * 0.85} ${y2 + 10}
+                  C ${cp9x} ${cp9y}, ${x2 - 15} ${y2 + 3}, ${x2} ${y2}`;
+
+                return (
+                  <path
+                    key="trail-start-to-124"
+                    d={path}
+                    fill="none"
+                    stroke="#C41E3A"
+                    strokeWidth="5"
+                    strokeDasharray="15, 8"
+                    opacity={0.9}
+                  />
+                );
+              })()}
+
+              {/* Draw paths between other nodes */}
               {nodes.map((node, idx) => {
-                if (node.type === 'start') return null;
+                if (node.type === 'start' || node.id === 'campaign124') return null;
                 
                 const startNode = nodes.find(n => n.type === 'start');
                 if (!startNode) return null;
@@ -336,13 +432,13 @@ function JourneyTab() {
                       cx={x}
                       cy={y}
                       r={radius}
-                      fill={node.type === 'start' ? '#6393AA' : node.type === 'survey' ? 'transparent' : '#2F855A'}
+                      fill={node.type === 'start' ? '#6393AA' : node.type === 'campaign' ? '#2F855A' : node.type === 'survey' ? 'transparent' : '#2F855A'}
                       stroke="#333"
                       strokeWidth="2"
                       style={{ cursor: 'pointer' }}
                       onClick={() => toggleNode(node.id)}
                     />
-                    {node.type === 'start' && (
+                    {(node.type === 'start' || node.type === 'campaign') && (
                       <text
                         x={x}
                         y={y}
@@ -374,12 +470,183 @@ function JourneyTab() {
               })}
             </svg>
 
+            {/* Popup Box for Start Node */}
+            {startNodeExpanded && (() => {
+              const startNode = nodes.find(n => n.type === 'start');
+              if (!startNode) return null;
+              
+              // Calculate position to the right of the node
+              // Node position is in percentage, convert to viewBox coordinates
+              const nodeXPercent = startNode.x; // Already in percentage
+              const nodeYPercent = startNode.y; // Already in percentage
+              
+              return (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: `${nodeYPercent}%`,
+                    left: `${nodeXPercent + 8}%`, // Position to the right of node
+                    transform: 'translateY(-50%)',
+                    zIndex: 20,
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))',
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    borderRadius: 3,
+                    boxShadow: 8,
+                    p: 3,
+                    minWidth: '400px',
+                    maxWidth: '500px',
+                  }}
+                >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 700 }}>
+                      Trailhead
+                    </Typography>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => setStartNodeExpanded(false)}
+                      sx={{ p: 0.5 }}
+                    >
+                      <ExpandLess />
+                    </IconButton>
+                  </Stack>
+                  <Stack spacing={2}>
+                    {subTraitData.map((subTrait, idx) => (
+                      <Box key={idx}>
+                        <Grid container spacing={1} alignItems="center">
+                          <Grid item xs={5}>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+                              {subTrait.name}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: 'text.secondary', fontStyle: 'italic' }}>
+                              {subTrait.trait}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={7}>
+                            <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
+                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.85rem', color: 'text.secondary', fontWeight: 600 }}>
+                                {subTrait.totalScore.toFixed(1)}
+                              </Typography>
+                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: '#6393AA' }}>
+                                E: {subTrait.efficacy.toFixed(1)}
+                              </Typography>
+                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: '#E07A3F' }}>
+                                F: {subTrait.effort.toFixed(1)}
+                              </Typography>
+                            </Stack>
+                          </Grid>
+                        </Grid>
+                        {idx < subTraitData.length - 1 && <Divider sx={{ mt: 1.5, mb: 0.5 }} />}
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              );
+            })()}
+
+            {/* Popup Box for Second Node (Campaign 124) */}
+            {secondNodeExpanded && (() => {
+              const secondNode = nodes.find(n => n.id === 'campaign124');
+              if (!secondNode) return null;
+              
+              // Calculate position to the left of the node
+              const nodeXPercent = secondNode.x;
+              const nodeYPercent = secondNode.y;
+              
+              return (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: `${nodeYPercent}%`,
+                    left: `${nodeXPercent - 45}%`, // Position to the left of node
+                    transform: 'translateY(-50%)',
+                    zIndex: 20,
+                    background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))',
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    borderRadius: 3,
+                    boxShadow: 8,
+                    p: 3,
+                    minWidth: '400px',
+                    maxWidth: '500px',
+                  }}
+                >
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 700 }}>
+                      Check-in Point
+                    </Typography>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => setSecondNodeExpanded(false)}
+                      sx={{ p: 0.5 }}
+                    >
+                      <ExpandLess />
+                    </IconButton>
+                  </Stack>
+                  <Stack spacing={2}>
+                    {subTraitData124.map((subTrait, idx) => {
+                      const baselineSubTrait = subTraitData.find(st => st.name === subTrait.name);
+                      const totalChange = baselineSubTrait ? subTrait.totalScore - baselineSubTrait.totalScore : 0;
+                      const efficacyChange = baselineSubTrait ? subTrait.efficacy - baselineSubTrait.efficacy : 0;
+                      const effortChange = baselineSubTrait ? subTrait.effort - baselineSubTrait.effort : 0;
+                      
+                      return (
+                        <Box key={idx}>
+                          <Grid container spacing={1} alignItems="center">
+                            <Grid item xs={5}>
+                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 600 }}>
+                                {subTrait.name}
+                              </Typography>
+                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: 'text.secondary', fontStyle: 'italic' }}>
+                                {subTrait.trait}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={7}>
+                              <Stack direction="column" spacing={0.5} alignItems="flex-end">
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.85rem', color: 'text.secondary', fontWeight: 600 }}>
+                                    {subTrait.totalScore.toFixed(1)}
+                                  </Typography>
+                                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.7rem', color: totalChange >= 0 ? '#2F855A' : '#E07A3F', fontWeight: 600 }}>
+                                    {totalChange >= 0 ? '+' : ''}{totalChange.toFixed(1)}
+                                  </Typography>
+                                </Stack>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: '#6393AA' }}>
+                                    E: {subTrait.efficacy.toFixed(1)}
+                                  </Typography>
+                                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.65rem', color: efficacyChange >= 0 ? '#2F855A' : '#E07A3F' }}>
+                                    {efficacyChange >= 0 ? '+' : ''}{efficacyChange.toFixed(1)}
+                                  </Typography>
+                                </Stack>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: '#E07A3F' }}>
+                                    F: {subTrait.effort.toFixed(1)}
+                                  </Typography>
+                                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.65rem', color: effortChange >= 0 ? '#2F855A' : '#E07A3F' }}>
+                                    {effortChange >= 0 ? '+' : ''}{effortChange.toFixed(1)}
+                                  </Typography>
+                                </Stack>
+                              </Stack>
+                            </Grid>
+                          </Grid>
+                          {idx < subTraitData124.length - 1 && <Divider sx={{ mt: 1.5, mb: 0.5 }} />}
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              );
+            })()}
+
             {/* Node details overlay */}
             {expandedNode && (() => {
               const node = nodes.find(n => n.id === expandedNode);
               if (!node) return null;
 
               if (node.type === 'start') {
+                // This should not happen anymore since we removed click for start node
+                return null;
                 const traits = fakeCampaign["campaign_123"].campaign;
                 return (
                   <Paper
@@ -460,7 +727,8 @@ function JourneyTab() {
               if (node.type === 'action') {
                 const subTrait = getSubTraitFromId(node.traitId, node.subTraitId);
                 const trait = getTraitFromId(node.traitId);
-                const data = traitData[trait?.name || ''];
+                // Find subtrait data by matching the subtrait name
+                const data = subTraitData.find(st => st.name === subTrait?.name);
 
                 return (
                   <Paper
@@ -485,7 +753,7 @@ function JourneyTab() {
                       </Typography>
                       {data && (
                         <Stack direction="row" spacing={1}>
-                          <Chip label={`C: ${data.lepScore.toFixed(1)}`} size="small" />
+                          <Chip label={`C: ${data.totalScore.toFixed(1)}`} size="small" />
                           <Chip label={`E: ${data.efficacy.toFixed(1)}`} size="small" />
                           <Chip label={`F: ${data.effort.toFixed(1)}`} size="small" />
                         </Stack>
