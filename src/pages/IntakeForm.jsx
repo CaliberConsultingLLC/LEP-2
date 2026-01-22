@@ -802,16 +802,16 @@ function IntakeForm() {
 
   // 10 societal norms (now the "Insights" section, 5 per page)
   const societalNormsQuestions = [
-    "When challenges arise, I share the answer from my experience and expertise.",
-    "I visibly react before I respond to difficult or bad news that is shared with me about the company",
-    "When the correction/learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
-    "I am intentional about hiring employees that equally fit the need and the company culture and values.",
-    "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation",
-    "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"We're in this together.\" Perhaps, jokes about it exist among employees.",
-    "I have more answers than I do questions in our team discussions.",
-    "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
-    "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
-    "When I am struggling professionally, I openly share that information with my team."
+    "When challenges arise, I ____ share the answer from my experience and expertise.",
+    "I ____ visibly react before I respond to difficult or bad news that is shared with me about the company.",
+    "When the correction/learning from a team member's mistake will benefit the whole team, I ____ address the entire team about it to ensure consistency.",
+    "I ____ hire employees that equally fit the need and the company culture and values.",
+    "My response to dissenting viewpoints ____ shows the team that challenging one another leads to growth and innovation.",
+    "I am ____ known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"We're in this together.\"",
+    "I ____ have more answers than I do questions in our team discussions.",
+    "It is ____ important that our employee performance metrics are directly connected to their work and in their control.",
+    "I ____ communicate processes, vision, and expectations so much that I am tired of hearing it.",
+    "When I am struggling professionally, I ____ openly share that information with my team."
   ];
 
   const agentSelect = [
@@ -886,39 +886,53 @@ function IntakeForm() {
     setDialogOpen(messageSteps.includes(currentStep) || reflectionIntro);
   }, [currentStep, mindsetIntroStep]);
 
-  // Generate reflection only once when reaching the step, not when formData changes
+  const requestReflection = (payload, isSecond = false) => {
+    const guardRef = isSecond ? secondReflectionGeneratedRef : reflectionGeneratedRef;
+    if (guardRef.current) return;
+
+    guardRef.current = true;
+    setIsLoadingReflection(true);
+    setReflectionText('');
+
+    fetch('/api/get-ai-reflection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data?.reflection) {
+          setReflectionText(data.reflection);
+        } else {
+          setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
+        }
+      })
+      .catch(() => setReflectionText("Reflection generation failed. Please continue."))
+      .finally(() => setIsLoadingReflection(false));
+  };
+
+  // Generate reflection only once when reaching the step
   useEffect(() => {
-    if (currentStep === reflectionStep && !reflectionGeneratedRef.current) {
-      reflectionGeneratedRef.current = true; // Mark as generated
-      setIsLoadingReflection(true);
+    if (currentStep !== reflectionStep) return;
 
-      const timer = setTimeout(() => {
-        // Only include energyDrains and leaderFuel for reflection generation
-        const reflectionData = {
-          energyDrains: formData.energyDrains,
-          leaderFuel: formData.leaderFuel,
-          selectedAgent: 'bluntPracticalFriend',
-        };
-        fetch('/api/get-ai-reflection', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(reflectionData),
-        })
-          .then(r => r.json())
-          .then(data => {
-            if (data?.reflection) {
-              setReflectionText(data.reflection);
-            } else {
-              setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
-            }
-          })
-          .catch(() => setReflectionText("Reflection generation failed. Please continue."))
-          .finally(() => setIsLoadingReflection(false));
-      }, 500); // wait half a second
-
-      return () => clearTimeout(timer);
+    if (reflectionNumber === 1) {
+      requestReflection({
+        energyDrains: formData.energyDrains,
+        leaderFuel: formData.leaderFuel,
+        selectedAgent: 'bluntPracticalFriend',
+        reflectionNumber: 1,
+      });
     }
-  }, [currentStep, reflectionStep, formData]); // formData needed for initial generation, but ref prevents re-generation
+
+    if (reflectionNumber === 2) {
+      requestReflection({
+        warningLabel: formData.warningLabel,
+        proudMoment: formData.proudMoment,
+        reflectionNumber: 2,
+        selectedAgent: 'bluntPracticalFriend',
+      }, true);
+    }
+  }, [currentStep, reflectionStep, reflectionNumber]);
 
 
   // ---------- state helpers ----------
@@ -1491,8 +1505,8 @@ function IntakeForm() {
               lineHeight: 1.6,
             }}
           >
-            <strong>Agent Insight:</strong>{' '}
-            {reflectionText || 'Generating reflection...'}
+            <strong>Observation:</strong>{' '}
+            {reflectionText || 'Generating observation...'}
           </Typography>
         </Stack>
       </Paper>
@@ -1504,7 +1518,9 @@ function IntakeForm() {
         fullWidth
         multiline
         minRows={3}
-        placeholder={reflectionNumber === 1 ? "How does your energy impact the team?" : "How does this attribute create both risk and advantage?"}
+        placeholder={reflectionNumber === 1
+          ? "What does that observation make you notice about your leadership energy?"
+          : "What does that observation reveal about where your strengths can create risk?"}
         sx={{
           backgroundColor: 'rgba(255,255,255,0.85)',
           borderRadius: 2,
@@ -1540,28 +1556,6 @@ function IntakeForm() {
             if (reflectionNumber === 1) {
               // Generate second reflection
               setReflectionNumber(2);
-              setIsLoadingReflection(true);
-              const reflectionData = {
-                warningLabel: formData.warningLabel,
-                proudMoment: formData.proudMoment,
-                reflectionNumber: 2,
-                selectedAgent: 'bluntPracticalFriend',
-              };
-              fetch('/api/get-ai-reflection', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(reflectionData),
-              })
-                .then(r => r.json())
-                .then(data => {
-                  if (data?.reflection) {
-                    setReflectionText(data.reflection);
-                  } else {
-                    setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
-                  }
-                })
-                .catch(() => setReflectionText("Reflection generation failed. Please continue."))
-                .finally(() => setIsLoadingReflection(false));
             } else {
               // Move to Insights
               setCurrentStep(mindsetIntroStep);
@@ -1598,7 +1592,7 @@ function IntakeForm() {
           <Paper
             elevation={4}
             sx={{
-              p: 3,
+              p: { xs: 2.5, md: 3 },
               borderRadius: 2,
               background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
               border: '1px solid',
@@ -1607,11 +1601,12 @@ function IntakeForm() {
               textAlign: 'left',
             }}
           >
-            <Stack spacing={2}>
+            <Stack spacing={2.5}>
               {currentGroup.map((q, idx) => {
                 const absoluteIdx = start + idx;
                 const val = societalResponses[absoluteIdx];
                 const displayVal = val ? (societalScaleLabels[val] || val) : '____';
+                const [beforeBlank, afterBlank] = q.split('____');
                 return (
                   <Box key={absoluteIdx} sx={{ width: '100%' }}>
                     <Grid container spacing={2} alignItems="center">
@@ -1620,27 +1615,28 @@ function IntakeForm() {
                           variant="body1"
                           sx={{
                             fontWeight: 700,
-                            lineHeight: 1.5,
+                            lineHeight: 1.55,
                             fontSize: '0.95rem',
                             wordBreak: 'break-word',
                             overflowWrap: 'anywhere',
                           }}
                         >
-                          {q}{' '}
+                          {beforeBlank}
                           <Box
                             component="span"
                             sx={{
                               display: 'inline-block',
-                              minWidth: 34,
+                              minWidth: 90,
                               textAlign: 'center',
                               borderBottom: '2px solid rgba(0,0,0,0.5)',
                               fontWeight: 800,
-                              px: 0.5,
-                              ml: 0.5,
+                              px: 0.75,
+                              mx: 0.5,
                             }}
                           >
                             {displayVal}
                           </Box>
+                          {afterBlank}
                         </Typography>
                       </Grid>
                       <Grid item xs={12} md={8}>
@@ -1651,35 +1647,14 @@ function IntakeForm() {
                             step={1}
                             min={1}
                             max={10}
-                            marks={[
-                              { value: 1, label: "Never" },
-                              { value: 10, label: "Always" }
-                            ]}
                             valueLabelDisplay="off"
                             slotProps={{
                               thumb: { 'data-value': val ?? 5 }
                             }}
                             sx={{
-                              '& .MuiSlider-markLabel': {
-                                fontSize: '0.75rem',
-                                whiteSpace: 'nowrap',
-                                transform: 'translateY(6px)',
-                                '&:first-of-type': {
-                                  textAlign: 'left',
-                                  left: '0 !important',
-                                },
-                                '&:last-of-type': {
-                                  textAlign: 'right',
-                                  right: '0 !important',
-                                  left: 'auto !important',
-                                  transform: 'translateY(6px)',
-                                  width: 'auto',
-                                  maxWidth: 'none',
-                                },
-                              },
                               '& .MuiSlider-thumb': {
-                                width: 36,
-                                height: 36,
+                                width: 38,
+                                height: 38,
                                 backgroundColor: '#457089',
                                 border: '2px solid #2f4f5f',
                                 boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
@@ -1703,6 +1678,19 @@ function IntakeForm() {
                               },
                             }}
                           />
+                          <Box
+                            sx={{
+                              mt: 1,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              fontSize: '0.8rem',
+                              color: 'text.secondary',
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                            }}
+                          >
+                            <span>Never</span>
+                            <span>Always</span>
+                          </Box>
                         </Box>
                       </Grid>
                     </Grid>
