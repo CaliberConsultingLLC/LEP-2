@@ -19,6 +19,7 @@ import {
 import { Person, Warning, Lightbulb, ExpandMore, CheckCircle, TrendingUp } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import traitSystem from '../data/traitSystem';
+import { intakeContext } from '../data/intakeContext';
 
 // Curated list of 5 traits with examples and risks - these should be personalized based on user responses
 // For now, we'll use a static list, but this should ideally be generated based on the user's intake data
@@ -69,104 +70,115 @@ function Summary() {
   const [userName, setUserName] = useState('');
   const [focusAreas, setFocusAreas] = useState([]);
 
-  // Generate focus areas function (defined outside useEffect to avoid recreation)
+  // Generate focus areas based on intake data (instead of random)
   const generateAndSetFocusAreas = () => {
     const CORE_TRAITS = traitSystem.CORE_TRAITS || [];
-    const generatedAreas = [];
-    const selectedTraitIndices = new Set();
-    const maxAttempts = 50;
-    let attempts = 0;
-    
-    // Select 5 unique trait/sub-trait combinations
-    while (generatedAreas.length < 5 && attempts < maxAttempts) {
-      attempts++;
-      
-      // Pick a random trait
-      const traitIndex = Math.floor(Math.random() * CORE_TRAITS.length);
-      
-      // Skip if we've already used this trait (unless we've used all traits)
-      if (selectedTraitIndices.has(traitIndex) && selectedTraitIndices.size < CORE_TRAITS.length) {
-        continue;
+    if (!CORE_TRAITS.length) return;
+
+    const data = summaryData || formDataFromRoute || {};
+    const scores = {};
+    CORE_TRAITS.forEach((trait) => { scores[trait.id] = 0; });
+
+    const traitMap = {
+      Shepherd: 'teamDevelopment',
+      Courage: 'emotionalIntelligence',
+      Navigator: 'strategicThinking',
+    };
+
+    const addScore = (traitId, amount = 1) => {
+      if (!traitId || scores[traitId] == null) return;
+      scores[traitId] += amount;
+    };
+
+    // ---- norms-based scoring (societalResponses) ----
+    const normItems = intakeContext?.societalNorms?.items || [];
+    const norms = Array.isArray(data.societalResponses) ? data.societalResponses : [];
+    if (normItems.length === 10 && norms.length === 10) {
+      const scored = normItems.map((item, idx) => {
+        const raw = Number(norms[idx]);
+        const score = item.reverse ? (11 - raw) : raw;
+        return { item, score };
+      });
+      let flagged = scored.filter((s) => s.score <= 3);
+      if (!flagged.length) {
+        flagged = scored.filter((s) => s.score >= 4 && s.score <= 5);
       }
-      
-      selectedTraitIndices.add(traitIndex);
-      const trait = CORE_TRAITS[traitIndex];
-      
-      // Skip if trait has no sub-traits
-      if (!trait.subTraits || trait.subTraits.length === 0) {
-        selectedTraitIndices.delete(traitIndex);
-        continue;
-      }
-      
-      // Pick a random sub-trait
-      const subTraitIndex = Math.floor(Math.random() * trait.subTraits.length);
-      const subTrait = trait.subTraits[subTraitIndex];
-      
-      // Get example from underuse signals (shows what struggling looks like)
-      const example = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
-        ? subTrait.riskSignals.underuse[0]
-        : `Struggling with ${subTrait.name.toLowerCase()} manifests in unclear communication and missed opportunities.`;
-      
-      // Get risk - should be outcome-based (team/performance outcomes)
-      const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 1
-        ? subTrait.riskSignals.underuse[1] // Use second underuse signal for outcome
-        : subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
-        ? subTrait.riskSignals.underuse[0] // Fallback to first if only one exists
-        : `Team performance suffers, trust erodes, and critical opportunities are missed when ${subTrait.name.toLowerCase()} is not addressed.`;
-      
-      // Get impact - the positive effect of meaningful growth/improvement
-      const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} will create positive ripple effects across your team, enhancing collaboration, trust, and overall performance.`;
-      
-      // Get definitions
-      const traitDefinition = trait.definition || trait.description;
-      const subTraitDefinition = subTrait.definition || subTrait.shortDescription;
-      
-      generatedAreas.push({
-        id: `${trait.id}-${subTrait.id}`,
-        traitName: trait.name,
-        traitDefinition: traitDefinition,
-        subTraitName: subTrait.name,
-        subTraitDefinition: subTraitDefinition,
-        example: example,
-        risk: risk,
-        impact: impact,
+      flagged.forEach(({ item, score }) => {
+        const weight = score <= 3 ? (4 - score) : 1;
+        (item.traitsUndermined || []).forEach((t) => addScore(traitMap[t], weight));
       });
     }
-    
-    // If we don't have 5, fill with defaults
-    while (generatedAreas.length < 5) {
-      const trait = CORE_TRAITS[generatedAreas.length % CORE_TRAITS.length];
-      if (trait.subTraits && trait.subTraits.length > 0) {
-        const subTrait = trait.subTraits[0];
-        const traitDef = trait.definition || trait.description;
-        const subTraitDef = subTrait.definition || subTrait.shortDescription;
-        const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} will create positive ripple effects across your team, enhancing collaboration, trust, and overall performance.`;
-        
-        // Get example from underuse signals (shows what struggling looks like)
-        const example = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
-          ? subTrait.riskSignals.underuse[0]
-          : `Struggling with ${subTrait.name.toLowerCase()} manifests in unclear communication and missed opportunities.`;
-        
-        // Get risk - should be outcome-based (team/performance outcomes)
-        const risk = subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 1
-          ? subTrait.riskSignals.underuse[1] // Use second underuse signal for outcome
-          : subTrait.riskSignals?.underuse && subTrait.riskSignals.underuse.length > 0
-          ? subTrait.riskSignals.underuse[0] // Fallback to first if only one exists
-          : `Team performance suffers, trust erodes, and critical opportunities are missed when ${subTrait.name.toLowerCase()} is not addressed.`;
-        
-        generatedAreas.push({
-          id: `${trait.id}-${subTrait.id}-${generatedAreas.length}`,
-          traitName: trait.name,
-          traitDefinition: traitDef,
-          subTraitName: subTrait.name,
-          subTraitDefinition: subTraitDef,
-          example: example,
-          risk: risk,
-          impact: impact,
-        });
+
+    // ---- behavior-based scoring ----
+    const roleModelTraitMap = {
+      communicated: 'communication',
+      'made decisions': 'decisionMaking',
+      'thought strategically': 'strategicThinking',
+      'executed & followed through': 'execution',
+      'developed their team': 'teamDevelopment',
+      'shaped culture': 'teamDevelopment',
+      'built relationships': 'emotionalIntelligence',
+      'handled challenges': 'decisionMaking',
+      'inspired others': 'teamDevelopment',
+      'balanced priorities': 'strategicThinking',
+    };
+    addScore(roleModelTraitMap[data.roleModelTrait], 2);
+
+    if (data.decisionPace?.includes('Fix')) addScore('execution', 1);
+    if (data.decisionPace?.includes('Feedback')) addScore('decisionMaking', 1);
+
+    if (Array.isArray(data.leaderFuel) && data.leaderFuel[0]) {
+      const topFuel = data.leaderFuel[0];
+      if (topFuel.includes('team gel') || topFuel.includes('learned') || topFuel.includes('recognition')) {
+        addScore('teamDevelopment', 1);
+      } else if (topFuel.includes('project') || topFuel.includes('chaos')) {
+        addScore('execution', 1);
+      } else if (topFuel.includes('problem')) {
+        addScore('decisionMaking', 1);
       }
     }
-    
+
+    if (data.visibilityComfort?.includes('spotlight')) addScore('communication', 1);
+    if (data.visibilityComfort?.includes('behind the scenes')) addScore('execution', 1);
+
+    // ---- select top 5 traits ----
+    const ranked = Object.entries(scores)
+      .sort((a, b) => b[1] - a[1])
+      .map(([id]) => CORE_TRAITS.find((t) => t.id === id))
+      .filter(Boolean);
+
+    const pickSubTrait = (trait) => {
+      if (!trait?.subTraits?.length) return null;
+      // Deterministic pick based on data + trait id
+      const key = JSON.stringify({
+        role: data.role || '',
+        industry: data.industry || '',
+        trait: trait.id,
+      });
+      let hash = 0;
+      for (let i = 0; i < key.length; i += 1) hash = (hash * 31 + key.charCodeAt(i)) % trait.subTraits.length;
+      return trait.subTraits[hash] || trait.subTraits[0];
+    };
+
+    const generatedAreas = ranked.slice(0, 5).map((trait) => {
+      const subTrait = pickSubTrait(trait);
+      if (!subTrait) return null;
+      const example = subTrait.riskSignals?.underuse?.[0] || `Struggling with ${subTrait.name.toLowerCase()} can show up in day-to-day execution.`;
+      const risk = subTrait.riskSignals?.underuse?.[1] || example;
+      const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} can strengthen trust, alignment, and outcomes.`;
+      return {
+        id: `${trait.id}-${subTrait.id}`,
+        traitName: trait.name,
+        traitDefinition: trait.definition || trait.description,
+        subTraitName: subTrait.name,
+        subTraitDefinition: subTrait.definition || subTrait.shortDescription,
+        example,
+        risk,
+        impact,
+      };
+    }).filter(Boolean);
+
+    if (!generatedAreas.length) return;
     const finalAreas = generatedAreas.slice(0, 5);
     setFocusAreas(finalAreas);
     localStorage.setItem('focusAreas', JSON.stringify(finalAreas));
@@ -215,6 +227,14 @@ function Summary() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-generate focus areas once summary data is available
+  useEffect(() => {
+    if (summaryData || formDataFromRoute) {
+      generateAndSetFocusAreas();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summaryData]);
 
   // quotes + simple animation rotation (kept from prior UX)
   const quotes = [
