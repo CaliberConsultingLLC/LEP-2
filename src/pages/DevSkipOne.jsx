@@ -253,6 +253,193 @@ const generateRandomPayload = (sessionId) => ({
   timestamp: new Date().toISOString(),
 });
 
+const PRESETS = [
+  {
+    id: 'fast-operator',
+    label: 'Fast Operator',
+    formData: {
+      industry: 'Technology',
+      role: 'Operations Manager',
+      responsibilities: "Ensure on-time, high-quality delivery.",
+      birthYear: '1986',
+      teamSize: 8,
+      leadershipExperience: 6,
+      careerExperience: 10,
+      resourcePick: 'Time',
+      projectApproach: 'Jump in directly to handle the most critical aspects myself.',
+      energyDrains: [
+        'Meetings with limited or no outcomes',
+        'Navigating frequent changes in priorities',
+        'Balancing differing expectations from stakeholders',
+      ],
+      crisisResponse: [
+        'Jump in directly to handle the most critical aspects myself.',
+        'Maintain composure and provide clear, decisive direction to the team.',
+        'First verify all facts and details before taking any action.',
+        'Immediately gather the team to collaborate on potential solutions.',
+        'Delegate ownership to team members while providing support from the sidelines.',
+      ],
+      pushbackFeeling: ['Defensive', 'Irritated', 'Motivated'],
+      roleModelTrait: 'executed & followed through',
+      warningLabel: 'Warning: Moves fast—keep up!',
+      leaderFuel: [
+        'Nailing a tough project on time',
+        'Turning chaos into order',
+        'Solving a problem no one else could',
+        'Seeing the team gel and succeed together',
+        'My team getting the recognition it deserves',
+        'Hearing the team say they learned something',
+      ],
+      proudMoment: 'Delivered a critical launch by clearing blockers and driving daily execution.',
+      behaviorDichotomies: [4, 3, 5, 4, 7],
+      visibilityComfort: 'I thrive in the spotlight.',
+      decisionPace: 'The Fix — Get things back on track',
+      teamPerception: 'Address it directly and immediately in a private conversation.',
+      selectedAgent: 'bluntPracticalFriend',
+      userReflection: '',
+    },
+    norms: [2, 3, 3, 6, 4, 3, 2, 6, 7, 3],
+  },
+  {
+    id: 'people-first',
+    label: 'People-First Coach',
+    formData: {
+      industry: 'Healthcare',
+      role: 'People Manager',
+      responsibilities: 'Coach and develop team members.',
+      birthYear: '1982',
+      teamSize: 5,
+      leadershipExperience: 8,
+      careerExperience: 12,
+      resourcePick: 'Expectations',
+      projectApproach: 'Gather the team for a collaborative brainstorming session.',
+      energyDrains: [
+        'Decoding unspoken concerns from the team',
+        "Addressing a team member's inconsistent contributions",
+        'Mediating conflicts within the team',
+      ],
+      crisisResponse: [
+        'Immediately gather the team to collaborate on potential solutions.',
+        'Delegate ownership to team members while providing support from the sidelines.',
+        'Maintain composure and provide clear, decisive direction to the team.',
+        'First verify all facts and details before taking any action.',
+        'Jump in directly to handle the most critical aspects myself.',
+      ],
+      pushbackFeeling: ['Curious', 'Open', 'Humbled'],
+      roleModelTrait: 'developed their team',
+      warningLabel: 'Fragile: Avoid too much pushback',
+      leaderFuel: [
+        'Seeing the team gel and succeed together',
+        'Hearing the team say they learned something',
+        'My team getting the recognition it deserves',
+        'Turning chaos into order',
+        'Nailing a tough project on time',
+        'Solving a problem no one else could',
+      ],
+      proudMoment: 'Helped a teammate step into a larger role through steady coaching and support.',
+      behaviorDichotomies: [3, 7, 6, 8, 4],
+      visibilityComfort: 'I can handle it but prefer smaller settings.',
+      decisionPace: 'The Feedback — Learn where things went wrong',
+      teamPerception: 'Provide additional support and resources to help them improve.',
+      selectedAgent: 'formalEmpatheticCoach',
+      userReflection: '',
+    },
+    norms: [4, 6, 5, 8, 7, 8, 5, 6, 7, 8],
+  },
+  {
+    id: 'strategic-navigator',
+    label: 'Strategic Navigator',
+    formData: {
+      industry: 'Professional Services',
+      role: 'Strategy Lead',
+      responsibilities: 'Align cross-functional teams and clear roadblocks.',
+      birthYear: '1989',
+      teamSize: 6,
+      leadershipExperience: 5,
+      careerExperience: 9,
+      resourcePick: 'Scope',
+      projectApproach: 'Focus on identifying and mitigating the biggest risks.',
+      energyDrains: [
+        'Navigating frequent changes in priorities',
+        'Pursuing goals that lack clear direction',
+        'Balancing differing expectations from stakeholders',
+      ],
+      crisisResponse: [
+        'First verify all facts and details before taking any action.',
+        'Maintain composure and provide clear, decisive direction to the team.',
+        'Immediately gather the team to collaborate on potential solutions.',
+        'Delegate ownership to team members while providing support from the sidelines.',
+        'Jump in directly to handle the most critical aspects myself.',
+      ],
+      pushbackFeeling: ['Curious', 'Doubtful', 'Open'],
+      roleModelTrait: 'thought strategically',
+      warningLabel: 'Winding Road: we change directions quickly',
+      leaderFuel: [
+        'Turning chaos into order',
+        'Solving a problem no one else could',
+        'Nailing a tough project on time',
+        'Seeing the team gel and succeed together',
+        'Hearing the team say they learned something',
+        'My team getting the recognition it deserves',
+      ],
+      proudMoment: 'Aligned stakeholders around a new direction and simplified the plan.',
+      behaviorDichotomies: [6, 4, 7, 6, 5],
+      visibilityComfort: 'I prefer to lead behind the scenes.',
+      decisionPace: 'The Feedback — Learn where things went wrong',
+      teamPerception: 'Observe for patterns and gather context before taking action.',
+      selectedAgent: 'balancedMentor',
+      userReflection: '',
+    },
+    norms: [5, 4, 6, 5, 6, 4, 5, 4, 6, 5],
+  },
+  {
+    id: 'hands-on-fixer',
+    label: 'Hands-On Fixer',
+    formData: {
+      industry: 'Manufacturing',
+      role: 'Technical Lead',
+      responsibilities: 'Improve processes and team health.',
+      birthYear: '1979',
+      teamSize: 10,
+      leadershipExperience: 9,
+      careerExperience: 15,
+      resourcePick: 'Budget',
+      projectApproach: 'Dive into the most challenging aspect to lead by example.',
+      energyDrains: [
+        'Repeating myself to ensure understanding',
+        'Meetings with limited or no outcomes',
+        'Balancing differing expectations from stakeholders',
+      ],
+      crisisResponse: [
+        'Jump in directly to handle the most critical aspects myself.',
+        'First verify all facts and details before taking any action.',
+        'Maintain composure and provide clear, decisive direction to the team.',
+        'Immediately gather the team to collaborate on potential solutions.',
+        'Delegate ownership to team members while providing support from the sidelines.',
+      ],
+      pushbackFeeling: ['Competitive', 'Defensive', 'Motivated'],
+      roleModelTrait: 'made decisions',
+      warningLabel: 'Falling Rocks: Tendency to over-delegate',
+      leaderFuel: [
+        'Turning chaos into order',
+        'Nailing a tough project on time',
+        'Solving a problem no one else could',
+        'Seeing the team gel and succeed together',
+        'My team getting the recognition it deserves',
+        'Hearing the team say they learned something',
+      ],
+      proudMoment: 'Rebuilt a broken process and stabilized delivery within two weeks.',
+      behaviorDichotomies: [4, 3, 6, 4, 6],
+      visibilityComfort: 'I thrive in the spotlight.',
+      decisionPace: 'The Fix — Get things back on track',
+      teamPerception: 'Set clear expectations and create a performance improvement plan.',
+      selectedAgent: 'pragmaticProblemSolver',
+      userReflection: '',
+    },
+    norms: [3, 3, 4, 4, 3, 4, 3, 5, 6, 4],
+  },
+];
+
 // ---------- component ----------
 export default function DevSkipOne() {
   const navigate = useNavigate();
@@ -347,6 +534,14 @@ export default function DevSkipOne() {
     setFormData(fresh);
     setSocietalResponses(freshNorms);
     await rerunBoth(fresh, freshNorms);
+  };
+
+  const applyPreset = async (preset) => {
+    if (!preset) return;
+    const merged = { ...(formData || {}), ...preset.formData };
+    setFormData(merged);
+    setSocietalResponses([...preset.norms]);
+    await rerunBoth(merged, [...preset.norms]);
   };
 
   const openReflectionPage = () => {
@@ -699,6 +894,16 @@ export default function DevSkipOne() {
           <Grid item xs={12} md={4}>
             <Section title="Actions" dense>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                {PRESETS.map((preset) => (
+                  <Button
+                    key={preset.id}
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => applyPreset(preset)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
                 <Button
                   variant="contained"
                   onClick={() => rerunBoth({ ...formData }, [...societalResponses])}
