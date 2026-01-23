@@ -180,7 +180,7 @@ useEffect(() => {
   }, []);
 
   const randomizeNorms = () => {
-    const n = Array.from({ length: 32 }, () => rnd(1, 10));
+    const n = Array.from({ length: 10 }, () => rnd(1, 10));
     setNorms(n);
   };
 

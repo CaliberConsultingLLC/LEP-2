@@ -258,7 +258,9 @@ export default function DevSkipOne() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState(null);
-  const [societalResponses, setSocietalResponses] = useState(Array(10).fill(5));
+  const [societalResponses, setSocietalResponses] = useState(
+    Array.from({ length: 10 }, () => rnd(1, 10))
+  );
   const [aiSummary, setAiSummary] = useState('');
   const [reflection, setReflection] = useState('');
   const [loading, setLoading] = useState(true);
