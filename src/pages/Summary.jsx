@@ -7,54 +7,17 @@ import {
   Alert,
   Stack,
   Button,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Select,
   MenuItem,
   Checkbox,
   Paper,
   Divider,
 } from '@mui/material';
-import { Person, Warning, Lightbulb, ExpandMore, CheckCircle, TrendingUp } from '@mui/icons-material';
+import { Warning, Lightbulb, CheckCircle, TrendingUp } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
 
-// Curated list of 5 traits with examples and risks - these should be personalized based on user responses
-// For now, we'll use a static list, but this should ideally be generated based on the user's intake data
-const TRAITS = [
-  {
-    id: 'communication',
-    name: 'Communication',
-    example: 'During team meetings, you may find yourself explaining concepts multiple times or noticing that team members seem confused about priorities.',
-    risk: 'Without improvement, you risk misalignment, repeated work, and decreased team confidence in your direction.',
-  },
-  {
-    id: 'delegation',
-    name: 'Delegation & Empowerment',
-    example: 'You might find yourself taking on tasks that could be handled by others, or team members frequently ask for approval on decisions they should make.',
-    risk: 'This can lead to burnout, bottlenecked workflows, and missed opportunities for team growth and development.',
-  },
-  {
-    id: 'feedback',
-    name: 'Giving & Receiving Feedback',
-    example: 'Difficult conversations get postponed, or feedback is delivered in ways that don\'t lead to change. You may also avoid seeking feedback yourself.',
-    risk: 'Performance issues persist, team members don\'t grow, and you miss opportunities to improve your own leadership approach.',
-  },
-  {
-    id: 'conflict',
-    name: 'Conflict Resolution',
-    example: 'When disagreements arise, you might avoid addressing them directly, or conflicts escalate because they\'re not handled constructively.',
-    risk: 'Team dynamics suffer, resentment builds, and productivity decreases as unresolved issues fester.',
-  },
-  {
-    id: 'vision',
-    name: 'Vision & Strategic Thinking',
-    example: 'Your team may struggle to see how their daily work connects to bigger goals, or you find it challenging to articulate a clear direction.',
-    risk: 'Without a clear vision, teams lack motivation, make misaligned decisions, and miss opportunities for strategic impact.',
-  },
-];
 
 function Summary() {
   const navigate = useNavigate();
@@ -372,37 +335,6 @@ function Summary() {
   };
 
   /**
-   * Parse summary sections according to canonical 4-paragraph contract:
-   * [0] Your Leadership Foundation
-   * [1] Areas for Growth (Part 1)
-   * [2] Areas for Growth (Part 2)
-   * [3] Trajectory
-   * 
-   * Backward compatibility: If only 3 paragraphs exist (old format):
-   * [0] = Foundation
-   * [1] = Growth (combined)
-   * [2] = Trajectory
-   */
-  const summarySections = aiSummary ? aiSummary.split(/\n\s*\n/).filter(s => s.trim().length > 0) : [];
-  
-  // Canonical format: 4 paragraphs
-  const isCanonicalFormat = summarySections.length >= 4;
-  
-  const strengthsText = summarySections[0] || ''; // Foundation (always paragraph 0)
-  
-  // Growth: combine parts 1 and 2 in canonical format, or use single paragraph in old format
-  const blindSpotsPart1 = summarySections[1] || '';
-  const blindSpotsPart2 = summarySections[2] || '';
-  const blindSpotsText = isCanonicalFormat && blindSpotsPart1 && blindSpotsPart2
-    ? `${blindSpotsPart1}\n\n${blindSpotsPart2}`.trim()
-    : (blindSpotsPart1 || blindSpotsPart2 || '');
-  
-  // Trajectory: paragraph 3 in canonical format, paragraph 2 in old format
-  const trajectoryText = isCanonicalFormat
-    ? (summarySections[3] || '')
-    : (summarySections.length === 3 ? summarySections[2] || '' : '');
-
-  /**
    * Bold important words and concepts in summary text
    * Identifies key leadership terms, action words, and important concepts
    */
@@ -615,293 +547,42 @@ function Summary() {
               </Typography>
             </Box>
 
-            {/* Your Leadership Foundation - Strengths & Patterns */}
-            <Accordion
-              defaultExpanded={true}
+            {/* Summary Output */}
+            <Paper
               sx={{
-                borderRadius: 4,
+                p: 3,
+                borderRadius: 3,
                 border: '2px solid',
                 borderColor: 'primary.main',
-                background: 'linear-gradient(135deg, rgba(224,122,63,0.15) 0%, rgba(255,255,255,0.98) 50%, rgba(99,147,170,0.15) 100%)',
-                boxShadow: '0 8px 32px rgba(224,122,63,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
-                '&:before': { display: 'none' },
-                '&:hover': {
-                  boxShadow: '0 12px 40px rgba(224,122,63,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
-                  transform: 'translateY(-2px)',
-                },
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                boxShadow: 4,
+                mb: 4,
               }}
             >
-              <AccordionSummary 
-                expandIcon={<ExpandMore sx={{ color: 'primary.main', fontSize: 32 }} />}
+              <Typography
                 sx={{
-                  background: 'linear-gradient(90deg, rgba(224,122,63,0.05) 0%, transparent 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(90deg, rgba(224,122,63,0.1) 0%, transparent 100%)',
-                  },
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '1.6rem',
+                  fontWeight: 700,
+                  color: 'text.primary',
+                  mb: 2,
+                  textAlign: 'center',
                 }}
               >
-                <Stack direction="row" spacing={2.5} alignItems="center">
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, rgba(224,122,63,0.15), rgba(224,122,63,0.05))',
-                      border: '1px solid rgba(224,122,63,0.2)',
-                    }}
-                  >
-                    <Person sx={{ color: 'primary.main', fontSize: 36 }} />
-                  </Box>
-                  <Box>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontWeight: 700,
-                        fontSize: '1.3rem',
-                        color: 'primary.main',
-                        mb: 0.5,
-                      }}
-                    >
-                      Your Leadership Foundation
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        color: 'text.secondary', 
-                        fontSize: '0.9rem',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      The strengths and patterns that define your leadership approach
-                    </Typography>
-                  </Box>
-                </Stack>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.85)' }}>
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
-                    borderLeft: '4px solid',
-                    borderColor: 'primary.main',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.05rem',
-                      lineHeight: 1.9,
-                      whiteSpace: 'pre-wrap',
-                      textAlign: 'left',
-                      color: 'text.primary',
-                      fontWeight: 400,
-                      '& strong': {
-                        fontWeight: 700,
-                        color: 'primary.main',
-                      },
-                    }}
-                    dangerouslySetInnerHTML={{ __html: boldImportantWords(strengthsText || 'No insights available.') }}
-                  />
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Areas for Growth - Blind Spots & Challenges */}
-            <Accordion
-              defaultExpanded={false}
-              sx={{
-                borderRadius: 4,
-                border: '2px solid',
-                borderColor: 'warning.main',
-                background: 'linear-gradient(135deg, rgba(237,108,2,0.15) 0%, rgba(255,255,255,0.98) 50%, rgba(237,108,2,0.15) 100%)',
-                boxShadow: '0 8px 32px rgba(237,108,2,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
-                '&:before': { display: 'none' },
-                '&:hover': {
-                  boxShadow: '0 12px 40px rgba(237,108,2,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
-                  transform: 'translateY(-2px)',
-                },
-              }}
-            >
-              <AccordionSummary 
-                expandIcon={<ExpandMore sx={{ color: 'warning.main', fontSize: 32 }} />}
+                Your Summary
+              </Typography>
+              <Box
                 sx={{
-                  background: 'linear-gradient(90deg, rgba(237,108,2,0.05) 0%, transparent 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(90deg, rgba(237,108,2,0.1) 0%, transparent 100%)',
-                  },
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '1.05rem',
+                  lineHeight: 1.9,
+                  whiteSpace: 'pre-wrap',
+                  color: 'text.primary',
                 }}
               >
-                <Stack direction="row" spacing={2.5} alignItems="center">
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, rgba(237,108,2,0.15), rgba(237,108,2,0.05))',
-                      border: '1px solid rgba(237,108,2,0.2)',
-                    }}
-                  >
-                    <Warning sx={{ color: 'warning.main', fontSize: 36 }} />
-                  </Box>
-                  <Box>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontWeight: 700,
-                        fontSize: '1.3rem',
-                        color: 'warning.main',
-                        mb: 0.5,
-                      }}
-                    >
-                      Areas for Growth
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        color: 'text.secondary', 
-                        fontSize: '0.9rem',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      Opportunities to expand your leadership impact
-                    </Typography>
-                  </Box>
-                </Stack>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.85)' }}>
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
-                    borderLeft: '4px solid',
-                    borderColor: 'warning.main',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.05rem',
-                      lineHeight: 1.9,
-                      whiteSpace: 'pre-wrap',
-                      textAlign: 'left',
-                      color: 'text.primary',
-                      fontWeight: 400,
-                      '& strong': {
-                        fontWeight: 700,
-                        color: 'warning.main',
-                      },
-                    }}
-                    dangerouslySetInnerHTML={{ __html: boldImportantWords(blindSpotsText || 'No growth areas identified.') }}
-                  />
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Trajectory - Future Impact */}
-            <Accordion
-              defaultExpanded={false}
-              sx={{
-                borderRadius: 4,
-                border: '2px solid',
-                borderColor: 'error.main',
-                background: 'linear-gradient(135deg, rgba(211,47,47,0.15) 0%, rgba(255,255,255,0.98) 50%, rgba(211,47,47,0.15) 100%)',
-                boxShadow: '0 8px 32px rgba(211,47,47,0.25), inset 0 1px 0 rgba(255,255,255,0.8)',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
-                '&:before': { display: 'none' },
-                '&:hover': {
-                  boxShadow: '0 12px 40px rgba(211,47,47,0.35), inset 0 1px 0 rgba(255,255,255,0.8)',
-                  transform: 'translateY(-2px)',
-                },
-              }}
-            >
-              <AccordionSummary 
-                expandIcon={<ExpandMore sx={{ color: 'error.main', fontSize: 32 }} />}
-                sx={{
-                  background: 'linear-gradient(90deg, rgba(211,47,47,0.05) 0%, transparent 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(90deg, rgba(211,47,47,0.1) 0%, transparent 100%)',
-                  },
-                }}
-              >
-                <Stack direction="row" spacing={2.5} alignItems="center">
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, rgba(211,47,47,0.15), rgba(211,47,47,0.05))',
-                      border: '1px solid rgba(211,47,47,0.2)',
-                    }}
-                  >
-                    <Warning sx={{ color: 'error.main', fontSize: 36 }} />
-                  </Box>
-                  <Box>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontWeight: 700,
-                        fontSize: '1.3rem',
-                        color: 'error.main',
-                        mb: 0.5,
-                      }}
-                    >
-                      Trajectory
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        color: 'text.secondary', 
-                        fontSize: '0.9rem',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      The potential impact of unaddressed leadership gaps
-                    </Typography>
-                  </Box>
-                </Stack>
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 3.5, background: 'rgba(255,255,255,0.85)' }}>
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
-                    borderLeft: '4px solid',
-                    borderColor: 'error.main',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.05rem',
-                      lineHeight: 1.9,
-                      whiteSpace: 'pre-wrap',
-                      textAlign: 'left',
-                      color: 'text.primary',
-                      fontWeight: 400,
-                      '& strong': {
-                        fontWeight: 700,
-                        color: 'error.main',
-                      },
-                    }}
-                    dangerouslySetInnerHTML={{ __html: boldImportantWords(trajectoryText || (aiSummary ? 'Trajectory analysis is being generated. Please refresh if this message persists.' : 'No trajectory analysis available.')) }}
-                  />
-                </Box>
-              </AccordionDetails>
-            </Accordion>
+                {aiSummary || (isLoading ? 'Summary is being generated...' : 'No summary available.')}
+              </Box>
+            </Paper>
 
             {/* Trait Selection Section */}
             <Box sx={{ mt: 6, mb: 4 }}>
