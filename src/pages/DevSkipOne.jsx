@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { SOCIETAL_NORM_STATEMENTS } from '../data/intakeContext';
 
 // ---------- helpers ----------
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -144,18 +145,7 @@ const BEHAVIOR_DICHOTOMIES = [
 ];
 
 // 10 societal/insights items
-const SOCIETAL_QUESTIONS = [
-  "When challenges arise, I share the answer from my experience and expertise.",
-  "I visibly react before I respond to difficult or bad news that is shared with me about the company",
-  "When the correction/learning from a team member's mistake will benefit the whole team, I intentionally address the entire team about it to ensure consistency.",
-  "I am intentional about hiring employees that equally fit the need and the company culture and values.",
-  "My response to dissenting viewpoints shows the team that challenging one another is good thing that leads to growth and innovation",
-  "I am known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"We're in this together.\" Perhaps, jokes about it exist among employees.",
-  "I have more answers than I do questions in our team discussions.",
-  "It is important that our employee performance metrics are are directly connected to their work AND in their control.",
-  "I communicate processes, vision, and expectations so much that I am tired of hearing it.",
-  "When I am struggling professionally, I openly share that information with my team."
-];
+const SOCIETAL_QUESTIONS = SOCIETAL_NORM_STATEMENTS;
 
 const QUESTION_META = {
   industry: {

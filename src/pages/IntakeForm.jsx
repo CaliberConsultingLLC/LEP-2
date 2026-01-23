@@ -8,6 +8,7 @@ import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { questionBank } from '../data/questionBank';
+import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -801,18 +802,7 @@ function IntakeForm() {
   };
 
   // 10 societal norms (now the "Insights" section, 5 per page)
-  const societalNormsQuestions = [
-    "When challenges arise, I ____ share the answer from my experience and expertise.",
-    "I ____ visibly react before I respond to difficult or bad news that is shared with me about the company.",
-    "When the correction/learning from a team member's mistake will benefit the whole team, I ____ address the entire team about it to ensure consistency.",
-    "I ____ hire employees that equally fit the need and the company culture and values.",
-    "My response to dissenting viewpoints ____ shows the team that challenging one another leads to growth and innovation.",
-    "I am ____ known among employees for one-line phrases like \"do what's right,\" \"challenges mean learning,\" or \"We're in this together.\"",
-    "I ____ have more answers than I do questions in our team discussions.",
-    "It is ____ important that our employee performance metrics are directly connected to their work and in their control.",
-    "I ____ communicate processes, vision, and expectations so much that I am tired of hearing it.",
-    "When I am struggling professionally, I ____ openly share that information with my team."
-  ];
+  const societalNormsQuestions = SOCIETAL_NORM_DISPLAY_TEMPLATES;
 
   const agentSelect = [
     {
