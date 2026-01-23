@@ -230,23 +230,7 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    /**
-     * Character budgets aligned with max_tokens (600 tokens ≈ 2400 chars at ~4 chars/token).
-     * We use a conservative TOTAL of 2000 chars to ensure model output fits comfortably.
-     * Per-section budgets are allocated across 4 paragraphs:
-     * - Foundation: 40% (primary strengths)
-     * - Growth Part 1: 15% (acknowledgment + transition)
-     * - Growth Part 2: 25% (deep dive into opportunities)
-     * - Trajectory: 20% (future impact)
-     */
-    const TOTAL = Math.max(1600, Math.min(Number(charLimit) || 2000, 2400));
-    const MAIN = Math.round(TOTAL * 0.95); // Use 95% to leave room for paragraph separators
-    const budgets = {
-      foundation: Math.round(MAIN * 0.40),      // Your Leadership Foundation
-      growthPart1: Math.round(MAIN * 0.15),    // Areas for Growth (Part 1)
-      growthPart2: Math.round(MAIN * 0.25),    // Areas for Growth (Part 2)
-      trajectory: Math.round(MAIN * 0.20),      // Trajectory
-    };
+    const maxChars = Math.max(1600, Math.min(Number(charLimit) || 2200, 2800));
 
     // Prompt assembly
     // Build a compact persona voice guide
@@ -267,59 +251,21 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 `.trim();
 })();
 
-    const systemPrompt = `
-${buildSummarySystemPrompt({
-  agentPrompt: agents[selectedAgent].prompt,
-  voiceGuide,
-  agentIdentity: cleanIdentity,
-})}
-
-OUTPUT FORMAT:
-Produce exactly four paragraphs (no headings or bullets), in this order.
-You must keep the overall response concise; the four paragraphs together should fit in approximately ${TOTAL} characters.
-
-1) Your Leadership Foundation — (~${budgets.foundation} chars)
-   A positive but authentic synthesis of current leadership posture and what's working.
-   Highlight concrete signals of strength and credible patterns. Be genuine, not cheesy.
-   Focus on what genuinely serves this leader well.
-   Connect strengths to human experience (belonging, vulnerability, shared purpose) as appropriate.
-
-2) Areas for Growth (Part 1) — (~${budgets.growthPart1} chars)
-   Begin identifying the most material risks or patterns likely to undermine outcomes.
-   Start with a brief acknowledgment of positive intent, then transition to the gap.
-   Frame the gap in terms of impact on belonging, vulnerability, or shared purpose.
-
-3) Areas for Growth (Part 2) — (~${budgets.growthPart2} chars)
-   Deep dive into specific opportunities for growth. Pick one (or two if correlated) leadership trait to hone in on.
-   Provide concrete examples of how this commonly materializes in leadership.
-   Spend more time on growth opportunities than positive reflections.
-   Surface blind spots in terms of impact on belonging, vulnerability, and shared purpose.
-
-4) Trajectory — (~${budgets.trajectory} chars)
-   Predict the user's leadership impact down the road if the blind spots are never addressed.
-   Be forthright but careful in wording. Bring stark attention to negative impacts of poor leadership behavior without being doom and gloom.
-   Focus on realistic consequences: team dynamics, trust erosion, missed opportunities, organizational impact.
-   Describe realistic consequences for team dynamics, trust, and shared purpose if gaps are not addressed.
-   Write with respect but clarity about what happens when leadership gaps persist.
-
-Write directly to "you." Separate paragraphs with one blank line.
-`.trim();
+    const systemPrompt = buildSummarySystemPrompt({
+      agentPrompt: agents[selectedAgent].prompt,
+      voiceGuide,
+      agentIdentity: cleanIdentity,
+    });
 
 
-    const userPrompt = `
-${buildSummaryUserPrompt(body)}
-
-INSTRUCTIONS:
-- Analyze and integrate the input with AGENT_IDENTITY principles.
-- Output ONLY the four paragraphs (Your Leadership Foundation, Areas for Growth Part 1, Areas for Growth Part 2, Trajectory), separated by one blank line each.
-`.trim();
+    const userPrompt = buildSummaryUserPrompt(body);
 
     // Call OpenAI
     // max_tokens: 600 ≈ 2400 chars at ~4 chars/token, aligned with TOTAL budget of 2000 chars
     const p = agents[selectedAgent]?.params || {};
 const completion = await openai.chat.completions.create({
   model: 'gpt-4o-mini',
-  max_tokens: 600, // Aligned with TOTAL char budget (~2000 chars ≈ 500 tokens, using 600 for safety margin)
+  max_tokens: 750,
   temperature: agents[selectedAgent]?.params?.temperature ?? 0.35,
   frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
   presence_penalty: agents[selectedAgent]?.params?.presence_penalty ?? 0.0,
@@ -331,9 +277,9 @@ const completion = await openai.chat.completions.create({
 
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const capped = enforceBudgets(raw, budgets);
+    const capped = clipToChars(raw, maxChars);
 
-    return res.status(200).json({ aiSummary: capped, budgets });
+    return res.status(200).json({ aiSummary: capped, maxChars });
   } catch (err) {
     console.error('AI Summary error:', err);
     return res
