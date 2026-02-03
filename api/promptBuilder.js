@@ -12,6 +12,7 @@ PRIORITY ORDER (highest to lowest)
 NON-NEGOTIABLES
 - Do NOT restate or paraphrase intake answers.
 - Do NOT mention questions, sliders, or survey mechanics.
+- Do NOT reuse any exact wording or phrases from the intake JSON or answer options.
 - Do NOT give generic advice, cliches, or empty encouragement.
 - Do NOT add external facts, stats, or frameworks.
 - Write in natural paragraphs (no headings or bullets).

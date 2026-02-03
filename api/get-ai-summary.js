@@ -57,6 +57,25 @@ function enforceThreeParagraphs(text, maxChars) {
   return out.join('\n\n').trim();
 }
 
+function ensureSubtraitsIncluded(text, focusAreas) {
+  if (!Array.isArray(focusAreas) || focusAreas.length < 5) return text;
+  const names = focusAreas.map((a) => a.subTraitName).filter(Boolean);
+  if (!names.length) return text;
+
+  const paragraphs = String(text || '').split(/\n\s*\n/);
+  while (paragraphs.length < 3) paragraphs.push('');
+  const lastIdx = paragraphs.length - 1;
+  const last = paragraphs[lastIdx] || '';
+
+  const missing = names.filter((n) => !new RegExp(`\\b${n.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\b`, 'i').test(last));
+  if (!missing.length) return text;
+
+  const bolded = names.map((n) => `**${n}**`).join(', ').replace(/, ([^,]*)$/, ', and $1');
+  const bridge = `Best-case growth is most likely to show up through ${bolded}.`;
+  paragraphs[lastIdx] = last ? `${last} ${bridge}` : bridge;
+  return paragraphs.join('\n\n').trim();
+}
+
 function buildFocusAreas(data) {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   if (!CORE_TRAITS.length) return [];
@@ -402,7 +421,7 @@ const completion = await openai.chat.completions.create({
 
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const capped = enforceThreeParagraphs(raw, maxChars);
+    const capped = ensureSubtraitsIncluded(enforceThreeParagraphs(raw, maxChars), focusAreas);
 
     return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {
