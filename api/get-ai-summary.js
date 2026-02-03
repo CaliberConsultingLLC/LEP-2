@@ -53,14 +53,48 @@ function enforceThreeParagraphs(text, maxChars) {
     .filter(Boolean);
   while (parts.length < 3) parts.push('');
   const total = Math.max(0, Number(maxChars) || 0);
-  const firstBudget = Math.max(300, Math.floor(total * 0.28));
-  const secondBudget = Math.max(300, Math.floor(total * 0.28));
+  const firstBudget = Math.max(420, Math.floor(total * 0.33));
+  const secondBudget = Math.max(320, Math.floor(total * 0.25));
   const thirdBudget = Math.max(520, total - firstBudget - secondBudget);
   const [p1, p2, p3] = parts.slice(0, 3);
   const out1 = clipToChars(p1, firstBudget);
   const out2 = clipToChars(p2, secondBudget);
   const out3 = clipToChars(p3, thirdBudget);
   return [out1, out2, out3].join('\n\n').trim();
+}
+
+function ensureFiveSubtraitBullets(text, focusAreas) {
+  if (!Array.isArray(focusAreas) || focusAreas.length < 5) return text;
+  const subtraits = focusAreas
+    .map((a) => a?.subTraitName)
+    .filter(Boolean)
+    .slice(0, 5);
+  if (!subtraits.length) return text;
+
+  const sections = String(text || '').split(/\n\s*\n/);
+  while (sections.length < 3) sections.push('');
+  const lastIdx = sections.length - 1;
+  const last = sections[lastIdx] || '';
+  const lines = last.split('\n');
+  const bullets = lines.filter((line) => line.trim().startsWith('- '));
+  const narrative = lines.filter((line) => !line.trim().startsWith('- ')).join(' ').trim();
+
+  const bulletMap = new Map();
+  bullets.forEach((line) => {
+    const content = line.replace(/^\s*-\s*/, '');
+    const key = content.split('—')[0].trim().toLowerCase();
+    if (key) bulletMap.set(key, line);
+  });
+
+  const fallbackBehavior = (name) => `- ${name} — practice this in small moments until it becomes your default.`;
+  const finalBullets = subtraits.map((name) => {
+    const key = name.toLowerCase();
+    return bulletMap.get(key) || fallbackBehavior(name);
+  });
+
+  const rebuilt = `${narrative ? `${narrative}\n` : ''}${finalBullets.join('\n')}`.trim();
+  sections[lastIdx] = rebuilt;
+  return sections.join('\n\n').trim();
 }
 
 
@@ -409,7 +443,7 @@ const completion = await openai.chat.completions.create({
 
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const capped = enforceThreeParagraphs(raw, maxChars);
+    const capped = ensureFiveSubtraitBullets(enforceThreeParagraphs(raw, maxChars), focusAreas);
 
     return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {
