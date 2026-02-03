@@ -1,5 +1,5 @@
 // src/pages/Summary.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Container,
   Box,
@@ -12,6 +12,8 @@ import {
   Checkbox,
   Paper,
   Divider,
+  Tooltip,
+  Chip,
 } from '@mui/material';
 import { Warning, Lightbulb, CheckCircle, TrendingUp } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -32,6 +34,7 @@ function Summary() {
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [userName, setUserName] = useState('');
   const [focusAreas, setFocusAreas] = useState([]);
+  const showInlineTraitSelection = false;
 
   // Generate focus areas based on intake data (instead of random)
   const generateAndSetFocusAreas = () => {
@@ -434,6 +437,77 @@ function Summary() {
     return withBold.replace(/\n/g, '<br/>');
   };
 
+  const summaryParagraphs = (aiSummary || '')
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const subTraitMap = useMemo(() => {
+    const map = new Map();
+    (focusAreas || []).forEach((area) => {
+      if (area?.subTraitName) {
+        map.set(area.subTraitName.toLowerCase(), area);
+      }
+    });
+    return map;
+  }, [focusAreas]);
+
+  const renderParagraphWithTooltips = (text) => {
+    const parts = String(text).split(/\*\*(.+?)\*\*/g);
+    return parts.map((part, idx) => {
+      if (idx % 2 === 1) {
+        const key = part.toLowerCase();
+        const area = subTraitMap.get(key);
+        if (!area) {
+          return (
+            <span key={`plain-${idx}`} style={{ fontWeight: 700 }}>
+              {part}
+            </span>
+          );
+        }
+        return (
+          <Tooltip
+            key={`tt-${idx}`}
+            arrow
+            placement="top"
+            title={(
+              <Box sx={{ p: 1, maxWidth: 260 }}>
+                <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{area.subTraitName}</Typography>
+                <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
+                  Parent: {area.traitName}
+                </Typography>
+                {area.subTraitDefinition && (
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    {area.subTraitDefinition}
+                  </Typography>
+                )}
+                {area.impact && (
+                  <Typography variant="body2" sx={{ mt: 0.75, opacity: 0.9 }}>
+                    {area.impact}
+                  </Typography>
+                )}
+              </Box>
+            )}
+          >
+            <Chip
+              label={area.subTraitName}
+              size="small"
+              sx={{
+                mx: 0.5,
+                fontWeight: 700,
+                bgcolor: 'rgba(99,147,170,0.15)',
+                border: '1px solid rgba(99,147,170,0.45)',
+                cursor: 'help',
+              }}
+            />
+          </Tooltip>
+        );
+      }
+      return <span key={`text-${idx}`}>{part}</span>;
+    });
+  };
+
   return (
     <Box sx={{
       position: 'relative',
@@ -572,7 +646,7 @@ function Summary() {
                 borderColor: 'primary.main',
                 background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
                 boxShadow: 4,
-                mb: 4,
+                mb: 3,
               }}
             >
               <Typography
@@ -587,56 +661,81 @@ function Summary() {
               >
                 Your Summary
               </Typography>
-              <Box
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.05rem',
-                  lineHeight: 1.9,
-                  color: 'text.primary',
-                  '& strong': { fontWeight: 700 },
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: formatSummaryHtml(
-                    aiSummary || (isLoading ? 'Summary is being generated...' : 'No summary available.')
-                  ),
-                }}
-              >
-              </Box>
+              <Stack spacing={2.5}>
+                {summaryParagraphs.length ? summaryParagraphs.map((para, idx) => {
+                  const accent =
+                    idx === 0 ? 'rgba(99,147,170,0.35)' : idx === 1 ? 'rgba(224,122,63,0.35)' : 'rgba(47,133,90,0.35)';
+                  const label =
+                    idx === 0 ? 'Snapshot' : idx === 1 ? 'Trajectory' : 'Best-Case Pull';
+                  return (
+                    <Paper
+                      key={`para-${idx}`}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2.5,
+                        border: '1px solid',
+                        borderColor: accent,
+                        background: 'rgba(255,255,255,0.9)',
+                        boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          letterSpacing: 0.6,
+                          textTransform: 'uppercase',
+                          color: 'text.secondary',
+                          display: 'block',
+                          mb: 1,
+                        }}
+                      >
+                        {label}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '1.05rem',
+                          lineHeight: 1.9,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {renderParagraphWithTooltips(para)}
+                      </Typography>
+                    </Paper>
+                  );
+                }) : (
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
+                    {isLoading ? 'Summary is being generated...' : 'No summary available.'}
+                  </Typography>
+                )}
+              </Stack>
             </Paper>
 
-            {/* Trait Selection Section */}
-            <Box sx={{ mt: 6, mb: 4 }}>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontWeight: 700,
-                  color: 'white',
-                  mb: 2,
-                  textAlign: 'center',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                }}
-              >
-                Choose Your Focus Areas
-              </Typography>
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
               <Typography
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontSize: '1rem',
                   color: 'rgba(255,255,255,0.9)',
-                  mb: 3,
-                  textAlign: 'center',
-                  lineHeight: 1.6,
-                  maxWidth: '700px',
-                  mx: 'auto',
+                  mb: 1.5,
                   textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
                 }}
               >
-                Based on your assessment, we've identified specific leadership areas where focused development could have the greatest impact. 
-                Below are five targeted focus areas, each with concrete examples of how they show up in leadership and the risks of not addressing them. 
-                Select exactly 3 traits that resonate most with your current leadership challenges and growth goals.
+                Ready to turn this into focus? Choose your 3 traits to build the growth campaign.
               </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate('/trait-selection')}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+              >
+                Choose Your Focus Traits
+              </Button>
+            </Box>
 
+            {showInlineTraitSelection && (
+            <Box sx={{ mt: 6, mb: 4 }}>
               <Stack spacing={2}>
                 {focusAreas.length > 0 ? focusAreas.map((focusArea) => {
                     const isSelected = selectedTraits.includes(focusArea.id);
@@ -955,6 +1054,7 @@ function Summary() {
                 </Button>
               </Box>
             </Box>
+            )}
 
             <Stack direction="row" spacing={3} justifyContent="center" alignItems="center" sx={{ mt: 4 }}>
               <Button

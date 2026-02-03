@@ -46,6 +46,17 @@ function clipToChars(text, limit) {
   return clipSentenceSafe(text, n);
 }
 
+function enforceThreeParagraphs(text, maxChars) {
+  const parts = String(text || '')
+    .split(/\n\s*\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  while (parts.length < 3) parts.push('');
+  const per = Math.max(150, Math.floor(maxChars / 3));
+  const out = parts.slice(0, 3).map((p) => clipToChars(p, per));
+  return out.join('\n\n').trim();
+}
+
 function buildFocusAreas(data) {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   if (!CORE_TRAITS.length) return [];
@@ -342,7 +353,7 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    const maxChars = Math.max(600, Math.min(Number(charLimit) || 1000, 1400));
+    const maxChars = Math.max(750, Math.min(Number(charLimit) || 1050, 1200));
 
     // Prompt assembly
     // Build a compact persona voice guide
@@ -391,7 +402,7 @@ const completion = await openai.chat.completions.create({
 
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const capped = clipToChars(raw, maxChars);
+    const capped = enforceThreeParagraphs(raw, maxChars);
 
     return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {
