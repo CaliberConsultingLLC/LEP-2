@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -14,49 +14,27 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle } from '@mui/icons-material';
 
-// Curated list of traits with examples and risks
-const TRAITS = [
-  {
-    id: 'communication',
-    name: 'Communication',
-    example: 'During team meetings, you may find yourself explaining concepts multiple times or noticing that team members seem confused about priorities.',
-    risk: 'Without improvement, you risk misalignment, repeated work, and decreased team confidence in your direction.',
-  },
-  {
-    id: 'delegation',
-    name: 'Delegation & Empowerment',
-    example: 'You might find yourself taking on tasks that could be handled by others, or team members frequently ask for approval on decisions they should make.',
-    risk: 'This can lead to burnout, bottlenecked workflows, and missed opportunities for team growth and development.',
-  },
-  {
-    id: 'feedback',
-    name: 'Giving & Receiving Feedback',
-    example: 'Difficult conversations get postponed, or feedback is delivered in ways that don\'t lead to change. You may also avoid seeking feedback yourself.',
-    risk: 'Performance issues persist, team members don\'t grow, and you miss opportunities to improve your own leadership approach.',
-  },
-  {
-    id: 'conflict',
-    name: 'Conflict Resolution',
-    example: 'When disagreements arise, you might avoid addressing them directly, or conflicts escalate because they\'re not handled constructively.',
-    risk: 'Team dynamics suffer, resentment builds, and productivity decreases as unresolved issues fester.',
-  },
-  {
-    id: 'vision',
-    name: 'Vision & Strategic Thinking',
-    example: 'Your team may struggle to see how their daily work connects to bigger goals, or you find it challenging to articulate a clear direction.',
-    risk: 'Without a clear vision, teams lack motivation, make misaligned decisions, and miss opportunities for strategic impact.',
-  },
-  {
-    id: 'adaptability',
-    name: 'Adaptability & Change Management',
-    example: 'When plans change or unexpected challenges arise, you might resist pivoting or struggle to help your team navigate transitions.',
-    risk: 'Rigidity can lead to missed opportunities, team frustration, and an inability to respond effectively to market or organizational changes.',
-  },
-];
-
 function TraitSelection() {
   const navigate = useNavigate();
   const [selectedTraits, setSelectedTraits] = useState([]);
+  const [focusAreas, setFocusAreas] = useState([]);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    const stored = localStorage.getItem('focusAreas');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length === 5) {
+          setFocusAreas(parsed);
+          return;
+        }
+      } catch {
+        // fall through to error
+      }
+    }
+    setLoadError('Focus areas not found. Please generate your summary first.');
+  }, []);
 
   const handleTraitToggle = (traitId) => {
     setSelectedTraits((prev) => {
@@ -116,7 +94,7 @@ function TraitSelection() {
                 mb: 1,
               }}
             >
-              Based on your reflection, we've identified areas where focused growth could have the greatest impact.
+              Based on your reflection, we've identified five subtraits where focused growth could have the greatest impact.
             </Typography>
             <Typography
               sx={{
@@ -146,7 +124,7 @@ function TraitSelection() {
 
           {/* Trait Cards */}
           <Grid container spacing={3}>
-            {TRAITS.map((trait) => {
+            {focusAreas.map((trait) => {
               const isSelected = selectedTraits.includes(trait.id);
               const isDisabled = !isSelected && selectedTraits.length >= 3;
 
@@ -196,7 +174,18 @@ function TraitSelection() {
                               mb: 1.5,
                             }}
                           >
-                            {trait.name}
+                            {trait.traitName}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '0.95rem',
+                              fontWeight: 600,
+                              color: 'secondary.main',
+                              mb: 0.5,
+                            }}
+                          >
+                            {trait.subTraitName}
                           </Typography>
                         </Box>
                       </Stack>
@@ -260,6 +249,19 @@ function TraitSelection() {
               );
             })}
           </Grid>
+          {loadError && (
+            <Alert
+              severity="warning"
+              sx={{
+                fontFamily: 'Gemunu Libre, sans-serif',
+                mt: 2,
+                maxWidth: '700px',
+                mx: 'auto',
+              }}
+            >
+              {loadError}
+            </Alert>
+          )}
 
           {/* Continue Button */}
           <Box sx={{ textAlign: 'center', mt: 4 }}>
