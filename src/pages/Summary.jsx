@@ -508,6 +508,62 @@ function Summary() {
     });
   };
 
+  const renderNarrativeWithBullets = (text) => {
+    const lines = String(text || '').split('\n');
+    const bulletLines = lines.filter((line) => line.trim().startsWith('- '));
+    if (!bulletLines.length) {
+      return (
+        <Typography
+          sx={{
+            fontFamily: 'Gemunu Libre, sans-serif',
+            fontSize: '1.05rem',
+            lineHeight: 1.9,
+            color: 'text.primary',
+          }}
+        >
+          {renderParagraphWithTooltips(text)}
+        </Typography>
+      );
+    }
+
+    const narrative = lines.filter((line) => !line.trim().startsWith('- ')).join(' ').trim();
+    return (
+      <Stack spacing={1.5}>
+        {narrative && (
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '1.05rem',
+              lineHeight: 1.9,
+              color: 'text.primary',
+            }}
+          >
+            {renderParagraphWithTooltips(narrative)}
+          </Typography>
+        )}
+        <Box component="ul" sx={{ pl: 2.5, m: 0 }}>
+          {bulletLines.map((line, idx) => {
+            const content = line.replace(/^\s*-\s*/, '');
+            return (
+              <Box key={`bullet-${idx}`} component="li" sx={{ mb: 0.75 }}>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '0.98rem',
+                    lineHeight: 1.7,
+                    color: 'text.primary',
+                  }}
+                >
+                  {renderParagraphWithTooltips(content)}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      </Stack>
+    );
+  };
+
   return (
     <Box sx={{
       position: 'relative',
@@ -692,16 +748,20 @@ function Summary() {
                       >
                         {label}
                       </Typography>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '1.05rem',
-                          lineHeight: 1.9,
-                          color: 'text.primary',
-                        }}
-                      >
-                        {renderParagraphWithTooltips(para)}
-                      </Typography>
+                      {idx === 2
+                        ? renderNarrativeWithBullets(para)
+                        : (
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '1.05rem',
+                              lineHeight: 1.9,
+                              color: 'text.primary',
+                            }}
+                          >
+                            {renderParagraphWithTooltips(para)}
+                          </Typography>
+                        )}
                     </Paper>
                   );
                 }) : (
