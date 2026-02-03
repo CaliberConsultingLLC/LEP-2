@@ -724,6 +724,22 @@ function Summary() {
               >
                 Ready to turn this into focus? Choose your 3 traits to build the growth campaign.
               </Typography>
+              {focusAreas.length > 0 && (
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ mb: 2 }}>
+                  {focusAreas.map((area) => (
+                    <Chip
+                      key={area.id}
+                      label={area.subTraitName}
+                      size="small"
+                      sx={{
+                        fontWeight: 700,
+                        bgcolor: 'rgba(255,255,255,0.85)',
+                        border: '1px solid rgba(99,147,170,0.45)',
+                      }}
+                    />
+                  ))}
+                </Stack>
+              )}
               <Button
                 variant="contained"
                 color="primary"

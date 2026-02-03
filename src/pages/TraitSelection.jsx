@@ -80,8 +80,18 @@ function TraitSelection() {
         },
       }}
     >
-      <Container maxWidth="lg" sx={{ py: 5 }}>
-        <Stack spacing={4} sx={{ width: '100%', maxWidth: '980px', mx: 'auto' }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          py: { xs: 3, sm: 4 },
+          px: { xs: 2, sm: 4 },
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100vw',
+        }}
+      >
+        <Box sx={{ width: '100%', maxWidth: 880 }}>
+        <Stack spacing={4} sx={{ width: '100%' }}>
           {/* Header Section */}
           <Box sx={{ textAlign: 'center', mb: 2 }}>
             <Typography
@@ -294,16 +304,27 @@ function TraitSelection() {
                         </Typography>
                       </Box>
                     ) : (
-                      <Box sx={{ width: '33.33%', display: 'flex', flexDirection: 'column' }}>
-                        <Box sx={{ p: 2, borderBottom: '2px solid', borderColor: 'divider' }}>
+                      <>
+                        <Box
+                          sx={{
+                            width: '16.67%',
+                            p: 2,
+                            borderRight: '1px solid',
+                            borderColor: 'rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            bgcolor: 'primary.main',
+                            background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
+                          }}
+                        >
                           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                            <Lightbulb sx={{ color: 'secondary.main', fontSize: 16 }} />
+                            <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
                                 fontSize: '0.75rem',
                                 fontWeight: 700,
-                                color: 'text.primary',
+                                color: 'white',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                               }}
@@ -315,22 +336,31 @@ function TraitSelection() {
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
                               fontSize: '0.75rem',
-                              color: 'text.secondary',
+                              color: 'white',
                               lineHeight: 1.4,
                             }}
                           >
                             {focusArea.example}
                           </Typography>
                         </Box>
-                        <Box sx={{ p: 2 }}>
+                        <Box
+                          sx={{
+                            width: '16.67%',
+                            p: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            bgcolor: 'warning.main',
+                            background: 'linear-gradient(135deg, #ED6C02, #D84315)',
+                          }}
+                        >
                           <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                            <Warning sx={{ color: 'warning.main', fontSize: 16 }} />
+                            <Warning sx={{ color: 'white', fontSize: 16 }} />
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
                                 fontSize: '0.75rem',
                                 fontWeight: 700,
-                                color: 'text.primary',
+                                color: 'white',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
                               }}
@@ -342,14 +372,14 @@ function TraitSelection() {
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
                               fontSize: '0.75rem',
-                              color: 'text.secondary',
+                              color: 'white',
                               lineHeight: 1.4,
                             }}
                           >
                             {focusArea.risk}
                           </Typography>
                         </Box>
-                      </Box>
+                      </>
                     )}
                   </Box>
                 </Paper>
@@ -407,6 +437,7 @@ function TraitSelection() {
             </Button>
           </Box>
         </Stack>
+        </Box>
       </Container>
     </Box>
   );
