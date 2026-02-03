@@ -3,16 +3,13 @@ import {
   Box,
   Container,
   Typography,
-  Card,
-  CardContent,
+  Paper,
   Button,
   Stack,
-  Checkbox,
-  Grid,
   Alert,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Lightbulb, Warning, CheckCircle } from '@mui/icons-material';
+import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
 
 function TraitSelection() {
   const navigate = useNavigate();
@@ -59,19 +56,32 @@ function TraitSelection() {
   return (
     <Box
       sx={{
-        p: 5,
+        position: 'relative',
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
-        backgroundImage: 'linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,.6)), url(/LEP2.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
+        '&:before': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -2,
+          backgroundImage: 'url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          transform: 'translateZ(0)',
+        },
+        '&:after': {
+          content: '""',
+          position: 'fixed',
+          inset: 0,
+          zIndex: -1,
+          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+        },
       }}
     >
-      <Container maxWidth="lg">
-        <Stack spacing={4} sx={{ width: '100%', maxWidth: '900px', mx: 'auto' }}>
+      <Container maxWidth="lg" sx={{ py: 5 }}>
+        <Stack spacing={4} sx={{ width: '100%', maxWidth: '980px', mx: 'auto' }}>
           {/* Header Section */}
           <Box sx={{ textAlign: 'center', mb: 2 }}>
             <Typography
@@ -79,9 +89,9 @@ function TraitSelection() {
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontWeight: 700,
-                color: 'text.primary',
+                color: 'white',
                 mb: 2,
-                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
               Choose Your Focus Areas
@@ -90,8 +100,9 @@ function TraitSelection() {
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1.2rem',
-                color: 'text.secondary',
+                color: 'rgba(255,255,255,0.9)',
                 mb: 1,
+                textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
               }}
             >
               Based on your reflection, we've identified five subtraits where focused growth could have the greatest impact.
@@ -100,8 +111,9 @@ function TraitSelection() {
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1rem',
-                color: 'text.secondary',
+                color: 'rgba(255,255,255,0.9)',
                 fontStyle: 'italic',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
               }}
             >
               Select exactly 3 traits you'd like to focus on in your leadership development journey.
@@ -115,140 +127,235 @@ function TraitSelection() {
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1.1rem',
                 fontWeight: 600,
-                color: selectedTraits.length === 3 ? 'success.main' : 'text.primary',
+                color: selectedTraits.length === 3 ? 'success.main' : 'rgba(255,255,255,0.9)',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
               }}
             >
               {selectedTraits.length} of 3 selected
             </Typography>
           </Box>
 
-          {/* Trait Cards */}
-          <Grid container spacing={3}>
-            {focusAreas.map((trait) => {
-              const isSelected = selectedTraits.includes(trait.id);
+          {/* Trait Focus Bars */}
+          <Stack spacing={2}>
+            {focusAreas.map((focusArea) => {
+              const isSelected = selectedTraits.includes(focusArea.id);
               const isDisabled = !isSelected && selectedTraits.length >= 3;
 
               return (
-                <Grid item xs={12} md={6} key={trait.id}>
-                  <Card
-                    sx={{
-                      cursor: isDisabled ? 'not-allowed' : 'pointer',
-                      border: isSelected ? '3px solid' : '1px solid',
-                      borderColor: isSelected ? 'primary.main' : 'divider',
-                      borderRadius: 3,
-                      boxShadow: isSelected ? 8 : 2,
-                      bgcolor: isSelected
-                        ? 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))'
-                        : 'rgba(255, 255, 255, 0.95)',
-                      background: isSelected
-                        ? 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))'
-                        : 'rgba(255, 255, 255, 0.95)',
-                      opacity: isDisabled ? 0.6 : 1,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: isDisabled ? 'none' : 'translateY(-4px)',
-                        boxShadow: isDisabled ? 2 : 6,
-                      },
-                    }}
-                    onClick={() => !isDisabled && handleTraitToggle(trait.id)}
-                  >
-                    <CardContent>
-                      <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2 }}>
-                        <Checkbox
-                          checked={isSelected}
-                          disabled={isDisabled}
+                <Paper
+                  key={focusArea.id}
+                  onClick={() => !isDisabled && handleTraitToggle(focusArea.id)}
+                  sx={{
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    border: isSelected ? '2px solid #2d4a5a' : '2px solid rgba(255,255,255,0.2)',
+                    borderRadius: 3,
+                    boxShadow: isSelected
+                      ? '0 8px 24px rgba(45,74,90,0.35)'
+                      : '0 4px 16px rgba(0,0,0,0.12)',
+                    bgcolor: isSelected
+                      ? 'rgba(255,255,255,0.98)'
+                      : 'rgba(255,255,255,0.95)',
+                    background: isSelected
+                      ? 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(250,245,255,0.95))'
+                      : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
+                    opacity: isDisabled ? 0.5 : 1,
+                    transition: 'all 0.3s ease',
+                    overflow: 'hidden',
+                    '&:hover': {
+                      transform: isDisabled ? 'none' : 'translateY(-3px)',
+                      boxShadow: isDisabled
+                        ? '0 4px 16px rgba(0,0,0,0.1)'
+                        : '0 12px 32px rgba(45,74,90,0.25)',
+                      borderColor: isDisabled ? 'rgba(255,255,255,0.2)' : (isSelected ? '#2d4a5a' : '#E07A3F'),
+                    },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '140px' }}>
+                    {/* Trait */}
+                    <Box
+                      sx={{
+                        width: '33.33%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        p: 2.5,
+                        borderRight: '2px solid',
+                        borderColor: 'divider',
+                        bgcolor: isSelected ? 'rgba(224,122,63,0.05)' : 'transparent',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          color: 'primary.main',
+                          lineHeight: 1.3,
+                          mb: 0.5,
+                        }}
+                      >
+                        {focusArea.traitName}
+                      </Typography>
+                      {focusArea.traitDefinition && (
+                        <Typography
                           sx={{
-                            color: 'primary.main',
-                            '&.Mui-checked': {
-                              color: 'primary.main',
-                            },
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.75rem',
+                            fontStyle: 'italic',
+                            color: 'text.secondary',
+                            lineHeight: 1.2,
                           }}
-                        />
-                        <Box sx={{ flex: 1 }}>
+                        >
+                          {focusArea.traitDefinition}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Subtrait */}
+                    <Box
+                      sx={{
+                        width: '33.33%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        p: 2.5,
+                        borderRight: '2px solid',
+                        borderColor: 'divider',
+                        bgcolor: isSelected ? 'rgba(99,147,170,0.05)' : 'transparent',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          color: 'secondary.main',
+                          lineHeight: 1.3,
+                          mb: 0.5,
+                        }}
+                      >
+                        {focusArea.subTraitName}
+                      </Typography>
+                      {focusArea.subTraitDefinition && (
+                        <Typography
+                          sx={{
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.7rem',
+                            fontStyle: 'italic',
+                            color: 'text.secondary',
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {focusArea.subTraitDefinition}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Example/Risk or Impact */}
+                    {isSelected ? (
+                      <Box
+                        sx={{
+                          width: '33.33%',
+                          p: 2,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          bgcolor: '#457089',
+                          background: 'linear-gradient(135deg, #457089, #375d78)',
+                        }}
+                      >
+                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                          <TrendingUp sx={{ color: 'white', fontSize: 16 }} />
                           <Typography
-                            variant="h5"
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '0.75rem',
                               fontWeight: 700,
-                              color: 'text.primary',
-                              mb: 1.5,
+                              color: 'white',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
                             }}
                           >
-                            {trait.traitName}
+                            Impact
                           </Typography>
+                        </Stack>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.75rem',
+                            color: 'white',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {focusArea.impact}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ width: '33.33%', display: 'flex', flexDirection: 'column' }}>
+                        <Box sx={{ p: 2, borderBottom: '2px solid', borderColor: 'divider' }}>
+                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                            <Lightbulb sx={{ color: 'secondary.main', fontSize: 16 }} />
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: 'text.primary',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                              }}
+                            >
+                              Example
+                            </Typography>
+                          </Stack>
                           <Typography
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.95rem',
-                              fontWeight: 600,
-                              color: 'secondary.main',
-                              mb: 0.5,
+                              fontSize: '0.75rem',
+                              color: 'text.secondary',
+                              lineHeight: 1.4,
                             }}
                           >
-                            {trait.subTraitName}
+                            {focusArea.example}
                           </Typography>
                         </Box>
-                      </Stack>
-
-                      <Box sx={{ mb: 2 }}>
-                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                          <Lightbulb sx={{ color: 'primary.main', fontSize: 20 }} />
+                        <Box sx={{ p: 2 }}>
+                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                            <Warning sx={{ color: 'warning.main', fontSize: 16 }} />
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: 'text.primary',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                              }}
+                            >
+                              Risk
+                            </Typography>
+                          </Stack>
                           <Typography
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.95rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
+                              fontSize: '0.75rem',
+                              color: 'text.secondary',
+                              lineHeight: 1.4,
                             }}
                           >
-                            Example in Action:
+                            {focusArea.risk}
                           </Typography>
-                        </Stack>
-                        <Typography
-                          sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '0.9rem',
-                            color: 'text.secondary',
-                            lineHeight: 1.6,
-                            pl: 4,
-                          }}
-                        >
-                          {trait.example}
-                        </Typography>
+                        </Box>
                       </Box>
-
-                      <Box>
-                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                          <Warning sx={{ color: 'warning.main', fontSize: 20 }} />
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.95rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                            }}
-                          >
-                            Risk of Not Improving:
-                          </Typography>
-                        </Stack>
-                        <Typography
-                          sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '0.9rem',
-                            color: 'text.secondary',
-                            lineHeight: 1.6,
-                            pl: 4,
-                          }}
-                        >
-                          {trait.risk}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                    )}
+                  </Box>
+                </Paper>
               );
             })}
-          </Grid>
+          </Stack>
           {loadError && (
             <Alert
               severity="warning"

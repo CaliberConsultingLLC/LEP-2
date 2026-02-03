@@ -52,7 +52,7 @@ function enforceThreeParagraphs(text, maxChars) {
     .map((s) => s.trim())
     .filter(Boolean);
   while (parts.length < 3) parts.push('');
-  const per = Math.max(150, Math.floor(maxChars / 3));
+  const per = Math.max(360, Math.floor(maxChars / 3));
   const out = parts.slice(0, 3).map((p) => clipToChars(p, per));
   return out.join('\n\n').trim();
 }
@@ -353,7 +353,7 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    const maxChars = Math.max(750, Math.min(Number(charLimit) || 1050, 1200));
+    const maxChars = Math.max(1200, Math.min(Number(charLimit) || 1500, 1800));
 
     // Prompt assembly
     // Build a compact persona voice guide

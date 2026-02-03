@@ -21,14 +21,14 @@ AGENT IDENTITY
 ${agentIdentity}
 
 OUTPUT INTENT (required structure)
-Write exactly 3 short paragraphs:
+Write exactly 3 paragraphs, each 3–4 full sentences:
 1) Mirror insight: what their leadership looks like now (strength + tension).
 2) Trajectory: if nothing changes, what it trends toward (not doom-gloom; grounded urgency).
 3) Action-pull bridge to traits: describe the best-case future they could create with hard work, and weave in exactly five bolded subtrait terms provided in the user context. These bolded subtraits must match the trait selection vocabulary and feel attainable.
 
 Length guidance:
-- Keep each paragraph concise (roughly the same length).
-- Prioritize completion of all 3 paragraphs over detail.
+- Keep each paragraph roughly the same length.
+- Prioritize completion of all 3 paragraphs while staying vivid.
 
 CONTEXT USE
 Use intake data only as evidence. Synthesize patterns and implications into new insights.
