@@ -22,10 +22,14 @@ AGENT IDENTITY
 ${agentIdentity}
 
 OUTPUT INTENT (required structure)
-Write exactly 3 paragraphs, each 3–4 full sentences:
-1) Mirror insight: what their leadership looks like now (strength + tension).
-2) Trajectory: if nothing changes, what it trends toward (not doom-gloom; grounded urgency).
-3) Action-pull bridge to traits: describe the best-case future they could create with hard work, and weave in exactly five bolded subtrait terms provided in the user context. These bolded subtraits must match the trait selection vocabulary and feel attainable.
+Write exactly 3 sections:
+1) Mirror insight: 3–4 full sentences on what their leadership looks like now (strength + tension).
+2) Trajectory: 3–4 full sentences on where it trends if nothing changes (not doom-gloom; grounded urgency).
+3) A New Way Forward: 1–2 sentences of inspiration-focused encouragement that paint a quick picture of growth, then list five bullet points below.
+
+Bullet format (must include exactly five):
+- Subtrait — short narrative framed as an adoptable behavior.
+Use the exact five subtraits provided in the user context.
 
 Length guidance:
 - Keep each paragraph roughly the same length.
