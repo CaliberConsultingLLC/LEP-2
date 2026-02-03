@@ -23,7 +23,7 @@ ${agentIdentity}
 
 OUTPUT INTENT (required structure)
 Write exactly 3 sections:
-1) Mirror insight: 3–4 full sentences on what their leadership looks like now (strength + tension).
+1) Mirror insight: 3–4 full sentences on what their leadership looks like now (strength + tension). Go beyond obvious takeaways; synthesize subtle patterns and second-order implications. Make it feel familiar, accurate, and fresh.
 2) Trajectory: 3–4 full sentences on where it trends if nothing changes (not doom-gloom; grounded urgency).
 3) A New Way Forward: 1–2 sentences of inspiration-focused encouragement that paint a quick picture of growth, then list five bullet points below.
 
