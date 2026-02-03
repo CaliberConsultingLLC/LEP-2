@@ -7,13 +7,13 @@ import {
   Alert,
   Stack,
   Button,
-  Select,
   MenuItem,
   Checkbox,
   Paper,
   Divider,
   Tooltip,
   Chip,
+  Menu,
 } from '@mui/material';
 import { Warning, Lightbulb, CheckCircle, TrendingUp } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -35,6 +35,7 @@ function Summary() {
   const [userName, setUserName] = useState('');
   const [focusAreas, setFocusAreas] = useState([]);
   const showInlineTraitSelection = false;
+  const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
 
   // Generate focus areas based on intake data (instead of random)
   const generateAndSetFocusAreas = () => {
@@ -337,10 +338,19 @@ function Summary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAgentChange = async (e) => {
-    const newAgent = e.target.value;
-    setSelectedAgent(newAgent);
-    await runSummary(newAgent);
+  const openAgentMenu = (event) => {
+    setAgentMenuAnchor(event.currentTarget);
+  };
+
+  const closeAgentMenu = () => {
+    setAgentMenuAnchor(null);
+  };
+
+  const handleAgentMenuSelect = async (agentId) => {
+    closeAgentMenu();
+    if (!agentId) return;
+    setSelectedAgent(agentId);
+    await runSummary(agentId);
   };
 
   /**
@@ -425,16 +435,6 @@ function Summary() {
     result += text.substring(lastIndex);
     
     return result;
-  };
-
-  const formatSummaryHtml = (text) => {
-    if (!text) return '';
-    const escaped = String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-    const withBold = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    return withBold.replace(/\n/g, '<br/>');
   };
 
   const summaryParagraphs = (aiSummary || '')
@@ -666,7 +666,7 @@ function Summary() {
                   const accent =
                     idx === 0 ? 'rgba(99,147,170,0.35)' : idx === 1 ? 'rgba(224,122,63,0.35)' : 'rgba(47,133,90,0.35)';
                   const label =
-                    idx === 0 ? 'Snapshot' : idx === 1 ? 'Trajectory' : 'Best-Case Pull';
+                    idx === 0 ? 'Snapshot' : idx === 1 ? 'Trajectory' : 'A New Way Forward';
                   return (
                     <Paper
                       key={`para-${idx}`}
@@ -710,45 +710,27 @@ function Summary() {
                   </Typography>
                 )}
               </Stack>
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    color: 'text.secondary',
+                    mb: 1.5,
+                  }}
+                >
+                  Ready to turn this into focus? Choose your 3 traits to build the growth campaign.
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => navigate('/trait-selection')}
+                  sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+                >
+                  Choose Your Focus Traits
+                </Button>
+              </Box>
             </Paper>
-
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1rem',
-                  color: 'rgba(255,255,255,0.9)',
-                  mb: 1.5,
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
-                }}
-              >
-                Ready to turn this into focus? Choose your 3 traits to build the growth campaign.
-              </Typography>
-              {focusAreas.length > 0 && (
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ mb: 2 }}>
-                  {focusAreas.map((area) => (
-                    <Chip
-                      key={area.id}
-                      label={area.subTraitName}
-                      size="small"
-                      sx={{
-                        fontWeight: 700,
-                        bgcolor: 'rgba(255,255,255,0.85)',
-                        border: '1px solid rgba(99,147,170,0.45)',
-                      }}
-                    />
-                  ))}
-                </Stack>
-              )}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate('/trait-selection')}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
-              >
-                Choose Your Focus Traits
-              </Button>
-            </Box>
 
             {showInlineTraitSelection && (
             <Box sx={{ mt: 6, mb: 4 }}>
@@ -1082,21 +1064,24 @@ function Summary() {
                 Return to Home
               </Button>
 
-              <Select
-                value={selectedAgent}
-                onChange={handleAgentChange}
-                displayEmpty
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', height: '40px' }}
+              <Button
+                variant="contained"
+                onClick={openAgentMenu}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5, bgcolor: '#457089', color: 'white', '&:hover': { bgcolor: '#375d78' } }}
               >
-                <MenuItem value="" disabled>
-                  Rerun with a Different Agent
-                </MenuItem>
+                Rerun with Different Agent
+              </Button>
+              <Menu
+                anchorEl={agentMenuAnchor}
+                open={Boolean(agentMenuAnchor)}
+                onClose={closeAgentMenu}
+              >
                 {agents.map((agent) => (
-                  <MenuItem key={agent.id} value={agent.id}>
+                  <MenuItem key={agent.id} onClick={() => handleAgentMenuSelect(agent.id)}>
                     {agent.name}
                   </MenuItem>
                 ))}
-              </Select>
+              </Menu>
             </Stack>
           </Stack>
         )}
