@@ -3,6 +3,8 @@ import { OpenAI } from 'openai';
 import fs from 'fs';
 import path from 'path';
 import { buildSummarySystemPrompt, buildSummaryUserPrompt } from './promptBuilder.js';
+import traitSystem from '../src/data/traitSystem.js';
+import { intakeContext } from '../src/data/intakeContext.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -42,6 +44,116 @@ function clipSentenceSafe(text, limit) {
 function clipToChars(text, limit) {
   const n = Math.max(0, Number(limit) || 0);
   return clipSentenceSafe(text, n);
+}
+
+function buildFocusAreas(data) {
+  const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
+  if (!CORE_TRAITS.length) return [];
+
+  const scores = {};
+  CORE_TRAITS.forEach((trait) => { scores[trait.id] = 0; });
+
+  const addScore = (traitId, weight = 1) => {
+    if (!traitId || scores[traitId] == null) return;
+    scores[traitId] += weight;
+  };
+
+  // ---- norms-based scoring ----
+  const norms = Array.isArray(data?.societalResponses) ? data.societalResponses : [];
+  const normItems = intakeContext?.societalNorms?.items || [];
+  if (normItems.length && norms.length) {
+    const traitMap = {
+      Shepherd: 'teamDevelopment',
+      Courage: 'emotionalIntelligence',
+      Navigator: 'strategicThinking',
+    };
+    const scored = normItems.map((item, idx) => {
+      const raw = Number(norms[idx]);
+      const score = item.reverse ? (11 - raw) : raw;
+      return { item, score };
+    });
+    let flagged = scored.filter((s) => s.score <= 3);
+    if (!flagged.length) {
+      flagged = scored.filter((s) => s.score >= 4 && s.score <= 5);
+    }
+    flagged.forEach(({ item, score }) => {
+      const weight = score <= 3 ? (4 - score) : 1;
+      (item.traitsUndermined || []).forEach((t) => addScore(traitMap[t], weight));
+    });
+  }
+
+  // ---- behavior-based scoring ----
+  const roleModelTraitMap = {
+    communicated: 'communication',
+    'made decisions': 'decisionMaking',
+    'thought strategically': 'strategicThinking',
+    'executed & followed through': 'execution',
+    'developed their team': 'teamDevelopment',
+    'shaped culture': 'teamDevelopment',
+    'built relationships': 'emotionalIntelligence',
+    'handled challenges': 'decisionMaking',
+    'inspired others': 'teamDevelopment',
+    'balanced priorities': 'strategicThinking',
+  };
+  addScore(roleModelTraitMap[data?.roleModelTrait], 2);
+
+  if (data?.decisionPace?.includes('Fix')) addScore('execution', 1);
+  if (data?.decisionPace?.includes('Feedback')) addScore('decisionMaking', 1);
+
+  if (Array.isArray(data?.leaderFuel) && data.leaderFuel[0]) {
+    const topFuel = data.leaderFuel[0];
+    if (topFuel.includes('team gel') || topFuel.includes('learned') || topFuel.includes('recognition')) {
+      addScore('teamDevelopment', 1);
+    } else if (topFuel.includes('project') || topFuel.includes('chaos')) {
+      addScore('execution', 1);
+    } else if (topFuel.includes('problem')) {
+      addScore('decisionMaking', 1);
+    }
+  }
+
+  if (data?.visibilityComfort?.includes('spotlight')) addScore('communication', 1);
+  if (data?.visibilityComfort?.includes('behind the scenes')) addScore('execution', 1);
+
+  const ranked = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([id]) => CORE_TRAITS.find((t) => t.id === id))
+    .filter(Boolean);
+
+  const pickSubTrait = (trait) => {
+    if (!trait?.subTraits?.length) return null;
+    const key = JSON.stringify({
+      role: data?.role || '',
+      industry: data?.industry || '',
+      trait: trait.id,
+    });
+    let hash = 0;
+    for (let i = 0; i < key.length; i += 1) {
+      hash = (hash * 31 + key.charCodeAt(i)) % trait.subTraits.length;
+    }
+    return trait.subTraits[hash] || trait.subTraits[0];
+  };
+
+  const generatedAreas = ranked.slice(0, 5).map((trait) => {
+    const subTrait = pickSubTrait(trait);
+    if (!subTrait) return null;
+    const example = subTrait.riskSignals?.underuse?.[0]
+      || `Struggling with ${subTrait.name.toLowerCase()} can show up in day-to-day execution.`;
+    const risk = subTrait.riskSignals?.underuse?.[1] || example;
+    const impact = subTrait.impact
+      || `Improving ${subTrait.name.toLowerCase()} can strengthen trust, alignment, and outcomes.`;
+    return {
+      id: `${trait.id}-${subTrait.id}`,
+      traitName: trait.name,
+      traitDefinition: trait.definition || trait.description,
+      subTraitName: subTrait.name,
+      subTraitDefinition: subTrait.definition || subTrait.shortDescription,
+      example,
+      risk,
+      impact,
+    };
+  }).filter(Boolean);
+
+  return generatedAreas.slice(0, 5);
 }
 
 /**
@@ -97,13 +209,13 @@ export default async function handler(req, res) {
     // Agent personas (tone/voice with concrete style guides)
 const agents = {
   bluntPracticalFriend: {
-    prompt: `You are a blunt, practical friend. Be direct, concrete, action-first.`,
+    prompt: `You are a blunt, practical friend. Be direct, concrete, and no-fluff.`,
     style: {
-      sentences: `Short to medium sentences. Prefer imperatives (“Do X”). Avoid hedging.`,
+      sentences: `Short to medium sentences. Declarative and crisp.`,
       do: [
         `Call things plainly; cut filler.`,
         `Name one tradeoff explicitly.`,
-        `End sections with a crisp next step.`
+        `Keep it grounded in context.`
       ],
       dont: [
         `No euphemisms.`,
@@ -111,20 +223,20 @@ const agents = {
         `No multi-clause run-ons.`
       ],
       lexicon: [
-        `cut`, `ship`, `unblock`, `decision`, `evidence`, `scope`, `owner`, `by Friday`
+        `cut`, `clarity`, `decision`, `evidence`, `scope`, `boundary`, `tradeoff`
       ]
     },
     params: { temperature: 0.4, frequency_penalty: 0.3, presence_penalty: 0.0 }
   },
 
   formalEmpatheticCoach: {
-    prompt: `You are a formal, empathetic coach. Polished, supportive, professional.`,
+    prompt: `You are a formal, empathetic guide. Polished, supportive, professional.`,
     style: {
       sentences: `Medium sentences. Warm, respectful, executive-ready.`,
       do: [
         `Acknowledge intent before critique.`,
         `Ground points with 1 concrete example.`,
-        `Use measured verbs (“clarify”, “prioritize”).`
+        `Use measured verbs (“clarify”, “align”).`
       ],
       dont: [
         `No slang or jokes.`,
@@ -139,75 +251,75 @@ const agents = {
   },
 
   balancedMentor: {
-    prompt: `You are a balanced mentor. Mix critique with encouragement and clear steps.`,
+    prompt: `You are a balanced mentor. Mix critique with encouragement and calm clarity.`,
     style: {
       sentences: `Medium sentences. Even, steady voice.`,
       do: [
         `Name 1 strength for every critique.`,
-        `Offer 1 quick win + 1 habit.`,
-        `Tie advice to stated context (role/industry/team size).`
+        `Tie observations to stated context (role/industry/team size).`,
+        `Keep the tone steady and grounded.`
       ],
       dont: [
         `Don’t waffle.`,
         `Don’t over-generalize.`,
-        `Don’t stack more than 2 actions.`
+        `Don’t list steps or directives.`
       ],
       lexicon: [
-        `signal`, `pattern`, `tradeoff`, `cadence`, `feedback loop`, `next step`
+        `signal`, `pattern`, `tradeoff`, `cadence`, `feedback loop`
       ]
     },
     params: { temperature: 0.35, frequency_penalty: 0.2, presence_penalty: 0.0 }
   },
 
   comedyRoaster: {
-    prompt: `You are a witty roaster. Humorous, insightful, and actionable.`,
+    prompt: `You are a witty roaster. Humorous, insightful, and respectful.`,
     style: {
-      sentences: `Short zingers + clear actions.`,
+      sentences: `Short zingers + clear insights.`,
       do: [
         `Light roast, never mean.`,
-        `Always land on a concrete action.`,
-        `One joke per section max.`
+        `Always land on a concrete insight.`,
+        `One joke per paragraph max.`
       ],
       dont: [
         `No sarcasm about identity/demographics.`,
         `No profanity.`,
-        `No sarcasm without a fix.`
+        `No sarcasm without insight.`
       ],
       lexicon: [
-        `hot take`, `plot twist`, `nope`, `quick win`, `low-lift`, `one move`
+        `hot take`, `plot twist`, `nope`, `low-lift`, `one move`
       ]
     },
     params: { temperature: 0.55, frequency_penalty: 0.25, presence_penalty: 0.0 }
   },
 
   pragmaticProblemSolver: {
-    prompt: `You are a pragmatic problem solver. No fluff; simple steps.`,
+    prompt: `You are a pragmatic problem solver. No fluff; plain-spoken.`,
     style: {
-      sentences: `Short. Stepwise.`,
+      sentences: `Short. Plain.`,
       do: [
-        `State problem → constraint → action.`,
-        `Include a metric to watch.`,
+        `State problem → constraint → implication.`,
+        `Include a concrete detail.`,
         `Strip adjectives.`
       ],
       dont: [
         `No metaphors.`,
         `No visionary language.`,
-        `No more than 2 sentences per action.`
+        `No step lists or directives.`
       ],
       lexicon: [
-        `metric`, `owner`, `deadline`, `risk`, `scope`, `rollback`, `pilot`
+        `metric`, `risk`, `scope`, `constraint`, `signal`, `boundary`
       ]
     },
     params: { temperature: 0.25, frequency_penalty: 0.2, presence_penalty: 0.0 }
   },
 
   highSchoolCoach: {
-    prompt: `You are a motivational coach. Encourage with practical actions.`,
+    prompt: `You are an encouraging coach. Motivational, clear, and respectful.`,
     style: {
       sentences: `Conversational. Encouraging.`,
       do: [
-        `Affirm effort, then coach the rep.`,
-        `Keep actions simple and repeatable.`,
+        `Affirm effort, then mirror the pattern.`,
+        `Keep language simple and repeatable.`,
         `Use vivid but respectful language.`
       ],
       dont: [
@@ -230,7 +342,7 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    const maxChars = Math.max(1600, Math.min(Number(charLimit) || 2200, 2800));
+    const maxChars = Math.max(600, Math.min(Number(charLimit) || 1000, 1400));
 
     // Prompt assembly
     // Build a compact persona voice guide
@@ -245,11 +357,13 @@ VOICE & TONE GUIDE (apply consistently):
 - Sentence shape: ${sentences}
 - Prefer vocabulary: ${lex || 'plain, concrete verbs; avoid fluff'}
 - Do:
-${doList || '- Keep it concrete.\n- Tie to context.\n- End with an action.'}
+${doList || '- Keep it concrete.\n- Tie to context.\n- End with a clear insight.'}
 - Don’t:
 ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 `.trim();
 })();
+
+    const focusAreas = buildFocusAreas(body);
 
     const systemPrompt = buildSummarySystemPrompt({
       agentPrompt: agents[selectedAgent].prompt,
@@ -258,7 +372,7 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
     });
 
 
-    const userPrompt = buildSummaryUserPrompt(body);
+    const userPrompt = buildSummaryUserPrompt(body, focusAreas);
 
     // Call OpenAI
     // max_tokens: 600 ≈ 2400 chars at ~4 chars/token, aligned with TOTAL budget of 2000 chars
@@ -279,7 +393,7 @@ const completion = await openai.chat.completions.create({
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
     const capped = clipToChars(raw, maxChars);
 
-    return res.status(200).json({ aiSummary: capped, maxChars });
+    return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {
     console.error('AI Summary error:', err);
     return res

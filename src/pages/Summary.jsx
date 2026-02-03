@@ -292,6 +292,12 @@ function Summary() {
       const payload = await summaryResp.json();
       const text = payload?.aiSummary || '';
       setAiSummary(text);
+
+      if (Array.isArray(payload?.focusAreas) && payload.focusAreas.length === 5) {
+        setFocusAreas(payload.focusAreas);
+        localStorage.setItem('focusAreas', JSON.stringify(payload.focusAreas));
+      }
+
       if (text) {
         localStorage.setItem('aiSummary', text);
         
@@ -416,6 +422,16 @@ function Summary() {
     result += text.substring(lastIndex);
     
     return result;
+  };
+
+  const formatSummaryHtml = (text) => {
+    if (!text) return '';
+    const escaped = String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const withBold = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return withBold.replace(/\n/g, '<br/>');
   };
 
   return (
@@ -576,11 +592,15 @@ function Summary() {
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontSize: '1.05rem',
                   lineHeight: 1.9,
-                  whiteSpace: 'pre-wrap',
                   color: 'text.primary',
+                  '& strong': { fontWeight: 700 },
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: formatSummaryHtml(
+                    aiSummary || (isLoading ? 'Summary is being generated...' : 'No summary available.')
+                  ),
                 }}
               >
-                {aiSummary || (isLoading ? 'Summary is being generated...' : 'No summary available.')}
               </Box>
             </Paper>
 
