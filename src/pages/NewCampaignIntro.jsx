@@ -3,6 +3,7 @@ import { Container, Box, Typography, Stack, Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import LoadingScreen from '../components/LoadingScreen';
 
 function NewCampaignIntro() {
   const { id } = useParams();
@@ -75,114 +76,11 @@ function NewCampaignIntro() {
 
   if (!campaignData) {
     return (
-      <Box
-        sx={{
-          position: 'relative',
-          p: 5,
-          minHeight: '100vh',
-          width: '100vw',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          // full bleed bg
-          '&:before': {
-            content: '""',
-            position: 'fixed',
-            inset: 0,
-            zIndex: -2,
-            backgroundImage: 'url(/LEP1.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            transform: 'translateZ(0)',
-          },
-          // dark overlay
-          '&:after': {
-            content: '""',
-            position: 'fixed',
-            inset: 0,
-            zIndex: -1,
-            background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-          },
-        }}
-      >
-        <Container maxWidth="sm" sx={{ textAlign: 'center', position: 'relative' }}>
-          <Stack
-            direction="column"
-            alignItems="center"
-            sx={{
-              position: 'absolute',
-              top: '20%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '100%',
-            }}
-          >
-            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                  animationDelay: '0s',
-                }}
-              />
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                  animationDelay: '0.3s',
-                }}
-              />
-              <Box
-                sx={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                  animationDelay: '0.6s',
-                }}
-              />
-            </Stack>
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.125rem', color: 'text.primary', mb: 4 }}>
-              Loading your campaign...
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: '1.25rem',
-                color: 'text.primary',
-                fontStyle: 'italic',
-                animation: 'fadeInOut 3s ease-in-out infinite',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-              }}
-            >
-              {quotes[currentQuoteIndex]}
-            </Typography>
-            <style>
-              {`
-                @keyframes pulse {
-                  0% { transform: scale(1); opacity: 1; }
-                  50% { transform: scale(1.5); opacity: 0.7; }
-                  100% { transform: scale(1); opacity: 1; }
-                }
-                @keyframes fadeInOut {
-                  0% { opacity: 0; }
-                  20% { opacity: 1; }
-                  80% { opacity: 1; }
-                  100% { opacity: 0; }
-                }
-              `}
-            </style>
-          </Stack>
-        </Container>
-      </Box>
+      <LoadingScreen
+        title="Loading your campaign..."
+        subtitle="Pulling your campaign details and preparing your next steps."
+        hint={quotes[currentQuoteIndex]}
+      />
     );
   }
 

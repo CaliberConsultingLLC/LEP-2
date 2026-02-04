@@ -14,9 +14,11 @@ import {
   Tooltip,
   Chip,
   Menu,
+  Grid,
 } from '@mui/material';
-import { Warning, Lightbulb, CheckCircle, TrendingUp } from '@mui/icons-material';
+import { Warning, Lightbulb, CheckCircle, TrendingUp, AutoAwesome, PersonSearch } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
 
@@ -202,35 +204,6 @@ function Summary() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [summaryData]);
-
-  // quotes + simple animation rotation (kept from prior UX)
-  const quotes = [
-    "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
-    "Growth begins when we start to accept our own weaknesses. — Jean Vanier",
-    "Leadership is not about being in charge. It’s about taking care of those in your charge. — Simon Sinek",
-    "The only way to grow is to step outside your comfort zone. — Unknown",
-    "The function of leadership is to produce more leaders, not more followers. — Ralph Nader",
-    "Leadership is about making others better as a result of your presence and making sure that impact lasts in your absence. — Sheryl Sandberg",
-  ];
-  const [shuffledQuotes, setShuffledQuotes] = useState([]);
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-
-  useEffect(() => {
-    // shuffle quotes once
-    const arr = [...quotes];
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    setShuffledQuotes(arr);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setCurrentQuoteIndex((i) => (i + 1) % (shuffledQuotes.length || 1));
-    }, 3000);
-    return () => clearInterval(id);
-  }, [shuffledQuotes.length]);
 
   // agent selection
   const agents = [
@@ -564,6 +537,15 @@ function Summary() {
     );
   };
 
+  if (isLoading) {
+    return (
+      <LoadingScreen
+        title="Generating your leadership summary..."
+        subtitle="We are synthesizing insights and aligning your focus traits."
+      />
+    );
+  }
+
   return (
     <Box sx={{
       position: 'relative',
@@ -602,73 +584,7 @@ function Summary() {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 880 }}>
-        {isLoading ? (
-          <Stack alignItems="center" spacing={2} sx={{ mt: 6 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Box
-                sx={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                }}
-              />
-              <Box
-                sx={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                  animationDelay: '0.3s',
-                }}
-              />
-              <Box
-                sx={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                  animationDelay: '0.6s',
-                }}
-              />
-            </Stack>
-
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.125rem', mt: 2 }}>
-              Generating your leadership summary...
-            </Typography>
-
-            <Typography
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: '1.25rem',
-                fontStyle: 'italic',
-                animation: 'fadeInOut 3s ease-in-out infinite',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-              }}
-            >
-              {shuffledQuotes[currentQuoteIndex]}
-            </Typography>
-
-            <style>
-              {`
-                @keyframes pulse {
-                  0% { transform: scale(1); opacity: 1; }
-                  50% { transform: scale(1.5); opacity: 0.7; }
-                  100% { transform: scale(1); opacity: 1; }
-                }
-                @keyframes fadeInOut {
-                  0% { opacity: 0; }
-                  20% { opacity: 1; }
-                  80% { opacity: 1; }
-                  100% { opacity: 0; }
-                }
-              `}
-            </style>
-          </Stack>
-        ) : error ? (
+        {error ? (
           <Alert severity="error" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', mt: 4 }}>
             {error}
           </Alert>
@@ -717,59 +633,80 @@ function Summary() {
               >
                 Your Summary
               </Typography>
-              <Stack spacing={2.5}>
+              <Grid container spacing={2}>
                 {summaryParagraphs.length ? summaryParagraphs.map((para, idx) => {
                   const accent =
                     idx === 0 ? 'rgba(99,147,170,0.35)' : idx === 1 ? 'rgba(224,122,63,0.35)' : 'rgba(47,133,90,0.35)';
                   const label =
                     idx === 0 ? 'Snapshot' : idx === 1 ? 'Trajectory' : 'A New Way Forward';
+                  const Icon =
+                    idx === 0 ? PersonSearch : idx === 1 ? TrendingUp : AutoAwesome;
+                  const isHalf = idx !== 0;
                   return (
-                    <Paper
-                      key={`para-${idx}`}
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 2.5,
-                        border: '1px solid',
-                        borderColor: accent,
-                        background: 'rgba(255,255,255,0.9)',
-                        boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
+                    <Grid item xs={12} md={isHalf ? 6 : 12} key={`para-${idx}`}>
+                      <Paper
                         sx={{
-                          fontWeight: 700,
-                          letterSpacing: 0.6,
-                          textTransform: 'uppercase',
-                          color: 'text.secondary',
-                          display: 'block',
-                          mb: 1,
+                          p: 2,
+                          borderRadius: 2.5,
+                          border: '1px solid',
+                          borderColor: accent,
+                          background: 'linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,250,255,0.88))',
+                          boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                          height: '100%',
                         }}
                       >
-                        {label}
-                      </Typography>
-                      {idx === 2
-                        ? renderNarrativeWithBullets(para)
-                        : (
-                          <Typography
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                          <Box
                             sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.05rem',
-                              lineHeight: 1.9,
-                              color: 'text.primary',
+                              width: 32,
+                              height: 32,
+                              borderRadius: 1.5,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              bgcolor: 'rgba(69,112,137,0.12)',
+                              border: '1px solid rgba(69,112,137,0.35)',
                             }}
                           >
-                            {renderParagraphWithTooltips(para)}
+                            <Icon sx={{ fontSize: 18, color: 'primary.main' }} />
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 700,
+                              letterSpacing: 0.6,
+                              textTransform: 'uppercase',
+                              color: 'text.secondary',
+                            }}
+                          >
+                            {label}
                           </Typography>
-                        )}
-                    </Paper>
+                        </Stack>
+                        {idx === 2
+                          ? renderNarrativeWithBullets(para)
+                          : (
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.98rem',
+                                lineHeight: 1.75,
+                                color: 'text.primary',
+                              }}
+                            >
+                              {renderParagraphWithTooltips(para)}
+                            </Typography>
+                          )}
+                      </Paper>
+                    </Grid>
                   );
                 }) : (
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
-                    {isLoading ? 'Summary is being generated...' : 'No summary available.'}
-                  </Typography>
+                  <Grid item xs={12}>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
+                      {isLoading ? 'Summary is being generated...' : 'No summary available.'}
+                    </Typography>
+                  </Grid>
                 )}
-              </Stack>
+              </Grid>
               <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Typography
                   sx={{

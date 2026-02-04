@@ -15,6 +15,7 @@ import {
   Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
 import { 
   Group,
   Assessment,
@@ -107,6 +108,15 @@ function CampaignVerify() {
     }
   };
 
+  if (isGenerating) {
+    return (
+      <LoadingScreen
+        title="Generating your campaign link..."
+        subtitle="Preparing your dashboard access and shareable link."
+      />
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -191,60 +201,7 @@ function CampaignVerify() {
               mb: 4,
             }}
           >
-            {isGenerating ? (
-              <Stack alignItems="center" spacing={3} sx={{ py: 6 }}>
-                <Stack direction="row" spacing={2}>
-                  <Box
-                    sx={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      bgcolor: 'primary.main',
-                      animation: 'pulse 1.5s ease-in-out infinite',
-                      animationDelay: '0s',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      bgcolor: 'primary.main',
-                      animation: 'pulse 1.5s ease-in-out infinite',
-                      animationDelay: '0.3s',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      bgcolor: 'primary.main',
-                      animation: 'pulse 1.5s ease-in-out infinite',
-                      animationDelay: '0.6s',
-                    }}
-                  />
-                </Stack>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1.125rem',
-                    color: 'text.primary',
-                  }}
-                >
-                  Generating your campaign link...
-                </Typography>
-                <style>
-                  {`
-                    @keyframes pulse {
-                      0% { transform: scale(1); opacity: 1; }
-                      50% { transform: scale(1.5); opacity: 0.7; }
-                      100% { transform: scale(1); opacity: 1; }
-                    }
-                  `}
-                </style>
-              </Stack>
-            ) : error ? (
+            {error ? (
               <Alert severity="error" sx={{ fontFamily: 'Gemunu Libre, sans-serif', mb: 3 }}>
                 {error}
               </Alert>

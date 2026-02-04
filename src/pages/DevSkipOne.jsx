@@ -24,6 +24,7 @@ import {
   Slider,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { SOCIETAL_NORM_STATEMENTS } from '../data/intakeContext';
@@ -1094,9 +1095,10 @@ export default function DevSkipOne() {
 
   if (loading || !formData) {
     return (
-      <Box p={6}>
-        <Typography>Setting up Dev Skip One…</Typography>
-      </Box>
+      <LoadingScreen
+        title="Setting up Dev Skip One…"
+        subtitle="Preparing a fresh scenario and syncing data."
+      />
     );
   }
 

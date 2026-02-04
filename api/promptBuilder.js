@@ -29,6 +29,7 @@ Write exactly 3 sections:
 
 Bullet format (must include exactly five):
 - Subtrait — short narrative framed as an adoptable behavior.
+Each bullet must be specific to the subtrait and explain why it matters.
 Use the exact five subtraits provided in the user context.
 
 Length guidance:

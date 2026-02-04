@@ -86,7 +86,25 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
     if (key) bulletMap.set(key, line);
   });
 
-  const fallbackBehavior = (name) => `- ${name} — practice this in small moments until it becomes your default.`;
+  const shortSentence = (value) => {
+    if (!value) return '';
+    const match = String(value).match(/^[^.!?]+[.!?]?/);
+    return match ? match[0].trim() : String(value).trim();
+  };
+
+  const focusMap = new Map();
+  focusAreas.forEach((area) => {
+    if (area?.subTraitName) {
+      focusMap.set(area.subTraitName.toLowerCase(), area);
+    }
+  });
+
+  const fallbackBehavior = (name) => {
+    const area = focusMap.get(name.toLowerCase());
+    const source = shortSentence(area?.impact) || shortSentence(area?.example) || shortSentence(area?.risk);
+    const guidance = source || 'Small shifts here change how your team experiences your leadership.';
+    return `- ${name} — ${guidance}`;
+  };
   const finalBullets = subtraits.map((name) => {
     const key = name.toLowerCase();
     return bulletMap.get(key) || fallbackBehavior(name);
