@@ -488,8 +488,8 @@ function Summary() {
         <Typography
           sx={{
             fontFamily: 'Gemunu Libre, sans-serif',
-            fontSize: '1.05rem',
-            lineHeight: 1.9,
+            fontSize: '0.96rem',
+            lineHeight: 1.6,
             color: 'text.primary',
           }}
         >
@@ -498,15 +498,15 @@ function Summary() {
       );
     }
 
-    const narrative = lines.filter((line) => !line.trim().startsWith('- ')).join(' ').trim();
+    const narrative = 'Below are some key leadership traits that will put you on a new path.';
     return (
       <Stack spacing={1.5}>
         {narrative && (
           <Typography
             sx={{
               fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '1.05rem',
-              lineHeight: 1.9,
+              fontSize: '0.96rem',
+              lineHeight: 1.6,
               color: 'text.primary',
             }}
           >
@@ -524,8 +524,8 @@ function Summary() {
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '0.98rem',
-                    lineHeight: 1.7,
+                    fontSize: '0.92rem',
+                    lineHeight: 1.6,
                     color: 'text.primary',
                   }}
                 >
@@ -703,6 +703,7 @@ function Summary() {
                   <Paper
                     sx={{
                       p: 2.5,
+                      mt: 2,
                       borderRadius: 2.5,
                       border: '1px solid',
                       borderColor: 'rgba(47,133,90,0.35)',
