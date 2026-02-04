@@ -53,8 +53,8 @@ function enforceThreeParagraphs(text, maxChars) {
     .filter(Boolean);
   while (parts.length < 3) parts.push('');
   const total = Math.max(0, Number(maxChars) || 0);
-  const firstBudget = Math.max(420, Math.floor(total * 0.33));
-  const secondBudget = Math.max(320, Math.floor(total * 0.25));
+  const firstBudget = Math.max(520, Math.floor(total * 0.32));
+  const secondBudget = Math.max(520, Math.floor(total * 0.32));
   const thirdBudget = Math.max(520, total - firstBudget - secondBudget);
   const [p1, p2, p3] = parts.slice(0, 3);
   const out1 = clipToChars(p1, firstBudget);
