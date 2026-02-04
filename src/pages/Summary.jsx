@@ -631,58 +631,55 @@ function Summary() {
                 mb: 3,
               }}
             >
-              <Grid container spacing={2} alignItems="stretch">
-                {summaryParagraphs.length ? summaryParagraphs.map((para, idx) => {
-                  const accent =
-                    idx === 0 ? 'rgba(99,147,170,0.35)' : idx === 1 ? 'rgba(224,122,63,0.35)' : 'rgba(47,133,90,0.35)';
-                  const label =
-                    idx === 0 ? 'Snapshot' : idx === 1 ? 'Trajectory' : 'A New Way Forward';
-                  const Icon =
-                    idx === 0 ? PersonSearch : idx === 1 ? TrendingUp : AutoAwesome;
-                  const isHalf = idx < 2;
-                  return (
-                    <Grid item xs={12} md={isHalf ? 6 : 12} key={`para-${idx}`}>
-                      <Paper
-                        sx={{
-                          p: 2.5,
-                          borderRadius: 2.5,
-                          border: '1px solid',
-                          borderColor: accent,
-                          background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                          boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
-                          height: '100%',
-                        }}
-                      >
-                        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
-                          <Box
+              {summaryParagraphs.length ? (
+                <Stack spacing={2}>
+                  <Grid container spacing={2} alignItems="stretch">
+                    {[0, 1].map((idx) => {
+                      const para = summaryParagraphs[idx] || '';
+                      const accent =
+                        idx === 0 ? 'rgba(99,147,170,0.35)' : 'rgba(224,122,63,0.35)';
+                      const label = idx === 0 ? 'Snapshot' : 'Trajectory';
+                      const Icon = idx === 0 ? PersonSearch : TrendingUp;
+                      return (
+                        <Grid item xs={12} md={6} key={`para-${idx}`}>
+                          <Paper
                             sx={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 2,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              bgcolor: 'rgba(69,112,137,0.12)',
-                              border: '1px solid rgba(69,112,137,0.35)',
+                              p: 2.5,
+                              borderRadius: 2.5,
+                              border: '1px solid',
+                              borderColor: accent,
+                              background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
+                              boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                              height: '100%',
                             }}
                           >
-                            <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
-                          </Box>
-                          <Typography
-                            sx={{
-                              fontWeight: 800,
-                              letterSpacing: 0.5,
-                              textTransform: 'uppercase',
-                              fontSize: '0.9rem',
-                              color: 'text.primary',
-                            }}
-                          >
-                            {label}
-                          </Typography>
-                        </Stack>
-                        {idx === 2
-                          ? renderNarrativeWithBullets(para)
-                          : (
+                            <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
+                              <Box
+                                sx={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 2,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  bgcolor: 'rgba(69,112,137,0.12)',
+                                  border: '1px solid rgba(69,112,137,0.35)',
+                                }}
+                              >
+                                <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
+                              </Box>
+                              <Typography
+                                sx={{
+                                  fontWeight: 800,
+                                  letterSpacing: 0.5,
+                                  textTransform: 'uppercase',
+                                  fontSize: '0.9rem',
+                                  color: 'text.primary',
+                                }}
+                              >
+                                {label}
+                              </Typography>
+                            </Stack>
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
@@ -693,36 +690,64 @@ function Summary() {
                             >
                               {renderParagraphWithTooltips(para)}
                             </Typography>
-                          )}
-                      </Paper>
-                    </Grid>
-                  );
-                }) : (
-                  <Grid item xs={12}>
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
-                      {isLoading ? 'Summary is being generated...' : 'No summary available.'}
-                    </Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })}
                   </Grid>
-                )}
-              </Grid>
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    color: 'text.secondary',
-                    mb: 1.5,
-                  }}
-                >
-                  Ready to turn this into focus? Choose your 3 traits to build the growth campaign.
+                  <Paper
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2.5,
+                      border: '1px solid',
+                      borderColor: 'rgba(47,133,90,0.35)',
+                      background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(69,112,137,0.12)',
+                          border: '1px solid rgba(69,112,137,0.35)',
+                        }}
+                      >
+                        <AutoAwesome sx={{ fontSize: 26, color: 'primary.main' }} />
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 800,
+                          letterSpacing: 0.5,
+                          textTransform: 'uppercase',
+                          fontSize: '0.9rem',
+                          color: 'text.primary',
+                        }}
+                      >
+                        A New Way Forward
+                      </Typography>
+                    </Stack>
+                    {renderNarrativeWithBullets(summaryParagraphs[2] || '')}
+                  </Paper>
+                </Stack>
+              ) : (
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
+                  {isLoading ? 'Summary is being generated...' : 'No summary available.'}
                 </Typography>
+              )}
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={() => navigate('/trait-selection')}
                   sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
                 >
-                  Choose Your Focus Traits
+                  I'm Ready for Growth
                 </Button>
               </Box>
             </Paper>
