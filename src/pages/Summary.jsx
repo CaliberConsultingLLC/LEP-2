@@ -517,6 +517,9 @@ function Summary() {
         <Box component="ul" sx={{ pl: 2.5, m: 0 }}>
           {bulletLines.map((line, idx) => {
             const content = line.replace(/^\s*-\s*/, '');
+            const parts = content.split('—');
+            const head = parts[0]?.trim();
+            const tail = parts.slice(1).join('—').trim();
             return (
               <Box key={`bullet-${idx}`} component="li" sx={{ mb: 0.75 }}>
                 <Typography
@@ -527,7 +530,14 @@ function Summary() {
                     color: 'text.primary',
                   }}
                 >
-                  {renderParagraphWithTooltips(content)}
+                  {head ? (
+                    <>
+                      <strong>{head}</strong>
+                      {tail ? ` — ${tail}` : ''}
+                    </>
+                  ) : (
+                    renderParagraphWithTooltips(content)
+                  )}
                 </Typography>
               </Box>
             );
@@ -641,7 +651,7 @@ function Summary() {
                     idx === 0 ? 'Snapshot' : idx === 1 ? 'Trajectory' : 'A New Way Forward';
                   const Icon =
                     idx === 0 ? PersonSearch : idx === 1 ? TrendingUp : AutoAwesome;
-                  const isHalf = idx !== 0;
+                  const isHalf = idx < 2;
                   return (
                     <Grid item xs={12} md={isHalf ? 6 : 12} key={`para-${idx}`}>
                       <Paper
@@ -653,8 +663,21 @@ function Summary() {
                           background: 'linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,250,255,0.88))',
                           boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
                           height: '100%',
+                          position: 'relative',
+                          overflow: 'hidden',
                         }}
                       >
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            right: 12,
+                            top: 8,
+                            opacity: 0.08,
+                            transform: 'rotate(-8deg)',
+                          }}
+                        >
+                          <Icon sx={{ fontSize: 54, color: 'text.primary' }} />
+                        </Box>
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                           <Box
                             sx={{
@@ -668,7 +691,7 @@ function Summary() {
                               border: '1px solid rgba(69,112,137,0.35)',
                             }}
                           >
-                            <Icon sx={{ fontSize: 18, color: 'primary.main' }} />
+                            <Icon sx={{ fontSize: 22, color: 'primary.main' }} />
                           </Box>
                           <Typography
                             variant="caption"
