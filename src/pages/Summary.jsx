@@ -593,14 +593,14 @@ function Summary() {
           width: '100vw',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 1120 }}>
+        <Box sx={{ width: '100%', maxWidth: 1400 }}>
         {error ? (
           <Alert severity="error" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', mt: 4 }}>
             {error}
           </Alert>
         ) : (
           <Stack spacing={3} sx={{ width: '100%' }}>
-            {/* Title - Leader Snapshot */}
+            {/* Title - Reflection Results */}
             <Box sx={{ textAlign: 'center', mb: 2 }}>
               <Typography
                 sx={{
@@ -612,7 +612,7 @@ function Summary() {
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
                 }}
               >
-                Leader Snapshot
+                Reflection Results
               </Typography>
               <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)', textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}>
                 Insights from your reflection and leadership assessment
@@ -631,19 +631,7 @@ function Summary() {
                 mb: 3,
               }}
             >
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  color: 'text.primary',
-                  mb: 2,
-                  textAlign: 'center',
-                }}
-              >
-                Your Summary
-              </Typography>
-              <Grid container spacing={2}>
+              <Grid container spacing={2} alignItems="stretch">
                 {summaryParagraphs.length ? summaryParagraphs.map((para, idx) => {
                   const accent =
                     idx === 0 ? 'rgba(99,147,170,0.35)' : idx === 1 ? 'rgba(224,122,63,0.35)' : 'rgba(47,133,90,0.35)';
@@ -656,44 +644,21 @@ function Summary() {
                     <Grid item xs={12} md={isHalf ? 6 : 12} key={`para-${idx}`}>
                       <Paper
                         sx={{
-                          p: 2,
+                          p: 2.5,
                           borderRadius: 2.5,
                           border: '1px solid',
                           borderColor: accent,
                           background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
                           boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
                           height: '100%',
-                          position: 'relative',
-                          overflow: 'hidden',
                         }}
                       >
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            left: 0,
-                            top: 0,
-                            bottom: 0,
-                            width: 6,
-                            bgcolor: accent,
-                          }}
-                        />
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            right: 12,
-                            top: 8,
-                            opacity: 0.08,
-                            transform: 'rotate(-8deg)',
-                          }}
-                        >
-                          <Icon sx={{ fontSize: 60, color: 'text.primary' }} />
-                        </Box>
-                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
                           <Box
                             sx={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 1.5,
+                              width: 36,
+                              height: 36,
+                              borderRadius: 2,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -701,15 +666,15 @@ function Summary() {
                               border: '1px solid rgba(69,112,137,0.35)',
                             }}
                           >
-                            <Icon sx={{ fontSize: 24, color: 'primary.main' }} />
+                            <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
                           </Box>
                           <Typography
-                            variant="caption"
                             sx={{
-                              fontWeight: 700,
-                              letterSpacing: 0.6,
+                              fontWeight: 800,
+                              letterSpacing: 0.5,
                               textTransform: 'uppercase',
-                              color: 'text.secondary',
+                              fontSize: '0.9rem',
+                              color: 'text.primary',
                             }}
                           >
                             {label}

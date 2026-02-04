@@ -7,7 +7,7 @@ function LoadingScreen({ title = 'Loading…', subtitle, hint }) {
       sx={{
         position: 'relative',
         minHeight: '100vh',
-        width: '100%',
+        width: '100vw',
         overflow: 'hidden',
         '&:before': {
           content: '""',
@@ -32,6 +32,7 @@ function LoadingScreen({ title = 'Loading…', subtitle, hint }) {
       <Box
         sx={{
           minHeight: '100vh',
+          width: '100vw',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
