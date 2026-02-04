@@ -14,7 +14,6 @@ import {
   Tooltip,
   Chip,
   Menu,
-  Grid,
 } from '@mui/material';
 import { Warning, Lightbulb, CheckCircle, TrendingUp, AutoAwesome, PersonSearch } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -633,7 +632,14 @@ function Summary() {
             >
               {summaryParagraphs.length ? (
                 <Stack spacing={2}>
-                  <Grid container spacing={2} alignItems="stretch">
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                      gap: 2,
+                      alignItems: 'stretch',
+                    }}
+                  >
                     {[0, 1].map((idx) => {
                       const para = summaryParagraphs[idx] || '';
                       const accent =
@@ -641,60 +647,59 @@ function Summary() {
                       const label = idx === 0 ? 'Snapshot' : 'Trajectory';
                       const Icon = idx === 0 ? PersonSearch : TrendingUp;
                       return (
-                        <Grid item xs={12} md={6} key={`para-${idx}`}>
-                          <Paper
-                            sx={{
-                              p: 2.5,
-                              borderRadius: 2.5,
-                              border: '1px solid',
-                              borderColor: accent,
-                              background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                              boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
-                              height: '100%',
-                            }}
-                          >
-                            <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
-                              <Box
-                                sx={{
-                                  width: 36,
-                                  height: 36,
-                                  borderRadius: 2,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  bgcolor: 'rgba(69,112,137,0.12)',
-                                  border: '1px solid rgba(69,112,137,0.35)',
-                                }}
-                              >
-                                <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
-                              </Box>
-                              <Typography
-                                sx={{
-                                  fontWeight: 800,
-                                  letterSpacing: 0.5,
-                                  textTransform: 'uppercase',
-                                  fontSize: '0.9rem',
-                                  color: 'text.primary',
-                                }}
-                              >
-                                {label}
-                              </Typography>
-                            </Stack>
+                        <Paper
+                          key={`para-${idx}`}
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 2.5,
+                            border: '1px solid',
+                            borderColor: accent,
+                            background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
+                            boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                            height: '100%',
+                          }}
+                        >
+                          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
+                            <Box
+                              sx={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                bgcolor: 'rgba(69,112,137,0.12)',
+                                border: '1px solid rgba(69,112,137,0.35)',
+                              }}
+                            >
+                              <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
+                            </Box>
                             <Typography
                               sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.96rem',
-                                lineHeight: 1.7,
+                                fontWeight: 800,
+                                letterSpacing: 0.5,
+                                textTransform: 'uppercase',
+                                fontSize: '0.9rem',
                                 color: 'text.primary',
                               }}
                             >
-                              {renderParagraphWithTooltips(para)}
+                              {label}
                             </Typography>
-                          </Paper>
-                        </Grid>
+                          </Stack>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '0.96rem',
+                              lineHeight: 1.7,
+                              color: 'text.primary',
+                            }}
+                          >
+                            {renderParagraphWithTooltips(para)}
+                          </Typography>
+                        </Paper>
                       );
                     })}
-                  </Grid>
+                  </Box>
                   <Paper
                     sx={{
                       p: 2.5,
