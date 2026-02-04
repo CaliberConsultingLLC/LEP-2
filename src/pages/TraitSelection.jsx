@@ -90,7 +90,7 @@ function TraitSelection() {
           width: '100vw',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 880 }}>
+        <Box sx={{ width: '100%', maxWidth: 1120 }}>
         <Stack spacing={4} sx={{ width: '100%' }}>
           {/* Header Section */}
           <Box sx={{ textAlign: 'center', mb: 2 }}>

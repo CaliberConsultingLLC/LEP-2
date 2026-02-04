@@ -593,7 +593,7 @@ function Summary() {
           width: '100vw',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 880 }}>
+        <Box sx={{ width: '100%', maxWidth: 1120 }}>
         {error ? (
           <Alert severity="error" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', mt: 4 }}>
             {error}
@@ -622,11 +622,11 @@ function Summary() {
             {/* Summary Output */}
             <Paper
               sx={{
-                p: 3,
+                p: 2.5,
                 borderRadius: 3,
                 border: '2px solid',
                 borderColor: 'primary.main',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(220,230,255,0.85))',
                 boxShadow: 4,
                 mb: 3,
               }}
@@ -634,7 +634,7 @@ function Summary() {
               <Typography
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.6rem',
+                  fontSize: '1.5rem',
                   fontWeight: 700,
                   color: 'text.primary',
                   mb: 2,
@@ -660,7 +660,7 @@ function Summary() {
                           borderRadius: 2.5,
                           border: '1px solid',
                           borderColor: accent,
-                          background: 'linear-gradient(180deg, rgba(255,255,255,0.94), rgba(250,250,255,0.88))',
+                          background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
                           boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
                           height: '100%',
                           position: 'relative',
@@ -670,13 +670,23 @@ function Summary() {
                         <Box
                           sx={{
                             position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: 6,
+                            bgcolor: accent,
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            position: 'absolute',
                             right: 12,
                             top: 8,
                             opacity: 0.08,
                             transform: 'rotate(-8deg)',
                           }}
                         >
-                          <Icon sx={{ fontSize: 54, color: 'text.primary' }} />
+                          <Icon sx={{ fontSize: 60, color: 'text.primary' }} />
                         </Box>
                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                           <Box
@@ -691,7 +701,7 @@ function Summary() {
                               border: '1px solid rgba(69,112,137,0.35)',
                             }}
                           >
-                            <Icon sx={{ fontSize: 22, color: 'primary.main' }} />
+                            <Icon sx={{ fontSize: 24, color: 'primary.main' }} />
                           </Box>
                           <Typography
                             variant="caption"
@@ -711,8 +721,8 @@ function Summary() {
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.98rem',
-                                lineHeight: 1.75,
+                                fontSize: '0.96rem',
+                                lineHeight: 1.7,
                                 color: 'text.primary',
                               }}
                             >
