@@ -14,6 +14,7 @@ import {
   Paper,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
 import traitSystem from '../data/traitSystem';
 
 function CampaignBuilder() {
@@ -22,26 +23,9 @@ function CampaignBuilder() {
   const [error, setError] = useState(null);
   const [dismissedStatements, setDismissedStatements] = useState([]);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const quotes = [
-    "The best leaders don't create followers; they inspire others to become leaders. — John C. Maxwell",
-    "Growth begins when we start to accept our own weaknesses. — Jean Vanier",
-    "Leadership is not about being in charge. It's about taking care of those in your charge. — Simon Sinek",
-    "The only way to grow is to step outside your comfort zone. — Unknown",
-    "The function of leadership is to produce more leaders, not more followers. — Ralph Nader",
-    "Leadership is about making others better as a result of your presence and making sure that impact lasts in your absence. — Sheryl Sandberg",
-  ];
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setCurrentQuoteIndex((i) => (i + 1) % quotes.length);
-    }, 3000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     // Load selectedTraits first
@@ -350,6 +334,15 @@ function CampaignBuilder() {
     localStorage.setItem('campaignWelcomeDismissed', 'true');
   };
 
+  if (isLoading) {
+    return (
+      <LoadingScreen
+        title="Generating your leadership campaign..."
+        subtitle="Creating statements aligned to your selected traits."
+      />
+    );
+  }
+
   return (
     <>
       <Dialog
@@ -443,89 +436,7 @@ function CampaignBuilder() {
           }}
         >
           <Box sx={{ width: '100%', maxWidth: 880 }}>
-          {isLoading ? (
-            <Stack
-              direction="column"
-              alignItems="center"
-              spacing={2}
-              sx={{
-                width: '100%',
-                py: 4,
-              }}
-            >
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                    animation: 'pulse 1.5s ease-in-out infinite',
-                    animationDelay: '0s',
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                    animation: 'pulse 1.5s ease-in-out infinite',
-                    animationDelay: '0.3s',
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                    animation: 'pulse 1.5s ease-in-out infinite',
-                    animationDelay: '0.6s',
-                  }}
-                />
-              </Stack>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.125rem',
-                  color: 'white',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                }}
-              >
-                Generating your leadership campaign...
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.25rem',
-                  color: 'white',
-                  fontStyle: 'italic',
-                  animation: 'fadeInOut 3s ease-in-out infinite',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                  textAlign: 'center',
-                  maxWidth: '600px',
-                }}
-              >
-                {quotes[currentQuoteIndex]}
-              </Typography>
-              <style>
-                {`
-                  @keyframes pulse {
-                    0% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.5); opacity: 0.7; }
-                    100% { transform: scale(1); opacity: 1; }
-                  }
-                  @keyframes fadeInOut {
-                    0% { opacity: 0; }
-                    20% { opacity: 1; }
-                    80% { opacity: 1; }
-                    100% { opacity: 0; }
-                  }
-                `}
-              </style>
-            </Stack>
-          ) : error ? (
+          {error ? (
             <Box>
               <Typography
                 sx={{

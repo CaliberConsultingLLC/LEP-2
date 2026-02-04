@@ -18,6 +18,7 @@ import {
   Grid,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { SOCIETAL_NORM_STATEMENTS } from '../data/intakeContext';
@@ -229,9 +230,10 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <Box p={6}>
-        <Typography>Building scenario…</Typography>
-      </Box>
+      <LoadingScreen
+        title="Building scenario…"
+        subtitle="Loading norms and preparing campaign data."
+      />
     );
   }
 
