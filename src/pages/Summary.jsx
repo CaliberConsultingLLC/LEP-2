@@ -651,7 +651,8 @@ function Summary() {
                         <Paper
                           key={`para-${idx}`}
                           sx={{
-                            p: 2.5,
+                            p: 2.25,
+                            pb: 2,
                             borderRadius: 2.5,
                             border: '1px solid',
                             borderColor: accent,
@@ -691,7 +692,7 @@ function Summary() {
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
                               fontSize: '0.96rem',
-                              lineHeight: 1.7,
+                              lineHeight: 1.65,
                               color: 'text.primary',
                             }}
                           >
