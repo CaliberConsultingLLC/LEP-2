@@ -637,6 +637,7 @@ function Summary() {
                       display: 'grid',
                       gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                       gap: 2,
+                      mb: 2,
                       alignItems: 'stretch',
                     }}
                   >
@@ -703,7 +704,6 @@ function Summary() {
                   <Paper
                     sx={{
                       p: 2.5,
-                      mt: 2,
                       borderRadius: 2.5,
                       border: '1px solid',
                       borderColor: 'rgba(47,133,90,0.35)',
