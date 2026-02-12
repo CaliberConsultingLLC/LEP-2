@@ -657,7 +657,7 @@ function Summary() {
                             border: '1px solid',
                             borderColor: accent,
                             background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                            boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                            boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
                             height: '100%',
                           }}
                         >
@@ -709,7 +709,7 @@ function Summary() {
                       border: '1px solid',
                       borderColor: 'rgba(47,133,90,0.35)',
                       background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                      boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                      boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
                     }}
                   >
                     <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
