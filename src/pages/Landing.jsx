@@ -5,8 +5,6 @@ import {
   Button, 
   Stack, 
   Typography, 
-  Card, 
-  CardContent,
   Checkbox,
   FormControlLabel,
   Divider,
@@ -38,7 +36,7 @@ function Landing() {
       sx={{
         minHeight: '100vh',
         width: '100vw',
-        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.68)), url(/LEP2.jpg)',
+        backgroundImage: 'linear-gradient(rgba(247, 249, 255, 0.72), rgba(247, 249, 255, 0.72)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -49,569 +47,162 @@ function Landing() {
         py: 6,
       }}
     >
-      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
-        <Stack spacing={5}>
+      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Stack spacing={6}>
           {/* Hero Section */}
-          <Card
+          <Box
             sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(235,242,255,0.9))',
-              border: '1px solid',
-              borderColor: 'primary.main',
-              boxShadow: 6,
+              p: { xs: 3, md: 5 },
+              borderRadius: 4,
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(232,240,255,0.88) 45%, rgba(255,255,255,0.9) 100%)',
+              boxShadow: '0 28px 70px rgba(22, 33, 62, 0.18)',
+              border: '1px solid rgba(255,255,255,0.65)',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-              <Grid container spacing={4} alignItems="center">
-                <Grid item xs={12} md={5}>
-                  <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                    <Box sx={{ mb: 3 }}>
-                      <img
-                        src="/CompassLogo.png"
-                        alt="The Compass Logo"
-                        style={{
-                          maxWidth: '100%',
-                          height: 'auto',
-                          maxHeight: '160px',
-                          width: 'auto'
-                        }}
-                      />
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: { xs: '2rem', md: '2.6rem' },
-                        fontWeight: 700,
-                        color: 'text.primary',
-                        mb: 2,
-                        lineHeight: 1.15
+            <Grid container spacing={5} alignItems="center">
+              <Grid item xs={12} md={6}>
+                <Stack spacing={2.5} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+                  <Box>
+                    <img
+                      src="/CompassLogo.png"
+                      alt="The Compass Logo"
+                      style={{
+                        maxWidth: '100%',
+                        height: 'auto',
+                        maxHeight: '150px',
+                        width: 'auto'
                       }}
-                    >
-                      A clear mirror for leaders who want to grow on purpose.
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: { xs: '1.05rem', md: '1.2rem' },
-                        color: 'text.secondary',
-                        lineHeight: 1.7
-                      }}
-                    >
-                      Compass turns your self‑perception and team perspective into a precise leadership snapshot and a focused growth campaign.
-                    </Typography>
+                    />
                   </Box>
-                </Grid>
-                <Grid item xs={12} md={7}>
-                  <Card
-                    sx={{
-                      bgcolor: 'rgba(255,255,255,0.9)',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      boxShadow: 2,
-                    }}
-                  >
-                    <CardContent sx={{ p: { xs: 2.5, md: 3.5 } }}>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '1.25rem',
-                          fontWeight: 700,
-                          color: 'text.primary',
-                          mb: 2,
-                        }}
-                      >
-                        What Compass is (and isn’t)
-                      </Typography>
-                      <Stack spacing={1.5}>
-                        {[
-                          'A concise leadership intake designed to surface how you actually lead today.',
-                          'An expert‑grade reflection that synthesizes patterns instead of repeating answers.',
-                          'A focused growth campaign you can share with your team for real feedback.',
-                          'Not a personality test or generic coaching script.',
-                        ].map((item) => (
-                          <Box key={item} sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                            <Box
-                              sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: '50%',
-                                bgcolor: 'primary.main',
-                                mt: 0.9,
-                                flexShrink: 0,
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.98rem',
-                                color: 'text.secondary',
-                                lineHeight: 1.6,
-                              }}
-                            >
-                              {item}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Stack>
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.5}
-                        justifyContent={{ xs: 'center', sm: 'flex-start' }}
-                        sx={{ mt: 3 }}
-                      >
-                        {['10–12 minutes', 'Private by design', 'Built for real teams'].map((item) => (
-                          <Box
-                            key={item}
-                            sx={{
-                              px: 2,
-                              py: 0.75,
-                              borderRadius: 999,
-                              border: '1px solid',
-                              borderColor: 'divider',
-                              bgcolor: 'rgba(255,255,255,0.85)',
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.95rem',
-                              color: 'text.secondary',
-                            }}
-                          >
-                            {item}
-                          </Box>
-                        ))}
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* Clarity Section */}
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Card
-                sx={{
-                  height: '100%',
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(230,238,255,0.8))',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  boxShadow: 4,
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Psychology sx={{ fontSize: 44, color: 'primary.main', mb: 1.5 }} />
                   <Typography
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.15rem',
+                      fontSize: { xs: '2.4rem', md: '3.2rem' },
                       fontWeight: 700,
-                      mb: 1,
-                      color: 'text.primary'
+                      color: 'text.primary',
+                      lineHeight: 1.1,
                     }}
                   >
-                    Purpose
+                    Leadership clarity that turns insight into action.
                   </Typography>
                   <Typography
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '0.95rem',
+                      fontSize: { xs: '1.05rem', md: '1.2rem' },
                       color: 'text.secondary',
-                      lineHeight: 1.6
+                      lineHeight: 1.75,
                     }}
                   >
-                    Reveal how your leadership is actually experienced so growth is intentional, not accidental.
+                    Compass is a premium reflection experience for leaders who want a precise snapshot of how they lead today,
+                    plus a growth campaign that creates momentum with their team.
                   </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card
-                sx={{
-                  height: '100%',
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,235,220,0.8))',
-                  border: '1px solid',
-                  borderColor: 'secondary.main',
-                  boxShadow: 4,
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Insights sx={{ fontSize: 44, color: 'secondary.main', mb: 1.5 }} />
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.15rem',
-                      fontWeight: 700,
-                      mb: 1,
-                      color: 'text.primary'
-                    }}
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={1.5}
+                    justifyContent={{ xs: 'center', md: 'flex-start' }}
                   >
-                    Process
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '0.95rem',
-                      color: 'text.secondary',
-                      lineHeight: 1.6
-                    }}
-                  >
-                    Answer a precise intake, get a tailored summary, then build a campaign your team can respond to.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card
-                sx={{
-                  height: '100%',
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(240,255,240,0.8))',
-                  border: '1px solid',
-                  borderColor: 'success.main',
-                  boxShadow: 4,
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <TrendingUp sx={{ fontSize: 44, color: 'success.main', mb: 1.5 }} />
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.15rem',
-                      fontWeight: 700,
-                      mb: 1,
-                      color: 'text.primary'
-                    }}
-                  >
-                    Outcome
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '0.95rem',
-                      color: 'text.secondary',
-                      lineHeight: 1.6
-                    }}
-                  >
-                    A growth map you can share, revisit, and measure inside your personal dashboard.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* How It Works Section */}
-          <Card
-            sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-              border: '1px solid',
-              borderColor: 'primary.main',
-              boxShadow: 4,
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography 
-                sx={{ 
-                  fontFamily: 'Gemunu Libre, sans-serif', 
-                  fontSize: '1.5rem', 
-                  fontWeight: 700,
-                  mb: 3,
-                  color: 'text.primary',
-                  textAlign: 'center'
-                }}
-              >
-                Your Compass Journey
-              </Typography>
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{ 
-                    minWidth: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    bgcolor: 'primary.main', 
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontWeight: 700,
-                    flexShrink: 0
-                  }}>
-                    1
-                  </Box>
-                  <Box>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '1.1rem', 
-                        fontWeight: 600,
-                        mb: 0.5,
-                        color: 'text.primary'
-                      }}
-                    >
-                      Establish Your Leadership Snapshot
-                    </Typography>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '0.95rem',
-                        color: 'text.secondary',
-                        lineHeight: 1.6
-                      }}
-                    >
-                      Move through a concise, high‑signal intake that captures how you lead, decide, and show up.
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{ 
-                    minWidth: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    bgcolor: 'secondary.main', 
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontWeight: 700,
-                    flexShrink: 0
-                  }}>
-                    2
-                  </Box>
-                  <Box>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '1.1rem', 
-                        fontWeight: 600,
-                        mb: 0.5,
-                        color: 'text.primary'
-                      }}
-                    >
-                      Receive a Precise Reflection
-                    </Typography>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '0.95rem',
-                        color: 'text.secondary',
-                        lineHeight: 1.6
-                      }}
-                    >
-                      See patterns and implications grounded in your data and written for clarity.
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{ 
-                    minWidth: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    bgcolor: 'primary.main', 
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontWeight: 700,
-                    flexShrink: 0
-                  }}>
-                    3
-                  </Box>
-                  <Box>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '1.1rem', 
-                        fontWeight: 600,
-                        mb: 0.5,
-                        color: 'text.primary'
-                      }}
-                    >
-                      Choose Focus Traits
-                    </Typography>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '0.95rem',
-                        color: 'text.secondary',
-                        lineHeight: 1.6
-                      }}
-                    >
-                      Select the traits that will shift your leadership most, then build your campaign.
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box sx={{ 
-                    minWidth: 32, 
-                    height: 32, 
-                    borderRadius: '50%', 
-                    bgcolor: 'secondary.main', 
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontWeight: 700,
-                    flexShrink: 0
-                  }}>
-                    4
-                  </Box>
-                  <Box>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '1.1rem', 
-                        fontWeight: 600,
-                        mb: 0.5,
-                        color: 'text.primary'
-                      }}
-                    >
-                      Activate the Dashboard
-                    </Typography>
-                    <Typography 
-                      sx={{ 
-                        fontFamily: 'Gemunu Libre, sans-serif', 
-                        fontSize: '0.95rem',
-                        color: 'text.secondary',
-                        lineHeight: 1.6
-                      }}
-                    >
-                      Keep your results, resources, and growth plan in one place for ongoing use.
-                    </Typography>
-                  </Box>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* Outcome Section */}
-          <Card
-            sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.97), rgba(255,255,255,0.92))',
-              border: '1px solid',
-              borderColor: 'divider',
-              boxShadow: 3,
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '1.35rem',
-                  fontWeight: 700,
-                  mb: 2,
-                  color: 'text.primary',
-                  textAlign: 'center',
-                }}
-              >
-                What You’ll Walk Away With
-              </Typography>
-              <Grid container spacing={2}>
-                {[
-                  'A clear narrative of how your leadership is experienced today.',
-                  'A grounded trajectory that shows what changes if nothing shifts.',
-                  'Five data‑driven traits to anchor your growth campaign.',
-                  'A dashboard that keeps your results and actions in one place.',
-                ].map((item) => (
-                  <Grid item xs={12} md={6} key={item}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 1.5,
-                        p: 2,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(255,255,255,0.85)',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      }}
-                    >
+                    {['10-12 minutes', 'Private by design', 'Built for real teams'].map((item) => (
                       <Box
+                        key={item}
                         sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          bgcolor: 'primary.main',
-                          mt: 0.8,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <Typography
-                        sx={{
+                          px: 2.5,
+                          py: 0.9,
+                          borderRadius: 999,
+                          border: '1px solid rgba(255,255,255,0.7)',
+                          bgcolor: 'rgba(255,255,255,0.8)',
                           fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '0.98rem',
+                          fontSize: '0.95rem',
                           color: 'text.secondary',
-                          lineHeight: 1.6,
+                          boxShadow: '0 8px 24px rgba(22, 33, 62, 0.08)',
                         }}
                       >
                         {item}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* Who It's For */}
-          <Card
-            sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(245,246,255,0.9))',
-              border: '1px solid',
-              borderColor: 'divider',
-              boxShadow: 3,
-            }}
-          >
-            <CardContent sx={{ p: 4 }}>
-              <Grid container spacing={3} alignItems="center">
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                    <Group sx={{ fontSize: 36, color: 'primary.main' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: '1.3rem',
-                        fontWeight: 700,
-                        color: 'text.primary',
-                      }}
-                    >
-                      Who Compass is for
-                    </Typography>
-                  </Box>
+                      </Box>
+                    ))}
+                  </Stack>
                   <Typography
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '0.98rem',
+                      fontSize: '0.95rem',
                       color: 'text.secondary',
-                      lineHeight: 1.7,
                     }}
                   >
-                    Leaders who want a sharper mirror, clearer language, and a practical way to turn insight into action.
+                    Complete the consent section below to begin.
                   </Typography>
-                </Grid>
-                <Grid item xs={12} md={8}>
-                  <Grid container spacing={2}>
+                </Stack>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    borderRadius: 3,
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(255,255,255,0.6)',
+                    boxShadow: '0 22px 50px rgba(22, 33, 62, 0.14)',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.2rem',
+                      fontWeight: 700,
+                      color: 'text.primary',
+                      mb: 2,
+                    }}
+                  >
+                    The Compass Method
+                  </Typography>
+                  <Stack spacing={2.5}>
                     {[
-                      'You lead a team and want feedback that feels specific, not generic.',
-                      'You’re curious about the gap between your intent and how others experience it.',
-                      'You want a focused growth campaign you can share with your team.',
-                      'You need a dashboard that keeps your progress visible and actionable.',
-                    ].map((item) => (
-                      <Grid item xs={12} sm={6} key={item}>
+                      {
+                        title: 'Leadership Snapshot',
+                        text: 'A precise intake that captures how you lead, decide, and show up.',
+                      },
+                      {
+                        title: 'Expert Reflection',
+                        text: 'A clear narrative that synthesizes patterns without repeating your answers.',
+                      },
+                      {
+                        title: 'Focus Traits',
+                        text: 'Five data-driven traits that anchor your personal growth campaign.',
+                      },
+                      {
+                        title: 'Dashboard Continuity',
+                        text: 'Your results, resources, and actions in one place you can revisit.',
+                      },
+                    ].map((step, index) => (
+                      <Box key={step.title} sx={{ display: 'flex', gap: 2 }}>
                         <Box
                           sx={{
-                            p: 2,
+                            width: 36,
+                            height: 36,
                             borderRadius: 2,
-                            bgcolor: 'rgba(255,255,255,0.9)',
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            height: '100%',
+                            bgcolor: index % 2 === 0 ? 'primary.main' : 'secondary.main',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontWeight: 700,
+                            flexShrink: 0,
+                            boxShadow: '0 10px 22px rgba(22, 33, 62, 0.18)',
                           }}
                         >
+                          {index + 1}
+                        </Box>
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '1.05rem',
+                              fontWeight: 600,
+                              color: 'text.primary',
+                              mb: 0.5,
+                            }}
+                          >
+                            {step.title}
+                          </Typography>
                           <Typography
                             sx={{
                               fontFamily: 'Gemunu Libre, sans-serif',
@@ -620,27 +211,230 @@ function Landing() {
                               lineHeight: 1.6,
                             }}
                           >
-                            {item}
+                            {step.text}
                           </Typography>
                         </Box>
-                      </Grid>
+                      </Box>
                     ))}
-                  </Grid>
-                </Grid>
+                  </Stack>
+                </Box>
               </Grid>
-            </CardContent>
-          </Card>
+            </Grid>
+          </Box>
 
-          {/* Consent Agreement Section */}
-          <Card
+          {/* Purpose / Process / Outcome */}
+          <Grid container spacing={4} alignItems="stretch">
+            {[
+              {
+                icon: <Psychology sx={{ fontSize: 46, color: 'primary.main' }} />,
+                title: 'Purpose',
+                text: 'Reveal how your leadership is actually experienced so growth is intentional, not accidental.',
+              },
+              {
+                icon: <Insights sx={{ fontSize: 46, color: 'secondary.main' }} />,
+                title: 'Process',
+                text: 'A high-signal intake, followed by a clear reflection and a focused campaign your team can respond to.',
+              },
+              {
+                icon: <TrendingUp sx={{ fontSize: 46, color: 'success.main' }} />,
+                title: 'Outcome',
+                text: 'A growth map you can share, revisit, and measure inside your personal dashboard.',
+              },
+            ].map((item) => (
+              <Grid item xs={12} md={4} key={item.title}>
+                <Box
+                  sx={{
+                    p: 3.5,
+                    height: '100%',
+                    borderRadius: 3,
+                    background: 'rgba(255,255,255,0.86)',
+                    border: '1px solid rgba(255,255,255,0.7)',
+                    boxShadow: '0 20px 45px rgba(22, 33, 62, 0.12)',
+                  }}
+                >
+                  <Box sx={{ mb: 2 }}>{item.icon}</Box>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.2rem',
+                      fontWeight: 700,
+                      mb: 1,
+                      color: 'text.primary',
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '0.96rem',
+                      color: 'text.secondary',
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {item.text}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Outcomes */}
+          <Box
             sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95))',
-              border: '2px solid',
-              borderColor: consentAgreed ? 'success.main' : 'warning.main',
-              boxShadow: 6,
+              p: { xs: 3, md: 4 },
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.9)',
+              border: '1px solid rgba(255,255,255,0.7)',
+              boxShadow: '0 26px 60px rgba(22, 33, 62, 0.12)',
             }}
           >
-            <CardContent sx={{ p: 4 }}>
+            <Grid container spacing={4} alignItems="center">
+              <Grid item xs={12} md={5}>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: { xs: '1.6rem', md: '2rem' },
+                    fontWeight: 700,
+                    color: 'text.primary',
+                    mb: 1.5,
+                  }}
+                >
+                  What you walk away with
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    color: 'text.secondary',
+                    lineHeight: 1.7,
+                  }}
+                >
+                  A full-context understanding of your leadership today, plus a tangible path forward that you can activate
+                  with your team.
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={7}>
+                <Grid container spacing={2}>
+                  {[
+                    'A clear narrative of how your leadership is experienced today.',
+                    'A grounded trajectory that shows what changes if nothing shifts.',
+                    'Five data-driven traits to anchor your growth campaign.',
+                    'A dashboard that keeps your results and actions in one place.',
+                  ].map((item) => (
+                    <Grid item xs={12} sm={6} key={item}>
+                      <Box
+                        sx={{
+                          p: 2.25,
+                          borderRadius: 2.5,
+                          bgcolor: 'rgba(255,255,255,0.85)',
+                          border: '1px solid rgba(255,255,255,0.7)',
+                          boxShadow: '0 12px 28px rgba(22, 33, 62, 0.08)',
+                          height: '100%',
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.95rem',
+                            color: 'text.secondary',
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {item}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Who It's For */}
+          <Box
+            sx={{
+              p: { xs: 3, md: 4 },
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.88)',
+              border: '1px solid rgba(255,255,255,0.7)',
+              boxShadow: '0 22px 50px rgba(22, 33, 62, 0.12)',
+            }}
+          >
+            <Grid container spacing={4} alignItems="center">
+              <Grid item xs={12} md={4}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                  <Group sx={{ fontSize: 38, color: 'primary.main' }} />
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.45rem',
+                      fontWeight: 700,
+                      color: 'text.primary',
+                    }}
+                  >
+                    Who Compass is for
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '0.98rem',
+                    color: 'text.secondary',
+                    lineHeight: 1.7,
+                  }}
+                >
+                  Leaders who want a sharper mirror, clearer language, and a practical way to turn insight into action.
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <Grid container spacing={2}>
+                  {[
+                    'You lead a team and want feedback that feels specific, not generic.',
+                    'You are curious about the gap between your intent and how others experience it.',
+                    'You want a focused growth campaign you can share with your team.',
+                    'You need a dashboard that keeps your progress visible and actionable.',
+                  ].map((item) => (
+                    <Grid item xs={12} sm={6} key={item}>
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: 2.5,
+                          bgcolor: 'rgba(255,255,255,0.85)',
+                          border: '1px solid rgba(255,255,255,0.7)',
+                          boxShadow: '0 12px 28px rgba(22, 33, 62, 0.08)',
+                          height: '100%',
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.95rem',
+                            color: 'text.secondary',
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {item}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Consent Agreement Section */}
+          <Box
+            sx={{
+              p: { xs: 3, md: 4 },
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.92)',
+              border: '2px solid',
+              borderColor: consentAgreed ? 'success.main' : 'warning.main',
+              boxShadow: '0 24px 60px rgba(22, 33, 62, 0.16)',
+            }}
+          >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                 <Security sx={{ fontSize: 32, color: 'primary.main' }} />
                 <Typography 
@@ -729,8 +523,7 @@ function Landing() {
                   I'm Ready to Grow
                 </Button>
               </Stack>
-            </CardContent>
-          </Card>
+          </Box>
         </Stack>
       </Container>
     </Box>
