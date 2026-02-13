@@ -17,7 +17,6 @@ import {
   Psychology, 
   Insights, 
   TrendingUp, 
-  Group,
   Security
 } from '@mui/icons-material';
 
@@ -38,7 +37,7 @@ function Landing() {
       sx={{
         minHeight: '100vh',
         width: '100vw',
-        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6)), url(/LEP2.jpg)',
+        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.68)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -49,8 +48,8 @@ function Landing() {
         py: 6,
       }}
     >
-      <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
-        <Stack spacing={4}>
+      <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Stack spacing={4.5}>
           {/* Hero Section */}
           <Box sx={{ textAlign: 'center', mb: 2 }}>
             <Box sx={{ mb: 4 }}>
@@ -75,29 +74,54 @@ function Landing() {
                 lineHeight: 1.2
               }}
             >
-              Discover Your Leadership Compass
+              Compass: Leadership Reflection and Growth
             </Typography>
             <Typography 
               sx={{ 
                 fontFamily: 'Gemunu Libre, sans-serif', 
                 fontSize: { xs: '1.1rem', md: '1.25rem' }, 
                 color: 'text.secondary',
-                maxWidth: '700px',
+                maxWidth: '820px',
                 mx: 'auto',
                 lineHeight: 1.6
               }}
             >
-              A personalized leadership development tool that combines your self-perception with team feedback to create a clear path for growth.
+              A focused leadership experience that turns self-perception and team perspective into a clear, actionable growth campaign.
             </Typography>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.5}
+              justifyContent="center"
+              sx={{ mt: 2 }}
+            >
+              {['10–12 minutes to complete', 'Private by design', 'Built for real teams'].map((item) => (
+                <Box
+                  key={item}
+                  sx={{
+                    px: 2,
+                    py: 0.75,
+                    borderRadius: 999,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'rgba(255,255,255,0.85)',
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '0.95rem',
+                    color: 'text.secondary',
+                  }}
+                >
+                  {item}
+                </Box>
+              ))}
+            </Stack>
           </Box>
 
           {/* Information Cards */}
           <Grid container spacing={3} sx={{ mb: 2 }}>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} md={4}>
               <Card
                 sx={{
                   height: '100%',
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(230,238,255,0.8))',
                   border: '1px solid',
                   borderColor: 'primary.main',
                   boxShadow: 4,
@@ -119,7 +143,7 @@ function Landing() {
                       color: 'text.primary'
                     }}
                   >
-                    Self-Awareness
+                    Purpose
                   </Typography>
                   <Typography 
                     sx={{ 
@@ -129,13 +153,13 @@ function Landing() {
                       lineHeight: 1.5
                     }}
                   >
-                    Understand your leadership style, preferences, and how you navigate challenges.
+                    Build a clear mirror of your leadership today so you can grow with intent, not guesswork.
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} md={4}>
               <Card
                 sx={{
                   height: '100%',
@@ -151,7 +175,7 @@ function Landing() {
                 }}
               >
                 <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                  <Group sx={{ fontSize: 48, color: 'secondary.main', mb: 1.5 }} />
+                  <Insights sx={{ fontSize: 48, color: 'secondary.main', mb: 1.5 }} />
                   <Typography 
                     sx={{ 
                       fontFamily: 'Gemunu Libre, sans-serif', 
@@ -161,7 +185,7 @@ function Landing() {
                       color: 'text.primary'
                     }}
                   >
-                    Team Alignment
+                    Process
                   </Typography>
                   <Typography 
                     sx={{ 
@@ -171,13 +195,13 @@ function Landing() {
                       lineHeight: 1.5
                     }}
                   >
-                    Compare your self-perception with direct feedback from your team members.
+                    Answer high-signal questions, review a tailored summary, and select focus traits for action.
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} md={4}>
               <Card
                 sx={{
                   height: '100%',
@@ -203,7 +227,7 @@ function Landing() {
                       color: 'text.primary'
                     }}
                   >
-                    Targeted Growth
+                    Outcome
                   </Typography>
                   <Typography 
                     sx={{ 
@@ -213,7 +237,7 @@ function Landing() {
                       lineHeight: 1.5
                     }}
                   >
-                    Receive a personalized development plan focused on your unique opportunities.
+                    A focused growth campaign and dashboard you can revisit with clarity and momentum.
                   </Typography>
                 </CardContent>
               </Card>
@@ -240,7 +264,7 @@ function Landing() {
                   textAlign: 'center'
                 }}
               >
-                How It Works
+                Your Compass Journey
               </Typography>
               <Stack spacing={2}>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
@@ -269,7 +293,7 @@ function Landing() {
                         color: 'text.primary'
                       }}
                     >
-                      Complete Your Leadership Profile
+                      Establish Your Leadership Snapshot
                     </Typography>
                     <Typography 
                       sx={{ 
@@ -279,7 +303,7 @@ function Landing() {
                         lineHeight: 1.6
                       }}
                     >
-                      Answer questions about your leadership style, decision-making approach, and how you handle challenges.
+                      Move through a concise, high-signal intake that captures how you lead, decide, and show up.
                     </Typography>
                   </Box>
                 </Box>
@@ -310,7 +334,7 @@ function Landing() {
                         color: 'text.primary'
                       }}
                     >
-                      Receive Your Leadership Summary
+                      Receive a Precise Reflection
                     </Typography>
                     <Typography 
                       sx={{ 
@@ -320,7 +344,7 @@ function Landing() {
                         lineHeight: 1.6
                       }}
                     >
-                      Get AI-powered insights that highlight your strengths and identify key growth opportunities.
+                      See patterns and implications that are grounded in your data yet clearly articulated.
                     </Typography>
                   </Box>
                 </Box>
@@ -351,7 +375,7 @@ function Landing() {
                         color: 'text.primary'
                       }}
                     >
-                      Build Your Development Campaign
+                      Choose Focus Traits
                     </Typography>
                     <Typography 
                       sx={{ 
@@ -361,7 +385,7 @@ function Landing() {
                         lineHeight: 1.6
                       }}
                     >
-                      Create a personalized campaign with specific leadership traits and statements for your team to evaluate.
+                      Select the traits that will shift your leadership most, then build your growth campaign.
                     </Typography>
                   </Box>
                 </Box>
@@ -392,7 +416,7 @@ function Landing() {
                         color: 'text.primary'
                       }}
                     >
-                      Analyze Your Results
+                      Activate the Dashboard
                     </Typography>
                     <Typography 
                       sx={{ 
@@ -402,11 +426,80 @@ function Landing() {
                         lineHeight: 1.6
                       }}
                     >
-                      Compare your self-perception with team feedback to discover gaps and opportunities for improvement.
+                      Use results, resources, and campaign insights to stay informed, supported, and accountable.
                     </Typography>
                   </Box>
                 </Box>
               </Stack>
+            </CardContent>
+          </Card>
+
+          {/* Outcome Section */}
+          <Card
+            sx={{
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.97), rgba(255,255,255,0.92))',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: 3,
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '1.35rem',
+                  fontWeight: 700,
+                  mb: 2,
+                  color: 'text.primary',
+                  textAlign: 'center',
+                }}
+              >
+                The Outcome You Should Expect
+              </Typography>
+              <Grid container spacing={2}>
+                {[
+                  'A clear narrative of how your leadership is experienced today.',
+                  'A grounded trajectory that shows what changes if nothing shifts.',
+                  'Five data-driven traits to anchor your personal growth campaign.',
+                  'A dashboard that keeps your results and actions in one place.',
+                ].map((item) => (
+                  <Grid item xs={12} md={6} key={item}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 1.5,
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.85)',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: 'primary.main',
+                          mt: 0.8,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.98rem',
+                          color: 'text.secondary',
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {item}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
             </CardContent>
           </Card>
 
