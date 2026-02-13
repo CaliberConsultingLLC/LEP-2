@@ -54,18 +54,18 @@ function Landing() {
                   p: 3,
                   borderRadius: 2.5,
                   border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: '#FFFFFF',
+                  borderColor: 'rgba(255,255,255,0.16)',
+                  bgcolor: 'rgba(255,255,255,0.05)',
                   height: '100%',
                 }}
               >
-                <Box sx={{ mb: 1.5 }}>{item.icon}</Box>
+                <Box sx={{ mb: 1.5, color: '#F5F7FF' }}>{item.icon}</Box>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1.15rem',
                     fontWeight: 700,
-                    color: 'text.primary',
+                    color: '#F5F7FF',
                     mb: 1,
                   }}
                 >
@@ -75,7 +75,7 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '0.98rem',
-                    color: 'text.secondary',
+                    color: 'rgba(235, 240, 255, 0.82)',
                     lineHeight: 1.65,
                   }}
                 >
@@ -115,8 +115,8 @@ function Landing() {
                   p: 2.5,
                   borderRadius: 2.5,
                   border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: '#FFFFFF',
+                  borderColor: 'rgba(255,255,255,0.16)',
+                  bgcolor: 'rgba(255,255,255,0.05)',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -145,7 +145,7 @@ function Landing() {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1.05rem',
                     fontWeight: 700,
-                    color: 'text.primary',
+                    color: '#F5F7FF',
                   }}
                 >
                   {step.title}
@@ -154,7 +154,7 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '0.94rem',
-                    color: 'text.secondary',
+                    color: 'rgba(235, 240, 255, 0.82)',
                     lineHeight: 1.6,
                   }}
                 >
@@ -193,18 +193,18 @@ function Landing() {
                   p: 2.75,
                   borderRadius: 2.5,
                   border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: '#FFFFFF',
+                  borderColor: 'rgba(255,255,255,0.16)',
+                  bgcolor: 'rgba(255,255,255,0.05)',
                   height: '100%',
                 }}
               >
-                <Box sx={{ mb: 1.25 }}>{item.icon}</Box>
+                <Box sx={{ mb: 1.25, color: '#F5F7FF' }}>{item.icon}</Box>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1.1rem',
                     fontWeight: 700,
-                    color: 'text.primary',
+                    color: '#F5F7FF',
                     mb: 0.75,
                   }}
                 >
@@ -214,7 +214,7 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '0.95rem',
-                    color: 'text.secondary',
+                    color: 'rgba(235, 240, 255, 0.82)',
                     lineHeight: 1.6,
                   }}
                 >
@@ -224,7 +224,7 @@ function Landing() {
             </Grid>
           ))}
         </Grid>
-        <Stack direction="row" justifyContent="center">
+        <Stack direction="row" justifyContent="center" sx={{ mt: 2.25 }}>
           <Button
             variant="contained"
             color="primary"
@@ -236,6 +236,8 @@ function Landing() {
               py: 1.35,
               borderRadius: 999,
               boxShadow: 'none',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
             }}
           >
             I&apos;m Ready to Grow
@@ -251,41 +253,61 @@ function Landing() {
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
-        bgcolor: '#F5F7FB',
-        py: { xs: 2, md: 3 },
+        backgroundImage:
+          'linear-gradient(rgba(8, 12, 22, 0.62), rgba(8, 12, 22, 0.62)), url(/LEP2.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        py: { xs: 1, md: 1.5 },
       }}
     >
       <Container maxWidth="xl" sx={{ height: '100%' }}>
         <Box
           sx={{
-            height: '100%',
+            height: { xs: 'calc(100vh - 16px)', md: 'calc(100vh - 24px)' },
             borderRadius: 4,
             border: '1px solid',
-            borderColor: 'divider',
-            bgcolor: '#FBFCFE',
-            boxShadow: '0 18px 46px rgba(19, 29, 56, 0.08)',
+            borderColor: 'rgba(255,255,255,0.18)',
+            bgcolor: 'rgba(12, 18, 30, 0.82)',
+            boxShadow: '0 28px 72px rgba(0,0,0,0.45)',
             px: { xs: 2.5, md: 5 },
-            py: { xs: 2.5, md: 4 },
+            py: { xs: 2, md: 2.75 },
             display: 'grid',
             gridTemplateRows: 'auto auto 1fr',
-            gap: { xs: 2, md: 3 },
+            gap: { xs: 1.5, md: 2.25 },
+            backdropFilter: 'blur(2px)',
           }}
         >
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={7}>
               <Stack spacing={1.25}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative' }}>
+                  <Box
+                    component="img"
+                    src="/CompassLogo.png"
+                    alt=""
+                    sx={{
+                      position: 'absolute',
+                      left: -24,
+                      top: -32,
+                      width: 220,
+                      opacity: 0.08,
+                      pointerEvents: 'none',
+                      display: { xs: 'none', md: 'block' },
+                    }}
+                  />
                   <img
                     src="/CompassLogo.png"
                     alt="The Compass Logo"
-                    style={{ height: '82px', width: 'auto', display: 'block' }}
+                    style={{ height: '108px', width: 'auto', display: 'block' }}
                   />
                   <Typography
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',
                       fontSize: { xs: '2rem', md: '2.35rem' },
                       fontWeight: 700,
-                      color: 'text.primary',
+                      color: '#F5F7FF',
                       lineHeight: 1.05,
                     }}
                   >
@@ -297,7 +319,7 @@ function Landing() {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: { xs: '1.35rem', md: '1.65rem' },
                     fontWeight: 600,
-                    color: 'text.primary',
+                    color: '#F5F7FF',
                     lineHeight: 1.2,
                   }}
                 >
@@ -307,7 +329,7 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
-                    color: 'text.secondary',
+                    color: 'rgba(235, 240, 255, 0.82)',
                     lineHeight: 1.6,
                     maxWidth: 760,
                   }}
@@ -330,11 +352,11 @@ function Landing() {
                       py: 0.7,
                       borderRadius: 999,
                       border: '1px solid',
-                      borderColor: 'divider',
-                      bgcolor: '#FFFFFF',
+                      borderColor: 'rgba(255,255,255,0.25)',
+                      bgcolor: 'rgba(255,255,255,0.08)',
                       fontFamily: 'Gemunu Libre, sans-serif',
                       fontSize: '0.9rem',
-                      color: 'text.secondary',
+                      color: 'rgba(235, 240, 255, 0.78)',
                       textAlign: 'center',
                     }}
                   >
@@ -345,7 +367,7 @@ function Landing() {
             </Grid>
           </Grid>
 
-          <Stack direction="row" spacing={1.25} alignItems="center">
+          <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
             {sections.map((section, idx) => (
               <Button
                 key={section.key}
@@ -354,14 +376,18 @@ function Landing() {
                 onClick={() => setActiveSection(idx)}
                 sx={{
                   borderRadius: 999,
-                  px: 2.2,
-                  py: 0.75,
+                  px: 2.8,
+                  py: 0.9,
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontSize: '0.98rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
                   boxShadow: 'none',
                   border: idx === activeSection ? 'none' : '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: idx === activeSection ? 'primary.main' : '#FFFFFF',
+                  borderColor: 'rgba(255,255,255,0.28)',
+                  bgcolor: idx === activeSection ? 'primary.main' : 'rgba(255,255,255,0.08)',
+                  color: idx === activeSection ? '#FFFFFF' : '#F5F7FF',
+                  textTransform: 'none',
                 }}
               >
                 {section.label}
@@ -373,8 +399,8 @@ function Landing() {
             sx={{
               borderRadius: 3,
               border: '1px solid',
-              borderColor: 'divider',
-              bgcolor: '#FDFEFF',
+              borderColor: 'rgba(255,255,255,0.2)',
+              bgcolor: 'rgba(6, 10, 18, 0.34)',
               p: { xs: 2, md: 3 },
               overflow: 'hidden',
             }}
