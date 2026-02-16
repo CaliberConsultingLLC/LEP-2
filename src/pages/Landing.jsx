@@ -36,36 +36,51 @@ function Landing() {
               icon: <Psychology sx={{ fontSize: 36, color: 'primary.main' }} />,
               title: 'Mirror-Accurate',
               text: 'Compass synthesizes your responses into a nuanced reflection instead of repeating your inputs.',
+              bullets: [
+                'Built from decades of leadership coaching and organizational fieldwork.',
+                'Patterns are surfaced with practical clarity, not abstract jargon.',
+                'Designed so your team context is always part of the interpretation.',
+              ],
             },
             {
               icon: <AutoAwesome sx={{ fontSize: 36, color: 'primary.main' }} />,
               title: 'Signal Over Noise',
               text: 'Each section is designed to capture high-value leadership patterns quickly and clearly.',
+              bullets: [
+                'Questions are intentional and structured to reduce vanity responses.',
+                'Every prompt is meant to reveal behavior, pressure points, and tradeoffs.',
+                'Outputs prioritize what matters most right now for your growth.',
+              ],
             },
             {
               icon: <Insights sx={{ fontSize: 36, color: 'primary.main' }} />,
               title: 'Built for Action',
               text: 'You leave with concrete focus traits that convert reflection into a practical growth campaign.',
+              bullets: [
+                'Focus traits are selected to drive immediate leadership momentum.',
+                'Action direction is specific enough to use with your team quickly.',
+                'The experience stays personal while remaining grounded and reliable.',
+              ],
             },
           ].map((item) => (
             <Grid item xs={12} md={4} key={item.title}>
               <Box
                 sx={{
-                  p: 3,
+                  p: 3.25,
                   borderRadius: 2.5,
                   border: '1px solid',
-                  borderColor: 'rgba(255,255,255,0.16)',
-                  bgcolor: 'rgba(255,255,255,0.05)',
+                  borderColor: 'rgba(0,0,0,0.08)',
+                  bgcolor: 'rgba(255,255,255,0.9)',
                   height: '100%',
                 }}
               >
-                <Box sx={{ mb: 1.5, color: '#F5F7FF' }}>{item.icon}</Box>
+                <Box sx={{ mb: 1.5 }}>{item.icon}</Box>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1.15rem',
                     fontWeight: 700,
-                    color: '#F5F7FF',
+                    color: 'text.primary',
                     mb: 1,
                   }}
                 >
@@ -75,12 +90,30 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '0.98rem',
-                    color: 'rgba(235, 240, 255, 0.82)',
+                    color: 'text.secondary',
                     lineHeight: 1.65,
+                    mb: 1.2,
                   }}
                 >
                   {item.text}
                 </Typography>
+                <Box component="ul" sx={{ m: 0, pl: 2.3 }}>
+                  {item.bullets.map((bullet) => (
+                    <Typography
+                      key={bullet}
+                      component="li"
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        fontSize: '0.9rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.55,
+                        mb: 0.35,
+                      }}
+                    >
+                      {bullet}
+                    </Typography>
+                  ))}
+                </Box>
               </Box>
             </Grid>
           ))}
@@ -95,28 +128,44 @@ function Landing() {
             {
               title: 'Leadership Intake',
               text: 'A concise set of prompts to capture how you lead, decide, and respond under pressure.',
+              bullets: [
+                'A balanced mix of profile, behavior, and insight-based questions.',
+                'Built to be engaging while still producing high-integrity input.',
+              ],
             },
             {
               title: 'Reflection Results',
               text: 'A precise narrative of your current leadership strengths, tensions, and likely trajectory.',
+              bullets: [
+                'Synthesized for clarity so you can quickly see what matters.',
+                'Written to feel personal, grounded, and professionally useful.',
+              ],
             },
             {
               title: 'Trait Selection',
               text: 'Five data-driven traits are surfaced so you can choose your most relevant growth focus.',
+              bullets: [
+                'Trait options are curated to avoid generic development advice.',
+                'You keep autonomy while still benefiting from expert structure.',
+              ],
             },
             {
               title: 'Growth Campaign',
               text: 'Build your campaign and move forward with a dashboard that supports ongoing development.',
+              bullets: [
+                'Campaign statements are designed for transparency and team alignment.',
+                'Everything flows into one home base for consistency over time.',
+              ],
             },
           ].map((step, idx) => (
             <Grid item xs={12} sm={6} md={3} key={step.title}>
               <Box
                 sx={{
-                  p: 2.5,
+                  p: 2.7,
                   borderRadius: 2.5,
                   border: '1px solid',
-                  borderColor: 'rgba(255,255,255,0.16)',
-                  bgcolor: 'rgba(255,255,255,0.05)',
+                  borderColor: 'rgba(0,0,0,0.08)',
+                  bgcolor: 'rgba(255,255,255,0.9)',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -145,7 +194,7 @@ function Landing() {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1.05rem',
                     fontWeight: 700,
-                    color: '#F5F7FF',
+                    color: 'text.primary',
                   }}
                 >
                   {step.title}
@@ -154,12 +203,29 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '0.94rem',
-                    color: 'rgba(235, 240, 255, 0.82)',
+                    color: 'text.secondary',
                     lineHeight: 1.6,
                   }}
                 >
                   {step.text}
                 </Typography>
+                <Box component="ul" sx={{ m: 0, mt: 0.3, pl: 2.1 }}>
+                  {step.bullets.map((bullet) => (
+                    <Typography
+                      key={bullet}
+                      component="li"
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        fontSize: '0.86rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.52,
+                        mb: 0.25,
+                      }}
+                    >
+                      {bullet}
+                    </Typography>
+                  ))}
+                </Box>
               </Box>
             </Grid>
           ))}
@@ -175,36 +241,48 @@ function Landing() {
               icon: <Route sx={{ fontSize: 34, color: 'primary.main' }} />,
               title: 'Reflection Summary',
               text: 'A clear portrait of your current leadership with grounded context and directional clarity.',
+              bullets: [
+                'Captures both what is working and what will hold you back if unchanged.',
+                'Structured to help you move forward, not just feel informed.',
+              ],
             },
             {
               icon: <TrendingUp sx={{ fontSize: 34, color: 'primary.main' }} />,
               title: 'Focus Traits',
               text: 'Five prioritized growth traits selected from your intake patterns.',
+              bullets: [
+                'Traits are chosen for practical impact in real team environments.',
+                'Designed to make your next developmental step obvious.',
+              ],
             },
             {
               icon: <Inventory2 sx={{ fontSize: 34, color: 'primary.main' }} />,
               title: 'Action Dashboard',
               text: 'Your campaign details, progress points, and supporting resources in one place.',
+              bullets: [
+                'Keeps your journey organized so insights do not disappear after day one.',
+                'Built for continuity, accountability, and visible progress.',
+              ],
             },
           ].map((item) => (
             <Grid item xs={12} md={4} key={item.title}>
               <Box
                 sx={{
-                  p: 2.75,
+                  p: 2.95,
                   borderRadius: 2.5,
                   border: '1px solid',
-                  borderColor: 'rgba(255,255,255,0.16)',
-                  bgcolor: 'rgba(255,255,255,0.05)',
+                  borderColor: 'rgba(0,0,0,0.08)',
+                  bgcolor: 'rgba(255,255,255,0.9)',
                   height: '100%',
                 }}
               >
-                <Box sx={{ mb: 1.25, color: '#F5F7FF' }}>{item.icon}</Box>
+                <Box sx={{ mb: 1.25 }}>{item.icon}</Box>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1.1rem',
                     fontWeight: 700,
-                    color: '#F5F7FF',
+                    color: 'text.primary',
                     mb: 0.75,
                   }}
                 >
@@ -214,17 +292,35 @@ function Landing() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '0.95rem',
-                    color: 'rgba(235, 240, 255, 0.82)',
+                    color: 'text.secondary',
                     lineHeight: 1.6,
+                    mb: 1,
                   }}
                 >
                   {item.text}
                 </Typography>
+                <Box component="ul" sx={{ m: 0, pl: 2.1 }}>
+                  {item.bullets.map((bullet) => (
+                    <Typography
+                      key={bullet}
+                      component="li"
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        fontSize: '0.88rem',
+                        color: 'text.secondary',
+                        lineHeight: 1.5,
+                        mb: 0.25,
+                      }}
+                    >
+                      {bullet}
+                    </Typography>
+                  ))}
+                </Box>
               </Box>
             </Grid>
           ))}
         </Grid>
-        <Stack direction="row" justifyContent="center" sx={{ mt: 2.25 }}>
+        <Stack direction="row" justifyContent="center" sx={{ mt: 3.3 }}>
           <Button
             variant="contained"
             color="primary"
@@ -253,13 +349,12 @@ function Landing() {
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
-        backgroundImage:
-          'linear-gradient(rgba(8, 12, 22, 0.62), rgba(8, 12, 22, 0.62)), url(/LEP2.jpg)',
+        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
-        py: { xs: 1, md: 1.5 },
+        py: { xs: 1.25, md: 1.6 },
       }}
     >
       <Container maxWidth="xl" sx={{ height: '100%' }}>
@@ -268,35 +363,37 @@ function Landing() {
             height: { xs: 'calc(100vh - 16px)', md: 'calc(100vh - 24px)' },
             borderRadius: 4,
             border: '1px solid',
-            borderColor: 'rgba(255,255,255,0.18)',
-            bgcolor: 'rgba(12, 18, 30, 0.82)',
-            boxShadow: '0 28px 72px rgba(0,0,0,0.45)',
+            borderColor: 'rgba(255,255,255,0.62)',
+            bgcolor: 'rgba(15, 30, 58, 0.54)',
+            boxShadow: '0 20px 44px rgba(18, 31, 56, 0.20)',
             px: { xs: 2.5, md: 5 },
             py: { xs: 2, md: 2.75 },
             display: 'grid',
             gridTemplateRows: 'auto auto 1fr',
-            gap: { xs: 1.5, md: 2.25 },
-            backdropFilter: 'blur(2px)',
+            gap: { xs: 1.8, md: 2.4 },
+            backdropFilter: 'blur(1px)',
+            position: 'relative',
           }}
         >
+          <Box
+            component="img"
+            src="/CompassLogo.png"
+            alt=""
+            sx={{
+              position: 'absolute',
+              left: '50%',
+              top: '60%',
+              transform: 'translate(-50%, -50%)',
+              width: { xs: 240, md: 360 },
+              opacity: 0.1,
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={7}>
-              <Stack spacing={1.25}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative' }}>
-                  <Box
-                    component="img"
-                    src="/CompassLogo.png"
-                    alt=""
-                    sx={{
-                      position: 'absolute',
-                      left: -24,
-                      top: -32,
-                      width: 220,
-                      opacity: 0.08,
-                      pointerEvents: 'none',
-                      display: { xs: 'none', md: 'block' },
-                    }}
-                  />
+            <Grid item xs={12}>
+              <Stack spacing={1.2} sx={{ textAlign: 'center', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <img
                     src="/CompassLogo.png"
                     alt="The Compass Logo"
@@ -305,69 +402,42 @@ function Landing() {
                   <Typography
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: { xs: '2rem', md: '2.35rem' },
+                      fontSize: { xs: '2.3rem', md: '2.7rem' },
                       fontWeight: 700,
-                      color: '#F5F7FF',
+                      color: '#FFFFFF',
                       lineHeight: 1.05,
                     }}
                   >
-                    Compass
+                    The Compass
                   </Typography>
                 </Box>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: { xs: '1.35rem', md: '1.65rem' },
+                    fontSize: { xs: '1.35rem', md: '1.62rem' },
                     fontWeight: 600,
-                    color: '#F5F7FF',
+                    color: '#FFFFFF',
                     lineHeight: 1.2,
                   }}
                 >
-                  Clarity for leaders. Momentum for teams.
+                  A Growth Guide for Exactly You
                 </Typography>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    color: 'rgba(235, 240, 255, 0.82)',
+                    fontSize: '0.99rem',
+                    color: 'rgba(247, 250, 255, 0.92)',
                     lineHeight: 1.6,
-                    maxWidth: 760,
+                    maxWidth: 900,
                   }}
                 >
-                  A guided introduction to how Compass helps you understand your leadership patterns and move from reflection to focused action.
+                  There is no shortage of leadership advice out there. Most of it is good, some of it is great, but none of it was written with you or your team in mind. The Compass was built to cut through the noise and identify meaningful areas of growth for YOU and your team, with a heavy bias on transparency and action. Read more below to see how it works:
                 </Typography>
-              </Stack>
-            </Grid>
-            <Grid item xs={12} md={5}>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={1}
-                justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
-              >
-                {['No survey fatigue', 'Data-grounded insights', 'Designed for real teams'].map((pill) => (
-                  <Box
-                    key={pill}
-                    sx={{
-                      px: 1.8,
-                      py: 0.7,
-                      borderRadius: 999,
-                      border: '1px solid',
-                      borderColor: 'rgba(255,255,255,0.25)',
-                      bgcolor: 'rgba(255,255,255,0.08)',
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '0.9rem',
-                      color: 'rgba(235, 240, 255, 0.78)',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {pill}
-                  </Box>
-                ))}
               </Stack>
             </Grid>
           </Grid>
 
-          <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
+          <Stack direction="row" spacing={1.4} alignItems="center" justifyContent="center" sx={{ width: '100%', position: 'relative', zIndex: 1 }}>
             {sections.map((section, idx) => (
               <Button
                 key={section.key}
@@ -386,7 +456,7 @@ function Landing() {
                   border: idx === activeSection ? 'none' : '1px solid',
                   borderColor: 'rgba(255,255,255,0.28)',
                   bgcolor: idx === activeSection ? 'primary.main' : 'rgba(255,255,255,0.08)',
-                  color: idx === activeSection ? '#FFFFFF' : '#F5F7FF',
+                  color: idx === activeSection ? '#FFFFFF' : 'rgba(247, 250, 255, 0.95)',
                   textTransform: 'none',
                 }}
               >
@@ -399,10 +469,12 @@ function Landing() {
             sx={{
               borderRadius: 3,
               border: '1px solid',
-              borderColor: 'rgba(255,255,255,0.2)',
-              bgcolor: 'rgba(6, 10, 18, 0.34)',
+              borderColor: 'rgba(255,255,255,0.35)',
+              bgcolor: 'rgba(255,255,255,0.1)',
               p: { xs: 2, md: 3 },
               overflow: 'hidden',
+              position: 'relative',
+              zIndex: 1,
             }}
           >
             {panel}
