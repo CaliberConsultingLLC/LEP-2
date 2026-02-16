@@ -30,211 +30,213 @@ function Landing() {
   const panel = useMemo(() => {
     if (sections[activeSection].key === 'method') {
       return (
-        <Grid container spacing={3}>
-          {[
-            {
-              icon: <Psychology sx={{ fontSize: 36, color: 'primary.main' }} />,
-              title: 'Mirror-Accurate',
-              text: 'Compass synthesizes your responses into a nuanced reflection instead of repeating your inputs.',
-              bullets: [
-                'Built from decades of leadership coaching and organizational fieldwork.',
-                'Patterns are surfaced with practical clarity, not abstract jargon.',
-                'Designed so your team context is always part of the interpretation.',
-              ],
-            },
-            {
-              icon: <AutoAwesome sx={{ fontSize: 36, color: 'primary.main' }} />,
-              title: 'Signal Over Noise',
-              text: 'Each section is designed to capture high-value leadership patterns quickly and clearly.',
-              bullets: [
-                'Questions are intentional and structured to reduce vanity responses.',
-                'Every prompt is meant to reveal behavior, pressure points, and tradeoffs.',
-                'Outputs prioritize what matters most right now for your growth.',
-              ],
-            },
-            {
-              icon: <Insights sx={{ fontSize: 36, color: 'primary.main' }} />,
-              title: 'Built for Action',
-              text: 'You leave with concrete focus traits that convert reflection into a practical growth campaign.',
-              bullets: [
-                'Focus traits are selected to drive immediate leadership momentum.',
-                'Action direction is specific enough to use with your team quickly.',
-                'The experience stays personal while remaining grounded and reliable.',
-              ],
-            },
-          ].map((item) => (
-            <Grid item xs={12} md={4} key={item.title}>
-              <Box
-                sx={{
-                  p: 3.25,
-                  borderRadius: 2.5,
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.08)',
-                  bgcolor: 'rgba(255,255,255,0.9)',
-                  height: '100%',
-                }}
-              >
-                <Box sx={{ mb: 1.5 }}>{item.icon}</Box>
-                <Typography
+        <Box sx={{ minHeight: { xs: 'auto', md: 430 } }}>
+          <Grid container spacing={3}>
+            {[
+              {
+                icon: <Psychology sx={{ fontSize: 36, color: 'primary.main' }} />,
+                title: 'Mirror-Accurate',
+                text: 'Compass synthesizes your responses into a nuanced reflection instead of repeating your inputs.',
+                bullets: [
+                  'Built from decades of leadership coaching and organizational fieldwork.',
+                  'Patterns are surfaced with practical clarity, not abstract jargon.',
+                  'Designed so your team context is always part of the interpretation.',
+                ],
+              },
+              {
+                icon: <AutoAwesome sx={{ fontSize: 36, color: 'primary.main' }} />,
+                title: 'Signal Over Noise',
+                text: 'Each section is designed to capture high-value leadership patterns quickly and clearly.',
+                bullets: [
+                  'Questions are intentional and structured to reduce vanity responses.',
+                  'Every prompt is meant to reveal behavior, pressure points, and tradeoffs.',
+                  'Outputs prioritize what matters most right now for your growth.',
+                ],
+              },
+              {
+                icon: <Insights sx={{ fontSize: 36, color: 'primary.main' }} />,
+                title: 'Built for Action',
+                text: 'You leave with concrete focus traits that convert reflection into a practical growth campaign.',
+                bullets: [
+                  'Focus traits are selected to drive immediate leadership momentum.',
+                  'Action direction is specific enough to use with your team quickly.',
+                  'The experience stays personal while remaining grounded and reliable.',
+                ],
+              },
+            ].map((item) => (
+              <Grid item xs={12} md={4} key={item.title}>
+                <Box
                   sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1.15rem',
-                    fontWeight: 700,
-                    color: 'text.primary',
-                    mb: 1,
+                    p: 3.25,
+                    borderRadius: 2.5,
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.08)',
+                    bgcolor: 'rgba(255,255,255,0.9)',
                   }}
                 >
-                  {item.title}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '0.98rem',
-                    color: 'text.secondary',
-                    lineHeight: 1.65,
-                    mb: 1.2,
-                  }}
-                >
-                  {item.text}
-                </Typography>
-                <Box component="ul" sx={{ m: 0, pl: 2.3 }}>
-                  {item.bullets.map((bullet) => (
-                    <Typography
-                      key={bullet}
-                      component="li"
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: '0.9rem',
-                        color: 'text.secondary',
-                        lineHeight: 1.55,
-                        mb: 0.35,
-                      }}
-                    >
-                      {bullet}
-                    </Typography>
-                  ))}
+                  <Box sx={{ mb: 1.5 }}>{item.icon}</Box>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.15rem',
+                      fontWeight: 700,
+                      color: 'text.primary',
+                      mb: 1,
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '0.98rem',
+                      color: 'text.secondary',
+                      lineHeight: 1.65,
+                      mb: 1.2,
+                    }}
+                  >
+                    {item.text}
+                  </Typography>
+                  <Box component="ul" sx={{ m: 0, pl: 2.3 }}>
+                    {item.bullets.map((bullet) => (
+                      <Typography
+                        key={bullet}
+                        component="li"
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.9rem',
+                          color: 'text.secondary',
+                          lineHeight: 1.55,
+                          mb: 0.35,
+                        }}
+                      >
+                        {bullet}
+                      </Typography>
+                    ))}
+                  </Box>
                 </Box>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       );
     }
 
     if (sections[activeSection].key === 'process') {
       return (
-        <Grid container spacing={2.5}>
-          {[
-            {
-              title: 'Leadership Intake',
-              text: 'A concise set of prompts to capture how you lead, decide, and respond under pressure.',
-              bullets: [
-                'A balanced mix of profile, behavior, and insight-based questions.',
-                'Built to be engaging while still producing high-integrity input.',
-              ],
-            },
-            {
-              title: 'Reflection Results',
-              text: 'A precise narrative of your current leadership strengths, tensions, and likely trajectory.',
-              bullets: [
-                'Synthesized for clarity so you can quickly see what matters.',
-                'Written to feel personal, grounded, and professionally useful.',
-              ],
-            },
-            {
-              title: 'Trait Selection',
-              text: 'Five data-driven traits are surfaced so you can choose your most relevant growth focus.',
-              bullets: [
-                'Trait options are curated to avoid generic development advice.',
-                'You keep autonomy while still benefiting from expert structure.',
-              ],
-            },
-            {
-              title: 'Growth Campaign',
-              text: 'Build your campaign and move forward with a dashboard that supports ongoing development.',
-              bullets: [
-                'Campaign statements are designed for transparency and team alignment.',
-                'Everything flows into one home base for consistency over time.',
-              ],
-            },
-          ].map((step, idx) => (
-            <Grid item xs={12} sm={6} md={3} key={step.title}>
-              <Box
-                sx={{
-                  p: 2.7,
-                  borderRadius: 2.5,
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.08)',
-                  bgcolor: 'rgba(255,255,255,0.9)',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                }}
-              >
+        <Box sx={{ minHeight: { xs: 'auto', md: 430 } }}>
+          <Grid container spacing={2.5}>
+            {[
+              {
+                title: 'Leadership Intake',
+                text: 'A concise set of prompts to capture how you lead, decide, and respond under pressure.',
+                bullets: [
+                  'A balanced mix of profile, behavior, and insight-based questions.',
+                  'Built to be engaging while still producing high-integrity input.',
+                ],
+              },
+              {
+                title: 'Reflection Results',
+                text: 'A precise narrative of your current leadership strengths, tensions, and likely trajectory.',
+                bullets: [
+                  'Synthesized for clarity so you can quickly see what matters.',
+                  'Written to feel personal, grounded, and professionally useful.',
+                ],
+              },
+              {
+                title: 'Trait Selection',
+                text: 'Five data-driven traits are surfaced so you can choose your most relevant growth focus.',
+                bullets: [
+                  'Trait options are curated to avoid generic development advice.',
+                  'You keep autonomy while still benefiting from expert structure.',
+                ],
+              },
+              {
+                title: 'Growth Campaign',
+                text: 'Build your campaign and move forward with a dashboard that supports ongoing development.',
+                bullets: [
+                  'Campaign statements are designed for transparency and team alignment.',
+                  'Everything flows into one home base for consistency over time.',
+                ],
+              },
+            ].map((step, idx) => (
+              <Grid item xs={12} sm={6} md={3} key={step.title}>
                 <Box
                   sx={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                    color: '#fff',
+                    p: 2.7,
+                    borderRadius: 2.5,
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.08)',
+                    bgcolor: 'rgba(255,255,255,0.9)',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontWeight: 700,
-                    fontSize: '1rem',
+                    flexDirection: 'column',
+                    gap: 1,
                   }}
                 >
-                  {idx + 1}
+                  <Box
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                    }}
+                  >
+                    {idx + 1}
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      color: 'text.primary',
+                    }}
+                  >
+                    {step.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '0.94rem',
+                      color: 'text.secondary',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {step.text}
+                  </Typography>
+                  <Box component="ul" sx={{ m: 0, mt: 0.3, pl: 2.1 }}>
+                    {step.bullets.map((bullet) => (
+                      <Typography
+                        key={bullet}
+                        component="li"
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.86rem',
+                          color: 'text.secondary',
+                          lineHeight: 1.52,
+                          mb: 0.25,
+                        }}
+                      >
+                        {bullet}
+                      </Typography>
+                    ))}
+                  </Box>
                 </Box>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1.05rem',
-                    fontWeight: 700,
-                    color: 'text.primary',
-                  }}
-                >
-                  {step.title}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '0.94rem',
-                    color: 'text.secondary',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {step.text}
-                </Typography>
-                <Box component="ul" sx={{ m: 0, mt: 0.3, pl: 2.1 }}>
-                  {step.bullets.map((bullet) => (
-                    <Typography
-                      key={bullet}
-                      component="li"
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: '0.86rem',
-                        color: 'text.secondary',
-                        lineHeight: 1.52,
-                        mb: 0.25,
-                      }}
-                    >
-                      {bullet}
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       );
     }
 
     return (
-      <Stack spacing={3}>
+      <Stack spacing={3} sx={{ minHeight: { xs: 'auto', md: 430 } }}>
         <Grid container spacing={2.5}>
           {[
             {
@@ -273,7 +275,6 @@ function Landing() {
                   border: '1px solid',
                   borderColor: 'rgba(0,0,0,0.08)',
                   bgcolor: 'rgba(255,255,255,0.9)',
-                  height: '100%',
                 }}
               >
                 <Box sx={{ mb: 1.25 }}>{item.icon}</Box>
@@ -320,7 +321,7 @@ function Landing() {
             </Grid>
           ))}
         </Grid>
-        <Stack direction="row" justifyContent="center" sx={{ mt: 5.5, pt: 0.5 }}>
+        <Stack direction="row" justifyContent="center" sx={{ mt: 2.8, pt: 0.25 }}>
           <Button
             variant="contained"
             color="primary"
@@ -348,7 +349,7 @@ function Landing() {
       sx={{
         minHeight: '100vh',
         width: '100vw',
-        overflowY: 'auto',
+        overflowY: 'hidden',
         overflowX: 'hidden',
         backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
@@ -358,20 +359,22 @@ function Landing() {
         py: { xs: 1.25, md: 1.6 },
       }}
     >
-      <Container maxWidth="xl" sx={{ height: '100%' }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 2.5 } }}>
         <Box
           sx={{
-            minHeight: { xs: 'calc(100vh - 18px)', md: 'calc(100vh - 28px)' },
+            width: '100%',
+            maxWidth: 1260,
+            mx: 'auto',
             borderRadius: 4,
             border: '1px solid',
             borderColor: 'rgba(255,255,255,0.62)',
             bgcolor: 'rgba(15, 30, 58, 0.54)',
             boxShadow: '0 20px 44px rgba(18, 31, 56, 0.20)',
             px: { xs: 2.5, md: 5 },
-            py: { xs: 2, md: 2.75 },
+            py: { xs: 2.6, md: 3.2 },
             display: 'flex',
             flexDirection: 'column',
-            gap: { xs: 1.8, md: 2.4 },
+            gap: { xs: 2, md: 2.6 },
             backdropFilter: 'blur(1px)',
             position: 'relative',
             overflow: 'hidden',
@@ -384,26 +387,26 @@ function Landing() {
             sx={{
               position: 'absolute',
               left: '50%',
-              top: { xs: -110, md: -210 },
+              top: { xs: -120, md: -218 },
               transform: 'translateX(-50%)',
-              width: { xs: 460, md: 780 },
-              opacity: 0.2,
+              width: { xs: 500, md: 820 },
+              opacity: 0.18,
               pointerEvents: 'none',
               zIndex: 0,
             }}
           />
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12}>
-              <Stack spacing={1.2} sx={{ textAlign: 'center', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+              <Stack spacing={1.35} sx={{ textAlign: 'center', alignItems: 'center', position: 'relative', zIndex: 1, mt: { xs: 0.4, md: 0.8 } }}>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: { xs: '2.3rem', md: '2.7rem' },
-                    fontWeight: 700,
+                    fontSize: { xs: '2.15rem', md: '2.45rem' },
+                    fontWeight: 800,
                     color: '#FFFFFF',
-                    lineHeight: 1.05,
+                    lineHeight: 1.06,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.02em',
+                    letterSpacing: '0.03em',
                   }}
                 >
                   THE COMPASS
@@ -411,8 +414,9 @@ function Landing() {
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: { xs: '1.35rem', md: '1.62rem' },
-                    fontWeight: 600,
+                    fontSize: { xs: '1.18rem', md: '1.34rem' },
+                    fontWeight: 400,
+                    fontStyle: 'italic',
                     color: '#FFFFFF',
                     lineHeight: 1.2,
                   }}
@@ -422,10 +426,10 @@ function Landing() {
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '0.99rem',
-                    color: 'rgba(247, 250, 255, 0.92)',
-                    lineHeight: 1.6,
-                    maxWidth: 900,
+                    fontSize: { xs: '0.95rem', md: '1.02rem' },
+                    color: 'rgba(247, 250, 255, 0.95)',
+                    lineHeight: 1.62,
+                    maxWidth: 920,
                   }}
                 >
                   There is no shortage of leadership advice out there. Most of it is good, some of it is great, but none of it was written with you or your team in mind. The Compass was built to cut through the noise and identify meaningful areas of growth for YOU and your team, with a heavy bias on transparency and action. Read more below to see how it works:
@@ -434,7 +438,7 @@ function Landing() {
             </Grid>
           </Grid>
 
-          <Stack direction="row" spacing={1.4} alignItems="center" justifyContent="center" sx={{ width: '100%', position: 'relative', zIndex: 1 }}>
+          <Stack direction="row" spacing={1.4} alignItems="center" justifyContent="center" sx={{ width: '100%', position: 'relative', zIndex: 1, mt: 0.4 }}>
             {sections.map((section, idx) => (
               <Button
                 key={section.key}
@@ -472,7 +476,6 @@ function Landing() {
               overflow: 'hidden',
               position: 'relative',
               zIndex: 1,
-              flex: '0 0 auto',
             }}
           >
             {panel}
