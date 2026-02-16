@@ -856,7 +856,8 @@ function IntakeForm() {
     if (currentStep === 0 || currentStep === 1) return 'Profile';
     if (currentStep === 2 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
     if (currentStep === reflectionStep) return 'Reflection Moment';
-    if (currentStep === mindsetIntroStep || (currentStep >= societalStart && currentStep <= societalEnd)) return 'Insights';
+    if (currentStep === mindsetIntroStep) return 'Insights';
+    if (currentStep >= societalStart && currentStep <= societalEnd) return 'Instincts';
     if (currentStep === agentStep) return 'Choose Your Agent';
     return 'LEP';
   }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep, societalStart, societalEnd, agentStep]);
@@ -1532,7 +1533,7 @@ function IntakeForm() {
           width: '100%',
         }}
       >
-        What does this observation make you notice about your leadership right now?
+        How have these traits/behaviors negatively impacted your ability to lead in the past?
       </Typography>
       <MemoTextField
         value={formData.userReflection || ''}
@@ -1581,58 +1582,43 @@ function IntakeForm() {
       return (
         <Stack spacing={2.4} alignItems="center" textAlign="center">
           <Typography
-            sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: { xs: '2.05rem', md: '2.35rem' },
-              fontWeight: 800,
-              lineHeight: 1.1,
-              color: 'text.primary',
-              textShadow: '0 1px 0 rgba(255,255,255,0.6)',
-            }}
-          >
-            Leader Instincts
-          </Typography>
-          <Typography sx={{ mb: 1.5, opacity: 0.85, maxWidth: 620, fontSize: '1.02rem', lineHeight: 1.45 }}>
-            Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
-          </Typography>
-
-          <Typography
             variant="overline"
             sx={{ letterSpacing: 1.2, opacity: 0.75, textAlign: 'center', fontWeight: 700 }}
           >
             Question {activeIdx + 1} of {societalNormsQuestions.length}
           </Typography>
 
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 800,
-              lineHeight: 1.35,
-              textAlign: 'center',
-              maxWidth: 760,
-              wordBreak: 'break-word',
-              overflowWrap: 'anywhere',
-            }}
-          >
-            {beforeBlank}
-            <Box
-              component="span"
+          <Box sx={{ width: '100%', maxWidth: 760, mx: 'auto', textAlign: 'center' }}>
+            <Typography
               sx={{
-                display: 'inline',
-                minWidth: 80,
                 fontWeight: 800,
-                px: 0.25,
-                mx: 0.35,
-                color: (val ?? 5) <= 5 ? '#2f4f5f' : '#9a4a1c',
-                fontStyle: 'italic',
+                lineHeight: 1.35,
+                fontSize: { xs: '1.42rem', md: '1.58rem' },
+                textAlign: 'center',
+                wordBreak: 'break-word',
+                overflowWrap: 'anywhere',
               }}
             >
-              {displayVal ? displayVal.toLowerCase() : '____'}
-            </Box>
-            {afterBlank}
-          </Typography>
+              {beforeBlank}
+              <Box
+                component="span"
+                sx={{
+                  display: 'inline',
+                  minWidth: 80,
+                fontWeight: 900,
+                  px: 0.25,
+                  mx: 0.35,
+                  color: (val ?? 5) <= 5 ? '#2f4f5f' : '#9a4a1c',
+                  fontStyle: 'italic',
+                }}
+              >
+                {displayVal ? displayVal.toLowerCase() : '____'}
+              </Box>
+              {afterBlank}
+            </Typography>
+          </Box>
 
-          <Box sx={{ position: 'relative', width: '100%', maxWidth: 600 }}>
+          <Box sx={{ position: 'relative', width: '100%', maxWidth: 600, mx: 'auto' }}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
               <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Never</Typography>
               <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Always</Typography>

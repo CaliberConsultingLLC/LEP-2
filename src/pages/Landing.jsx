@@ -31,7 +31,7 @@ function Landing() {
     if (sections[activeSection].key === 'method') {
       return (
         <Box>
-          <Grid container spacing={3} alignItems="stretch">
+          <Grid container spacing={0} alignItems="stretch" sx={{ m: 0, width: '100%' }}>
             {[
               {
                 icon: <Psychology sx={{ fontSize: 36, color: 'primary.main' }} />,
@@ -64,7 +64,7 @@ function Landing() {
                 ],
               },
             ].map((item) => (
-              <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex' }}>
+              <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex', p: 1.25 }}>
                 <Box
                   sx={{
                     p: 3.25,
@@ -127,7 +127,7 @@ function Landing() {
     if (sections[activeSection].key === 'process') {
       return (
         <Box>
-          <Grid container spacing={2.5} alignItems="stretch">
+          <Grid container spacing={0} alignItems="stretch" sx={{ m: 0, width: '100%' }}>
             {[
               {
                 title: 'Leadership Intake',
@@ -162,7 +162,7 @@ function Landing() {
                 ],
               },
             ].map((step, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={step.title} sx={{ display: 'flex' }}>
+              <Grid item xs={12} sm={6} md={3} key={step.title} sx={{ display: 'flex', p: 1 }}>
                 <Box
                   sx={{
                     p: 2.7,
@@ -241,7 +241,7 @@ function Landing() {
 
     return (
       <Stack spacing={3}>
-        <Grid container spacing={2.5} alignItems="stretch">
+        <Grid container spacing={0} alignItems="stretch" sx={{ m: 0, width: '100%' }}>
           {[
             {
               icon: <Route sx={{ fontSize: 34, color: 'primary.main' }} />,
@@ -271,7 +271,7 @@ function Landing() {
               ],
             },
           ].map((item) => (
-            <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex' }}>
+            <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex', p: 1 }}>
               <Box
                 sx={{
                   p: 2.95,
@@ -478,13 +478,15 @@ function Landing() {
               border: '1px solid',
               borderColor: 'rgba(255,255,255,0.35)',
               bgcolor: 'rgba(255,255,255,0.1)',
-              p: { xs: 2, md: 3 },
+              p: { xs: 2.2, md: 3.2 },
               overflow: 'hidden',
               position: 'relative',
               zIndex: 1,
             }}
           >
-            {panel}
+            <Box sx={{ p: { xs: 0.5, md: 0.75 } }}>
+              {panel}
+            </Box>
           </Box>
         </Box>
       </Container>
