@@ -553,6 +553,7 @@ function IntakeForm() {
   const [roleModelCustomAnswerDialogOpen, setRoleModelCustomAnswerDialogOpen] = useState(false);
   const [roleModelCustomAnswerText, setRoleModelCustomAnswerText] = useState('');
   const [hoveredRoleModelOption, setHoveredRoleModelOption] = useState(null);
+  const [societalQuestionIndex, setSocietalQuestionIndex] = useState(0);
   const navigate = useNavigate();
 
   const handleCustomAnswerSubmit = () => {
@@ -819,7 +820,6 @@ function IntakeForm() {
   ];
 
   // ---------- derived values ----------
-  const SOCIETAL_GROUP_SIZE = 5;
   const societalScaleLabels = {
     1: 'Never',
     2: 'Rarely',
@@ -832,28 +832,20 @@ function IntakeForm() {
     9: 'Almost Always',
     10: 'Always',
   };
-  const societalGroups = useMemo(() => {
-    const groups = [];
-    for (let i = 0; i < societalNormsQuestions.length; i += SOCIETAL_GROUP_SIZE) {
-      groups.push(societalNormsQuestions.slice(i, i + SOCIETAL_GROUP_SIZE));
-    }
-    return groups; // 2 groups of 5 (10 total)
-  }, [societalNormsQuestions]);
-
   const stepVars = useMemo(() => {
     const behaviorStart = 3; // after profile (step 1) and behaviors intro popup (step 2)
     const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 3..14 (12 qs)
     const reflectionStep = behaviorEnd + 1; // 15
     const mindsetIntroStep = reflectionStep + 1; // 16 (popup)
     const societalStart = mindsetIntroStep + 1; // 17
-    const societalEnd = societalStart + societalGroups.length - 1; // 17..18 (2 pages)
+    const societalEnd = societalStart; // single page with progressive questions
     const agentStep = societalEnd + 1; // 24
-    const totalSteps = agentStep + 1; // 25 total steps (0..24 displayed as 1..25)
+    const totalSteps = agentStep + 1;
     return {
       behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
       societalStart, societalEnd, agentStep, totalSteps
     };
-  }, [behaviorSet.length, societalGroups.length]);
+  }, [behaviorSet.length]);
 
   const {
     behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
@@ -876,6 +868,12 @@ function IntakeForm() {
     setDialogOpen(messageSteps.includes(currentStep) || reflectionIntro);
   }, [currentStep, mindsetIntroStep]);
 
+  const clampReflectionText = (text, max = 250) => {
+    const clean = String(text || '').trim();
+    if (clean.length <= max) return clean;
+    return `${clean.slice(0, max).trimEnd()}...`;
+  };
+
   const requestReflection = (payload, isSecond = false) => {
     const guardRef = isSecond ? secondReflectionGeneratedRef : reflectionGeneratedRef;
     if (guardRef.current) return;
@@ -892,7 +890,7 @@ function IntakeForm() {
       .then(r => r.json())
       .then(data => {
         if (data?.reflection) {
-          setReflectionText(data.reflection);
+          setReflectionText(clampReflectionText(data.reflection, 250));
         } else {
           setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
         }
@@ -923,6 +921,12 @@ function IntakeForm() {
       }, true);
     }
   }, [currentStep, reflectionStep, reflectionNumber]);
+
+  useEffect(() => {
+    if (currentStep === societalStart) {
+      setSocietalQuestionIndex(0);
+    }
+  }, [currentStep, societalStart]);
 
 
   // ---------- state helpers ----------
@@ -1497,13 +1501,25 @@ function IntakeForm() {
       </Paper>
 
       {/* User Input Box */}
+      <Typography
+        sx={{
+          fontWeight: 700,
+          fontSize: '1.05rem',
+          color: 'text.primary',
+          maxWidth: 720,
+          textAlign: 'left',
+          width: '100%',
+        }}
+      >
+        What does this observation make you notice about your leadership right now?
+      </Typography>
       <MemoTextField
         value={formData.userReflection || ''}
         onChange={(e) => handleChange('userReflection', e.target.value)}
         fullWidth
         multiline
         minRows={3}
-        placeholder="What does that observation make you notice about your leadership energy?"
+        placeholder="Write your reflection here..."
         sx={{
           backgroundColor: 'rgba(255,255,255,0.85)',
           borderRadius: 2,
@@ -1529,18 +1545,21 @@ function IntakeForm() {
 
 
 
-        {/* Insights (Societal Norms) – 2 pages, 5 sliders each (Steps 17..18) */}
+        {/* Leader Instincts (Societal Norms) – single page, one question at a time */}
 {currentStep >= societalStart && currentStep <= societalEnd && (
   <SectionCard narrow={false}>
     {(() => {
-      const groupIdx = currentStep - societalStart; // 0..1
-      const start = groupIdx * SOCIETAL_GROUP_SIZE;
-      const end = start + SOCIETAL_GROUP_SIZE;
-      const currentGroup = societalNormsQuestions.slice(start, end);
+      const activeIdx = societalQuestionIndex;
+      const q = societalNormsQuestions[activeIdx] || '';
+      const val = societalResponses[activeIdx];
+      const displayVal = val ? (societalScaleLabels[val] || val) : '';
+      const [beforeBlank, afterBlank] = q.split('____');
+      const marks = Array.from({ length: 10 }, (_, i) => ({ value: i + 1 }));
+      const lastQuestion = activeIdx === societalNormsQuestions.length - 1;
 
       return (
         <Stack spacing={3} alignItems="center" textAlign="center">
-          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Insights</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Leader Instincts</Typography>
           <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
             Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
           </Typography>
@@ -1558,144 +1577,142 @@ function IntakeForm() {
             }}
           >
             <Stack spacing={2.5}>
-              {currentGroup.map((q, idx) => {
-                const absoluteIdx = start + idx;
-                const val = societalResponses[absoluteIdx];
-                const displayVal = val ? (societalScaleLabels[val] || val) : '____';
-                const [beforeBlank, afterBlank] = q.split('____');
-                return (
-                  <Box key={absoluteIdx} sx={{ width: '100%' }}>
-                    <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} md={4}>
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: 700,
-                            lineHeight: 1.55,
-                            fontSize: '0.95rem',
-                            wordBreak: 'break-word',
-                            overflowWrap: 'anywhere',
-                          }}
-                        >
-                          {beforeBlank}
-                          <Box
-                            component="span"
-                            sx={{
-                              display: 'inline-block',
-                              minWidth: 90,
-                              textAlign: 'center',
-                              borderBottom: '2px solid rgba(0,0,0,0.5)',
-                              fontWeight: 800,
-                              px: 0.75,
-                              mx: 0.5,
-                            }}
-                          >
-                            {displayVal}
-                          </Box>
-                          {afterBlank}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} md={8}>
-                        <Box sx={{ position: 'relative', width: '100%', px: { xs: 1, md: 2 } }}>
-                          <MemoSlider
-                            value={val ?? 5}
-                            onChange={(_, v) => setSocietalValue(absoluteIdx, v)}
-                            step={1}
-                            min={1}
-                            max={10}
-                            valueLabelDisplay="off"
-                            slotProps={{
-                              thumb: { 'data-value': val ?? 5 }
-                            }}
-                            sx={{
-                              '& .MuiSlider-thumb': {
-                                width: 38,
-                                height: 38,
-                                backgroundColor: '#457089',
-                                border: '2px solid #2f4f5f',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
-                                '&:after': {
-                                  content: 'attr(data-value)',
-                                  color: '#fff',
-                                  fontWeight: 700,
-                                  fontSize: '0.9rem',
-                                  fontFamily: 'Gemunu Libre, sans-serif',
-                                  position: 'absolute',
-                                  top: '50%',
-                                  left: '50%',
-                                  transform: 'translate(-50%, -50%)',
-                                },
-                              },
-                              '& .MuiSlider-track': {
-                                bgcolor: '#6393AA',
-                              },
-                              '& .MuiSlider-rail': {
-                                bgcolor: 'rgba(0,0,0,0.12)',
-                              },
-                            }}
-                          />
-                          <Box
-                            sx={{
-                              mt: 1,
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              fontSize: '0.8rem',
-                              color: 'text.secondary',
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                            }}
-                          >
-                            <span>Never</span>
-                            <span>Always</span>
-                          </Box>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                    {idx < currentGroup.length - 1 && (
-                      <Divider sx={{ my: 2 }} />
-                    )}
-                  </Box>
-                );
-              })}
+              <Typography
+                variant="body2"
+                sx={{ opacity: 0.75, textAlign: 'center', fontWeight: 700, letterSpacing: 0.4 }}
+              >
+                Question {activeIdx + 1} of {societalNormsQuestions.length}
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 700,
+                  lineHeight: 1.6,
+                  fontSize: '1.04rem',
+                  textAlign: 'center',
+                  maxWidth: 720,
+                  mx: 'auto',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {beforeBlank}
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline',
+                    minWidth: 80,
+                    fontWeight: 800,
+                    px: 0.25,
+                    mx: 0.35,
+                    color: 'text.primary',
+                  }}
+                >
+                  {displayVal || '____'}
+                </Box>
+                {afterBlank}
+              </Typography>
+              <Box sx={{ position: 'relative', width: '100%', maxWidth: 640, px: { xs: 1, md: 2 }, mx: 'auto' }}>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: 8,
+                    right: 8,
+                    height: 8,
+                    transform: 'translateY(-50%)',
+                    borderRadius: 1,
+                    background: 'linear-gradient(to right, #6393AA 0%, #ffffff 50%, #ffffff 50%, #E07A3F 100%)',
+                    zIndex: 0,
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: 2,
+                    height: 18,
+                    transform: 'translate(-50%, -50%)',
+                    bgcolor: 'rgba(0, 0, 0, 0.35)',
+                    zIndex: 1,
+                    borderRadius: 1,
+                  }}
+                />
+                <MemoSlider
+                  value={val ?? 5}
+                  onChange={(_, v) => setSocietalValue(activeIdx, v)}
+                  step={1}
+                  min={1}
+                  max={10}
+                  marks={marks}
+                  valueLabelDisplay="off"
+                  sx={{
+                    position: 'relative',
+                    zIndex: 2,
+                    height: 8,
+                    '& .MuiSlider-track': { display: 'none' },
+                    '& .MuiSlider-rail': { display: 'none' },
+                    '& .MuiSlider-thumb': {
+                      width: 20,
+                      height: 20,
+                      bgcolor: '#fff',
+                      border: '2px solid',
+                      borderColor: (val ?? 5) <= 5 ? '#6393AA' : '#E07A3F',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    },
+                    '& .MuiSlider-mark': {
+                      width: 4,
+                      height: 4,
+                      borderRadius: '50%',
+                      bgcolor: 'rgba(0, 0, 0, 0.35)',
+                    },
+                  }}
+                />
+                <Box
+                  sx={{
+                    mt: 1,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.82rem',
+                    color: 'text.secondary',
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                  }}
+                >
+                  <span>Never</span>
+                  <span>Always</span>
+                </Box>
+              </Box>
             </Stack>
           </Paper>
 
-          {/* If NOT the last group → show Back/Next */}
-          {currentStep < societalEnd && (
-            <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
-              <MemoButton
-                variant="outlined"
-                onClick={() => setCurrentStep(s => Math.max(s - 1, societalStart))}
-              >
-                Back
-              </MemoButton>
-              <MemoButton
-  variant="contained"
-  onClick={handleNext}
->
-  Next
-</MemoButton>
-
-            </Stack>
-          )}
-
-          {/* If it IS the last group → show Back/Next */}
-          {currentStep === societalEnd && (
-            <Stack direction="row" spacing={2} sx={{ pt: 2, justifyContent: 'center' }}>
-              <MemoButton
-                variant="outlined"
-                onClick={() => setCurrentStep(s => Math.max(s - 1, societalStart))}
-              >
-                Back
-              </MemoButton>
-              <MemoButton
-                variant="contained"
-                color="primary"
-                onClick={() => setCurrentStep(agentStep)}
-              >
-                Next
-              </MemoButton>
-            </Stack>
-          )}
+          <Stack direction="row" spacing={2} sx={{ pt: 2, justifyContent: 'center' }}>
+            <MemoButton
+              variant="outlined"
+              onClick={() => {
+                if (activeIdx > 0) {
+                  setSocietalQuestionIndex((i) => i - 1);
+                } else {
+                  setCurrentStep(reflectionStep);
+                }
+              }}
+            >
+              Back
+            </MemoButton>
+            <MemoButton
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                if (!lastQuestion) {
+                  setSocietalQuestionIndex((i) => i + 1);
+                } else {
+                  setCurrentStep(agentStep);
+                }
+              }}
+            >
+              Next
+            </MemoButton>
+          </Stack>
         </Stack>
       );
     })()}
