@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 
 const sections = [
-  { key: 'method', label: 'Compass Method' },
+  { key: 'method', label: 'Methodology' },
   { key: 'process', label: 'How It Works' },
   { key: 'deliverables', label: 'Deliverables' },
 ];
@@ -31,7 +31,7 @@ function Landing() {
     if (sections[activeSection].key === 'method') {
       return (
         <Box sx={{ minHeight: { xs: 'auto', md: 430 } }}>
-          <Grid container spacing={3}>
+          <Grid container spacing={3} alignItems="stretch">
             {[
               {
                 icon: <Psychology sx={{ fontSize: 36, color: 'primary.main' }} />,
@@ -64,7 +64,7 @@ function Landing() {
                 ],
               },
             ].map((item) => (
-              <Grid item xs={12} md={4} key={item.title}>
+              <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex' }}>
                 <Box
                   sx={{
                     p: 3.25,
@@ -72,6 +72,8 @@ function Landing() {
                     border: '1px solid',
                     borderColor: 'rgba(0,0,0,0.08)',
                     bgcolor: 'rgba(255,255,255,0.9)',
+                    width: '100%',
+                    height: '100%',
                   }}
                 >
                   <Box sx={{ mb: 1.5 }}>{item.icon}</Box>
@@ -125,7 +127,7 @@ function Landing() {
     if (sections[activeSection].key === 'process') {
       return (
         <Box sx={{ minHeight: { xs: 'auto', md: 430 } }}>
-          <Grid container spacing={2.5}>
+          <Grid container spacing={2.5} alignItems="stretch">
             {[
               {
                 title: 'Leadership Intake',
@@ -160,7 +162,7 @@ function Landing() {
                 ],
               },
             ].map((step, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={step.title}>
+              <Grid item xs={12} sm={6} md={3} key={step.title} sx={{ display: 'flex' }}>
                 <Box
                   sx={{
                     p: 2.7,
@@ -171,6 +173,8 @@ function Landing() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 1,
+                    width: '100%',
+                    height: '100%',
                   }}
                 >
                   <Box
@@ -237,7 +241,7 @@ function Landing() {
 
     return (
       <Stack spacing={3} sx={{ minHeight: { xs: 'auto', md: 430 } }}>
-        <Grid container spacing={2.5}>
+        <Grid container spacing={2.5} alignItems="stretch">
           {[
             {
               icon: <Route sx={{ fontSize: 34, color: 'primary.main' }} />,
@@ -267,7 +271,7 @@ function Landing() {
               ],
             },
           ].map((item) => (
-            <Grid item xs={12} md={4} key={item.title}>
+            <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex' }}>
               <Box
                 sx={{
                   p: 2.95,
@@ -275,6 +279,8 @@ function Landing() {
                   border: '1px solid',
                   borderColor: 'rgba(0,0,0,0.08)',
                   bgcolor: 'rgba(255,255,255,0.9)',
+                  width: '100%',
+                  height: '100%',
                 }}
               >
                 <Box sx={{ mb: 1.25 }}>{item.icon}</Box>
@@ -401,12 +407,12 @@ function Landing() {
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: { xs: '2.15rem', md: '2.45rem' },
-                    fontWeight: 800,
+                    fontSize: { xs: '2.75rem', md: '3.2rem' },
+                    fontWeight: 500,
                     color: '#FFFFFF',
                     lineHeight: 1.06,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.03em',
+                    letterSpacing: '0.036em',
                   }}
                 >
                   THE COMPASS
