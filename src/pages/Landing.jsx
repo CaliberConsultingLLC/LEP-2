@@ -346,9 +346,10 @@ function Landing() {
   return (
     <Box
       sx={{
-        height: '100vh',
+        minHeight: '100vh',
         width: '100vw',
-        overflow: 'hidden',
+        overflowY: 'auto',
+        overflowX: 'hidden',
         backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -360,7 +361,7 @@ function Landing() {
       <Container maxWidth="xl" sx={{ height: '100%' }}>
         <Box
           sx={{
-            height: { xs: 'calc(100vh - 16px)', md: 'calc(100vh - 24px)' },
+            minHeight: { xs: 'calc(100vh - 18px)', md: 'calc(100vh - 28px)' },
             borderRadius: 4,
             border: '1px solid',
             borderColor: 'rgba(255,255,255,0.62)',
@@ -368,8 +369,8 @@ function Landing() {
             boxShadow: '0 20px 44px rgba(18, 31, 56, 0.20)',
             px: { xs: 2.5, md: 5 },
             py: { xs: 2, md: 2.75 },
-            display: 'grid',
-            gridTemplateRows: 'auto auto 1fr',
+            display: 'flex',
+            flexDirection: 'column',
             gap: { xs: 1.8, md: 2.4 },
             backdropFilter: 'blur(1px)',
             position: 'relative',
@@ -471,6 +472,7 @@ function Landing() {
               overflow: 'hidden',
               position: 'relative',
               zIndex: 1,
+              flex: '0 0 auto',
             }}
           >
             {panel}
