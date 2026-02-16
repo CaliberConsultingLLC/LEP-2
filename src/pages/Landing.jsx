@@ -30,37 +30,37 @@ function Landing() {
   const panel = useMemo(() => {
     if (sections[activeSection].key === 'method') {
       return (
-        <Box sx={{ minHeight: { xs: 'auto', md: 430 } }}>
+        <Box>
           <Grid container spacing={3} alignItems="stretch">
             {[
               {
                 icon: <Psychology sx={{ fontSize: 36, color: 'primary.main' }} />,
                 title: 'Mirror-Accurate',
-                text: 'Compass synthesizes your responses into a nuanced reflection instead of repeating your inputs.',
+                text: 'The Compass gives you an objective reflection of your current leadership approach.',
                 bullets: [
-                  'Built from decades of leadership coaching and organizational fieldwork.',
-                  'Patterns are surfaced with practical clarity, not abstract jargon.',
-                  'Designed so your team context is always part of the interpretation.',
+                  'Highlights both your strengths and your growth opportunities with clarity.',
+                  'Helps you understand how your leadership may be experienced by others.',
+                  'Creates language you can use in meaningful conversations with your team.',
                 ],
               },
               {
                 icon: <AutoAwesome sx={{ fontSize: 36, color: 'primary.main' }} />,
                 title: 'Signal Over Noise',
-                text: 'Each section is designed to capture high-value leadership patterns quickly and clearly.',
+                text: 'The Compass focuses your attention on the leadership shifts that matter most right now.',
                 bullets: [
-                  'Questions are intentional and structured to reduce vanity responses.',
-                  'Every prompt is meant to reveal behavior, pressure points, and tradeoffs.',
-                  'Outputs prioritize what matters most right now for your growth.',
+                  'Prioritizes high-impact growth areas so you can move with confidence.',
+                  'Keeps feedback practical and easy to apply in real team settings.',
+                  'Reduces overwhelm by turning insight into clear direction.',
                 ],
               },
               {
                 icon: <Insights sx={{ fontSize: 36, color: 'primary.main' }} />,
                 title: 'Built for Action',
-                text: 'You leave with concrete focus traits that convert reflection into a practical growth campaign.',
+                text: 'You leave with clear priorities that turn reflection into real leadership momentum.',
                 bullets: [
-                  'Focus traits are selected to drive immediate leadership momentum.',
-                  'Action direction is specific enough to use with your team quickly.',
-                  'The experience stays personal while remaining grounded and reliable.',
+                  'Connects self-awareness to practical next steps you can act on quickly.',
+                  'Supports stronger alignment and trust through focused development.',
+                  'Keeps your growth plan personal, relevant, and sustainable.',
                 ],
               },
             ].map((item) => (
@@ -126,39 +126,39 @@ function Landing() {
 
     if (sections[activeSection].key === 'process') {
       return (
-        <Box sx={{ minHeight: { xs: 'auto', md: 430 } }}>
+        <Box>
           <Grid container spacing={2.5} alignItems="stretch">
             {[
               {
                 title: 'Leadership Intake',
-                text: 'A concise set of prompts to capture how you lead, decide, and respond under pressure.',
+                text: 'A concise intake that helps you reflect on how you lead, decide, and respond in key moments.',
                 bullets: [
-                  'A balanced mix of profile, behavior, and insight-based questions.',
-                  'Built to be engaging while still producing high-integrity input.',
+                  'Designed to keep you engaged while revealing meaningful leadership patterns.',
+                  'Balances perspective, context, and day-to-day leadership realities.',
                 ],
               },
               {
                 title: 'Reflection Results',
-                text: 'A precise narrative of your current leadership strengths, tensions, and likely trajectory.',
+                text: 'A clear reflection of your current leadership strengths, tensions, and likely trajectory.',
                 bullets: [
-                  'Synthesized for clarity so you can quickly see what matters.',
-                  'Written to feel personal, grounded, and professionally useful.',
+                  'Gives you a grounded view of where you are today and what comes next.',
+                  'Written to feel personal, practical, and professionally useful.',
                 ],
               },
               {
                 title: 'Trait Selection',
-                text: 'Five data-driven traits are surfaced so you can choose your most relevant growth focus.',
+                text: 'You receive five personalized growth traits so you can choose your most relevant focus.',
                 bullets: [
-                  'Trait options are curated to avoid generic development advice.',
-                  'You keep autonomy while still benefiting from expert structure.',
+                  'Keeps your development choices specific instead of generic.',
+                  'Preserves your autonomy while giving clear direction.',
                 ],
               },
               {
                 title: 'Growth Campaign',
                 text: 'Build your campaign and move forward with a dashboard that supports ongoing development.',
                 bullets: [
-                  'Campaign statements are designed for transparency and team alignment.',
-                  'Everything flows into one home base for consistency over time.',
+                  'Creates a shared language for growth, accountability, and progress.',
+                  'Keeps your journey organized in one place over time.',
                 ],
               },
             ].map((step, idx) => (
@@ -240,25 +240,25 @@ function Landing() {
     }
 
     return (
-      <Stack spacing={3} sx={{ minHeight: { xs: 'auto', md: 430 } }}>
+      <Stack spacing={3}>
         <Grid container spacing={2.5} alignItems="stretch">
           {[
             {
               icon: <Route sx={{ fontSize: 34, color: 'primary.main' }} />,
               title: 'Reflection Summary',
-              text: 'A clear portrait of your current leadership with grounded context and directional clarity.',
+              text: 'A clear, objective portrait of your current leadership with practical context.',
               bullets: [
-                'Captures both what is working and what will hold you back if unchanged.',
-                'Structured to help you move forward, not just feel informed.',
+                'Shows what is working now and where growth will create the biggest lift.',
+                'Helps you move forward with confidence, not just information.',
               ],
             },
             {
               icon: <TrendingUp sx={{ fontSize: 34, color: 'primary.main' }} />,
               title: 'Focus Traits',
-              text: 'Five prioritized growth traits selected from your intake patterns.',
+              text: 'Five prioritized growth traits tailored to your current leadership needs.',
               bullets: [
-                'Traits are chosen for practical impact in real team environments.',
-                'Designed to make your next developmental step obvious.',
+                'Keeps your development path practical and high impact.',
+                'Makes your next growth step clear and actionable.',
               ],
             },
             {
@@ -266,8 +266,8 @@ function Landing() {
               title: 'Action Dashboard',
               text: 'Your campaign details, progress points, and supporting resources in one place.',
               bullets: [
-                'Keeps your journey organized so insights do not disappear after day one.',
-                'Built for continuity, accountability, and visible progress.',
+                'Keeps your growth journey visible so momentum does not fade.',
+                'Supports continuity, accountability, and measurable progress.',
               ],
             },
           ].map((item) => (
