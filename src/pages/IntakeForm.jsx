@@ -1466,9 +1466,30 @@ function IntakeForm() {
        {/* Reflection Moment (Step 17) */}
 {currentStep === reflectionStep && (
   <SectionCard narrow={false}>
-    <Stack spacing={4} alignItems="center" textAlign="center">
-      <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>
+    <Stack spacing={3} alignItems="center" textAlign="center">
+      <Typography
+        sx={{
+          fontFamily: 'Gemunu Libre, sans-serif',
+          fontSize: { xs: '2.05rem', md: '2.35rem' },
+          fontWeight: 800,
+          lineHeight: 1.1,
+          color: 'text.primary',
+          textShadow: '0 1px 0 rgba(255,255,255,0.6)',
+        }}
+      >
         Reflection Moment
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: 'Gemunu Libre, sans-serif',
+          fontSize: '1.03rem',
+          color: 'text.secondary',
+          lineHeight: 1.45,
+          mt: -0.75,
+          mb: 0.5,
+        }}
+      >
+        Insights from your reflection and leadership assessment
       </Typography>
 
       {/* AI Reflection Text */}
@@ -1558,9 +1579,20 @@ function IntakeForm() {
       const lastQuestion = activeIdx === societalNormsQuestions.length - 1;
 
       return (
-        <Stack spacing={3} alignItems="center" textAlign="center">
-          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>Leader Instincts</Typography>
-          <Typography sx={{ mb: 3, opacity: 0.85, maxWidth: 600 }}>
+        <Stack spacing={2.4} alignItems="center" textAlign="center">
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: { xs: '2.05rem', md: '2.35rem' },
+              fontWeight: 800,
+              lineHeight: 1.1,
+              color: 'text.primary',
+              textShadow: '0 1px 0 rgba(255,255,255,0.6)',
+            }}
+          >
+            Leader Instincts
+          </Typography>
+          <Typography sx={{ mb: 1.5, opacity: 0.85, maxWidth: 620, fontSize: '1.02rem', lineHeight: 1.45 }}>
             Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
           </Typography>
 
@@ -1605,10 +1637,11 @@ function IntakeForm() {
                     fontWeight: 800,
                     px: 0.25,
                     mx: 0.35,
-                    color: 'text.primary',
+                    color: (val ?? 5) <= 5 ? '#2f4f5f' : '#9a4a1c',
+                    fontStyle: 'italic',
                   }}
                 >
-                  {displayVal || '____'}
+                  {displayVal ? displayVal.toLowerCase() : '____'}
                 </Box>
                 {afterBlank}
               </Typography>

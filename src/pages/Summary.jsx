@@ -598,9 +598,9 @@ function Summary() {
             {error}
           </Alert>
         ) : (
-          <Stack spacing={3} sx={{ width: '100%' }}>
+          <Stack spacing={2.25} sx={{ width: '100%' }}>
             {/* Title - Reflection Results */}
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
+            <Box sx={{ textAlign: 'center', mb: 1 }}>
               <Typography
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
@@ -627,7 +627,7 @@ function Summary() {
                 borderColor: 'primary.main',
                 background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(220,230,255,0.85))',
                 boxShadow: 4,
-                mb: 3,
+                mb: 0,
               }}
             >
               {summaryParagraphs.length ? (
@@ -637,7 +637,7 @@ function Summary() {
                       display: 'grid',
                       gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                       gap: 2,
-                      mb: 2,
+                      mb: 1.25,
                       alignItems: 'stretch',
                     }}
                   >
@@ -652,7 +652,7 @@ function Summary() {
                           key={`para-${idx}`}
                           sx={{
                             p: 2.25,
-                            pb: 2,
+                            pb: 1.6,
                             borderRadius: 2.5,
                             border: '1px solid',
                             borderColor: accent,
@@ -704,7 +704,7 @@ function Summary() {
                   </Box>
                   <Paper
                     sx={{
-                      p: 2.5,
+                      p: 2.25,
                       borderRadius: 2.5,
                       border: '1px solid',
                       borderColor: 'rgba(47,133,90,0.35)',
@@ -1081,7 +1081,7 @@ function Summary() {
             </Box>
             )}
 
-            <Stack direction="row" spacing={3} justifyContent="center" alignItems="center" sx={{ mt: 4 }}>
+            <Stack direction="row" spacing={3} justifyContent="center" alignItems="center" sx={{ mt: 1.25 }}>
               <Button
                 variant="contained"
                 color="primary"
