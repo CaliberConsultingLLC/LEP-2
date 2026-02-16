@@ -320,7 +320,7 @@ function Landing() {
             </Grid>
           ))}
         </Grid>
-        <Stack direction="row" justifyContent="center" sx={{ mt: 3.3 }}>
+        <Stack direction="row" justifyContent="center" sx={{ mt: 5.5, pt: 0.5 }}>
           <Button
             variant="contained"
             color="primary"
@@ -373,6 +373,7 @@ function Landing() {
             gap: { xs: 1.8, md: 2.4 },
             backdropFilter: 'blur(1px)',
             position: 'relative',
+            overflow: 'hidden',
           }}
         >
           <Box
@@ -382,10 +383,10 @@ function Landing() {
             sx={{
               position: 'absolute',
               left: '50%',
-              top: '60%',
-              transform: 'translate(-50%, -50%)',
-              width: { xs: 240, md: 360 },
-              opacity: 0.1,
+              top: { xs: -110, md: -210 },
+              transform: 'translateX(-50%)',
+              width: { xs: 460, md: 780 },
+              opacity: 0.2,
               pointerEvents: 'none',
               zIndex: 0,
             }}
@@ -393,24 +394,19 @@ function Landing() {
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12}>
               <Stack spacing={1.2} sx={{ textAlign: 'center', alignItems: 'center', position: 'relative', zIndex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <img
-                    src="/CompassLogo.png"
-                    alt="The Compass Logo"
-                    style={{ height: '108px', width: 'auto', display: 'block' }}
-                  />
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: { xs: '2.3rem', md: '2.7rem' },
-                      fontWeight: 700,
-                      color: '#FFFFFF',
-                      lineHeight: 1.05,
-                    }}
-                  >
-                    The Compass
-                  </Typography>
-                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: { xs: '2.3rem', md: '2.7rem' },
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    lineHeight: 1.05,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  THE COMPASS
+                </Typography>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
