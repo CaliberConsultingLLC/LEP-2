@@ -1596,128 +1596,121 @@ function IntakeForm() {
             Rate how often each statement reflects your typical leadership behavior. Use the slider: 1 = Never, 10 = Always.
           </Typography>
 
-          <Paper
-            elevation={4}
+          <Typography
+            variant="overline"
+            sx={{ letterSpacing: 1.2, opacity: 0.75, textAlign: 'center', fontWeight: 700 }}
+          >
+            Question {activeIdx + 1} of {societalNormsQuestions.length}
+          </Typography>
+
+          <Typography
+            variant="h5"
             sx={{
-              p: { xs: 2.5, md: 3 },
-              borderRadius: 2,
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-              border: '1px solid',
-              borderColor: 'primary.main',
-              width: '100%',
-              textAlign: 'left',
+              fontWeight: 800,
+              lineHeight: 1.35,
+              textAlign: 'center',
+              maxWidth: 760,
+              wordBreak: 'break-word',
+              overflowWrap: 'anywhere',
             }}
           >
-            <Stack spacing={2.5}>
-              <Typography
-                variant="body2"
-                sx={{ opacity: 0.75, textAlign: 'center', fontWeight: 700, letterSpacing: 0.4 }}
-              >
-                Question {activeIdx + 1} of {societalNormsQuestions.length}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 700,
-                  lineHeight: 1.6,
-                  fontSize: '1.04rem',
-                  textAlign: 'center',
-                  maxWidth: 720,
-                  mx: 'auto',
-                  wordBreak: 'break-word',
-                  overflowWrap: 'anywhere',
-                }}
-              >
-                {beforeBlank}
-                <Box
-                  component="span"
-                  sx={{
-                    display: 'inline',
-                    minWidth: 80,
-                    fontWeight: 800,
-                    px: 0.25,
-                    mx: 0.35,
-                    color: (val ?? 5) <= 5 ? '#2f4f5f' : '#9a4a1c',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {displayVal ? displayVal.toLowerCase() : '____'}
-                </Box>
-                {afterBlank}
-              </Typography>
-              <Box sx={{ position: 'relative', width: '100%', maxWidth: 640, px: { xs: 1, md: 2 }, mx: 'auto' }}>
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: 8,
-                    right: 8,
-                    height: 8,
-                    transform: 'translateY(-50%)',
-                    borderRadius: 1,
-                    background: 'linear-gradient(to right, #6393AA 0%, #ffffff 50%, #ffffff 50%, #E07A3F 100%)',
-                    zIndex: 0,
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    width: 2,
-                    height: 18,
-                    transform: 'translate(-50%, -50%)',
-                    bgcolor: 'rgba(0, 0, 0, 0.35)',
-                    zIndex: 1,
-                    borderRadius: 1,
-                  }}
-                />
-                <MemoSlider
-                  value={val ?? 5}
-                  onChange={(_, v) => setSocietalValue(activeIdx, v)}
-                  step={1}
-                  min={1}
-                  max={10}
-                  marks={marks}
-                  valueLabelDisplay="off"
-                  sx={{
-                    position: 'relative',
-                    zIndex: 2,
-                    height: 8,
-                    '& .MuiSlider-track': { display: 'none' },
-                    '& .MuiSlider-rail': { display: 'none' },
-                    '& .MuiSlider-thumb': {
-                      width: 20,
-                      height: 20,
-                      bgcolor: '#fff',
-                      border: '2px solid',
-                      borderColor: (val ?? 5) <= 5 ? '#6393AA' : '#E07A3F',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                    },
-                    '& .MuiSlider-mark': {
-                      width: 4,
-                      height: 4,
-                      borderRadius: '50%',
-                      bgcolor: 'rgba(0, 0, 0, 0.35)',
-                    },
-                  }}
-                />
-                <Box
-                  sx={{
-                    mt: 1,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '0.82rem',
-                    color: 'text.secondary',
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                  }}
-                >
-                  <span>Never</span>
-                  <span>Always</span>
-                </Box>
-              </Box>
+            {beforeBlank}
+            <Box
+              component="span"
+              sx={{
+                display: 'inline',
+                minWidth: 80,
+                fontWeight: 800,
+                px: 0.25,
+                mx: 0.35,
+                color: (val ?? 5) <= 5 ? '#2f4f5f' : '#9a4a1c',
+                fontStyle: 'italic',
+              }}
+            >
+              {displayVal ? displayVal.toLowerCase() : '____'}
+            </Box>
+            {afterBlank}
+          </Typography>
+
+          <Box sx={{ position: 'relative', width: '100%', maxWidth: 600 }}>
+            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
+              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Never</Typography>
+              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>Always</Typography>
             </Stack>
-          </Paper>
+            <Box sx={{ position: 'relative', px: 1 }}>
+              {/* Match Balance Line slider visuals exactly */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: 0,
+                  right: 0,
+                  height: 8,
+                  transform: 'translateY(-50%)',
+                  borderRadius: 1,
+                  background: 'linear-gradient(to right, #6393AA 0%, #ffffff 50%, #ffffff 50%, #E07A3F 100%)',
+                  zIndex: 0,
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 2,
+                  height: 20,
+                  transform: 'translate(-50%, -50%)',
+                  bgcolor: 'rgba(0, 0, 0, 0.4)',
+                  zIndex: 1,
+                  borderRadius: 1,
+                }}
+              />
+              <MemoSlider
+                value={val ?? 5}
+                onChange={(_, v) => setSocietalValue(activeIdx, v)}
+                step={1}
+                min={1}
+                max={10}
+                marks={marks}
+                valueLabelDisplay="off"
+                sx={{
+                  position: 'relative',
+                  zIndex: 2,
+                  height: 8,
+                  width: '100%',
+                  '& .MuiSlider-track': {
+                    display: 'none',
+                  },
+                  '& .MuiSlider-rail': {
+                    display: 'none',
+                  },
+                  '& .MuiSlider-thumb': {
+                    width: 20,
+                    height: 20,
+                    bgcolor: '#fff',
+                    border: '2px solid',
+                    borderColor: (val ?? 5) <= 5 ? '#6393AA' : '#E07A3F',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    '&:hover': {
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                    },
+                    '&.Mui-focusVisible': {
+                      boxShadow: '0 0 0 4px rgba(0,0,0,0.1)',
+                    },
+                  },
+                  '& .MuiSlider-mark': {
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(0, 0, 0, 0.4)',
+                    '&.MuiSlider-markActive': {
+                      bgcolor: (val ?? 5) <= 5 ? '#6393AA' : '#E07A3F',
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </Box>
 
           <Stack direction="row" spacing={2} sx={{ pt: 2, justifyContent: 'center' }}>
             <MemoButton
