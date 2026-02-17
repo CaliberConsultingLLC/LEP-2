@@ -2,7 +2,12 @@
 import { OpenAI } from 'openai';
 import fs from 'fs';
 import path from 'path';
-import { buildSummarySystemPrompt, buildSummaryUserPrompt } from './promptBuilder.js';
+import {
+  buildInsightExtractionSystemPrompt,
+  buildInsightExtractionUserPrompt,
+  buildSummaryNarrativeSystemPrompt,
+  buildSummaryNarrativeUserPrompt,
+} from './promptBuilder.js';
 import traitSystem from '../src/data/traitSystem.js';
 import { intakeContext } from '../src/data/intakeContext.js';
 
@@ -113,6 +118,79 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
   const rebuilt = `${narrative ? `${narrative}\n` : ''}${finalBullets.join('\n')}`.trim();
   sections[lastIdx] = rebuilt;
   return sections.join('\n\n').trim();
+}
+
+function extractFirstJsonObject(text) {
+  const input = String(text || '').trim();
+  if (!input) return null;
+  const fenced = input.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced ? fenced[1].trim() : input;
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    // Best-effort scan for the first object block
+    const start = candidate.indexOf('{');
+    const end = candidate.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      const sliced = candidate.slice(start, end + 1);
+      try {
+        return JSON.parse(sliced);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+function normalizeInsightMap(map) {
+  const src = map && typeof map === 'object' ? map : {};
+  const normArray = (arr, max = 3) =>
+    Array.isArray(arr)
+      ? arr
+          .slice(0, max)
+          .map((x) => ({
+            label: String(x?.label || '').trim(),
+            evidence: Array.isArray(x?.evidence) ? x.evidence.map((e) => String(e || '').trim()).filter(Boolean).slice(0, 2) : [],
+            implication: String(x?.implication || x?.teamImpact || '').trim(),
+            teamImpact: String(x?.teamImpact || '').trim(),
+          }))
+          .filter((x) => x.label || x.evidence.length || x.implication || x.teamImpact)
+      : [];
+
+  return {
+    leadershipEssence: String(src.leadershipEssence || '').trim(),
+    coreStrengths: normArray(src.coreStrengths, 3),
+    coreTensions: normArray(src.coreTensions, 3),
+    blindSpots: normArray(src.blindSpots, 3),
+    trajectory: {
+      bestCase: String(src?.trajectory?.bestCase || '').trim(),
+      driftCase: String(src?.trajectory?.driftCase || '').trim(),
+    },
+    languageAvoid: Array.isArray(src.languageAvoid) ? src.languageAvoid.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 6) : [],
+  };
+}
+
+function normalizeThreeSections(text, insightMap) {
+  const parts = String(text || '')
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const stripHeading = (s) =>
+    String(s || '')
+      .replace(/^(snapshot|trajectory|a new way forward)\s*[:\-]\s*/i, '')
+      .trim();
+
+  const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
+  const p2 = stripHeading(
+    parts[1]
+      || [insightMap?.trajectory?.bestCase, insightMap?.trajectory?.driftCase].filter(Boolean).join(' ')
+      || 'With intentional growth, your trajectory is strong; without change, current friction is likely to compound.'
+  );
+  const p3 = stripHeading(parts[2] || 'A new way forward starts with a few high-leverage leadership shifts.');
+  return [p1, p2, p3].join('\n\n').trim();
 }
 
 
@@ -414,15 +492,14 @@ const agents = {
 
     const maxChars = Math.max(1200, Math.min(Number(charLimit) || 1500, 1800));
 
-    // Prompt assembly
     // Build a compact persona voice guide
-const voiceGuide = (() => {
-  const a = agents[selectedAgent];
-  const doList = (a.style?.do || []).map(d => `- ${d}`).join('\n');
-  const dontList = (a.style?.dont || []).map(d => `- ${d}`).join('\n');
-  const lex = (a.style?.lexicon || []).slice(0, 8).join(', ');
-  const sentences = a.style?.sentences || '';
-  return `
+    const voiceGuide = (() => {
+      const a = agents[selectedAgent];
+      const doList = (a.style?.do || []).map((d) => `- ${d}`).join('\n');
+      const dontList = (a.style?.dont || []).map((d) => `- ${d}`).join('\n');
+      const lex = (a.style?.lexicon || []).slice(0, 8).join(', ');
+      const sentences = a.style?.sentences || '';
+      return `
 VOICE & TONE GUIDE (apply consistently):
 - Sentence shape: ${sentences}
 - Prefer vocabulary: ${lex || 'plain, concrete verbs; avoid fluff'}
@@ -431,37 +508,49 @@ ${doList || '- Keep it concrete.\n- Tie to context.\n- End with a clear insight.
 - Don’t:
 ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 `.trim();
-})();
+    })();
 
     const focusAreas = buildFocusAreas(body);
 
-    const systemPrompt = buildSummarySystemPrompt({
+    // Pass A: structured insight extraction
+    const extractSystem = buildInsightExtractionSystemPrompt({ agentIdentity: cleanIdentity });
+    const extractUser = buildInsightExtractionUserPrompt(body);
+    const extraction = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 900,
+      temperature: 0.2,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+      messages: [
+        { role: 'system', content: extractSystem },
+        { role: 'user', content: extractUser },
+      ],
+    });
+    const extractionRaw = extraction?.choices?.[0]?.message?.content?.trim() || '{}';
+    const insightMap = normalizeInsightMap(extractFirstJsonObject(extractionRaw));
+
+    // Pass B: narrative generation from extracted insight map
+    const narrativeSystem = buildSummaryNarrativeSystemPrompt({
       agentPrompt: agents[selectedAgent].prompt,
       voiceGuide,
       agentIdentity: cleanIdentity,
     });
-
-
-    const userPrompt = buildSummaryUserPrompt(body, focusAreas);
-
-    // Call OpenAI
-    // max_tokens: 600 ≈ 2400 chars at ~4 chars/token, aligned with TOTAL budget of 2000 chars
-    const p = agents[selectedAgent]?.params || {};
-const completion = await openai.chat.completions.create({
-  model: 'gpt-4o-mini',
-  max_tokens: 750,
-  temperature: agents[selectedAgent]?.params?.temperature ?? 0.35,
-  frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
-  presence_penalty: agents[selectedAgent]?.params?.presence_penalty ?? 0.0,
-  messages: [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ],
-});
-
+    const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas });
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 1300,
+      temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.12, 0.75),
+      frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
+      presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
+      messages: [
+        { role: 'system', content: narrativeSystem },
+        { role: 'user', content: narrativeUser },
+      ],
+    });
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const capped = ensureFiveSubtraitBullets(enforceThreeParagraphs(raw, maxChars), focusAreas);
+    const shaped = normalizeThreeSections(raw, insightMap);
+    const capped = ensureFiveSubtraitBullets(shaped, focusAreas);
 
     return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {
