@@ -24,13 +24,26 @@ function Home() {
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        backgroundImage: 'linear-gradient(rgba(8, 14, 26, 0.78), rgba(8, 14, 26, 0.78)), url(/LEP2.jpg)',
+        backgroundImage: 'linear-gradient(rgba(8, 14, 26, 0.40), rgba(8, 14, 26, 0.40)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'linear-gradient(rgba(0,0,0,0.40), rgba(0,0,0,0.40)), url(/CompassLogo.png)',
+          backgroundSize: 'min(86vw, 980px) auto',
+          backgroundPosition: 'center 42%',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.95,
+          pointerEvents: 'none',
+          zIndex: 0,
+        },
       }}
     >
-      <Stack spacing={4} alignItems="center" justifyContent="center" sx={{ width: '100%', px: 2 }}>
+      <Stack spacing={4} alignItems="center" justifyContent="center" sx={{ width: '100%', px: 2, position: 'relative', zIndex: 1 }}>
         <Box
           sx={{
             position: 'relative',
@@ -39,32 +52,30 @@ function Home() {
             justifyContent: 'center',
           }}
         >
-          <img
-            src="/CompassLogo.png"
-            alt="Compass Logo"
-            style={{ width: '620px', maxWidth: '82vw', height: 'auto' }}
-          />
           <Box
             sx={{
-              position: 'absolute',
-              inset: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
               pointerEvents: 'none',
-              transform: 'translateY(3%)',
             }}
           >
             <Box
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
-                color: '#FFFFFF',
-                fontSize: { xs: '3.6rem', sm: '4.2rem' },
-                fontWeight: 500,
-                lineHeight: 1.06,
+                color: 'transparent',
+                fontSize: { xs: '4.2rem', sm: '6.2rem', md: '8.2rem' },
+                fontWeight: 800,
+                lineHeight: 0.95,
                 textTransform: 'uppercase',
-                letterSpacing: '0.036em',
+                letterSpacing: '0.028em',
+                backgroundImage:
+                  'linear-gradient(135deg, rgba(215,232,255,0.95) 0%, rgba(137,187,233,0.9) 52%, rgba(93,161,227,0.95) 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextStroke: '1.2px rgba(255,255,255,0.28)',
+                textShadow: '0 12px 22px rgba(0,0,0,0.38)',
               }}
             >
               THE COMPASS
