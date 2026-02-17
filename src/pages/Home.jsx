@@ -59,11 +59,12 @@ function Home() {
             <Box
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
-                color: '#ffffff',
-                fontSize: { xs: '1.9rem', sm: '2.45rem' },
-                fontWeight: 700,
-                letterSpacing: '0.035em',
-                textShadow: '0 3px 14px rgba(0,0,0,0.75)',
+                color: '#FFFFFF',
+                fontSize: { xs: '3.6rem', sm: '4.2rem' },
+                fontWeight: 500,
+                lineHeight: 1.06,
+                textTransform: 'uppercase',
+                letterSpacing: '0.036em',
               }}
             >
               THE COMPASS
