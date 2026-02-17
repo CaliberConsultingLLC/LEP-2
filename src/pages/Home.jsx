@@ -28,62 +28,57 @@ function Home() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          backgroundImage:
-            'linear-gradient(rgba(0,0,0,0.40), rgba(0,0,0,0.40)), url(/CompassLogo.png)',
-          backgroundSize: 'min(86vw, 980px) auto',
-          backgroundPosition: 'center 42%',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.95,
-          pointerEvents: 'none',
-          zIndex: 0,
-        },
       }}
     >
-      <Stack spacing={4} alignItems="center" justifyContent="center" sx={{ width: '100%', px: 2, position: 'relative', zIndex: 1 }}>
+      <Box
+        component="img"
+        src="/CompassLogo.png"
+        alt=""
+        sx={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: { xs: '86vw', md: '72vw' },
+          maxWidth: 900,
+          aspectRatio: '1 / 1',
+          objectFit: 'cover',
+          borderRadius: '50%',
+          opacity: 0.96,
+          filter: 'brightness(0.68)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      <Stack spacing={0.2} alignItems="center" justifyContent="center" sx={{ width: '100%', px: 2, position: 'relative', zIndex: 1, textAlign: 'center' }}>
         <Box
           sx={{
-            position: 'relative',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontFamily: 'Gemunu Libre, sans-serif',
+            color: 'rgba(255,255,255,0.2)',
+            fontSize: { xs: '4.3rem', sm: '6.3rem', md: '8.2rem' },
+            fontWeight: 800,
+            lineHeight: 0.9,
+            textTransform: 'uppercase',
+            letterSpacing: '0.018em',
+            WebkitTextStroke: '2px rgba(0,0,0,0.92)',
+            textShadow: 'none',
+            pointerEvents: 'none',
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              pointerEvents: 'none',
-            }}
-          >
-            <Box
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                color: 'transparent',
-                fontSize: { xs: '4.2rem', sm: '6.2rem', md: '8.2rem' },
-                fontWeight: 800,
-                lineHeight: 0.95,
-                textTransform: 'uppercase',
-                letterSpacing: '0.028em',
-                backgroundImage:
-                  'linear-gradient(135deg, rgba(215,232,255,0.95) 0%, rgba(137,187,233,0.9) 52%, rgba(93,161,227,0.95) 100%)',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                WebkitTextStroke: '1.2px rgba(255,255,255,0.28)',
-                textShadow: '0 12px 22px rgba(0,0,0,0.38)',
-              }}
-            >
-              THE COMPASS
-            </Box>
-          </Box>
+          <Box component="span" sx={{ display: 'block' }}>THE</Box>
+          <Box component="span" sx={{ display: 'block' }}>COMPASS</Box>
         </Box>
+      </Stack>
 
-        <Stack spacing={2} direction="row" justifyContent="center" alignItems="center" flexWrap="wrap">
+      <Stack
+        spacing={2}
+        direction="row"
+        justifyContent="center"
+        alignItems="center"
+        flexWrap="wrap"
+        sx={{ position: 'absolute', bottom: '18vh', left: '50%', transform: 'translateX(-50%)', zIndex: 2 }}
+      >
           <Button
             variant="contained"
             color="primary"
@@ -112,7 +107,6 @@ function Home() {
           >
             Resume Your Journey
           </Button>
-        </Stack>
       </Stack>
 
       <Box sx={{ position: 'absolute', right: 28, bottom: 24 }}>
