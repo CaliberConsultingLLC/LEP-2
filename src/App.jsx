@@ -16,6 +16,8 @@ import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
 import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
+import SignIn from './pages/SignIn';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -33,7 +35,8 @@ function App() {
   <Route path="/campaign/:id" element={<NewCampaignIntro />} />
   <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
   <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
-  <Route path="/dashboard" element={<Dashboard />} />
+  <Route path="/sign-in" element={<SignIn />} />
+  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
   <Route path="/dev-skip-1" element={<DevSkipOne />} />
   <Route path="/dev-skip-two" element={<DevSkipTwo />} />
  
