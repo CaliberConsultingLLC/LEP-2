@@ -55,7 +55,7 @@ function Home() {
         <Box
           sx={{
             fontFamily: 'Gemunu Libre, sans-serif',
-            color: 'rgba(255,255,255,0.35)',
+            color: 'rgba(255,255,255,0.70)',
             fontSize: { xs: '4.3rem', sm: '6.3rem', md: '8.2rem' },
             fontWeight: 800,
             lineHeight: 0.9,
