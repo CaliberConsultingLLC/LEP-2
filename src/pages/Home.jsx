@@ -110,7 +110,25 @@ function Home() {
           </Button>
       </Stack>
 
-      <Box sx={{ position: 'absolute', right: 28, bottom: 24 }}>
+      <Box sx={{ position: 'absolute', right: 28, bottom: 24, display: 'flex', gap: 1 }}>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate('/dashboard')}
+          sx={{
+            fontSize: '0.82rem',
+            px: 2.1,
+            py: 0.7,
+            color: 'rgba(255,255,255,0.92)',
+            borderColor: 'rgba(255,255,255,0.45)',
+            '&:hover': {
+              borderColor: 'rgba(255,255,255,0.75)',
+              backgroundColor: 'rgba(255,255,255,0.06)',
+            },
+          }}
+        >
+          Dev Dashboard
+        </Button>
         <Button
           variant="outlined"
           color="primary"
