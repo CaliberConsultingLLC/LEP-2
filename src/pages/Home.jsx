@@ -55,15 +55,16 @@ function Home() {
         <Box
           sx={{
             fontFamily: 'Gemunu Libre, sans-serif',
-            color: 'rgba(255,255,255,0.2)',
+            color: 'rgba(255,255,255,0.35)',
             fontSize: { xs: '4.3rem', sm: '6.3rem', md: '8.2rem' },
             fontWeight: 800,
             lineHeight: 0.9,
             textTransform: 'uppercase',
             letterSpacing: '0.018em',
-            WebkitTextStroke: '2px rgba(0,0,0,0.92)',
+            WebkitTextStroke: '1px rgba(0,0,0,0.92)',
             textShadow: 'none',
             pointerEvents: 'none',
+            transform: 'translateY(-0.5in)',
           }}
         >
           <Box component="span" sx={{ display: 'block' }}>THE</Box>
