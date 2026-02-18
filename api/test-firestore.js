@@ -1,8 +1,26 @@
 import { db } from './firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { applyRateLimit, requireInternalKey, safeServerError } from './_security.js';
 
 export default async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
+  if (req.method && req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const rate = applyRateLimit(req, res, {
+    action: 'test-firestore',
+    limit: 5,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
+  if (!requireInternalKey(req, res)) {
+    return;
+  }
+
   try {
     console.log('Testing Firestore connection...');
     const snapshot = await getDocs(collection(db, 'responses'));
@@ -10,7 +28,6 @@ export default async (req, res) => {
     console.log('Test data:', data);
     res.status(200).json({ data, count: snapshot.size });
   } catch (error) {
-    console.error('Test error:', error);
-    res.status(500).json({ error: error.message });
+    return safeServerError(res, 'test-firestore error:', error);
   }
 };

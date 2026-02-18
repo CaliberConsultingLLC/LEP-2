@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,6 +9,19 @@ export default async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const rate = applyRateLimit(req, res, {
+    action: 'dismiss-statement',
+    limit: 40,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
+  if (!ensureJsonObjectBody(req, res)) {
+    return;
   }
 
   const { traitName, statementIndex, currentTraits, aiSummary } = req.body;
@@ -62,7 +76,6 @@ The response must be a single clean statement with no additional text, headers, 
 
     res.status(200).json({ campaign: updatedTraits });
   } catch (error) {
-    console.error('Error dismissing statement:', error);
-    res.status(500).json({ error: 'Failed to dismiss statement' });
+    return safeServerError(res, 'dismiss-statement error:', error);
   }
 };

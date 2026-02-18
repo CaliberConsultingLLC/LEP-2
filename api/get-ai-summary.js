@@ -10,6 +10,7 @@ import {
 } from './promptBuilder.js';
 import traitSystem from '../src/data/traitSystem.js';
 import { intakeContext } from '../src/data/intakeContext.js';
+import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -335,13 +336,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const rate = applyRateLimit(req, res, {
+    action: 'get-ai-summary',
+    limit: 40,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
   try {
-    const body = req.body || {};
-    
-    // Input validation: ensure body is an object
-    if (!body || typeof body !== 'object') {
-      return res.status(400).json({ error: 'Invalid request body: must be an object' });
+    if (!ensureJsonObjectBody(req, res)) {
+      return;
     }
+    const body = req.body || {};
     
     const { selectedAgent = 'balancedMentor', charLimit } = body;
     
@@ -554,9 +562,6 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 
     return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {
-    console.error('AI Summary error:', err);
-    return res
-      .status(500)
-      .json({ error: 'AI Analysis Failed', details: String(err?.message || err) });
+    return safeServerError(res, 'AI Summary error:', err);
   }
 }

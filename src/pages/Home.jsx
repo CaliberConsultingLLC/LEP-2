@@ -4,6 +4,49 @@ import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const navigate = useNavigate();
+  const boldVisionaryPreset = {
+    industry: 'Media',
+    role: 'Innovation Lead',
+    responsibilities: 'Champion experimentation and learning loops.',
+    birthYear: '1990',
+    teamSize: 9,
+    leadershipExperience: 5,
+    careerExperience: 8,
+    resourcePick: 'Expectations',
+    projectApproach: 'Gather the team for a collaborative brainstorming session.',
+    energyDrains: [
+      'Pursuing goals that lack clear direction',
+      'Meetings with limited or no outcomes',
+      'Decoding unspoken concerns from the team',
+    ],
+    crisisResponse: [
+      'Immediately gather the team to collaborate on potential solutions.',
+      'Maintain composure and provide clear, decisive direction to the team.',
+      'Delegate ownership to team members while providing support from the sidelines.',
+      'First verify all facts and details before taking any action.',
+      'Jump in directly to handle the most critical aspects myself.',
+    ],
+    pushbackFeeling: ['Motivated', 'Competitive', 'Curious'],
+    roleModelTrait: 'inspired others',
+    warningLabel: 'Flammable: Sparks fly under pressure',
+    leaderFuel: [
+      'Solving a problem no one else could',
+      'Turning chaos into order',
+      'Seeing the team gel and succeed together',
+      'Hearing the team say they learned something',
+      'My team getting the recognition it deserves',
+      'Nailing a tough project on time',
+    ],
+    proudMoment: 'Took a risky idea and rallied stakeholders into a successful pilot.',
+    behaviorDichotomies: [7, 5, 8, 6, 8],
+    visibilityComfort: 'I thrive in the spotlight.',
+    decisionPace: 'The Fix — Get things back on track',
+    teamPerception: 'Set clear expectations and create a performance improvement plan.',
+    selectedAgent: 'comedyRoaster',
+    userReflection: '',
+    societalResponses: [8, 7, 8, 6, 7, 6, 8, 7, 8, 6],
+    sessionId: 'dev-bold-visionary',
+  };
 
   const handleBeginJourney = () => {
     console.log('Begin Your Journey button clicked, navigating to /landing');
@@ -13,6 +56,11 @@ function Home() {
   const handleResumeJourney = () => {
     console.log('Resume Your Journey button clicked, navigating to /sign-in');
     navigate('/sign-in');
+  };
+
+  const handleDevSummary = () => {
+    localStorage.setItem('latestFormData', JSON.stringify(boldVisionaryPreset));
+    navigate('/summary', { state: { formData: boldVisionaryPreset } });
   };
 
   return (
@@ -114,7 +162,25 @@ function Home() {
         <Button
           variant="outlined"
           color="primary"
-          onClick={() => navigate('/dashboard')}
+          onClick={handleDevSummary}
+          sx={{
+            fontSize: '0.82rem',
+            px: 2.1,
+            py: 0.7,
+            color: 'rgba(255,255,255,0.92)',
+            borderColor: 'rgba(255,255,255,0.45)',
+            '&:hover': {
+              borderColor: 'rgba(255,255,255,0.75)',
+              backgroundColor: 'rgba(255,255,255,0.06)',
+            },
+          }}
+        >
+          Dev Summary
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate('/dashboard?dev=1')}
           sx={{
             fontSize: '0.82rem',
             px: 2.1,

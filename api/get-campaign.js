@@ -1,5 +1,6 @@
 // /api/get-campaign.js
 import { OpenAI } from 'openai';
+import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -44,10 +45,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
+  const rate = applyRateLimit(req, res, {
+    action: 'get-campaign',
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
   try {
-    // Validate request body exists
-    if (!req.body || typeof req.body !== 'object') {
-      return res.status(400).json({ error: 'Invalid request body. Expected JSON object.' });
+    if (!ensureJsonObjectBody(req, res)) {
+      return;
     }
 
     const body = req.body;
@@ -167,7 +176,7 @@ Task:
     const raw = completion?.choices?.[0]?.message?.content || '';
     const parsed = safeParseJSON(raw);
     if (!parsed) {
-      return res.status(502).json({ error: 'Malformed model output', raw });
+      return res.status(502).json({ error: 'Malformed model output' });
     }
 
     const normalized = normalizeCampaign(parsed);
@@ -180,7 +189,7 @@ Task:
         (t) => !t.trait || !Array.isArray(t.statements) || t.statements.length === 0 || t.statements.length > 5
       )
     ) {
-      return res.status(502).json({ error: 'Invalid campaign structure after normalization', normalized, raw });
+      return res.status(502).json({ error: 'Invalid campaign structure after normalization' });
     }
 
     return res.status(200).json(normalized);
@@ -189,31 +198,17 @@ Task:
     
     // Handle specific error types
     if (err?.response?.status === 401 || err?.status === 401) {
-      return res.status(500).json({ 
-        error: 'OpenAI API authentication failed. Please check API key configuration.',
-        details: 'Authentication error'
-      });
+      return res.status(500).json({ error: 'Campaign generation failed' });
     }
     
     if (err?.response?.status === 429 || err?.status === 429) {
-      return res.status(503).json({ 
-        error: 'OpenAI API rate limit exceeded. Please try again later.',
-        details: 'Rate limit error'
-      });
+      return res.status(503).json({ error: 'Campaign generation failed' });
     }
     
     if (err?.code === 'ENOTFOUND' || err?.code === 'ECONNREFUSED') {
-      return res.status(503).json({ 
-        error: 'Unable to connect to OpenAI API. Please check your network connection.',
-        details: 'Connection error'
-      });
+      return res.status(503).json({ error: 'Campaign generation failed' });
     }
     
-    // Generic error response
-    const errorMessage = err?.message || String(err) || 'Unknown error';
-    return res.status(500).json({ 
-      error: 'Campaign generation failed',
-      details: errorMessage.substring(0, 200) // Limit error message length
-    });
+    return safeServerError(res, 'get-campaign error:', err);
   }
 }

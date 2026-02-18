@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { applyRateLimit, requireInternalKey, safeServerError } from './_security.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCrAutEbLbhY4DP488dc2DqJCo43mt3nTo",
@@ -23,11 +24,24 @@ export default async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed. Use GET.' });
   }
 
+  const rate = applyRateLimit(req, res, {
+    action: 'get-latest-response',
+    limit: 20,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
+  if (!requireInternalKey(req, res)) {
+    return;
+  }
+
   try {
     // Check if Firebase is initialized
     if (!db) {
       console.error('Firestore database not initialized');
-      return res.status(500).json({ error: 'Database not initialized' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
 
     const q = query(collection(db, 'responses'), orderBy('timestamp', 'desc'), limit(1));
@@ -48,16 +62,6 @@ export default async (req, res) => {
     res.status(200).json(latestResponse);
   } catch (error) {
     console.error('Firestore error:', error);
-    const errorMessage = error?.message || 'Unknown error occurred';
-    const errorCode = error?.code || 'UNKNOWN';
-    
-    // Provide more specific error messages
-    if (errorCode === 'permission-denied') {
-      return res.status(403).json({ error: 'Permission denied', details: errorMessage });
-    } else if (errorCode === 'unavailable') {
-      return res.status(503).json({ error: 'Service temporarily unavailable', details: errorMessage });
-    } else {
-      return res.status(500).json({ error: 'Failed to fetch response', details: errorMessage });
-    }
+    return safeServerError(res, 'Firestore error:', error);
   }
 };

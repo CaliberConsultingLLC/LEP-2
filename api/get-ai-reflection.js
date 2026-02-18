@@ -1,6 +1,7 @@
 import { OpenAI } from 'openai';
 import fs from 'fs';
 import path from 'path';
+import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -37,7 +38,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const rate = applyRateLimit(req, res, {
+    action: 'get-ai-reflection',
+    limit: 60,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
   try {
+    if (!ensureJsonObjectBody(req, res)) {
+      return;
+    }
     const body = req.body || {};
 
     // Always use blunt friend
@@ -131,6 +144,6 @@ ${cleanIdentity}
 
     return res.status(200).json({ reflection: text });
   } catch (err) {
-    return res.status(500).json({ error: 'Reflection AI Failed', details: String(err.message || err) });
+    return safeServerError(res, 'Reflection AI error:', err);
   }
 }

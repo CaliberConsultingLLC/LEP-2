@@ -221,21 +221,21 @@ function Summary() {
     setError(null);
 
     try {
-      // 1) Fetch latest intake (or use formData from route)
-      let data;
+      // 1) Resolve intake data from route first, then localStorage fallback
+      const routeData = (formDataFromRoute && Object.keys(formDataFromRoute).length)
+        ? formDataFromRoute
+        : null;
+      let localData = null;
       try {
-        const resp = await fetch('/get-latest-response', {
-          headers: { Accept: 'application/json' },
-        });
-        if (!resp.ok) {
-  data = formDataFromRoute;
-} else {
-  const latest = await resp.json();
-  data = latest?.societalResponses?.length ? latest : formDataFromRoute;
-}
-
+        const raw = localStorage.getItem('latestFormData');
+        localData = raw ? JSON.parse(raw) : null;
       } catch {
-        data = formDataFromRoute;
+        localData = null;
+      }
+      const data = routeData || localData || {};
+
+      if (!Object.keys(data).length) {
+        throw new Error('No intake data found. Complete intake or use Dev Skip first.');
       }
 
       setSummaryData(data);
