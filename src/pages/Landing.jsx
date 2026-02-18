@@ -64,7 +64,13 @@ function Landing() {
                 ],
               },
             ].map((item) => (
-              <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex', p: { xs: 0.9, md: 1 } }}>
+              <Grid
+                item
+                xs={12}
+                md={4}
+                key={item.title}
+                sx={{ display: 'flex', px: { xs: 0.85, md: 0.95 }, pt: { xs: 0.85, md: 0.95 }, pb: { xs: 1.65, md: 1.9 } }}
+              >
                 <Box
                   sx={{
                     p: 3.25,
@@ -73,7 +79,6 @@ function Landing() {
                     borderColor: 'rgba(0,0,0,0.08)',
                     bgcolor: 'rgba(255,255,255,0.9)',
                     width: '100%',
-                    height: '100%',
                   }}
                 >
                   <Box sx={{ mb: 1.5 }}>{item.icon}</Box>
@@ -162,7 +167,14 @@ function Landing() {
                 ],
               },
             ].map((step, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={step.title} sx={{ display: 'flex', p: { xs: 0.85, md: 0.95 } }}>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={3}
+                key={step.title}
+                sx={{ display: 'flex', px: { xs: 0.8, md: 0.9 }, pt: { xs: 0.8, md: 0.9 }, pb: { xs: 1.5, md: 1.75 } }}
+              >
                 <Box
                   sx={{
                     p: 2.7,
@@ -174,7 +186,6 @@ function Landing() {
                     flexDirection: 'column',
                     gap: 1,
                     width: '100%',
-                    height: '100%',
                   }}
                 >
                   <Box
