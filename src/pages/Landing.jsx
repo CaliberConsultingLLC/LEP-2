@@ -30,7 +30,7 @@ function Landing() {
   const panel = useMemo(() => {
     if (sections[activeSection].key === 'method') {
       return (
-        <Box>
+        <Box sx={{ px: { xs: 0.25, md: 0.5 }, pb: { xs: 0.9, md: 1.2 } }}>
           <Grid container spacing={0} alignItems="stretch" sx={{ m: 0, width: '100%' }}>
             {[
               {
@@ -64,7 +64,7 @@ function Landing() {
                 ],
               },
             ].map((item) => (
-              <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex', p: 1.25 }}>
+              <Grid item xs={12} md={4} key={item.title} sx={{ display: 'flex', p: { xs: 0.9, md: 1 } }}>
                 <Box
                   sx={{
                     p: 3.25,
@@ -126,7 +126,7 @@ function Landing() {
 
     if (sections[activeSection].key === 'process') {
       return (
-        <Box>
+        <Box sx={{ px: { xs: 0.25, md: 0.5 }, pb: { xs: 0.9, md: 1.2 } }}>
           <Grid container spacing={0} alignItems="stretch" sx={{ m: 0, width: '100%' }}>
             {[
               {
@@ -162,7 +162,7 @@ function Landing() {
                 ],
               },
             ].map((step, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={step.title} sx={{ display: 'flex', p: 1 }}>
+              <Grid item xs={12} sm={6} md={3} key={step.title} sx={{ display: 'flex', p: { xs: 0.85, md: 0.95 } }}>
                 <Box
                   sx={{
                     p: 2.7,
