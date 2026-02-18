@@ -66,18 +66,20 @@ NON-NEGOTIABLES
 - Section 2 must include 3-5 bullets in this format:
   - concise predicted behavior trail
 - Section 4 must include exactly five bullets in this format:
-  - **Subtrait** — 6-8 words describing this behavior in action.
+  - Subtrait — 6-8 words describing this behavior in action.
 
 SECTION INTENT
-1) Trailhead (3-4 sentences):
+1) Trailhead (6-7 sentences):
    - One identity-level mirror, one productive pattern, one hidden tension, one second-order consequence.
 2) Trail Markers:
-   - 1 brief lead-in sentence, then 3-5 concise predictive behavior bullets.
-   - These are likely repeated trails/loops the leader tends to follow.
-3) Trajectory (3-4 sentences):
-   - Start with best-case possibility, then drift-case risk if unchanged.
+   - Frame as possible behaviors or scenarios this leader may repeatedly find themselves in.
+   - 1 brief lead-in sentence, then 3-5 concise scenario bullets.
+3) Trajectory:
+   - Two short paragraphs separated by a single newline.
+   - Paragraph 1 (optimistic): invite possibility and improved future-state.
+   - Paragraph 2 (urgent): likely downside if behavior remains unchanged.
 4) A New Trail:
-   - 1 brief bridge sentence, then exactly five bullets from provided subtraits in order.
+   - Exactly five bullets from provided subtraits in order (no bridge sentence needed).
    - Each bullet tail must be 6-8 words and behavior-observable.
 
 AGENT IDENTITY
@@ -92,7 +94,7 @@ export const buildSummaryNarrativeUserPrompt = ({ insightMap, focusAreas = [] })
 INSIGHT MAP (JSON)
 ${JSON.stringify(insightMap, null, 2)}
 
-Use these exact subtraits in this exact order in section 4 bullets (bold each with ** **):
+Use these exact subtraits in this exact order in section 4 bullets:
 ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.traitName})`).join('\n')}
 `.trim();
 

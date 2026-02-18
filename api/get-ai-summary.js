@@ -98,7 +98,6 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
   const last = sections[lastIdx] || '';
   const lines = last.split('\n');
   const bullets = lines.filter((line) => line.trim().startsWith('- '));
-  const narrative = lines.filter((line) => !line.trim().startsWith('- ')).join(' ').trim();
 
   const bulletMap = new Map();
   bullets.forEach((line) => {
@@ -124,7 +123,7 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
     const area = focusMap.get(name.toLowerCase());
     const source = shortSentence(area?.subTraitDefinition) || shortSentence(area?.impact) || shortSentence(area?.example) || shortSentence(area?.risk);
     const guidance = toWordWindow(source, 6, 8);
-    return `- **${name}** — ${guidance}`;
+    return `- ${name} — ${guidance}`;
   };
   const finalBullets = subtraits.map((name) => {
     const key = name.toLowerCase();
@@ -134,10 +133,10 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
     const parts = content.split('—');
     const head = (parts[0] || name).replace(/\*\*/g, '').trim() || name;
     const tail = toWordWindow(parts.slice(1).join(' ').trim(), 6, 8);
-    return `- **${head}** — ${tail}`;
+    return `- ${head} — ${tail}`;
   });
 
-  const rebuilt = `${narrative ? `${narrative}\n` : ''}${finalBullets.join('\n')}`.trim();
+  const rebuilt = `We believe improving the following traits will start you down a new path of leadership.\n${finalBullets.join('\n')}`.trim();
   sections[lastIdx] = rebuilt;
   return sections.join('\n\n').trim();
 }
@@ -165,7 +164,7 @@ function ensureTrailMarkers(text, insightMap) {
       '- Reacts sharply to risk signals under pressure'
     );
   }
-  sections[markerIdx] = `Common trails you are likely to run:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
+  sections[markerIdx] = `Below are a few scenarios you may find yourself in at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 
@@ -234,11 +233,14 @@ function normalizeFourSections(text, insightMap) {
 
   const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
   const p2 = stripHeading(parts[1] || '');
-  const p3 = stripHeading(
+  let p3 = stripHeading(
     parts[2]
-      || [insightMap?.trajectory?.bestCase, insightMap?.trajectory?.driftCase].filter(Boolean).join(' ')
-      || 'With intentional growth, your trajectory is strong; without change, current friction is likely to compound.'
+      || [insightMap?.trajectory?.bestCase, insightMap?.trajectory?.driftCase].filter(Boolean).join('\n')
+      || 'With intentional growth, your trajectory is strong.\nWithout change, current friction is likely to compound.'
   );
+  if (p3 && !/\n/.test(p3) && insightMap?.trajectory?.driftCase) {
+    p3 = `${p3}\n${insightMap.trajectory.driftCase}`;
+  }
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
   return [p1, p2, p3, p4].join('\n\n').trim();
 }
@@ -595,7 +597,7 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
     const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas });
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 1300,
+      max_tokens: 1650,
       temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.12, 0.75),
       frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
       presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),

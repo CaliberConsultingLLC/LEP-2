@@ -483,7 +483,6 @@ function Summary() {
   const renderNarrativeWithBullets = (text) => {
     const lines = String(text || '').split('\n');
     const bulletLines = lines.filter((line) => line.trim().startsWith('- '));
-    const narrative = lines.filter((line) => !line.trim().startsWith('- ')).join(' ').trim();
     if (!bulletLines.length) {
       return (
         <Typography
@@ -500,23 +499,21 @@ function Summary() {
     }
     return (
       <Stack spacing={1.5}>
-        {narrative && (
-          <Typography
-            sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '0.96rem',
-              lineHeight: 1.6,
-              color: 'text.primary',
-            }}
-          >
-            {renderParagraphWithTooltips(narrative)}
-          </Typography>
-        )}
+        <Typography
+          sx={{
+            fontFamily: 'Gemunu Libre, sans-serif',
+            fontSize: '0.96rem',
+            lineHeight: 1.6,
+            color: 'text.primary',
+          }}
+        >
+          We believe improving the following traits will start you down a new path of leadership.
+        </Typography>
         <Box component="ul" sx={{ pl: 2.5, m: 0 }}>
           {bulletLines.map((line, idx) => {
             const content = line.replace(/^\s*-\s*/, '');
             const parts = content.split('—');
-            const head = parts[0]?.trim();
+            const head = parts[0]?.replace(/\*\*/g, '').trim();
             const tail = parts.slice(1).join('—').trim();
             return (
               <Box key={`bullet-${idx}`} component="li" sx={{ mb: 0.75 }}>
@@ -548,21 +545,18 @@ function Summary() {
   const renderTrailMarkers = (text) => {
     const lines = String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
     const bulletLines = lines.filter((line) => line.startsWith('- '));
-    const leadIn = lines.filter((line) => !line.startsWith('- ')).join(' ').trim();
     return (
       <Stack spacing={1.2}>
-        {leadIn ? (
-          <Typography
-            sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '0.96rem',
-              lineHeight: 1.6,
-              color: 'text.primary',
-            }}
-          >
-            {leadIn}
-          </Typography>
-        ) : null}
+        <Typography
+          sx={{
+            fontFamily: 'Gemunu Libre, sans-serif',
+            fontSize: '0.96rem',
+            lineHeight: 1.6,
+            color: 'text.primary',
+          }}
+        >
+          Below are a few scenarios you may find yourself in at times:
+        </Typography>
         <Box component="ul" sx={{ pl: 2.3, m: 0 }}>
           {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
             <Box key={`marker-${idx}`} component="li" sx={{ mb: 0.65 }}>
@@ -579,6 +573,43 @@ function Summary() {
             </Box>
           ))}
         </Box>
+      </Stack>
+    );
+  };
+
+  const renderTrajectory = (text) => {
+    const chunks = String(text || '')
+      .split(/\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    const primary = chunks[0] || '';
+    const secondary = chunks.slice(1).join(' ') || '';
+    return (
+      <Stack spacing={1.4}>
+        {primary ? (
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '0.96rem',
+              lineHeight: 1.65,
+              color: 'text.primary',
+            }}
+          >
+            {renderParagraphWithTooltips(primary)}
+          </Typography>
+        ) : null}
+        {secondary ? (
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '0.96rem',
+              lineHeight: 1.65,
+              color: 'text.primary',
+            }}
+          >
+            {renderParagraphWithTooltips(secondary)}
+          </Typography>
+        ) : null}
       </Stack>
     );
   };
@@ -678,7 +709,7 @@ function Summary() {
                       { label: 'Trail Markers', icon: AltRoute, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.35)', mode: 'markers' },
                     ],
                     [
-                      { label: 'Trajectory', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'paragraph' },
+                      { label: 'Trajectory', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'trajectory' },
                       { label: 'A New Trail', icon: AutoAwesome, text: summarySections[3] || '', accent: 'rgba(47,133,90,0.35)', mode: 'narrative' },
                     ],
                   ].map((row, rowIdx) => (
@@ -746,6 +777,8 @@ function Summary() {
                               </Stack>
                               {card.mode === 'markers' ? (
                                 renderTrailMarkers(card.text)
+                              ) : card.mode === 'trajectory' ? (
+                                renderTrajectory(card.text)
                               ) : card.mode === 'narrative' ? (
                                 renderNarrativeWithBullets(card.text)
                               ) : (
