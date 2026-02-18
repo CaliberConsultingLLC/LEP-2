@@ -561,6 +561,7 @@ function Summary() {
       minHeight: '100vh',
       width: '100%',
       overflowX: 'hidden',
+      overflowY: 'auto',
       // full bleed bg
       '&:before': {
         content: '""',
@@ -622,12 +623,14 @@ function Summary() {
             <Paper
               sx={{
                 p: 2.5,
+                pb: 2.9,
                 borderRadius: 3,
                 border: '2px solid',
                 borderColor: 'primary.main',
                 background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(220,230,255,0.85))',
                 boxShadow: 4,
                 mb: 0,
+                overflow: 'visible',
               }}
             >
               {summaryParagraphs.length ? (
@@ -658,7 +661,7 @@ function Summary() {
                             borderColor: accent,
                             background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
                             boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
-                            height: '100%',
+                            overflow: 'visible',
                           }}
                         >
                           <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
@@ -705,11 +708,13 @@ function Summary() {
                   <Paper
                     sx={{
                       p: 2.25,
+                      pb: 2.1,
                       borderRadius: 2.5,
                       border: '1px solid',
                       borderColor: 'rgba(47,133,90,0.35)',
                       background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
                       boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
+                      overflow: 'visible',
                     }}
                   >
                     <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>

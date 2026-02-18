@@ -355,7 +355,7 @@ function Landing() {
       sx={{
         minHeight: '100vh',
         width: '100vw',
-        overflowY: 'hidden',
+        overflowY: 'auto',
         overflowX: 'hidden',
         backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
         backgroundSize: 'cover',
@@ -479,12 +479,13 @@ function Landing() {
               borderColor: 'rgba(255,255,255,0.35)',
               bgcolor: 'rgba(255,255,255,0.1)',
               p: { xs: 2.2, md: 3.2 },
-              overflow: 'hidden',
+              pb: { xs: 2.6, md: 3.4 },
+              overflow: 'visible',
               position: 'relative',
               zIndex: 1,
             }}
           >
-            <Box sx={{ p: { xs: 0.5, md: 0.75 } }}>
+            <Box sx={{ px: { xs: 0.4, md: 0.6 }, pt: { xs: 0.4, md: 0.55 }, pb: { xs: 0.8, md: 1.1 } }}>
               {panel}
             </Box>
           </Box>
