@@ -156,15 +156,21 @@ function ensureTrailMarkers(text, insightMap) {
     ...(insightMap?.coreStrengths || []).map((x) => x?.label).filter(Boolean),
   ];
   const unique = Array.from(new Set(candidates.map((x) => String(x).trim()).filter(Boolean)));
-  const fallbackMarkers = unique.slice(0, 4).map((label) => `- ${label}`);
+  const toOutcomeLine = (label) => {
+    const clean = String(label || '').replace(/[.]+$/, '').trim();
+    if (!clean) return '';
+    const lowered = clean.charAt(0).toLowerCase() + clean.slice(1);
+    return `- This pattern can lead to ${lowered}.`;
+  };
+  const fallbackMarkers = unique.slice(0, 4).map(toOutcomeLine).filter(Boolean);
   if (!fallbackMarkers.length) {
     fallbackMarkers.push(
-      '- Moves quickly into action before alignment fully forms',
-      '- Carries ownership even when clarity is still emerging',
-      '- Reacts sharply to risk signals under pressure'
+      '- This pattern can lead to role and task confusion.',
+      '- This pattern can lead to slower delivery momentum.',
+      '- This pattern can lead to avoidable trust erosion.'
     );
   }
-  sections[markerIdx] = `Below are a few scenarios you may find yourself in at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
+  sections[markerIdx] = `Below are a few outcomes you may run into at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 

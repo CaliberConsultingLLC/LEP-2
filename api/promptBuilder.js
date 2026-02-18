@@ -72,8 +72,9 @@ SECTION INTENT
 1) Trailhead (6-7 sentences):
    - One identity-level mirror, one productive pattern, one hidden tension, one second-order consequence.
 2) Trail Markers:
-   - Frame as possible behaviors or scenarios this leader may repeatedly find themselves in.
-   - 1 brief lead-in sentence, then 3-5 concise scenario bullets.
+   - Frame as likely outcomes this leader may repeatedly encounter.
+   - 1 brief lead-in sentence, then 3-5 concise outcome bullets.
+   - Focus on observable impact/results (team experience, pace, trust, clarity), not "you do X" behavior narration.
 3) Trajectory:
    - Two short paragraphs separated by a single newline.
    - Paragraph 1 (optimistic): invite possibility and improved future-state.

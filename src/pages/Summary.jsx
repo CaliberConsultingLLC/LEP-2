@@ -555,7 +555,7 @@ function Summary() {
             color: 'text.primary',
           }}
         >
-          Below are a few scenarios you may find yourself in at times:
+          Below are a few outcomes you may run into at times:
         </Typography>
         <Box component="ul" sx={{ pl: 2.3, m: 0 }}>
           {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
