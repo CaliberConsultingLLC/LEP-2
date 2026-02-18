@@ -148,7 +148,25 @@ function ensureTrailMarkers(text, insightMap) {
   const markerSection = sections[markerIdx] || '';
   const markerLines = markerSection.split('\n').map((l) => l.trim()).filter(Boolean);
   const bullets = markerLines.filter((line) => line.startsWith('- '));
-  if (bullets.length >= 3 && bullets.length <= 5) return sections.join('\n\n').trim();
+
+  const normalizeMarker = (line) => {
+    const cleaned = String(line || '')
+      .replace(/^\s*-\s*/, '')
+      .replace(/^this pattern can lead to\s*/i, '')
+      .replace(/^you (may|might)\s+/i, '')
+      .replace(/[.*_`#]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const source = cleaned || 'mixed priorities can quietly erode team confidence';
+    const words = source.split(' ').filter(Boolean).slice(0, 9);
+    while (words.length < 6) words.push('consistently');
+    return `- ${words.join(' ')}`;
+  };
+
+  if (bullets.length >= 3 && bullets.length <= 5) {
+    sections[markerIdx] = `A few scenarios you may find yourself in at times:\n${bullets.slice(0, 5).map(normalizeMarker).join('\n')}`;
+    return sections.join('\n\n').trim();
+  }
 
   const candidates = [
     ...(insightMap?.coreTensions || []).map((x) => x?.label).filter(Boolean),
@@ -156,21 +174,15 @@ function ensureTrailMarkers(text, insightMap) {
     ...(insightMap?.coreStrengths || []).map((x) => x?.label).filter(Boolean),
   ];
   const unique = Array.from(new Set(candidates.map((x) => String(x).trim()).filter(Boolean)));
-  const toOutcomeLine = (label) => {
-    const clean = String(label || '').replace(/[.]+$/, '').trim();
-    if (!clean) return '';
-    const lowered = clean.charAt(0).toLowerCase() + clean.slice(1);
-    return `- This pattern can lead to ${lowered}.`;
-  };
-  const fallbackMarkers = unique.slice(0, 4).map(toOutcomeLine).filter(Boolean);
+  const fallbackMarkers = unique.slice(0, 4).map((label) => normalizeMarker(label)).filter(Boolean);
   if (!fallbackMarkers.length) {
     fallbackMarkers.push(
-      '- This pattern can lead to role and task confusion.',
-      '- This pattern can lead to slower delivery momentum.',
-      '- This pattern can lead to avoidable trust erosion.'
+      '- Deadlines slip as innovation outruns execution discipline',
+      '- Team roles blur and accountability becomes inconsistent',
+      '- Momentum stalls when clarity and urgency diverge'
     );
   }
-  sections[markerIdx] = `Below are a few outcomes you may run into at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
+  sections[markerIdx] = `A few scenarios you may find yourself in at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 
@@ -226,7 +238,8 @@ function normalizeInsightMap(map) {
 }
 
 function normalizeFourSections(text, insightMap) {
-  const parts = String(text || '')
+  const cleanedText = String(text || '').replace(/^\s*#+\s*/gm, '');
+  const parts = cleanedText
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
@@ -239,14 +252,20 @@ function normalizeFourSections(text, insightMap) {
 
   const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
   const p2 = stripHeading(parts[1] || '');
-  let p3 = stripHeading(
-    parts[2]
-      || [insightMap?.trajectory?.bestCase, insightMap?.trajectory?.driftCase].filter(Boolean).join('\n')
-      || 'With intentional growth, your trajectory is strong.\nWithout change, current friction is likely to compound.'
-  );
-  if (p3 && !/\n/.test(p3) && insightMap?.trajectory?.driftCase) {
-    p3 = `${p3}\n${insightMap.trajectory.driftCase}`;
-  }
+  const toSentences = (input) =>
+    (String(input || '')
+      .replace(/^\s*#+\s*/gm, '')
+      .match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [])
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+  const best = toSentences(parts[2] || insightMap?.trajectory?.bestCase || '');
+  const drift = toSentences(insightMap?.trajectory?.driftCase || '');
+  const fallbackBest = toSentences('Imagine what opens up when clarity, ownership, and timing align across your team. You create more confidence when priorities stay visible and stable. Progress accelerates when execution and collaboration reinforce each other.');
+  const fallbackDrift = toSentences('If nothing changes, confusion can quietly keep draining momentum. Repeated ambiguity can erode trust and slow decision quality over time. Eventually, avoidable friction can become the team’s default operating state.');
+  const firstHalf = (best.length ? best : fallbackBest).slice(0, 3).join(' ');
+  const secondHalf = (drift.length ? drift : fallbackDrift).slice(0, 3).join(' ');
+  const p3 = `${firstHalf}\n${secondHalf}`.trim();
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
   return [p1, p2, p3, p4].join('\n\n').trim();
 }

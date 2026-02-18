@@ -555,7 +555,7 @@ function Summary() {
             color: 'text.primary',
           }}
         >
-          Below are a few outcomes you may run into at times:
+          A few scenarios you may find yourself in at times:
         </Typography>
         <Box component="ul" sx={{ pl: 2.3, m: 0 }}>
           {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
@@ -579,6 +579,7 @@ function Summary() {
 
   const renderTrajectory = (text) => {
     const chunks = String(text || '')
+      .replace(/^\s*#+\s*/gm, '')
       .split(/\n+/)
       .map((p) => p.trim())
       .filter(Boolean);
