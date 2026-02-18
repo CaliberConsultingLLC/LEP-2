@@ -15,7 +15,7 @@ import {
   Chip,
   Menu,
 } from '@mui/material';
-import { Warning, Lightbulb, CheckCircle, TrendingUp, AutoAwesome, PersonSearch } from '@mui/icons-material';
+import { Warning, Lightbulb, CheckCircle, TrendingUp, AutoAwesome, PersonSearch, AltRoute } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import traitSystem from '../data/traitSystem';
@@ -409,11 +409,11 @@ function Summary() {
     return result;
   };
 
-  const summaryParagraphs = (aiSummary || '')
+  const summarySections = (aiSummary || '')
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 4);
 
   const subTraitMap = useMemo(() => {
     const map = new Map();
@@ -483,6 +483,7 @@ function Summary() {
   const renderNarrativeWithBullets = (text) => {
     const lines = String(text || '').split('\n');
     const bulletLines = lines.filter((line) => line.trim().startsWith('- '));
+    const narrative = lines.filter((line) => !line.trim().startsWith('- ')).join(' ').trim();
     if (!bulletLines.length) {
       return (
         <Typography
@@ -497,8 +498,6 @@ function Summary() {
         </Typography>
       );
     }
-
-    const narrative = 'Below are some key leadership traits that will put you on a new path.';
     return (
       <Stack spacing={1.5}>
         {narrative && (
@@ -541,6 +540,44 @@ function Summary() {
               </Box>
             );
           })}
+        </Box>
+      </Stack>
+    );
+  };
+
+  const renderTrailMarkers = (text) => {
+    const lines = String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+    const bulletLines = lines.filter((line) => line.startsWith('- '));
+    const leadIn = lines.filter((line) => !line.startsWith('- ')).join(' ').trim();
+    return (
+      <Stack spacing={1.2}>
+        {leadIn ? (
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '0.96rem',
+              lineHeight: 1.6,
+              color: 'text.primary',
+            }}
+          >
+            {leadIn}
+          </Typography>
+        ) : null}
+        <Box component="ul" sx={{ pl: 2.3, m: 0 }}>
+          {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
+            <Box key={`marker-${idx}`} component="li" sx={{ mb: 0.65 }}>
+              <Typography
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '0.92rem',
+                  lineHeight: 1.58,
+                  color: 'text.primary',
+                }}
+              >
+                {line.replace(/^\s*-\s*/, '')}
+              </Typography>
+            </Box>
+          ))}
         </Box>
       </Stack>
     );
@@ -633,119 +670,102 @@ function Summary() {
                 overflow: 'visible',
               }}
             >
-              {summaryParagraphs.length ? (
+              {summarySections.length ? (
                 <Stack spacing={3}>
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                      gap: 2,
-                      mb: 1.25,
-                      alignItems: 'stretch',
-                    }}
-                  >
-                    {[0, 1].map((idx) => {
-                      const para = summaryParagraphs[idx] || '';
-                      const accent =
-                        idx === 0 ? 'rgba(99,147,170,0.35)' : 'rgba(224,122,63,0.35)';
-                      const label = idx === 0 ? 'Snapshot' : 'Trajectory';
-                      const Icon = idx === 0 ? PersonSearch : TrendingUp;
-                      return (
-                        <Paper
-                          key={`para-${idx}`}
-                          sx={{
-                            p: 2.25,
-                            pb: 1.6,
-                            borderRadius: 2.5,
-                            border: '1px solid',
-                            borderColor: accent,
-                            background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                            boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
-                            overflow: 'visible',
-                          }}
-                        >
-                          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
-                            <Box
-                              sx={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 2,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                bgcolor: 'rgba(69,112,137,0.12)',
-                                border: '1px solid rgba(69,112,137,0.35)',
-                              }}
-                            >
-                              <Icon sx={{ fontSize: 26, color: 'primary.main' }} />
-                            </Box>
-                            <Typography
-                              sx={{
-                                fontWeight: 800,
-                                letterSpacing: 0.5,
-                                textTransform: 'uppercase',
-                                fontSize: '0.9rem',
-                                color: 'text.primary',
-                              }}
-                            >
-                              {label}
-                            </Typography>
-                          </Stack>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.96rem',
-                              lineHeight: 1.65,
-                              color: 'text.primary',
-                            }}
-                          >
-                            {renderParagraphWithTooltips(para)}
-                          </Typography>
-                        </Paper>
-                      );
-                    })}
-                  </Box>
-                  <Paper
-                    sx={{
-                      p: 2.25,
-                      pb: 2.1,
-                      borderRadius: 2.5,
-                      border: '1px solid',
-                      borderColor: 'rgba(47,133,90,0.35)',
-                      background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                      boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
-                      overflow: 'visible',
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
+                  {[
+                    [
+                      { label: 'Trailhead', icon: PersonSearch, text: summarySections[0] || '', accent: 'rgba(99,147,170,0.35)', mode: 'paragraph' },
+                      { label: 'Trail Markers', icon: AltRoute, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.35)', mode: 'markers' },
+                    ],
+                    [
+                      { label: 'Trajectory', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'paragraph' },
+                      { label: 'A New Trail', icon: AutoAwesome, text: summarySections[3] || '', accent: 'rgba(47,133,90,0.35)', mode: 'narrative' },
+                    ],
+                  ].map((row, rowIdx) => (
+                    <Box
+                      key={`summary-row-${rowIdx}`}
+                      sx={{
+                        p: 1.6,
+                        borderRadius: 2.5,
+                        border: '1px solid',
+                        borderColor: 'rgba(69,112,137,0.28)',
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.72), rgba(240,247,255,0.56))',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      }}
+                    >
                       <Box
                         sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: 'rgba(69,112,137,0.12)',
-                          border: '1px solid rgba(69,112,137,0.35)',
+                          display: 'grid',
+                          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                          gap: 1.8,
+                          alignItems: 'stretch',
                         }}
                       >
-                        <AutoAwesome sx={{ fontSize: 26, color: 'primary.main' }} />
+                        {row.map((card) => {
+                          const Icon = card.icon;
+                          return (
+                            <Paper
+                              key={card.label}
+                              sx={{
+                                p: 2.25,
+                                pb: 2.1,
+                                borderRadius: 2.5,
+                                border: '1px solid',
+                                borderColor: card.accent,
+                                background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
+                                boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
+                                overflow: 'visible',
+                              }}
+                            >
+                              <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
+                                <Box
+                                  sx={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: 'rgba(69,112,137,0.12)',
+                                    border: '1px solid rgba(69,112,137,0.35)',
+                                  }}
+                                >
+                                  <Icon sx={{ fontSize: 25, color: 'primary.main' }} />
+                                </Box>
+                                <Typography
+                                  sx={{
+                                    fontWeight: 800,
+                                    letterSpacing: 0.5,
+                                    textTransform: 'uppercase',
+                                    fontSize: '0.9rem',
+                                    color: 'text.primary',
+                                  }}
+                                >
+                                  {card.label}
+                                </Typography>
+                              </Stack>
+                              {card.mode === 'markers' ? (
+                                renderTrailMarkers(card.text)
+                              ) : card.mode === 'narrative' ? (
+                                renderNarrativeWithBullets(card.text)
+                              ) : (
+                                <Typography
+                                  sx={{
+                                    fontFamily: 'Gemunu Libre, sans-serif',
+                                    fontSize: '0.96rem',
+                                    lineHeight: 1.65,
+                                    color: 'text.primary',
+                                  }}
+                                >
+                                  {renderParagraphWithTooltips(card.text)}
+                                </Typography>
+                              )}
+                            </Paper>
+                          );
+                        })}
                       </Box>
-                      <Typography
-                        sx={{
-                          fontWeight: 800,
-                          letterSpacing: 0.5,
-                          textTransform: 'uppercase',
-                          fontSize: '0.9rem',
-                          color: 'text.primary',
-                        }}
-                      >
-                        A New Way Forward
-                      </Typography>
-                    </Stack>
-                    {renderNarrativeWithBullets(summaryParagraphs[2] || '')}
-                  </Paper>
+                    </Box>
+                  ))}
                 </Stack>
               ) : (
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>

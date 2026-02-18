@@ -69,6 +69,21 @@ function enforceThreeParagraphs(text, maxChars) {
   return [out1, out2, out3].join('\n\n').trim();
 }
 
+function toWordWindow(text, minWords = 6, maxWords = 8) {
+  const fallback = 'Consistently demonstrates this behavior under everyday pressure';
+  const source = String(text || fallback)
+    .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const words = source.split(' ').filter(Boolean);
+  const base = words.length ? words : fallback.split(' ');
+  const clipped = base.slice(0, maxWords);
+  while (clipped.length < minWords) {
+    clipped.push('consistently');
+  }
+  return clipped.join(' ');
+}
+
 function ensureFiveSubtraitBullets(text, focusAreas) {
   if (!Array.isArray(focusAreas) || focusAreas.length < 5) return text;
   const subtraits = focusAreas
@@ -78,8 +93,8 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
   if (!subtraits.length) return text;
 
   const sections = String(text || '').split(/\n\s*\n/);
-  while (sections.length < 3) sections.push('');
-  const lastIdx = sections.length - 1;
+  while (sections.length < 4) sections.push('');
+  const lastIdx = 3;
   const last = sections[lastIdx] || '';
   const lines = last.split('\n');
   const bullets = lines.filter((line) => line.trim().startsWith('- '));
@@ -88,7 +103,7 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
   const bulletMap = new Map();
   bullets.forEach((line) => {
     const content = line.replace(/^\s*-\s*/, '');
-    const key = content.split('—')[0].trim().toLowerCase();
+    const key = content.split('—')[0].replace(/\*\*/g, '').trim().toLowerCase();
     if (key) bulletMap.set(key, line);
   });
 
@@ -107,17 +122,50 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
 
   const fallbackBehavior = (name) => {
     const area = focusMap.get(name.toLowerCase());
-    const source = shortSentence(area?.impact) || shortSentence(area?.example) || shortSentence(area?.risk);
-    const guidance = source || 'Small shifts here change how your team experiences your leadership.';
-    return `- ${name} — ${guidance}`;
+    const source = shortSentence(area?.subTraitDefinition) || shortSentence(area?.impact) || shortSentence(area?.example) || shortSentence(area?.risk);
+    const guidance = toWordWindow(source, 6, 8);
+    return `- **${name}** — ${guidance}`;
   };
   const finalBullets = subtraits.map((name) => {
     const key = name.toLowerCase();
-    return bulletMap.get(key) || fallbackBehavior(name);
+    const existing = bulletMap.get(key);
+    if (!existing) return fallbackBehavior(name);
+    const content = existing.replace(/^\s*-\s*/, '');
+    const parts = content.split('—');
+    const head = (parts[0] || name).replace(/\*\*/g, '').trim() || name;
+    const tail = toWordWindow(parts.slice(1).join(' ').trim(), 6, 8);
+    return `- **${head}** — ${tail}`;
   });
 
   const rebuilt = `${narrative ? `${narrative}\n` : ''}${finalBullets.join('\n')}`.trim();
   sections[lastIdx] = rebuilt;
+  return sections.join('\n\n').trim();
+}
+
+function ensureTrailMarkers(text, insightMap) {
+  const sections = String(text || '').split(/\n\s*\n/);
+  while (sections.length < 4) sections.push('');
+  const markerIdx = 1;
+  const markerSection = sections[markerIdx] || '';
+  const markerLines = markerSection.split('\n').map((l) => l.trim()).filter(Boolean);
+  const bullets = markerLines.filter((line) => line.startsWith('- '));
+  if (bullets.length >= 3 && bullets.length <= 5) return sections.join('\n\n').trim();
+
+  const candidates = [
+    ...(insightMap?.coreTensions || []).map((x) => x?.label).filter(Boolean),
+    ...(insightMap?.blindSpots || []).map((x) => x?.label).filter(Boolean),
+    ...(insightMap?.coreStrengths || []).map((x) => x?.label).filter(Boolean),
+  ];
+  const unique = Array.from(new Set(candidates.map((x) => String(x).trim()).filter(Boolean)));
+  const fallbackMarkers = unique.slice(0, 4).map((label) => `- ${label}`);
+  if (!fallbackMarkers.length) {
+    fallbackMarkers.push(
+      '- Moves quickly into action before alignment fully forms',
+      '- Carries ownership even when clarity is still emerging',
+      '- Reacts sharply to risk signals under pressure'
+    );
+  }
+  sections[markerIdx] = `Common trails you are likely to run:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 
@@ -172,26 +220,27 @@ function normalizeInsightMap(map) {
   };
 }
 
-function normalizeThreeSections(text, insightMap) {
+function normalizeFourSections(text, insightMap) {
   const parts = String(text || '')
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
-    .slice(0, 3);
+    .slice(0, 4);
 
   const stripHeading = (s) =>
     String(s || '')
-      .replace(/^(snapshot|trajectory|a new way forward)\s*[:\-]\s*/i, '')
+      .replace(/^(trailhead|trail markers|trajectory|a new trail|snapshot|a new way forward)\s*[:\-]\s*/i, '')
       .trim();
 
   const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
-  const p2 = stripHeading(
-    parts[1]
+  const p2 = stripHeading(parts[1] || '');
+  const p3 = stripHeading(
+    parts[2]
       || [insightMap?.trajectory?.bestCase, insightMap?.trajectory?.driftCase].filter(Boolean).join(' ')
       || 'With intentional growth, your trajectory is strong; without change, current friction is likely to compound.'
   );
-  const p3 = stripHeading(parts[2] || 'A new way forward starts with a few high-leverage leadership shifts.');
-  return [p1, p2, p3].join('\n\n').trim();
+  const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
+  return [p1, p2, p3, p4].join('\n\n').trim();
 }
 
 
@@ -557,8 +606,9 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
     });
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const shaped = normalizeThreeSections(raw, insightMap);
-    const capped = ensureFiveSubtraitBullets(shaped, focusAreas);
+    const shaped = normalizeFourSections(raw, insightMap);
+    const withMarkers = ensureTrailMarkers(shaped, insightMap);
+    const capped = ensureFiveSubtraitBullets(withMarkers, focusAreas);
 
     return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
   } catch (err) {

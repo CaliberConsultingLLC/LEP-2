@@ -62,17 +62,23 @@ NON-NEGOTIABLES
 - Do NOT use generic leadership clichés.
 - Do NOT output headings.
 - Keep prose vivid, natural, and specific.
-- Include exactly three sections separated by blank lines.
-- Third section must include exactly five bullets in this format:
-  - **Subtrait** — specific behavior-level narrative for why it matters.
+- Include exactly four sections separated by blank lines.
+- Section 2 must include 3-5 bullets in this format:
+  - concise predicted behavior trail
+- Section 4 must include exactly five bullets in this format:
+  - **Subtrait** — 6-8 words describing this behavior in action.
 
 SECTION INTENT
-1) Snapshot (3-4 sentences):
+1) Trailhead (3-4 sentences):
    - One identity-level mirror, one productive pattern, one hidden tension, one second-order consequence.
-2) Trajectory (3-4 sentences):
+2) Trail Markers:
+   - 1 brief lead-in sentence, then 3-5 concise predictive behavior bullets.
+   - These are likely repeated trails/loops the leader tends to follow.
+3) Trajectory (3-4 sentences):
    - Start with best-case possibility, then drift-case risk if unchanged.
-3) A New Way Forward:
-   - 1-2 bridge sentences, then exactly five bullets from provided subtraits in order.
+4) A New Trail:
+   - 1 brief bridge sentence, then exactly five bullets from provided subtraits in order.
+   - Each bullet tail must be 6-8 words and behavior-observable.
 
 AGENT IDENTITY
 ${agentIdentity}
@@ -86,7 +92,7 @@ export const buildSummaryNarrativeUserPrompt = ({ insightMap, focusAreas = [] })
 INSIGHT MAP (JSON)
 ${JSON.stringify(insightMap, null, 2)}
 
-Use these exact subtraits in this exact order in section 3 bullets (bold each with ** **):
+Use these exact subtraits in this exact order in section 4 bullets (bold each with ** **):
 ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.traitName})`).join('\n')}
 `.trim();
 
