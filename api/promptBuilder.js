@@ -73,6 +73,8 @@ NON-NEGOTIABLES
 - Do NOT output headings.
 - Keep prose vivid, natural, and specific.
 - Novelty must come from reframing true signals, never invented claims.
+- Do NOT provide advice, directives, or practical steps.
+- Avoid prescriptive phrasing like "you should", "by doing", "focus on", "start with".
 - Avoid these phrases unless directly evidenced and contextualized:
   "unlock potential", "effective leader", "growth mindset", "improve communication",
   "high-performing team", "be more strategic".
@@ -107,6 +109,7 @@ SECTION INTENT
 1) Trailhead (6-7 sentences):
    - Current-state only: one identity-level mirror, one productive pattern, one hidden tension.
    - Do not include future consequences or "what if" language here.
+   - Include 1-2 punchy anchor phrases and format them in **bold**.
 2) Trail Markers:
    - Use this exact lead-in sentence: "A few scenarios you may find yourself in at times:"
    - Frame as likely outcomes this leader may repeatedly encounter.
@@ -116,8 +119,10 @@ SECTION INTENT
 3) Trajectory:
    - Two paragraphs separated by a single newline.
    - Paragraph 1 (risk-first): exactly 4 sentences on likely downside if unchanged.
-   - Paragraph 2 (optimistic prelude): exactly 2 sentences that preview better outcomes if improved.
+   - Paragraph 2 (optimistic prelude): exactly 2 sentences in hypothetical future tense.
    - The optimistic prelude should spotlight one desirable outcome likely missing today.
+   - Do NOT give practical guidance or fix instructions anywhere in this section.
+   - Include 1-2 punchy anchor phrases and format them in **bold**.
    - Do not use markdown hashes or heading separators.
 4) A New Trail:
    - Exactly five bullets from provided subtraits in order (no bridge sentence needed).

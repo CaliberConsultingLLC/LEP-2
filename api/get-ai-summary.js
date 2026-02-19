@@ -276,6 +276,11 @@ function normalizeFourSections(text, insightMap) {
       .replace(/^(trailhead|trail markers|trajectory|a new trail|snapshot|a new way forward)\s*[:\-]\s*/i, '')
       .trim();
 
+  const hasAdvice = (s) =>
+    /\b(you should|should|must|need to|have to|try to|focus on|start with|begin by|by\s+[a-z]+ing)\b/i.test(String(s || ''));
+
+  const keepNonAdvisory = (sentences = []) => sentences.filter((s) => !hasAdvice(s));
+
   const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
   const p2 = stripHeading(parts[1] || '');
   const toSentences = (input) =>
@@ -285,15 +290,69 @@ function normalizeFourSections(text, insightMap) {
       .map((s) => s.trim())
       .filter(Boolean);
 
-  const riskSentences = toSentences(parts[2] || insightMap?.trajectory?.driftCase || '');
-  const optimisticSentences = toSentences(insightMap?.trajectory?.bestCase || '');
+  const riskSentences = keepNonAdvisory(toSentences(parts[2] || insightMap?.trajectory?.driftCase || ''));
+  const optimisticSentences = keepNonAdvisory(toSentences(insightMap?.trajectory?.bestCase || ''));
   const fallbackRisk = toSentences('If current patterns hold, role confusion can quietly spread across the team. Execution momentum may slow as people spend energy interpreting mixed signals. Trust can weaken when urgency repeatedly outpaces clarity. Over time, this friction can become the team’s default operating rhythm.');
-  const fallbackOptimistic = toSentences('Imagine your team feeling confident instead of cautious in key moments. With stronger trust and clarity, your people can move faster and own outcomes more fully.');
+  const fallbackOptimistic = toSentences('Imagine your team feeling trusted instead of second-guessing. Greater clarity and alignment could open a higher-ceiling culture your people have not yet experienced.');
   const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk).slice(0, 4).join(' ');
-  const secondHalf = (optimisticSentences.length ? optimisticSentences : fallbackOptimistic).slice(0, 2).join(' ');
+  const secondHalf = (optimisticSentences.length ? optimisticSentences : fallbackOptimistic)
+    .map((s) => {
+      if (/\b(could|would|might|will|imagine|if addressed)\b/i.test(s)) return s;
+      return `If addressed, ${s.charAt(0).toLowerCase()}${s.slice(1)}`;
+    })
+    .slice(0, 2)
+    .join(' ');
   const p3 = `${firstHalf}\n${secondHalf}`.trim();
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
   return [p1, p2, p3, p4].join('\n\n').trim();
+}
+
+function ensurePunchAnchors(text, insightMap) {
+  const sections = String(text || '').split(/\n\s*\n/);
+  while (sections.length < 4) sections.push('');
+
+  const capBoldAnchors = (input, max = 2) => {
+    let count = 0;
+    return String(input || '').replace(/\*\*([^*]+)\*\*/g, (_, phrase) => {
+      count += 1;
+      return count <= max ? `**${phrase}**` : phrase;
+    });
+  };
+
+  const addAnchorIfMissing = (input, fallbackPhrase) => {
+    const boldCount = (String(input || '').match(/\*\*([^*]+)\*\*/g) || []).length;
+    if (boldCount >= 1) return capBoldAnchors(input, 2);
+    return capBoldAnchors(`${String(input || '').trim()} **${fallbackPhrase}**.`, 2).trim();
+  };
+
+  const trailheadFallback = (insightMap?.signaturePattern || insightMap?.hiddenCost || 'This is the part most leaders avoid')
+    .split('.')
+    .find(Boolean)
+    ?.trim()
+    ?.slice(0, 64) || 'This is the part most leaders avoid';
+  const trajectoryFallback = (insightMap?.missingOutcome || 'This is where momentum quietly breaks')
+    .split('.')
+    .find(Boolean)
+    ?.trim()
+    ?.slice(0, 64) || 'This is where momentum quietly breaks';
+
+  sections[0] = addAnchorIfMissing(sections[0], trailheadFallback);
+  sections[2] = addAnchorIfMissing(sections[2], trajectoryFallback);
+  return sections.join('\n\n').trim();
+}
+
+function softenPrescriptiveLanguage(text) {
+  return String(text || '')
+    .replace(/\byou should\b/gi, 'you may feel pressure to')
+    .replace(/\bshould\b/gi, 'could')
+    .replace(/\bmust\b/gi, 'may need to')
+    .replace(/\bneed to\b/gi, 'may need to')
+    .replace(/\bhave to\b/gi, 'may feel required to')
+    .replace(/\btry to\b/gi, 'may attempt to')
+    .replace(/\bfocus on\b/gi, 'when attention shifts to')
+    .replace(/\bstart with\b/gi, 'if it begins with')
+    .replace(/\bbegin by\b/gi, 'if addressed through')
+    .replace(/\bby\s+([a-z]+ing)\b/gi, 'if addressed');
 }
 
 function sectionSentenceCount(text) {
@@ -314,6 +373,9 @@ function evaluateNarrativeQuality(text, insightMap) {
     /high-performing team/i,
     /be more strategic/i,
   ];
+  const advicePattern = /\b(you should|should|must|need to|have to|try to|focus on|start with|begin by|by\s+[a-z]+ing)\b/i;
+  const boldTrailhead = (trailhead.match(/\*\*([^*]+)\*\*/g) || []).length;
+  const boldTrajectory = (trajectory.match(/\*\*([^*]+)\*\*/g) || []).length;
 
   let score = 0;
   if (sections.length >= 4) score += 1;
@@ -326,6 +388,9 @@ function evaluateNarrativeQuality(text, insightMap) {
   if (String(insightMap?.hiddenCost || '') && String(text).toLowerCase().includes(String(insightMap.hiddenCost).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (!badPhrases.some((re) => re.test(text))) score += 1;
   if (!/^\s*#+/m.test(text)) score += 1;
+  if (!advicePattern.test(`${trailhead} ${trajectory}`)) score += 1;
+  if (boldTrailhead >= 1 && boldTrailhead <= 2) score += 1;
+  if (boldTrajectory >= 1 && boldTrajectory <= 2) score += 1;
   return score;
 }
 
@@ -338,6 +403,8 @@ Repair this draft to satisfy all requirements:
 - Trajectory must be risk-first (4 sentences), newline, then optimistic prelude (2 sentences).
 - A New Trail must include exact lead sentence and five bullets in required format.
 - Remove generic phrases and repeated sentence openers.
+- Remove all advice/directive phrasing; keep hypothetical future language.
+- Add 1-2 punchy **bold** anchor phrases in Trailhead and Trajectory.
 Return revised content only.
 `.trim();
 }
@@ -717,12 +784,14 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
     const shapePipeline = (value) => {
       const shaped = normalizeFourSections(value, insightMap);
       const withMarkers = ensureTrailMarkers(shaped, insightMap);
-      return ensureFiveSubtraitBullets(withMarkers, focusAreas);
+      const withBullets = ensureFiveSubtraitBullets(withMarkers, focusAreas);
+      const softened = softenPrescriptiveLanguage(withBullets);
+      return ensurePunchAnchors(softened, insightMap);
     };
     let capped = shapePipeline(raw);
     let quality = evaluateNarrativeQuality(capped, insightMap);
 
-    if (quality < 8) {
+    if (quality < 10) {
       const repairPrompt = `${buildNarrativeRepairPrompt()}\n\nDRAFT TO REPAIR:\n${capped}`;
       const retry = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
