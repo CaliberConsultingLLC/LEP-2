@@ -439,9 +439,8 @@ function Summary() {
               placement="top"
               title={(
                 <Box sx={{ p: 0.9, maxWidth: 260 }}>
-                  <Typography sx={{ fontWeight: 700, mb: 0.35 }}>Anchor Insight</Typography>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    High-impact signal to watch as this pattern unfolds.
+                    Often caused by competing priorities, unclear ownership, and urgency outpacing shared clarity.
                   </Typography>
                 </Box>
               )}
@@ -454,7 +453,6 @@ function Summary() {
                   py: 0.08,
                   borderRadius: 0.7,
                   bgcolor: 'rgba(224,122,63,0.14)',
-                  borderBottom: '1px dashed rgba(224,122,63,0.7)',
                   cursor: 'help',
                 }}
               >

@@ -280,6 +280,11 @@ function normalizeFourSections(text, insightMap) {
     /\b(you should|should|must|need to|have to|try to|focus on|start with|begin by|by\s+[a-z]+ing)\b/i.test(String(s || ''));
 
   const keepNonAdvisory = (sentences = []) => sentences.filter((s) => !hasAdvice(s));
+  const stripDirectiveFraming = (s) =>
+    String(s || '')
+      .replace(/\bif addressed\b[:,]?\s*/gi, '')
+      .replace(/\bif fixed\b[:,]?\s*/gi, '')
+      .trim();
 
   const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
   const p2 = stripHeading(parts[1] || '');
@@ -290,15 +295,19 @@ function normalizeFourSections(text, insightMap) {
       .map((s) => s.trim())
       .filter(Boolean);
 
-  const riskSentences = keepNonAdvisory(toSentences(parts[2] || insightMap?.trajectory?.driftCase || ''));
+  const riskSentences = keepNonAdvisory(toSentences(parts[2] || insightMap?.trajectory?.driftCase || ''))
+    .filter((s) => !/\bimagine\b/i.test(s))
+    .map(stripDirectiveFraming)
+    .filter(Boolean);
   const optimisticSentences = keepNonAdvisory(toSentences(insightMap?.trajectory?.bestCase || ''));
   const fallbackRisk = toSentences('If current patterns hold, role confusion can quietly spread across the team. Execution momentum may slow as people spend energy interpreting mixed signals. Trust can weaken when urgency repeatedly outpaces clarity. Over time, this friction can become the team’s default operating rhythm.');
   const fallbackOptimistic = toSentences('Imagine your team feeling trusted instead of second-guessing. Greater clarity and alignment could open a higher-ceiling culture your people have not yet experienced.');
   const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk).slice(0, 4).join(' ');
   const secondHalf = (optimisticSentences.length ? optimisticSentences : fallbackOptimistic)
     .map((s) => {
-      if (/\b(could|would|might|will|imagine|if addressed)\b/i.test(s)) return s;
-      return `If addressed, ${s.charAt(0).toLowerCase()}${s.slice(1)}`;
+      const cleaned = stripDirectiveFraming(s).replace(/^imagine\b[:,]?\s*/i, '').trim();
+      if (/\b(could|would|might)\b/i.test(cleaned)) return cleaned;
+      return `A healthier trajectory could ${cleaned.charAt(0).toLowerCase()}${cleaned.slice(1)}`;
     })
     .slice(0, 2)
     .join(' ');
@@ -350,9 +359,22 @@ function softenPrescriptiveLanguage(text) {
     .replace(/\bhave to\b/gi, 'may feel required to')
     .replace(/\btry to\b/gi, 'may attempt to')
     .replace(/\bfocus on\b/gi, 'when attention shifts to')
-    .replace(/\bstart with\b/gi, 'if it begins with')
-    .replace(/\bbegin by\b/gi, 'if addressed through')
-    .replace(/\bby\s+([a-z]+ing)\b/gi, 'if addressed');
+    .replace(/\bstart with\b/gi, 'when it begins with')
+    .replace(/\bbegin by\b/gi, 'when this shifts through')
+    .replace(/\bby\s+([a-z]+ing)\b/gi, 'when this pattern shifts')
+    .replace(/\bif addressed\b[:,]?\s*/gi, 'if this pattern shifts, ');
+}
+
+function removeDanglingMarkdown(text) {
+  let cleaned = String(text || '');
+  if (((cleaned.match(/\*\*/g) || []).length % 2) !== 0) {
+    cleaned = cleaned.replace(/\*\*/g, '');
+  }
+  cleaned = cleaned
+    .replace(/^\s*\*\*\s+/gm, '')
+    .replace(/\s+\*\*\s*$/gm, '')
+    .replace(/\n\s*\*\*\s*\n/g, '\n');
+  return cleaned;
 }
 
 function sectionSentenceCount(text) {
@@ -786,7 +808,8 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
       const withMarkers = ensureTrailMarkers(shaped, insightMap);
       const withBullets = ensureFiveSubtraitBullets(withMarkers, focusAreas);
       const softened = softenPrescriptiveLanguage(withBullets);
-      return ensurePunchAnchors(softened, insightMap);
+      const cleanedMarkdown = removeDanglingMarkdown(softened);
+      return ensurePunchAnchors(cleanedMarkdown, insightMap);
     };
     let capped = shapePipeline(raw);
     let quality = evaluateNarrativeQuality(capped, insightMap);

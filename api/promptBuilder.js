@@ -75,6 +75,8 @@ NON-NEGOTIABLES
 - Novelty must come from reframing true signals, never invented claims.
 - Do NOT provide advice, directives, or practical steps.
 - Avoid prescriptive phrasing like "you should", "by doing", "focus on", "start with".
+- Absolute ban: no "if addressed, you ...", no "by <gerund>" prescriptions.
+- Absolute ban: no malformed markdown or stray "**" tokens.
 - Avoid these phrases unless directly evidenced and contextualized:
   "unlock potential", "effective leader", "growth mindset", "improve communication",
   "high-performing team", "be more strategic".
@@ -104,6 +106,8 @@ SELF-CHECK (silent)
 - Keep all novelty grounded in provided signals.
 - Include at least one compact chain in each section: signal -> pattern -> impact.
 - Avoid repeating the same sentence opener more than twice in one section.
+- Reject output if any directive pattern appears.
+- Reject output if trajectory sentence counts or paragraph intent drift.
 
 SECTION INTENT
 1) Trailhead (6-7 sentences):
@@ -116,13 +120,18 @@ SECTION INTENT
    - Then 3-5 concise outcome bullets.
    - Each bullet must be 6-9 words.
    - Focus on observable impact/results (team experience, pace, trust, clarity), not "you do X" behavior narration.
+   - Each bullet must be single-clause plain text; no semicolons or colons.
+   - Do not start bullets with "you".
 3) Trajectory:
    - Two paragraphs separated by a single newline.
    - Paragraph 1 (risk-first): exactly 4 sentences on likely downside if unchanged.
+   - Paragraph 1 must NOT contain "Imagine" or any solution framing.
    - Paragraph 2 (optimistic prelude): exactly 2 sentences in hypothetical future tense.
+   - Each sentence in paragraph 2 must include one modal: could, might, or would.
+   - Paragraph 2 describes possibility only; never method or steps.
    - The optimistic prelude should spotlight one desirable outcome likely missing today.
    - Do NOT give practical guidance or fix instructions anywhere in this section.
-   - Include 1-2 punchy anchor phrases and format them in **bold**.
+   - Include 1-2 punchy anchor phrases and format them in **bold** (3-8 words each).
    - Do not use markdown hashes or heading separators.
 4) A New Trail:
    - Exactly five bullets from provided subtraits in order (no bridge sentence needed).
