@@ -15,7 +15,7 @@ import {
   Chip,
   Menu,
 } from '@mui/material';
-import { Warning, Lightbulb, CheckCircle, TrendingUp, AutoAwesome, PersonSearch, AltRoute } from '@mui/icons-material';
+import { Warning, Lightbulb, CheckCircle, TrendingUp, PersonSearch, AltRoute, OutlinedFlag } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import traitSystem from '../data/traitSystem';
@@ -707,11 +707,11 @@ function Summary() {
                   {[
                     [
                       { label: 'Trailhead', icon: PersonSearch, text: summarySections[0] || '', accent: 'rgba(99,147,170,0.35)', mode: 'paragraph' },
-                      { label: 'Trail Markers', icon: AltRoute, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.35)', mode: 'markers' },
+                      { label: 'Trail Markers', icon: OutlinedFlag, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.35)', mode: 'markers' },
                     ],
                     [
                       { label: 'Trajectory', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'trajectory' },
-                      { label: 'A New Trail', icon: AutoAwesome, text: summarySections[3] || '', accent: 'rgba(47,133,90,0.35)', mode: 'narrative' },
+                      { label: 'A New Trail', icon: AltRoute, text: summarySections[3] || '', accent: 'rgba(47,133,90,0.35)', mode: 'narrative' },
                     ],
                   ].map((row, rowIdx) => (
                     <Box

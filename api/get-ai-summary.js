@@ -259,12 +259,12 @@ function normalizeFourSections(text, insightMap) {
       .map((s) => s.trim())
       .filter(Boolean);
 
-  const best = toSentences(parts[2] || insightMap?.trajectory?.bestCase || '');
-  const drift = toSentences(insightMap?.trajectory?.driftCase || '');
-  const fallbackBest = toSentences('Imagine what opens up when clarity, ownership, and timing align across your team. You create more confidence when priorities stay visible and stable. Progress accelerates when execution and collaboration reinforce each other.');
-  const fallbackDrift = toSentences('If nothing changes, confusion can quietly keep draining momentum. Repeated ambiguity can erode trust and slow decision quality over time. Eventually, avoidable friction can become the team’s default operating state.');
-  const firstHalf = (best.length ? best : fallbackBest).slice(0, 3).join(' ');
-  const secondHalf = (drift.length ? drift : fallbackDrift).slice(0, 3).join(' ');
+  const riskSentences = toSentences(parts[2] || insightMap?.trajectory?.driftCase || '');
+  const optimisticSentences = toSentences(insightMap?.trajectory?.bestCase || '');
+  const fallbackRisk = toSentences('If current patterns hold, role confusion can quietly spread across the team. Execution momentum may slow as people spend energy interpreting mixed signals. Trust can weaken when urgency repeatedly outpaces clarity. Over time, this friction can become the team’s default operating rhythm.');
+  const fallbackOptimistic = toSentences('Imagine your team feeling confident instead of cautious in key moments. With stronger trust and clarity, your people can move faster and own outcomes more fully.');
+  const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk).slice(0, 4).join(' ');
+  const secondHalf = (optimisticSentences.length ? optimisticSentences : fallbackOptimistic).slice(0, 2).join(' ');
   const p3 = `${firstHalf}\n${secondHalf}`.trim();
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
   return [p1, p2, p3, p4].join('\n\n').trim();

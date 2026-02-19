@@ -90,7 +90,8 @@ SELF-CHECK (silent)
 
 SECTION INTENT
 1) Trailhead (6-7 sentences):
-   - One identity-level mirror, one productive pattern, one hidden tension, one second-order consequence.
+   - Current-state only: one identity-level mirror, one productive pattern, one hidden tension.
+   - Do not include future consequences or "what if" language here.
 2) Trail Markers:
    - Use this exact lead-in sentence: "A few scenarios you may find yourself in at times:"
    - Frame as likely outcomes this leader may repeatedly encounter.
@@ -99,8 +100,9 @@ SECTION INTENT
    - Focus on observable impact/results (team experience, pace, trust, clarity), not "you do X" behavior narration.
 3) Trajectory:
    - Two paragraphs separated by a single newline.
-   - Paragraph 1 (optimistic): exactly 3 sentences.
-   - Paragraph 2 (urgent): exactly 3 sentences.
+   - Paragraph 1 (risk-first): exactly 4 sentences on likely downside if unchanged.
+   - Paragraph 2 (optimistic prelude): exactly 2 sentences that preview better outcomes if improved.
+   - The optimistic prelude should spotlight one desirable outcome likely missing today.
    - Do not use markdown hashes or heading separators.
 4) A New Trail:
    - Exactly five bullets from provided subtraits in order (no bridge sentence needed).
