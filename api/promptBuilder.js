@@ -129,6 +129,7 @@ SECTION INTENT
    - Paragraph 2 (optimistic prelude): exactly 2 sentences in hypothetical future tense.
    - Each sentence in paragraph 2 must include one modal: could, might, or would.
    - Paragraph 2 describes possibility only; never method or steps.
+   - Keep trajectory concise: reduce verbosity by ~20%, target 12-16 words per sentence.
    - The optimistic prelude should spotlight one desirable outcome likely missing today.
    - Do NOT give practical guidance or fix instructions anywhere in this section.
    - Include 1-2 punchy anchor phrases and format them in **bold** (3-8 words each).

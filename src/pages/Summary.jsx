@@ -426,6 +426,41 @@ function Summary() {
   }, [focusAreas]);
 
   const renderParagraphWithTooltips = (text) => {
+    const buildAnchorCause = (anchor, fullText) => {
+      const scope = `${String(anchor || '')} ${String(fullText || '')}`.toLowerCase();
+      const rules = [
+        {
+          keys: ['clarity', 'priorit', 'direction', 'goal'],
+          cause: 'Often caused by shifting priorities, fuzzy goals, and uneven decision boundaries.',
+        },
+        {
+          keys: ['trust', 'doubt', 'hesitat', 'second-guess'],
+          cause: 'Often caused by mixed signals, delayed feedback, and inconsistent follow-through under pressure.',
+        },
+        {
+          keys: ['chaos', 'overwhelm', 'pressure', 'urgent'],
+          cause: 'Often caused by urgency spikes, reactive pacing, and unclear ownership during execution.',
+        },
+        {
+          keys: ['engagement', 'morale', 'frustration', 'burnout'],
+          cause: 'Often caused by repeated ambiguity, role confusion, and unresolved friction across the team.',
+        },
+        {
+          keys: ['ownership', 'accountability', 'delegation', 'initiative'],
+          cause: 'Often caused by control drift, unclear handoffs, and uneven autonomy across responsibilities.',
+        },
+      ];
+      const hit = rules.find((rule) => rule.keys.some((k) => scope.includes(k)));
+      if (hit) return hit.cause;
+
+      const fallbackLead = String(anchor || '')
+        .replace(/[^\w\s-]/g, '')
+        .trim()
+        .toLowerCase()
+        .slice(0, 48);
+      return `Often caused when ${fallbackLead || 'this pattern'} intensifies under pressure and unclear alignment.`;
+    };
+
     const parts = String(text).split(/\*\*(.+?)\*\*/g);
     return parts.map((part, idx) => {
       if (idx % 2 === 1) {
@@ -440,7 +475,7 @@ function Summary() {
               title={(
                 <Box sx={{ p: 0.9, maxWidth: 260 }}>
                   <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Often caused by competing priorities, unclear ownership, and urgency outpacing shared clarity.
+                    {buildAnchorCause(part, text)}
                   </Typography>
                 </Box>
               )}

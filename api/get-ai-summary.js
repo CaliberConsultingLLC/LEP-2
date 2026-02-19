@@ -285,6 +285,16 @@ function normalizeFourSections(text, insightMap) {
       .replace(/\bif addressed\b[:,]?\s*/gi, '')
       .replace(/\bif fixed\b[:,]?\s*/gi, '')
       .trim();
+  const compactSentence = (s, ratio = 0.8) => {
+    const raw = String(s || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return '';
+    const end = /[.!?]$/.test(raw) ? raw.slice(-1) : '.';
+    const body = raw.replace(/[.!?]$/, '');
+    const words = body.split(' ').filter(Boolean);
+    const target = Math.max(8, Math.round(words.length * ratio));
+    const clipped = words.slice(0, target).join(' ').trim();
+    return `${clipped}${end}`;
+  };
 
   const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
   const p2 = stripHeading(parts[1] || '');
@@ -302,7 +312,10 @@ function normalizeFourSections(text, insightMap) {
   const optimisticSentences = keepNonAdvisory(toSentences(insightMap?.trajectory?.bestCase || ''));
   const fallbackRisk = toSentences('If current patterns hold, role confusion can quietly spread across the team. Execution momentum may slow as people spend energy interpreting mixed signals. Trust can weaken when urgency repeatedly outpaces clarity. Over time, this friction can become the team’s default operating rhythm.');
   const fallbackOptimistic = toSentences('Imagine your team feeling trusted instead of second-guessing. Greater clarity and alignment could open a higher-ceiling culture your people have not yet experienced.');
-  const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk).slice(0, 4).join(' ');
+  const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk)
+    .slice(0, 4)
+    .map((s) => compactSentence(s, 0.8))
+    .join(' ');
   const secondHalf = (optimisticSentences.length ? optimisticSentences : fallbackOptimistic)
     .map((s) => {
       const cleaned = stripDirectiveFraming(s).replace(/^imagine\b[:,]?\s*/i, '').trim();
@@ -310,6 +323,7 @@ function normalizeFourSections(text, insightMap) {
       return `A healthier trajectory could ${cleaned.charAt(0).toLowerCase()}${cleaned.slice(1)}`;
     })
     .slice(0, 2)
+    .map((s) => compactSentence(s, 0.8))
     .join(' ');
   const p3 = `${firstHalf}\n${secondHalf}`.trim();
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
@@ -334,6 +348,18 @@ function ensurePunchAnchors(text, insightMap) {
     return capBoldAnchors(`${String(input || '').trim()} **${fallbackPhrase}**.`, 2).trim();
   };
 
+  const addTrajectoryAnchorInFirstParagraph = (input, fallbackPhrase) => {
+    const raw = String(input || '').trim();
+    const boldCount = (raw.match(/\*\*([^*]+)\*\*/g) || []).length;
+    if (boldCount >= 1) return capBoldAnchors(raw, 2);
+
+    const parts = raw.split('\n').map((s) => s.trim()).filter(Boolean);
+    if (!parts.length) return capBoldAnchors(`**${fallbackPhrase}**.`, 2);
+    const [first, ...rest] = parts;
+    const firstWithAnchor = capBoldAnchors(`${first} **${fallbackPhrase}**.`, 2).trim();
+    return [firstWithAnchor, ...rest].join('\n').trim();
+  };
+
   const trailheadFallback = (insightMap?.signaturePattern || insightMap?.hiddenCost || 'This is the part most leaders avoid')
     .split('.')
     .find(Boolean)
@@ -346,7 +372,7 @@ function ensurePunchAnchors(text, insightMap) {
     ?.slice(0, 64) || 'This is where momentum quietly breaks';
 
   sections[0] = addAnchorIfMissing(sections[0], trailheadFallback);
-  sections[2] = addAnchorIfMissing(sections[2], trajectoryFallback);
+  sections[2] = addTrajectoryAnchorInFirstParagraph(sections[2], trajectoryFallback);
   return sections.join('\n\n').trim();
 }
 
