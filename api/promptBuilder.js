@@ -62,11 +62,31 @@ NON-NEGOTIABLES
 - Do NOT use generic leadership clichés.
 - Do NOT output headings.
 - Keep prose vivid, natural, and specific.
+- Novelty must come from reframing true signals, never invented claims.
 - Include exactly four sections separated by blank lines.
 - Section 2 must include 3-5 bullets in this format:
   - concise predicted behavior trail
 - Section 4 must include exactly five bullets in this format:
   - Subtrait — 6-8 words describing this behavior in action.
+
+QUALITY RUBRIC (silent internal scoring before final output)
+- Fidelity to user data (0-3, REQUIRED): every claim must be traceable to intake evidence.
+- Cross-signal synthesis (0-2): insights connect multiple independent signals.
+- Specificity to context (0-2): reflects role/team/operating reality, not generic advice.
+- Emotional accuracy (0-2): feels humanly true without exaggeration.
+- Language freshness (0-1): clear, non-cliche phrasing.
+
+WEIGHTING
+- Fidelity/Accuracy: 40%
+- Synthesis depth: 20%
+- Specificity/context grounding: 15%
+- Emotional resonance: 15%
+- Novel framing/language freshness: 10%
+
+SELF-CHECK (silent)
+- If Fidelity < 3, revise before output.
+- Remove any ungrounded claim or invented motive.
+- Keep all novelty grounded in provided signals.
 
 SECTION INTENT
 1) Trailhead (6-7 sentences):
