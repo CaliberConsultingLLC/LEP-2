@@ -30,18 +30,28 @@ ${JSON.stringify(body, null, 2)}
 Return strict JSON with this exact shape:
 {
   "leadershipEssence": "1-2 sentence identity-level mirror",
+  "signaturePattern": "single sentence describing the dominant recurring loop",
+  "hiddenCost": "single sentence describing non-obvious downside",
+  "missingOutcome": "single sentence naming desirable outcome likely not happening today",
   "coreStrengths": [{"label":"", "evidence":["",""], "implication":""}],
   "coreTensions": [{"label":"", "evidence":["",""], "implication":""}],
   "blindSpots": [{"label":"", "evidence":["",""], "teamImpact":""}],
+  "contradictionMap": [{"tension":"", "cause":"", "effect":""}],
   "trajectory": {
     "bestCase": "2-3 sentences",
     "driftCase": "2-3 sentences"
   },
-  "languageAvoid": ["phrase1", "phrase2"]
+  "languageAvoid": ["phrase1", "phrase2"],
+  "confidence": {
+    "overall": "high|medium|low",
+    "trailhead": "high|medium|low",
+    "trajectory": "high|medium|low"
+  }
 }
 
 Constraints:
 - 3 coreStrengths, 3 coreTensions, 3 blindSpots.
+- 2 contradictionMap entries.
 - "evidence" items must be short reworded observations, not copied answer text.
 - Keep all fields concise and concrete.
 `.trim();
@@ -63,6 +73,9 @@ NON-NEGOTIABLES
 - Do NOT output headings.
 - Keep prose vivid, natural, and specific.
 - Novelty must come from reframing true signals, never invented claims.
+- Avoid these phrases unless directly evidenced and contextualized:
+  "unlock potential", "effective leader", "growth mindset", "improve communication",
+  "high-performing team", "be more strategic".
 - Include exactly four sections separated by blank lines.
 - Section 2 must include 3-5 bullets in this format:
   - concise predicted behavior trail
@@ -87,6 +100,8 @@ SELF-CHECK (silent)
 - If Fidelity < 3, revise before output.
 - Remove any ungrounded claim or invented motive.
 - Keep all novelty grounded in provided signals.
+- Include at least one compact chain in each section: signal -> pattern -> impact.
+- Avoid repeating the same sentence opener more than twice in one section.
 
 SECTION INTENT
 1) Trailhead (6-7 sentences):
