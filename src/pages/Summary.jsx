@@ -131,7 +131,48 @@ function Summary() {
     const generatedAreas = ranked.slice(0, 5).map((trait) => {
       const subTrait = pickSubTrait(trait);
       if (!subTrait) return null;
-      const example = subTrait.riskSignals?.underuse?.[0] || `Struggling with ${subTrait.name.toLowerCase()} can show up in day-to-day execution.`;
+      const decisionContext = [
+        data?.decisionPace,
+        data?.teamPerception,
+        data?.projectApproach,
+        data?.responsibilities,
+        data?.role,
+      ]
+        .map((v) => String(v || '').toLowerCase())
+        .join(' ');
+      const impactTerms = /\b(trust|clarity|alignment|pace|ownership|engagement|morale|confidence|friction|execution)\b/g;
+      const contextTerms = new Set(
+        decisionContext
+          .replace(/[^a-z\s]/g, ' ')
+          .split(/\s+/)
+          .filter((w) => w.length > 3)
+      );
+      const normalizeMarkerText = (value) => {
+        const src = String(value || '')
+          .replace(/[.*_`#]/g, '')
+          .replace(/\byou (may|might|tend to|often)\b/gi, '')
+          .replace(/\bthis can\b/gi, '')
+          .replace(/\bthis pattern\b/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const words = src.split(' ').filter(Boolean).slice(0, 9);
+        while (words.length < 6) words.push('over time');
+        return words.join(' ').replace(/\s+over time\b/g, ' over time');
+      };
+      const scoreCandidate = (candidate) => {
+        const c = String(candidate || '').toLowerCase();
+        const words = c.replace(/[^a-z\s]/g, ' ').split(/\s+/).filter((w) => w.length > 3);
+        const overlap = words.filter((w) => contextTerms.has(w)).length;
+        const impactHits = (c.match(impactTerms) || []).length;
+        return (overlap * 2) + impactHits;
+      };
+      const underuse = Array.isArray(subTrait.riskSignals?.underuse) ? subTrait.riskSignals.underuse : [];
+      const sorted = underuse
+        .map((item) => ({ item, score: scoreCandidate(item) }))
+        .sort((a, b) => b.score - a.score);
+      const selectedMarker = sorted[0]?.item || underuse[0];
+      const example = normalizeMarkerText(selectedMarker)
+        || `Decision confidence drops when ${subTrait.name.toLowerCase()} is inconsistent`;
       const risk = subTrait.riskSignals?.underuse?.[1] || example;
       const impact = subTrait.impact || `Improving ${subTrait.name.toLowerCase()} can strengthen trust, alignment, and outcomes.`;
       return {
@@ -426,41 +467,6 @@ function Summary() {
   }, [focusAreas]);
 
   const renderParagraphWithTooltips = (text) => {
-    const buildAnchorCause = (anchor, fullText) => {
-      const scope = `${String(anchor || '')} ${String(fullText || '')}`.toLowerCase();
-      const rules = [
-        {
-          keys: ['clarity', 'priorit', 'direction', 'goal'],
-          cause: 'Often caused by shifting priorities, fuzzy goals, and uneven decision boundaries.',
-        },
-        {
-          keys: ['trust', 'doubt', 'hesitat', 'second-guess'],
-          cause: 'Often caused by mixed signals, delayed feedback, and inconsistent follow-through under pressure.',
-        },
-        {
-          keys: ['chaos', 'overwhelm', 'pressure', 'urgent'],
-          cause: 'Often caused by urgency spikes, reactive pacing, and unclear ownership during execution.',
-        },
-        {
-          keys: ['engagement', 'morale', 'frustration', 'burnout'],
-          cause: 'Often caused by repeated ambiguity, role confusion, and unresolved friction across the team.',
-        },
-        {
-          keys: ['ownership', 'accountability', 'delegation', 'initiative'],
-          cause: 'Often caused by control drift, unclear handoffs, and uneven autonomy across responsibilities.',
-        },
-      ];
-      const hit = rules.find((rule) => rule.keys.some((k) => scope.includes(k)));
-      if (hit) return hit.cause;
-
-      const fallbackLead = String(anchor || '')
-        .replace(/[^\w\s-]/g, '')
-        .trim()
-        .toLowerCase()
-        .slice(0, 48);
-      return `Often caused when ${fallbackLead || 'this pattern'} intensifies under pressure and unclear alignment.`;
-    };
-
     const parts = String(text).split(/\*\*(.+?)\*\*/g);
     return parts.map((part, idx) => {
       if (idx % 2 === 1) {
@@ -468,32 +474,19 @@ function Summary() {
         const area = subTraitMap.get(key);
         if (!area) {
           return (
-            <Tooltip
-              key={`plain-tt-${idx}`}
-              arrow
-              placement="top"
-              title={(
-                <Box sx={{ p: 0.9, maxWidth: 260 }}>
-                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    {buildAnchorCause(part, text)}
-                  </Typography>
-                </Box>
-              )}
+            <Box
+              key={`plain-anchor-${idx}`}
+              component="span"
+              sx={{
+                fontWeight: 800,
+                px: 0.4,
+                py: 0.08,
+                borderRadius: 0.7,
+                bgcolor: 'rgba(224,122,63,0.14)',
+              }}
             >
-              <Box
-                component="span"
-                sx={{
-                  fontWeight: 800,
-                  px: 0.4,
-                  py: 0.08,
-                  borderRadius: 0.7,
-                  bgcolor: 'rgba(224,122,63,0.14)',
-                  cursor: 'help',
-                }}
-              >
-                {part}
-              </Box>
-            </Tooltip>
+              {part}
+            </Box>
           );
         }
         return (

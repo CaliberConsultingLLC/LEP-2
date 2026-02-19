@@ -329,7 +329,7 @@ function TraitSelection() {
                                 letterSpacing: '0.5px',
                               }}
                             >
-                              Example
+                              Trail Marker
                             </Typography>
                           </Stack>
                           <Typography

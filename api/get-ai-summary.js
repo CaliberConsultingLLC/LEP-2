@@ -458,7 +458,7 @@ Return revised content only.
 }
 
 
-function buildFocusAreas(data) {
+function buildFocusAreas(data, insightMap = null) {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   if (!CORE_TRAITS.length) return [];
 
@@ -548,8 +548,59 @@ function buildFocusAreas(data) {
   const generatedAreas = ranked.slice(0, 5).map((trait) => {
     const subTrait = pickSubTrait(trait);
     if (!subTrait) return null;
-    const example = subTrait.riskSignals?.underuse?.[0]
-      || `Struggling with ${subTrait.name.toLowerCase()} can show up in day-to-day execution.`;
+    const decisionContext = [
+      data?.decisionPace,
+      data?.teamPerception,
+      data?.projectApproach,
+      data?.responsibilities,
+      data?.role,
+    ]
+      .map((v) => String(v || '').toLowerCase())
+      .join(' ');
+    const impactTerms = /\b(trust|clarity|alignment|pace|ownership|engagement|morale|confidence|friction|execution)\b/g;
+    const contextTerms = new Set(
+      decisionContext
+        .replace(/[^a-z\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 3)
+    );
+    const normalizeMarkerText = (value) => {
+      const src = String(value || '')
+        .replace(/[.*_`#]/g, '')
+        .replace(/\byou (may|might|tend to|often)\b/gi, '')
+        .replace(/\bthis can\b/gi, '')
+        .replace(/\bthis pattern\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const words = src.split(' ').filter(Boolean).slice(0, 9);
+      while (words.length < 6) words.push('over time');
+      return words.join(' ').replace(/\s+over time\b/g, ' over time');
+    };
+    const scoreCandidate = (candidate) => {
+      const c = String(candidate || '').toLowerCase();
+      const words = c.replace(/[^a-z\s]/g, ' ').split(/\s+/).filter((w) => w.length > 3);
+      const overlap = words.filter((w) => contextTerms.has(w)).length;
+      const impactHits = (c.match(impactTerms) || []).length;
+      return (overlap * 2) + impactHits;
+    };
+    const underuse = Array.isArray(subTrait.riskSignals?.underuse) ? subTrait.riskSignals.underuse : [];
+    const agentCandidates = [
+      ...(Array.isArray(insightMap?.blindSpots)
+        ? insightMap.blindSpots.flatMap((b) => [b?.teamImpact, b?.implication, b?.label]).filter(Boolean)
+        : []),
+      ...(Array.isArray(insightMap?.coreTensions)
+        ? insightMap.coreTensions.flatMap((t) => [t?.implication, t?.label]).filter(Boolean)
+        : []),
+      String(insightMap?.hiddenCost || '').trim(),
+      String(insightMap?.missingOutcome || '').trim(),
+    ].filter(Boolean);
+    const candidatePool = [...underuse, ...agentCandidates];
+    const sorted = candidatePool
+      .map((item) => ({ item, score: scoreCandidate(item) }))
+      .sort((a, b) => b.score - a.score);
+    const selectedMarker = sorted[0]?.item || underuse[0];
+    const example = normalizeMarkerText(selectedMarker)
+      || `Decision confidence drops when ${subTrait.name.toLowerCase()} is inconsistent`;
     const risk = subTrait.riskSignals?.underuse?.[1] || example;
     const impact = subTrait.impact
       || `Improving ${subTrait.name.toLowerCase()} can strengthen trust, alignment, and outcomes.`;
@@ -790,8 +841,6 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 `.trim();
     })();
 
-    const focusAreas = buildFocusAreas(body);
-
     // Pass A: structured insight extraction
     const extractSystem = buildInsightExtractionSystemPrompt({ agentIdentity: cleanIdentity });
     const extractUser = buildInsightExtractionUserPrompt(body);
@@ -808,6 +857,7 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
     });
     const extractionRaw = extraction?.choices?.[0]?.message?.content?.trim() || '{}';
     const insightMap = normalizeInsightMap(extractFirstJsonObject(extractionRaw));
+    const focusAreas = buildFocusAreas(body, insightMap);
 
     // Pass B: narrative generation from extracted insight map
     const narrativeSystem = buildSummaryNarrativeSystemPrompt({
