@@ -14,7 +14,7 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'Gemunu Libre, sans-serif',
+    fontFamily: 'Montserrat, sans-serif',
   },
 });
 

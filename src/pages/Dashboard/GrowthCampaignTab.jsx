@@ -1,124 +1,217 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Card,
   CardContent,
   Stack,
-  Grid,
   Button,
-  Chip,
+  Paper,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { Campaign, Group, Link as LinkIcon, CheckCircle } from '@mui/icons-material';
+import fakeData from '../../data/fakeData.js';
+import { Launch } from '@mui/icons-material';
 
 function GrowthCampaignTab() {
-  const navigate = useNavigate();
+  const [copiedKey, setCopiedKey] = useState('');
+  const now = new Date();
+  const addDays = (date, days) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
+  const fmt = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const campaignRows = [
+    { id: '123', title: 'Trailhead Campaign', openDate: addDays(now, -6), invited: 14 },
+    { id: '124', title: 'Second Campaign', openDate: addDays(now, -2), invited: 14 },
+    { id: '125', title: 'Final Campaign', openDate: addDays(now, 3), invited: 14 },
+  ].map((row) => {
+    const responses = fakeData.responses.filter((r) => String(r.campaignId) === row.id).length;
+    const pct = Math.min(100, Math.round((responses / row.invited) * 100));
+    return {
+      ...row,
+      responses,
+      pct,
+      closeDate: addDays(row.openDate, 10),
+    };
+  });
+  const currentCampaign = campaignRows
+    .filter((row) => row.openDate <= now)
+    .sort((a, b) => b.openDate.getTime() - a.openDate.getTime())[0];
+  const currentCampaignId = currentCampaign?.id || campaignRows[0]?.id;
+  const getCampaignStatus = (row) => {
+    if (row.id === '123') return 'Complete';
+    if (row.pct >= 100) return 'Complete';
+    if (now >= row.openDate && now <= row.closeDate) return 'Open';
+    return 'Closed';
+  };
+
+  const getCampaignLink = (campaignId) => {
+    if (typeof window === 'undefined') return `/campaign/${campaignId}`;
+    return `${window.location.origin}/campaign/${campaignId}`;
+  };
+
+  const getCampaignPassword = (campaignId) => {
+    try {
+      const raw = localStorage.getItem('dashboardCredentials');
+      if (!raw) return `campaign-${campaignId}-password`;
+      const parsed = JSON.parse(raw);
+      return parsed?.password || `campaign-${campaignId}-password`;
+    } catch {
+      return `campaign-${campaignId}-password`;
+    }
+  };
+
+  const copyText = async (value, key) => {
+    const text = String(value || '');
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey(''), 1300);
+    } catch {
+      setCopiedKey('');
+    }
+  };
 
   return (
-    <Stack spacing={4}>
-      <Box sx={{ textAlign: 'center', mb: 1 }}>
-        <Typography
-          sx={{
-            fontFamily: 'Gemunu Libre, sans-serif',
-            fontSize: '2rem',
-            fontWeight: 700,
-            mb: 1,
-            color: 'text.primary',
-          }}
-        >
-          Growth Campaign
-        </Typography>
-        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', maxWidth: 820, mx: 'auto' }}>
-          Manage the campaign you share with your team, check participation, and keep the feedback loop active.
-        </Typography>
-      </Box>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={7}>
-          <Card
+    <Stack spacing={2.2} sx={{ width: '100%' }}>
+      <Card
+        sx={{
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,248,220,0.8))',
+          border: '1px solid',
+          borderColor: 'secondary.main',
+          borderRadius: 3,
+          boxShadow: 4,
+        }}
+      >
+        <CardContent>
+          <Typography
             sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-              border: '1px solid',
-              borderColor: 'primary.main',
-              borderRadius: 3,
-              boxShadow: 4,
-              height: '100%',
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '1.4rem',
+              fontWeight: 700,
+              color: 'text.primary',
+              mb: 1.2,
+              textAlign: 'center',
             }}
           >
-            <CardContent>
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                <Campaign sx={{ color: 'primary.main', fontSize: 32 }} />
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: 'text.primary' }}>
-                  Your Active Campaign
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 3 }}>
-                Keep your campaign updated, verify the statements you want your team to assess, and share the link when you're ready.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => navigate('/campaign-builder')}
-                  sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4, py: 1.2 }}
-                >
-                  Open Campaign Builder
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => navigate('/campaign-verify')}
-                  sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4, py: 1.2 }}
-                >
-                  Share Campaign Link
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={5}>
-          <Card
-            sx={{
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,248,220,0.8))',
-              border: '1px solid',
-              borderColor: 'secondary.main',
-              borderRadius: 3,
-              boxShadow: 4,
-              height: '100%',
-            }}
-          >
-            <CardContent>
-              <Stack spacing={2}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <CheckCircle sx={{ color: 'secondary.main', fontSize: 28 }} />
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.3rem', fontWeight: 700 }}>
-                    Quick Status
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Chip label="Campaign Ready" sx={{ bgcolor: 'rgba(47,133,90,0.12)', color: '#2F855A', fontWeight: 700 }} />
-                  <Chip label="Share Link Available" sx={{ bgcolor: 'rgba(99,147,170,0.12)', color: '#2B6CB0', fontWeight: 700 }} />
-                </Stack>
-                <Stack spacing={1}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Group sx={{ color: 'primary.main' }} />
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'text.secondary' }}>
-                      Invite team members to complete the survey.
+            Growth Campaigns
+          </Typography>
+          <Box sx={{ mb: 2 }} />
+          <Stack spacing={1.5}>
+            {campaignRows.map((row) => (
+              <Paper
+                key={row.id}
+                sx={{
+                  p: 1.5,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: row.id === currentCampaignId ? 'rgba(224,122,63,0.45)' : 'rgba(69,112,137,0.28)',
+                  background: row.id === currentCampaignId
+                    ? 'linear-gradient(180deg, rgba(255,241,226,0.98), rgba(255,232,206,0.9))'
+                    : 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,249,255,0.9))',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                }}
+              >
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
+                  <Stack direction="row" spacing={1.5} alignItems="stretch" sx={{ width: '100%' }}>
+                    <Box
+                      sx={{
+                        minWidth: 92,
+                        borderRadius: 1.5,
+                        border: '1px solid',
+                        borderColor: 'rgba(69,112,137,0.3)',
+                        bgcolor: 'rgba(255,255,255,0.55)',
+                        px: 1.1,
+                        py: 0.9,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.95rem',
+                          fontWeight: 800,
+                          color: getCampaignStatus(row) === 'Open'
+                            ? '#2F855A'
+                            : getCampaignStatus(row) === 'Complete'
+                              ? '#2B6CB0'
+                              : '#9B2C2C',
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {getCampaignStatus(row)}
+                      </Typography>
+                    </Box>
+                    <Box>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.04rem', fontWeight: 700, color: 'text.primary' }}>
+                      {row.title}
                     </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <LinkIcon sx={{ color: 'primary.main' }} />
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'text.secondary' }}>
-                      Copy the campaign link from the verify screen.
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
+                      Opened: {fmt(row.openDate)} | Closes: {fmt(row.closeDate)}
                     </Typography>
-                  </Box>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
+                      Response Rate: {row.pct}% ({row.responses}/{row.invited})
+                    </Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => copyText(getCampaignLink(row.id), `${row.id}-link`)}
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        textTransform: 'none',
+                        bgcolor: '#457089',
+                        color: 'white',
+                        minWidth: 122,
+                        '&:hover': {
+                          bgcolor: '#375d78',
+                        },
+                      }}
+                    >
+                      {copiedKey === `${row.id}-link` ? 'Copied Link' : 'Campaign Link'}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => copyText(getCampaignPassword(row.id), `${row.id}-password`)}
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        textTransform: 'none',
+                        bgcolor: '#457089',
+                        color: 'white',
+                        minWidth: 145,
+                        '&:hover': {
+                          bgcolor: '#375d78',
+                        },
+                      }}
+                    >
+                      {copiedKey === `${row.id}-password` ? 'Copied Password' : 'Campaign Password'}
+                    </Button>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              </Paper>
+            ))}
+          </Stack>
+        </CardContent>
+      </Card>
     </Stack>
   );
 }

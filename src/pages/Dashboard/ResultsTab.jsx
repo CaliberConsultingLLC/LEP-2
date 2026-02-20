@@ -33,10 +33,11 @@ function ResultsTab() {
   const [criticalGaps, setCriticalGaps] = useState([]);
   const [primaryOpportunity, setPrimaryOpportunity] = useState(null);
   const [expandedTraits, setExpandedTraits] = useState({});
-  const [hoveredTrait, setHoveredTrait] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [hoveredCircle, setHoveredCircle] = useState(null); // { type: 'efficacy' | 'effort', traitIdx: number, value: number }
   const [hoveredGap, setHoveredGap] = useState(null); // { x: number, y: number, text: string, statement: object }
+  const [selectedTraitKey, setSelectedTraitKey] = useState(null);
+  const [selectedMetric, setSelectedMetric] = useState('trait'); // trait | efficacy | effort
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -514,6 +515,50 @@ function ResultsTab() {
     return { avgLEP, avgDelta, avgEfficacy, avgEffort, highGapCount, totalTraits: traits.length };
   }, [traitData]);
 
+  useEffect(() => {
+    if (!selectedTraitKey && Object.keys(traitData).length > 0) {
+      setSelectedTraitKey(Object.keys(traitData)[0]);
+    }
+  }, [traitData, selectedTraitKey]);
+
+  const selectedTraitMetrics = useMemo(() => {
+    if (!selectedTraitKey) return null;
+    return traitData[selectedTraitKey] || null;
+  }, [traitData, selectedTraitKey]);
+
+  const selectedSubtraitLabel = useMemo(() => {
+    if (!selectedTraitKey) return '';
+    const match = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === selectedTraitKey);
+    return match?.subTrait || selectedTraitKey;
+  }, [selectedTraitKey]);
+
+  const activeMetrics = useMemo(() => {
+    if (!overallMetrics) return null;
+    return selectedTraitMetrics || {
+      lepScore: overallMetrics.avgLEP,
+      efficacy: overallMetrics.avgEfficacy,
+      effort: overallMetrics.avgEffort,
+      delta: overallMetrics.avgDelta,
+    };
+  }, [selectedTraitMetrics, overallMetrics]);
+
+  const activeScore = useMemo(() => {
+    if (!activeMetrics) return 0;
+    if (selectedMetric === 'efficacy') return activeMetrics.efficacy;
+    if (selectedMetric === 'effort') return activeMetrics.effort;
+    return activeMetrics.lepScore;
+  }, [activeMetrics, selectedMetric]);
+
+  const efficacyPerceptionGap = useMemo(() => {
+    if (!activeMetrics) return 0;
+    return activeMetrics.efficacy - activeMetrics.lepScore;
+  }, [activeMetrics]);
+
+  const effortPerceptionGap = useMemo(() => {
+    if (!activeMetrics) return 0;
+    return activeMetrics.effort - activeMetrics.lepScore;
+  }, [activeMetrics]);
+
   // Map intake responses to insights
   const selfPerceptionInsights = useMemo(() => {
     if (!intakeData) return null;
@@ -544,689 +589,346 @@ function ResultsTab() {
   return (
     <Stack spacing={4}>
 
-          {/* Section 1: Compass Score and Key Metrics */}
-          {overallMetrics && (
-            <Box sx={{ mb: 4 }}>
-              <Grid container spacing={4} alignItems="center">
-                {/* Left Third: Large Compass Score */}
-                <Grid item xs={12} md={4}>
-                  <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {/* Compass Logo - doubled in size */}
-                    <img 
-                      src="/CompassLogo.png" 
-                      alt="Compass Logo" 
-                      style={{ 
-                        width: '100%',
-                        maxWidth: '800px',
-                        height: 'auto',
-                        position: 'relative',
-                        zIndex: 1
-                      }} 
-                    />
-                    {/* Semi-transparent circle overlay with score */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '200px',
-                        height: '200px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 255, 255, 0.85)',
-                        border: '3px solid',
-                        borderColor: 'primary.main',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2,
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                      }}
-                    >
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '4rem', fontWeight: 700, color: 'text.primary', lineHeight: 1, mb: 0.5 }}>
-                        {overallMetrics.avgLEP.toFixed(1)}
-                      </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 600, color: 'text.secondary' }}>
-                        Compass Score
-            </Typography>
-          </Box>
-                  </Box>
-                </Grid>
-
-                {/* Right Side: Two Columns of Two Boxes Each */}
-                <Grid item xs={12} md={8}>
-                  <Grid container spacing={3}>
-                    {/* Top Row: Average Efficacy Score */}
-                    <Grid item xs={12} sm={6}>
-                      <Card sx={{ 
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                        border: '1px solid',
-                        borderColor: 'primary.main',
-                        borderRadius: 3,
-                        boxShadow: 4,
-                        height: '100%',
-                      }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
-                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <TrendingUp sx={{ color: '#6393AA', fontSize: 40 }} />
-                          </Box>
-                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
-                              Average Efficacy Score
-                  </Typography>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                              {overallMetrics.avgEfficacy.toFixed(1)}
-                            </Typography>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-
-                    {/* Top Row: Average Effort Score */}
-                    <Grid item xs={12} sm={6}>
-                      <Card sx={{ 
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,235,220,0.8))',
-                        border: '1px solid',
-                        borderColor: 'secondary.main',
-                        borderRadius: 3,
-                        boxShadow: 4,
-                        height: '100%',
-                      }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
-                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <TrendingUp sx={{ color: '#E07A3F', fontSize: 40 }} />
-                          </Box>
-                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
-                              Average Effort Score
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                              {overallMetrics.avgEffort.toFixed(1)}
-                            </Typography>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-
-                    {/* Bottom Row: Ave Effort/Efficacy Gap */}
-                    <Grid item xs={12} sm={6}>
-                      <Card sx={{ 
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                        border: '1px solid',
-                        borderColor: 'primary.main',
-                        borderRadius: 3,
-                        boxShadow: 4,
-                        height: '100%',
-                      }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
-                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Psychology sx={{ color: '#6393AA', fontSize: 40 }} />
-                          </Box>
-                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
-                              Avg Effort/Efficacy Gap
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                              {overallMetrics.avgDelta.toFixed(1)}
-                            </Typography>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-
-                    {/* Bottom Row: Team Responses */}
-                    <Grid item xs={12} sm={6}>
-                      <Card sx={{ 
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                        border: '1px solid',
-                        borderColor: 'primary.main',
-                        borderRadius: 3,
-                        boxShadow: 4,
-                        height: '100%',
-                      }}>
-                        <CardContent sx={{ display: 'flex', alignItems: 'center', minHeight: '140px', p: 2 }}>
-                          <Box sx={{ width: '25%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Insights sx={{ color: '#E07A3F', fontSize: 40 }} />
-                          </Box>
-                          <Box sx={{ width: '75%', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', mb: 1 }}>
-                              Team Responses
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary' }}>
-                              {fakeData.responses.length}
-                            </Typography>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
-
-              {/* Horizontal Divider */}
-              <Divider sx={{ mt: 4, borderWidth: 2, borderColor: 'rgba(224,122,63,0.4)' }} />
-            </Box>
-          )}
-
-          {/* Section 2: Rest of Dashboard Content */}
-          <Stack spacing={4}>
-
           {/* Combined Trait Circular Graph */}
           {Object.keys(traitData).length > 0 && (
             <Card sx={{ 
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-              border: '1px solid',
-              borderColor: 'primary.main',
+              background: 'transparent',
+              border: 'none',
               borderRadius: 3,
-              boxShadow: 4,
+              boxShadow: 'none',
             }}>
-              <CardContent>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.8rem', fontWeight: 700, mb: 3, color: 'text.primary', textAlign: 'center' }}>
-                  Overall Trait Performance
-                </Typography>
-                <Box sx={{ position: 'relative', width: '100%', height: 600, mb: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <Box sx={{ position: 'relative', width: 600, height: 600 }}>
-                    <svg width="600" height="600" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
-                      {(() => {
-                        const centerX = 300;
-                        const centerY = 300;
-                        const traits = Object.entries(traitData);
-                        const radius1 = 120;  // Inner track - first trait
-                        const radius2 = 160;  // Middle track - second trait
-                        const radius3 = 200;  // Outer track - third trait
-                        const radii = [radius1, radius2, radius3];
-                        
-                        // Coordinate system conversion
-                        const toSVGAngle = (userAngle) => {
-                          let svgAngle = (userAngle - 90) % 360;
-                          if (svgAngle < 0) svgAngle += 360;
-                          return (svgAngle * Math.PI) / 180;
-                        };
-                        
-                        // Helper to create arc path
-                        const createArcPath = (radius, startAngleUser, endAngleUser, sweepFlag = 1) => {
-                          const startAngleSVG = toSVGAngle(startAngleUser);
-                          const endAngleSVG = toSVGAngle(endAngleUser);
-                          
-                          const start = {
-                            x: centerX + radius * Math.cos(startAngleSVG),
-                            y: centerY + radius * Math.sin(startAngleSVG)
-                          };
-                          const end = {
-                            x: centerX + radius * Math.cos(endAngleSVG),
-                            y: centerY + radius * Math.sin(endAngleSVG)
-                          };
-                          
-                          const largeArcFlag = 1;
-                          return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.x} ${end.y}`;
-                        };
+              <CardContent sx={{ px: { xs: 0.8, md: 1.2 }, pt: 0.6, pb: '8px !important' }}>
+                <Grid container spacing={1.4} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
+                  <Grid item xs={12} lg={6} sx={{ display: 'flex' }}>
+                    <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: { xs: 420, md: 500, lg: 'auto' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
+                        <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
+                          {(() => {
+                            const centerX = 300;
+                            const centerY = 300;
+                            const traits = Object.entries(traitData);
+                            const ringScale = 1.2;
+                            const radii = [120, 160, 200].map((r) => r * ringScale);
 
-                        // Calculate arc length for 180-degree arc
-                        const getArcLength = (radius) => Math.PI * radius;
+                            const toSVGAngle = (userAngle) => {
+                              let svgAngle = (userAngle - 90) % 360;
+                              if (svgAngle < 0) svgAngle += 360;
+                              return (svgAngle * Math.PI) / 180;
+                            };
 
-                        const efficacyStartAngle = 180; // 6 o'clock
-                        const efficacyEndAngle = 0; // 12 o'clock
-                        const effortStartAngle = 180; // 6 o'clock
-                        const effortEndAngle = 0; // 12 o'clock
-
-                        return (
-                          <>
-                            {/* Subtle black divider lines at top (12 o'clock) for each ring - separating left and right */}
-                            {radii.map((radius, idx) => {
-                              const strokeWidth = 20;
-                              const halfWidth = strokeWidth / 2;
-                              const topAngle = 0; // 12 o'clock
-                              const topAngleSVG = toSVGAngle(topAngle);
-                              const topY = centerY + radius * Math.sin(topAngleSVG);
-                              
-                              // Create a vertical line that spans the height of the ring stroke
-                              // The line should be centered at 12 o'clock and span the stroke width vertically
-                              return (
-                                <line
-                                  key={`top-divider-${idx}`}
-                                  x1={centerX}
-                                  y1={topY - halfWidth}
-                                  x2={centerX}
-                                  y2={topY + halfWidth}
-                                  stroke="#000"
-                                  strokeWidth="2"
-                                  opacity="0.4"
-                                />
-                              );
-                            })}
-
-                            {/* Left side: Efficacy arcs for each trait (3 concentric tracks) */}
-                            {traits.map(([trait, data], traitIdx) => {
-                              const radius = radii[traitIdx];
-                              const arcLength = getArcLength(radius);
-                              const filledLength = (data.efficacy / 100) * arcLength;
-                              
-                              // Calculate end point of the arc for the circle marker - SWITCHED to right side
-                              const endAngleUser = 180 + (data.efficacy / 100) * 180;
+                            const createArcPath = (radius, startAngleUser, endAngleUser, sweepFlag = 1) => {
+                              const startAngleSVG = toSVGAngle(startAngleUser);
                               const endAngleSVG = toSVGAngle(endAngleUser);
-                              const endX = centerX + radius * Math.cos(endAngleSVG);
-                              const endY = centerY + radius * Math.sin(endAngleSVG);
-                              
-                              return (
-                                <g key={`efficacy-trait-${traitIdx}`}>
-                                  {/* Background track */}
-                                  <path
-                                    d={createArcPath(radius, efficacyStartAngle, efficacyEndAngle, 1)}
-                                    fill="none"
-                                    stroke="rgba(0,0,0,0.1)"
-                                    strokeWidth="20"
-                                    strokeLinecap="butt"
-                                  />
-                                  {/* Border/outline - drawn first */}
-                                  <path
-                                    d={createArcPath(radius, efficacyStartAngle, efficacyEndAngle, 1)}
-                                    fill="none"
-                                    stroke="rgba(0,0,0,0.4)"
-                                    strokeWidth="22"
-                                    strokeLinecap="butt"
-                                    strokeDasharray={`${filledLength} ${arcLength}`}
-                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
-                                  />
-                                  {/* Filled arc based on efficacy value - drawn on top */}
-                                  <path
-                                    d={createArcPath(radius, efficacyStartAngle, efficacyEndAngle, 1)}
-                                    fill="none"
-                                    stroke="#6393AA"
-                                    strokeWidth="20"
-                                    strokeLinecap="butt"
-                                    strokeDasharray={`${filledLength} ${arcLength}`}
-                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
-                                  />
-                                  {/* Circle marker at end of data point - SWITCHED to right side */}
-                                  <circle
-                                    cx={endX}
-                                    cy={endY}
-                                    r="10"
-                                    fill="#457089"
-                                    stroke="#000"
-                                    strokeWidth="2"
-                                    style={{ cursor: 'pointer' }}
-                                    onMouseEnter={(e) => {
-                                      const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                                      if (svgRect) {
-                                        setHoveredCircle({ type: 'efficacy', traitIdx, value: data.efficacy, trait });
-                                        setMousePosition({
-                                          x: e.clientX - svgRect.left,
-                                          y: e.clientY - svgRect.top
-                                        });
-                                      }
-                                    }}
-                                    onMouseMove={(e) => {
-                                      const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                                      if (svgRect) {
-                                        setMousePosition({
-                                          x: e.clientX - svgRect.left,
-                                          y: e.clientY - svgRect.top
-                                        });
-                                      }
-                                    }}
-                                    onMouseLeave={() => setHoveredCircle(null)}
-                                  />
-                                </g>
-                              );
-                            })}
+                              const start = { x: centerX + radius * Math.cos(startAngleSVG), y: centerY + radius * Math.sin(startAngleSVG) };
+                              const end = { x: centerX + radius * Math.cos(endAngleSVG), y: centerY + radius * Math.sin(endAngleSVG) };
+                              return `M ${start.x} ${start.y} A ${radius} ${radius} 0 1 ${sweepFlag} ${end.x} ${end.y}`;
+                            };
 
-                            {/* Right side: Effort arcs for each trait (3 concentric tracks) */}
-                            {traits.map(([trait, data], traitIdx) => {
-                              const radius = radii[traitIdx];
-                              const arcLength = getArcLength(radius);
-                              const filledLength = (data.effort / 100) * arcLength;
-                              
-                              // Calculate end point of the arc for the circle marker - SWITCHED to left side
-                              const endAngleUser = 180 - (data.effort / 100) * 180;
-                              const endAngleSVG = toSVGAngle(endAngleUser);
-                              const endX = centerX + radius * Math.cos(endAngleSVG);
-                              const endY = centerY + radius * Math.sin(endAngleSVG);
-                              
-                              return (
-                                <g key={`effort-trait-${traitIdx}`}>
-                                  {/* Background track */}
-                                  <path
-                                    d={createArcPath(radius, effortStartAngle, effortEndAngle, 0)}
-                                    fill="none"
-                                    stroke="rgba(0,0,0,0.1)"
-                                    strokeWidth="20"
-                                    strokeLinecap="butt"
-                                  />
-                                  {/* Border/outline - drawn first */}
-                                  <path
-                                    d={createArcPath(radius, effortStartAngle, effortEndAngle, 0)}
-                                    fill="none"
-                                    stroke="rgba(0,0,0,0.4)"
-                                    strokeWidth="22"
-                                    strokeLinecap="butt"
-                                    strokeDasharray={`${filledLength} ${arcLength}`}
-                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
-                                  />
-                                  {/* Filled arc based on effort value - drawn on top */}
-                                  <path
-                                    d={createArcPath(radius, effortStartAngle, effortEndAngle, 0)}
-                                    fill="none"
-                                    stroke="#E07A3F"
-                                    strokeWidth="20"
-                                    strokeLinecap="butt"
-                                    strokeDasharray={`${filledLength} ${arcLength}`}
-                                    style={{ transition: 'stroke-dasharray 0.5s ease' }}
-                                  />
-                                  {/* Circle marker at end of data point - SWITCHED to left side */}
-                                  <circle
-                                    cx={endX}
-                                    cy={endY}
-                                    r="10"
-                                    fill="#C85A2A"
-                                    stroke="#000"
-                                    strokeWidth="2"
-                                    style={{ cursor: 'pointer' }}
-                                    onMouseEnter={(e) => {
-                                      const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                                      if (svgRect) {
-                                        setHoveredCircle({ type: 'effort', traitIdx, value: data.effort, trait });
-                                        setMousePosition({
-                                          x: e.clientX - svgRect.left,
-                                          y: e.clientY - svgRect.top
-                                        });
-                                      }
-                                    }}
-                                    onMouseMove={(e) => {
-                                      const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                                      if (svgRect) {
-                                        setMousePosition({
-                                          x: e.clientX - svgRect.left,
-                                          y: e.clientY - svgRect.top
-                                        });
-                                      }
-                                    }}
-                                    onMouseLeave={() => setHoveredCircle(null)}
-                                  />
-                                </g>
-                              );
-                            })}
+                            const getArcLength = (radius) => Math.PI * radius;
+                            const allOverallScores = traits.flatMap(([, d]) => [d.efficacy, d.effort]).filter((v) => typeof v === 'number');
+                            const lowestOverallScore = allOverallScores.length ? Math.min(...allOverallScores) : 0;
+                            const minScaleScore = Math.max(0, lowestOverallScore - 20);
+                            const scaleSpan = Math.max(1, 100 - minScaleScore);
+                            const normalizeScore = (score) => {
+                              const n = (score - minScaleScore) / scaleSpan;
+                              return Math.min(1, Math.max(0, n));
+                            };
 
-                            {/* Trait title labels - aligned with each corresponding concentric ring */}
-                            {traits.map(([trait, data], traitIdx) => {
-                              const radius = radii[traitIdx];
-                              // Position labels at the bottom of each arc, aligned with its corresponding ring
-                              const labelAngle = 180; // 6 o'clock
-                              const svgAngle = toSVGAngle(labelAngle);
-                              const labelX = centerX + radius * Math.cos(svgAngle);
-                              const labelY = centerY + radius * Math.sin(svgAngle) + 2; // Moved up more to overlap with rings
-                              
-                              return (
-                                <g 
-                                  key={`label-${traitIdx}`}
-                                  onMouseEnter={(e) => {
-                                    setHoveredTrait(trait);
-                                    // Get mouse position relative to the SVG container
-                                    const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                                    if (svgRect) {
-                                      setMousePosition({
-                                        x: e.clientX - svgRect.left,
-                                        y: e.clientY - svgRect.top
-                                      });
-                                    }
-                                  }}
-                                  onMouseMove={(e) => {
-                                    const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                                    if (svgRect) {
-                                      setMousePosition({
-                                        x: e.clientX - svgRect.left,
-                                        y: e.clientY - svgRect.top
-                                      });
-                                    }
-                                  }}
-                                  onMouseLeave={() => setHoveredTrait(null)}
-                                  style={{ cursor: 'pointer' }}
-                                >
-                                  {/* Rounded rectangle background */}
-                                  <rect
-                                    x={labelX - 60}
-                                    y={labelY - 12}
-                                    width={120}
-                                    height={24}
-                                    rx={12}
-                                    fill="rgba(255, 255, 255, 0.95)"
-                                    stroke="#000"
-                                    strokeWidth="2"
-                                  />
-                                  <text
-                                    x={labelX}
-                                    y={labelY + 4}
-                                    textAnchor="middle"
-                                    fontSize="12"
-                                    fontFamily="Gemunu Libre, sans-serif"
-                                    fontWeight="600"
-                                    fill="#000"
-                                  >
-                    {trait}
-                                  </text>
-                                </g>
-                              );
-                            })}
-                          </>
-                        );
-                      })()}
-                    </svg>
+                            return (
+                              <>
+                                {radii.map((radius, idx) => {
+                                  const strokeWidth = 30;
+                                  const halfWidth = strokeWidth / 2;
+                                  const topAngleSVG = toSVGAngle(0);
+                                  const topY = centerY + radius * Math.sin(topAngleSVG);
+                                  return (
+                                    <line
+                                      key={`top-divider-${idx}`}
+                                      x1={centerX}
+                                      y1={topY - halfWidth}
+                                      x2={centerX}
+                                      y2={topY + halfWidth}
+                                      stroke="rgba(255,255,255,0.9)"
+                                      strokeWidth="2"
+                                      opacity="0.4"
+                                    />
+                                  );
+                                })}
 
-                    {/* Center: Overall Compass Score */}
-                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
-                      {/* Outer glow ring */}
-                      <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 160,
-                        height: 160,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle, rgba(224,122,63,0.15) 0%, transparent 70%)',
-                        zIndex: -2,
-                      }} />
-                      {/* Main circle background */}
-                      <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 140,
-                        height: 140,
-                        borderRadius: '50%',
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.9))',
-                        border: '3px solid',
-                        borderColor: 'primary.main',
-                        boxShadow: '0 4px 12px rgba(224,122,63,0.3), 0 0 20px rgba(224,122,63,0.1)',
-                        zIndex: -1,
-                      }} />
-                      {/* Inner highlight */}
-                      <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 100,
-                        height: 100,
-                        borderRadius: '50%',
-                        background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), transparent 60%)',
-                        zIndex: 0,
-                      }} />
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '3.5rem', fontWeight: 700, color: 'text.primary', lineHeight: 1, position: 'relative', zIndex: 1 }}>
-                        {overallMetrics.avgLEP.toFixed(1)}
-                        </Typography>
-                    </Box>
+                                {traits.map(([trait, data], traitIdx) => {
+                                  const radius = radii[traitIdx];
+                                  const arcLength = getArcLength(radius);
+                                  const normalizedEfficacy = normalizeScore(data.efficacy);
+                                  const filledLength = normalizedEfficacy * arcLength;
+                                  const endAngleSVG = toSVGAngle(180 + normalizedEfficacy * 180);
+                                  const endX = centerX + radius * Math.cos(endAngleSVG);
+                                  const endY = centerY + radius * Math.sin(endAngleSVG);
+                                  return (
+                                    <g key={`efficacy-trait-${traitIdx}`}>
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="30" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="33" />
+                                      <path
+                                        d={createArcPath(radius, 180, 0, 1)}
+                                        fill="none"
+                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(99,147,170,0.5)'}
+                                        strokeWidth="30"
+                                        strokeDasharray={`${filledLength} ${arcLength}`}
+                                        style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
+                                      />
+                                      <circle
+                                        cx={endX}
+                                        cy={endY}
+                                        r="15"
+                                        fill={trait === selectedTraitKey ? '#457089' : 'rgba(69,112,137,0.62)'}
+                                        stroke="#000"
+                                        strokeWidth="2"
+                                        style={{ cursor: 'pointer' }}
+                                        onMouseEnter={(e) => {
+                                          const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                                          if (svgRect) {
+                                            setHoveredCircle({ type: 'efficacy', traitIdx, value: data.efficacy, trait });
+                                            setMousePosition({ x: e.clientX - svgRect.left, y: e.clientY - svgRect.top });
+                                          }
+                                        }}
+                                        onMouseMove={(e) => {
+                                          const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                                          if (svgRect) setMousePosition({ x: e.clientX - svgRect.left, y: e.clientY - svgRect.top });
+                                        }}
+                                        onMouseLeave={() => setHoveredCircle(null)}
+                                      />
+                                    </g>
+                                  );
+                                })}
 
-                    {/* Left: Average Efficacy Score (inside rounded box) - bottom aligned with rings */}
-                    <Box sx={{ 
-                      position: 'absolute', 
-                      bottom: '100px', 
-                      left: '-18%', 
-                      zIndex: 10,
-                      background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                      border: '1px solid',
-                      borderColor: 'secondary.main',
-                      borderRadius: 3,
-                      boxShadow: 4,
-                      p: 2,
-                      minWidth: '140px',
-                      textAlign: 'center',
-                    }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.4rem', fontWeight: 700, color: '#6393AA', mb: 0.5 }}>
-                        {overallMetrics.avgEfficacy.toFixed(1)}
-                        </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.2rem', fontWeight: 600, color: 'text.secondary' }}>
-                        EFFICACY
-                          </Typography>
-                    </Box>
+                                {traits.map(([trait, data], traitIdx) => {
+                                  const radius = radii[traitIdx];
+                                  const arcLength = getArcLength(radius);
+                                  const normalizedEffort = normalizeScore(data.effort);
+                                  const filledLength = normalizedEffort * arcLength;
+                                  const endAngleSVG = toSVGAngle(180 - normalizedEffort * 180);
+                                  const endX = centerX + radius * Math.cos(endAngleSVG);
+                                  const endY = centerY + radius * Math.sin(endAngleSVG);
+                                  return (
+                                    <g key={`effort-trait-${traitIdx}`}>
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="30" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="33" />
+                                      <path
+                                        d={createArcPath(radius, 180, 0, 0)}
+                                        fill="none"
+                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(224,122,63,0.5)'}
+                                        strokeWidth="30"
+                                        strokeDasharray={`${filledLength} ${arcLength}`}
+                                        style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
+                                      />
+                                      <circle
+                                        cx={endX}
+                                        cy={endY}
+                                        r="15"
+                                        fill={trait === selectedTraitKey ? '#C85A2A' : 'rgba(200,90,42,0.62)'}
+                                        stroke="#000"
+                                        strokeWidth="2"
+                                        style={{ cursor: 'pointer' }}
+                                        onMouseEnter={(e) => {
+                                          const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                                          if (svgRect) {
+                                            setHoveredCircle({ type: 'effort', traitIdx, value: data.effort, trait });
+                                            setMousePosition({ x: e.clientX - svgRect.left, y: e.clientY - svgRect.top });
+                                          }
+                                        }}
+                                        onMouseMove={(e) => {
+                                          const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                                          if (svgRect) setMousePosition({ x: e.clientX - svgRect.left, y: e.clientY - svgRect.top });
+                                        }}
+                                        onMouseLeave={() => setHoveredCircle(null)}
+                                      />
+                                    </g>
+                                  );
+                                })}
 
-                    {/* Right: Average Effort Score (inside rounded box) - bottom aligned with rings */}
-                    <Box sx={{ 
-                      position: 'absolute', 
-                      bottom: '100px', 
-                      right: '-18%', 
-                      zIndex: 10,
-                      background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,235,220,0.8))',
-                      border: '1px solid',
-                      borderColor: 'primary.main',
-                      borderRadius: 3,
-                      boxShadow: 4,
-                      p: 2,
-                      minWidth: '140px',
-                      textAlign: 'center',
-                    }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.4rem', fontWeight: 700, color: '#E07A3F', mb: 0.5 }}>
-                        {overallMetrics.avgEffort.toFixed(1)}
-                          </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.2rem', fontWeight: 600, color: 'text.secondary' }}>
-                        EFFORT
-                      </Typography>
-                      </Box>
+                                {traits.map(([trait], traitIdx) => {
+                                  const radius = radii[traitIdx];
+                                  const svgAngle = toSVGAngle(180);
+                                  const labelX = centerX + radius * Math.cos(svgAngle);
+                                  const labelY = centerY + radius * Math.sin(svgAngle) + 2;
+                                  const active = trait === selectedTraitKey;
+                                  const labelSubtrait = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === trait)?.subTrait || trait;
+                                  return (
+                                    <g
+                                      key={`label-${traitIdx}`}
+                                      style={{ cursor: 'pointer' }}
+                                      onClick={() => setSelectedTraitKey(trait)}
+                                    >
+                                      <rect
+                                        x={labelX - 116}
+                                        y={labelY - 15}
+                                        width={232}
+                                        height={30}
+                                        rx={15}
+                                        fill={active ? 'rgba(255,244,235,0.98)' : 'rgba(255,255,255,0.95)'}
+                                        stroke={active ? '#E07A3F' : '#000'}
+                                        strokeWidth={active ? '2.5' : '2'}
+                                      />
+                                      <text
+                                        x={labelX}
+                                        y={labelY + 5}
+                                        textAnchor="middle"
+                                        fontSize="14"
+                                        fontFamily="Gemunu Libre, sans-serif"
+                                        fontWeight="700"
+                                        fill="#000"
+                                      >
+                                        {labelSubtrait}
+                                      </text>
+                                    </g>
+                                  );
+                                })}
+                              </>
+                            );
+                          })()}
+                        </svg>
 
-                    {/* Hover Box for Trait Details - positioned to the right of mouse */}
-                    {hoveredTrait && traitData[hoveredTrait] && (
-                      <Box sx={{
-                        position: 'absolute',
-                        top: `${mousePosition.y}px`,
-                        left: `${mousePosition.x + 50}px`, // 1-2cm offset to the right
-                        zIndex: 20,
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        borderRadius: 3,
-                        boxShadow: 8,
-                        p: 3,
-                        minWidth: '300px',
-                        pointerEvents: 'none',
-                      }}>
-                        <Grid container>
-                          {/* Left half: Trait overall score */}
-                          <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderRight: '1px solid', borderColor: 'divider', pr: 2 }}>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary', mb: 1, textAlign: 'center' }}>
-                              {hoveredTrait}
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '2.5rem', fontWeight: 700, color: 'text.primary', textAlign: 'center' }}>
-                              {traitData[hoveredTrait].lepScore.toFixed(1)}
-                            </Typography>
-                          </Grid>
-                          {/* Right half: Efficacy and Effort scores */}
-                          <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2, pl: 2 }}>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.85rem', color: 'text.secondary', mb: 0.5 }}>
-                                EFFICACY
-                              </Typography>
-                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: '#6393AA' }}>
-                                {traitData[hoveredTrait].efficacy.toFixed(1)}
-                              </Typography>
+                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
+                          <Box sx={{
+                            width: 178,
+                            height: 178,
+                            position: 'relative',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255,255,255,0.14)',
+                            border: '3px solid',
+                            borderColor: selectedMetric === 'efficacy' ? '#6393AA' : selectedMetric === 'effort' ? '#E07A3F' : 'primary.main',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: '94%',
+                                height: '94%',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
+                                zIndex: 0,
+                                boxShadow: 'inset 0 0 0 2px rgba(0,0,0,0.22)',
+                              }}
+                            >
+                              <Box
+                                component="img"
+                                src="/CompassLogo.png"
+                                alt=""
+                                sx={{
+                                  width: '158%',
+                                  height: '158%',
+                                  position: 'absolute',
+                                  top: '-29%',
+                                  left: '-29%',
+                                  objectFit: 'cover',
+                                  filter: 'brightness(0.5)',
+                                  display: 'block',
+                                }}
+                              />
                             </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.85rem', color: 'text.secondary', mb: 0.5 }}>
-                                EFFORT
-                              </Typography>
-                              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: '#E07A3F' }}>
-                                {traitData[hoveredTrait].effort.toFixed(1)}
-                              </Typography>
-                </Box>
-              </Grid>
-          </Grid>
-                      </Box>
-                    )}
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '3.1rem', fontWeight: 700, color: 'white', lineHeight: 1, transform: 'translateY(1px)' }}>
+                              {activeScore.toFixed(1)}
+                            </Typography>
+                          </Box>
+                        </Box>
 
-                    {/* Hover Box for Circle Markers */}
-                    {hoveredCircle && (
-                      <Box sx={{
-                        position: 'absolute',
-                        top: `${mousePosition.y}px`,
-                        left: `${mousePosition.x + 50}px`, // 1-2cm offset to the right
-                        zIndex: 20,
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))',
-                        border: '2px solid',
-                        borderColor: hoveredCircle.type === 'efficacy' ? 'secondary.main' : 'primary.main',
-                        borderRadius: 3,
-                        boxShadow: 8,
-                        p: 1.5,
-                        minWidth: '120px',
-                        pointerEvents: 'none',
-                      }}>
-                        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.75rem', color: 'text.primary', mb: 0.5, textAlign: 'center', fontWeight: 600 }}>
-                          {hoveredCircle.trait}
-            </Typography>
-                        <Typography sx={{ 
-                          fontFamily: 'Gemunu Libre, sans-serif', 
-                          fontSize: '0.7rem', 
-                          fontStyle: 'italic',
-                          color: 'text.secondary', 
-                          mb: 0.5, 
-                          textAlign: 'center' 
-                        }}>
-                          {hoveredCircle.type.toUpperCase()}
-                        </Typography>
-                        <Typography sx={{ 
-                          fontFamily: 'Gemunu Libre, sans-serif', 
-                          fontSize: '1.8rem', 
-                          fontWeight: 700, 
-                          color: hoveredCircle.type === 'efficacy' ? '#6393AA' : '#E07A3F',
-                          textAlign: 'center'
-                        }}>
-                          {hoveredCircle.value.toFixed(1)}
-                        </Typography>
+                        {hoveredCircle && (
+                          <Box sx={{
+                            position: 'absolute',
+                            top: `${mousePosition.y}px`,
+                            left: `${mousePosition.x + 40}px`,
+                            zIndex: 20,
+                            background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))',
+                            border: '2px solid',
+                            borderColor: hoveredCircle.type === 'efficacy' ? 'secondary.main' : 'primary.main',
+                            borderRadius: 3,
+                            boxShadow: 8,
+                            p: 1.5,
+                            minWidth: '120px',
+                            pointerEvents: 'none',
+                          }}>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: 'text.primary', mb: 0.4, textAlign: 'center', fontWeight: 700 }}>
+                              {hoveredCircle.trait}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.7rem', fontStyle: 'italic', color: 'text.secondary', mb: 0.4, textAlign: 'center' }}>
+                              {hoveredCircle.type.toUpperCase()}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.8rem', fontWeight: 700, color: hoveredCircle.type === 'efficacy' ? '#6393AA' : '#E07A3F', textAlign: 'center' }}>
+                              {hoveredCircle.value.toFixed(1)}
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
-                    )}
+                    </Box>
+                  </Grid>
 
-                    {/* Hover Box for Team Insight (Gap Analysis) - Same style for both gap column and gap circles */}
-                    {hoveredGap && hoveredGap.x && hoveredGap.y && (
-                      <Box sx={{
-                        position: 'fixed',
-                        top: `${hoveredGap.y - 10}px`,
-                        left: `${hoveredGap.x + 20}px`,
-                        zIndex: 25,
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,245,255,0.95))',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        borderRadius: 3,
-                        boxShadow: 8,
-                        p: 2,
-                        maxWidth: '400px',
-                        pointerEvents: 'none',
-                      }}>
-                        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: 'text.primary', mb: 1, textAlign: 'center' }}>
-                          Team Insight
-                        </Typography>
-                        <Typography sx={{ 
-                          fontFamily: 'Gemunu Libre, sans-serif', 
-                          fontSize: '0.85rem', 
-                          color: 'text.primary',
-                          lineHeight: 1.5,
+                  <Grid item xs={12} lg={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Montserrat, sans-serif',
+                          fontSize: { xs: '1.4rem', md: '1.65rem' },
+                          fontWeight: 800,
+                          color: 'rgba(255,255,255,0.9)',
                           textAlign: 'center',
-                        }}>
-                          {hoveredGap.text || ''}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
+                          mb: 1.2,
+                        }}
+                      >
+                        {selectedSubtraitLabel}
+                      </Typography>
+                      <Grid container spacing={1.4}>
+                        {[
+                          { side: 'left', key: 'trait', label: 'Trait Score', value: activeMetrics?.lepScore || 0, color: 'text.primary' },
+                          { side: 'right', key: 'delta', label: 'Average Delta', value: activeMetrics?.delta || 0, color: getDeltaColor(activeMetrics?.delta || 0) },
+                          { side: 'left', key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
+                          { side: 'right', key: 'gap-eff', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true },
+                          { side: 'left', key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F' },
+                          { side: 'right', key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true },
+                        ].map((item) => {
+                          const clickable = item.side === 'left' && item.key === 'trait';
+                          const active = selectedMetric === item.key;
+                          const displayValue = item.signed
+                            ? `${item.value >= 0 ? '+' : ''}${item.value.toFixed(1)}`
+                            : item.value.toFixed(1);
+                          return (
+                            <Grid item xs={6} key={item.key}>
+                              <Paper
+                                onClick={clickable ? () => setSelectedMetric(item.key) : undefined}
+                                sx={{
+                                  p: 1.1,
+                                  borderRadius: 2.2,
+                                  border: '1px solid',
+                                  borderColor: clickable && active ? 'rgba(224,122,63,0.9)' : 'rgba(0,0,0,0.18)',
+                                  background: 'rgba(255,255,255,0.9)',
+                                  boxShadow: clickable && active
+                                    ? '0 4px 8px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(224,122,63,0.55)'
+                                    : '0 4px 8px rgba(0,0,0,0.08)',
+                                  minHeight: 106,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'center',
+                                  textAlign: 'center',
+                                  cursor: clickable ? 'pointer' : 'default',
+                                }}
+                              >
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1, mb: 0.9 }}>
+                                  {item.label}
+                                </Typography>
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 700, color: item.color, lineHeight: 1 }}>
+                                  {displayValue}
+                                </Typography>
+                              </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </Box>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           )}
@@ -1245,10 +947,12 @@ function ResultsTab() {
                   Detailed Trait Analysis
                 </Typography>
                 <Stack spacing={6}>
-                  {Object.entries(traitData).map(([trait, data], traitIndex) => (
+                  {Object.entries(traitData).map(([trait, data], traitIndex) => {
+                    const displaySubTrait = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === trait)?.subTrait || trait;
+                    return (
                     <Box key={trait}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.5rem', fontWeight: 700, mb: 3, color: 'text.primary' }}>
-                    {trait}
+                    {displaySubTrait}
                   </Typography>
                       <Grid container spacing={3}>
                         {/* Left Half: Circular Graph */}
@@ -1611,7 +1315,8 @@ function ResultsTab() {
                         </Grid>
                       </Grid>
                     </Box>
-                  ))}
+                  );
+                  })}
                 </Stack>
               </CardContent>
               
@@ -1885,7 +1590,6 @@ function ResultsTab() {
             </Card>
           )}
 
-          </Stack>
           </Stack>
   );
 }

@@ -14,6 +14,7 @@ import NewCampaignIntro from './pages/NewCampaignIntro';
 import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
+import Faq from './pages/Faq';
 import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
 import SignIn from './pages/SignIn';
@@ -37,11 +38,12 @@ function App() {
   <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
   <Route path="/sign-in" element={<SignIn />} />
   <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+  <Route path="/faq" element={<Faq />} />
   <Route path="/dev-skip-1" element={<DevSkipOne />} />
   <Route path="/dev-skip-two" element={<DevSkipTwo />} />
  
 
-  <Route path="*" element={<Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>No match found</Typography>} />
+  <Route path="*" element={<Typography sx={{ fontFamily: 'Montserrat, sans-serif' }}>No match found</Typography>} />
 </Routes>
     </Router>
   );

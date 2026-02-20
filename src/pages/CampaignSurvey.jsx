@@ -10,6 +10,7 @@ function CampaignSurvey() {
   const [campaign, setCampaign] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [ratings, setRatings] = useState({});
+  const [savedActionItems, setSavedActionItems] = useState([]);
 
   useEffect(() => {
     const campaignData = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
@@ -17,6 +18,26 @@ function CampaignSurvey() {
       setCampaign(campaignData.campaign);
     } else {
       navigate('/');
+    }
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const userKey = userInfo?.email || userInfo?.name || 'anonymous';
+      const byCampaign = JSON.parse(localStorage.getItem('actionPlansByCampaign') || '{}');
+      const plans = byCampaign?.[String(id)]?.[userKey]?.plans
+        || byCampaign?.['123']?.[userKey]?.plans
+        || {};
+      const flat = [];
+      Object.entries(plans).forEach(([, subtraits]) => {
+        Object.entries(subtraits || {}).forEach(([, payload]) => {
+          (payload?.items || []).forEach((item) => {
+            if (String(item?.text || '').trim()) flat.push(item.text);
+          });
+        });
+      });
+      setSavedActionItems(flat);
+    } catch {
+      setSavedActionItems([]);
     }
   }, [id, navigate]);
 
@@ -133,6 +154,31 @@ function CampaignSurvey() {
       }}
     >
       <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+        {currentQuestion === 0 && savedActionItems.length > 0 ? (
+          <Box
+            sx={{
+              mb: 2,
+              p: 2,
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'rgba(255,255,255,0.35)',
+              bgcolor: 'rgba(255,255,255,0.9)',
+              textAlign: 'left',
+            }}
+          >
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: 'text.primary', mb: 0.7 }}>
+              Your Current Action Plan
+            </Typography>
+            <Stack spacing={0.5}>
+              {savedActionItems.slice(0, 6).map((text, idx) => (
+                <Typography key={`saved-action-${idx}`} sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>
+                  - {text}
+                </Typography>
+              ))}
+            </Stack>
+          </Box>
+        ) : null}
+
         <Box
           sx={{
             border: '2px solid',
