@@ -220,38 +220,40 @@ function Dashboard() {
           {/* Content */}
           <Box sx={{ px: { xs: 2, md: 3.5 }, py: 2.4 }}>
             <Box sx={{ width: '100%', maxWidth: CONTENT_MAX_WIDTH, mx: 'auto' }}>
-              <Box
-                sx={{
-                  mb: 2,
-                  p: 2,
-                  borderRadius: 2.5,
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(236,242,252,0.84))',
-                  boxShadow: '0 10px 26px rgba(0,0,0,0.16)',
-                  textAlign: 'center',
-                }}
-              >
-                <Typography
+              {currentTab !== 3 && (
+                <Box
                   sx={{
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontSize: { xs: '1.28rem', md: '1.44rem' },
-                    fontWeight: 800,
-                    color: 'text.primary',
+                    mb: 2,
+                    p: 2,
+                    borderRadius: 2.5,
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(236,242,252,0.84))',
+                    boxShadow: '0 10px 26px rgba(0,0,0,0.16)',
+                    textAlign: 'center',
                   }}
                 >
-                  {navItems[currentTab]?.label}
-                </Typography>
-                <Divider sx={{ my: 1.1, borderColor: 'rgba(69,112,137,0.25)' }} />
-                <Typography
-                  sx={{
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontSize: '0.95rem',
-                    color: 'text.secondary',
-                  }}
-                >
-                  {navItems[currentTab]?.subtitle}
-                </Typography>
-              </Box>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontSize: { xs: '1.28rem', md: '1.44rem' },
+                      fontWeight: 800,
+                      color: 'text.primary',
+                    }}
+                  >
+                    {navItems[currentTab]?.label}
+                  </Typography>
+                  <Divider sx={{ my: 1.1, borderColor: 'rgba(69,112,137,0.25)' }} />
+                  <Typography
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontSize: '0.95rem',
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {navItems[currentTab]?.subtitle}
+                  </Typography>
+                </Box>
+              )}
 
               <Box sx={{ mt: 1.8 }}>
                 {currentTab === 0 && <GrowthCampaignTab />}

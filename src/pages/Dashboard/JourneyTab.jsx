@@ -239,31 +239,6 @@ function JourneyTab() {
 
   return (
     <Stack spacing={4}>
-      {savedActionItems.length > 0 && (
-        <Card
-          sx={{
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-            border: '1px solid',
-            borderColor: 'primary.main',
-            borderRadius: 3,
-            boxShadow: 4,
-          }}
-        >
-          <CardContent>
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: 'text.primary', mb: 1 }}>
-              Saved Action Plan
-            </Typography>
-            <Stack spacing={0.8}>
-              {savedActionItems.slice(0, 6).map((item, idx) => (
-                <Typography key={`${item.traitId}-${item.subTraitId}-${idx}`} sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>
-                  - {item.text}
-                </Typography>
-              ))}
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
       <Card
         sx={{
           background: 'transparent',
@@ -271,8 +246,8 @@ function JourneyTab() {
           borderRadius: 3.2,
           boxShadow: 'none',
           position: 'relative',
-          overflow: 'hidden',
-          minHeight: '760px',
+          overflow: 'visible',
+          minHeight: '880px',
         }}
         ref={containerRef}
       >
@@ -315,6 +290,8 @@ function JourneyTab() {
               position: 'relative',
               width: '100%',
               minHeight: '670px',
+              transform: 'scale(1.15)',
+              transformOrigin: 'top center',
               borderRadius: 2.5,
               border: '1px solid rgba(58,42,27,0.46)',
               backgroundImage: `url("${JOURNEY_MAP_SRC}")`,
