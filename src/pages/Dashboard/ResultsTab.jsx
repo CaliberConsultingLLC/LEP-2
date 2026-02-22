@@ -8,6 +8,7 @@ import {
   Collapse,
   IconButton,
   Stack,
+  Button,
   Card,
   CardContent,
   Alert,
@@ -38,6 +39,8 @@ function ResultsTab() {
   const [hoveredGap, setHoveredGap] = useState(null); // { x: number, y: number, text: string, statement: object }
   const [selectedTraitKey, setSelectedTraitKey] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState('trait'); // trait | efficacy | effort
+  const [resultsView, setResultsView] = useState('compass'); // compass | detailed
+  const [selectedDetailTraitKey, setSelectedDetailTraitKey] = useState(null);
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -521,6 +524,12 @@ function ResultsTab() {
     }
   }, [traitData, selectedTraitKey]);
 
+  useEffect(() => {
+    if (!selectedDetailTraitKey && Object.keys(traitData).length > 0) {
+      setSelectedDetailTraitKey(Object.keys(traitData)[0]);
+    }
+  }, [traitData, selectedDetailTraitKey]);
+
   const selectedTraitMetrics = useMemo(() => {
     if (!selectedTraitKey) return null;
     return traitData[selectedTraitKey] || null;
@@ -531,6 +540,17 @@ function ResultsTab() {
     const match = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === selectedTraitKey);
     return match?.subTrait || selectedTraitKey;
   }, [selectedTraitKey]);
+
+  const detailTraitOptions = useMemo(() => Object.keys(traitData).slice(0, 3), [traitData]);
+  const detailTraitMetrics = useMemo(() => {
+    if (!selectedDetailTraitKey) return null;
+    return traitData[selectedDetailTraitKey] || null;
+  }, [traitData, selectedDetailTraitKey]);
+  const detailSubtraitLabel = useMemo(() => {
+    if (!selectedDetailTraitKey) return '';
+    const match = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === selectedDetailTraitKey);
+    return match?.subTrait || selectedDetailTraitKey;
+  }, [selectedDetailTraitKey]);
 
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
@@ -588,9 +608,25 @@ function ResultsTab() {
 
   return (
     <Stack spacing={4}>
+      <Stack direction="row" spacing={1.2} justifyContent="center">
+        <Button
+          variant={resultsView === 'compass' ? 'contained' : 'outlined'}
+          onClick={() => setResultsView('compass')}
+          sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+        >
+          Compass Results
+        </Button>
+        <Button
+          variant={resultsView === 'detailed' ? 'contained' : 'outlined'}
+          onClick={() => setResultsView('detailed')}
+          sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+        >
+          Detailed Results
+        </Button>
+      </Stack>
 
           {/* Combined Trait Circular Graph */}
-          {Object.keys(traitData).length > 0 && (
+          {resultsView === 'compass' && Object.keys(traitData).length > 0 && (
             <Card sx={{ 
               background: 'transparent',
               border: 'none',
@@ -933,8 +969,177 @@ function ResultsTab() {
             </Card>
           )}
 
+          {resultsView === 'detailed' && Object.keys(traitData).length > 0 && detailTraitMetrics && (
+            <Card
+              sx={{
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+              }}
+            >
+              <CardContent sx={{ px: { xs: 0.8, md: 1.2 }, pt: 0.6 }}>
+                <Stack direction="row" spacing={1.2} justifyContent="center" sx={{ mb: 1.4 }}>
+                  {detailTraitOptions.map((traitKey) => {
+                    const subLabel = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === traitKey)?.subTrait || traitKey;
+                    const active = selectedDetailTraitKey === traitKey;
+                    return (
+                      <Button
+                        key={traitKey}
+                        variant={active ? 'contained' : 'outlined'}
+                        onClick={() => setSelectedDetailTraitKey(traitKey)}
+                        sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+                      >
+                        {subLabel}
+                      </Button>
+                    );
+                  })}
+                </Stack>
+
+                <Grid container spacing={1.4} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
+                  <Grid item xs={12} lg={6} sx={{ display: 'flex' }}>
+                    <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: { xs: 420, md: 500, lg: 'auto' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
+                        <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
+                          {(() => {
+                            const centerX = 300;
+                            const centerY = 300;
+                            const statements = (detailTraitMetrics?.statements || []).slice(0, 5);
+                            const radii = [92, 124, 156, 188, 220];
+                            const toSVGAngle = (userAngle) => {
+                              let svgAngle = (userAngle - 90) % 360;
+                              if (svgAngle < 0) svgAngle += 360;
+                              return (svgAngle * Math.PI) / 180;
+                            };
+                            const createArcPath = (radius, startAngleUser, endAngleUser, sweepFlag = 1) => {
+                              const startAngleSVG = toSVGAngle(startAngleUser);
+                              const endAngleSVG = toSVGAngle(endAngleUser);
+                              const start = { x: centerX + radius * Math.cos(startAngleSVG), y: centerY + radius * Math.sin(startAngleSVG) };
+                              const end = { x: centerX + radius * Math.cos(endAngleSVG), y: centerY + radius * Math.sin(endAngleSVG) };
+                              return `M ${start.x} ${start.y} A ${radius} ${radius} 0 1 ${sweepFlag} ${end.x} ${end.y}`;
+                            };
+                            const allScores = statements.flatMap((s) => [s?.efficacy || 0, s?.effort || 0]);
+                            const minScale = Math.max(0, (allScores.length ? Math.min(...allScores) : 0) - 20);
+                            const span = Math.max(1, 100 - minScale);
+                            const norm = (v) => Math.max(0, Math.min(1, ((v || 0) - minScale) / span));
+                            const getArcLength = (r) => Math.PI * r;
+                            return (
+                              <>
+                                {radii.map((radius, idx) => {
+                                  const sw = 18;
+                                  const topY = centerY + radius * Math.sin(toSVGAngle(0));
+                                  return (
+                                    <line
+                                      key={`detail-divider-${idx}`}
+                                      x1={centerX}
+                                      y1={topY - sw / 2}
+                                      x2={centerX}
+                                      y2={topY + sw / 2}
+                                      stroke="rgba(255,255,255,0.9)"
+                                      strokeWidth="2"
+                                      opacity="0.42"
+                                    />
+                                  );
+                                })}
+                                {statements.map((stmt, idx) => {
+                                  const radius = radii[idx];
+                                  if (!radius) return null;
+                                  const arcLength = getArcLength(radius);
+                                  const eNorm = norm(stmt.efficacy);
+                                  const eLen = eNorm * arcLength;
+                                  const eAngle = toSVGAngle(180 + eNorm * 180);
+                                  const ex = centerX + radius * Math.cos(eAngle);
+                                  const ey = centerY + radius * Math.sin(eAngle);
+                                  return (
+                                    <g key={`detail-e-${idx}`}>
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="18" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="20" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="#6393AA" strokeWidth="18" strokeDasharray={`${eLen} ${arcLength}`} />
+                                      <circle cx={ex} cy={ey} r="9" fill="#457089" stroke="#000" strokeWidth="2" />
+                                    </g>
+                                  );
+                                })}
+                                {statements.map((stmt, idx) => {
+                                  const radius = radii[idx];
+                                  if (!radius) return null;
+                                  const arcLength = getArcLength(radius);
+                                  const fNorm = norm(stmt.effort);
+                                  const fLen = fNorm * arcLength;
+                                  const fAngle = toSVGAngle(180 - fNorm * 180);
+                                  const fx = centerX + radius * Math.cos(fAngle);
+                                  const fy = centerY + radius * Math.sin(fAngle);
+                                  return (
+                                    <g key={`detail-f-${idx}`}>
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="18" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="20" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="#E07A3F" strokeWidth="18" strokeDasharray={`${fLen} ${arcLength}`} />
+                                      <circle cx={fx} cy={fy} r="9" fill="#C85A2A" stroke="#000" strokeWidth="2" />
+                                    </g>
+                                  );
+                                })}
+                                {radii.map((radius, idx) => {
+                                  const labelX = centerX + radius * Math.cos(toSVGAngle(180));
+                                  const labelY = centerY + radius * Math.sin(toSVGAngle(180)) + 2;
+                                  return (
+                                    <g key={`detail-label-${idx}`}>
+                                      <rect x={labelX - 22} y={labelY - 11} width={44} height={22} rx={11} fill="rgba(255,255,255,0.95)" stroke="#000" strokeWidth="1.8" />
+                                      <text x={labelX} y={labelY + 4} textAnchor="middle" fontSize="12" fontFamily="Montserrat, sans-serif" fontWeight="700" fill="#000">
+                                        {idx + 1}
+                                      </text>
+                                    </g>
+                                  );
+                                })}
+                              </>
+                            );
+                          })()}
+                        </svg>
+                        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
+                          <Box sx={{ width: 156, height: 156, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: '3px solid', borderColor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2.8rem', fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                              {(detailTraitMetrics.lepScore || 0).toFixed(1)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} lg={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.4rem', md: '1.65rem' }, fontWeight: 800, color: 'rgba(255,255,255,0.9)', textAlign: 'center', mb: 1.2 }}>
+                        {detailSubtraitLabel}
+                      </Typography>
+                      <Grid container spacing={1.4}>
+                        {[
+                          { label: 'Trait Score', value: detailTraitMetrics.lepScore, color: 'text.primary' },
+                          { label: 'Average Delta', value: detailTraitMetrics.delta, color: getDeltaColor(detailTraitMetrics.delta) },
+                          { label: 'Efficacy Score', value: detailTraitMetrics.efficacy, color: '#6393AA' },
+                          { label: 'Perception Gap (Efficacy)', value: detailTraitMetrics.efficacy - detailTraitMetrics.lepScore, color: '#6393AA', signed: true },
+                          { label: 'Effort Score', value: detailTraitMetrics.effort, color: '#E07A3F' },
+                          { label: 'Perception Gap (Effort)', value: detailTraitMetrics.effort - detailTraitMetrics.lepScore, color: '#E07A3F', signed: true },
+                        ].map((item) => (
+                          <Grid item xs={6} key={item.label}>
+                            <Paper sx={{ p: 1.1, borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.9)', minHeight: 106, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }}>
+                              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1, mb: 0.9 }}>
+                                {item.label}
+                              </Typography>
+                              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 700, color: item.color, lineHeight: 1 }}>
+                                {item.signed
+                                  ? `${item.value >= 0 ? '+' : ''}${Number(item.value || 0).toFixed(1)}`
+                                  : Number(item.value || 0).toFixed(1)}
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Detailed Trait Breakdown - Individual Circular Graphs */}
-          {Object.keys(traitData).length > 0 && (
+          {false && Object.keys(traitData).length > 0 && (
             <Card sx={{ 
               background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
               border: '1px solid',
@@ -1400,7 +1605,7 @@ function ResultsTab() {
           )}
 
           {/* Primary Opportunity Spotlight */}
-          {primaryOpportunity && (
+          {false && primaryOpportunity && (
             <Alert
               severity="warning"
               icon={<Lightbulb sx={{ fontSize: 32 }} />}
@@ -1454,7 +1659,7 @@ function ResultsTab() {
           )}
 
           {/* Critical Gaps Section */}
-          {criticalGaps.length > 0 && (
+          {false && criticalGaps.length > 0 && (
             <Card sx={{ 
               background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
               border: '1px solid',
@@ -1529,7 +1734,7 @@ function ResultsTab() {
           )}
 
           {/* Self-Perception vs Team Feedback */}
-          {intakeData && (
+          {false && intakeData && (
             <Card sx={{ 
               background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
               border: '1px solid',

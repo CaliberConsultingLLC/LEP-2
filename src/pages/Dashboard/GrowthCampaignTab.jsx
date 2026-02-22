@@ -22,8 +22,8 @@ function GrowthCampaignTab() {
   const fmt = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const campaignRows = [
     { id: '123', title: 'Trailhead Campaign', openDate: addDays(now, -6), invited: 14 },
-    { id: '124', title: 'Second Campaign', openDate: addDays(now, -2), invited: 14 },
-    { id: '125', title: 'Final Campaign', openDate: addDays(now, 3), invited: 14 },
+    { id: '124', title: 'Basecamp Campaign', openDate: addDays(now, -2), invited: 14 },
+    { id: '125', title: 'Summit Campaign', openDate: addDays(now, 3), invited: 14 },
   ].map((row) => {
     const responses = fakeData.responses.filter((r) => String(r.campaignId) === row.id).length;
     const pct = Math.min(100, Math.round((responses / row.invited) * 100));
@@ -203,7 +203,7 @@ function GrowthCampaignTab() {
                         },
                       }}
                     >
-                      {copiedKey === `${row.id}-password` ? 'Copied Password' : 'Campaign Password'}
+                      {copiedKey === `${row.id}-password` ? 'Copied Password' : 'Password'}
                     </Button>
                   </Stack>
                 </Stack>
