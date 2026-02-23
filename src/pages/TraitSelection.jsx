@@ -94,44 +94,6 @@ function TraitSelection() {
       >
         <Box sx={{ width: '100%', maxWidth: 1120 }}>
         <Stack spacing={4} sx={{ width: '100%' }}>
-          {/* Header Section */}
-          <Box sx={{ textAlign: 'center', mb: 2 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontWeight: 700,
-                color: 'white',
-                mb: 2,
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              }}
-            >
-              Choose Your Focus Areas
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: '1.2rem',
-                color: 'rgba(255,255,255,0.9)',
-                mb: 1,
-                textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
-              }}
-            >
-              Based on your reflection, we've identified five subtraits where focused growth could have the greatest impact.
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: '1rem',
-                color: 'rgba(255,255,255,0.9)',
-                fontStyle: 'italic',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
-              }}
-            >
-              Select exactly 3 traits you'd like to focus on in your leadership development journey.
-            </Typography>
-          </Box>
-
           {/* Selection Counter */}
           <Box sx={{ textAlign: 'center' }}>
             <Typography

@@ -70,7 +70,8 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true }) {
     const getRoutePhase = () => {
       if (pathname.startsWith('/user-info')) return 'profile';
       if (pathname.startsWith('/form')) return 'behaviors';
-      if (pathname.startsWith('/summary') || pathname.startsWith('/trait-selection')) return 'insights';
+      if (pathname.startsWith('/summary')) return 'insights';
+      if (pathname.startsWith('/trait-selection')) return 'campaign';
       if (pathname.startsWith('/campaign-builder') || pathname.startsWith('/campaign-verify') || pathname.startsWith('/campaign-intro')) return 'campaign';
       if (pathname.startsWith('/campaign/')) {
         const match = pathname.match(/^\/campaign\/([^/]+)/);
@@ -106,6 +107,7 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true }) {
       currentIndex,
       completionMap,
       phaseLinks,
+      currentPhaseTitle: PHASES[currentIndex]?.title || 'Growth Path',
     };
   }, [pathname, location.search, searchParams]);
 
@@ -134,27 +136,32 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true }) {
         }}
       >
         {!embedded && showBrand ? (
-          <Stack direction="row" spacing={1.25} alignItems="center">
+          <Stack direction="row" spacing={1.1} alignItems="center" sx={{ minWidth: 210 }}>
             <Box
               component="img"
               src="/CompassLogo.png"
               alt="Compass logo"
               sx={{ width: { xs: 44, md: 52 }, height: { xs: 44, md: 52 }, objectFit: 'contain' }}
             />
-            <Typography
-              sx={{
-                fontFamily: 'Montserrat, sans-serif',
-                fontSize: { xs: '1.02rem', md: '1.12rem' },
-                fontWeight: 800,
-                color: 'rgba(255,255,255,0.96)',
-                lineHeight: 1.05,
-              }}
-            >
-              Growth Path
-            </Typography>
           </Stack>
         ) : (
           !embedded && <Box />
+        )}
+
+        {!embedded && (
+          <Typography
+            sx={{
+              fontFamily: 'Montserrat, sans-serif',
+              fontSize: { xs: '1.16rem', md: '1.38rem' },
+              fontWeight: 800,
+              color: 'rgba(255,255,255,0.96)',
+              lineHeight: 1.05,
+              textAlign: 'center',
+              flex: 1,
+            }}
+          >
+            {model.currentPhaseTitle}
+          </Typography>
         )}
 
         <Stack direction="row" spacing={0.9} alignItems="center">

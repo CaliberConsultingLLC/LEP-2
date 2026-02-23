@@ -635,35 +635,23 @@ function Summary() {
       .split(/\n+/)
       .map((p) => p.trim())
       .filter(Boolean);
-    const primary = chunks[0] || '';
-    const secondary = chunks.slice(1).join(' ') || '';
+    const merged = chunks.join(' ').replace(/\s+/g, ' ').trim();
+    const sentences = merged
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const limited = sentences.slice(0, 5).join(' ');
     return (
-      <Stack spacing={1.4}>
-        {primary ? (
-          <Typography
-            sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '0.96rem',
-              lineHeight: 1.65,
-              color: 'text.primary',
-            }}
-          >
-            {renderParagraphWithTooltips(primary)}
-          </Typography>
-        ) : null}
-        {secondary ? (
-          <Typography
-            sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '0.96rem',
-              lineHeight: 1.65,
-              color: 'text.primary',
-            }}
-          >
-            {renderParagraphWithTooltips(secondary)}
-          </Typography>
-        ) : null}
-      </Stack>
+      <Typography
+        sx={{
+          fontFamily: 'Gemunu Libre, sans-serif',
+          fontSize: '0.96rem',
+          lineHeight: 1.65,
+          color: 'text.primary',
+        }}
+      >
+        {renderParagraphWithTooltips(limited)}
+      </Typography>
     );
   };
 
@@ -722,25 +710,6 @@ function Summary() {
           </Alert>
         ) : (
           <Stack spacing={2.25} sx={{ width: '100%' }}>
-            {/* Title - Reflection Results */}
-            <Box sx={{ textAlign: 'center', mb: 1 }}>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '2.5rem',
-                  fontWeight: 800,
-                  mb: 1,
-                  color: 'white',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                }}
-              >
-                Reflection Results
-              </Typography>
-              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)', textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}>
-                Insights from your reflection and leadership assessment
-              </Typography>
-            </Box>
-
             {/* Summary Output */}
             <Paper
               sx={{
@@ -763,7 +732,7 @@ function Summary() {
                       { label: 'Trail Markers', icon: OutlinedFlag, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.35)', mode: 'markers' },
                     ],
                     [
-                      { label: 'Trajectory', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'trajectory' },
+                      { label: 'Trail Hazards', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'trajectory' },
                       { label: 'A New Trail', icon: AltRoute, text: summarySections[3] || '', accent: 'rgba(47,133,90,0.35)', mode: 'narrative' },
                     ],
                   ].map((row, rowIdx) => (
