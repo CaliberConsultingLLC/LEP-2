@@ -9,6 +9,7 @@ import {
 import {
   Campaign,
   Assessment,
+  Insights,
   Lightbulb,
   Map,
   HelpOutline,
@@ -35,6 +36,11 @@ function Dashboard() {
       label: 'Campaign Results',
       subtitle: 'Interpret your campaign data through trait-level scoring, effort-versus-efficacy gaps, and overall performance trends. Use this page to spot where outcomes are improving, where friction persists, and which patterns require immediate attention.',
       icon: Assessment,
+    },
+    {
+      label: 'Detailed Results',
+      subtitle: 'Inspect statement-level scoring with five-ring breakdowns and question-specific efficacy and effort patterns. Use this page to drill into the precise items shaping each trait outcome.',
+      icon: Insights,
     },
     {
       label: 'Plan of Attack',
@@ -220,7 +226,7 @@ function Dashboard() {
           {/* Content */}
           <Box sx={{ px: { xs: 2, md: 3.5 }, py: 2.4 }}>
             <Box sx={{ width: '100%', maxWidth: CONTENT_MAX_WIDTH, mx: 'auto' }}>
-              {currentTab !== 3 && (
+              {currentTab !== 4 && (
                 <Box
                   sx={{
                     mb: 2,
@@ -257,9 +263,10 @@ function Dashboard() {
 
               <Box sx={{ mt: 1.8 }}>
                 {currentTab === 0 && <GrowthCampaignTab />}
-                {currentTab === 1 && <ResultsTab />}
-                {currentTab === 2 && <ActionTab />}
-                {currentTab === 3 && <JourneyTab />}
+                {currentTab === 1 && <ResultsTab view="compass" />}
+                {currentTab === 2 && <ResultsTab view="detailed" />}
+                {currentTab === 3 && <ActionTab />}
+                {currentTab === 4 && <JourneyTab />}
               </Box>
             </Box>
           </Box>

@@ -14,6 +14,7 @@ import {
   Alert,
   Divider,
   Paper,
+  Tooltip,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -28,7 +29,7 @@ import {
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
 
-function ResultsTab() {
+function ResultsTab({ view = 'compass' }) {
   const [traitData, setTraitData] = useState({});
   const [intakeData, setIntakeData] = useState(null);
   const [criticalGaps, setCriticalGaps] = useState([]);
@@ -39,7 +40,6 @@ function ResultsTab() {
   const [hoveredGap, setHoveredGap] = useState(null); // { x: number, y: number, text: string, statement: object }
   const [selectedTraitKey, setSelectedTraitKey] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState('trait'); // trait | efficacy | effort
-  const [resultsView, setResultsView] = useState('compass'); // compass | detailed
   const [selectedDetailTraitKey, setSelectedDetailTraitKey] = useState(null);
   const [selectedDetailRingIdx, setSelectedDetailRingIdx] = useState(0);
 
@@ -622,25 +622,8 @@ function ResultsTab() {
 
   return (
     <Stack spacing={4}>
-      <Stack direction="row" spacing={1.2} justifyContent="center">
-        <Button
-          variant={resultsView === 'compass' ? 'contained' : 'outlined'}
-          onClick={() => setResultsView('compass')}
-          sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
-        >
-          Compass Results
-        </Button>
-        <Button
-          variant={resultsView === 'detailed' ? 'contained' : 'outlined'}
-          onClick={() => setResultsView('detailed')}
-          sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
-        >
-          Detailed Results
-        </Button>
-      </Stack>
-
           {/* Combined Trait Circular Graph */}
-          {resultsView === 'compass' && Object.keys(traitData).length > 0 && (
+          {view === 'compass' && Object.keys(traitData).length > 0 && (
             <Card sx={{ 
               background: 'transparent',
               border: 'none',
@@ -932,12 +915,12 @@ function ResultsTab() {
                       </Typography>
                       <Grid container spacing={1.4}>
                         {[
-                          { side: 'left', key: 'trait', label: 'Trait Score', value: activeMetrics?.lepScore || 0, color: 'text.primary' },
-                          { side: 'right', key: 'delta', label: 'Average Delta', value: activeMetrics?.delta || 0, color: getDeltaColor(activeMetrics?.delta || 0) },
-                          { side: 'left', key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
-                          { side: 'right', key: 'gap-eff', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true },
-                          { side: 'left', key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F' },
-                          { side: 'right', key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true },
+                          { side: 'left', key: 'trait', label: 'Trait Score', value: activeMetrics?.lepScore || 0, color: 'text.primary', help: 'Combined score for this selected trait.' },
+                          { side: 'right', key: 'delta', label: 'Average Delta', value: activeMetrics?.delta || 0, color: getDeltaColor(activeMetrics?.delta || 0), help: 'Absolute gap between efficacy and effort.' },
+                          { side: 'left', key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA', help: 'Team-rated effectiveness for this trait.' },
+                          { side: 'right', key: 'gap-eff', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true, help: 'Efficacy minus trait score for current selection.' },
+                          { side: 'left', key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F', help: 'Team-rated effort invested in this trait.' },
+                          { side: 'right', key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true, help: 'Effort minus trait score for current selection.' },
                         ].map((item) => {
                           const clickable = item.side === 'left' && item.key === 'trait';
                           const active = selectedMetric === item.key;
@@ -950,6 +933,7 @@ function ResultsTab() {
                                 onClick={clickable ? () => setSelectedMetric(item.key) : undefined}
                                 sx={{
                                   p: 1.1,
+                                  position: 'relative',
                                   borderRadius: 2.2,
                                   border: '1px solid',
                                   borderColor: clickable && active ? 'rgba(224,122,63,0.9)' : 'rgba(0,0,0,0.18)',
@@ -965,6 +949,28 @@ function ResultsTab() {
                                   cursor: clickable ? 'pointer' : 'default',
                                 }}
                               >
+                                <Tooltip title={item.help} arrow placement="top">
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: 8,
+                                      right: 8,
+                                      width: 18,
+                                      height: 18,
+                                      borderRadius: '50%',
+                                      bgcolor: 'rgba(0,0,0,0.08)',
+                                      color: 'text.secondary',
+                                      fontSize: '0.72rem',
+                                      fontWeight: 700,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      lineHeight: 1,
+                                    }}
+                                  >
+                                    ?
+                                  </Box>
+                                </Tooltip>
                                 <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1, mb: 0.9 }}>
                                   {item.label}
                                 </Typography>
@@ -983,7 +989,7 @@ function ResultsTab() {
             </Card>
           )}
 
-          {resultsView === 'detailed' && Object.keys(traitData).length > 0 && detailTraitMetrics && (
+          {view === 'detailed' && Object.keys(traitData).length > 0 && detailTraitMetrics && (
             <Card
               sx={{
                 background: 'transparent',
@@ -1075,13 +1081,13 @@ function ResultsTab() {
                                   const ey = centerY + radius * Math.sin(eAngle);
                                   return (
                                     <g key={`detail-e-${idx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="18" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="20" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="21" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="24" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
                                         stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(99,147,170,0.45)'}
-                                        strokeWidth="18"
+                                        strokeWidth="21"
                                         strokeDasharray={`${eLen} ${arcLength}`}
                                       />
                                       <circle
@@ -1106,13 +1112,13 @@ function ResultsTab() {
                                   const fy = centerY + radius * Math.sin(fAngle);
                                   return (
                                     <g key={`detail-f-${idx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="18" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="20" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="21" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="24" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
                                         stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(224,122,63,0.45)'}
-                                        strokeWidth="18"
+                                        strokeWidth="21"
                                         strokeDasharray={`${fLen} ${arcLength}`}
                                       />
                                       <circle
@@ -1174,14 +1180,36 @@ function ResultsTab() {
                       <Grid container spacing={1.4}>
                         {[
                           { label: 'Trait Score', value: selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore, color: 'text.primary' },
-                          { label: 'Average Delta', value: selectedDetailStatement?.delta ?? detailTraitMetrics.delta, color: getDeltaColor(selectedDetailStatement?.delta ?? detailTraitMetrics.delta) },
-                          { label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA' },
-                          { label: 'Perception Gap (Efficacy)', value: (selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#6393AA', signed: true },
-                          { label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F' },
-                          { label: 'Perception Gap (Effort)', value: (selectedDetailStatement?.effort ?? detailTraitMetrics.effort) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#E07A3F', signed: true },
+                          { label: 'Delta', value: selectedDetailStatement?.delta ?? detailTraitMetrics.delta, color: getDeltaColor(selectedDetailStatement?.delta ?? detailTraitMetrics.delta), help: 'Absolute gap between efficacy and effort.' },
+                          { label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA', help: 'Team-rated effectiveness for this question.' },
+                          { label: 'Perception Gap (Efficacy)', value: (selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#6393AA', signed: true, help: 'Efficacy minus trait score for selected question.' },
+                          { label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F', help: 'Team-rated effort for this question.' },
+                          { label: 'Perception Gap (Effort)', value: (selectedDetailStatement?.effort ?? detailTraitMetrics.effort) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#E07A3F', signed: true, help: 'Effort minus trait score for selected question.' },
                         ].map((item) => (
                           <Grid item xs={6} key={item.label}>
-                            <Paper sx={{ p: 1.1, borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.9)', minHeight: 106, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }}>
+                            <Paper sx={{ p: 1.1, position: 'relative', borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.9)', minHeight: 106, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }}>
+                              <Tooltip title={item.help || 'Key metric for this result card.'} arrow placement="top">
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 8,
+                                    right: 8,
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: '50%',
+                                    bgcolor: 'rgba(0,0,0,0.08)',
+                                    color: 'text.secondary',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  ?
+                                </Box>
+                              </Tooltip>
                               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1, mb: 0.9 }}>
                                 {item.label}
                               </Typography>
