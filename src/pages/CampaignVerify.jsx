@@ -1,54 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  Button, 
-  Stack, 
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Stack,
   Paper,
   Card,
-  CardContent,
-  Grid,
+  Alert,
+  Divider,
+  Chip,
   TextField,
   InputAdornment,
   IconButton,
-  Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
-import { 
-  Group,
+import {
+  Person,
+  ListAlt,
+  Insights,
+  BuildCircle,
+  AssignmentTurnedIn,
+  Send,
   Assessment,
   TrendingUp,
+  Flag,
   CheckCircle,
   ContentCopy,
   Link as LinkIcon,
-  Lock
+  Lock,
 } from '@mui/icons-material';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
 function CampaignVerify() {
   const navigate = useNavigate();
-  const [campaignLink, setCampaignLink] = useState('');
-  const [campaignPassword, setCampaignPassword] = useState('');
+  const [selfCampaignLink, setSelfCampaignLink] = useState('');
+  const [selfCampaignPassword, setSelfCampaignPassword] = useState('');
+  const [teamCampaignLink, setTeamCampaignLink] = useState('');
+  const [teamCampaignPassword, setTeamCampaignPassword] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
+  const [selfCampaignId, setSelfCampaignId] = useState('');
   const [isGenerating, setIsGenerating] = useState(true);
   const [error, setError] = useState(null);
-  const [copied, setCopied] = useState({ link: false, password: false });
+  const [copied, setCopied] = useState({ selfLink: false, selfPassword: false, teamLink: false, teamPassword: false });
+  const [selfCompleted, setSelfCompleted] = useState(false);
 
   const generatePassword = (length = 10) => {
     const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
     return Array.from({ length }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
   };
 
+  const toSelfStatement = (statement) => {
+    let text = String(statement || '').trim();
+    if (!text) return '';
+
+    text = text
+      .replace(/\bBrian\b/gi, 'I')
+      .replace(/\bthe leader\b/gi, 'I')
+      .replace(/\byour leader\b/gi, 'I')
+      .replace(/\btheir\b/gi, 'my')
+      .replace(/\bthem\b/gi, 'me')
+      .replace(/\bthemselves\b/gi, 'myself')
+      .replace(/\bthey\b/gi, 'I');
+
+    if (!/\b(I|me|my|mine|myself)\b/i.test(text)) {
+      const lowered = text.charAt(0).toLowerCase() + text.slice(1);
+      text = `I ${lowered}`;
+    }
+
+    // light grammar cleanup for common third-person verbs after "I"
+    text = text.replace(/\bI\s+([a-z]+)s\b/gi, (_, verb) => `I ${verb}`);
+    return text;
+  };
+
   useEffect(() => {
-    const generateCampaign = async () => {
+    const generateCampaigns = async () => {
       try {
-        // Get user info from localStorage (collected earlier)
         const userInfoStr = localStorage.getItem('userInfo');
         const userInfo = userInfoStr ? JSON.parse(userInfoStr) : { name: '', email: '' };
+        const ownerId = String(userInfo?.email || userInfo?.name || 'anonymous').trim().toLowerCase();
         const storedCredentialsStr = localStorage.getItem('dashboardCredentials');
         const storedCredentials = storedCredentialsStr ? JSON.parse(storedCredentialsStr) : null;
         const dashboardPassword = storedCredentials?.password || generatePassword(10);
@@ -60,59 +93,111 @@ function CampaignVerify() {
           password: dashboardPassword,
         }));
 
-        // Get campaign data from localStorage
         const campaignData = JSON.parse(localStorage.getItem('currentCampaign') || '[]');
-        
+
         if (campaignData.length === 0) {
           setError('No campaign data found. Please return to the campaign builder.');
           setIsGenerating(false);
           return;
         }
 
-        // Generate unique ID and password
-        const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-        const password = Math.random().toString(36).substr(2, 8);
+        const selfCampaign = campaignData.map((traitItem) => ({
+          ...traitItem,
+          statements: (traitItem?.statements || []).map((stmt) => toSelfStatement(stmt)),
+        }));
 
-        // Save to Firestore
-        const docRef = await addDoc(collection(db, 'campaigns'), {
+        const bundleId = `bundle_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+        const selfPasswordGenerated = generatePassword(8);
+        const teamPasswordGenerated = generatePassword(8);
+
+        const selfDocRef = await addDoc(collection(db, 'campaigns'), {
           userInfo,
-          campaign: campaignData,
-          password,
-          timestamp: new Date(),
+          ownerId,
+          bundleId,
+          campaignType: 'self',
+          campaign: selfCampaign,
+          password: selfPasswordGenerated,
+          createdAt: new Date(),
         });
 
-        const link = `${window.location.origin}/campaign/${docRef.id}`;
-        setCampaignLink(link);
-        setCampaignPassword(password);
+        const teamDocRef = await addDoc(collection(db, 'campaigns'), {
+          userInfo,
+          ownerId,
+          bundleId,
+          campaignType: 'team',
+          campaign: campaignData,
+          password: teamPasswordGenerated,
+          createdAt: new Date(),
+          selfCampaignId: selfDocRef.id,
+        });
+
+        const selfLink = `${window.location.origin}/campaign/${selfDocRef.id}?mode=self`;
+        const teamLink = `${window.location.origin}/campaign/${teamDocRef.id}`;
+
+        setSelfCampaignId(selfDocRef.id);
+        setSelfCampaignLink(selfLink);
+        setSelfCampaignPassword(selfPasswordGenerated);
+        setTeamCampaignLink(teamLink);
+        setTeamCampaignPassword(teamPasswordGenerated);
+        setSelfCompleted(localStorage.getItem(`selfCampaignCompleted_${selfDocRef.id}`) === 'true');
+
+        localStorage.setItem(
+          'campaignRecords',
+          JSON.stringify({
+            bundleId,
+            ownerId,
+            selfCampaignId: selfDocRef.id,
+            teamCampaignId: teamDocRef.id,
+            selfCampaignLink: selfLink,
+            selfCampaignPassword: selfPasswordGenerated,
+            teamCampaignLink: teamLink,
+            teamCampaignPassword: teamPasswordGenerated,
+            createdAt: new Date().toISOString(),
+          })
+        );
         setError(null);
       } catch (err) {
-        console.error('Error generating campaign:', err);
-        setError('Failed to generate campaign link. Please try again.');
+        console.error('Error generating campaigns:', err);
+        setError('Failed to generate campaign transition flow. Please try again.');
       } finally {
         setIsGenerating(false);
       }
     };
 
-    generateCampaign();
+    generateCampaigns();
   }, []);
 
   const copyToClipboard = async (text, type) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied({ ...copied, [type]: true });
+      setCopied((prev) => ({ ...prev, [type]: true }));
       setTimeout(() => {
-        setCopied({ ...copied, [type]: false });
+        setCopied((prev) => ({ ...prev, [type]: false }));
       }, 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
   };
 
+  const timeline = useMemo(
+    () => [
+      { label: 'Profile', icon: Person, state: 'complete' },
+      { label: 'Intake', icon: ListAlt, state: 'complete' },
+      { label: 'Insights', icon: Insights, state: 'complete' },
+      { label: 'Campaign Build', icon: BuildCircle, state: 'complete' },
+      { label: 'Your Growth Campaign', icon: AssignmentTurnedIn, state: selfCompleted ? 'complete' : 'current' },
+      { label: 'Team Campaign Launch', icon: Send, state: selfCompleted ? 'current' : 'upcoming' },
+      { label: 'Results Dashboard', icon: Assessment, state: 'upcoming' },
+      { label: 'Plan + Journey', icon: Flag, state: 'upcoming' },
+    ],
+    [selfCompleted]
+  );
+
   if (isGenerating) {
     return (
       <LoadingScreen
-        title="Generating your campaign link..."
-        subtitle="Preparing your dashboard access and shareable link."
+        title="Building your campaign transition..."
+        subtitle="Creating your personal benchmark campaign and team campaign access."
       />
     );
   }
@@ -158,24 +243,23 @@ function CampaignVerify() {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 880 }}>
-          {/* Hero Section */}
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box sx={{ textAlign: 'center', mb: 3.2 }}>
             <Typography
               sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: { xs: '2rem', md: '2.5rem' },
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: { xs: '1.9rem', md: '2.25rem' },
                 fontWeight: 800,
-                mb: 2,
+                mb: 1.2,
                 color: 'white',
                 textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
-              Your Growth Campaign is Ready!
+              Campaign Built. Your Benchmark Comes First.
             </Typography>
             <Typography
               sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: { xs: '1.1rem', md: '1.25rem' },
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: { xs: '1rem', md: '1.08rem' },
                 color: 'rgba(255,255,255,0.9)',
                 textShadow: '1px 1px 2px rgba(0,0,0,0.4)',
                 maxWidth: '700px',
@@ -183,7 +267,7 @@ function CampaignVerify() {
                 lineHeight: 1.6,
               }}
             >
-              Share your campaign with your team to begin collecting feedback and unlock your personalized leadership insights.
+              You completed reflection and campaign build. Next, you take your own growth campaign first, so Compass can compare your self-ratings against your team later.
             </Typography>
           </Box>
 
@@ -206,636 +290,228 @@ function CampaignVerify() {
                 {error}
               </Alert>
             ) : (
-              <>
-                {/* Campaign Link & Password Section */}
-                <Box
+              <Stack spacing={2.4}>
+                <Paper
                   sx={{
-                    p: 3,
+                    p: 2,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, rgba(224,122,63,0.1), rgba(99,147,170,0.1))',
-                    border: '2px solid',
-                    borderColor: 'primary.main',
-                    mb: 4,
+                    border: '1px solid rgba(69,112,137,0.22)',
+                    bgcolor: 'rgba(255,255,255,0.75)',
                   }}
                 >
-                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mb: 3 }}>
-                    <CheckCircle sx={{ color: 'primary.main', fontSize: 28 }} />
+                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mb: 1.2 }}>
+                    <CheckCircle sx={{ color: 'primary.main', fontSize: 24 }} />
                     <Typography
                       sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: '1.5rem',
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontSize: '1.2rem',
                         fontWeight: 700,
                         color: 'text.primary',
                       }}
                     >
-                      Share Your Campaign
+                      Progress Path
                     </Typography>
                   </Stack>
+                  <Box sx={{ overflowX: 'auto', py: 0.4 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.9} sx={{ minWidth: 950, px: 0.4 }}>
+                      {timeline.map((step, idx) => {
+                        const Icon = step.icon;
+                        const isComplete = step.state === 'complete';
+                        const isCurrent = step.state === 'current';
+                        return (
+                          <React.Fragment key={step.label}>
+                            <Card
+                              sx={{
+                                width: 156,
+                                minHeight: 122,
+                                p: 1.2,
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: isCurrent
+                                  ? 'rgba(224,122,63,0.8)'
+                                  : isComplete
+                                    ? 'rgba(47,133,90,0.5)'
+                                    : 'rgba(69,112,137,0.3)',
+                                background: isCurrent
+                                  ? 'linear-gradient(180deg, rgba(255,241,226,0.95), rgba(255,230,206,0.88))'
+                                  : isComplete
+                                    ? 'linear-gradient(180deg, rgba(230,249,239,0.9), rgba(220,245,233,0.82))'
+                                    : 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(238,245,252,0.8))',
+                                boxShadow: isCurrent ? '0 6px 14px rgba(224,122,63,0.2)' : '0 4px 10px rgba(0,0,0,0.08)',
+                              }}
+                            >
+                              <Stack spacing={0.7} alignItems="center" textAlign="center">
+                                <Box
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    bgcolor: isCurrent ? '#E07A3F' : isComplete ? '#2F855A' : '#457089',
+                                    color: 'white',
+                                  }}
+                                >
+                                  <Icon sx={{ fontSize: 18 }} />
+                                </Box>
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.15 }}>
+                                  {step.label}
+                                </Typography>
+                                <Chip
+                                  size="small"
+                                  label={isCurrent ? 'Current' : isComplete ? 'Complete' : 'Upcoming'}
+                                  sx={{
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    bgcolor: isCurrent ? 'rgba(224,122,63,0.18)' : isComplete ? 'rgba(47,133,90,0.16)' : 'rgba(69,112,137,0.12)',
+                                  }}
+                                />
+                              </Stack>
+                            </Card>
+                            {idx < timeline.length - 1 && (
+                              <Box sx={{ width: 18, height: 2, bgcolor: 'rgba(69,112,137,0.46)', flexShrink: 0 }} />
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </Stack>
+                  </Box>
+                </Paper>
 
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1rem',
-                      color: 'text.secondary',
-                      mb: 3,
-                      textAlign: 'center',
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Share the link and password below with your team members. They'll use these to access the survey and provide feedback on your leadership.
-                  </Typography>
-
-                  <Stack spacing={3}>
-                    {/* Campaign Link */}
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '1rem',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          mb: 1.5,
-                        }}
-                      >
-                        Campaign Link
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        value={campaignLink}
-                        InputProps={{
-                          readOnly: true,
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() => copyToClipboard(campaignLink, 'link')}
-                                edge="end"
-                                sx={{ color: 'primary.main' }}
-                              >
-                                <ContentCopy />
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <LinkIcon sx={{ color: 'primary.main' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            bgcolor: 'rgba(255,255,255,0.9)',
-                            '& fieldset': {
-                              borderColor: 'primary.main',
-                              borderWidth: 2,
-                            },
-                          },
-                        }}
-                      />
-                      {copied.link && (
-                        <Typography
-                          sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '0.875rem',
-                            color: 'primary.main',
-                            mt: 1,
-                            textAlign: 'center',
-                          }}
-                        >
-                          Link copied to clipboard!
-                        </Typography>
-                      )}
-                    </Box>
-
-                    {/* Campaign Password */}
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '1rem',
-                          fontWeight: 600,
-                          color: 'text.primary',
-                          mb: 1.5,
-                        }}
-                      >
-                        Campaign Password
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        value={campaignPassword}
-                        InputProps={{
-                          readOnly: true,
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() => copyToClipboard(campaignPassword, 'password')}
-                                edge="end"
-                                sx={{ color: 'primary.main' }}
-                              >
-                                <ContentCopy />
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Lock sx={{ color: 'primary.main' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            bgcolor: 'rgba(255,255,255,0.9)',
-                            '& fieldset': {
-                              borderColor: 'primary.main',
-                              borderWidth: 2,
-                            },
-                          },
-                        }}
-                      />
-                      {copied.password && (
-                        <Typography
-                          sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '0.875rem',
-                            color: 'primary.main',
-                            mt: 1,
-                            textAlign: 'center',
-                          }}
-                        >
-                          Password copied to clipboard!
-                        </Typography>
-                      )}
-                    </Box>
-                  </Stack>
-                </Box>
-
-                {/* What Happens Next Section */}
-                <Box sx={{ mb: 4 }}>
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-                    <Box
-                      sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
-                        border: '2px solid',
-                        borderColor: 'primary.main',
-                        boxShadow: '0 4px 12px rgba(224,122,63,0.3)',
-                      }}
-                    >
-                      <TrendingUp sx={{ color: 'white', fontSize: 28 }} />
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: '1.8rem',
-                        fontWeight: 700,
-                        color: 'text.primary',
-                      }}
-                    >
-                      What Happens Next
+                <Paper sx={{ p: 2.2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.28)', background: 'linear-gradient(160deg, rgba(255,255,255,0.95), rgba(255,248,238,0.9))' }}>
+                  <Stack spacing={1.3}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.2rem', fontWeight: 800, color: 'text.primary' }}>
+                      Your next move: complete your personal benchmark campaign
                     </Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', color: 'text.secondary', lineHeight: 1.6 }}>
+                      This is the same campaign structure your team will see, but rewritten in first person so you can score yourself directly.
+                      We store your benchmark responses separately from team responses and use that comparison in Perception Gap metrics.
+                    </Typography>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.3}>
+                      <Button
+                        variant="contained"
+                        startIcon={<TrendingUp />}
+                        onClick={() => navigate(`/campaign/${selfCampaignId}?mode=self`)}
+                        sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 2.2, py: 1 }}
+                      >
+                        Start My Growth Campaign
+                      </Button>
+                      {selfCompleted && (
+                        <Button
+                          variant="outlined"
+                          onClick={() => navigate('/dashboard')}
+                          sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 2.2, py: 1 }}
+                        >
+                          Continue to Dashboard
+                        </Button>
+                      )}
+                    </Stack>
+                    <TextField
+                      fullWidth
+                      value={selfCampaignLink}
+                      InputProps={{
+                        readOnly: true,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => copyToClipboard(selfCampaignLink, 'selfLink')} edge="end" sx={{ color: 'primary.main' }}>
+                              <ContentCopy />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LinkIcon sx={{ color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontFamily: 'Montserrat, sans-serif', bgcolor: 'rgba(255,255,255,0.92)' } }}
+                    />
+                    <TextField
+                      fullWidth
+                      value={selfCampaignPassword}
+                      InputProps={{
+                        readOnly: true,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => copyToClipboard(selfCampaignPassword, 'selfPassword')} edge="end" sx={{ color: 'primary.main' }}>
+                              <ContentCopy />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock sx={{ color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontFamily: 'Montserrat, sans-serif', bgcolor: 'rgba(255,255,255,0.92)' } }}
+                    />
+                    {copied.selfLink && <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: 'primary.main' }}>Personal benchmark link copied.</Typography>}
+                    {copied.selfPassword && <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: 'primary.main' }}>Personal benchmark password copied.</Typography>}
                   </Stack>
+                </Paper>
 
-                  <Stack spacing={3}>
-                    {/* Step 1 */}
-                    <Box
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(99,147,170,0.08)',
-                        border: '1px solid',
-                        borderColor: 'rgba(99,147,170,0.2)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={2} alignItems="flex-start">
-                        <Box
-                          sx={{
-                            minWidth: 40,
-                            height: 40,
-                            borderRadius: '50%',
-                            bgcolor: 'secondary.main',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '1.2rem',
-                          }}
-                        >
-                          1
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.2rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Access Your Dashboard
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.6,
-                              mb: 2,
-                            }}
-                          >
-                            Visit your dashboard to see results, resources, your action plan, and journey map. Use the credentials below to sign in.
-                          </Typography>
-                          <Box sx={{ mb: 2 }}>
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.95rem',
-                                color: 'text.primary',
-                                fontWeight: 600,
-                              }}
-                            >
-                              Email: <Box component="span" sx={{ fontWeight: 700 }}>{userEmail || '—'}</Box>
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.95rem',
-                                color: 'text.primary',
-                                fontWeight: 600,
-                              }}
-                            >
-                              Password: <Box component="span" sx={{ fontWeight: 700 }}>{userPassword || '—'}</Box>
-                            </Typography>
-                          </Box>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate('/dashboard')}
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1rem',
-                              px: 3,
-                              py: 1,
-                              borderRadius: 2,
-                            }}
-                          >
-                            Go to Dashboard
-                          </Button>
-                        </Box>
-                      </Stack>
-                    </Box>
-
-                    {/* Step 2 */}
-                    <Box
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(224,122,63,0.08)',
-                        border: '1px solid',
-                        borderColor: 'rgba(224,122,63,0.2)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={2} alignItems="flex-start">
-                        <Box
-                          sx={{
-                            minWidth: 40,
-                            height: 40,
-                            borderRadius: '50%',
-                            bgcolor: 'primary.main',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '1.2rem',
-                          }}
-                        >
-                          2
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.2rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Share with Your Team
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            Send the link and password above to your team members. They'll use these credentials to access the survey and provide honest, anonymous feedback on your leadership behaviors.
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </Box>
-
-                    {/* Step 3 */}
-                    <Box
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(99,147,170,0.08)',
-                        border: '1px solid',
-                        borderColor: 'rgba(99,147,170,0.2)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={2} alignItems="flex-start">
-                        <Box
-                          sx={{
-                            minWidth: 40,
-                            height: 40,
-                            borderRadius: '50%',
-                            bgcolor: 'secondary.main',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '1.2rem',
-                          }}
-                        >
-                          3
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.2rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Team Completes Survey
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            Your team members will rate each leadership statement on two dimensions: <strong>Effort</strong> (how much you try) and <strong>Efficacy</strong> (how effective you are). This dual-axis feedback provides a comprehensive view of your leadership impact.
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </Box>
-
-                    {/* Step 4 */}
-                    <Box
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(224,122,63,0.08)',
-                        border: '1px solid',
-                        borderColor: 'rgba(224,122,63,0.2)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={2} alignItems="flex-start">
-                        <Box
-                          sx={{
-                            minWidth: 40,
-                            height: 40,
-                            borderRadius: '50%',
-                            bgcolor: 'primary.main',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '1.2rem',
-                          }}
-                        >
-                          4
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.2rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Receive Your Insights
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            Once your team completes the survey, you'll gain access to your personalized Leadership Dashboard. This powerful tool combines your self-perception with team feedback to reveal blind spots, highlight strengths, and identify the most impactful growth opportunities.
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </Box>
-                  </Stack>
-                </Box>
-
-                {/* Key Features Grid */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.5rem',
-                      fontWeight: 700,
-                      color: 'text.primary',
-                      mb: 3,
-                      textAlign: 'center',
-                    }}
-                  >
-                    What You'll Get
+                <Paper sx={{ p: 2.1, borderRadius: 2, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.84)' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.06rem', color: 'text.primary', mb: 1 }}>
+                    Team Campaign Access {selfCompleted ? '(Unlocked)' : '(Locked until your benchmark is complete)'}
                   </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={4}>
-                      <Card
-                        sx={{
-                          height: '100%',
-                          background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
-                          border: '1px solid',
-                          borderColor: 'rgba(224,122,63,0.2)',
-                          borderRadius: 2,
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0 8px 20px rgba(224,122,63,0.2)',
-                          },
-                        }}
-                      >
-                        <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
-                          <Group
-                            sx={{
-                              fontSize: 40,
-                              color: 'primary.main',
-                              mb: 1.5,
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.1rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Team Feedback
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.9rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            Honest, anonymous feedback from your direct reports on your leadership behaviors
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={4}>
-                      <Card
-                        sx={{
-                          height: '100%',
-                          background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
-                          border: '1px solid',
-                          borderColor: 'rgba(99,147,170,0.2)',
-                          borderRadius: 2,
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0 8px 20px rgba(99,147,170,0.2)',
-                          },
-                        }}
-                      >
-                        <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
-                          <Assessment
-                            sx={{
-                              fontSize: 40,
-                              color: 'secondary.main',
-                              mb: 1.5,
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.1rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Actionable Insights
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.9rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            Specific recommendations tailored to your unique leadership context and challenges
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={4}>
-                      <Card
-                        sx={{
-                          height: '100%',
-                          background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
-                          border: '1px solid',
-                          borderColor: 'rgba(224,122,63,0.2)',
-                          borderRadius: 2,
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: '0 8px 20px rgba(224,122,63,0.2)',
-                          },
-                        }}
-                      >
-                        <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
-                          <TrendingUp
-                            sx={{
-                              fontSize: 40,
-                              color: 'primary.main',
-                              mb: 1.5,
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.1rem',
-                              fontWeight: 600,
-                              color: 'text.primary',
-                              mb: 1,
-                            }}
-                          >
-                            Growth Tracking
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.9rem',
-                              color: 'text.secondary',
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            Visual insights that reveal gaps between your self-perception and team feedback
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                </Box>
+                  <Stack spacing={1.2}>
+                    <TextField
+                      fullWidth
+                      value={selfCompleted ? teamCampaignLink : 'Complete your personal campaign to unlock this link'}
+                      InputProps={{
+                        readOnly: true,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton disabled={!selfCompleted} onClick={() => copyToClipboard(teamCampaignLink, 'teamLink')} edge="end" sx={{ color: 'primary.main' }}>
+                              <ContentCopy />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LinkIcon sx={{ color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontFamily: 'Montserrat, sans-serif', bgcolor: 'rgba(255,255,255,0.92)' } }}
+                    />
+                    <TextField
+                      fullWidth
+                      value={selfCompleted ? teamCampaignPassword : 'Locked'}
+                      InputProps={{
+                        readOnly: true,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton disabled={!selfCompleted} onClick={() => copyToClipboard(teamCampaignPassword, 'teamPassword')} edge="end" sx={{ color: 'primary.main' }}>
+                              <ContentCopy />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Lock sx={{ color: 'primary.main' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ '& .MuiOutlinedInput-root': { fontFamily: 'Montserrat, sans-serif', bgcolor: 'rgba(255,255,255,0.92)' } }}
+                    />
+                    {copied.teamLink && <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: 'primary.main' }}>Team link copied.</Typography>}
+                    {copied.teamPassword && <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: 'primary.main' }}>Team password copied.</Typography>}
+                  </Stack>
+                </Paper>
 
-                {/* Navigation */}
-                <Box sx={{ textAlign: 'center' }}>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="large"
-                    onClick={() => navigate('/campaign-builder')}
-                    sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.1rem',
-                      px: 4,
-                      py: 1.5,
-                      borderRadius: 2,
-                      borderWidth: 2,
-                      '&:hover': {
-                        borderWidth: 2,
-                        transform: 'translateY(-2px)',
-                      },
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    Back to Campaign
-                  </Button>
-                </Box>
-              </>
+                <Divider />
+
+                <Stack spacing={0.6}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: 'text.primary' }}>Dashboard credentials</Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>
+                    Email: {userEmail || '—'} | Password: {userPassword || '—'}
+                  </Typography>
+                </Stack>
+              </Stack>
             )}
           </Paper>
         </Box>

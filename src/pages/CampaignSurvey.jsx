@@ -11,11 +11,13 @@ function CampaignSurvey() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [ratings, setRatings] = useState({});
   const [savedActionItems, setSavedActionItems] = useState([]);
+  const [campaignMeta, setCampaignMeta] = useState({});
 
   useEffect(() => {
     const campaignData = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
     if (campaignData?.campaign) {
       setCampaign(campaignData.campaign);
+      setCampaignMeta(campaignData);
     } else {
       navigate('/');
     }
@@ -42,13 +44,23 @@ function CampaignSurvey() {
   }, [id, navigate]);
 
   const saveResponses = async () => {
-    const ratingsData = { id, ratings };
+    const campaignType = campaignMeta?.campaignType || 'team';
+    const ratingsData = {
+      id,
+      campaignId: id,
+      campaignType,
+      ownerId: campaignMeta?.ownerId || null,
+      bundleId: campaignMeta?.bundleId || null,
+      submittedAt: new Date(),
+      ratings,
+    };
     await addDoc(collection(db, 'surveyResponses'), ratingsData);
     console.log('Survey responses saved to Firestore:', ratingsData);
   };
 
   const nextQuestion = async () => {
-    if (currentQuestion < 14) {
+    const lastQuestionIdx = questions.length - 1;
+    if (currentQuestion < lastQuestionIdx) {
       setCurrentQuestion(prev => prev + 1);
     } else {
       await saveResponses();
@@ -115,6 +127,7 @@ function CampaignSurvey() {
   };
 
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
+  const isSelfCampaign = campaignMeta?.campaignType === 'self';
   const currentTrait = campaign[Math.floor(currentQuestion / 3)]?.trait || '';
   const currentRating = ratings[`${currentQuestion}`] || { effort: 1, efficacy: 1 };
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy);
@@ -221,7 +234,9 @@ function CampaignSurvey() {
                   Effort
                 </Typography>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontStyle: 'italic', color: 'text.primary', mb: 1 }}>
-                  How intentional and attentive Brian behaves in this area
+                  {isSelfCampaign
+                    ? 'How intentional and attentive I am in this area'
+                    : 'How intentional and attentive Brian behaves in this area'}
                 </Typography>
                 <Slider
                   value={currentRating.effort}
@@ -246,7 +261,9 @@ function CampaignSurvey() {
                   Efficacy
                 </Typography>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontStyle: 'italic', color: 'text.primary', mb: 1 }}>
-                  Is Brian meeting my needs in this area
+                  {isSelfCampaign
+                    ? 'How effectively I meet the demands of this area'
+                    : 'Is Brian meeting my needs in this area'}
                 </Typography>
                 <Slider
                   value={currentRating.efficacy}
@@ -290,11 +307,11 @@ function CampaignSurvey() {
         <Stack spacing={2} alignItems="center" sx={{ mt: 3 }}>
           <Box sx={{ width: '600px', textAlign: 'center' }}>
             <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', mb: 1 }}>
-              {currentQuestion + 1}/15
+              {currentQuestion + 1}/{questions.length || 15}
             </Typography>
             <LinearProgress
               variant="determinate"
-              value={((currentQuestion + 1) / 15) * 100}
+              value={((currentQuestion + 1) / (questions.length || 15)) * 100}
               sx={{ height: 10, borderRadius: 5 }}
             />
           </Box>
@@ -305,7 +322,7 @@ function CampaignSurvey() {
             disabled={!ratings[`${currentQuestion}`]?.effort || !ratings[`${currentQuestion}`]?.efficacy}
             sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
           >
-            {currentQuestion < 14 ? 'Next Question' : 'Complete Survey'}
+            {currentQuestion < (questions.length - 1) ? 'Next Question' : 'Complete Survey'}
           </Button>
         </Stack>
       </Container>

@@ -24,6 +24,11 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/sign-in" replace state={{ from: location.pathname }} />;
   }
 
+  const selfCompleted = localStorage.getItem('selfCampaignCompleted') === 'true';
+  if (!selfCompleted && location.pathname === '/dashboard') {
+    return <Navigate to="/campaign-verify" replace />;
+  }
+
   return children;
 }
 

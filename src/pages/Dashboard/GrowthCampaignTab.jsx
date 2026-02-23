@@ -46,12 +46,20 @@ function GrowthCampaignTab() {
   };
 
   const getCampaignLink = (campaignId) => {
+    try {
+      const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+      if (String(campaignId) === '123' && records?.teamCampaignLink) return records.teamCampaignLink;
+    } catch {
+      // fallback to synthetic link below
+    }
     if (typeof window === 'undefined') return `/campaign/${campaignId}`;
     return `${window.location.origin}/campaign/${campaignId}`;
   };
 
   const getCampaignPassword = (campaignId) => {
     try {
+      const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+      if (String(campaignId) === '123' && records?.teamCampaignPassword) return records.teamCampaignPassword;
       const raw = localStorage.getItem('dashboardCredentials');
       if (!raw) return `campaign-${campaignId}-password`;
       const parsed = JSON.parse(raw);

@@ -28,6 +28,8 @@ import {
 } from '@mui/icons-material';
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
+import { db } from '../../firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 function ResultsTab({ view = 'compass' }) {
   const [traitData, setTraitData] = useState({});
@@ -42,6 +44,7 @@ function ResultsTab({ view = 'compass' }) {
   const [selectedMetric, setSelectedMetric] = useState('trait'); // trait | efficacy | effort
   const [selectedDetailTraitKey, setSelectedDetailTraitKey] = useState(null);
   const [selectedDetailRingIdx, setSelectedDetailRingIdx] = useState(0);
+  const [benchmarkGapData, setBenchmarkGapData] = useState(null);
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -410,6 +413,44 @@ function ResultsTab({ view = 'compass' }) {
     }
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const loadBenchmarkData = async () => {
+      try {
+        const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+        const teamCampaignId = records?.teamCampaignId;
+        const selfCampaignId = records?.selfCampaignId;
+        if (!teamCampaignId || !selfCampaignId) {
+          if (active) setBenchmarkGapData(null);
+          return;
+        }
+
+        const [teamSnap, selfSnap] = await Promise.all([
+          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId))),
+          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', selfCampaignId))),
+        ]);
+
+        const teamResponses = teamSnap.docs.map((d) => d.data()).filter((d) => d?.ratings);
+        const selfResponses = selfSnap.docs.map((d) => d.data()).filter((d) => d?.ratings);
+
+        if (active) {
+          setBenchmarkGapData({
+            teamResponses,
+            selfResponses,
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load benchmark gap data:', err);
+        if (active) setBenchmarkGapData(null);
+      }
+    };
+
+    loadBenchmarkData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Calculate all metrics
   useEffect(() => {
     const calculatedData = {};
@@ -546,6 +587,26 @@ function ResultsTab({ view = 'compass' }) {
     return match?.subTrait || selectedTraitKey;
   }, [selectedTraitKey]);
 
+  const getStatementIndexesForTrait = (traitKey) => {
+    const idx = fakeCampaign['campaign_123']?.campaign?.findIndex((item) => item.trait === traitKey);
+    if (idx === -1 || idx == null) return [];
+    return Array.from({ length: 5 }, (_, i) => idx * 5 + i);
+  };
+
+  const toPercent = (value) => Number(value || 0) * 10;
+  const averageMetricForIndexes = (responses, statementIndexes, metric) => {
+    if (!Array.isArray(responses) || responses.length === 0 || statementIndexes.length === 0) return null;
+    const values = [];
+    responses.forEach((response) => {
+      statementIndexes.forEach((stmtIdx) => {
+        const raw = response?.ratings?.[String(stmtIdx)]?.[metric];
+        if (typeof raw === 'number') values.push(toPercent(raw));
+      });
+    });
+    if (!values.length) return null;
+    return values.reduce((sum, val) => sum + val, 0) / values.length;
+  };
+
   const detailTraitOptions = useMemo(() => Object.keys(traitData).slice(0, 3), [traitData]);
   const detailTraitMetrics = useMemo(() => {
     if (!selectedDetailTraitKey) return null;
@@ -566,6 +627,39 @@ function ResultsTab({ view = 'compass' }) {
     [selectedDetailStatement, detailSubtraitLabel]
   );
 
+  const selectedTraitStatementIndexes = useMemo(
+    () => getStatementIndexesForTrait(selectedTraitKey),
+    [selectedTraitKey]
+  );
+
+  const selectedDetailStatementIndex = useMemo(() => {
+    const idx = fakeCampaign['campaign_123']?.campaign?.findIndex((item) => item.trait === selectedDetailTraitKey);
+    if (idx === -1 || idx == null) return null;
+    return idx * 5 + selectedDetailRingIdx;
+  }, [selectedDetailTraitKey, selectedDetailRingIdx]);
+
+  const detailEfficacyPerceptionGap = useMemo(() => {
+    const fallback = (selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0)
+      - (selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0);
+    if (selectedDetailStatementIndex == null) return fallback;
+    const indexes = [selectedDetailStatementIndex];
+    const teamValue = averageMetricForIndexes(benchmarkGapData?.teamResponses, indexes, 'efficacy');
+    const selfValue = averageMetricForIndexes(benchmarkGapData?.selfResponses, indexes, 'efficacy');
+    if (teamValue == null || selfValue == null) return fallback;
+    return teamValue - selfValue;
+  }, [benchmarkGapData, selectedDetailStatementIndex, selectedDetailStatement, detailTraitMetrics]);
+
+  const detailEffortPerceptionGap = useMemo(() => {
+    const fallback = (selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0)
+      - (selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0);
+    if (selectedDetailStatementIndex == null) return fallback;
+    const indexes = [selectedDetailStatementIndex];
+    const teamValue = averageMetricForIndexes(benchmarkGapData?.teamResponses, indexes, 'effort');
+    const selfValue = averageMetricForIndexes(benchmarkGapData?.selfResponses, indexes, 'effort');
+    if (teamValue == null || selfValue == null) return fallback;
+    return teamValue - selfValue;
+  }, [benchmarkGapData, selectedDetailStatementIndex, selectedDetailStatement, detailTraitMetrics]);
+
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
     return selectedTraitMetrics || {
@@ -585,13 +679,19 @@ function ResultsTab({ view = 'compass' }) {
 
   const efficacyPerceptionGap = useMemo(() => {
     if (!activeMetrics) return 0;
-    return activeMetrics.efficacy - activeMetrics.lepScore;
-  }, [activeMetrics]);
+    const teamValue = averageMetricForIndexes(benchmarkGapData?.teamResponses, selectedTraitStatementIndexes, 'efficacy');
+    const selfValue = averageMetricForIndexes(benchmarkGapData?.selfResponses, selectedTraitStatementIndexes, 'efficacy');
+    if (teamValue == null || selfValue == null) return activeMetrics.efficacy - activeMetrics.lepScore;
+    return teamValue - selfValue;
+  }, [activeMetrics, benchmarkGapData, selectedTraitStatementIndexes]);
 
   const effortPerceptionGap = useMemo(() => {
     if (!activeMetrics) return 0;
-    return activeMetrics.effort - activeMetrics.lepScore;
-  }, [activeMetrics]);
+    const teamValue = averageMetricForIndexes(benchmarkGapData?.teamResponses, selectedTraitStatementIndexes, 'effort');
+    const selfValue = averageMetricForIndexes(benchmarkGapData?.selfResponses, selectedTraitStatementIndexes, 'effort');
+    if (teamValue == null || selfValue == null) return activeMetrics.effort - activeMetrics.lepScore;
+    return teamValue - selfValue;
+  }, [activeMetrics, benchmarkGapData, selectedTraitStatementIndexes]);
 
   // Map intake responses to insights
   const selfPerceptionInsights = useMemo(() => {
@@ -918,9 +1018,9 @@ function ResultsTab({ view = 'compass' }) {
                           { side: 'left', key: 'trait', label: 'Trait Score', value: activeMetrics?.lepScore || 0, color: 'text.primary', help: 'Combined score for this selected trait.' },
                           { side: 'right', key: 'delta', label: 'Average Delta', value: activeMetrics?.delta || 0, color: getDeltaColor(activeMetrics?.delta || 0), help: 'Absolute gap between efficacy and effort.' },
                           { side: 'left', key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA', help: 'Team-rated effectiveness for this trait.' },
-                          { side: 'right', key: 'gap-eff', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true, help: 'Efficacy minus trait score for current selection.' },
+                          { side: 'right', key: 'gap-eff', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true, help: 'Team efficacy average minus your self-rating for this trait.' },
                           { side: 'left', key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F', help: 'Team-rated effort invested in this trait.' },
-                          { side: 'right', key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true, help: 'Effort minus trait score for current selection.' },
+                          { side: 'right', key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true, help: 'Team effort average minus your self-rating for this trait.' },
                         ].map((item) => {
                           const clickable = item.side === 'left' && item.key === 'trait';
                           const active = selectedMetric === item.key;
@@ -1182,9 +1282,9 @@ function ResultsTab({ view = 'compass' }) {
                           { label: 'Trait Score', value: selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore, color: 'text.primary' },
                           { label: 'Delta', value: selectedDetailStatement?.delta ?? detailTraitMetrics.delta, color: getDeltaColor(selectedDetailStatement?.delta ?? detailTraitMetrics.delta), help: 'Absolute gap between efficacy and effort.' },
                           { label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA', help: 'Team-rated effectiveness for this question.' },
-                          { label: 'Perception Gap (Efficacy)', value: (selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#6393AA', signed: true, help: 'Efficacy minus trait score for selected question.' },
+                          { label: 'Perception Gap (Efficacy)', value: detailEfficacyPerceptionGap, color: '#6393AA', signed: true, help: 'Team efficacy average minus your self-rating for this question.' },
                           { label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F', help: 'Team-rated effort for this question.' },
-                          { label: 'Perception Gap (Effort)', value: (selectedDetailStatement?.effort ?? detailTraitMetrics.effort) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#E07A3F', signed: true, help: 'Effort minus trait score for selected question.' },
+                          { label: 'Perception Gap (Effort)', value: detailEffortPerceptionGap, color: '#E07A3F', signed: true, help: 'Team effort average minus your self-rating for this question.' },
                         ].map((item) => (
                           <Grid item xs={6} key={item.label}>
                             <Paper sx={{ p: 1.1, position: 'relative', borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.9)', minHeight: 106, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }}>

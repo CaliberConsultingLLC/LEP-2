@@ -38,7 +38,8 @@ function SignIn() {
           signedInAt: new Date().toISOString(),
         })
       );
-      const nextPath = location?.state?.from || '/dashboard';
+      const selfCompleted = localStorage.getItem('selfCampaignCompleted') === 'true';
+      const nextPath = selfCompleted ? (location?.state?.from || '/dashboard') : '/campaign-verify';
       navigate(nextPath, { replace: true });
       return;
     }

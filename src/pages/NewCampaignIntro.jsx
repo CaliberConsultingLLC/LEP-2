@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Stack, Button } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
@@ -8,6 +8,7 @@ import LoadingScreen from '../components/LoadingScreen';
 function NewCampaignIntro() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [campaignData, setCampaignData] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -60,18 +61,22 @@ function NewCampaignIntro() {
     return () => clearInterval(interval);
   }, [campaignData]);
 
+  const isSelfCampaign = campaignData?.campaignType === 'self' || new URLSearchParams(location.search).get('mode') === 'self';
+
   const handleStart = () => {
-  if (isNavigating) return;
-  const enteredPassword = prompt('Please enter the campaign password:');
-  if (enteredPassword === campaignData?.password) {
+    if (isNavigating) return;
+    if (!isSelfCampaign) {
+      const enteredPassword = prompt('Please enter the campaign password:');
+      if (enteredPassword !== campaignData?.password) {
+        alert('Incorrect password. Please try again.');
+        return;
+      }
+    }
     localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
     setIsNavigating(true);
     navigate(`/campaign/${id}/survey`, { replace: true });
     setTimeout(() => setIsNavigating(false), 100);
-  } else {
-    alert('Incorrect password. Please try again.');
-  }
-};
+  };
 
 
   if (!campaignData) {
@@ -130,11 +135,13 @@ function NewCampaignIntro() {
           }}
         >
           <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 3, color: 'text.primary' }}>
-            Welcome to LEP
+            {isSelfCampaign ? 'Your Benchmark Starts Here' : 'Welcome to LEP'}
           </Typography>
           <Stack spacing={2} alignItems="stretch">
             <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', mb: 2, color: 'text.primary' }}>
-              This journey uses a dual-dimension 9-box approach to assess your leadership. It measures Effort vs. Efficacy, offering a clear view of your strengths and growth areas. This method enhances self-awareness, aligns team feedback, and drives targeted development, empowering you to lead more effectively.
+              {isSelfCampaign
+                ? 'Before your team responds, you will complete your own campaign first. This creates your personal benchmark across effort and efficacy so Compass can compare your self-view with your team\'s aggregate ratings for each statement and trait.'
+                : 'This journey uses a dual-dimension 9-box approach to assess your leadership. It measures Effort vs. Efficacy, offering a clear view of your strengths and growth areas. This method enhances self-awareness, aligns team feedback, and drives targeted development, empowering you to lead more effectively.'}
             </Typography>
             <Button
               variant="contained"
@@ -143,7 +150,7 @@ function NewCampaignIntro() {
               disabled={isNavigating}
               sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
             >
-              Ready to Grow
+              {isSelfCampaign ? 'Start My Benchmark Survey' : 'Ready to Grow'}
             </Button>
           </Stack>
         </Box>
