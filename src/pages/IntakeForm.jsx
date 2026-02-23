@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, CardActions, Grid, LinearProgress, Paper, Divider
+  Card, CardContent, CardActions, Grid, Paper, Divider
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db } from '../firebase';
@@ -9,6 +9,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { questionBank } from '../data/questionBank';
 import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -29,81 +30,6 @@ const MessageDialog = ({ open, onClose, title, content }) => (
     </DialogActions>
   </Dialog>
 );
-
-// ---------- Styled helpers ----------
-const HeaderBar = ({ step = 0, total = 1, sectionLabel = 'Styles & Scenarios' }) => {
-  const progress = Math.min(100, Math.max(0, Math.round((step / total) * 100)));
-
-  return (
-    <Box
-      sx={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 5,
-        width: '100vw',
-        backdropFilter: 'saturate(120%) blur(6px)',
-        background: 'linear-gradient(180deg, rgba(18,18,18,0.75), rgba(18,18,18,0.55))',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-      }}
-    >
-      <Container maxWidth={false} sx={{ py: 1.25, width: '100%' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minHeight: 56 }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Box sx={{ width: 26, height: 26, flexShrink: 0 }}>
-              <img
-                src="/lep-logo.svg"
-                alt="LEP"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                style={{ width: 26, height: 26 }}
-              />
-            </Box>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                color: 'rgba(255,255,255,0.9)',
-                fontWeight: 700,
-                letterSpacing: 0.4,
-                whiteSpace: 'nowrap',
-                fontSize: '0.9rem',
-              }}
-            >
-              The Compass
-            </Typography>
-          </Stack>
-
-          <Typography
-            variant="subtitle1"
-            sx={{
-              textAlign: 'center',
-              color: 'rgba(255,255,255,0.92)',
-              fontWeight: 600,
-              letterSpacing: 0.3,
-              flex: 1
-            }}
-          >
-            {sectionLabel}
-          </Typography>
-
-          <Typography
-            variant="subtitle2"
-            sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600, minWidth: 88, textAlign: 'right' }}
-          >
-            Step {step} / {total}
-          </Typography>
-        </Stack>
-      </Container>
-      <LinearProgress
-        variant="determinate"
-        value={progress}
-        sx={{
-          height: 4,
-          bgcolor: 'rgba(255,255,255,0.06)',
-          '& .MuiLinearProgress-bar': { backgroundColor: '#E07A3F' },
-        }}
-      />
-    </Box>
-  );
-};
 
 // A centered page container that keeps everything naturally sized
 const PageContainer = ({ children }) => (
@@ -852,16 +778,6 @@ function IntakeForm() {
     societalStart, societalEnd, agentStep, totalSteps
   } = stepVars;
 
-  const headerLabel = useMemo(() => {
-    if (currentStep === 0 || currentStep === 1) return 'Profile';
-    if (currentStep === 2 || (currentStep >= behaviorStart && currentStep <= behaviorEnd)) return 'Behaviors';
-    if (currentStep === reflectionStep) return 'Reflection Moment';
-    if (currentStep === mindsetIntroStep) return 'Insights';
-    if (currentStep >= societalStart && currentStep <= societalEnd) return 'Instincts';
-    if (currentStep === agentStep) return 'Choose Your Agent';
-    return 'LEP';
-  }, [currentStep, behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep, societalStart, societalEnd, agentStep]);
-
   // ---- dialogs and reflection text ----
   useEffect(() => {
     const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Insights intro
@@ -1064,7 +980,7 @@ function IntakeForm() {
         },
       }}
     >
-      <HeaderBar step={Math.min(currentStep + 1, totalSteps)} total={totalSteps} sectionLabel={headerLabel} />
+      <ProcessTopRail />
 
       {/* Message Pop-ups */}
       {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (

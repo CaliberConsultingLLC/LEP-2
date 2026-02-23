@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
+import ProcessTopRail from '../components/ProcessTopRail';
 import {
   Person,
   ListAlt,
@@ -232,6 +233,7 @@ function CampaignVerify() {
         },
       }}
     >
+      <ProcessTopRail />
       <Container
         maxWidth={false}
         sx={{

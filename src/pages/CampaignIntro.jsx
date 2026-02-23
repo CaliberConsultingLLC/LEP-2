@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Button, Stack, LinearProgress } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function CampaignIntro() {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +39,7 @@ function CampaignIntro() {
         justifyContent: 'center',
       }}
     >
+      <ProcessTopRail />
       <Container maxWidth="md" sx={{ textAlign: 'center' }}>
         <Box
           sx={{

@@ -3,6 +3,7 @@ import { Container, Box, Typography, Button, Stack, Slider, LinearProgress } fro
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function CampaignSurvey() {
   const { id } = useParams();
@@ -166,6 +167,7 @@ function CampaignSurvey() {
         },
       }}
     >
+      <ProcessTopRail />
       <Container maxWidth="md" sx={{ textAlign: 'center' }}>
         {currentQuestion === 0 && savedActionItems.length > 0 ? (
           <Box

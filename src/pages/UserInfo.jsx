@@ -13,6 +13,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function UserInfo() {
   const navigate = useNavigate();
@@ -99,6 +100,7 @@ function UserInfo() {
         },
       }}
     >
+      <ProcessTopRail />
       <Container
         maxWidth={false}
         sx={{

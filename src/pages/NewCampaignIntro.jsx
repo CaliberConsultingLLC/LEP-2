@@ -4,6 +4,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function NewCampaignIntro() {
   const { id } = useParams();
@@ -121,6 +122,7 @@ function NewCampaignIntro() {
         },
       }}
     >
+      <ProcessTopRail />
       <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
         <Box
           sx={{

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Container, Box, Typography, Stack, Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function CampaignComplete() {
   const { id } = useParams();
@@ -51,6 +52,7 @@ function CampaignComplete() {
         },
       }}
     >
+      <ProcessTopRail />
       <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
         <Box
           sx={{

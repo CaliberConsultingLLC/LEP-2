@@ -18,6 +18,7 @@ import {
 import { Warning, Lightbulb, CheckCircle, TrendingUp, PersonSearch, AltRoute, OutlinedFlag } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
+import ProcessTopRail from '../components/ProcessTopRail';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
 
@@ -703,6 +704,7 @@ function Summary() {
         background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
       },
     }}>
+      <ProcessTopRail />
       <Container
         maxWidth={false}
         sx={{

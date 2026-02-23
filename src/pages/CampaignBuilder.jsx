@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
+import ProcessTopRail from '../components/ProcessTopRail';
 import traitSystem from '../data/traitSystem';
 
 function CampaignBuilder() {
@@ -425,6 +426,7 @@ function CampaignBuilder() {
           },
         }}
       >
+        <ProcessTopRail />
         <Container
           maxWidth={false}
           sx={{

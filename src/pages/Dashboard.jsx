@@ -19,6 +19,7 @@ import ResultsTab from './Dashboard/ResultsTab';
 import ActionTab from './Dashboard/ActionTab';
 import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -203,24 +204,27 @@ function Dashboard() {
                 Growth Dashboard
               </Typography>
             </Stack>
-            <Button
-              variant="outlined"
-              startIcon={<HelpOutline />}
-              onClick={() => navigate('/faq')}
-              sx={{
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 700,
-                textTransform: 'none',
-                color: 'rgba(255,255,255,0.94)',
-                borderColor: 'rgba(255,255,255,0.38)',
-                '&:hover': {
-                  borderColor: 'rgba(255,255,255,0.7)',
-                  bgcolor: 'rgba(255,255,255,0.08)',
-                },
-              }}
-            >
-              Help
-            </Button>
+            <Stack direction="row" spacing={1.4} alignItems="center">
+              <ProcessTopRail embedded showBrand={false} />
+              <Button
+                variant="outlined"
+                startIcon={<HelpOutline />}
+                onClick={() => navigate('/faq')}
+                sx={{
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  color: 'rgba(255,255,255,0.94)',
+                  borderColor: 'rgba(255,255,255,0.38)',
+                  '&:hover': {
+                    borderColor: 'rgba(255,255,255,0.7)',
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                  },
+                }}
+              >
+                Help
+              </Button>
+            </Stack>
           </Box>
 
           {/* Content */}

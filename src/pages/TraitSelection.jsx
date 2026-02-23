@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function TraitSelection() {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ function TraitSelection() {
         },
       }}
     >
+      <ProcessTopRail />
       <Container
         maxWidth={false}
         sx={{
