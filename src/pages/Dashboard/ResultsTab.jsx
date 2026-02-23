@@ -41,6 +41,7 @@ function ResultsTab() {
   const [selectedMetric, setSelectedMetric] = useState('trait'); // trait | efficacy | effort
   const [resultsView, setResultsView] = useState('compass'); // compass | detailed
   const [selectedDetailTraitKey, setSelectedDetailTraitKey] = useState(null);
+  const [selectedDetailRingIdx, setSelectedDetailRingIdx] = useState(0);
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -530,6 +531,10 @@ function ResultsTab() {
     }
   }, [traitData, selectedDetailTraitKey]);
 
+  useEffect(() => {
+    setSelectedDetailRingIdx(0);
+  }, [selectedDetailTraitKey]);
+
   const selectedTraitMetrics = useMemo(() => {
     if (!selectedTraitKey) return null;
     return traitData[selectedTraitKey] || null;
@@ -551,6 +556,15 @@ function ResultsTab() {
     const match = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === selectedDetailTraitKey);
     return match?.subTrait || selectedDetailTraitKey;
   }, [selectedDetailTraitKey]);
+  const detailStatements = useMemo(() => (detailTraitMetrics?.statements || []).slice(0, 5), [detailTraitMetrics]);
+  const selectedDetailStatement = useMemo(
+    () => detailStatements[selectedDetailRingIdx] || detailStatements[0] || null,
+    [detailStatements, selectedDetailRingIdx]
+  );
+  const detailQuestionTitle = useMemo(
+    () => selectedDetailStatement?.text || detailSubtraitLabel,
+    [selectedDetailStatement, detailSubtraitLabel]
+  );
 
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
@@ -987,7 +1001,17 @@ function ResultsTab() {
                         key={traitKey}
                         variant={active ? 'contained' : 'outlined'}
                         onClick={() => setSelectedDetailTraitKey(traitKey)}
-                        sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          borderRadius: 2,
+                          bgcolor: active ? undefined : 'white',
+                          color: active ? undefined : 'text.primary',
+                          borderColor: active ? undefined : 'rgba(0,0,0,0.24)',
+                          '&:hover': {
+                            bgcolor: active ? undefined : 'rgba(255,255,255,0.92)',
+                          },
+                        }}
                       >
                         {subLabel}
                       </Button>
@@ -1003,8 +1027,8 @@ function ResultsTab() {
                           {(() => {
                             const centerX = 300;
                             const centerY = 300;
-                            const statements = (detailTraitMetrics?.statements || []).slice(0, 5);
-                            const radii = [92, 124, 156, 188, 220];
+                            const statements = detailStatements;
+                            const radii = [110, 149, 188, 227, 264];
                             const toSVGAngle = (userAngle) => {
                               let svgAngle = (userAngle - 90) % 360;
                               if (svgAngle < 0) svgAngle += 360;
@@ -1053,8 +1077,21 @@ function ResultsTab() {
                                     <g key={`detail-e-${idx}`}>
                                       <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="18" />
                                       <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="20" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="#6393AA" strokeWidth="18" strokeDasharray={`${eLen} ${arcLength}`} />
-                                      <circle cx={ex} cy={ey} r="9" fill="#457089" stroke="#000" strokeWidth="2" />
+                                      <path
+                                        d={createArcPath(radius, 180, 0, 1)}
+                                        fill="none"
+                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(99,147,170,0.45)'}
+                                        strokeWidth="18"
+                                        strokeDasharray={`${eLen} ${arcLength}`}
+                                      />
+                                      <circle
+                                        cx={ex}
+                                        cy={ey}
+                                        r="9"
+                                        fill={idx === selectedDetailRingIdx ? '#457089' : 'rgba(69,112,137,0.62)'}
+                                        stroke="#000"
+                                        strokeWidth="2"
+                                      />
                                     </g>
                                   );
                                 })}
@@ -1071,8 +1108,21 @@ function ResultsTab() {
                                     <g key={`detail-f-${idx}`}>
                                       <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="18" />
                                       <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="20" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="#E07A3F" strokeWidth="18" strokeDasharray={`${fLen} ${arcLength}`} />
-                                      <circle cx={fx} cy={fy} r="9" fill="#C85A2A" stroke="#000" strokeWidth="2" />
+                                      <path
+                                        d={createArcPath(radius, 180, 0, 0)}
+                                        fill="none"
+                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(224,122,63,0.45)'}
+                                        strokeWidth="18"
+                                        strokeDasharray={`${fLen} ${arcLength}`}
+                                      />
+                                      <circle
+                                        cx={fx}
+                                        cy={fy}
+                                        r="9"
+                                        fill={idx === selectedDetailRingIdx ? '#C85A2A' : 'rgba(200,90,42,0.62)'}
+                                        stroke="#000"
+                                        strokeWidth="2"
+                                      />
                                     </g>
                                   );
                                 })}
@@ -1080,8 +1130,21 @@ function ResultsTab() {
                                   const labelX = centerX + radius * Math.cos(toSVGAngle(180));
                                   const labelY = centerY + radius * Math.sin(toSVGAngle(180)) + 2;
                                   return (
-                                    <g key={`detail-label-${idx}`}>
-                                      <rect x={labelX - 22} y={labelY - 11} width={44} height={22} rx={11} fill="rgba(255,255,255,0.95)" stroke="#000" strokeWidth="1.8" />
+                                    <g
+                                      key={`detail-label-${idx}`}
+                                      onClick={() => setSelectedDetailRingIdx(idx)}
+                                      style={{ cursor: 'pointer' }}
+                                    >
+                                      <rect
+                                        x={labelX - 22}
+                                        y={labelY - 11}
+                                        width={44}
+                                        height={22}
+                                        rx={11}
+                                        fill={idx === selectedDetailRingIdx ? 'rgba(255,244,235,0.98)' : 'rgba(255,255,255,0.95)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : '#000'}
+                                        strokeWidth={idx === selectedDetailRingIdx ? '2.4' : '1.8'}
+                                      />
                                       <text x={labelX} y={labelY + 4} textAnchor="middle" fontSize="12" fontFamily="Montserrat, sans-serif" fontWeight="700" fill="#000">
                                         {idx + 1}
                                       </text>
@@ -1095,7 +1158,7 @@ function ResultsTab() {
                         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
                           <Box sx={{ width: 156, height: 156, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: '3px solid', borderColor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2.8rem', fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
-                              {(detailTraitMetrics.lepScore || 0).toFixed(1)}
+                              {((selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore) || 0).toFixed(1)}
                             </Typography>
                           </Box>
                         </Box>
@@ -1105,17 +1168,17 @@ function ResultsTab() {
 
                   <Grid item xs={12} lg={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.4rem', md: '1.65rem' }, fontWeight: 800, color: 'rgba(255,255,255,0.9)', textAlign: 'center', mb: 1.2 }}>
-                        {detailSubtraitLabel}
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1rem', md: '1.08rem' }, fontWeight: 700, color: 'rgba(255,255,255,0.9)', textAlign: 'center', mb: 1.2 }}>
+                        {detailQuestionTitle}
                       </Typography>
                       <Grid container spacing={1.4}>
                         {[
-                          { label: 'Trait Score', value: detailTraitMetrics.lepScore, color: 'text.primary' },
-                          { label: 'Average Delta', value: detailTraitMetrics.delta, color: getDeltaColor(detailTraitMetrics.delta) },
-                          { label: 'Efficacy Score', value: detailTraitMetrics.efficacy, color: '#6393AA' },
-                          { label: 'Perception Gap (Efficacy)', value: detailTraitMetrics.efficacy - detailTraitMetrics.lepScore, color: '#6393AA', signed: true },
-                          { label: 'Effort Score', value: detailTraitMetrics.effort, color: '#E07A3F' },
-                          { label: 'Perception Gap (Effort)', value: detailTraitMetrics.effort - detailTraitMetrics.lepScore, color: '#E07A3F', signed: true },
+                          { label: 'Trait Score', value: selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore, color: 'text.primary' },
+                          { label: 'Average Delta', value: selectedDetailStatement?.delta ?? detailTraitMetrics.delta, color: getDeltaColor(selectedDetailStatement?.delta ?? detailTraitMetrics.delta) },
+                          { label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA' },
+                          { label: 'Perception Gap (Efficacy)', value: (selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#6393AA', signed: true },
+                          { label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F' },
+                          { label: 'Perception Gap (Effort)', value: (selectedDetailStatement?.effort ?? detailTraitMetrics.effort) - (selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore), color: '#E07A3F', signed: true },
                         ].map((item) => (
                           <Grid item xs={6} key={item.label}>
                             <Paper sx={{ p: 1.1, borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.9)', minHeight: 106, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }}>
