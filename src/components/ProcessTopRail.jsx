@@ -72,7 +72,8 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true }) {
       if (pathname.startsWith('/form')) return 'behaviors';
       if (pathname.startsWith('/summary')) return 'insights';
       if (pathname.startsWith('/trait-selection')) return 'campaign';
-      if (pathname.startsWith('/campaign-builder') || pathname.startsWith('/campaign-verify') || pathname.startsWith('/campaign-intro')) return 'campaign';
+      if (pathname.startsWith('/campaign-builder') || pathname.startsWith('/campaign-intro')) return 'campaign';
+      if (pathname.startsWith('/campaign-verify')) return 'self';
       if (pathname.startsWith('/campaign/')) {
         const match = pathname.match(/^\/campaign\/([^/]+)/);
         const campaignId = match?.[1];

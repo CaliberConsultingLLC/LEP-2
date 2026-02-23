@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -6,10 +6,7 @@ import {
   Button,
   Stack,
   Paper,
-  Card,
   Alert,
-  Divider,
-  Chip,
   TextField,
   InputAdornment,
   IconButton,
@@ -18,16 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import {
-  Person,
-  ListAlt,
-  Insights,
-  BuildCircle,
-  AssignmentTurnedIn,
-  Send,
-  Assessment,
   TrendingUp,
-  Flag,
-  CheckCircle,
   ContentCopy,
   Link as LinkIcon,
   Lock,
@@ -180,20 +168,6 @@ function CampaignVerify() {
     }
   };
 
-  const timeline = useMemo(
-    () => [
-      { label: 'Profile', icon: Person, state: 'complete' },
-      { label: 'Intake', icon: ListAlt, state: 'complete' },
-      { label: 'Insights', icon: Insights, state: 'complete' },
-      { label: 'Campaign Build', icon: BuildCircle, state: 'complete' },
-      { label: 'Your Growth Campaign', icon: AssignmentTurnedIn, state: selfCompleted ? 'complete' : 'current' },
-      { label: 'Team Campaign Launch', icon: Send, state: selfCompleted ? 'current' : 'upcoming' },
-      { label: 'Results Dashboard', icon: Assessment, state: 'upcoming' },
-      { label: 'Plan + Journey', icon: Flag, state: 'upcoming' },
-    ],
-    [selfCompleted]
-  );
-
   if (isGenerating) {
     return (
       <LoadingScreen
@@ -210,7 +184,6 @@ function CampaignVerify() {
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
-        py: 4,
         // full bleed bg
         '&:before': {
           content: '""',
@@ -256,7 +229,7 @@ function CampaignVerify() {
                 textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
-              Campaign Built. Your Benchmark Comes First.
+              Your Next Move
             </Typography>
             <Typography
               sx={{
@@ -269,7 +242,7 @@ function CampaignVerify() {
                 lineHeight: 1.6,
               }}
             >
-              You completed reflection and campaign build. Next, you take your own growth campaign first, so Compass can compare your self-ratings against your team later.
+              Your campaign is built. Complete your personal benchmark first, then share the team campaign.
             </Typography>
           </Box>
 
@@ -293,99 +266,10 @@ function CampaignVerify() {
               </Alert>
             ) : (
               <Stack spacing={2.4}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    border: '1px solid rgba(69,112,137,0.22)',
-                    bgcolor: 'rgba(255,255,255,0.75)',
-                  }}
-                >
-                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mb: 1.2 }}>
-                    <CheckCircle sx={{ color: 'primary.main', fontSize: 24 }} />
-                    <Typography
-                      sx={{
-                        fontFamily: 'Montserrat, sans-serif',
-                        fontSize: '1.2rem',
-                        fontWeight: 700,
-                        color: 'text.primary',
-                      }}
-                    >
-                      Progress Path
-                    </Typography>
-                  </Stack>
-                  <Box sx={{ overflowX: 'auto', py: 0.4 }}>
-                    <Stack direction="row" alignItems="center" spacing={0.9} sx={{ minWidth: 950, px: 0.4 }}>
-                      {timeline.map((step, idx) => {
-                        const Icon = step.icon;
-                        const isComplete = step.state === 'complete';
-                        const isCurrent = step.state === 'current';
-                        return (
-                          <React.Fragment key={step.label}>
-                            <Card
-                              sx={{
-                                width: 156,
-                                minHeight: 122,
-                                p: 1.2,
-                                borderRadius: 2,
-                                border: '1px solid',
-                                borderColor: isCurrent
-                                  ? 'rgba(224,122,63,0.8)'
-                                  : isComplete
-                                    ? 'rgba(47,133,90,0.5)'
-                                    : 'rgba(69,112,137,0.3)',
-                                background: isCurrent
-                                  ? 'linear-gradient(180deg, rgba(255,241,226,0.95), rgba(255,230,206,0.88))'
-                                  : isComplete
-                                    ? 'linear-gradient(180deg, rgba(230,249,239,0.9), rgba(220,245,233,0.82))'
-                                    : 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(238,245,252,0.8))',
-                                boxShadow: isCurrent ? '0 6px 14px rgba(224,122,63,0.2)' : '0 4px 10px rgba(0,0,0,0.08)',
-                              }}
-                            >
-                              <Stack spacing={0.7} alignItems="center" textAlign="center">
-                                <Box
-                                  sx={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: isCurrent ? '#E07A3F' : isComplete ? '#2F855A' : '#457089',
-                                    color: 'white',
-                                  }}
-                                >
-                                  <Icon sx={{ fontSize: 18 }} />
-                                </Box>
-                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.15 }}>
-                                  {step.label}
-                                </Typography>
-                                <Chip
-                                  size="small"
-                                  label={isCurrent ? 'Current' : isComplete ? 'Complete' : 'Upcoming'}
-                                  sx={{
-                                    fontFamily: 'Montserrat, sans-serif',
-                                    fontSize: '0.72rem',
-                                    fontWeight: 700,
-                                    bgcolor: isCurrent ? 'rgba(224,122,63,0.18)' : isComplete ? 'rgba(47,133,90,0.16)' : 'rgba(69,112,137,0.12)',
-                                  }}
-                                />
-                              </Stack>
-                            </Card>
-                            {idx < timeline.length - 1 && (
-                              <Box sx={{ width: 18, height: 2, bgcolor: 'rgba(69,112,137,0.46)', flexShrink: 0 }} />
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                    </Stack>
-                  </Box>
-                </Paper>
-
                 <Paper sx={{ p: 2.2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.28)', background: 'linear-gradient(160deg, rgba(255,255,255,0.95), rgba(255,248,238,0.9))' }}>
                   <Stack spacing={1.3}>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.2rem', fontWeight: 800, color: 'text.primary' }}>
-                      Your next move: complete your personal benchmark campaign
+                      Complete your personal benchmark campaign
                     </Typography>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', color: 'text.secondary', lineHeight: 1.6 }}>
                       This is the same campaign structure your team will see, but rewritten in first person so you can score yourself directly.
@@ -504,8 +388,6 @@ function CampaignVerify() {
                     {copied.teamPassword && <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: 'primary.main' }}>Team password copied.</Typography>}
                   </Stack>
                 </Paper>
-
-                <Divider />
 
                 <Stack spacing={0.6}>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: 'text.primary' }}>Dashboard credentials</Typography>

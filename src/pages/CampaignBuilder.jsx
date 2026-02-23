@@ -403,7 +403,6 @@ function CampaignBuilder() {
           minHeight: '100vh',
           width: '100%',
           overflowX: 'hidden',
-          py: 4,
           // full bleed bg
           '&:before': {
             content: '""',
