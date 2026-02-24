@@ -532,18 +532,6 @@ function IntakeForm() {
     }
   }, []);
 
-  // ---------- Questions ----------
-  // Note: Name is now collected in UserInfo page, so we get it from localStorage
-  const initialQuestions = [
-    { id: 'industry', prompt: 'What industry do you work in?', type: 'text' },
-    { id: 'role', prompt: 'What is your current job title?', type: 'text' },
-    { id: 'responsibilities', prompt: 'Briefly describe what your team is responsible for within the organization.', type: 'text' },
-    { id: 'birthYear', prompt: 'What year were you born?', type: 'text' },
-    { id: 'teamSize', prompt: 'How many people do you directly manage?', type: 'slider', min: 1, max: 10, labels: { 1: '1', 10: '10+' } },
-    { id: 'leadershipExperience', prompt: 'How many years have you been in your current role?', type: 'slider', min: 1, max: 20, labels: { 1: '1', 20: '20+' } },
-    { id: 'careerExperience', prompt: 'How many years have you been in a leadership role?', type: 'slider', min: 1, max: 20, labels: { 1: '1', 20: '20+' } },
-  ];
-
   // Behavior Questions
   const behaviorSet = [
     {
@@ -860,6 +848,33 @@ function IntakeForm() {
     setTimeout(() => setStepJustValidated(false), 420);
   };
 
+  const isNumeric = (value) => /^\d+$/.test(String(value ?? '').trim());
+  const isProfileValid = () => {
+    const industry = String(formData.industry || '').trim();
+    const role = String(formData.role || '').trim();
+    const responsibilities = String(formData.responsibilities || '').trim();
+    const birthYear = Number(formData.birthYear);
+    const teamSize = Number(formData.teamSize);
+    const leadershipExperience = Number(formData.leadershipExperience);
+    const careerExperience = Number(formData.careerExperience);
+
+    const currentYear = new Date().getFullYear();
+    return (
+      industry &&
+      role &&
+      responsibilities &&
+      isNumeric(formData.birthYear) &&
+      birthYear >= 1900 &&
+      birthYear <= currentYear &&
+      isNumeric(formData.teamSize) &&
+      teamSize >= 0 &&
+      isNumeric(formData.leadershipExperience) &&
+      leadershipExperience >= 0 &&
+      isNumeric(formData.careerExperience) &&
+      careerExperience >= 0
+    );
+  };
+
   const handleNext = async () => {
     const isMessageStep = [0, 3, mindsetIntroStep].includes(currentStep) || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current); // auto-advance popups
 
@@ -872,9 +887,7 @@ function IntakeForm() {
     if (currentStep < totalSteps - 1) {
       // Profile validation (step 1)
       if (currentStep === 1) {
-        if (!formData.industry || !formData.role || !formData.responsibilities || 
-            formData.teamSize === undefined || 
-            formData.leadershipExperience === undefined || formData.careerExperience === undefined) return;
+        if (!isProfileValid()) return;
 
       // Behaviors validation (steps 5..16)
       } else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
@@ -1008,49 +1021,143 @@ function IntakeForm() {
         {/* Profile Page (Step 1) - Combined */}
         {currentStep === 1 && (
           <SectionCard narrow={true}>
-            <Stack spacing={4} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              {initialQuestions.map((q) => (
-                <MemoBox key={q.id} sx={{ width: '100%' }}>
-                  <Typography variant="body1" sx={{ fontWeight: 400, mb: 1.25, lineHeight: 1.5, textAlign: 'center', fontSize: '1.1rem' }}>{q.prompt}</Typography>
-                  {q.type === 'text' ? (
+            <Stack spacing={2.2} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.4 }}>
+                Leader Profile
+              </Typography>
+
+              <Grid container spacing={1.3}>
+                <Grid item xs={12} md={6}>
+                  <MemoBox sx={{ width: '100%' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
+                      Year Born
+                    </Typography>
                     <MemoTextField
-                      value={formData[q.id] || ''}
-                      onChange={(e) => handleChange(q.id, e.target.value)}
+                      value={formData.birthYear || ''}
+                      onChange={(e) => {
+                        const raw = String(e.target.value || '').replace(/[^\d]/g, '').slice(0, 4);
+                        handleChange('birthYear', raw);
+                      }}
                       fullWidth
                       variant="outlined"
-                      placeholder={q.id === 'birthYear' ? 'e.g., 1985' : ''}
+                      placeholder="e.g., 1985"
+                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                     />
-                  ) : (
-                    <>
-                      <MemoSlider
-                        value={formData[q.id] ?? q.min}
-                        onChange={(e, value) => handleChange(q.id, value)}
-                        min={q.min}
-                        max={q.max}
-                        sx={{ width: '100%' }}
-                      />
-                      <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                        {q.id === 'leadershipExperience' || q.id === 'careerExperience'
-                          ? (formData[q.id] === 20 ? '20+' : (formData[q.id] ?? q.min))
-                          : (formData[q.id] ?? q.min)}
-                      </Typography>
-                    </>
-                  )}
-                </MemoBox>
-              ))}
+                  </MemoBox>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <MemoBox sx={{ width: '100%' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
+                      Industry
+                    </Typography>
+                    <MemoTextField
+                      value={formData.industry || ''}
+                      onChange={(e) => handleChange('industry', e.target.value)}
+                      fullWidth
+                      variant="outlined"
+                      placeholder="Industry"
+                    />
+                  </MemoBox>
+                </Grid>
+              </Grid>
+
+              <MemoBox sx={{ width: '100%' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
+                  Job Title
+                </Typography>
+                <MemoTextField
+                  value={formData.role || ''}
+                  onChange={(e) => handleChange('role', e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Current role"
+                />
+              </MemoBox>
+
+              <MemoBox sx={{ width: '100%' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
+                  Briefly describe what your team is responsible for.
+                </Typography>
+                <MemoTextField
+                  value={formData.responsibilities || ''}
+                  onChange={(e) => handleChange('responsibilities', e.target.value)}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  variant="outlined"
+                  placeholder="Team scope and primary responsibilities"
+                />
+              </MemoBox>
+
+              <Box
+                sx={{
+                  p: 1.2,
+                  borderRadius: 2,
+                  border: '1px solid rgba(0,0,0,0.14)',
+                  bgcolor: 'rgba(0,0,0,0.02)',
+                }}
+              >
+                <Grid container spacing={1.2}>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.45, display: 'block', textAlign: 'left' }}>
+                      How many people do you directly manage?
+                    </Typography>
+                    <MemoTextField
+                      value={formData.teamSize ?? ''}
+                      onChange={(e) => {
+                        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+                        handleChange('teamSize', raw);
+                      }}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.45, display: 'block', textAlign: 'left' }}>
+                      How many years in your current role?
+                    </Typography>
+                    <MemoTextField
+                      value={formData.leadershipExperience ?? ''}
+                      onChange={(e) => {
+                        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+                        handleChange('leadershipExperience', raw);
+                      }}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.45, display: 'block', textAlign: 'left' }}>
+                      How many years in leadership?
+                    </Typography>
+                    <MemoTextField
+                      value={formData.careerExperience ?? ''}
+                      onChange={(e) => {
+                        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+                        handleChange('careerExperience', raw);
+                      }}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
               <Stack direction="row" spacing={2}>
                 <MemoButton variant="outlined" onClick={() => setCurrentStep(0)}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
-                  disabled={
-                    !formData.industry || !formData.role || !formData.responsibilities ||
-                    formData.teamSize === undefined ||
-                    formData.leadershipExperience === undefined || formData.careerExperience === undefined
-                  }
+                  disabled={!isProfileValid()}
                   sx={{
                     px: 5,
-                    py: 1.4,
+                    py: 1.1,
                     ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
                     '@keyframes pulse': {
                       '0%': { transform: 'scale(1)' },

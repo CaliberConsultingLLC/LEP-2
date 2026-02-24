@@ -94,6 +94,28 @@ function TraitSelection() {
       >
         <Box sx={{ width: '100%', maxWidth: 1120 }}>
         <Stack spacing={4} sx={{ width: '100%' }}>
+          <Paper
+            sx={{
+              p: 1.6,
+              borderRadius: 2.2,
+              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'linear-gradient(160deg, rgba(255,255,255,0.95), rgba(240,247,255,0.86))',
+              boxShadow: '0 6px 18px rgba(0,0,0,0.14)',
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: '0.96rem',
+                color: 'text.primary',
+                textAlign: 'center',
+                lineHeight: 1.55,
+              }}
+            >
+              Select exactly three traits to anchor your campaign. These choices determine the statements your team will rate and where your growth plan will focus first.
+            </Typography>
+          </Paper>
+
           {/* Selection Counter */}
           <Box sx={{ textAlign: 'center' }}>
             <Typography

@@ -165,7 +165,7 @@ function CampaignSurvey() {
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
+      <Container maxWidth={false} disableGutters sx={{ textAlign: 'center', py: { xs: 2, md: 3 }, px: { xs: 2, md: 4 } }}>
         {currentQuestion === 0 && savedActionItems.length > 0 ? (
           <Box
             sx={{
@@ -228,7 +228,7 @@ function CampaignSurvey() {
             }}
           >
             <Stack spacing={2} alignItems="center" sx={{ mb: 3 }}>
-              <Box sx={{ width: '100%', maxWidth: '700px' }}>
+              <Box sx={{ width: '100%' }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Effort
                 </Typography>
@@ -255,7 +255,7 @@ function CampaignSurvey() {
                   }}
                 />
               </Box>
-              <Box sx={{ width: '100%', maxWidth: '700px' }}>
+              <Box sx={{ width: '100%' }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Efficacy
                 </Typography>
@@ -285,7 +285,6 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: '700px',
                   minHeight: '50px',
                   bgcolor: 'rgba(255, 255, 255, 0.95)',
                   background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
@@ -305,7 +304,7 @@ function CampaignSurvey() {
           </Box>
         </Box>
         <Stack spacing={2} alignItems="center" sx={{ mt: 3 }}>
-          <Box sx={{ width: '100%', maxWidth: '700px', textAlign: 'center' }}>
+          <Box sx={{ width: '100%', textAlign: 'center' }}>
             <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', mb: 1 }}>
               {currentQuestion + 1}/{questions.length || 15}
             </Typography>

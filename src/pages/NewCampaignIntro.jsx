@@ -65,6 +65,13 @@ function NewCampaignIntro() {
 
   const isSelfCampaign = campaignData?.campaignType === 'self' || new URLSearchParams(location.search).get('mode') === 'self';
 
+  useEffect(() => {
+    if (!campaignData || !isSelfCampaign || isNavigating) return;
+    localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
+    setIsNavigating(true);
+    navigate(`/campaign/${id}/survey`, { replace: true });
+  }, [campaignData, id, isNavigating, isSelfCampaign, navigate]);
+
   const handleStart = () => {
     if (isNavigating) return;
     if (!isSelfCampaign) {
@@ -125,7 +132,7 @@ function NewCampaignIntro() {
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth="md" sx={{ py: { xs: 3, md: 4.5 }, textAlign: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ py: { xs: 2, md: 3 }, px: { xs: 2, md: 4 }, textAlign: 'center' }}>
         <Paper
           sx={{
             p: { xs: 2.2, md: 3.2 },
@@ -134,6 +141,8 @@ function NewCampaignIntro() {
             boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
             bgcolor: 'rgba(255,255,255,0.94)',
             background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.82))',
+            maxWidth: 1280,
+            mx: 'auto',
           }}
         >
           <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.4rem', md: '1.7rem' }, fontWeight: 800, mb: 0.8, color: 'text.primary' }}>
@@ -170,27 +179,19 @@ function NewCampaignIntro() {
           </Stack>
 
           {activeSection === 'what' && (
-            <Paper sx={{ p: 2, borderRadius: 2, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.82)' }}>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', lineHeight: 1.62, color: 'text.primary', textAlign: 'left' }}>
-                The Compass is a leadership growth system built around two signals: effort and efficacy. It helps leaders see how their intent compares with how their team experiences them. The goal is clearer leadership behavior, better trust, and measurable improvement over time.
-              </Typography>
-            </Paper>
-          )}
-
-          {activeSection === 'how' && (
             <Grid container spacing={1.2} sx={{ textAlign: 'left' }}>
               {[
                 {
+                  title: 'Description',
+                  body: 'The Compass is a leadership growth system that compares intent to lived team experience across key leadership traits.',
+                },
+                {
                   title: 'Purpose',
-                  body: 'Reveal the difference between how leadership is intended and how it is experienced by others.',
+                  body: 'It helps reveal where leadership behaviors are landing well and where gaps may be limiting trust, alignment, and momentum.',
                 },
                 {
-                  title: 'Process',
-                  body: 'Responses are grouped and scored at statement and trait level to highlight patterns, not personalities.',
-                },
-                {
-                  title: 'Anonymity',
-                  body: 'Feedback is aggregated and not presented as individual identifiable responses.',
+                  title: 'Intent',
+                  body: 'The intent is practical growth over time through clear insights, focused action, and repeated measurement across campaigns.',
                 },
               ].map((card) => (
                 <Grid item xs={12} md={4} key={card.title}>
@@ -205,10 +206,55 @@ function NewCampaignIntro() {
             </Grid>
           )}
 
+          {activeSection === 'how' && (
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 1.2,
+                textAlign: 'left',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, minmax(0, 1fr))',
+                  lg: 'repeat(5, minmax(0, 1fr))',
+                },
+              }}
+            >
+              {[
+                {
+                  title: 'Discovery (AI-powered gap analysis)',
+                  body: 'The platform identifies likely leadership friction points and surfaces where effort and efficacy may be misaligned.',
+                },
+                {
+                  title: 'Self-Assessment',
+                  body: 'The leader first completes the campaign personally to set a baseline for later comparison against team feedback.',
+                },
+                {
+                  title: 'Team Assessment',
+                  body: 'Team members then complete the same campaign experience so aggregate feedback can be compared to self-perception.',
+                },
+                {
+                  title: 'Insights Lead to Action',
+                  body: 'Results are translated into focused priorities and practical actions tied to the most meaningful growth opportunities.',
+                },
+                {
+                  title: 'Rinse and Repeat',
+                  body: 'Leaders run additional campaigns over time to track progress, close gaps, and sustain measurable leadership growth.',
+                },
+              ].map((card) => (
+                <Paper key={card.title} sx={{ p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '0.98rem', mb: 0.6 }}>{card.title}</Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'text.secondary', lineHeight: 1.5 }}>
+                    {card.body}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          )}
+
           {activeSection === 'agreement' && (
             <Paper sx={{ p: 2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.32)', bgcolor: 'rgba(255,250,244,0.92)' }}>
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', lineHeight: 1.6, color: 'text.primary', textAlign: 'left', mb: 1.2 }}>
-                Please provide candid, honest feedback so this process can be useful for leadership growth. Your participation is optional. If you do not trust this process or do not want to share feedback, you may opt out anonymously.
+                Please provide candid, honest feedback so this process can be useful for leadership growth. Your participation is optional. If you do not wish to provide feedback for any reason, you may opt out anonymously.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center">
                 <Button

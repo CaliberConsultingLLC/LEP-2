@@ -9,11 +9,13 @@ import {
   Paper,
 } from '@mui/material';
 import fakeData from '../../data/fakeData.js';
-import { Launch } from '@mui/icons-material';
+import { Launch, CheckCircle } from '@mui/icons-material';
 
 function GrowthCampaignTab() {
   const [copiedKey, setCopiedKey] = useState('');
   const now = new Date();
+  const selfCampaignCompleted = String(localStorage.getItem('selfCampaignCompleted') || '').toLowerCase() === 'true';
+  const needsSelfAssessment = (campaignId) => String(campaignId) === '123' || String(campaignId) === '125';
   const addDays = (date, days) => {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
@@ -92,6 +94,17 @@ function GrowthCampaignTab() {
     }
   };
 
+  const openSelfAssessment = () => {
+    const fallbackUrl = '/campaign/123?mode=self';
+    try {
+      const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+      const selfUrl = records?.selfCampaignLink || (records?.selfCampaignId ? `${window.location.origin}/campaign/${records.selfCampaignId}?mode=self` : null);
+      window.location.href = selfUrl || fallbackUrl;
+    } catch {
+      window.location.href = fallbackUrl;
+    }
+  };
+
   return (
     <Stack spacing={2.2} sx={{ width: '100%' }}>
       <Card
@@ -134,6 +147,35 @@ function GrowthCampaignTab() {
               >
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
                   <Stack direction="row" spacing={1.5} alignItems="stretch" sx={{ width: '100%' }}>
+                    {needsSelfAssessment(row.id) && (
+                      <Stack direction="row" spacing={0.6} alignItems="center" sx={{ pr: 0.4 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={openSelfAssessment}
+                          disabled={selfCampaignCompleted}
+                          sx={{
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            textTransform: 'none',
+                            bgcolor: '#457089',
+                            color: 'white',
+                            minWidth: 124,
+                            '&:hover': {
+                              bgcolor: '#375d78',
+                            },
+                            '&.Mui-disabled': {
+                              bgcolor: 'rgba(69,112,137,0.35)',
+                              color: 'rgba(255,255,255,0.9)',
+                            },
+                          }}
+                        >
+                          Self Assessment
+                        </Button>
+                        {selfCampaignCompleted && (
+                          <CheckCircle sx={{ color: '#2F855A', fontSize: '1.2rem' }} />
+                        )}
+                      </Stack>
+                    )}
                     <Box
                       sx={{
                         minWidth: 92,
@@ -182,6 +224,7 @@ function GrowthCampaignTab() {
                     <Button
                       variant="contained"
                       size="small"
+                      disabled={!selfCampaignCompleted}
                       onClick={() => copyText(getCampaignLink(row.id), `${row.id}-link`)}
                       sx={{
                         fontFamily: 'Gemunu Libre, sans-serif',
@@ -192,6 +235,10 @@ function GrowthCampaignTab() {
                         '&:hover': {
                           bgcolor: '#375d78',
                         },
+                        '&.Mui-disabled': {
+                          bgcolor: 'rgba(69,112,137,0.35)',
+                          color: 'rgba(255,255,255,0.9)',
+                        },
                       }}
                     >
                       {copiedKey === `${row.id}-link` ? 'Copied Link' : 'Campaign Link'}
@@ -199,6 +246,7 @@ function GrowthCampaignTab() {
                     <Button
                       variant="contained"
                       size="small"
+                      disabled={!selfCampaignCompleted}
                       onClick={() => copyText(getCampaignPassword(row.id), `${row.id}-password`)}
                       sx={{
                         fontFamily: 'Gemunu Libre, sans-serif',
@@ -208,6 +256,10 @@ function GrowthCampaignTab() {
                         minWidth: 145,
                         '&:hover': {
                           bgcolor: '#375d78',
+                        },
+                        '&.Mui-disabled': {
+                          bgcolor: 'rgba(69,112,137,0.35)',
+                          color: 'rgba(255,255,255,0.9)',
                         },
                       }}
                     >
