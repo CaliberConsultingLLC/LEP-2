@@ -24,12 +24,9 @@ function CampaignComplete() {
     <Box
       sx={{
         position: 'relative',
-        p: 5,
         minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: '100%',
+        overflowX: 'hidden',
         // full bleed bg
         '&:before': {
           content: '""',
@@ -53,7 +50,7 @@ function CampaignComplete() {
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
+      <Container maxWidth="sm" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
         <Box
           sx={{
             p: 6,

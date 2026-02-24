@@ -139,12 +139,9 @@ function CampaignSurvey() {
     <Box
       sx={{
         position: 'relative',
-        p: 5,
         minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: '100%',
+        overflowX: 'hidden',
         // full bleed bg
         '&:before': {
           content: '""',
@@ -168,7 +165,7 @@ function CampaignSurvey() {
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+      <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
         {currentQuestion === 0 && savedActionItems.length > 0 ? (
           <Box
             sx={{
@@ -231,7 +228,7 @@ function CampaignSurvey() {
             }}
           >
             <Stack spacing={2} alignItems="center" sx={{ mb: 3 }}>
-              <Box sx={{ width: '600px' }}>
+              <Box sx={{ width: '100%', maxWidth: '700px' }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Effort
                 </Typography>
@@ -258,7 +255,7 @@ function CampaignSurvey() {
                   }}
                 />
               </Box>
-              <Box sx={{ width: '600px' }}>
+              <Box sx={{ width: '100%', maxWidth: '700px' }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Efficacy
                 </Typography>
@@ -287,7 +284,8 @@ function CampaignSurvey() {
               </Box>
               <Box
                 sx={{
-                  width: '600px',
+                  width: '100%',
+                  maxWidth: '700px',
                   minHeight: '50px',
                   bgcolor: 'rgba(255, 255, 255, 0.95)',
                   background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
@@ -307,7 +305,7 @@ function CampaignSurvey() {
           </Box>
         </Box>
         <Stack spacing={2} alignItems="center" sx={{ mt: 3 }}>
-          <Box sx={{ width: '600px', textAlign: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: '700px', textAlign: 'center' }}>
             <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', mb: 1 }}>
               {currentQuestion + 1}/{questions.length || 15}
             </Typography>

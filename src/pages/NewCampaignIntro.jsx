@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Stack, Button } from '@mui/material';
+import { Container, Box, Typography, Stack, Button, Paper, Grid } from '@mui/material';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -13,6 +13,7 @@ function NewCampaignIntro() {
   const [campaignData, setCampaignData] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [activeSection, setActiveSection] = useState('what');
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -79,6 +80,10 @@ function NewCampaignIntro() {
     setTimeout(() => setIsNavigating(false), 100);
   };
 
+  const handleOptOut = () => {
+    navigate('/');
+  };
+
 
   if (!campaignData) {
     return (
@@ -94,12 +99,9 @@ function NewCampaignIntro() {
     <Box
       sx={{
         position: 'relative',
-        p: 5,
         minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: '100%',
+        overflowX: 'hidden',
         // full bleed bg
         '&:before': {
           content: '""',
@@ -123,39 +125,113 @@ function NewCampaignIntro() {
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
-        <Box
+      <Container maxWidth="md" sx={{ py: { xs: 3, md: 4.5 }, textAlign: 'center' }}>
+        <Paper
           sx={{
-            p: 3,
-            border: '2px solid',
-            borderColor: 'primary.main',
-            borderRadius: 2,
-            boxShadow: 4,
-            bgcolor: 'rgba(255, 255, 255, 0.95)',
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-            width: '100%',
+            p: { xs: 2.2, md: 3.2 },
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: 3,
+            boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+            bgcolor: 'rgba(255,255,255,0.94)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.82))',
           }}
         >
-          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 3, color: 'text.primary' }}>
-            {isSelfCampaign ? 'Your Benchmark Starts Here' : 'Welcome to LEP'}
+          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.4rem', md: '1.7rem' }, fontWeight: 800, mb: 0.8, color: 'text.primary' }}>
+            {isSelfCampaign ? 'Welcome to the Compass' : 'Welcome to the Compass'}
           </Typography>
-          <Stack spacing={2} alignItems="stretch">
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', mb: 2, color: 'text.primary' }}>
-              {isSelfCampaign
-                ? 'Before your team responds, you will complete your own campaign first. This creates your personal benchmark across effort and efficacy so Compass can compare your self-view with your team\'s aggregate ratings for each statement and trait.'
-                : 'This journey uses a dual-dimension 9-box approach to assess your leadership. It measures Effort vs. Efficacy, offering a clear view of your strengths and growth areas. This method enhances self-awareness, aligns team feedback, and drives targeted development, empowering you to lead more effectively.'}
-            </Typography>
+          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.98rem', color: 'text.secondary', mb: 2.2 }}>
+            {isSelfCampaign
+              ? 'This personal benchmark helps compare your self-assessment to team feedback later.'
+              : 'You are invited to provide feedback that helps your leader grow with clearer, data-backed insight.'}
+          </Typography>
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center" sx={{ mb: 2 }}>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={handleStart}
-              disabled={isNavigating}
-              sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
+              variant={activeSection === 'what' ? 'contained' : 'outlined'}
+              onClick={() => setActiveSection('what')}
+              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
             >
-              {isSelfCampaign ? 'Start My Benchmark Survey' : 'Ready to Grow'}
+              What is the Compass
+            </Button>
+            <Button
+              variant={activeSection === 'how' ? 'contained' : 'outlined'}
+              onClick={() => setActiveSection('how')}
+              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
+            >
+              How Does it Work
+            </Button>
+            <Button
+              variant={activeSection === 'agreement' ? 'contained' : 'outlined'}
+              onClick={() => setActiveSection('agreement')}
+              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
+            >
+              Agreement
             </Button>
           </Stack>
-        </Box>
+
+          {activeSection === 'what' && (
+            <Paper sx={{ p: 2, borderRadius: 2, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.82)' }}>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', lineHeight: 1.62, color: 'text.primary', textAlign: 'left' }}>
+                The Compass is a leadership growth system built around two signals: effort and efficacy. It helps leaders see how their intent compares with how their team experiences them. The goal is clearer leadership behavior, better trust, and measurable improvement over time.
+              </Typography>
+            </Paper>
+          )}
+
+          {activeSection === 'how' && (
+            <Grid container spacing={1.2} sx={{ textAlign: 'left' }}>
+              {[
+                {
+                  title: 'Purpose',
+                  body: 'Reveal the difference between how leadership is intended and how it is experienced by others.',
+                },
+                {
+                  title: 'Process',
+                  body: 'Responses are grouped and scored at statement and trait level to highlight patterns, not personalities.',
+                },
+                {
+                  title: 'Anonymity',
+                  body: 'Feedback is aggregated and not presented as individual identifiable responses.',
+                },
+              ].map((card) => (
+                <Grid item xs={12} md={4} key={card.title}>
+                  <Paper sx={{ p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '0.98rem', mb: 0.6 }}>{card.title}</Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'text.secondary', lineHeight: 1.5 }}>
+                      {card.body}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+
+          {activeSection === 'agreement' && (
+            <Paper sx={{ p: 2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.32)', bgcolor: 'rgba(255,250,244,0.92)' }}>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', lineHeight: 1.6, color: 'text.primary', textAlign: 'left', mb: 1.2 }}>
+                Please provide candid, honest feedback so this process can be useful for leadership growth. Your participation is optional. If you do not trust this process or do not want to share feedback, you may opt out anonymously.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleStart}
+                  disabled={isNavigating}
+                  sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
+                >
+                  Proceed with Feedback
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleOptOut}
+                  sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
+                >
+                  Opt Out Anonymously
+                </Button>
+              </Stack>
+            </Paper>
+          )}
+        </Paper>
       </Container>
     </Box>
   );
