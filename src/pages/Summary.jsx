@@ -1,5 +1,5 @@
 // src/pages/Summary.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Container,
   Box,
@@ -38,6 +38,7 @@ function Summary() {
   const [focusAreas, setFocusAreas] = useState([]);
   const showInlineTraitSelection = false;
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
+  const activeRunIdRef = useRef(0);
 
   // Generate focus areas based on intake data (instead of random)
   const generateAndSetFocusAreas = () => {
@@ -257,8 +258,43 @@ function Summary() {
   ];
   const [selectedAgent, setSelectedAgent] = useState('');
 
+  const fetchWithTimeout = async (url, options = {}, timeoutMs = 35000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
+  const runCampaignPrefetch = async (text, data, runId) => {
+    if (!text) return;
+    try {
+      const campaignResp = await fetchWithTimeout('/api/get-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null }),
+      }, 20000);
+
+      if (!campaignResp.ok) return;
+      const campaignData = await campaignResp.json();
+      if (activeRunIdRef.current !== runId) return;
+      if (campaignData?.campaign) {
+        setAiCampaign(campaignData.campaign);
+        localStorage.setItem('aiCampaign', JSON.stringify(campaignData.campaign));
+      }
+    } catch (campaignErr) {
+      // Non-blocking by design; campaign can still be generated later in flow.
+      console.warn('Background campaign prefetch failed:', campaignErr?.name || campaignErr?.message || campaignErr);
+    }
+  };
+
   // get most recent intake (or fall back to route formData), then call /get-ai-summary
   const runSummary = async (overrideAgentId) => {
+    const runId = Date.now();
+    activeRunIdRef.current = runId;
     setIsLoading(true);
     setError(null);
 
@@ -290,11 +326,11 @@ function Summary() {
         'balancedMentor';
 
       // 3) request the 4-paragraph summary (canonical format)
-      const summaryResp = await fetch('/api/get-ai-summary', {
+      const summaryResp = await fetchWithTimeout('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ ...data, selectedAgent: baseAgent }),
-      });
+      }, 35000);
 
       if (!summaryResp.ok) {
         let details = '';
@@ -308,6 +344,7 @@ function Summary() {
       }
 
       const payload = await summaryResp.json();
+      if (activeRunIdRef.current !== runId) return;
       const text = payload?.aiSummary || '';
       setAiSummary(text);
 
@@ -318,33 +355,22 @@ function Summary() {
 
       if (text) {
         localStorage.setItem('aiSummary', text);
-        
-        // 4) Generate campaign immediately after summary is received
-        try {
-          const campaignResp = await fetch('/api/get-campaign', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-            body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null }),
-          });
-          
-          if (campaignResp.ok) {
-            const campaignData = await campaignResp.json();
-            if (campaignData?.campaign) {
-              setAiCampaign(campaignData.campaign);
-              localStorage.setItem('aiCampaign', JSON.stringify(campaignData.campaign));
-            }
-          }
-        } catch (campaignErr) {
-          // Non-fatal: campaign generation failed, but summary is available
-          console.warn('Campaign generation failed:', campaignErr);
-        }
       }
-    } catch (e) {
-      setError('Failed to generate summary: ' + (e?.message || e));
-      setAiSummary('');
-    } finally {
+      // Unblock UI immediately after summary returns.
       setIsLoading(false);
+      // Continue campaign generation in background to improve perceived responsiveness.
+      runCampaignPrefetch(text, data, runId);
+    } catch (e) {
+      if (activeRunIdRef.current !== runId) return;
+      const isTimeout = e?.name === 'AbortError';
+      setError('Failed to generate summary: ' + (e?.message || e));
+      if (isTimeout) {
+        setError('Summary request timed out. Please try rerunning.');
+      }
+      setAiSummary('');
     }
+    // Finalize only if this is still the latest run.
+    if (activeRunIdRef.current === runId) setIsLoading(false);
   };
 
   useEffect(() => {
