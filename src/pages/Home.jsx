@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const navigate = useNavigate();
-  const showDevTools = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_TOOLS === 'true';
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -159,8 +158,7 @@ function Home() {
           </Button>
       </Stack>
 
-      {showDevTools && (
-        <Box sx={{ position: 'absolute', right: 28, bottom: 24, display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      <Box sx={{ position: 'absolute', right: 28, bottom: 24, display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <Button
             variant="outlined"
             color="primary"
@@ -234,7 +232,6 @@ function Home() {
             Dev Assessments
           </Button>
         </Box>
-      )}
     </Box>
   );
 }
