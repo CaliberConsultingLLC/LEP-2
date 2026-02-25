@@ -29,7 +29,7 @@ const parseJson = (raw, fallback) => {
   }
 };
 
-function ProcessTopRail({ sticky = true, embedded = false, showBrand = true }) {
+function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, titleOverride = '' }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname || '';
@@ -161,7 +161,7 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true }) {
               flex: 1,
             }}
           >
-            {model.currentPhaseTitle}
+            {titleOverride || model.currentPhaseTitle}
           </Typography>
         )}
 

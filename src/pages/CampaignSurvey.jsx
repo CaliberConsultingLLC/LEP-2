@@ -69,28 +69,29 @@ function CampaignSurvey() {
     }
   };
 
-  const getSentiment = (effort, efficacy) => {
+  const getSentiment = (effort, efficacy, selfMode = false) => {
+    const subject = selfMode ? 'I' : 'Brian';
     const effortRange = effort <= 4 ? 'Low' : effort <= 7 ? 'Medium' : 'High';
     const efficacyRange = efficacy <= 4 ? 'Low' : efficacy <= 7 ? 'Medium' : 'High';
 
     if (effortRange === 'High' && efficacyRange === 'High') {
-      return "Brian consistently excels with strong effort, meeting your needs exceptionally well.";
+      return `${subject} consistently excel${selfMode ? '' : 's'} with strong effort, meeting ${selfMode ? 'the demands of this area' : 'your needs exceptionally well'}.`;
     } else if (effortRange === 'High' && efficacyRange === 'Medium') {
-      return "Brian puts in strong effort, but the results could be more consistent to fully meet your needs.";
+      return `${subject} put${selfMode ? '' : 's'} in strong effort, but the results could be more consistent to fully ${selfMode ? 'meet the demands of this area' : 'meet your needs'}.`;
     } else if (effortRange === 'High' && efficacyRange === 'Low') {
-      return "Brian tries hard, but the outcomes often fall short of your expectations.";
+      return `${subject} tr${selfMode ? 'y' : 'ies'} hard, but the outcomes often fall short of ${selfMode ? 'the demands of this area' : 'your expectations'}.`;
     } else if (effortRange === 'Medium' && efficacyRange === 'High') {
-      return "Brian achieves great results with moderate effort, showing efficiency in meeting your needs.";
+      return `${subject} achieve${selfMode ? '' : 's'} great results with moderate effort, showing efficiency in ${selfMode ? 'this area' : 'meeting your needs'}.`;
     } else if (effortRange === 'Medium' && efficacyRange === 'Medium') {
-      return "Brian’s effort and results are steady, but there’s room to elevate both.";
+      return `${subject}${selfMode ? "'m" : '’s'} effort and results are steady, but there’s room to elevate both.`;
     } else if (effortRange === 'Medium' && efficacyRange === 'Low') {
-      return "Brian’s moderate effort isn’t yielding the results you need, leaving room for improvement.";
+      return `${subject}${selfMode ? "'m" : '’s'} moderate effort isn’t yielding ${selfMode ? 'the needed results in this area' : 'the results you need'}, leaving room for improvement.`;
     } else if (effortRange === 'Low' && efficacyRange === 'High') {
-      return "Brian delivers strong results with minimal effort, but more intention could make a bigger impact.";
+      return `${subject} deliver${selfMode ? '' : 's'} strong results with minimal effort, but more intention could make a bigger impact.`;
     } else if (effortRange === 'Low' && efficacyRange === 'Medium') {
-      return "Brian’s results are okay, but lack of effort leaves you wanting more consistency.";
+      return `${subject}${selfMode ? "'m" : '’s'} results are okay, but lack of effort leaves ${selfMode ? 'room for more consistency' : 'you wanting more consistency'}.`;
     } else {
-      return "Brian’s minimal effort and poor results are disappointing, needing significant improvement.";
+      return `${subject}${selfMode ? "'m" : '’s'} minimal effort and poor results are disappointing, needing significant improvement.`;
     }
   };
 
@@ -131,7 +132,7 @@ function CampaignSurvey() {
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
   const currentTrait = campaign[Math.floor(currentQuestion / 3)]?.trait || '';
   const currentRating = ratings[`${currentQuestion}`] || { effort: 1, efficacy: 1 };
-  const sentiment = getSentiment(currentRating.effort, currentRating.efficacy);
+  const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
 
   if (currentQuestion >= questions.length) return null;
 

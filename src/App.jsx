@@ -17,6 +17,7 @@ import Dashboard from './pages/Dashboard';
 import Faq from './pages/Faq';
 import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
+import DevSkipAssessments from './pages/DevSkipAssessments';
 import SignIn from './pages/SignIn';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -41,6 +42,7 @@ function App() {
   <Route path="/faq" element={<Faq />} />
   <Route path="/dev-skip-1" element={<DevSkipOne />} />
   <Route path="/dev-skip-two" element={<DevSkipTwo />} />
+  <Route path="/dev-assessments" element={<DevSkipAssessments />} />
  
 
   <Route path="*" element={<Typography sx={{ fontFamily: 'Montserrat, sans-serif' }}>No match found</Typography>} />

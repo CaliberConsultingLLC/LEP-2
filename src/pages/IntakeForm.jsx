@@ -993,7 +993,7 @@ function IntakeForm() {
         },
       }}
     >
-      <ProcessTopRail />
+      <ProcessTopRail titleOverride={currentStep === 1 ? 'Leader Profile' : ''} />
 
       {/* Message Pop-ups */}
       {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
@@ -1021,14 +1021,14 @@ function IntakeForm() {
         {/* Profile Page (Step 1) - Combined */}
         {currentStep === 1 && (
           <SectionCard narrow={true}>
-            <Stack spacing={2.2} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.4 }}>
+            <Stack spacing={1.8} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.2 }}>
                 Leader Profile
               </Typography>
 
-              <Grid container spacing={1.3}>
+              <Grid container spacing={1.6}>
                 <Grid item xs={12} md={6}>
-                  <MemoBox sx={{ width: '100%' }}>
+                  <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
                       Year Born
                     </Typography>
@@ -1040,13 +1040,14 @@ function IntakeForm() {
                       }}
                       fullWidth
                       variant="outlined"
+                      size="small"
                       placeholder="e.g., 1985"
                       inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                     />
                   </MemoBox>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <MemoBox sx={{ width: '100%' }}>
+                  <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
                       Industry
                     </Typography>
@@ -1055,13 +1056,14 @@ function IntakeForm() {
                       onChange={(e) => handleChange('industry', e.target.value)}
                       fullWidth
                       variant="outlined"
+                      size="small"
                       placeholder="Industry"
                     />
                   </MemoBox>
                 </Grid>
               </Grid>
 
-              <MemoBox sx={{ width: '100%' }}>
+              <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
                   Job Title
                 </Typography>
@@ -1069,12 +1071,13 @@ function IntakeForm() {
                   value={formData.role || ''}
                   onChange={(e) => handleChange('role', e.target.value)}
                   fullWidth
+                  size="small"
                   variant="outlined"
                   placeholder="Current role"
                 />
               </MemoBox>
 
-              <MemoBox sx={{ width: '100%' }}>
+              <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
                   Briefly describe what your team is responsible for.
                 </Typography>
@@ -1091,73 +1094,79 @@ function IntakeForm() {
 
               <Box
                 sx={{
-                  p: 1.2,
+                  p: { xs: 1.1, md: 1.3 },
                   borderRadius: 2,
                   border: '1px solid rgba(0,0,0,0.14)',
-                  bgcolor: 'rgba(0,0,0,0.02)',
+                  bgcolor: 'rgba(0,0,0,0.03)',
                 }}
               >
-                <Grid container spacing={1.2}>
+                <Grid container spacing={1.3} alignItems="stretch">
                   <Grid item xs={12} md={4}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.45, display: 'block', textAlign: 'left' }}>
-                      How many people do you directly manage?
-                    </Typography>
-                    <MemoTextField
-                      value={formData.teamSize ?? ''}
-                      onChange={(e) => {
-                        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
-                        handleChange('teamSize', raw);
-                      }}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
+                        How many people do you directly manage?
+                      </Typography>
+                      <MemoTextField
+                        value={formData.teamSize ?? ''}
+                        onChange={(e) => {
+                          const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+                          handleChange('teamSize', raw);
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                      />
+                    </Box>
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.45, display: 'block', textAlign: 'left' }}>
-                      How many years in your current role?
-                    </Typography>
-                    <MemoTextField
-                      value={formData.leadershipExperience ?? ''}
-                      onChange={(e) => {
-                        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
-                        handleChange('leadershipExperience', raw);
-                      }}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
+                        How many years in your current role?
+                      </Typography>
+                      <MemoTextField
+                        value={formData.leadershipExperience ?? ''}
+                        onChange={(e) => {
+                          const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+                          handleChange('leadershipExperience', raw);
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                      />
+                    </Box>
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.45, display: 'block', textAlign: 'left' }}>
-                      How many years in leadership?
-                    </Typography>
-                    <MemoTextField
-                      value={formData.careerExperience ?? ''}
-                      onChange={(e) => {
-                        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
-                        handleChange('careerExperience', raw);
-                      }}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
+                        How many years in leadership?
+                      </Typography>
+                      <MemoTextField
+                        value={formData.careerExperience ?? ''}
+                        onChange={(e) => {
+                          const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+                          handleChange('careerExperience', raw);
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                      />
+                    </Box>
                   </Grid>
                 </Grid>
               </Box>
 
-              <Stack direction="row" spacing={2}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)}>Back</MemoButton>
+              <Stack direction="row" spacing={2} justifyContent="flex-start" sx={{ pt: 0.4 }}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)} sx={{ minWidth: 86 }}>Back</MemoButton>
                 <MemoButton
                   variant="contained"
                   onClick={handleNext}
                   disabled={!isProfileValid()}
                   sx={{
-                    px: 5,
-                    py: 1.1,
+                    minWidth: 120,
+                    py: 1,
                     ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
                     '@keyframes pulse': {
                       '0%': { transform: 'scale(1)' },
