@@ -22,6 +22,8 @@ Both can be started together with `npm run dev`, but note this runs `node server
 - **ESLint** has pre-existing errors in the codebase (54 errors, 9 warnings). This is normal for the current state of the repo.
 - The `api/` directory has its own `package.json` for Vercel serverless functions — run `npm install` in both `/workspace` and `/workspace/api`.
 - Vite proxies `/api` requests to `http://localhost:3001` (configured in `vite.config.js`).
+- **Route mismatch between server.js and frontend:** The frontend calls `POST /api/get-ai-summary`, but `server.js` only has `GET /get-ai-summary` (no `/api/` prefix, wrong HTTP method). In production, Vercel serverless functions in `api/` handle these routes. For local dev, the `server.js` Express routes do not fully match the frontend's API calls. The AI summary flow (`/summary` page) will return 404 in local dev with `server.js` alone.
+- **`FIREBASE_SERVICE_ACCOUNT` must be a full service account JSON string** (starting with `{"type":"service_account",...}`), not the Firebase Web API key. The Web API key (`AIzaSy...`) is only for the client SDK and is already hardcoded in `src/firebase.js`.
 
 ### Standard commands
 
