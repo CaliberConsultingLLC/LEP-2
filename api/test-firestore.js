@@ -1,5 +1,4 @@
-import { db } from './firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { db } from './firebase.js';
 import { applyRateLimit, requireInternalKey, safeServerError } from './_security.js';
 
 export default async (req, res) => {
@@ -23,7 +22,7 @@ export default async (req, res) => {
 
   try {
     console.log('Testing Firestore connection...');
-    const snapshot = await getDocs(collection(db, 'responses'));
+    const snapshot = await db.collection('responses').get();
     const data = snapshot.docs.map(doc => doc.data());
     console.log('Test data:', data);
     res.status(200).json({ data, count: snapshot.size });

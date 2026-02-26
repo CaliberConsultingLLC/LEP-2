@@ -1,7 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { signInAnonymously } from 'firebase/auth';
 import App from './App.jsx';
+import { auth } from './firebase';
 import './index.css';
 
 const theme = createTheme({
@@ -18,8 +20,24 @@ const theme = createTheme({
   },
 });
 
-createRoot(document.getElementById('root')).render(
-  <ThemeProvider theme={theme}>
-    <App />
-  </ThemeProvider>
-);
+const root = createRoot(document.getElementById('root'));
+
+const renderApp = () => {
+  root.render(
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
+  );
+};
+
+(async () => {
+  try {
+    if (!auth.currentUser) {
+      await signInAnonymously(auth);
+    }
+  } catch (error) {
+    console.error('Anonymous Firebase auth failed:', error);
+  } finally {
+    renderApp();
+  }
+})();

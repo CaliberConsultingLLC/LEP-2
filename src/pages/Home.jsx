@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const navigate = useNavigate();
+  const showDevTools = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_TOOLS === 'true';
+  const allowDevBypass = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_BYPASS === 'true';
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -158,7 +160,8 @@ function Home() {
           </Button>
       </Stack>
 
-      <Box sx={{ position: 'absolute', right: 28, bottom: 24, display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+      {showDevTools && (
+        <Box sx={{ position: 'absolute', right: 28, bottom: 24, display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <Button
             variant="outlined"
             color="primary"
@@ -180,7 +183,7 @@ function Home() {
           <Button
             variant="outlined"
             color="primary"
-            onClick={() => navigate('/dashboard?dev=1')}
+            onClick={() => navigate(allowDevBypass ? '/dashboard?dev=1' : '/dashboard')}
             sx={{
               fontSize: '0.82rem',
               px: 2.1,
@@ -232,6 +235,7 @@ function Home() {
             Dev Assessments
           </Button>
         </Box>
+      )}
     </Box>
   );
 }

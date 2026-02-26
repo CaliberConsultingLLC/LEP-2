@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /responses/{docId} {
+      allow create, get, update: if isSignedIn();
+      allow list, delete: if false;
+    }
+
+    match /societalNorms/{docId} {
+      allow create, get, update: if isSignedIn();
+      allow list, delete: if false;
+    }
+
+    match /campaigns/{docId} {
+      allow create, get, update: if isSignedIn();
+      allow list, delete: if false;
+    }
+
+    match /surveyResponses/{docId} {
+      allow create, get, list: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    match /users/{docId} {
+      allow create: if isSignedIn();
+      allow get, list, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

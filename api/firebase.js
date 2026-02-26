@@ -1,15 +1,17 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import admin from 'firebase-admin';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCrAutEbLbhY4DP488dc2DqJCo43mt3nTo",
-  authDomain: "leadership-evolution-project.firebaseapp.com",
-  projectId: "leadership-evolution-project",
-  storageBucket: "leadership-evolution-project.firebasestorage.app",
-  messagingSenderId: "1081296339444",
-  appId: "1:1081296339444:web:663edcc18eb023cf85f9a1",
-  measurementId: "G-SYC0JYQ79D"
-};
+let credential;
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT));
+} else {
+  credential = admin.credential.applicationDefault();
+}
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential,
+    projectId: process.env.GCLOUD_PROJECT || process.env.VITE_FIREBASE_PROJECT_ID,
+  });
+}
+
+export const db = admin.firestore();
