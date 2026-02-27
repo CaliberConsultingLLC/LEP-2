@@ -162,6 +162,30 @@ function CampaignSurvey() {
     ? answeredRows.reduce((sum, row) => sum + Number(row.efficacy || 0), 0) / answeredCount
     : currentRating.efficacy;
   const avgDelta = avgEfficacy - avgEffort;
+  const clampToTen = (value) => Math.max(0, Math.min(10, Number(value || 0)));
+  const efficacyPct = clampToTen(avgEfficacy) / 10;
+  const effortPct = clampToTen(avgEffort) / 10;
+  const ringCx = 74;
+  const ringCy = 74;
+  const ringRadius = 52;
+  const polar = (cx, cy, radius, angleDeg) => {
+    const angleRad = (angleDeg * Math.PI) / 180;
+    return {
+      x: cx + (radius * Math.cos(angleRad)),
+      y: cy + (radius * Math.sin(angleRad)),
+    };
+  };
+  const describeArc = (cx, cy, radius, startAngle, endAngle) => {
+    const start = polar(cx, cy, radius, startAngle);
+    const end = polar(cx, cy, radius, endAngle);
+    const largeArcFlag = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+    const sweepFlag = endAngle > startAngle ? 1 : 0;
+    return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.x} ${end.y}`;
+  };
+  const leftArcBg = describeArc(ringCx, ringCy, ringRadius, 90, 270);
+  const rightArcBg = describeArc(ringCx, ringCy, ringRadius, 90, -90);
+  const leftArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 + (efficacyPct * 180));
+  const rightArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 - (effortPct * 180));
 
   if (currentQuestion >= questions.length) return null;
 
@@ -243,6 +267,7 @@ function CampaignSurvey() {
             flexDirection: 'column',
             p: { xs: 1.3, md: 1.8 },
             gap: 1.5,
+            overflow: 'hidden',
           }}
         >
           <Box
@@ -300,6 +325,7 @@ function CampaignSurvey() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
+                overflow: 'hidden',
               }}
             >
               <Stack spacing={1.3} alignItems="stretch" sx={{ flexGrow: 1 }}>
@@ -313,6 +339,7 @@ function CampaignSurvey() {
                     boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
                     px: { xs: 1.2, md: 1.5 },
                     py: { xs: 1.1, md: 1.2 },
+                    overflow: 'hidden',
                   }}
                 >
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.2, textAlign: 'center' }}>
@@ -323,7 +350,7 @@ function CampaignSurvey() {
                       ? 'How intentional and attentive I am in this area'
                       : 'How intentional and attentive Brian behaves in this area'}
                   </Typography>
-                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative' }}>
+                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative', overflow: 'hidden' }}>
                     <Box
                       sx={{
                         position: 'absolute',
@@ -364,6 +391,7 @@ function CampaignSurvey() {
                   boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
                     px: { xs: 1.2, md: 1.5 },
                     py: { xs: 1.1, md: 1.2 },
+                    overflow: 'hidden',
                 }}
               >
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.2, textAlign: 'center' }}>
@@ -374,7 +402,7 @@ function CampaignSurvey() {
                       ? 'How effectively I meet the demands of this area'
                       : 'Is Brian meeting my needs in this area'}
                   </Typography>
-                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative' }}>
+                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative', overflow: 'hidden' }}>
                   <Box
                     sx={{
                       position: 'absolute',
@@ -436,70 +464,55 @@ function CampaignSurvey() {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
+                  overflow: 'hidden',
                 }}
               >
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center', mb: 0.6 }}>
                   Live Snapshot
                 </Typography>
-                <Stack direction="row" spacing={1.1} justifyContent="center" sx={{ mb: 0.8 }}>
-                  {[
-                    { label: 'Efficacy', value: avgEfficacy, ring: EFFICACY_PRIMARY, fill: EFFICACY_ACCENT },
-                    { label: 'Effort', value: avgEffort, ring: EFFORT_PRIMARY, fill: EFFORT_ACCENT },
-                  ].map((item) => {
-                    const pct = Math.max(0, Math.min(100, (item.value / 10) * 100));
-                    return (
-                      <Box
-                        key={item.label}
-                        sx={{
-                          width: 126,
-                          borderRadius: 2,
-                          border: '1px solid rgba(15,30,58,0.10)',
-                          bgcolor: 'rgba(255,255,255,0.95)',
-                          p: 1,
-                        }}
-                      >
-                        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.84rem', color: 'text.secondary', textAlign: 'center', mb: 0.35 }}>
-                          {item.label}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.35 }}>
-                          <Box
-                            sx={{
-                              width: 62,
-                              height: 62,
-                              borderRadius: '50%',
-                              background: `conic-gradient(${item.fill} ${pct}%, rgba(220,228,236,0.92) ${pct}% 100%)`,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: '50%',
-                                bgcolor: 'rgba(255,255,255,0.98)',
-                                border: `2px solid ${item.ring}`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontWeight: 700,
-                                fontSize: '1rem',
-                                color: '#162336',
-                              }}
-                            >
-                              {item.value.toFixed(1)}
-                            </Box>
-                          </Box>
-                        </Box>
-                        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: 'text.secondary', textAlign: 'center' }}>
-                          / 10 scale
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Stack>
+                <Box
+                  sx={{
+                    borderRadius: 2,
+                    border: '1px solid rgba(15,30,58,0.10)',
+                    bgcolor: 'rgba(255,255,255,0.95)',
+                    p: 1,
+                    mb: 0.8,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <svg width="150" height="150" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
+                      <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="round" />
+                      <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="round" />
+                      <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="round" />
+                      <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="round" />
+                      <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
+                      <text x={ringCx} y={ringCy - 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '13px', fill: '#162336', fontWeight: 700 }}>
+                        Live Avg
+                      </text>
+                      <text x={ringCx} y={ringCy + 14} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '16px', fill: '#162336', fontWeight: 700 }}>
+                        {((avgEffort + avgEfficacy) / 2).toFixed(1)}
+                      </text>
+                    </svg>
+                  </Box>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mt: -0.2, px: 0.3 }}>
+                    <Box sx={{ textAlign: 'left' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
+                        Efficacy
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: '#162336', fontWeight: 700 }}>
+                        {avgEfficacy.toFixed(1)} / 10
+                      </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
+                        Effort
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: '#162336', fontWeight: 700 }}>
+                        {avgEffort.toFixed(1)} / 10
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
                 <Box
                   sx={{
                     borderRadius: 2,
