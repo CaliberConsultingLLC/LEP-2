@@ -542,18 +542,18 @@ function CampaignBuilder() {
                         <AccordionSummary
                           expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
                           sx={{
-                            minHeight: 44,
+                            minHeight: 37,
                             bgcolor: '#457089',
                             background: 'linear-gradient(135deg, #457089, #375d78)',
-                            '& .MuiAccordionSummary-content': { my: 0.75 },
-                            '&.Mui-expanded': { minHeight: 44 },
+                            '& .MuiAccordionSummary-content': { my: 0.5 },
+                            '&.Mui-expanded': { minHeight: 37 },
                           }}
                         >
                           <Box sx={{ flex: 1, textAlign: 'center' }}>
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '1.05rem',
+                                fontSize: '0.89rem',
                                 fontWeight: 700,
                                 color: 'white',
                               }}
@@ -564,7 +564,7 @@ function CampaignBuilder() {
                               <Typography
                                 sx={{
                                   fontFamily: 'Gemunu Libre, sans-serif',
-                                  fontSize: '0.75rem',
+                                  fontSize: '0.64rem',
                                   fontWeight: 500,
                                   color: 'rgba(255,255,255,0.85)',
                                   fontStyle: 'italic',
@@ -586,12 +586,12 @@ function CampaignBuilder() {
                                 <Box
                                   key={`stmt-${sIdx}`}
                                   sx={{
-                                    py: 0.5,
+                                    py: 0.55,
                                     px: 1,
                                     borderRadius: 1.5,
                                     bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)',
                                     display: 'flex',
-                                    alignItems: 'flex-start',
+                                    alignItems: 'center',
                                     gap: 1,
                                     transition: 'all 0.2s ease',
                                     '&:hover': { bgcolor: 'rgba(224,122,63,0.08)' },
@@ -606,12 +606,12 @@ function CampaignBuilder() {
                                     }
                                     color="error"
                                     size="small"
-                                    sx={{ mt: 0.25, p: 0.25 }}
+                                    sx={{ p: 0.25 }}
                                   />
                                   <Typography
                                     sx={{
                                       fontFamily: 'Gemunu Libre, sans-serif',
-                                      fontSize: '0.85rem',
+                                      fontSize: '0.94rem',
                                       color: 'text.primary',
                                       flex: 1,
                                       lineHeight: 1.4,
