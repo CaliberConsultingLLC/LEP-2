@@ -407,6 +407,7 @@ function CampaignSurvey() {
             <Box
               sx={{
                 p: { xs: 1.2, md: 1.35 },
+                minWidth: 0,
                 bgcolor: 'rgba(255, 255, 255, 0.92)',
                 borderRadius: 2.5,
                 border: '1px solid rgba(15,30,58,0.08)',
@@ -417,12 +418,10 @@ function CampaignSurvey() {
                 overflow: 'hidden',
               }}
             >
-              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 2, md: 3 } }}>
+              <Stack spacing={1.3} alignItems="stretch" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 2, md: 3 } }}>
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 598,
-                    alignSelf: 'center',
                     boxSizing: 'border-box',
                     minWidth: 0,
                     minHeight: 116,
@@ -478,8 +477,6 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: 598,
-                  alignSelf: 'center',
                   boxSizing: 'border-box',
                   minWidth: 0,
                   minHeight: 116,
@@ -535,8 +532,6 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 598,
-                    alignSelf: 'center',
                     boxSizing: 'border-box',
                     minWidth: 0,
                     minHeight: 56,
