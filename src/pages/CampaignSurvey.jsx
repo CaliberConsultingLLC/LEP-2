@@ -407,11 +407,11 @@ function CampaignSurvey() {
                 overflow: 'hidden',
               }}
             >
-              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1 }}>
+              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', px: { xs: 2, md: 3 } }}>
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 715,
+                    maxWidth: 520,
                     mx: 'auto',
                     minHeight: 116,
                     borderRadius: 2,
@@ -465,7 +465,7 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: 715,
+                  maxWidth: 520,
                   mx: 'auto',
                   minHeight: 116,
                   borderRadius: 2,
@@ -519,7 +519,7 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 715,
+                    maxWidth: 520,
                     mx: 'auto',
                     minHeight: 56,
                     bgcolor: 'rgba(255,255,255,0.84)',
@@ -584,19 +584,22 @@ function CampaignSurvey() {
                       minHeight: 206,
                       display: 'grid',
                       gridTemplateColumns: '1fr auto 1fr',
+                      gridTemplateRows: '1fr auto',
                       alignItems: 'center',
                       columnGap: 0.5,
+                      position: 'relative',
                     }}
                   >
-                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', alignSelf: 'flex-end', pb: 0.5 }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
+                    <Box sx={{ gridColumn: 1, gridRow: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', pt: 1 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
                         Efficacy
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
                         {avgEfficacy.toFixed(1)}
                       </Typography>
                     </Box>
 
+                    <Box sx={{ gridColumn: 2, gridRow: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="228" height="228" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
                       <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="butt" />
                       <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
@@ -607,12 +610,13 @@ function CampaignSurvey() {
                         {((avgEffort + avgEfficacy) / 2).toFixed(1)}
                       </text>
                     </svg>
+                    </Box>
 
-                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', alignSelf: 'flex-end', pb: 0.5 }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
+                    <Box sx={{ gridColumn: 3, gridRow: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', pt: 1 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
                         Effort
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
                         {avgEffort.toFixed(1)}
                       </Typography>
                     </Box>
