@@ -273,28 +273,6 @@ function CampaignSurvey() {
   const recapLeftArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 + (recapEfficacyPct * 180));
   const recapRightArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 - (recapEffortPct * 180));
   const recapCenterScore = (traitRecap.effortAvg + traitRecap.efficacyAvg) / 2;
-  const traitSummaries = campaign.slice(0, 3).map((trait, tIdx) => {
-    const start = tIdx * TRAIT_QUESTION_COUNT;
-    const rows = [];
-    for (let i = start; i < start + TRAIT_QUESTION_COUNT; i += 1) {
-      const row = i === currentQuestion ? currentRating : ratings[String(i)];
-      if (row && typeof row.effort === 'number' && typeof row.efficacy === 'number') {
-        rows.push({ effort: Number(row.effort), efficacy: Number(row.efficacy) });
-      }
-    }
-    const effort = rows.length ? rows.reduce((sum, row) => sum + row.effort, 0) / rows.length : 5;
-    const efficacy = rows.length ? rows.reduce((sum, row) => sum + row.efficacy, 0) / rows.length : 5;
-    return {
-      trait: trait?.trait || `Trait ${tIdx + 1}`,
-      subTrait: trait?.subTrait || trait?.trait || `Trait ${tIdx + 1}`,
-      effort: effort * 10,
-      efficacy: efficacy * 10,
-      lepScore: ((effort + efficacy) / 2) * 10,
-      delta: efficacy - effort,
-    };
-  });
-  const selectedPreviewTrait = traitSummaries[traitIndex] || traitSummaries[0];
-  const previewScore = selectedPreviewTrait?.lepScore ?? (((avgEffort + avgEfficacy) / 2) * 10);
 
   if (currentQuestion >= questions.length) return null;
 
@@ -590,240 +568,97 @@ function CampaignSurvey() {
             >
                 <Stack direction="row" spacing={0.6} justifyContent="center" alignItems="center" sx={{ mb: 0.1 }}>
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center' }}>
-                    Final Results Preview
+                    {currentTrait} Results
                   </Typography>
                   <Tooltip
-                    title="This preview mirrors the dashboard-style ring format and updates as responses are completed."
+                    title="Preview of what your leader will see in aggregate once all feedback is combined."
                     arrow
                   >
                     <InfoOutlinedIcon sx={{ fontSize: '1rem', color: 'rgba(22,35,54,0.65)', cursor: 'help' }} />
                   </Tooltip>
                 </Stack>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary', fontWeight: 400, textAlign: 'center', mb: 0.8 }}>
-                  {selectedPreviewTrait?.subTrait || currentTrait} ({(currentQuestion % TRAIT_QUESTION_COUNT) + 1} out of {TRAIT_QUESTION_COUNT})
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary', fontWeight: 400, textAlign: 'center', mb: 0.55 }}>
+                  ({(currentQuestion % TRAIT_QUESTION_COUNT) + 1} out of {TRAIT_QUESTION_COUNT})
                 </Typography>
                 <Box
                   sx={{
                     borderRadius: 2,
                     border: '1px solid rgba(15,30,58,0.10)',
                     bgcolor: 'rgba(255,255,255,0.95)',
-                    p: { xs: 0.9, md: 1.1 },
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', md: '35% 65%' },
-                    gap: 1.1,
-                    alignItems: 'stretch',
-                    minHeight: { xs: 308, md: 316 },
+                    p: 1,
+                    mb: 0.8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
                   }}
                 >
                   <Box
                     sx={{
-                      borderRadius: 1.8,
-                      border: '1px solid rgba(15,30,58,0.10)',
-                      bgcolor: 'rgba(247,250,255,0.88)',
-                      p: { xs: 0.9, md: 1.05 },
+                      width: '100%',
+                      minHeight: 206,
                       display: 'grid',
-                      gridTemplateColumns: '1fr',
-                      gap: 0.7,
-                      alignContent: 'start',
+                      gridTemplateColumns: '1fr auto 1fr',
+                      gridTemplateRows: '1fr auto',
+                      alignItems: 'center',
+                      columnGap: 0.5,
+                      position: 'relative',
                     }}
                   >
-                    {[
-                      { label: 'LEP Score', value: (previewScore / 10).toFixed(1), color: '#162336' },
-                      { label: 'Efficacy', value: (selectedPreviewTrait?.efficacy / 10 || 0).toFixed(1), color: EFFICACY_PRIMARY },
-                      { label: 'Effort', value: (selectedPreviewTrait?.effort / 10 || 0).toFixed(1), color: EFFORT_PRIMARY },
-                      { label: 'Delta', value: `${(selectedPreviewTrait?.delta ?? 0) >= 0 ? '+' : ''}${(selectedPreviewTrait?.delta ?? 0).toFixed(1)}`, color: (selectedPreviewTrait?.delta ?? 0) >= 0 ? EFFICACY_ACCENT : EFFORT_ACCENT },
-                    ].map((metric) => (
-                      <Box key={metric.label} sx={{ borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', bgcolor: 'rgba(255,255,255,0.9)', boxShadow: '0 4px 8px rgba(0,0,0,0.08)', px: 1.1, py: 0.8, minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1 }}>
-                          {metric.label}
-                        </Typography>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 700, color: metric.color, lineHeight: 1, mt: 0.22 }}>
-                          {metric.value}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
+                    <Box sx={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', placeSelf: 'center', pt: 1 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFICACY_PRIMARY, fontWeight: 700, textAlign: 'center' }}>
+                        Efficacy
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap', textAlign: 'center' }}>
+                        {avgEfficacy.toFixed(1)}
+                      </Typography>
+                    </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
-                    <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
-                      {(() => {
-                        const centerX = 300;
-                        const centerY = 300;
-                        const rings = traitSummaries.length ? traitSummaries : [{ trait: currentTrait, subTrait: currentTrait, efficacy: avgEfficacy * 10, effort: avgEffort * 10 }];
-                        const radii = [120, 160, 200].slice(0, rings.length).map((r) => r * 1.2);
-                        const toSVGAngle = (userAngle) => {
-                          let svgAngle = (userAngle - 90) % 360;
-                          if (svgAngle < 0) svgAngle += 360;
-                          return (svgAngle * Math.PI) / 180;
-                        };
-                        const createArcPath = (radius, startAngleUser, endAngleUser, sweepFlag = 1) => {
-                          const startAngleSVG = toSVGAngle(startAngleUser);
-                          const endAngleSVG = toSVGAngle(endAngleUser);
-                          const start = { x: centerX + radius * Math.cos(startAngleSVG), y: centerY + radius * Math.sin(startAngleSVG) };
-                          const end = { x: centerX + radius * Math.cos(endAngleSVG), y: centerY + radius * Math.sin(endAngleSVG) };
-                          return `M ${start.x} ${start.y} A ${radius} ${radius} 0 1 ${sweepFlag} ${end.x} ${end.y}`;
-                        };
-                        const allScores = rings.flatMap((r) => [r.efficacy, r.effort]).filter((v) => typeof v === 'number');
-                        const minScale = Math.max(0, (allScores.length ? Math.min(...allScores) : 0) - 20);
-                        const span = Math.max(1, 100 - minScale);
-                        const norm = (score) => Math.min(1, Math.max(0, ((score || 0) - minScale) / span));
-                        const getArcLength = (radius) => Math.PI * radius;
-                        return (
-                          <>
-                            {radii.map((radius, idx) => {
-                              const strokeWidth = 30;
-                              const halfWidth = strokeWidth / 2;
-                              const topY = centerY + radius * Math.sin(toSVGAngle(0));
-                              return (
-                                <line
-                                  key={`preview-divider-${idx}`}
-                                  x1={centerX}
-                                  y1={topY - halfWidth}
-                                  x2={centerX}
-                                  y2={topY + halfWidth}
-                                  stroke="rgba(255,255,255,0.9)"
-                                  strokeWidth="2"
-                                  opacity="0.4"
-                                />
-                              );
-                            })}
-                            {rings.map((ring, idx) => {
-                              const radius = radii[idx];
-                              if (!radius) return null;
-                              const arcLength = getArcLength(radius);
-                              const eNorm = norm(ring.efficacy);
-                              const filledLength = eNorm * arcLength;
-                              const endAngleSVG = toSVGAngle(180 + (eNorm * 180));
-                              const endX = centerX + radius * Math.cos(endAngleSVG);
-                              const endY = centerY + radius * Math.sin(endAngleSVG);
-                              const active = idx === traitIndex;
-                              return (
-                                <g key={`preview-efficacy-${idx}`}>
-                                  <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="30" />
-                                  <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="33" />
-                                  <path
-                                    d={createArcPath(radius, 180, 0, 1)}
-                                    fill="none"
-                                    stroke={active ? '#6393AA' : 'rgba(99,147,170,0.5)'}
-                                    strokeWidth="30"
-                                    strokeDasharray={`${filledLength} ${arcLength}`}
-                                  />
-                                  <circle cx={endX} cy={endY} r="15" fill={active ? '#457089' : 'rgba(69,112,137,0.62)'} stroke="#000" strokeWidth="2" />
-                                </g>
-                              );
-                            })}
-                            {rings.map((ring, idx) => {
-                              const radius = radii[idx];
-                              if (!radius) return null;
-                              const arcLength = getArcLength(radius);
-                              const fNorm = norm(ring.effort);
-                              const filledLength = fNorm * arcLength;
-                              const endAngleSVG = toSVGAngle(180 - (fNorm * 180));
-                              const endX = centerX + radius * Math.cos(endAngleSVG);
-                              const endY = centerY + radius * Math.sin(endAngleSVG);
-                              const active = idx === traitIndex;
-                              return (
-                                <g key={`preview-effort-${idx}`}>
-                                  <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="30" />
-                                  <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="33" />
-                                  <path
-                                    d={createArcPath(radius, 180, 0, 0)}
-                                    fill="none"
-                                    stroke={active ? '#E07A3F' : 'rgba(224,122,63,0.5)'}
-                                    strokeWidth="30"
-                                    strokeDasharray={`${filledLength} ${arcLength}`}
-                                  />
-                                  <circle cx={endX} cy={endY} r="15" fill={active ? '#C85A2A' : 'rgba(200,90,42,0.62)'} stroke="#000" strokeWidth="2" />
-                                </g>
-                              );
-                            })}
-                            {rings.map((ring, idx) => {
-                              const radius = radii[idx];
-                              if (!radius) return null;
-                              const labelX = centerX + radius * Math.cos(toSVGAngle(180));
-                              const labelY = centerY + radius * Math.sin(toSVGAngle(180)) + 2;
-                              const active = idx === traitIndex;
-                              return (
-                                <g key={`preview-label-${idx}`}>
-                                  <rect
-                                    x={labelX - 116}
-                                    y={labelY - 15}
-                                    width={232}
-                                    height={30}
-                                    rx={15}
-                                    fill={active ? 'rgba(255,244,235,0.98)' : 'rgba(255,255,255,0.95)'}
-                                    stroke={active ? '#E07A3F' : '#000'}
-                                    strokeWidth={active ? '2.5' : '2'}
-                                  />
-                                  <text
-                                    x={labelX}
-                                    y={labelY + 5}
-                                    textAnchor="middle"
-                                    fontSize="14"
-                                    fontFamily="Gemunu Libre, sans-serif"
-                                    fontWeight="700"
-                                    fill="#000"
-                                  >
-                                    {ring.subTrait}
-                                  </text>
-                                </g>
-                              );
-                            })}
-                          </>
-                        );
-                      })()}
+                    <Box sx={{ gridColumn: 2, gridRow: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="228" height="228" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
+                      <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="butt" />
+                      <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
+                      <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
+                      <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
+                      <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
+                      <text x={ringCx} y={ringCy + 8} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
+                        {((avgEffort + avgEfficacy) / 2).toFixed(1)}
+                      </text>
                     </svg>
-                    <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
-                      <Box
-                        sx={{
-                          width: 178,
-                          height: 178,
-                          borderRadius: '50%',
-                          backgroundColor: 'rgba(255,255,255,0.14)',
-                          border: '3px solid',
-                          borderColor: 'primary.main',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          position: 'relative',
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '94%',
-                            height: '94%',
-                            borderRadius: '50%',
-                            overflow: 'hidden',
-                            boxShadow: 'inset 0 0 0 2px rgba(0,0,0,0.22)',
-                          }}
-                        >
-                          <Box
-                            component="img"
-                            src="/CompassLogo.png"
-                            alt=""
-                            sx={{
-                              width: '158%',
-                              height: '158%',
-                              position: 'absolute',
-                              top: '-29%',
-                              left: '-29%',
-                              objectFit: 'cover',
-                              filter: 'brightness(0.5)',
-                            }}
-                          />
-                        </Box>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '3.1rem', fontWeight: 700, color: 'white', lineHeight: 1, transform: 'translateY(1px)', position: 'relative', zIndex: 1 }}>
-                          {(previewScore / 10).toFixed(1)}
-                        </Typography>
-                      </Box>
                     </Box>
+
+                    <Box sx={{ gridColumn: 3, gridRow: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', placeSelf: 'center', pt: 1 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFORT_PRIMARY, fontWeight: 700, textAlign: 'center' }}>
+                        Effort
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap', textAlign: 'center' }}>
+                        {avgEffort.toFixed(1)}
+                      </Typography>
                     </Box>
                   </Box>
+                </Box>
+                <Box
+                  sx={{
+                    borderRadius: 2,
+                    border: '1px solid rgba(15,30,58,0.14)',
+                    bgcolor: 'rgba(255,255,255,0.95)',
+                    p: 1,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.84rem', color: 'text.secondary', textAlign: 'center' }}>
+                    Response Balance (Efficacy - Effort)
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.18rem',
+                      fontWeight: 700,
+                      color: avgDelta >= 0 ? EFFICACY_ACCENT : EFFORT_ACCENT,
+                      textAlign: 'center',
+                      mt: 0.15,
+                    }}
+                  >
+                    {avgDelta >= 0 ? '+' : ''}{avgDelta.toFixed(1)}
+                  </Typography>
                 </Box>
               </Box>
           </Box>
