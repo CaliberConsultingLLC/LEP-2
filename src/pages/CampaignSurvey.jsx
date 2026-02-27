@@ -349,12 +349,12 @@ function CampaignSurvey() {
         >
           <Box
             sx={{
-              p: { xs: 1.5, md: 1.9 },
+              p: { xs: 1.2, md: 1.5 },
               borderRadius: 2.5,
               border: '1px solid',
               borderColor: 'rgba(255,255,255,0.22)',
               bgcolor: 'rgba(13, 26, 48, 0.62)',
-              minHeight: { xs: 86, md: 94 },
+              minHeight: { xs: 77, md: 85 },
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -409,22 +409,22 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 650,
+                    maxWidth: 715,
                     mx: 'auto',
                     minHeight: 116,
                     borderRadius: 2,
                     border: `1px solid rgba(224,122,63,0.28)`,
                     bgcolor: 'rgba(255,255,255,0.92)',
                     boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
-                    px: { xs: 1.2, md: 1.5 },
-                    py: { xs: 1.1, md: 1.2 },
+                    px: { xs: 1.4, md: 1.7 },
+                    py: { xs: 0.95, md: 1.05 },
                     overflow: 'hidden',
                   }}
                 >
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.2, textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.15, textAlign: 'center' }}>
                     Effort
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.7, textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.5, textAlign: 'center' }}>
                     {isSelfCampaign
                       ? 'How intentional and attentive I am in this area'
                       : 'How intentional and attentive Brian behaves in this area'}
@@ -463,22 +463,22 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: 650,
+                  maxWidth: 715,
                   mx: 'auto',
                   minHeight: 116,
                   borderRadius: 2,
                     border: `1px solid rgba(99,147,170,0.28)`,
                   bgcolor: 'rgba(255,255,255,0.92)',
                   boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
-                    px: { xs: 1.2, md: 1.5 },
-                    py: { xs: 1.1, md: 1.2 },
+                    px: { xs: 1.4, md: 1.7 },
+                    py: { xs: 0.95, md: 1.05 },
                     overflow: 'hidden',
                 }}
               >
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.2, textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.15, textAlign: 'center' }}>
                     Efficacy
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.7, textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.5, textAlign: 'center' }}>
                     {isSelfCampaign
                       ? 'How effectively I meet the demands of this area'
                       : 'Is Brian meeting my needs in this area'}
@@ -517,7 +517,7 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 650,
+                    maxWidth: 715,
                     mx: 'auto',
                     minHeight: 56,
                     bgcolor: 'rgba(255,255,255,0.84)',
@@ -582,11 +582,11 @@ function CampaignSurvey() {
                       minHeight: 206,
                       display: 'grid',
                       gridTemplateColumns: '1fr auto 1fr',
-                      alignItems: 'stretch',
-                      columnGap: 0.8,
+                      alignItems: 'center',
+                      columnGap: 0.5,
                     }}
                   >
-                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pb: 1.8 }}>
+                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
                         Efficacy
                       </Typography>
@@ -606,7 +606,7 @@ function CampaignSurvey() {
                       </text>
                     </svg>
 
-                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pb: 1.8 }}>
+                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
                         Effort
                       </Typography>
