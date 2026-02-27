@@ -396,29 +396,18 @@ function CampaignSurvey() {
 
           <Box
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
-              gap: { xs: 1.2, md: 1.4 },
-              alignItems: 'stretch',
+              width: '100%',
               minWidth: 0,
+              p: { xs: 1.2, md: 1.5 },
+              bgcolor: 'rgba(255, 255, 255, 0.92)',
+              borderRadius: 2.5,
+              border: '1px solid rgba(15,30,58,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
               overflow: 'hidden',
             }}
           >
-            <Box
-              sx={{
-                p: { xs: 1.2, md: 1.35 },
-                minWidth: 0,
-                bgcolor: 'rgba(255, 255, 255, 0.92)',
-                borderRadius: 2.5,
-                border: '1px solid rgba(15,30,58,0.08)',
-                minHeight: { xs: 302, md: 304 },
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                overflow: 'hidden',
-              }}
-            >
-              <Stack spacing={1.3} alignItems="stretch" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 2, md: 3 } }}>
+            <Stack spacing={1.3} alignItems="stretch" sx={{ width: '100%', minWidth: 0 }}>
                 <Box
                   sx={{
                     width: '100%',
@@ -555,7 +544,9 @@ function CampaignSurvey() {
 
               <Box
                 sx={{
-                  p: { xs: 1.2, md: 1.35 },
+                  width: '100%',
+                  minWidth: 0,
+                  p: { xs: 1.2, md: 1.5 },
                   bgcolor: 'rgba(255, 255, 255, 0.92)',
                   borderRadius: 2.5,
                   border: '1px solid rgba(15,30,58,0.08)',
@@ -661,7 +652,6 @@ function CampaignSurvey() {
                   </Typography>
                 </Box>
               </Box>
-          </Box>
         </Box>
         <Box
           sx={{
