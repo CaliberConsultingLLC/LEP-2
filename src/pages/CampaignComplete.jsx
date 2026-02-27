@@ -40,12 +40,17 @@ function CampaignComplete() {
       cursor += statements.length;
       return {
         trait: trait?.trait || `Trait ${cursor}`,
+        subTrait: trait?.subTrait || trait?.trait || `Trait ${cursor}`,
         effort: effortAvg,
         efficacy: efficacyAvg,
         score: overall,
       };
     });
   }, [campaignData, id]);
+  const previewTraits = traitMetrics.slice(0, 3);
+  const overallScore = previewTraits.length
+    ? previewTraits.reduce((sum, trait) => sum + Number(trait.score || 0), 0) / previewTraits.length
+    : 0;
 
   const polar = (cx, cy, radius, angleDeg) => {
     const angleRad = (angleDeg * Math.PI) / 180;
@@ -124,7 +129,7 @@ function CampaignComplete() {
                 ? 'Compass will use this benchmark to calculate Perception Gaps as leader-vs-team comparisons across each statement and trait.'
                 : 'This process ensures anonymity—no data is stored or linked to you. Together, we’re building a culture of trust and continuous improvement.'}
             </Typography>
-            {traitMetrics.length > 0 && (
+            {previewTraits.length > 0 && (
               <Box
                 sx={{
                   border: '1px solid rgba(69,112,137,0.24)',
@@ -137,38 +142,57 @@ function CampaignComplete() {
                   Final Results Preview
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.1 }}>
-                  <svg width="280" height="220" viewBox="0 0 280 220" role="img" aria-label="Final three-trait recap rings">
-                    {traitMetrics.map((metric, idx) => {
-                      const radius = 90 - (idx * 22);
-                      const cx = 140;
-                      const cy = 140;
+                  <svg width="500" height="470" viewBox="0 0 500 470" role="img" aria-label="Final three-trait concentric preview">
+                    {previewTraits.map((metric, idx) => {
+                      const cx = 250;
+                      const cy = 250;
+                      const radii = [198, 156, 114];
+                      const radius = radii[idx] || 114;
+                      const stroke = 28;
                       const efficacyPct = Math.max(0, Math.min(1, Number(metric.efficacy || 0) / 10));
                       const effortPct = Math.max(0, Math.min(1, Number(metric.effort || 0) / 10));
+                      const leftStart = 152;
+                      const leftEnd = 245;
+                      const rightStart = 28;
+                      const rightEnd = 115;
+                      const efficacyAngle = leftStart + (efficacyPct * (leftEnd - leftStart));
+                      const effortAngle = rightStart + ((1 - effortPct) * (rightEnd - rightStart));
+                      const efficacyDot = polar(cx, cy, radius, efficacyAngle);
+                      const effortDot = polar(cx, cy, radius, effortAngle);
+                      const ringRail = describeArc(cx, cy, radius, 152, 388);
+                      const efficacyArc = describeArc(cx, cy, radius, 152, efficacyAngle);
+                      const effortArc = describeArc(cx, cy, radius, 388, effortAngle);
+                      const labelY = 350 + (idx * 44);
                       return (
-                        <g key={`ring-${metric.trait}`}>
-                          <path d={describeArc(cx, cy, radius, 180, 0)} fill="none" stroke="rgba(99,147,170,0.2)" strokeWidth="14" />
-                          <path d={describeArc(cx, cy, radius, 180, 180 - (efficacyPct * 180))} fill="none" stroke="#6393AA" strokeWidth="14" />
-                          <path d={describeArc(cx, cy, radius, 180, 360)} fill="none" stroke="rgba(224,122,63,0.2)" strokeWidth="14" />
-                          <path d={describeArc(cx, cy, radius, 180, 180 + (effortPct * 180))} fill="none" stroke="#E07A3F" strokeWidth="14" />
+                        <g key={`ring-${metric.subTrait}-${idx}`}>
+                          <path d={ringRail} fill="none" stroke="rgba(255,255,255,0.98)" strokeWidth={stroke} strokeLinecap="round" />
+                          <path d={efficacyArc} fill="none" stroke="rgba(99,147,170,0.55)" strokeWidth={stroke} strokeLinecap="round" />
+                          <path d={effortArc} fill="none" stroke="rgba(224,122,63,0.55)" strokeWidth={stroke} strokeLinecap="round" />
+
+                          <circle cx={efficacyDot.x} cy={efficacyDot.y} r="14" fill="#7EA9C1" stroke="#1E293B" strokeWidth="2" />
+                          <text x={efficacyDot.x} y={efficacyDot.y + 4} textAnchor="middle" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '10px', fontWeight: 700, fill: '#0F172A' }}>
+                            {metric.efficacy.toFixed(1)}
+                          </text>
+
+                          <circle cx={effortDot.x} cy={effortDot.y} r="14" fill="#E08E5E" stroke="#1E293B" strokeWidth="2" />
+                          <text x={effortDot.x} y={effortDot.y + 4} textAnchor="middle" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '10px', fontWeight: 700, fill: '#0F172A' }}>
+                            {metric.effort.toFixed(1)}
+                          </text>
+
+                          <rect x="145" y={labelY - 16} width="210" height="32" rx="16" fill="rgba(255,255,255,0.98)" stroke={idx === 0 ? '#E07A3F' : 'rgba(15,30,58,0.2)'} strokeWidth="2" />
+                          <text x="250" y={labelY + 4} textAnchor="middle" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '24px', fontWeight: 700, fill: '#111827' }}>
+                            {metric.subTrait}
+                          </text>
                         </g>
                       );
                     })}
-                    <circle cx="140" cy="140" r="34" fill="rgba(255,255,255,0.95)" stroke="rgba(0,0,0,0.1)" />
-                    <text x="140" y="137" textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '14px', fontWeight: 700, fill: '#1a202c' }}>
-                      Recap
-                    </text>
-                    <text x="140" y="153" textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '12px', fontWeight: 700, fill: '#1a202c' }}>
-                      3 Traits
+
+                    <circle cx="250" cy="248" r="72" fill="rgba(255,255,255,0.97)" stroke="#C85A2A" strokeWidth="4" />
+                    <text x="250" y="260" textAnchor="middle" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '58px', fontWeight: 800, fill: '#111827' }}>
+                      {(overallScore * 10).toFixed(1)}
                     </text>
                   </svg>
                 </Box>
-                <Stack spacing={0.45}>
-                  {traitMetrics.map((metric) => (
-                    <Typography key={`legend-${metric.trait}`} sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary', textAlign: 'left' }}>
-                      {metric.trait}: Score {metric.score.toFixed(1)} | Efficacy {metric.efficacy.toFixed(1)} | Effort {metric.effort.toFixed(1)}
-                    </Typography>
-                  ))}
-                </Stack>
               </Box>
             )}
             <Button
