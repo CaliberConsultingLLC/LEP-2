@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Button, Stack, Slider, LinearProgress } from '@mui/material';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  Stack,
+  Slider,
+  LinearProgress,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 function CampaignSurvey() {
   const { id } = useParams();
@@ -13,6 +27,9 @@ function CampaignSurvey() {
   const [ratings, setRatings] = useState({});
   const [savedActionItems, setSavedActionItems] = useState([]);
   const [campaignMeta, setCampaignMeta] = useState({});
+  const [traitRecapOpen, setTraitRecapOpen] = useState(false);
+
+  const TRAIT_QUESTION_COUNT = 3;
 
   useEffect(() => {
     const campaignData = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
@@ -59,14 +76,57 @@ function CampaignSurvey() {
     console.log('Survey responses saved to Firestore:', ratingsData);
   };
 
+  const getTraitRecapMetrics = (questionIdx) => {
+    const traitIndex = Math.floor(questionIdx / TRAIT_QUESTION_COUNT);
+    const start = traitIndex * TRAIT_QUESTION_COUNT;
+    const values = [];
+    for (let i = start; i < start + TRAIT_QUESTION_COUNT; i += 1) {
+      const row = i === currentQuestion ? currentRating : ratings[String(i)];
+      if (row?.effort && row?.efficacy) {
+        values.push({ effort: Number(row.effort), efficacy: Number(row.efficacy) });
+      }
+    }
+    if (!values.length) return { effortAvg: 0, efficacyAvg: 0, traitScore: 0 };
+    const effortAvg = values.reduce((sum, row) => sum + row.effort, 0) / values.length;
+    const efficacyAvg = values.reduce((sum, row) => sum + row.efficacy, 0) / values.length;
+    const traitScore = ((effortAvg + efficacyAvg) / 2) * 10;
+    return { effortAvg, efficacyAvg, traitScore };
+  };
+
   const nextQuestion = async () => {
     const lastQuestionIdx = questions.length - 1;
+    const completedTraitBoundary = (currentQuestion + 1) % TRAIT_QUESTION_COUNT === 0;
     if (currentQuestion < lastQuestionIdx) {
+      if (completedTraitBoundary) {
+        setTraitRecapOpen(true);
+        return;
+      }
       setCurrentQuestion(prev => prev + 1);
     } else {
+      if (!traitRecapOpen) {
+        setTraitRecapOpen(true);
+        return;
+      }
       await saveResponses();
       navigate(`/campaign/${id}/complete`);
     }
+  };
+
+  const handleProceedNextTrait = async () => {
+    setTraitRecapOpen(false);
+    const lastQuestionIdx = questions.length - 1;
+    if (currentQuestion < lastQuestionIdx) {
+      setCurrentQuestion((prev) => prev + 1);
+      return;
+    }
+    await saveResponses();
+    navigate(`/campaign/${id}/complete`);
+  };
+
+  const handleMakeAdjustments = () => {
+    const traitStart = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT) * TRAIT_QUESTION_COUNT;
+    setTraitRecapOpen(false);
+    setCurrentQuestion(traitStart);
   };
 
   const getSentiment = (effort, efficacy, selfMode = false) => {
@@ -106,8 +166,11 @@ function CampaignSurvey() {
 
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
-  const currentTrait = campaign[Math.floor(currentQuestion / 3)]?.trait || '';
+  const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
+  const traitTotal = Math.ceil((questions.length || 0) / TRAIT_QUESTION_COUNT) || 5;
+  const currentTrait = campaign[traitIndex]?.trait || '';
   const currentRating = ratings[`${currentQuestion}`] || { effort: 1, efficacy: 1 };
+  const traitRecap = getTraitRecapMetrics(currentQuestion);
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
   const progressValue = ((currentQuestion + 1) / (questions.length || 15)) * 100;
   const nextCtaLabel = currentQuestion < (questions.length - 1) ? 'Next Question' : 'Complete Survey';
@@ -467,8 +530,19 @@ function CampaignSurvey() {
                   overflow: 'hidden',
                 }}
               >
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center', mb: 0.6 }}>
-                  Live Snapshot
+                <Stack direction="row" spacing={0.6} justifyContent="center" alignItems="center" sx={{ mb: 0.1 }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center' }}>
+                    Results Preview
+                  </Typography>
+                  <Tooltip
+                    title="Preview of what your leader will see in aggregate once all feedback is combined."
+                    arrow
+                  >
+                    <InfoOutlinedIcon sx={{ fontSize: '1rem', color: 'rgba(22,35,54,0.65)', cursor: 'help' }} />
+                  </Tooltip>
+                </Stack>
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.84rem', color: 'text.secondary', textAlign: 'center', mb: 0.6 }}>
+                  {currentTrait} ({traitIndex + 1} out of {traitTotal})
                 </Typography>
                 <Box
                   sx={{
@@ -537,7 +611,7 @@ function CampaignSurvey() {
                     {avgDelta >= 0 ? '+' : ''}{avgDelta.toFixed(1)}
                   </Typography>
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: 'text.secondary', textAlign: 'center' }}>
-                    Based on {answeredCount} response{answeredCount === 1 ? '' : 's'} so far
+                    Live delta preview
                   </Typography>
                 </Box>
               </Box>
@@ -609,6 +683,67 @@ function CampaignSurvey() {
             {nextCtaLabel}
           </Button>
         </Box>
+
+        <Dialog
+          open={traitRecapOpen}
+          onClose={handleMakeAdjustments}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700, textAlign: 'center' }}>
+            {currentTrait} Recap
+          </DialogTitle>
+          <DialogContent sx={{ pt: 1 }}>
+            <Stack spacing={1.2} alignItems="center">
+              <Box
+                sx={{
+                  width: 112,
+                  height: 112,
+                  borderRadius: '50%',
+                  background: `conic-gradient(${EFFICACY_ACCENT} ${Math.max(0, Math.min(100, (traitRecap.efficacyAvg / 10) * 50))}%, ${EFFORT_ACCENT} ${Math.max(0, Math.min(100, (traitRecap.efficacyAvg / 10) * 50))}% ${Math.max(0, Math.min(100, 50 + (traitRecap.effortAvg / 10) * 50))}%, rgba(220,228,236,0.92) ${Math.max(0, Math.min(100, 50 + (traitRecap.effortAvg / 10) * 50))}% 100%)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 84,
+                    height: 84,
+                    borderRadius: '50%',
+                    bgcolor: '#fff',
+                    border: '1px solid rgba(15,30,58,0.16)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.76rem', color: 'text.secondary' }}>
+                    Trait Score
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#162336', lineHeight: 1.1 }}>
+                    {traitRecap.traitScore.toFixed(0)}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.72rem', color: 'text.secondary' }}>
+                    / 100
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'text.secondary', textAlign: 'center' }}>
+                This previews how this subtrait appears to your leader once feedback is aggregated.
+              </Typography>
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
+            <Button variant="outlined" onClick={handleMakeAdjustments}>
+              Make Adjustments
+            </Button>
+            <Button variant="contained" onClick={handleProceedNextTrait}>
+              {currentQuestion < (questions.length - 1) ? 'Proceed to Next Trait' : 'Complete Survey'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );
