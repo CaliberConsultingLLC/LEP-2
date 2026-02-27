@@ -12,7 +12,11 @@ import {
   DialogContent,
   DialogActions,
   Paper,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
@@ -25,6 +29,7 @@ function CampaignBuilder() {
   const [dismissedStatements, setDismissedStatements] = useState([]);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
+  const [expandedTrait, setExpandedTrait] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -429,7 +434,7 @@ function CampaignBuilder() {
         <Container
           maxWidth={false}
           sx={{
-            py: { xs: 3, sm: 4 },
+            py: { xs: 1.5, sm: 2 },
             px: { xs: 2, sm: 4 },
             display: 'flex',
             justifyContent: 'center',
@@ -467,9 +472,10 @@ function CampaignBuilder() {
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontWeight: 700,
                   color: 'white',
-                  mb: 2,
+                  mb: 1,
                   textAlign: 'center',
                   textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
                 }}
               >
                 Your Leadership Campaign
@@ -477,7 +483,7 @@ function CampaignBuilder() {
               
               <Paper
                 sx={{
-                  p: 2.5,
+                  p: 1.5,
                   border: '1px solid',
                   borderColor: 'rgba(255,255,255,0.14)',
                   borderRadius: 3,
@@ -491,8 +497,8 @@ function CampaignBuilder() {
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '1rem',
-                    mb: 1.5,
+                    fontSize: '0.875rem',
+                    mb: 1,
                     color: 'text.primary',
                     textAlign: 'center',
                   }}
@@ -503,139 +509,133 @@ function CampaignBuilder() {
                   click "Rebuild my Growth Campaign" to refresh.
                 </Typography>
 
-                <Stack spacing={1.5} sx={{ mb: 1.5 }}>
+                <Box sx={{ mb: 1 }}>
                   {(campaign || []).map((traitItem, traitIndex) => {
                     const statements = (Array.isArray(traitItem?.statements) ? traitItem.statements : [])
                       .map((s) => String(s || '').trim())
                       .filter(Boolean)
                       .slice(0, 5);
 
-                    if (statements.length === 0) {
-                      return (
-                        <Box
-                          key={`trait-${traitIndex}-empty`}
-                          sx={{
-                            p: 2,
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderRadius: 2,
-                            bgcolor: 'rgba(255,255,255,0.9)',
-                          }}
-                        >
-                          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
-                            {traitItem?.trait || 'Trait'} — no statements provided.
-                          </Typography>
-                        </Box>
-                      );
-                    }
-
-                    // Get proper trait name from selectedTraitInfo
                     const traitInfo = selectedTraitInfo[traitIndex];
-                    const displayName = traitInfo?.fullDisplayName || traitItem.trait || `Trait ${traitIndex + 1}`;
                     const coreTraitName = traitInfo?.coreTraitName || '';
                     const subTraitName = traitInfo?.subTraitName || '';
+                    const primaryLabel = subTraitName || coreTraitName || traitItem.trait || `Trait ${traitIndex + 1}`;
+                    const secondaryLabel = subTraitName ? coreTraitName : null;
+                    const isExpanded = expandedTrait === traitIndex;
 
                     return (
-                      <Paper
+                      <Accordion
                         key={`trait-${traitIndex}`}
+                        expanded={isExpanded}
+                        onChange={() => setExpandedTrait(isExpanded ? -1 : traitIndex)}
                         sx={{
-                          p: 0,
-                          mb: 1.5,
-                          border: '1px solid',
-                          borderColor: '#457089',
-                          borderRadius: 3,
-                          bgcolor: 'rgba(255,255,255,0.95)',
-                          background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92))',
-                          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                          '&:before': { display: 'none' },
+                          boxShadow: 'none',
+                          border: '1px solid #457089',
+                          borderRadius: '12px !important',
+                          mb: 0.75,
                           overflow: 'hidden',
+                          bgcolor: 'rgba(255,255,255,0.95)',
+                          '&.Mui-expanded': { margin: '0 0 6px 0' },
                         }}
                       >
-                        {/* Header matching Summary page style */}
-                        <Box sx={{ p: 1.5, bgcolor: '#457089', background: 'linear-gradient(135deg, #457089, #375d78)', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '1.2rem',
-                              fontWeight: 700,
-                              color: 'white',
-                              textAlign: 'center',
-                              mb: 0.5,
-                            }}
-                          >
-                            {coreTraitName}
-                          </Typography>
-                          {subTraitName && (
+                        <AccordionSummary
+                          expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                          sx={{
+                            minHeight: 44,
+                            bgcolor: '#457089',
+                            background: 'linear-gradient(135deg, #457089, #375d78)',
+                            '& .MuiAccordionSummary-content': { my: 0.75 },
+                            '&.Mui-expanded': { minHeight: 44 },
+                          }}
+                        >
+                          <Box sx={{ flex: 1, textAlign: 'center' }}>
                             <Typography
                               sx={{
                                 fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.9rem',
-                                fontWeight: 500,
-                                color: 'rgba(255,255,255,0.9)',
-                                textAlign: 'center',
-                                fontStyle: 'italic',
+                                fontSize: '1.05rem',
+                                fontWeight: 700,
+                                color: 'white',
                               }}
                             >
-                              {subTraitName}
+                              {primaryLabel}
                             </Typography>
-                          )}
-                        </Box>
-                        <Box sx={{ p: 1.5 }}>
-                          <Stack spacing={0.5}>
-                            {statements.map((stmt, sIdx) => (
-                              <Box
-                                key={`stmt-${sIdx}`}
+                            {secondaryLabel && (
+                              <Typography
                                 sx={{
-                                  p: 1.5,
-                                  borderRadius: 2,
-                                  bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)',
-                                  display: 'flex',
-                                  alignItems: 'flex-start',
-                                  gap: 1.5,
-                                  transition: 'all 0.2s ease',
-                                  '&:hover': {
-                                    bgcolor: 'rgba(224,122,63,0.08)',
-                                    transform: 'translateX(2px)',
-                                  },
+                                  fontFamily: 'Gemunu Libre, sans-serif',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 500,
+                                  color: 'rgba(255,255,255,0.85)',
+                                  fontStyle: 'italic',
                                 }}
                               >
-                                <Checkbox
-                                  checked={dismissedStatements.some(
-                                    (ds) => ds.trait === traitItem.trait && ds.index === sIdx
-                                  )}
-                                  onChange={(e) =>
-                                    handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
-                                  }
-                                  color="error"
-                                  size="small"
-                                  sx={{ mt: 0.25 }}
-                                />
-                                <Typography
+                                {secondaryLabel}
+                              </Typography>
+                            )}
+                          </Box>
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ p: 1, pt: 0.5 }}>
+                          {statements.length === 0 ? (
+                            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem' }}>
+                              No statements provided.
+                            </Typography>
+                          ) : (
+                            <Stack spacing={0.25}>
+                              {statements.map((stmt, sIdx) => (
+                                <Box
+                                  key={`stmt-${sIdx}`}
                                   sx={{
-                                    fontFamily: 'Gemunu Libre, sans-serif',
-                                    fontSize: '0.95rem',
-                                    color: 'text.primary',
-                                    flex: 1,
-                                    lineHeight: 1.5,
+                                    py: 0.5,
+                                    px: 1,
+                                    borderRadius: 1.5,
+                                    bgcolor: sIdx % 2 === 0 ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.06)',
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 1,
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': { bgcolor: 'rgba(224,122,63,0.08)' },
                                   }}
                                 >
-                                  {sIdx + 1}. {stmt}
-                                </Typography>
-                              </Box>
-                            ))}
-                          </Stack>
-                        </Box>
-                      </Paper>
+                                  <Checkbox
+                                    checked={dismissedStatements.some(
+                                      (ds) => ds.trait === traitItem.trait && ds.index === sIdx
+                                    )}
+                                    onChange={(e) =>
+                                      handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
+                                    }
+                                    color="error"
+                                    size="small"
+                                    sx={{ mt: 0.25, p: 0.25 }}
+                                  />
+                                  <Typography
+                                    sx={{
+                                      fontFamily: 'Gemunu Libre, sans-serif',
+                                      fontSize: '0.85rem',
+                                      color: 'text.primary',
+                                      flex: 1,
+                                      lineHeight: 1.4,
+                                    }}
+                                  >
+                                    {sIdx + 1}. {stmt}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Stack>
+                          )}
+                        </AccordionDetails>
+                      </Accordion>
                     );
                   })}
-                </Stack>
+                </Box>
 
-                <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 1.5, mt: 1.5 }}>
+                <Stack direction="row" spacing={1.5} justifyContent="center" sx={{ mb: 1, mt: 1 }} flexWrap="wrap">
                   <Button
                     variant="contained"
                     color="primary"
                     onClick={handleRebuildCampaign}
                     disabled={isLoading}
-                    sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', px: 3, py: 1 }}
+                    sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.875rem', px: 2, py: 0.75 }}
                   >
                     Rebuild my Growth Campaign
                   </Button>
@@ -646,18 +646,19 @@ function CampaignBuilder() {
                       localStorage.setItem('currentCampaign', JSON.stringify(campaign || []));
                       navigate('/campaign-verify');
                     }}
-                    sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', px: 3, py: 1 }}
+                    sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.875rem', px: 2, py: 0.75 }}
                   >
                     Verify Campaign
                   </Button>
                 </Stack>
 
-                <Box sx={{ textAlign: 'center', mt: 1 }}>
+                <Box sx={{ textAlign: 'center', mt: 0.5 }}>
                   <Button
                     variant="outlined"
                     color="primary"
+                    size="small"
                     onClick={() => navigate('/summary')}
-                    sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', px: 3, py: 1 }}
+                    sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', px: 2, py: 0.5 }}
                   >
                     Back to Summary
                   </Button>
