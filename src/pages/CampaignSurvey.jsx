@@ -129,6 +129,11 @@ function CampaignSurvey() {
     setCurrentQuestion(traitStart);
   };
 
+  const prevQuestion = () => {
+    if (currentQuestion <= 0) return;
+    setCurrentQuestion((prev) => prev - 1);
+  };
+
   const getSentiment = (effort, efficacy, selfMode = false) => {
     const subject = selfMode ? 'I' : 'Brian';
     const possessive = selfMode ? 'My' : 'Brian’s';
@@ -335,12 +340,12 @@ function CampaignSurvey() {
         >
           <Box
             sx={{
-              p: { xs: 1.7, md: 2.1 },
+              p: { xs: 1.5, md: 1.9 },
               borderRadius: 2.5,
               border: '1px solid',
               borderColor: 'rgba(255,255,255,0.22)',
               bgcolor: 'rgba(13, 26, 48, 0.62)',
-              minHeight: { xs: 96, md: 104 },
+              minHeight: { xs: 86, md: 94 },
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -348,17 +353,17 @@ function CampaignSurvey() {
               textAlign: 'center',
             }}
           >
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.45rem', md: '1.65rem' }, fontWeight: 700, mb: 0.45, color: '#FFFFFF', letterSpacing: '0.01em' }}>
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.32rem', md: '1.48rem' }, fontWeight: 700, mb: 0.35, color: '#FFFFFF', letterSpacing: '0.01em' }}>
               {currentTrait}
             </Typography>
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: { xs: '1.02rem', md: '1.1rem' },
+                fontSize: { xs: '0.92rem', md: '1rem' },
                 fontStyle: 'italic',
                 color: 'rgba(247, 250, 255, 0.95)',
                 lineHeight: 1.35,
-                minHeight: 34,
+                minHeight: 30,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -568,15 +573,15 @@ function CampaignSurvey() {
                       minHeight: 206,
                       display: 'grid',
                       gridTemplateColumns: '1fr auto 1fr',
-                      alignItems: 'center',
+                      alignItems: 'stretch',
                       columnGap: 0.8,
                     }}
                   >
-                    <Box sx={{ textAlign: 'center' }}>
+                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pb: 1.8 }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
                         Efficacy
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
                         {avgEfficacy.toFixed(1)} / 10
                       </Typography>
                     </Box>
@@ -590,16 +595,13 @@ function CampaignSurvey() {
                       <text x={ringCx} y={ringCy + 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
                         {((avgEffort + avgEfficacy) / 2).toFixed(1)}
                       </text>
-                      <text x={ringCx} y={ringCy + 20} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '10px', fill: 'rgba(22,35,54,0.68)', fontWeight: 600 }}>
-                        / 10
-                      </text>
                     </svg>
 
-                    <Box sx={{ textAlign: 'center' }}>
+                    <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', pb: 1.8 }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
                         Effort
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
                         {avgEffort.toFixed(1)} / 10
                       </Typography>
                     </Box>
@@ -644,23 +646,44 @@ function CampaignSurvey() {
             px: { xs: 1.2, md: 1.6 },
             py: { xs: 0.85, md: 0.95 },
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '120px 1fr 210px' },
+            gridTemplateColumns: { xs: '1fr', md: '210px 1fr 210px' },
             gap: { xs: 1, md: 1.2 },
             alignItems: 'center',
             minHeight: 56,
           }}
         >
-          <Typography
+          <Button
+            variant="outlined"
+            onClick={prevQuestion}
+            disabled={currentQuestion === 0}
             sx={{
               fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '1rem',
-              color: 'rgba(22,35,54,0.82)',
-              textAlign: { xs: 'center', md: 'left' },
+              fontSize: '0.96rem',
+              px: 2.2,
+              py: 0.72,
+              minWidth: 198,
+              minHeight: 40,
+              borderRadius: 999,
+              borderColor: 'rgba(69,112,137,0.58)',
+              color: '#375d78',
+              justifySelf: { xs: 'center', md: 'start' },
+              '&:hover': { borderColor: '#375d78', backgroundColor: 'rgba(69,112,137,0.08)' },
             }}
           >
-            {currentQuestion + 1} / {questions.length || 15}
-          </Typography>
+            Previous Question
+          </Button>
           <Box sx={{ minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: '1rem',
+                color: 'rgba(22,35,54,0.82)',
+                textAlign: 'center',
+                mb: 0.45,
+              }}
+            >
+              {currentQuestion + 1} / {questions.length || 15}
+            </Typography>
             <LinearProgress
               variant="determinate"
               value={progressValue}
