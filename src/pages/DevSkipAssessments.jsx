@@ -67,8 +67,104 @@ export default function DevSkipAssessments() {
   };
 
   const launchMockJourneyDashboard = () => {
+    const devUser = { name: 'Dev Summit User', email: 'dev@mock.local' };
+    const devPlans = {
+      '123': {
+        'dev@mock.local': {
+          plans: {
+            communication: {
+              clarity: {
+                items: [
+                  { text: 'Use BLUF structure in all status updates', verified: true },
+                  { text: 'Close every meeting with three clear takeaways', verified: true },
+                ],
+              },
+            },
+            decisionMaking: {
+              quality: {
+                items: [
+                  { text: 'Record decision criteria before final calls', verified: true },
+                  { text: 'Add risk notes to major decisions', verified: true },
+                ],
+              },
+            },
+            execution: {
+              prioritization: {
+                items: [
+                  { text: 'Set top 3 priorities at start of each week', verified: true },
+                  { text: 'Trim low-impact tasks by Friday review', verified: true },
+                ],
+              },
+            },
+          },
+        },
+      },
+      '124': {
+        'dev@mock.local': {
+          plans: {
+            communication: {
+              clarity: {
+                items: [
+                  { text: 'Run weekly clarity pulse with team', verified: true },
+                  { text: 'Publish decision context before launch meetings', verified: true },
+                ],
+              },
+            },
+            decisionMaking: {
+              quality: {
+                items: [
+                  { text: 'Pilot high-risk decisions for 1 week first', verified: true },
+                  { text: 'Track decision outcomes monthly', verified: true },
+                ],
+              },
+            },
+            execution: {
+              prioritization: {
+                items: [
+                  { text: 'Convert priorities into sprint-level commitments', verified: true },
+                  { text: 'Re-balance workload mid-sprint when needed', verified: true },
+                ],
+              },
+            },
+          },
+        },
+      },
+      '125': {
+        'dev@mock.local': {
+          plans: {
+            communication: {
+              clarity: {
+                items: [
+                  { text: 'Coach two leads on concise executive updates', verified: false },
+                  { text: 'Create reusable communication playbook draft', verified: false },
+                ],
+              },
+            },
+            decisionMaking: {
+              quality: {
+                items: [
+                  { text: 'Add pre-mortem step to key roadmap decisions', verified: false },
+                  { text: 'Document decision assumptions and confidence', verified: false },
+                ],
+              },
+            },
+            execution: {
+              prioritization: {
+                items: [
+                  { text: 'Introduce monthly stop-doing list', verified: false },
+                  { text: 'Tighten priority handoff rituals across teams', verified: false },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    localStorage.setItem('userInfo', JSON.stringify(devUser));
     localStorage.setItem('dashboardSession', JSON.stringify({ active: true, user: 'dev-staging', ts: new Date().toISOString() }));
     localStorage.setItem('selfCampaignCompleted', 'true');
+    localStorage.setItem('actionPlansByCampaign', JSON.stringify(devPlans));
     localStorage.setItem('mockJourneyProgress', JSON.stringify({
       trailhead: 'complete',
       checkin: 'complete',

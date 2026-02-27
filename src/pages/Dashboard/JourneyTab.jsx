@@ -33,13 +33,18 @@ const { CORE_TRAITS } = traitSystem;
 const JOURNEY_MAP_SRC = '/map.jpg';
 
 function JourneyTab() {
+  const MUTED_GREEN = '#6F9A83';
+  const MUTED_YELLOW = '#D7C97E';
+  const MUTED_RED = '#C88D86';
   const [actionPlans, setActionPlans] = useState({});
+  const [plansByCampaign, setPlansByCampaign] = useState({});
   const [savedActionItems, setSavedActionItems] = useState([]);
   const [subTraitData, setSubTraitData] = useState([]);
   const [subTraitData124, setSubTraitData124] = useState([]);
   const [subTraitData125, setSubTraitData125] = useState([]);
   const [expandedNode, setExpandedNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState('trailhead');
+  const [actionPanelOpen, setActionPanelOpen] = useState(false);
   const [nodes, setNodes] = useState([]);
   const [startNodeExpanded, setStartNodeExpanded] = useState(false);
   const [secondNodeExpanded, setSecondNodeExpanded] = useState(false);
@@ -52,17 +57,24 @@ function JourneyTab() {
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
       const userKey = userInfo?.email || userInfo?.name || 'anonymous';
       const byCampaign = JSON.parse(localStorage.getItem('actionPlansByCampaign') || '{}');
-      const campaignPlans = byCampaign?.['123']?.[userKey]?.plans || {};
+      const campaignPlansById = {
+        '123': byCampaign?.['123']?.[userKey]?.plans || {},
+        '124': byCampaign?.['124']?.[userKey]?.plans || {},
+        '125': byCampaign?.['125']?.[userKey]?.plans || {},
+      };
       const flat = [];
-      Object.entries(campaignPlans).forEach(([traitId, subtraits]) => {
-        Object.entries(subtraits || {}).forEach(([subTraitId, payload]) => {
-          (payload?.items || []).forEach((item) => {
-            if (String(item?.text || '').trim()) {
-              flat.push({ traitId, subTraitId, text: item.text });
-            }
+      Object.entries(campaignPlansById).forEach(([campaignId, campaignPlans]) => {
+        Object.entries(campaignPlans || {}).forEach(([traitId, subtraits]) => {
+          Object.entries(subtraits || {}).forEach(([subTraitId, payload]) => {
+            (payload?.items || []).forEach((item) => {
+              if (String(item?.text || '').trim()) {
+                flat.push({ campaignId, traitId, subTraitId, text: item.text });
+              }
+            });
           });
         });
       });
+      setPlansByCampaign(campaignPlansById);
       setSavedActionItems(flat);
 
       const legacy = JSON.parse(localStorage.getItem('actionPlans') || '{}');
@@ -71,6 +83,10 @@ function JourneyTab() {
       console.error('Failed to parse action plans:', e);
     }
   }, []);
+
+  useEffect(() => {
+    setActionPanelOpen(false);
+  }, [selectedNode]);
 
   // Calculate subtrait data for campaign 123 and 124
   const calculateSubTraitData = (campaignId) => {
@@ -133,8 +149,8 @@ function JourneyTab() {
     : 0;
 
   const getNodeFill = (status) => {
-    if (status === 'complete') return '#5B88A5';
-    if (status === 'in_progress') return '#ECC94B';
+    if (status === 'complete') return MUTED_GREEN;
+    if (status === 'in_progress') return MUTED_YELLOW;
     return '#FFFFFF';
   };
 
@@ -210,20 +226,22 @@ function JourneyTab() {
     return '#E07A3F'; // orange
   };
 
-  const hasActionPlanForSubTrait = (subTraitName, traitName) => {
+  const hasActionPlanForSubTrait = (subTraitName, traitName, campaignId = '123') => {
     const trait = CORE_TRAITS.find((t) => String(t.name || '').toLowerCase() === String(traitName || '').toLowerCase());
     const subTrait = trait?.subTraits?.find((st) => String(st.name || '').toLowerCase() === String(subTraitName || '').toLowerCase());
     if (!trait || !subTrait) return false;
 
     const hasSaved = savedActionItems.some(
       (item) =>
+        String(item?.campaignId || '') === String(campaignId) &&
         item?.traitId === trait.id &&
         item?.subTraitId === subTrait.id &&
         String(item?.text || '').trim().length > 0
     );
     if (hasSaved) return true;
 
-    const payload = actionPlans?.[trait.id]?.[subTrait.id];
+    const payload = plansByCampaign?.[String(campaignId)]?.[trait.id]?.[subTrait.id]
+      || actionPlans?.[trait.id]?.[subTrait.id];
     if (!payload) return false;
     if (Array.isArray(payload?.items)) {
       return payload.items.some((it) => String(it?.text || '').trim().length > 0);
@@ -237,6 +255,7 @@ function JourneyTab() {
         id: 'checkin',
         title: 'Check-In Point',
         subtitle: 'Campaign 124',
+        campaignId: '124',
         status: journeyProgress.checkin,
         current: subTraitData124,
         baseline: subTraitData,
@@ -247,6 +266,7 @@ function JourneyTab() {
         id: 'summit',
         title: 'Summit Campaign',
         subtitle: 'Campaign 125 (In Progress)',
+        campaignId: '125',
         status: journeyProgress.summit,
         current: subTraitData125,
         baseline: subTraitData124,
@@ -256,11 +276,27 @@ function JourneyTab() {
       id: 'trailhead',
       title: 'Trailhead Campaign',
       subtitle: 'Campaign 123',
+      campaignId: '123',
       status: journeyProgress.trailhead,
       current: subTraitData,
       baseline: [],
     };
   })();
+
+  const actionPlanComplete = panelModel.current.length > 0 && panelModel.current.every((subTrait) =>
+    hasActionPlanForSubTrait(subTrait.name, subTrait.trait, panelModel.campaignId)
+  );
+
+  const actionPlanRows = panelModel.current.map((subTrait) => {
+    const trait = CORE_TRAITS.find((t) => String(t.name || '').toLowerCase() === String(subTrait.trait || '').toLowerCase());
+    const traitId = trait?.id;
+    const subTraitRef = trait?.subTraits?.find((st) => String(st.name || '').toLowerCase() === String(subTrait.name || '').toLowerCase());
+    const payload = plansByCampaign?.[panelModel.campaignId]?.[traitId]?.[subTraitRef?.id]
+      || actionPlans?.[traitId]?.[subTraitRef?.id]
+      || {};
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    return { subTrait, items };
+  });
 
   const handleDownload = () => {
     // Create a canvas to render the map for download
@@ -379,7 +415,7 @@ function JourneyTab() {
               />
               {/* Summit route: 2 -> 3 (same style, map-following curve) */}
               <path
-                d="M 590 490 C 654 492, 708 474, 724 434 C 742 388, 686 350, 712 312 C 742 268, 772 244, 790 224"
+                d="M 590 490 C 650 506, 732 516, 748 466 C 764 412, 678 370, 706 328 C 736 282, 768 268, 790 224"
                 fill="none"
                 stroke="rgba(42,29,18,0.92)"
                 strokeWidth="4"
@@ -451,7 +487,7 @@ function JourneyTab() {
                     {(node.type === 'trailhead' || node.type === 'checkin' || node.type === 'summit') && (
                       <text
                         x={x}
-                        y={y + 1}
+                        y={y + (node.type === 'summit' ? 9 : 1)}
                         textAnchor="middle"
                         dominantBaseline="middle"
                         fill={node.status === 'incomplete' ? '#111' : '#fff'}
@@ -492,17 +528,42 @@ function JourneyTab() {
                     {panelModel.subtitle}
                   </Typography>
                 </Box>
-                <Chip
-                  size="small"
-                  label={panelModel.status === 'complete' ? 'Complete' : panelModel.status === 'in_progress' ? 'In Progress' : 'Incomplete'}
-                  sx={{
-                    fontFamily: 'Montserrat, sans-serif',
-                    fontWeight: 700,
-                    bgcolor: panelModel.status === 'complete' ? '#5B88A5' : panelModel.status === 'in_progress' ? '#ECC94B' : '#FFFFFF',
-                    color: panelModel.status === 'in_progress' ? '#3A2A1A' : '#FFFFFF',
-                    border: '1px solid #111',
-                  }}
-                />
+                <Stack direction="row" spacing={0.7} alignItems="center">
+                  <Chip
+                    size="small"
+                    label={panelModel.status === 'complete' ? 'Complete' : panelModel.status === 'in_progress' ? 'In Progress' : 'Incomplete'}
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontWeight: 700,
+                      bgcolor: panelModel.status === 'complete' ? MUTED_GREEN : panelModel.status === 'in_progress' ? MUTED_YELLOW : '#FFFFFF',
+                      color: panelModel.status === 'in_progress' ? '#3A2A1A' : panelModel.status === 'complete' ? '#FFFFFF' : '#3A2A1A',
+                      border: '1px solid #111',
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => setActionPanelOpen((v) => !v)}
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      minWidth: 96,
+                      px: 1.1,
+                      py: 0.25,
+                      bgcolor: actionPlanComplete ? MUTED_GREEN : MUTED_RED,
+                      color: '#FFFFFF',
+                      border: '1px solid #111',
+                      boxShadow: 'none',
+                      '&:hover': {
+                        bgcolor: actionPlanComplete ? '#628c78' : '#b97f78',
+                        boxShadow: 'none',
+                      },
+                    }}
+                  >
+                    Action Plan
+                  </Button>
+                </Stack>
               </Stack>
               <Stack spacing={0.65}>
                 {panelModel.current.map((subTrait, idx) => {
@@ -547,6 +608,74 @@ function JourneyTab() {
                 })}
               </Stack>
             </Box>
+
+            {actionPanelOpen && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  right: 16,
+                  bottom: 16,
+                  zIndex: 22,
+                  width: { xs: 'calc(100% - 32px)', md: 316 },
+                  minHeight: { xs: 250, md: 405 },
+                  borderRadius: 2,
+                  border: '1px solid rgba(40,26,14,0.72)',
+                  background: 'linear-gradient(145deg, rgba(249,241,222,0.96), rgba(236,219,185,0.94))',
+                  boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
+                  backdropFilter: 'blur(1px)',
+                  p: 1.4,
+                  overflow: 'hidden',
+                }}
+              >
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.9 }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#20140B' }}>
+                    Action Plan
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={actionPlanComplete ? 'Complete' : 'Open'}
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontWeight: 700,
+                      bgcolor: actionPlanComplete ? MUTED_GREEN : MUTED_RED,
+                      color: '#FFFFFF',
+                      border: '1px solid #111',
+                    }}
+                  />
+                </Stack>
+                <Stack spacing={0.75}>
+                  {actionPlanRows.map(({ subTrait, items }) => (
+                    <Box
+                      key={`ap-${panelModel.id}-${subTrait.name}`}
+                      sx={{
+                        borderRadius: 1.1,
+                        border: '1px solid rgba(35,23,12,0.28)',
+                        bgcolor: 'rgba(255,255,255,0.75)',
+                        px: 1,
+                        py: 0.72,
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', fontWeight: 700, color: '#1B130C', mb: 0.35 }}>
+                        {subTrait.name}
+                      </Typography>
+                      {items.length ? (
+                        <Stack spacing={0.3}>
+                          {items.slice(0, 4).map((item, idx) => (
+                            <Typography key={`api-${panelModel.id}-${subTrait.name}-${idx}`} sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: '#2B2218', lineHeight: 1.25 }}>
+                              • {item.text}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      ) : (
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: 'rgba(43,34,24,0.75)' }}>
+                          No action items logged yet.
+                        </Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            )}
 
             {/* Popup Box for Start Node */}
             {startNodeExpanded && (() => {
