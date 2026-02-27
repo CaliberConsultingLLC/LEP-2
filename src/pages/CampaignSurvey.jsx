@@ -418,7 +418,7 @@ function CampaignSurvey() {
                 overflow: 'hidden',
               }}
             >
-              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 2, md: 3 } }}>
+              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 0.8, md: 1.2 } }}>
                 <Box
                   sx={{
                     width: '100%',
