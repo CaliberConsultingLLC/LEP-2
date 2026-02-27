@@ -171,7 +171,6 @@ function CampaignSurvey() {
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
   const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
-  const traitTotal = Math.ceil((questions.length || 0) / TRAIT_QUESTION_COUNT) || 5;
   const currentTrait = campaign[traitIndex]?.trait || '';
   const currentRating = ratings[`${currentQuestion}`] || { effort: 1, efficacy: 1 };
   const traitRecap = getTraitRecapMetrics(currentQuestion);
@@ -563,7 +562,7 @@ function CampaignSurvey() {
                   </Tooltip>
                 </Stack>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary', fontWeight: 400, textAlign: 'center', mb: 0.55 }}>
-                  ({traitIndex + 1} out of {traitTotal})
+                  ({(currentQuestion % TRAIT_QUESTION_COUNT) + 1} out of {TRAIT_QUESTION_COUNT})
                 </Typography>
                 <Box
                   sx={{
@@ -592,7 +591,7 @@ function CampaignSurvey() {
                         Efficacy
                       </Typography>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        {avgEfficacy.toFixed(1)} / 10
+                        {avgEfficacy.toFixed(1)}
                       </Typography>
                     </Box>
 
@@ -612,7 +611,7 @@ function CampaignSurvey() {
                         Effort
                       </Typography>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                        {avgEffort.toFixed(1)} / 10
+                        {avgEffort.toFixed(1)}
                       </Typography>
                     </Box>
                   </Box>
