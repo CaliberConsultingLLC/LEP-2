@@ -10,6 +10,8 @@ const MOCK_TRAITS = [
       'Brian communicates priorities clearly when timelines are tight.',
       'Brian explains trade-offs in ways that are easy to understand.',
       'Brian creates alignment quickly when priorities shift.',
+      'Brian adapts communication style to different team members.',
+      'Brian shares context early so stakeholders are not surprised.',
     ],
   },
   {
@@ -19,6 +21,8 @@ const MOCK_TRAITS = [
       'Brian consistently follows through on commitments.',
       'Brian keeps projects moving when blockers appear.',
       'Brian balances speed and quality during delivery.',
+      'Brian maintains momentum across competing priorities.',
+      'Brian closes loops and confirms work is complete.',
     ],
   },
   {
@@ -28,24 +32,8 @@ const MOCK_TRAITS = [
       'Brian provides useful coaching in day-to-day work.',
       'Brian gives actionable feedback that improves performance.',
       'Brian supports development without micromanaging.',
-    ],
-  },
-  {
-    trait: 'Decision-Making',
-    subTrait: 'Judgment and Speed',
-    statements: [
-      'Brian makes timely decisions with available information.',
-      'Brian adjusts decisions when new evidence appears.',
-      'Brian chooses the right level of team input before deciding.',
-    ],
-  },
-  {
-    trait: 'Culture',
-    subTrait: 'Trust and Accountability',
-    statements: [
-      'Brian builds trust through consistent behavior.',
-      'Brian addresses performance issues directly and fairly.',
-      'Brian creates a team environment where ownership is expected.',
+      'Brian helps team members identify specific growth next steps.',
+      'Brian balances challenge and support in development conversations.',
     ],
   },
 ];

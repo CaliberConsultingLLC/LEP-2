@@ -29,7 +29,7 @@ function CampaignSurvey() {
   const [campaignMeta, setCampaignMeta] = useState({});
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
 
-  const TRAIT_QUESTION_COUNT = 3;
+  const TRAIT_QUESTION_COUNT = 5;
 
   useEffect(() => {
     const campaignData = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
@@ -230,6 +230,11 @@ function CampaignSurvey() {
     ? answeredRows.reduce((sum, row) => sum + Number(row.efficacy || 0), 0) / answeredCount
     : currentRating.efficacy;
   const avgDelta = avgEfficacy - avgEffort;
+  const traitRecapSentiment = getSentiment(
+    Math.max(1, traitRecap.effortAvg || 1),
+    Math.max(1, traitRecap.efficacyAvg || 1),
+    isSelfCampaign,
+  );
   const clampToTen = (value) => Math.max(0, Math.min(10, Number(value || 0)));
   const efficacyPct = clampToTen(avgEfficacy) / 10;
   const effortPct = clampToTen(avgEffort) / 10;
@@ -254,6 +259,11 @@ function CampaignSurvey() {
   const rightArcBg = describeArc(ringCx, ringCy, ringRadius, 90, -90);
   const leftArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 + (efficacyPct * 180));
   const rightArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 - (effortPct * 180));
+  const recapEfficacyPct = clampToTen(traitRecap.efficacyAvg) / 10;
+  const recapEffortPct = clampToTen(traitRecap.effortAvg) / 10;
+  const recapLeftArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 + (recapEfficacyPct * 180));
+  const recapRightArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 - (recapEffortPct * 180));
+  const recapCenterScore = (traitRecap.effortAvg + traitRecap.efficacyAvg) / 2;
 
   if (currentQuestion >= questions.length) return null;
 
@@ -732,44 +742,39 @@ function CampaignSurvey() {
             {currentTrait} Recap
           </DialogTitle>
           <DialogContent sx={{ pt: 1 }}>
-            <Stack spacing={1.2} alignItems="center">
-              <Box
-                sx={{
-                  width: 112,
-                  height: 112,
-                  borderRadius: '50%',
-                  background: `conic-gradient(${EFFICACY_ACCENT} ${Math.max(0, Math.min(100, (traitRecap.efficacyAvg / 10) * 50))}%, ${EFFORT_ACCENT} ${Math.max(0, Math.min(100, (traitRecap.efficacyAvg / 10) * 50))}% ${Math.max(0, Math.min(100, 50 + (traitRecap.effortAvg / 10) * 50))}%, rgba(220,228,236,0.92) ${Math.max(0, Math.min(100, 50 + (traitRecap.effortAvg / 10) * 50))}% 100%)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 84,
-                    height: 84,
-                    borderRadius: '50%',
-                    bgcolor: '#fff',
-                    border: '1px solid rgba(15,30,58,0.16)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.76rem', color: 'text.secondary' }}>
-                    Trait Score
+            <Stack spacing={1.3} alignItems="center">
+              <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 0.8 }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
+                    Efficacy
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.2rem', fontWeight: 700, color: '#162336', lineHeight: 1.1 }}>
-                    {traitRecap.traitScore.toFixed(0)}
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.98rem', color: '#162336', fontWeight: 700 }}>
+                    {traitRecap.efficacyAvg.toFixed(1)}
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.72rem', color: 'text.secondary' }}>
-                    / 100
+                </Box>
+
+                <svg width="184" height="184" viewBox="0 0 148 148" role="img" aria-label="Trait recap ring">
+                  <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="butt" />
+                  <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
+                  <path d={recapLeftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
+                  <path d={recapRightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
+                  <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
+                  <text x={ringCx} y={ringCy + 5} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
+                    {recapCenterScore.toFixed(1)}
+                  </text>
+                </svg>
+
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
+                    Effort
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.98rem', color: '#162336', fontWeight: 700 }}>
+                    {traitRecap.effortAvg.toFixed(1)}
                   </Typography>
                 </Box>
               </Box>
-              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'text.secondary', textAlign: 'center' }}>
-                This previews how this subtrait appears to your leader once feedback is aggregated.
+              <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.96rem', color: 'text.secondary', textAlign: 'center', lineHeight: 1.35 }}>
+                {traitRecapSentiment}
               </Typography>
             </Stack>
           </DialogContent>
