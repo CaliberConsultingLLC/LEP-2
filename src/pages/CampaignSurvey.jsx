@@ -397,7 +397,7 @@ function CampaignSurvey() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1.95fr 1fr' },
+              gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
               gap: { xs: 1.2, md: 1.4 },
               alignItems: 'stretch',
               minWidth: 0,
@@ -531,7 +531,7 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 520,
+                    maxWidth: 598,
                     mx: 'auto',
                     minHeight: 56,
                     bgcolor: 'rgba(224,122,63,0.12)',
