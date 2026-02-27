@@ -136,7 +136,7 @@ function CampaignSurvey() {
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
   const sliderSx = {
     color: '#4C6F84',
-    px: { xs: 1.25, md: 2 },
+    px: { xs: 2, md: 3 },
     '& .MuiSlider-rail': {
       opacity: 0.32,
       bgcolor: '#9fb5c6',
@@ -146,12 +146,6 @@ function CampaignSurvey() {
       bgcolor: '#4C6F84',
       border: 'none',
       height: 6,
-    },
-    '& .MuiSlider-markLabel': {
-      color: 'text.secondary',
-      fontFamily: 'Gemunu Libre, sans-serif',
-      fontSize: '0.9rem',
-      top: 30,
     },
   };
 
@@ -191,7 +185,7 @@ function CampaignSurvey() {
         maxWidth="md"
         sx={{
           textAlign: 'center',
-          py: { xs: 2, md: 2.5 },
+          py: { xs: 2, md: 3 },
           px: { xs: 2, md: 4 },
         }}
       >
@@ -229,9 +223,9 @@ function CampaignSurvey() {
             boxShadow: '0 18px 36px rgba(18, 31, 56, 0.22)',
             backdropFilter: 'blur(1px)',
             width: '100%',
-            maxWidth: 900,
+            maxWidth: 820,
             mx: 'auto',
-            minHeight: { xs: 560, md: 600 },
+            minHeight: { xs: 560, md: 590 },
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -243,7 +237,7 @@ function CampaignSurvey() {
               borderColor: 'rgba(255,255,255,0.25)',
               borderTopLeftRadius: 3,
               borderTopRightRadius: 3,
-              minHeight: { xs: 140, md: 156 },
+              minHeight: { xs: 128, md: 140 },
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -259,11 +253,11 @@ function CampaignSurvey() {
                 fontStyle: 'italic',
                 color: 'rgba(247, 250, 255, 0.95)',
                 lineHeight: 1.35,
-                minHeight: { xs: 58, md: 62 },
+                minHeight: { xs: 54, md: 58 },
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                px: { xs: 0.5, md: 1.5 },
+                px: { xs: 1, md: 2 },
               }}
             >
               {questions[currentQuestion]}
@@ -281,8 +275,8 @@ function CampaignSurvey() {
               flexGrow: 1,
             }}
           >
-            <Stack spacing={2} alignItems="center" sx={{ mb: 2.5, flexGrow: 1 }}>
-              <Box sx={{ width: '100%', minHeight: 136 }}>
+            <Stack spacing={2.3} alignItems="stretch" sx={{ mb: 1.2, flexGrow: 1 }}>
+              <Box sx={{ width: '100%', minHeight: 142, maxWidth: 660, mx: 'auto' }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Effort
                 </Typography>
@@ -297,10 +291,7 @@ function CampaignSurvey() {
                   min={1}
                   max={10}
                   step={1}
-                  marks={[
-                    { value: 1, label: 'Low' },
-                    { value: 10, label: 'High' }
-                  ]}
+                  marks={false}
                   sx={sliderSx}
                   slotProps={{
                     thumb: {
@@ -308,8 +299,12 @@ function CampaignSurvey() {
                     }
                   }}
                 />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2, md: 3.2 }, mt: 0.3 }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>Low</Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>High</Typography>
+                </Box>
               </Box>
-              <Box sx={{ width: '100%', minHeight: 136 }}>
+              <Box sx={{ width: '100%', minHeight: 142, maxWidth: 660, mx: 'auto' }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Efficacy
                 </Typography>
@@ -324,10 +319,7 @@ function CampaignSurvey() {
                   min={1}
                   max={10}
                   step={1}
-                  marks={[
-                    { value: 1, label: 'Low' },
-                    { value: 10, label: 'High' }
-                  ]}
+                  marks={false}
                   sx={sliderSx}
                   slotProps={{
                     thumb: {
@@ -335,6 +327,10 @@ function CampaignSurvey() {
                     }
                   }}
                 />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2, md: 3.2 }, mt: 0.3 }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>Low</Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>High</Typography>
+                </Box>
               </Box>
               <Box
                 sx={{
@@ -348,6 +344,8 @@ function CampaignSurvey() {
                   justifyContent: 'center',
                   borderRadius: 2,
                   px: 1.5,
+                  maxWidth: 660,
+                  mx: 'auto',
                 }}
               >
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', whiteSpace: 'normal', textAlign: 'center' }}>
