@@ -110,15 +110,15 @@ function CampaignSurvey() {
       <Box
         {...other}
         sx={{
-          width: 40,
-          height: 40,
+          width: 32,
+          height: 32,
           borderRadius: '50%',
-          backgroundColor: 'secondary.main',
+          backgroundColor: '#4C6F84',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: 'white',
-          fontSize: '1rem',
+          fontSize: '0.9rem',
           fontFamily: 'Gemunu Libre, sans-serif',
           cursor: 'pointer',
         }}
@@ -134,6 +134,26 @@ function CampaignSurvey() {
   const currentTrait = campaign[Math.floor(currentQuestion / 3)]?.trait || '';
   const currentRating = ratings[`${currentQuestion}`] || { effort: 1, efficacy: 1 };
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
+  const sliderSx = {
+    color: '#4C6F84',
+    px: { xs: 1.25, md: 2 },
+    '& .MuiSlider-rail': {
+      opacity: 0.32,
+      bgcolor: '#9fb5c6',
+      height: 6,
+    },
+    '& .MuiSlider-track': {
+      bgcolor: '#4C6F84',
+      border: 'none',
+      height: 6,
+    },
+    '& .MuiSlider-markLabel': {
+      color: 'text.secondary',
+      fontFamily: 'Gemunu Libre, sans-serif',
+      fontSize: '0.9rem',
+      top: 30,
+    },
+  };
 
   if (currentQuestion >= questions.length) return null;
 
@@ -150,11 +170,11 @@ function CampaignSurvey() {
           position: 'fixed',
           inset: 0,
           zIndex: -2,
-          backgroundImage: 'url(/LEP1.jpg)',
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          transform: 'translateZ(0)',
+          backgroundAttachment: 'fixed',
         },
         // dark overlay
         '&:after': {
@@ -162,7 +182,7 @@ function CampaignSurvey() {
           position: 'fixed',
           inset: 0,
           zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(15,30,58,0.22), rgba(15,30,58,0.40))',
         },
       }}
     >
@@ -171,7 +191,7 @@ function CampaignSurvey() {
         maxWidth="md"
         sx={{
           textAlign: 'center',
-          py: { xs: 2, md: 3 },
+          py: { xs: 2, md: 2.5 },
           px: { xs: 2, md: 4 },
         }}
       >
@@ -202,44 +222,67 @@ function CampaignSurvey() {
 
         <Box
           sx={{
-            border: '2px solid',
-            borderColor: 'primary.main',
-            borderRadius: 2,
-            boxShadow: 4,
+            borderRadius: 3,
+            border: '1px solid',
+            borderColor: 'rgba(255,255,255,0.50)',
+            bgcolor: 'rgba(15, 30, 58, 0.54)',
+            boxShadow: '0 18px 36px rgba(18, 31, 56, 0.22)',
+            backdropFilter: 'blur(1px)',
             width: '100%',
             maxWidth: 900,
             mx: 'auto',
+            minHeight: { xs: 560, md: 600 },
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <Box
             sx={{
-              p: 3,
-              bgcolor: 'secondary.main',
-              background: 'linear-gradient(180deg, #1976d2, #1565c0)',
-              borderBottom: '2px solid',
-              borderColor: 'primary.main',
-              borderTopLeftRadius: 2,
-              borderTopRightRadius: 2,
+              p: { xs: 2.2, md: 2.5 },
+              borderBottom: '1px solid',
+              borderColor: 'rgba(255,255,255,0.25)',
+              borderTopLeftRadius: 3,
+              borderTopRightRadius: 3,
+              minHeight: { xs: 140, md: 156 },
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
             }}
           >
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', mb: 1, color: 'white' }}>
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.2rem', fontWeight: 700, mb: 0.7, color: '#FFFFFF' }}>
               {currentTrait}
             </Typography>
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontStyle: 'italic', color: 'white' }}>
+            <Typography
+              sx={{
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: { xs: '1.06rem', md: '1.14rem' },
+                fontStyle: 'italic',
+                color: 'rgba(247, 250, 255, 0.95)',
+                lineHeight: 1.35,
+                minHeight: { xs: 58, md: 62 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: { xs: 0.5, md: 1.5 },
+              }}
+            >
               {questions[currentQuestion]}
             </Typography>
           </Box>
           <Box
             sx={{
-              p: 3,
-              bgcolor: 'rgba(255, 255, 255, 0.95)',
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-              borderBottomLeftRadius: 2,
-              borderBottomRightRadius: 2,
+              p: { xs: 2.2, md: 2.5 },
+              bgcolor: 'rgba(255, 255, 255, 0.90)',
+              borderBottomLeftRadius: 3,
+              borderBottomRightRadius: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              flexGrow: 1,
             }}
           >
-            <Stack spacing={2} alignItems="center" sx={{ mb: 3 }}>
-              <Box sx={{ width: '100%' }}>
+            <Stack spacing={2} alignItems="center" sx={{ mb: 2.5, flexGrow: 1 }}>
+              <Box sx={{ width: '100%', minHeight: 136 }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Effort
                 </Typography>
@@ -258,7 +301,7 @@ function CampaignSurvey() {
                     { value: 1, label: 'Low' },
                     { value: 10, label: 'High' }
                   ]}
-                  sx={{ color: 'secondary.main' }}
+                  sx={sliderSx}
                   slotProps={{
                     thumb: {
                       component: CustomThumb
@@ -266,7 +309,7 @@ function CampaignSurvey() {
                   }}
                 />
               </Box>
-              <Box sx={{ width: '100%' }}>
+              <Box sx={{ width: '100%', minHeight: 136 }}>
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.25rem', fontWeight: 'bold', color: 'text.primary' }}>
                   Efficacy
                 </Typography>
@@ -285,7 +328,7 @@ function CampaignSurvey() {
                     { value: 1, label: 'Low' },
                     { value: 10, label: 'High' }
                   ]}
-                  sx={{ color: 'secondary.main' }}
+                  sx={sliderSx}
                   slotProps={{
                     thumb: {
                       component: CustomThumb
@@ -296,15 +339,15 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
-                  minHeight: '50px',
-                  bgcolor: 'rgba(255, 255, 255, 0.95)',
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(220,230,255,0.8))',
-                  border: '2px solid #BC5C2B',
+                  minHeight: 74,
+                  bgcolor: 'rgba(255,255,255,0.82)',
+                  border: '1px solid',
+                  borderColor: 'rgba(76,111,132,0.55)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderRadius: 2,
-                  p: 1,
+                  px: 1.5,
                 }}
               >
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', whiteSpace: 'normal', textAlign: 'center' }}>
@@ -314,15 +357,20 @@ function CampaignSurvey() {
             </Stack>
           </Box>
         </Box>
-        <Stack spacing={2} alignItems="center" sx={{ mt: 3 }}>
-          <Box sx={{ width: '100%', textAlign: 'center' }}>
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.primary', mb: 1 }}>
+        <Stack spacing={1.4} alignItems="center" sx={{ mt: 1.5, width: '100%', maxWidth: 900, mx: 'auto' }}>
+          <Box sx={{ width: '100%', textAlign: 'center', minHeight: 48 }}>
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'rgba(15,30,58,0.82)', mb: 0.7 }}>
               {currentQuestion + 1}/{questions.length || 15}
             </Typography>
             <LinearProgress
               variant="determinate"
               value={((currentQuestion + 1) / (questions.length || 15)) * 100}
-              sx={{ height: 10, borderRadius: 5 }}
+              sx={{
+                height: 8,
+                borderRadius: 5,
+                bgcolor: 'rgba(15,30,58,0.16)',
+                '& .MuiLinearProgress-bar': { bgcolor: '#4C6F84' },
+              }}
             />
           </Box>
           <Button
@@ -330,7 +378,18 @@ function CampaignSurvey() {
             color="primary"
             onClick={nextQuestion}
             disabled={!ratings[`${currentQuestion}`]?.effort || !ratings[`${currentQuestion}`]?.efficacy}
-            sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '0.98rem',
+              px: 3.2,
+              py: 0.95,
+              minWidth: 186,
+              minHeight: 42,
+              borderRadius: 999,
+              bgcolor: '#457089',
+              boxShadow: 'none',
+              '&:hover': { bgcolor: '#375d78', boxShadow: 'none' },
+            }}
           >
             {currentQuestion < (questions.length - 1) ? 'Next Question' : 'Complete Survey'}
           </Button>
