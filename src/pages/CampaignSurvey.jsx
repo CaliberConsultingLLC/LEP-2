@@ -417,12 +417,14 @@ function CampaignSurvey() {
                 overflow: 'hidden',
               }}
             >
-              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', px: { xs: 2, md: 3 } }}>
+              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 2, md: 3 } }}>
                 <Box
                   sx={{
                     width: '100%',
                     maxWidth: 598,
-                    mx: 'auto',
+                    alignSelf: 'center',
+                    boxSizing: 'border-box',
+                    minWidth: 0,
                     minHeight: 116,
                     borderRadius: 2,
                     border: `1px solid rgba(224,122,63,0.28)`,
@@ -477,7 +479,9 @@ function CampaignSurvey() {
                 sx={{
                   width: '100%',
                   maxWidth: 598,
-                  mx: 'auto',
+                  alignSelf: 'center',
+                  boxSizing: 'border-box',
+                  minWidth: 0,
                   minHeight: 116,
                   borderRadius: 2,
                     border: `1px solid rgba(99,147,170,0.28)`,
@@ -532,7 +536,9 @@ function CampaignSurvey() {
                   sx={{
                     width: '100%',
                     maxWidth: 598,
-                    mx: 'auto',
+                    alignSelf: 'center',
+                    boxSizing: 'border-box',
+                    minWidth: 0,
                     minHeight: 56,
                     bgcolor: 'rgba(224,122,63,0.12)',
                     border: '1px solid',
@@ -542,6 +548,7 @@ function CampaignSurvey() {
                     justifyContent: 'center',
                     borderRadius: 1.8,
                     px: 1.6,
+                    overflow: 'hidden',
                   }}
                 >
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.35 }}>
