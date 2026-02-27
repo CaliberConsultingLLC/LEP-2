@@ -104,30 +104,6 @@ function CampaignSurvey() {
     }));
   };
 
-  const CustomThumb = (props) => {
-    const { children, ...other } = props;
-    return (
-      <Box
-        {...other}
-        sx={{
-          width: 22,
-          height: 22,
-          borderRadius: '50%',
-          backgroundColor: '#FFFFFF',
-          border: '2px solid #3F647B',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'transparent',
-          fontSize: 0,
-          cursor: 'pointer',
-        }}
-      >
-        {children}
-      </Box>
-    );
-  };
-
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
   const currentTrait = campaign[Math.floor(currentQuestion / 3)]?.trait || '';
@@ -135,30 +111,57 @@ function CampaignSurvey() {
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
   const progressValue = ((currentQuestion + 1) / (questions.length || 15)) * 100;
   const nextCtaLabel = currentQuestion < (questions.length - 1) ? 'Next Question' : 'Complete Survey';
-  const sliderSx = {
-    color: '#3F647B',
-    px: { xs: 2.2, md: 2.6 },
-    py: 0.5,
+  const EFFICACY_PRIMARY = '#6393AA';
+  const EFFICACY_ACCENT = '#457089';
+  const EFFORT_PRIMARY = '#E07A3F';
+  const EFFORT_ACCENT = '#C85A2A';
+
+  const sliderSx = (trackColor) => ({
+    color: trackColor,
+    mx: 0,
     '& .MuiSlider-rail': {
       opacity: 1,
       bgcolor: 'transparent',
-      background: 'linear-gradient(90deg, #dfe7ef 0%, #cfdbe8 100%)',
+      background: 'linear-gradient(90deg, #dbe4ee 0%, #ccd8e6 100%)',
       height: 8,
       borderRadius: 999,
     },
     '& .MuiSlider-track': {
-      bgcolor: '#3F647B',
+      bgcolor: trackColor,
       border: 'none',
       height: 8,
-      boxShadow: '0 0 0 1px rgba(63,100,123,0.08)',
+      boxShadow: '0 0 0 1px rgba(63,100,123,0.12)',
     },
     '& .MuiSlider-thumb': {
-      boxShadow: '0 4px 12px rgba(22,35,54,0.18)',
+      width: 20,
+      height: 20,
+      bgcolor: '#fff',
+      border: `2px solid ${trackColor}`,
+      boxShadow: '0 4px 10px rgba(20,30,50,0.22)',
       '&:hover, &.Mui-focusVisible': {
-        boxShadow: '0 6px 16px rgba(22,35,54,0.28)',
+        boxShadow: '0 6px 14px rgba(20,30,50,0.30)',
       },
+      '&:before': { boxShadow: 'none' },
     },
-  };
+  });
+
+  const answeredRows = [];
+  for (let idx = 0; idx <= currentQuestion; idx += 1) {
+    if (idx === currentQuestion) {
+      answeredRows.push(currentRating);
+      continue;
+    }
+    const row = ratings[String(idx)];
+    if (row?.effort && row?.efficacy) answeredRows.push(row);
+  }
+  const answeredCount = answeredRows.length;
+  const avgEffort = answeredCount
+    ? answeredRows.reduce((sum, row) => sum + Number(row.effort || 0), 0) / answeredCount
+    : currentRating.effort;
+  const avgEfficacy = answeredCount
+    ? answeredRows.reduce((sum, row) => sum + Number(row.efficacy || 0), 0) / answeredCount
+    : currentRating.efficacy;
+  const avgDelta = avgEfficacy - avgEffort;
 
   if (currentQuestion >= questions.length) return null;
 
@@ -193,7 +196,7 @@ function CampaignSurvey() {
     >
       <ProcessTopRail />
       <Container
-        maxWidth="md"
+        maxWidth="lg"
         sx={{
           py: { xs: 2, md: 3.2 },
           px: { xs: 2, md: 4 },
@@ -233,23 +236,23 @@ function CampaignSurvey() {
             boxShadow: '0 18px 36px rgba(18, 31, 56, 0.22)',
             backdropFilter: 'blur(1px)',
             width: '100%',
-            maxWidth: 860,
+            maxWidth: 1120,
             mx: 'auto',
-            minHeight: { xs: 620, md: 640 },
+            minHeight: { xs: 420, md: 440 },
             display: 'flex',
             flexDirection: 'column',
             p: { xs: 1.3, md: 1.8 },
-            gap: 1.6,
+            gap: 1.5,
           }}
         >
           <Box
             sx={{
-              p: { xs: 2.1, md: 2.5 },
+              p: { xs: 1.7, md: 2.1 },
               borderRadius: 2.5,
               border: '1px solid',
               borderColor: 'rgba(255,255,255,0.22)',
               bgcolor: 'rgba(13, 26, 48, 0.62)',
-              minHeight: { xs: 132, md: 146 },
+              minHeight: { xs: 96, md: 104 },
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -257,63 +260,121 @@ function CampaignSurvey() {
               textAlign: 'center',
             }}
           >
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.38rem', md: '1.55rem' }, fontWeight: 700, mb: 0.6, color: '#FFFFFF', letterSpacing: '0.01em' }}>
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.45rem', md: '1.65rem' }, fontWeight: 700, mb: 0.45, color: '#FFFFFF', letterSpacing: '0.01em' }}>
               {currentTrait}
             </Typography>
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: { xs: '1.04rem', md: '1.12rem' },
+                fontSize: { xs: '1.02rem', md: '1.1rem' },
                 fontStyle: 'italic',
                 color: 'rgba(247, 250, 255, 0.95)',
-                lineHeight: 1.45,
-                minHeight: { xs: 52, md: 56 },
+                lineHeight: 1.35,
+                minHeight: 34,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                px: { xs: 1.6, md: 2.6 },
-                maxWidth: 700,
+                px: { xs: 1.2, md: 2 },
+                maxWidth: 980,
               }}
             >
               {questions[currentQuestion]}
             </Typography>
           </Box>
+
           <Box
             sx={{
-              p: { xs: 2, md: 2.3 },
-              bgcolor: 'rgba(255, 255, 255, 0.92)',
-              borderRadius: 2.5,
-              border: '1px solid rgba(15,30,58,0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              flexGrow: 1,
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1.95fr 1fr' },
+              gap: { xs: 1.2, md: 1.4 },
+              alignItems: 'stretch',
             }}
           >
-            <Stack spacing={2} alignItems="stretch" sx={{ flexGrow: 1 }}>
+            <Box
+              sx={{
+                p: { xs: 1.2, md: 1.35 },
+                bgcolor: 'rgba(255, 255, 255, 0.92)',
+                borderRadius: 2.5,
+                border: '1px solid rgba(15,30,58,0.08)',
+                minHeight: { xs: 302, md: 304 },
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Stack spacing={1.3} alignItems="stretch" sx={{ flexGrow: 1 }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    minHeight: 116,
+                    borderRadius: 2,
+                    border: `1px solid rgba(224,122,63,0.28)`,
+                    bgcolor: 'rgba(255,255,255,0.92)',
+                    boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
+                    px: { xs: 1.2, md: 1.5 },
+                    py: { xs: 1.1, md: 1.2 },
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.2, textAlign: 'center' }}>
+                    Effort
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.7, textAlign: 'center' }}>
+                    {isSelfCampaign
+                      ? 'How intentional and attentive I am in this area'
+                      : 'How intentional and attentive Brian behaves in this area'}
+                  </Typography>
+                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative' }}>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 2,
+                        height: 18,
+                        bgcolor: 'rgba(22,35,54,0.24)',
+                        borderRadius: 999,
+                        zIndex: 1,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                    <Slider
+                      value={currentRating.effort}
+                      onChange={(e, value) => handleSliderChange('effort', value)}
+                      min={1}
+                      max={10}
+                      step={1}
+                      marks={false}
+                      sx={sliderSx(EFFORT_PRIMARY)}
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.2, md: 2.7 }, mt: 0.15 }}>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>Low</Typography>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>High</Typography>
+                  </Box>
+                </Box>
+
               <Box
                 sx={{
                   width: '100%',
-                  minHeight: 178,
-                  maxWidth: 700,
-                  mx: 'auto',
+                  minHeight: 116,
                   borderRadius: 2,
-                  border: '1px solid rgba(15,30,58,0.08)',
-                  bgcolor: 'rgba(255,255,255,0.88)',
+                    border: `1px solid rgba(99,147,170,0.28)`,
+                  bgcolor: 'rgba(255,255,255,0.92)',
                   boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
-                  px: { xs: 1.2, md: 1.6 },
-                  py: { xs: 1.6, md: 1.8 },
+                    px: { xs: 1.2, md: 1.5 },
+                    py: { xs: 1.1, md: 1.2 },
                 }}
               >
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.32rem', md: '1.45rem' }, fontWeight: 600, color: '#162336', mb: 0.4, textAlign: 'center' }}>
-                  Effort
-                </Typography>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.96rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 1.2, textAlign: 'center' }}>
-                  {isSelfCampaign
-                    ? 'How intentional and attentive I am in this area'
-                    : 'How intentional and attentive Brian behaves in this area'}
-                </Typography>
-                <Box sx={{ position: 'relative' }}>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.25rem', md: '1.32rem' }, fontWeight: 700, color: '#162336', mb: 0.2, textAlign: 'center' }}>
+                    Efficacy
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.7, textAlign: 'center' }}>
+                    {isSelfCampaign
+                      ? 'How effectively I meet the demands of this area'
+                      : 'Is Brian meeting my needs in this area'}
+                  </Typography>
+                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative' }}>
                   <Box
                     sx={{
                       position: 'absolute',
@@ -328,122 +389,163 @@ function CampaignSurvey() {
                       pointerEvents: 'none',
                     }}
                   />
-                  <Slider
-                    value={currentRating.effort}
-                    onChange={(e, value) => handleSliderChange('effort', value)}
-                    min={1}
-                    max={10}
-                    step={1}
-                    marks={false}
-                    sx={sliderSx}
-                    slotProps={{
-                      thumb: {
-                        component: CustomThumb
-                      }
-                    }}
-                  />
+                    <Slider
+                      value={currentRating.efficacy}
+                      onChange={(e, value) => handleSliderChange('efficacy', value)}
+                      min={1}
+                      max={10}
+                      step={1}
+                      marks={false}
+                      sx={sliderSx(EFFICACY_PRIMARY)}
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.2, md: 2.7 }, mt: 0.15 }}>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>Low</Typography>
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>High</Typography>
+                  </Box>
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.8, md: 3.4 }, mt: 0.2 }}>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'rgba(22,35,54,0.75)' }}>Low</Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'rgba(22,35,54,0.75)' }}>High</Typography>
+
+                <Box
+                  sx={{
+                    width: '100%',
+                    minHeight: 56,
+                    bgcolor: 'rgba(255,255,255,0.84)',
+                    border: '1px solid',
+                    borderColor: 'rgba(76,111,132,0.55)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 1.8,
+                    px: 1.6,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.35 }}>
+                    {sentiment}
+                  </Typography>
                 </Box>
-              </Box>
+              </Stack>
+            </Box>
+
               <Box
                 sx={{
-                  width: '100%',
-                  minHeight: 178,
-                  maxWidth: 700,
-                  mx: 'auto',
-                  borderRadius: 2,
+                  p: { xs: 1.2, md: 1.35 },
+                  bgcolor: 'rgba(255, 255, 255, 0.92)',
+                  borderRadius: 2.5,
                   border: '1px solid rgba(15,30,58,0.08)',
-                  bgcolor: 'rgba(255,255,255,0.88)',
-                  boxShadow: '0 8px 24px rgba(16,24,40,0.08)',
-                  px: { xs: 1.2, md: 1.6 },
-                  py: { xs: 1.6, md: 1.8 },
-                }}
-              >
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.32rem', md: '1.45rem' }, fontWeight: 600, color: '#162336', mb: 0.4, textAlign: 'center' }}>
-                  Efficacy
-                </Typography>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.96rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 1.2, textAlign: 'center' }}>
-                  {isSelfCampaign
-                    ? 'How effectively I meet the demands of this area'
-                    : 'Is Brian meeting my needs in this area'}
-                </Typography>
-                <Box sx={{ position: 'relative' }}>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: '50%',
-                      top: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: 2,
-                      height: 18,
-                      bgcolor: 'rgba(22,35,54,0.24)',
-                      borderRadius: 999,
-                      zIndex: 1,
-                      pointerEvents: 'none',
-                    }}
-                  />
-                  <Slider
-                    value={currentRating.efficacy}
-                    onChange={(e, value) => handleSliderChange('efficacy', value)}
-                    min={1}
-                    max={10}
-                    step={1}
-                    marks={false}
-                    sx={sliderSx}
-                    slotProps={{
-                      thumb: {
-                        component: CustomThumb
-                      }
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.8, md: 3.4 }, mt: 0.2 }}>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'rgba(22,35,54,0.75)' }}>Low</Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: 'rgba(22,35,54,0.75)' }}>High</Typography>
-                </Box>
-              </Box>
-              <Box
-                sx={{
-                  width: '100%',
-                  minHeight: 78,
-                  bgcolor: 'rgba(255,255,255,0.82)',
-                  border: '1px solid',
-                  borderColor: 'rgba(76,111,132,0.55)',
+                  minHeight: { xs: 302, md: 304 },
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 2,
-                  px: 2,
-                  maxWidth: 700,
-                  mx: 'auto',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
                 }}
               >
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: '#162336', whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.42 }}>
-                  {sentiment}
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center', mb: 0.6 }}>
+                  Live Snapshot
                 </Typography>
+                <Stack direction="row" spacing={1.1} justifyContent="center" sx={{ mb: 0.8 }}>
+                  {[
+                    { label: 'Efficacy', value: avgEfficacy, ring: EFFICACY_PRIMARY, fill: EFFICACY_ACCENT },
+                    { label: 'Effort', value: avgEffort, ring: EFFORT_PRIMARY, fill: EFFORT_ACCENT },
+                  ].map((item) => {
+                    const pct = Math.max(0, Math.min(100, (item.value / 10) * 100));
+                    return (
+                      <Box
+                        key={item.label}
+                        sx={{
+                          width: 126,
+                          borderRadius: 2,
+                          border: '1px solid rgba(15,30,58,0.10)',
+                          bgcolor: 'rgba(255,255,255,0.95)',
+                          p: 1,
+                        }}
+                      >
+                        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.84rem', color: 'text.secondary', textAlign: 'center', mb: 0.35 }}>
+                          {item.label}
+                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.35 }}>
+                          <Box
+                            sx={{
+                              width: 62,
+                              height: 62,
+                              borderRadius: '50%',
+                              background: `conic-gradient(${item.fill} ${pct}%, rgba(220,228,236,0.92) ${pct}% 100%)`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: '50%',
+                                bgcolor: 'rgba(255,255,255,0.98)',
+                                border: `2px solid ${item.ring}`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontWeight: 700,
+                                fontSize: '1rem',
+                                color: '#162336',
+                              }}
+                            >
+                              {item.value.toFixed(1)}
+                            </Box>
+                          </Box>
+                        </Box>
+                        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: 'text.secondary', textAlign: 'center' }}>
+                          / 10 scale
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+                <Box
+                  sx={{
+                    borderRadius: 2,
+                    border: '1px solid rgba(15,30,58,0.14)',
+                    bgcolor: 'rgba(255,255,255,0.95)',
+                    p: 1,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.84rem', color: 'text.secondary', textAlign: 'center' }}>
+                    Response Balance (Efficacy - Effort)
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.18rem',
+                      fontWeight: 700,
+                      color: avgDelta >= 0 ? EFFICACY_ACCENT : EFFORT_ACCENT,
+                      textAlign: 'center',
+                      mt: 0.15,
+                    }}
+                  >
+                    {avgDelta >= 0 ? '+' : ''}{avgDelta.toFixed(1)}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: 'text.secondary', textAlign: 'center' }}>
+                    Based on {answeredCount} response{answeredCount === 1 ? '' : 's'} so far
+                  </Typography>
+                </Box>
               </Box>
-            </Stack>
           </Box>
         </Box>
         <Box
           sx={{
-            mt: 1.6,
+            mt: 1.1,
             width: '100%',
-            maxWidth: 860,
+            maxWidth: 1120,
             mx: 'auto',
             borderRadius: 999,
             border: '1px solid rgba(15,30,58,0.12)',
             bgcolor: 'rgba(255,255,255,0.84)',
             px: { xs: 1.2, md: 1.6 },
-            py: { xs: 1.1, md: 1.2 },
+            py: { xs: 0.85, md: 0.95 },
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '120px 1fr 210px' },
             gap: { xs: 1, md: 1.2 },
             alignItems: 'center',
-            minHeight: 70,
+            minHeight: 56,
           }}
         >
           <Typography
