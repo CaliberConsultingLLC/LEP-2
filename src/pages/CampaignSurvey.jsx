@@ -396,18 +396,29 @@ function CampaignSurvey() {
 
           <Box
             sx={{
-              width: '100%',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1.5fr 1fr' },
+              gap: { xs: 1.2, md: 1.4 },
+              alignItems: 'stretch',
               minWidth: 0,
-              p: { xs: 1.2, md: 1.5 },
-              bgcolor: 'rgba(255, 255, 255, 0.92)',
-              borderRadius: 2.5,
-              border: '1px solid rgba(15,30,58,0.08)',
-              display: 'flex',
-              flexDirection: 'column',
               overflow: 'hidden',
             }}
           >
-            <Stack spacing={1.3} alignItems="stretch" sx={{ width: '100%', minWidth: 0 }}>
+            <Box
+              sx={{
+                p: { xs: 1.2, md: 1.35 },
+                minWidth: 0,
+                bgcolor: 'rgba(255, 255, 255, 0.92)',
+                borderRadius: 2.5,
+                border: '1px solid rgba(15,30,58,0.08)',
+                minHeight: { xs: 302, md: 304 },
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                overflow: 'hidden',
+              }}
+            >
+              <Stack spacing={1.3} alignItems="center" sx={{ flexGrow: 1, width: '100%', minWidth: 0, px: { xs: 2, md: 3 } }}>
                 <Box
                   sx={{
                     width: '100%',
@@ -542,21 +553,19 @@ function CampaignSurvey() {
               </Stack>
             </Box>
 
-              <Box
-                sx={{
-                  width: '100%',
-                  minWidth: 0,
-                  p: { xs: 1.2, md: 1.5 },
-                  bgcolor: 'rgba(255, 255, 255, 0.92)',
-                  borderRadius: 2.5,
-                  border: '1px solid rgba(15,30,58,0.08)',
-                  minHeight: { xs: 302, md: 304 },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  overflow: 'hidden',
-                }}
-              >
+            <Box
+              sx={{
+                p: { xs: 1.2, md: 1.35 },
+                bgcolor: 'rgba(255, 255, 255, 0.92)',
+                borderRadius: 2.5,
+                border: '1px solid rgba(15,30,58,0.08)',
+                minHeight: { xs: 302, md: 304 },
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                overflow: 'hidden',
+              }}
+            >
                 <Stack direction="row" spacing={0.6} justifyContent="center" alignItems="center" sx={{ mb: 0.1 }}>
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center' }}>
                     {currentTrait} Results
@@ -652,6 +661,7 @@ function CampaignSurvey() {
                   </Typography>
                 </Box>
               </Box>
+          </Box>
         </Box>
         <Box
           sx={{
