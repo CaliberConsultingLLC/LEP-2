@@ -83,7 +83,7 @@ function CampaignSurvey() {
     const values = [];
     for (let i = start; i < start + TRAIT_QUESTION_COUNT; i += 1) {
       const row = i === currentQuestion ? currentRating : ratings[String(i)];
-      if (row?.effort && row?.efficacy) {
+      if (row != null && row.effort != null && row.efficacy != null) {
         values.push({ effort: Number(row.effort), efficacy: Number(row.efficacy) });
       }
     }
@@ -172,7 +172,8 @@ function CampaignSurvey() {
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
   const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
   const currentTrait = campaign[traitIndex]?.trait || '';
-  const currentRating = ratings[`${currentQuestion}`] || { effort: 1, efficacy: 1 };
+  const r = ratings[`${currentQuestion}`];
+  const currentRating = (r && typeof r.effort === 'number' && typeof r.efficacy === 'number') ? r : { effort: 5, efficacy: 5 };
   const traitRecap = getTraitRecapMetrics(currentQuestion);
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
   const progressValue = ((currentQuestion + 1) / (questions.length || 15)) * 100;
@@ -182,9 +183,17 @@ function CampaignSurvey() {
   const EFFORT_PRIMARY = '#E07A3F';
   const EFFORT_ACCENT = '#C85A2A';
 
+  const sliderMarks = Array.from({ length: 11 }, (_, i) => ({ value: i }));
   const sliderSx = (trackColor) => ({
     color: trackColor,
     mx: 0,
+    '& .MuiSlider-mark': {
+      width: 4,
+      height: 4,
+      borderRadius: '50%',
+      bgcolor: 'rgba(22,35,54,0.35)',
+    },
+    '& .MuiSlider-markLabel': { display: 'none' },
     '& .MuiSlider-rail': {
       opacity: 1,
       bgcolor: 'transparent',
@@ -219,7 +228,7 @@ function CampaignSurvey() {
       continue;
     }
     const row = ratings[String(idx)];
-    if (row?.effort && row?.efficacy) answeredRows.push(row);
+    if (row != null && row.effort != null && row.efficacy != null) answeredRows.push(row);
   }
   const answeredCount = answeredRows.length;
   const avgEffort = answeredCount
@@ -230,8 +239,8 @@ function CampaignSurvey() {
     : currentRating.efficacy;
   const avgDelta = avgEfficacy - avgEffort;
   const traitRecapSentiment = getSentiment(
-    Math.max(1, traitRecap.effortAvg || 1),
-    Math.max(1, traitRecap.efficacyAvg || 1),
+    Math.max(0, traitRecap.effortAvg ?? 5),
+    Math.max(0, traitRecap.efficacyAvg ?? 5),
     isSelfCampaign,
   );
   const clampToTen = (value) => Math.max(0, Math.min(10, Number(value || 0)));
@@ -411,7 +420,7 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 520,
+                    maxWidth: 598,
                     mx: 'auto',
                     minHeight: 116,
                     borderRadius: 2,
@@ -449,10 +458,11 @@ function CampaignSurvey() {
                     <Slider
                       value={currentRating.effort}
                       onChange={(e, value) => handleSliderChange('effort', value)}
-                      min={1}
+                      min={0}
                       max={10}
                       step={1}
-                      marks={false}
+                      marks={sliderMarks}
+                      valueLabelDisplay="off"
                       sx={sliderSx(EFFORT_PRIMARY)}
                     />
                   </Box>
@@ -465,7 +475,7 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: 520,
+                  maxWidth: 598,
                   mx: 'auto',
                   minHeight: 116,
                   borderRadius: 2,
@@ -503,10 +513,11 @@ function CampaignSurvey() {
                     <Slider
                       value={currentRating.efficacy}
                       onChange={(e, value) => handleSliderChange('efficacy', value)}
-                      min={1}
+                      min={0}
                       max={10}
                       step={1}
-                      marks={false}
+                      marks={sliderMarks}
+                      valueLabelDisplay="off"
                       sx={sliderSx(EFFICACY_PRIMARY)}
                     />
                   </Box>
@@ -714,7 +725,7 @@ function CampaignSurvey() {
             variant="contained"
             color="primary"
             onClick={nextQuestion}
-            disabled={!ratings[`${currentQuestion}`]?.effort || !ratings[`${currentQuestion}`]?.efficacy}
+            disabled={ratings[`${currentQuestion}`]?.effort == null || ratings[`${currentQuestion}`]?.efficacy == null}
             sx={{
               fontFamily: 'Gemunu Libre, sans-serif',
               fontSize: '1rem',

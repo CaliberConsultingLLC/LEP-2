@@ -28,7 +28,7 @@ function CampaignComplete() {
       const statements = Array.isArray(trait?.statements) ? trait.statements : [];
       const rows = statements
         .map((_, idx) => ratings[String(cursor + idx)])
-        .filter((row) => row?.effort && row?.efficacy);
+        .filter((row) => row != null && row.effort != null && row.efficacy != null);
 
       const effortAvg = rows.length
         ? rows.reduce((sum, row) => sum + Number(row.effort || 0), 0) / rows.length

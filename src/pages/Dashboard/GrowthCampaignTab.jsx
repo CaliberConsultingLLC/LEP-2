@@ -147,35 +147,6 @@ function GrowthCampaignTab() {
               >
                 <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }}>
                   <Stack direction="row" spacing={1.5} alignItems="stretch" sx={{ width: '100%' }}>
-                    {needsSelfAssessment(row.id) && (
-                      <Stack direction="row" spacing={0.6} alignItems="center" sx={{ pr: 0.4 }}>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={openSelfAssessment}
-                          disabled={selfCampaignCompleted}
-                          sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            textTransform: 'none',
-                            bgcolor: '#457089',
-                            color: 'white',
-                            minWidth: 124,
-                            '&:hover': {
-                              bgcolor: '#375d78',
-                            },
-                            '&.Mui-disabled': {
-                              bgcolor: 'rgba(69,112,137,0.35)',
-                              color: 'rgba(255,255,255,0.9)',
-                            },
-                          }}
-                        >
-                          Self Assessment
-                        </Button>
-                        {selfCampaignCompleted && (
-                          <CheckCircle sx={{ color: '#2F855A', fontSize: '1.2rem' }} />
-                        )}
-                      </Stack>
-                    )}
                     <Box
                       sx={{
                         minWidth: 92,
@@ -220,7 +191,36 @@ function GrowthCampaignTab() {
                     </Typography>
                     </Box>
                   </Stack>
-                  <Stack direction="row" spacing={1}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    {needsSelfAssessment(row.id) && (
+                      <Stack direction="row" spacing={0.6} alignItems="center">
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={openSelfAssessment}
+                          disabled={selfCampaignCompleted}
+                          sx={{
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            textTransform: 'none',
+                            bgcolor: '#457089',
+                            color: 'white',
+                            minWidth: 124,
+                            '&:hover': {
+                              bgcolor: '#375d78',
+                            },
+                            '&.Mui-disabled': {
+                              bgcolor: 'rgba(69,112,137,0.35)',
+                              color: 'rgba(255,255,255,0.9)',
+                            },
+                          }}
+                        >
+                          Self Assessment
+                        </Button>
+                        {selfCampaignCompleted && (
+                          <CheckCircle sx={{ color: '#2F855A', fontSize: '1.2rem' }} />
+                        )}
+                      </Stack>
+                    )}
                     <Button
                       variant="contained"
                       size="small"

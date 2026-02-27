@@ -851,6 +851,7 @@ function IntakeForm() {
   const isNumeric = (value) => /^\d+$/.test(String(value ?? '').trim());
   const isProfileValid = () => {
     const industry = String(formData.industry || '').trim();
+    const department = String(formData.department || '').trim();
     const role = String(formData.role || '').trim();
     const responsibilities = String(formData.responsibilities || '').trim();
     const birthYear = Number(formData.birthYear);
@@ -861,6 +862,7 @@ function IntakeForm() {
     const currentYear = new Date().getFullYear();
     return (
       industry &&
+      department &&
       role &&
       responsibilities &&
       isNumeric(formData.birthYear) &&
@@ -1026,42 +1028,66 @@ function IntakeForm() {
                 Leader Profile
               </Typography>
 
-              <Grid container spacing={1.6}>
-                <Grid item xs={12} md={6}>
-                  <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
-                      Year Born
-                    </Typography>
-                    <MemoTextField
-                      value={formData.birthYear || ''}
-                      onChange={(e) => {
-                        const raw = String(e.target.value || '').replace(/[^\d]/g, '').slice(0, 4);
-                        handleChange('birthYear', raw);
-                      }}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      placeholder="e.g., 1985"
-                      inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    />
-                  </MemoBox>
+              <Box
+                sx={{
+                  p: { xs: 1.1, md: 1.3 },
+                  borderRadius: 2,
+                  border: '1px solid rgba(0,0,0,0.14)',
+                  bgcolor: 'rgba(0,0,0,0.03)',
+                }}
+              >
+                <Grid container spacing={1.3} alignItems="stretch">
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
+                        Year Born
+                      </Typography>
+                      <MemoTextField
+                        value={formData.birthYear || ''}
+                        onChange={(e) => {
+                          const raw = String(e.target.value || '').replace(/[^\d]/g, '').slice(0, 4);
+                          handleChange('birthYear', raw);
+                        }}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        placeholder="e.g., 1985"
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
+                        Industry
+                      </Typography>
+                      <MemoTextField
+                        value={formData.industry || ''}
+                        onChange={(e) => handleChange('industry', e.target.value)}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        placeholder="Industry"
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
+                        Department
+                      </Typography>
+                      <MemoTextField
+                        value={formData.department || ''}
+                        onChange={(e) => handleChange('department', e.target.value)}
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        placeholder="Department"
+                      />
+                    </Box>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
-                      Industry
-                    </Typography>
-                    <MemoTextField
-                      value={formData.industry || ''}
-                      onChange={(e) => handleChange('industry', e.target.value)}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      placeholder="Industry"
-                    />
-                  </MemoBox>
-                </Grid>
-              </Grid>
+              </Box>
 
               <MemoBox sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.7 }}>
                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.6, textAlign: 'left' }}>
@@ -1104,7 +1130,7 @@ function IntakeForm() {
                   <Grid item xs={12} md={4}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                       <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
-                        How many people do you directly manage?
+                        Team Size
                       </Typography>
                       <MemoTextField
                         value={formData.teamSize ?? ''}
@@ -1122,7 +1148,7 @@ function IntakeForm() {
                   <Grid item xs={12} md={4}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                       <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
-                        How many years in your current role?
+                        Years in Current Role
                       </Typography>
                       <MemoTextField
                         value={formData.leadershipExperience ?? ''}
@@ -1140,7 +1166,7 @@ function IntakeForm() {
                   <Grid item xs={12} md={4}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                       <Typography variant="caption" sx={{ fontWeight: 700, mb: 0.55, display: 'block', textAlign: 'left', minHeight: 38 }}>
-                        How many years in leadership?
+                        Years in Leadership
                       </Typography>
                       <MemoTextField
                         value={formData.careerExperience ?? ''}

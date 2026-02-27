@@ -44,6 +44,10 @@ const ROLE_TITLE_POOL = [
   'Director of Engineering','Technical Lead','Head of Operations','Customer Success Lead','Data Team Lead',
   'Project Manager','Sales Manager','People Manager','Strategy Lead','Innovation Lead',
 ];
+const DEPARTMENT_POOL = [
+  'Engineering','Product','Operations','Sales','Marketing','Finance','HR','Customer Success',
+  'Strategy','R&D','Legal','IT','Support','Design',
+];
 const RESOURCE_PICK = ['Time', 'Budget', 'Expectations', 'Scope'];
 const PROJECT_APPROACH = [
   'Create a detailed plan to guide the team.',
@@ -227,6 +231,7 @@ const QUESTION_META = {
 const generateRandomPayload = (sessionId) => ({
   sessionId,
   industry: pick(INDUSTRY_POOL),
+  department: pick(DEPARTMENT_POOL),
   role: pick(ROLE_TITLE_POOL),
   responsibilities: pick(QUESTION_META.responsibilities.options),
   birthYear: String(rnd(1965, 2002)),
@@ -260,6 +265,7 @@ const PRESETS = [
     label: 'Fast Operator',
     formData: {
       industry: 'Technology',
+      department: 'Operations',
       role: 'Operations Manager',
       responsibilities: "Ensure on-time, high-quality delivery.",
       birthYear: '1986',
@@ -306,6 +312,7 @@ const PRESETS = [
     label: 'Steady Builder',
     formData: {
       industry: 'Education',
+      department: 'Programs',
       role: 'Program Manager',
       responsibilities: 'Improve processes and team health.',
       birthYear: '1984',
@@ -352,6 +359,7 @@ const PRESETS = [
     label: 'Bold Visionary',
     formData: {
       industry: 'Media',
+      department: 'Product',
       role: 'Innovation Lead',
       responsibilities: 'Champion experimentation and learning loops.',
       birthYear: '1990',
@@ -398,6 +406,7 @@ const PRESETS = [
     label: 'Quiet Strategist',
     formData: {
       industry: 'Finance',
+      department: 'Strategy',
       role: 'Strategy Lead',
       responsibilities: 'Balance short-term wins with long-term bets.',
       birthYear: '1976',
@@ -444,6 +453,7 @@ const PRESETS = [
     label: 'Relationship Anchor',
     formData: {
       industry: 'Nonprofit',
+      department: 'Customer Success',
       role: 'Customer Success Lead',
       responsibilities: 'Communicate progress and risks.',
       birthYear: '1988',
@@ -490,6 +500,7 @@ const PRESETS = [
     label: 'Data Driver',
     formData: {
       industry: 'Technology',
+      department: 'Engineering',
       role: 'Data Team Lead',
       responsibilities: 'Represent the team’s work to executives.',
       birthYear: '1981',
@@ -536,6 +547,7 @@ const PRESETS = [
     label: 'Adaptive Firefighter',
     formData: {
       industry: 'Logistics',
+      department: 'Operations',
       role: 'Operations Manager',
       responsibilities: 'Ensure on-time, high-quality delivery.',
       birthYear: '1987',
@@ -582,6 +594,7 @@ const PRESETS = [
     label: 'People-First Coach',
     formData: {
       industry: 'Healthcare',
+      department: 'HR',
       role: 'People Manager',
       responsibilities: 'Coach and develop team members.',
       birthYear: '1982',
@@ -628,6 +641,7 @@ const PRESETS = [
     label: 'Strategic Navigator',
     formData: {
       industry: 'Professional Services',
+      department: 'Strategy',
       role: 'Strategy Lead',
       responsibilities: 'Align cross-functional teams and clear roadblocks.',
       birthYear: '1989',
@@ -674,6 +688,7 @@ const PRESETS = [
     label: 'Hands-On Fixer',
     formData: {
       industry: 'Manufacturing',
+      department: 'Engineering',
       role: 'Technical Lead',
       responsibilities: 'Improve processes and team health.',
       birthYear: '1979',

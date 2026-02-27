@@ -536,6 +536,7 @@ function buildFocusAreas(data, insightMap = null) {
     const key = JSON.stringify({
       role: data?.role || '',
       industry: data?.industry || '',
+      department: data?.department || '',
       trait: trait.id,
     });
     let hash = 0;

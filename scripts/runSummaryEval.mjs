@@ -29,6 +29,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c01',
       industry: 'Technology',
+      department: 'Operations',
       role: 'Operations Manager',
       responsibilities: 'Ensure on-time, high-quality delivery.',
       birthYear: '1986',
@@ -63,6 +64,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c02',
       industry: 'Education',
+      department: 'Programs',
       role: 'Program Manager',
       responsibilities: 'Improve processes and team health.',
       birthYear: '1984',
@@ -97,6 +99,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c03',
       industry: 'Media',
+      department: 'Product',
       role: 'Innovation Lead',
       responsibilities: 'Champion experimentation and learning loops.',
       birthYear: '1990',
@@ -131,6 +134,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c04',
       industry: 'Finance',
+      department: 'Strategy',
       role: 'Strategy Lead',
       responsibilities: 'Balance short-term wins with long-term bets.',
       birthYear: '1976',
@@ -165,6 +169,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c05',
       industry: 'Nonprofit',
+      department: 'Customer Success',
       role: 'Customer Success Lead',
       responsibilities: 'Communicate progress and risks.',
       birthYear: '1988',
@@ -199,6 +204,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c06',
       industry: 'Technology',
+      department: 'Engineering',
       role: 'Data Team Lead',
       responsibilities: 'Represent the team’s work to executives.',
       birthYear: '1981',
@@ -233,6 +239,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c07',
       industry: 'Logistics',
+      department: 'Operations',
       role: 'Operations Manager',
       responsibilities: 'Ensure on-time, high-quality delivery.',
       birthYear: '1987',
@@ -267,6 +274,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c08',
       industry: 'Healthcare',
+      department: 'HR',
       role: 'People Manager',
       responsibilities: 'Coach and develop team members.',
       birthYear: '1982',
@@ -301,6 +309,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c09',
       industry: 'Professional Services',
+      department: 'Strategy',
       role: 'Strategy Lead',
       responsibilities: 'Align cross-functional teams and clear roadblocks.',
       birthYear: '1989',
@@ -335,6 +344,7 @@ const CASES = [
     payload: {
       sessionId: 'eval-c10',
       industry: 'Manufacturing',
+      department: 'Engineering',
       role: 'Technical Lead',
       responsibilities: 'Improve processes and team health.',
       birthYear: '1979',
@@ -594,6 +604,7 @@ function flattenPayload(payload) {
 
   return {
     answer_industry: p.industry || '',
+    answer_department: p.department || '',
     answer_role: p.role || '',
     answer_responsibilities: p.responsibilities || '',
     answer_birthYear: p.birthYear || '',
@@ -794,6 +805,7 @@ async function run() {
     'batchNumber',
     'personaName',
     'answer_industry',
+    'answer_department',
     'answer_role',
     'answer_responsibilities',
     'answer_birthYear',
