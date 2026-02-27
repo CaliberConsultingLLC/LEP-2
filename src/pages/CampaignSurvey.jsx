@@ -538,7 +538,7 @@ function CampaignSurvey() {
               >
                 <Stack direction="row" spacing={0.6} justifyContent="center" alignItems="center" sx={{ mb: 0.1 }}>
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center' }}>
-                    Results Preview
+                    {currentTrait} Results
                   </Typography>
                   <Tooltip
                     title="Preview of what your leader will see in aggregate once all feedback is combined."
@@ -547,8 +547,8 @@ function CampaignSurvey() {
                     <InfoOutlinedIcon sx={{ fontSize: '1rem', color: 'rgba(22,35,54,0.65)', cursor: 'help' }} />
                   </Tooltip>
                 </Stack>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.94rem', color: '#162336', fontWeight: 700, textAlign: 'center', mb: 0.55 }}>
-                  {currentTrait} ({traitIndex + 1} out of {traitTotal})
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary', fontWeight: 400, textAlign: 'center', mb: 0.55 }}>
+                  ({traitIndex + 1} out of {traitTotal})
                 </Typography>
                 <Box
                   sx={{
@@ -562,8 +562,17 @@ function CampaignSurvey() {
                     alignItems: 'center',
                   }}
                 >
-                  <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative', minHeight: 206 }}>
-                    <Box sx={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', textAlign: 'left' }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      minHeight: 206,
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto 1fr',
+                      alignItems: 'center',
+                      columnGap: 0.8,
+                    }}
+                  >
+                    <Box sx={{ textAlign: 'center' }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
                         Efficacy
                       </Typography>
@@ -577,7 +586,6 @@ function CampaignSurvey() {
                       <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
                       <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
                       <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
-                      <line x1={ringCx} y1={ringCy + ringRadius + 1} x2={ringCx} y2={ringCy + ringRadius - 13} stroke="rgba(15,30,58,0.52)" strokeWidth="2" />
                       <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
                       <text x={ringCx} y={ringCy + 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
                         {((avgEffort + avgEfficacy) / 2).toFixed(1)}
@@ -587,7 +595,7 @@ function CampaignSurvey() {
                       </text>
                     </svg>
 
-                    <Box sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', textAlign: 'right' }}>
+                    <Box sx={{ textAlign: 'center' }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
                         Effort
                       </Typography>
