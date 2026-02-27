@@ -395,6 +395,8 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
+                    maxWidth: 650,
+                    mx: 'auto',
                     minHeight: 116,
                     borderRadius: 2,
                     border: `1px solid rgba(224,122,63,0.28)`,
@@ -413,7 +415,7 @@ function CampaignSurvey() {
                       ? 'How intentional and attentive I am in this area'
                       : 'How intentional and attentive Brian behaves in this area'}
                   </Typography>
-                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative', overflow: 'hidden' }}>
+                  <Box sx={{ px: { xs: 1.6, md: 2.2 }, position: 'relative', overflow: 'hidden' }}>
                     <Box
                       sx={{
                         position: 'absolute',
@@ -438,7 +440,7 @@ function CampaignSurvey() {
                       sx={sliderSx(EFFORT_PRIMARY)}
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.2, md: 2.7 }, mt: 0.15 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.8, md: 3.5 }, mt: 0.15 }}>
                     <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>Low</Typography>
                     <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>High</Typography>
                   </Box>
@@ -447,6 +449,8 @@ function CampaignSurvey() {
               <Box
                 sx={{
                   width: '100%',
+                  maxWidth: 650,
+                  mx: 'auto',
                   minHeight: 116,
                   borderRadius: 2,
                     border: `1px solid rgba(99,147,170,0.28)`,
@@ -465,7 +469,7 @@ function CampaignSurvey() {
                       ? 'How effectively I meet the demands of this area'
                       : 'Is Brian meeting my needs in this area'}
                   </Typography>
-                  <Box sx={{ px: { xs: 1.1, md: 1.4 }, position: 'relative', overflow: 'hidden' }}>
+                  <Box sx={{ px: { xs: 1.6, md: 2.2 }, position: 'relative', overflow: 'hidden' }}>
                   <Box
                     sx={{
                       position: 'absolute',
@@ -490,7 +494,7 @@ function CampaignSurvey() {
                       sx={sliderSx(EFFICACY_PRIMARY)}
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.2, md: 2.7 }, mt: 0.15 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 2.8, md: 3.5 }, mt: 0.15 }}>
                     <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>Low</Typography>
                     <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', color: 'rgba(22,35,54,0.75)' }}>High</Typography>
                   </Box>
@@ -499,6 +503,8 @@ function CampaignSurvey() {
                 <Box
                   sx={{
                     width: '100%',
+                    maxWidth: 650,
+                    mx: 'auto',
                     minHeight: 56,
                     bgcolor: 'rgba(255,255,255,0.84)',
                     border: '1px solid',
@@ -551,24 +557,28 @@ function CampaignSurvey() {
                     bgcolor: 'rgba(255,255,255,0.95)',
                     p: 1,
                     mb: 0.8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
                   }}
                 >
                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <svg width="150" height="150" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
-                      <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="round" />
-                      <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="round" />
-                      <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="round" />
-                      <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="round" />
+                    <svg width="186" height="186" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
+                      <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="butt" />
+                      <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
+                      <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
+                      <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
+                      <line x1={ringCx} y1={ringCy + ringRadius + 1} x2={ringCx} y2={ringCy + ringRadius - 13} stroke="rgba(15,30,58,0.52)" strokeWidth="2" />
                       <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
                       <text x={ringCx} y={ringCy - 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '13px', fill: '#162336', fontWeight: 700 }}>
-                        Live Avg
+                        {currentTrait}
                       </text>
                       <text x={ringCx} y={ringCy + 14} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '16px', fill: '#162336', fontWeight: 700 }}>
                         {((avgEffort + avgEfficacy) / 2).toFixed(1)}
                       </text>
                     </svg>
                   </Box>
-                  <Stack direction="row" justifyContent="space-between" sx={{ mt: -0.2, px: 0.3 }}>
+                  <Stack direction="row" justifyContent="space-between" sx={{ mt: -1.05, px: 0.8, width: '100%' }}>
                     <Box sx={{ textAlign: 'left' }}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
                         Efficacy
