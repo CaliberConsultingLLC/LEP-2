@@ -162,10 +162,11 @@ function CampaignSurvey() {
 
   const handleSliderChange = (id, value) => {
     const key = `${currentQuestion}`;
-    setRatings(prev => ({
-      ...prev,
-      [key]: { ...prev[key], [id]: value }
-    }));
+    setRatings(prev => {
+      const existing = prev[key] || {};
+      const merged = { effort: 5, efficacy: 5, ...existing };
+      return { ...prev, [key]: { ...merged, [id]: value } };
+    });
   };
 
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
@@ -533,9 +534,9 @@ function CampaignSurvey() {
                     maxWidth: 520,
                     mx: 'auto',
                     minHeight: 56,
-                    bgcolor: 'rgba(255,255,255,0.84)',
+                    bgcolor: 'rgba(224,122,63,0.12)',
                     border: '1px solid',
-                    borderColor: 'rgba(76,111,132,0.55)',
+                    borderColor: 'rgba(224,122,63,0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -601,11 +602,11 @@ function CampaignSurvey() {
                       position: 'relative',
                     }}
                   >
-                    <Box sx={{ gridColumn: 1, gridRow: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', pt: 1 }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
+                    <Box sx={{ gridColumn: 1, gridRow: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', placeSelf: 'center', pt: 1 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFICACY_PRIMARY, fontWeight: 700, textAlign: 'center' }}>
                         Efficacy
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap', textAlign: 'center' }}>
                         {avgEfficacy.toFixed(1)}
                       </Typography>
                     </Box>
@@ -617,17 +618,17 @@ function CampaignSurvey() {
                       <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
                       <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
                       <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
-                      <text x={ringCx} y={ringCy + 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
+                      <text x={ringCx} y={ringCy + 8} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
                         {((avgEffort + avgEfficacy) / 2).toFixed(1)}
                       </text>
                     </svg>
                     </Box>
 
-                    <Box sx={{ gridColumn: 3, gridRow: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', pt: 1 }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
+                    <Box sx={{ gridColumn: 3, gridRow: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', placeSelf: 'center', pt: 1 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: EFFORT_PRIMARY, fontWeight: 700, textAlign: 'center' }}>
                         Effort
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.1rem', color: '#162336', fontWeight: 700, whiteSpace: 'nowrap', textAlign: 'center' }}>
                         {avgEffort.toFixed(1)}
                       </Typography>
                     </Box>
