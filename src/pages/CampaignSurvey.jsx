@@ -547,7 +547,7 @@ function CampaignSurvey() {
                     <InfoOutlinedIcon sx={{ fontSize: '1rem', color: 'rgba(22,35,54,0.65)', cursor: 'help' }} />
                   </Tooltip>
                 </Stack>
-                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.84rem', color: 'text.secondary', textAlign: 'center', mb: 0.6 }}>
+                <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.94rem', color: '#162336', fontWeight: 700, textAlign: 'center', mb: 0.55 }}>
                   {currentTrait} ({traitIndex + 1} out of {traitTotal})
                 </Typography>
                 <Box
@@ -562,40 +562,40 @@ function CampaignSurvey() {
                     alignItems: 'center',
                   }}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                    <svg width="186" height="186" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
+                  <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative', minHeight: 206 }}>
+                    <Box sx={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', textAlign: 'left' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
+                        Efficacy
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700 }}>
+                        {avgEfficacy.toFixed(1)} / 10
+                      </Typography>
+                    </Box>
+
+                    <svg width="228" height="228" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
                       <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="butt" />
                       <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
                       <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
                       <path d={rightArcProgress} fill="none" stroke={EFFORT_PRIMARY} strokeWidth="11" strokeLinecap="butt" />
                       <line x1={ringCx} y1={ringCy + ringRadius + 1} x2={ringCx} y2={ringCy + ringRadius - 13} stroke="rgba(15,30,58,0.52)" strokeWidth="2" />
                       <circle cx={ringCx} cy={ringCy} r="35" fill="rgba(255,255,255,0.98)" stroke="rgba(15,30,58,0.12)" strokeWidth="1.5" />
-                      <text x={ringCx} y={ringCy - 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '13px', fill: '#162336', fontWeight: 700 }}>
-                        {currentTrait}
-                      </text>
-                      <text x={ringCx} y={ringCy + 14} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '16px', fill: '#162336', fontWeight: 700 }}>
+                      <text x={ringCx} y={ringCy + 4} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '21px', fill: '#162336', fontWeight: 700 }}>
                         {((avgEffort + avgEfficacy) / 2).toFixed(1)}
                       </text>
+                      <text x={ringCx} y={ringCy + 20} textAnchor="middle" style={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '10px', fill: 'rgba(22,35,54,0.68)', fontWeight: 600 }}>
+                        / 10
+                      </text>
                     </svg>
-                  </Box>
-                  <Stack direction="row" justifyContent="space-between" sx={{ mt: -1.05, px: 0.8, width: '100%' }}>
-                    <Box sx={{ textAlign: 'left' }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: EFFICACY_PRIMARY, fontWeight: 700 }}>
-                        Efficacy
-                      </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: '#162336', fontWeight: 700 }}>
-                        {avgEfficacy.toFixed(1)} / 10
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
+
+                    <Box sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', textAlign: 'right' }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.8rem', color: EFFORT_PRIMARY, fontWeight: 700 }}>
                         Effort
                       </Typography>
-                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: '#162336', fontWeight: 700 }}>
+                      <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', color: '#162336', fontWeight: 700 }}>
                         {avgEffort.toFixed(1)} / 10
                       </Typography>
                     </Box>
-                  </Stack>
+                  </Box>
                 </Box>
                 <Box
                   sx={{
@@ -619,9 +619,6 @@ function CampaignSurvey() {
                     }}
                   >
                     {avgDelta >= 0 ? '+' : ''}{avgDelta.toFixed(1)}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.78rem', color: 'text.secondary', textAlign: 'center' }}>
-                    Live delta preview
                   </Typography>
                 </Box>
               </Box>
