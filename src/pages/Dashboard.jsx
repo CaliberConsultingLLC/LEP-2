@@ -20,12 +20,55 @@ import ActionTab from './Dashboard/ActionTab';
 import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { useFakeDashboardData } from '../config/runtimeFlags';
 
 function Dashboard() {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState(0);
   const [navExpanded, setNavExpanded] = useState(false);
   const CONTENT_MAX_WIDTH = 1180;
+
+  if (!useFakeDashboardData) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          width: '100vw',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundImage: 'linear-gradient(rgba(8, 14, 26, 0.58), rgba(8, 14, 26, 0.58)), url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          p: 3,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 760,
+            p: 3,
+            borderRadius: 3,
+            border: '1px solid rgba(255,255,255,0.22)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(240,246,255,0.9))',
+            boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+            textAlign: 'center',
+          }}
+        >
+          <Typography sx={{ fontSize: { xs: '1.4rem', md: '1.7rem' }, fontWeight: 800, mb: 1.1 }}>
+            Real Dashboard Mode
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.6, mb: 2 }}>
+            Fake dashboard data is disabled in this environment. Use the staging environment for mock data and dev skips while we finish wiring production dashboard views to live user-specific data.
+          </Typography>
+          <Button variant="contained" onClick={() => navigate('/')}>
+            Return Home
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
 
   const navItems = [
     {

@@ -1,11 +1,10 @@
 import React from 'react';
 import { Box, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { allowDevBypass, showDevTools } from '../config/runtimeFlags';
 
 function Home() {
   const navigate = useNavigate();
-  const showDevTools = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_TOOLS === 'true';
-  const allowDevBypass = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_BYPASS === 'true';
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',

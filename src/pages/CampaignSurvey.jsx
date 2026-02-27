@@ -71,6 +71,7 @@ function CampaignSurvey() {
 
   const getSentiment = (effort, efficacy, selfMode = false) => {
     const subject = selfMode ? 'I' : 'Brian';
+    const possessive = selfMode ? 'My' : 'Brian’s';
     const effortRange = effort <= 4 ? 'Low' : effort <= 7 ? 'Medium' : 'High';
     const efficacyRange = efficacy <= 4 ? 'Low' : efficacy <= 7 ? 'Medium' : 'High';
 
@@ -85,13 +86,13 @@ function CampaignSurvey() {
     } else if (effortRange === 'Medium' && efficacyRange === 'Medium') {
       return `${subject}${selfMode ? "'m" : '’s'} effort and results are steady, but there’s room to elevate both.`;
     } else if (effortRange === 'Medium' && efficacyRange === 'Low') {
-      return `${subject}${selfMode ? "'m" : '’s'} moderate effort isn’t yielding ${selfMode ? 'the needed results in this area' : 'the results you need'}, leaving room for improvement.`;
+      return `${possessive} moderate effort isn’t yielding ${selfMode ? 'the needed results in this area' : 'the results you need'}, leaving room for improvement.`;
     } else if (effortRange === 'Low' && efficacyRange === 'High') {
       return `${subject} deliver${selfMode ? '' : 's'} strong results with minimal effort, but more intention could make a bigger impact.`;
     } else if (effortRange === 'Low' && efficacyRange === 'Medium') {
-      return `${subject}${selfMode ? "'m" : '’s'} results are okay, but lack of effort leaves ${selfMode ? 'room for more consistency' : 'you wanting more consistency'}.`;
+      return `${possessive} results are okay, but lack of effort leaves ${selfMode ? 'room for more consistency' : 'you wanting more consistency'}.`;
     } else {
-      return `${subject}${selfMode ? "'m" : '’s'} minimal effort and poor results are disappointing, needing significant improvement.`;
+      return `${possessive} minimal effort and poor results are disappointing, needing significant improvement.`;
     }
   };
 
@@ -166,7 +167,14 @@ function CampaignSurvey() {
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth={false} disableGutters sx={{ textAlign: 'center', py: { xs: 2, md: 3 }, px: { xs: 2, md: 4 } }}>
+      <Container
+        maxWidth="md"
+        sx={{
+          textAlign: 'center',
+          py: { xs: 2, md: 3 },
+          px: { xs: 2, md: 4 },
+        }}
+      >
         {currentQuestion === 0 && savedActionItems.length > 0 ? (
           <Box
             sx={{
@@ -199,6 +207,8 @@ function CampaignSurvey() {
             borderRadius: 2,
             boxShadow: 4,
             width: '100%',
+            maxWidth: 900,
+            mx: 'auto',
           }}
         >
           <Box

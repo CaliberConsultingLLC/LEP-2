@@ -20,9 +20,9 @@ import DevSkipTwo from './pages/DevSkipTwo'
 import DevSkipAssessments from './pages/DevSkipAssessments';
 import SignIn from './pages/SignIn';
 import ProtectedRoute from './components/ProtectedRoute';
+import { showDevTools } from './config/runtimeFlags';
 
 function App() {
-  const showDevTools = import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEV_TOOLS === 'true';
   return (
     <Router>
       <Routes>
