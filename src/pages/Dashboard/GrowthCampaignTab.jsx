@@ -202,6 +202,7 @@ function GrowthCampaignTab() {
                           sx={{
                             fontFamily: 'Gemunu Libre, sans-serif',
                             textTransform: 'none',
+                            whiteSpace: 'nowrap',
                             bgcolor: '#457089',
                             color: 'white',
                             minWidth: 124,
