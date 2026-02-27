@@ -73,6 +73,7 @@ function CampaignSurvey() {
       ratings,
     };
     await addDoc(collection(db, 'surveyResponses'), ratingsData);
+    localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
     console.log('Survey responses saved to Firestore:', ratingsData);
   };
 
@@ -134,30 +135,28 @@ function CampaignSurvey() {
     setCurrentQuestion((prev) => prev - 1);
   };
 
-  const getSentiment = (effort, efficacy, selfMode = false) => {
-    const subject = selfMode ? 'I' : 'Brian';
-    const possessive = selfMode ? 'My' : 'Brian’s';
+  const getSentiment = (effort, efficacy, _selfMode = false) => {
     const effortRange = effort <= 4 ? 'Low' : effort <= 7 ? 'Medium' : 'High';
     const efficacyRange = efficacy <= 4 ? 'Low' : efficacy <= 7 ? 'Medium' : 'High';
 
     if (effortRange === 'High' && efficacyRange === 'High') {
-      return `${subject} consistently excel${selfMode ? '' : 's'} with strong effort, meeting ${selfMode ? 'the demands of this area' : 'your needs exceptionally well'}.`;
+      return 'Execution is consistently strong, with effort and outcomes aligned at a high level.';
     } else if (effortRange === 'High' && efficacyRange === 'Medium') {
-      return `${subject} put${selfMode ? '' : 's'} in strong effort, but the results could be more consistent to fully ${selfMode ? 'meet the demands of this area' : 'meet your needs'}.`;
+      return 'Effort is high, but outcomes need more consistency to fully match the demands of this area.';
     } else if (effortRange === 'High' && efficacyRange === 'Low') {
-      return `${subject} tr${selfMode ? 'y' : 'ies'} hard, but the outcomes often fall short of ${selfMode ? 'the demands of this area' : 'your expectations'}.`;
+      return 'Effort is strong, but outcomes are still falling short and indicate a capability gap in this area.';
     } else if (effortRange === 'Medium' && efficacyRange === 'High') {
-      return `${subject} achieve${selfMode ? '' : 's'} great results with moderate effort, showing efficiency in ${selfMode ? 'this area' : 'meeting your needs'}.`;
+      return 'Outcomes are strong with moderate effort, indicating efficient execution in this area.';
     } else if (effortRange === 'Medium' && efficacyRange === 'Medium') {
-      return `${subject}${selfMode ? "'m" : '’s'} effort and results are steady, but there’s room to elevate both.`;
+      return 'Effort and outcomes are steady, with clear room to elevate both.';
     } else if (effortRange === 'Medium' && efficacyRange === 'Low') {
-      return `${possessive} moderate effort isn’t yielding ${selfMode ? 'the needed results in this area' : 'the results you need'}, leaving room for improvement.`;
+      return 'Moderate effort is not producing the needed outcomes, suggesting this area needs stronger follow-through.';
     } else if (effortRange === 'Low' && efficacyRange === 'High') {
-      return `${subject} deliver${selfMode ? '' : 's'} strong results with minimal effort, but more intention could make a bigger impact.`;
+      return 'Outcomes are currently strong despite low effort, but this level may be hard to sustain over time.';
     } else if (effortRange === 'Low' && efficacyRange === 'Medium') {
-      return `${possessive} results are okay, but lack of effort leaves ${selfMode ? 'room for more consistency' : 'you wanting more consistency'}.`;
+      return 'Outcomes are mixed and effort is low, leaving avoidable inconsistency in this area.';
     } else {
-      return `${possessive} minimal effort and poor results are disappointing, needing significant improvement.`;
+      return 'Both effort and outcomes are low here, signaling a high-priority development area.';
     }
   };
 
@@ -214,7 +213,8 @@ function CampaignSurvey() {
   });
 
   const answeredRows = [];
-  for (let idx = 0; idx <= currentQuestion; idx += 1) {
+  const currentTraitStart = traitIndex * TRAIT_QUESTION_COUNT;
+  for (let idx = currentTraitStart; idx <= currentQuestion; idx += 1) {
     if (idx === currentQuestion) {
       answeredRows.push(currentRating);
       continue;
