@@ -37,8 +37,9 @@ function JourneyTab() {
   const [savedActionItems, setSavedActionItems] = useState([]);
   const [subTraitData, setSubTraitData] = useState([]);
   const [subTraitData124, setSubTraitData124] = useState([]);
+  const [subTraitData125, setSubTraitData125] = useState([]);
   const [expandedNode, setExpandedNode] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedNode, setSelectedNode] = useState('trailhead');
   const [nodes, setNodes] = useState([]);
   const [startNodeExpanded, setStartNodeExpanded] = useState(false);
   const [secondNodeExpanded, setSecondNodeExpanded] = useState(false);
@@ -115,6 +116,7 @@ function JourneyTab() {
   useEffect(() => {
     setSubTraitData(calculateSubTraitData(123));
     setSubTraitData124(calculateSubTraitData(124));
+    setSubTraitData125(calculateSubTraitData(125));
   }, []);
 
   // Calculate overall Compass score from subtrait scores
@@ -126,44 +128,72 @@ function JourneyTab() {
   const overallCompassScore124 = subTraitData124.length > 0
     ? subTraitData124.reduce((sum, st) => sum + st.totalScore, 0) / subTraitData124.length
     : 0;
+  const overallCompassScore125 = subTraitData125.length > 0
+    ? subTraitData125.reduce((sum, st) => sum + st.totalScore, 0) / subTraitData125.length
+    : 0;
 
-  // Generate nodes for verified action items
+  const getNodeFill = (status) => {
+    if (status === 'complete') return '#5B88A5';
+    if (status === 'in_progress') return '#ECC94B';
+    return '#FFFFFF';
+  };
+
+  const journeyProgress = (() => {
+    try {
+      const raw = localStorage.getItem('mockJourneyProgress');
+      if (!raw) return { trailhead: 'complete', checkin: 'complete', summit: 'in_progress' };
+      const parsed = JSON.parse(raw);
+      return {
+        trailhead: parsed?.trailhead || 'complete',
+        checkin: parsed?.checkin || 'complete',
+        summit: parsed?.summit || 'in_progress',
+      };
+    } catch {
+      return { trailhead: 'complete', checkin: 'complete', summit: 'in_progress' };
+    }
+  })();
+
+  // Generate journey nodes
   useEffect(() => {
     const newNodes = [];
 
-    // Campaign path anchors based on approved map marks (1,2,3)
+    // Trailhead
     newNodes.push({
-      id: 'start',
-      x: 24,
+      id: 'trailhead',
+      x: 26,
       y: 40,
-      type: 'start',
+      type: 'trailhead',
+      status: journeyProgress.trailhead,
       compassScore: overallCompassScore,
-      expanded: expandedNode === 'start',
     });
 
-    // Second campaign marker
+    // Check-in point
     newNodes.push({
-      id: 'campaign124',
+      id: 'checkin',
       x: 59,
       y: 70,
-      type: 'campaign',
+      type: 'checkin',
+      status: journeyProgress.checkin,
       campaignId: 124,
       compassScore: overallCompassScore124,
-      expanded: secondNodeExpanded,
+    });
+
+    // Summit
+    newNodes.push({
+      id: 'summit',
+      x: 78,
+      y: 28,
+      type: 'summit',
+      status: journeyProgress.summit,
+      campaignId: 125,
+      compassScore: overallCompassScore125,
     });
 
     setNodes(newNodes);
-  }, [overallCompassScore, overallCompassScore124, expandedNode, secondNodeExpanded]);
+  }, [overallCompassScore, overallCompassScore124, overallCompassScore125, journeyProgress.trailhead, journeyProgress.checkin, journeyProgress.summit]);
 
   const toggleNode = (nodeId) => {
-    if (nodeId === 'start') {
-      setStartNodeExpanded(!startNodeExpanded);
-    } else if (nodeId === 'campaign124') {
-      setSecondNodeExpanded(!secondNodeExpanded);
-    } else {
-      setExpandedNode(expandedNode === nodeId ? null : nodeId);
-      setSelectedNode(expandedNode === nodeId ? null : nodeId);
-    }
+    setSelectedNode(nodeId);
   };
 
   const getTraitFromId = (traitId) => {
@@ -200,6 +230,37 @@ function JourneyTab() {
     }
     return String(payload?.text || '').trim().length > 0;
   };
+
+  const panelModel = (() => {
+    if (selectedNode === 'checkin') {
+      return {
+        id: 'checkin',
+        title: 'Check-In Point',
+        subtitle: 'Campaign 124',
+        status: journeyProgress.checkin,
+        current: subTraitData124,
+        baseline: subTraitData,
+      };
+    }
+    if (selectedNode === 'summit') {
+      return {
+        id: 'summit',
+        title: 'Summit Campaign',
+        subtitle: 'Campaign 125 (In Progress)',
+        status: journeyProgress.summit,
+        current: subTraitData125,
+        baseline: subTraitData124,
+      };
+    }
+    return {
+      id: 'trailhead',
+      title: 'Trailhead Campaign',
+      subtitle: 'Campaign 123',
+      status: journeyProgress.trailhead,
+      current: subTraitData,
+      baseline: [],
+    };
+  })();
 
   const handleDownload = () => {
     // Create a canvas to render the map for download
@@ -316,6 +377,15 @@ function JourneyTab() {
                 strokeLinecap="butt"
                 strokeDasharray="12 10"
               />
+              {/* Summit route: 2 -> 3 (same style, map-following curve) */}
+              <path
+                d="M 590 490 C 654 492, 708 474, 724 434 C 742 388, 686 350, 712 312 C 742 268, 772 244, 790 224"
+                fill="none"
+                stroke="rgba(42,29,18,0.92)"
+                strokeWidth="4"
+                strokeLinecap="butt"
+                strokeDasharray="12 10"
+              />
               {/* Failure branch to southwest X */}
               <path
                 d="M 260 238 C 232 282, 210 322, 186 368"
@@ -341,28 +411,51 @@ function JourneyTab() {
               {nodes.map((node) => {
                 const x = (node.x / 100) * 1000;
                 const y = (node.y / 100) * 700;
-                const radius = node.type === 'start' || node.id === 'campaign124' ? 34 : 25;
+                const isActive = selectedNode === node.id;
+                const fill = getNodeFill(node.status);
 
                 return (
                   <g key={node.id}>
-                    <circle
-                      cx={x}
-                      cy={y}
-                      r={radius}
-                      fill={node.type === 'start' ? '#496F86' : node.type === 'campaign' ? '#2F855A' : node.type === 'survey' ? 'transparent' : '#3F7250'}
-                      stroke="rgba(61,42,25,0.88)"
-                      strokeWidth="2.2"
-                      style={{ cursor: node.id === 'campaignFinal' ? 'default' : 'pointer' }}
-                      onClick={() => node.id !== 'campaignFinal' && toggleNode(node.id)}
-                    />
-                    {(node.type === 'start' || node.type === 'campaign') && (
+                    {node.type === 'trailhead' && (
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={30}
+                        fill={fill}
+                        stroke="#111"
+                        strokeWidth={isActive ? 2.6 : 1.6}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleNode(node.id)}
+                      />
+                    )}
+                    {node.type === 'checkin' && (
+                      <polygon
+                        points={`${x},${y - 32} ${x + 32},${y} ${x},${y + 32} ${x - 32},${y}`}
+                        fill={fill}
+                        stroke="#111"
+                        strokeWidth={isActive ? 2.6 : 1.6}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleNode(node.id)}
+                      />
+                    )}
+                    {node.type === 'summit' && (
+                      <polygon
+                        points={`${x},${y - 34} ${x + 32},${y + 28} ${x - 32},${y + 28}`}
+                        fill={fill}
+                        stroke="#111"
+                        strokeWidth={isActive ? 2.6 : 1.6}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => toggleNode(node.id)}
+                      />
+                    )}
+                    {(node.type === 'trailhead' || node.type === 'checkin' || node.type === 'summit') && (
                       <text
                         x={x}
-                        y={y}
+                        y={y + 1}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fill="white"
-                        fontSize="16"
+                        fill={node.status === 'incomplete' ? '#111' : '#fff'}
+                        fontSize="15"
                         fontWeight="700"
                         fontFamily="Montserrat, sans-serif"
                         style={{ pointerEvents: 'none' }}
@@ -370,22 +463,90 @@ function JourneyTab() {
                         {node.compassScore.toFixed(0)}
                       </text>
                     )}
-                    {node.type === 'survey' && (
-                      <text
-                        x={x}
-                        y={y + 50}
-                        textAnchor="middle"
-                        fill="#333"
-                        fontSize="12"
-                        fontFamily="Montserrat, sans-serif"
-                      >
-                        Survey {node.surveyNumber}
-                      </text>
-                    )}
                   </g>
                 );
               })}
             </svg>
+
+            <Box
+              sx={{
+                position: 'absolute',
+                left: 16,
+                bottom: 16,
+                zIndex: 22,
+                width: { xs: 'calc(100% - 32px)', md: 380 },
+                borderRadius: 2,
+                border: '1px solid rgba(40,26,14,0.72)',
+                background: 'linear-gradient(145deg, rgba(249,241,222,0.96), rgba(236,219,185,0.94))',
+                boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(1px)',
+                p: 1.4,
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.9 }}>
+                <Box>
+                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#20140B' }}>
+                    {panelModel.title}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', color: 'rgba(32,20,11,0.76)', fontWeight: 600 }}>
+                    {panelModel.subtitle}
+                  </Typography>
+                </Box>
+                <Chip
+                  size="small"
+                  label={panelModel.status === 'complete' ? 'Complete' : panelModel.status === 'in_progress' ? 'In Progress' : 'Incomplete'}
+                  sx={{
+                    fontFamily: 'Montserrat, sans-serif',
+                    fontWeight: 700,
+                    bgcolor: panelModel.status === 'complete' ? '#5B88A5' : panelModel.status === 'in_progress' ? '#ECC94B' : '#FFFFFF',
+                    color: panelModel.status === 'in_progress' ? '#3A2A1A' : '#FFFFFF',
+                    border: '1px solid #111',
+                  }}
+                />
+              </Stack>
+              <Stack spacing={0.65}>
+                {panelModel.current.map((subTrait, idx) => {
+                  const baseline = panelModel.baseline.find((st) => st.name === subTrait.name);
+                  const totalChange = baseline ? subTrait.totalScore - baseline.totalScore : 0;
+                  return (
+                    <Box
+                      key={`${panelModel.id}-${subTrait.name}`}
+                      sx={{
+                        borderRadius: 1.1,
+                        border: '1px solid rgba(35,23,12,0.28)',
+                        bgcolor: 'rgba(255,255,255,0.75)',
+                        px: 1,
+                        py: 0.66,
+                      }}
+                    >
+                      <Grid container spacing={0.6} alignItems="center">
+                        <Grid item xs={5.6}>
+                          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#1B130C', lineHeight: 1.1 }}>
+                            {subTrait.name}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={6.4}>
+                          <Stack direction="row" spacing={0.85} justifyContent="flex-end" alignItems="center">
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: '#1F2937' }}>
+                              {subTrait.totalScore.toFixed(1)}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.69rem', fontWeight: 700, color: '#6393AA' }}>
+                              E {subTrait.efficacy.toFixed(1)}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.69rem', fontWeight: 700, color: '#E07A3F' }}>
+                              F {subTrait.effort.toFixed(1)}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.66rem', fontWeight: 700, color: totalChange >= 0 ? '#2F855A' : '#C53030' }}>
+                              {baseline ? `${totalChange >= 0 ? '+' : ''}${totalChange.toFixed(1)}` : '-'}
+                            </Typography>
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  );
+                })}
+              </Stack>
+            </Box>
 
             {/* Popup Box for Start Node */}
             {startNodeExpanded && (() => {

@@ -66,6 +66,17 @@ export default function DevSkipAssessments() {
     navigate(`/campaign/${mockId}/survey`);
   };
 
+  const launchMockJourneyDashboard = () => {
+    localStorage.setItem('dashboardSession', JSON.stringify({ active: true, user: 'dev-staging', ts: new Date().toISOString() }));
+    localStorage.setItem('selfCampaignCompleted', 'true');
+    localStorage.setItem('mockJourneyProgress', JSON.stringify({
+      trailhead: 'complete',
+      checkin: 'complete',
+      summit: 'in_progress',
+    }));
+    navigate('/dashboard?dev=1');
+  };
+
   return (
     <Box
       sx={{
@@ -128,6 +139,19 @@ export default function DevSkipAssessments() {
                 }}
               >
                 Mock Team Assess
+              </Button>
+              <Button
+                variant="contained"
+                onClick={launchMockJourneyDashboard}
+                sx={{
+                  fontFamily: 'Montserrat, sans-serif',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  bgcolor: '#2F855A',
+                  '&:hover': { bgcolor: '#276749' },
+                }}
+              >
+                Mock Dashboard (Summit In Progress)
               </Button>
               <Button
                 variant="outlined"
