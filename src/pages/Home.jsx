@@ -25,6 +25,64 @@ const sections = [
 ];
 
 function JourneyStoryAnimation({ stage = 0 }) {
+  const metaByStage = [
+    {
+      title: 'Leadership Intake',
+      subtitle: 'The hero responds, and those signals form a leadership map.',
+    },
+    {
+      title: 'Reflection Results',
+      subtitle: 'The hero checks the compass, then looks ahead with clarity.',
+    },
+    {
+      title: 'Trait Selection',
+      subtitle: 'At the fork, the hero selects the growth path to pursue.',
+    },
+    {
+      title: 'Growth Campaign',
+      subtitle: 'Backpack on, the hero starts the trail and builds momentum.',
+    },
+  ];
+  const meta = metaByStage[stage] || metaByStage[0];
+
+  const HeroGlyph = ({ x = 0, y = 0, withBackpack = false, walk = false, armOut = false }) => (
+    <g transform={`translate(${x} ${y})`}>
+      {withBackpack && <rect x="-15" y="-1" width="10" height="24" rx="3" fill="#31536A" />}
+      <circle cx="0" cy="-16" r="7.5" fill="#F2C6A6" />
+      <rect x="-7" y="-8" width="14" height="22" rx="5" fill="#1E3550" />
+      <line x1="-6" y1="-2" x2="-13" y2={armOut ? '-12' : '8'} stroke="#1E3550" strokeWidth="4" strokeLinecap="round" />
+      <line x1="6" y1="-2" x2="13" y2={armOut ? '-12' : '8'} stroke="#1E3550" strokeWidth="4" strokeLinecap="round" />
+      <line
+        x1="-4"
+        y1="14"
+        x2="-7"
+        y2="28"
+        stroke="#1E3550"
+        strokeWidth="4"
+        strokeLinecap="round"
+        style={
+          walk
+            ? { animation: 'heroStepA 1s ease-in-out infinite', transformBox: 'fill-box', transformOrigin: '50% 0%' }
+            : undefined
+        }
+      />
+      <line
+        x1="4"
+        y1="14"
+        x2="7"
+        y2="28"
+        stroke="#1E3550"
+        strokeWidth="4"
+        strokeLinecap="round"
+        style={
+          walk
+            ? { animation: 'heroStepB 1s ease-in-out infinite', transformBox: 'fill-box', transformOrigin: '50% 0%' }
+            : undefined
+        }
+      />
+    </g>
+  );
+
   return (
     <Box
       aria-hidden
@@ -34,177 +92,125 @@ function JourneyStoryAnimation({ stage = 0 }) {
         borderRadius: 1.6,
         border: '1px solid rgba(63,100,123,0.22)',
         background: 'linear-gradient(180deg, rgba(237,244,251,0.95), rgba(247,250,255,0.95))',
-        p: 1,
-        position: 'relative',
+        p: 0.95,
         overflow: 'hidden',
+        '@keyframes mapDraw': {
+          '0%': { strokeDashoffset: 220, opacity: 0.35 },
+          '22%': { strokeDashoffset: 160, opacity: 0.65 },
+          '100%': { strokeDashoffset: 0, opacity: 1 },
+        },
+        '@keyframes flowPulse': {
+          '0%, 100%': { opacity: 0.16, transform: 'scale(0.86)' },
+          '50%': { opacity: 1, transform: 'scale(1.08)' },
+        },
+        '@keyframes compassSweep': {
+          '0%, 15%': { transform: 'rotate(-24deg)' },
+          '45%': { transform: 'rotate(8deg)' },
+          '75%': { transform: 'rotate(-6deg)' },
+          '100%': { transform: 'rotate(28deg)' },
+        },
+        '@keyframes horizonGlow': {
+          '0%, 100%': { opacity: 0.25 },
+          '50%': { opacity: 0.62 },
+        },
+        '@keyframes branchPulse': {
+          '0%, 100%': { stroke: '#8CA6BA', strokeWidth: 3 },
+          '50%': { stroke: '#E07A3F', strokeWidth: 4.2 },
+        },
+        '@keyframes heroMove': {
+          '0%, 14%': { transform: 'translateX(0px)' },
+          '40%': { transform: 'translateX(3px)' },
+          '72%': { transform: 'translateX(0px)' },
+          '100%': { transform: 'translateX(2px)' },
+        },
+        '@keyframes heroStepA': {
+          '0%, 100%': { transform: 'rotate(-7deg)' },
+          '50%': { transform: 'rotate(8deg)' },
+        },
+        '@keyframes heroStepB': {
+          '0%, 100%': { transform: 'rotate(8deg)' },
+          '50%': { transform: 'rotate(-7deg)' },
+        },
       }}
     >
-      <Box
-        sx={{
-          position: 'relative',
-          height: 5,
-          borderRadius: 999,
-          bgcolor: 'rgba(63,100,123,0.20)',
-          overflow: 'hidden',
-          mb: 0.7,
-        }}
-      >
-        <Box
-          sx={{
-            height: '100%',
-            width: '100%',
-            transformOrigin: 'left center',
-            background: 'linear-gradient(90deg, #6393AA, #3F647B)',
-            animation: 'journeyProgress 10s ease-in-out infinite',
-            '@keyframes journeyProgress': {
-              '0%, 8%': { transform: 'scaleX(0.02)' },
-              '50%': { transform: 'scaleX(0.55)' },
-              '100%': { transform: 'scaleX(1)' },
-            },
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '2%',
-            width: 10,
-            height: 10,
-            borderRadius: '50%',
-            bgcolor: '#E07A3F',
-            transform: 'translateY(-50%)',
-            boxShadow: '0 0 0 4px rgba(224,122,63,0.20)',
-            animation: 'heroTravel 10s ease-in-out infinite',
-            '@keyframes heroTravel': {
-              '0%, 8%': { left: '2%' },
-              '38%': { left: '38%' },
-              '68%': { left: '68%' },
-              '100%': { left: '92%' },
-            },
-          }}
-        />
+      <Box sx={{ borderRadius: 1.2, overflow: 'hidden', border: '1px solid rgba(63,100,123,0.20)', bgcolor: '#F7FAFE' }}>
+        <svg viewBox="0 0 360 170" width="100%" height="100%">
+          <defs>
+            <linearGradient id="trailGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#8AA8BE" />
+              <stop offset="100%" stopColor="#3F647B" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="360" height="170" fill="#EFF5FC" />
+          <rect x="0" y="128" width="360" height="42" fill="#E7EEF7" />
+
+          {stage === 0 && (
+            <>
+              <rect x="208" y="28" width="122" height="96" rx="8" fill="#FFFFFF" stroke="#B8CCDC" />
+              <path d="M220 42 L318 42 L318 56 L226 56 M226 70 L312 70 M226 82 L292 82" fill="none" stroke="#8EAAC0" strokeWidth="3" strokeLinecap="round" style={{ strokeDasharray: 220, animation: 'mapDraw 10s linear infinite' }} />
+              <path d="M80 98 C126 92, 156 84, 206 76" fill="none" stroke="url(#trailGrad)" strokeWidth="3.5" strokeDasharray="4 8" style={{ strokeDashoffset: 40, animation: 'mapDraw 10s linear infinite' }} />
+              {[0, 1, 2, 3, 4].map((idx) => (
+                <circle key={idx} cx={112 + idx * 21} cy={92 - idx * 3} r="3.4" fill="#E07A3F" style={{ animation: 'flowPulse 1.6s ease-in-out infinite', animationDelay: `${idx * 0.22}s` }} />
+              ))}
+              <g style={{ animation: 'heroMove 3.8s ease-in-out infinite' }}>
+                <HeroGlyph x={74} y={96} armOut />
+              </g>
+            </>
+          )}
+
+          {stage === 1 && (
+            <>
+              <path d="M182 126 L236 64 L290 126 Z" fill="#D7E5F2" stroke="#A9C0D4" />
+              <path d="M228 126 L272 76 L316 126 Z" fill="#C8DCEE" stroke="#A0B9CF" />
+              <circle cx="274" cy="76" r="18" fill="#FFFFFF" stroke="#9CB5C9" style={{ animation: 'horizonGlow 2.8s ease-in-out infinite' }} />
+              <g transform="translate(118 92)">
+                <HeroGlyph x={0} y={0} armOut />
+                <g transform="translate(22 -2)">
+                  <circle cx="0" cy="0" r="11" fill="#FFFFFF" stroke="#7E9BB2" strokeWidth="2.4" />
+                  <line x1="0" y1="0" x2="0" y2="-8" stroke="#E07A3F" strokeWidth="2.3" strokeLinecap="round" style={{ animation: 'compassSweep 2.8s ease-in-out infinite', transformOrigin: '0px 0px' }} />
+                </g>
+              </g>
+            </>
+          )}
+
+          {stage === 2 && (
+            <>
+              <path d="M170 126 C182 104, 198 86, 220 68" fill="none" stroke="#A5BCD0" strokeWidth="3" />
+              <path d="M170 126 C198 108, 228 106, 266 106" fill="none" stroke="#A5BCD0" strokeWidth="3" />
+              <path d="M170 126 C196 102, 222 84, 248 52" fill="none" stroke="#E07A3F" strokeLinecap="round" style={{ animation: 'branchPulse 2.4s ease-in-out infinite' }} />
+              <circle cx="248" cy="52" r="9" fill="#E07A3F" opacity="0.88" />
+              <circle cx="266" cy="106" r="8" fill="#8CA6BA" />
+              <g style={{ animation: 'heroMove 3.2s ease-in-out infinite' }}>
+                <HeroGlyph x={162} y={124} armOut />
+              </g>
+              <path d="M166 118 L186 102" stroke="#E07A3F" strokeWidth="2.8" strokeLinecap="round" />
+            </>
+          )}
+
+          {stage === 3 && (
+            <>
+              <path d="M34 126 C104 130, 142 108, 198 102 C236 98, 286 108, 330 132" fill="none" stroke="#98B4C9" strokeWidth="4" />
+              <path d="M38 132 C106 138, 144 116, 198 110 C234 106, 281 116, 326 140" fill="none" stroke="#DDE8F3" strokeWidth="4" />
+              <g style={{ animation: 'heroMove 2.6s ease-in-out infinite' }}>
+                <HeroGlyph x={134} y={118} withBackpack walk />
+              </g>
+              <path d="M220 110 C244 98, 272 96, 304 112" fill="none" stroke="#E07A3F" strokeWidth="3.2" strokeDasharray="6 7" style={{ animation: 'mapDraw 2.6s linear infinite' }} />
+            </>
+          )}
+        </svg>
       </Box>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 0.9fr', gap: 0.8, alignItems: 'center' }}>
-        <Stack spacing={0.5}>
-          {[0, 1, 2, 3].map((idx) => (
-            <Box
-              key={idx}
-              sx={{
-                height: 8,
-                borderRadius: 999,
-                bgcolor:
-                  stage === 2
-                    ? 'rgba(111,154,131,0.20)'
-                    : stage === 3
-                      ? 'rgba(224,122,63,0.16)'
-                      : 'rgba(63,100,123,0.18)',
-                animation: 'journeyPulse 10s ease-in-out infinite',
-                animationDelay: `${idx * 1.2}s`,
-                '@keyframes journeyPulse': {
-                  '0%, 10%, 100%': { bgcolor: 'rgba(63,100,123,0.18)' },
-                  '14%, 24%': {
-                    bgcolor:
-                      stage === 2
-                        ? 'rgba(111,154,131,0.74)'
-                        : stage === 3
-                          ? 'rgba(224,122,63,0.70)'
-                          : 'rgba(99,147,170,0.66)',
-                  },
-                  '28%, 100%': { bgcolor: 'rgba(63,100,123,0.18)' },
-                },
-              }}
-            />
-          ))}
-        </Stack>
-
-        <Box
-          sx={{
-            minHeight: 56,
-            borderRadius: 1.3,
-            border: '1px solid rgba(63,100,123,0.24)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(241,247,252,0.95))',
-            p: 0.65,
-            opacity: 0,
-            transform: 'translateY(7px)',
-            animation: 'journeyReveal 10s ease-in-out infinite',
-            '@keyframes journeyReveal': {
-              '0%, 54%': { opacity: 0, transform: 'translateY(7px)' },
-              '62%, 100%': { opacity: 1, transform: 'translateY(0)' },
-            },
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.45 }}>
-            <Box sx={{ width: '52%', height: 5, borderRadius: 999, bgcolor: 'rgba(63,100,123,0.30)' }} />
-            <Box
-              sx={{
-                width: 15,
-                height: 15,
-                borderRadius: '50%',
-                border: '2px solid #3F647B',
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  inset: 2,
-                  borderRadius: '50%',
-                  bgcolor: stage === 3 ? '#E07A3F' : '#3F647B',
-                  animation: 'journeyRingPulse 10s ease-in-out infinite',
-                },
-                '@keyframes journeyRingPulse': {
-                  '0%, 60%': { transform: 'scale(0.7)', opacity: 0.4 },
-                  '70%, 85%': { transform: 'scale(1)', opacity: 1 },
-                  '100%': { transform: 'scale(0.8)', opacity: 0.65 },
-                },
-              }}
-            />
-          </Box>
-          <Box
-            sx={{
-              width: '100%',
-              height: 5,
-              borderRadius: 999,
-              bgcolor:
-                stage === 1
-                  ? 'rgba(99,147,170,0.40)'
-                  : stage === 2
-                    ? 'rgba(111,154,131,0.42)'
-                    : 'rgba(99,147,170,0.30)',
-              mb: 0.35,
-            }}
-          />
-          <Box
-            sx={{
-              width: stage === 0 ? '72%' : stage === 1 ? '88%' : '100%',
-              height: 5,
-              borderRadius: 999,
-              bgcolor:
-                stage === 3
-                  ? 'rgba(224,122,63,0.60)'
-                  : stage === 2
-                    ? 'rgba(111,154,131,0.56)'
-                    : 'rgba(224,122,63,0.38)',
-            }}
-          />
-        </Box>
+      <Box sx={{ display: 'flex', gap: 0.45, mt: 0.65 }}>
+        {[0, 1, 2, 3].map((idx) => (
+          <Box key={idx} sx={{ height: 5, borderRadius: 999, flex: 1, bgcolor: idx <= stage ? 'rgba(63,100,123,0.52)' : 'rgba(63,100,123,0.16)' }} />
+        ))}
       </Box>
 
-      <Typography
-        sx={{
-          mt: 0.6,
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          color: '#4D647A',
-          letterSpacing: '0.01em',
-        }}
-      >
-        {stage === 0
-          ? 'Hero starts with fast, focused assessment inputs'
-          : stage === 1
-            ? 'Compass reveals the current leadership snapshot'
-            : stage === 2
-              ? 'Hero selects traits that matter most right now'
-              : 'Hero launches a campaign and tracks momentum'}
+      <Typography sx={{ mt: 0.6, fontSize: '0.76rem', fontWeight: 700, color: '#304A62', letterSpacing: '0.01em' }}>
+        {meta.title}
+      </Typography>
+      <Typography sx={{ mt: 0.1, fontSize: '0.72rem', color: '#4D647A', lineHeight: 1.45 }}>
+        {meta.subtitle}
       </Typography>
     </Box>
   );
