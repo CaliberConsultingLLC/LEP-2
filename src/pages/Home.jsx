@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -24,7 +24,7 @@ const sections = [
   { key: 'deliverables', label: 'Deliverables' },
 ];
 
-function StageOneAssessmentAnimation() {
+function JourneyStoryAnimation({ stage = 0 }) {
   return (
     <Box
       aria-hidden
@@ -41,28 +41,12 @@ function StageOneAssessmentAnimation() {
     >
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 0.55,
-          fontSize: '0.68rem',
-          letterSpacing: '0.01em',
-          color: '#496179',
-          fontWeight: 700,
-        }}
-      >
-        <Box>Assessment</Box>
-        <Box>Leadership Snapshot</Box>
-      </Box>
-
-      <Box
-        sx={{
           position: 'relative',
-          height: 4,
+          height: 5,
           borderRadius: 999,
           bgcolor: 'rgba(63,100,123,0.20)',
           overflow: 'hidden',
-          mb: 0.8,
+          mb: 0.7,
         }}
       >
         <Box
@@ -71,8 +55,8 @@ function StageOneAssessmentAnimation() {
             width: '100%',
             transformOrigin: 'left center',
             background: 'linear-gradient(90deg, #6393AA, #3F647B)',
-            animation: 'stageProgress 10s ease-in-out infinite',
-            '@keyframes stageProgress': {
+            animation: 'journeyProgress 10s ease-in-out infinite',
+            '@keyframes journeyProgress': {
               '0%, 8%': { transform: 'scaleX(0.02)' },
               '50%': { transform: 'scaleX(0.55)' },
               '100%': { transform: 'scaleX(1)' },
@@ -90,10 +74,11 @@ function StageOneAssessmentAnimation() {
             bgcolor: '#E07A3F',
             transform: 'translateY(-50%)',
             boxShadow: '0 0 0 4px rgba(224,122,63,0.20)',
-            animation: 'stageCursorMove 10s ease-in-out infinite',
-            '@keyframes stageCursorMove': {
+            animation: 'heroTravel 10s ease-in-out infinite',
+            '@keyframes heroTravel': {
               '0%, 8%': { left: '2%' },
-              '50%': { left: '52%' },
+              '38%': { left: '38%' },
+              '68%': { left: '68%' },
               '100%': { left: '92%' },
             },
           }}
@@ -108,12 +93,24 @@ function StageOneAssessmentAnimation() {
               sx={{
                 height: 8,
                 borderRadius: 999,
-                bgcolor: 'rgba(63,100,123,0.18)',
-                animation: 'stageAnswerPulse 10s ease-in-out infinite',
+                bgcolor:
+                  stage === 2
+                    ? 'rgba(111,154,131,0.20)'
+                    : stage === 3
+                      ? 'rgba(224,122,63,0.16)'
+                      : 'rgba(63,100,123,0.18)',
+                animation: 'journeyPulse 10s ease-in-out infinite',
                 animationDelay: `${idx * 1.2}s`,
-                '@keyframes stageAnswerPulse': {
+                '@keyframes journeyPulse': {
                   '0%, 10%, 100%': { bgcolor: 'rgba(63,100,123,0.18)' },
-                  '14%, 24%': { bgcolor: 'rgba(99,147,170,0.66)' },
+                  '14%, 24%': {
+                    bgcolor:
+                      stage === 2
+                        ? 'rgba(111,154,131,0.74)'
+                        : stage === 3
+                          ? 'rgba(224,122,63,0.70)'
+                          : 'rgba(99,147,170,0.66)',
+                  },
                   '28%, 100%': { bgcolor: 'rgba(63,100,123,0.18)' },
                 },
               }}
@@ -130,8 +127,8 @@ function StageOneAssessmentAnimation() {
             p: 0.65,
             opacity: 0,
             transform: 'translateY(7px)',
-            animation: 'stageRevealCard 10s ease-in-out infinite',
-            '@keyframes stageRevealCard': {
+            animation: 'journeyReveal 10s ease-in-out infinite',
+            '@keyframes journeyReveal': {
               '0%, 54%': { opacity: 0, transform: 'translateY(7px)' },
               '62%, 100%': { opacity: 1, transform: 'translateY(0)' },
             },
@@ -151,10 +148,10 @@ function StageOneAssessmentAnimation() {
                   position: 'absolute',
                   inset: 2,
                   borderRadius: '50%',
-                  bgcolor: '#3F647B',
-                  animation: 'stageRingPulse 10s ease-in-out infinite',
+                  bgcolor: stage === 3 ? '#E07A3F' : '#3F647B',
+                  animation: 'journeyRingPulse 10s ease-in-out infinite',
                 },
-                '@keyframes stageRingPulse': {
+                '@keyframes journeyRingPulse': {
                   '0%, 60%': { transform: 'scale(0.7)', opacity: 0.4 },
                   '70%, 85%': { transform: 'scale(1)', opacity: 1 },
                   '100%': { transform: 'scale(0.8)', opacity: 0.65 },
@@ -162,10 +159,53 @@ function StageOneAssessmentAnimation() {
               }}
             />
           </Box>
-          <Box sx={{ width: '100%', height: 5, borderRadius: 999, bgcolor: 'rgba(99,147,170,0.40)', mb: 0.35 }} />
-          <Box sx={{ width: '72%', height: 5, borderRadius: 999, bgcolor: 'rgba(224,122,63,0.38)' }} />
+          <Box
+            sx={{
+              width: '100%',
+              height: 5,
+              borderRadius: 999,
+              bgcolor:
+                stage === 1
+                  ? 'rgba(99,147,170,0.40)'
+                  : stage === 2
+                    ? 'rgba(111,154,131,0.42)'
+                    : 'rgba(99,147,170,0.30)',
+              mb: 0.35,
+            }}
+          />
+          <Box
+            sx={{
+              width: stage === 0 ? '72%' : stage === 1 ? '88%' : '100%',
+              height: 5,
+              borderRadius: 999,
+              bgcolor:
+                stage === 3
+                  ? 'rgba(224,122,63,0.60)'
+                  : stage === 2
+                    ? 'rgba(111,154,131,0.56)'
+                    : 'rgba(224,122,63,0.38)',
+            }}
+          />
         </Box>
       </Box>
+
+      <Typography
+        sx={{
+          mt: 0.6,
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          color: '#4D647A',
+          letterSpacing: '0.01em',
+        }}
+      >
+        {stage === 0
+          ? 'Hero starts with fast, focused assessment inputs'
+          : stage === 1
+            ? 'Compass reveals the current leadership snapshot'
+            : stage === 2
+              ? 'Hero selects traits that matter most right now'
+              : 'Hero launches a campaign and tracks momentum'}
+      </Typography>
     </Box>
   );
 }
@@ -173,6 +213,7 @@ function StageOneAssessmentAnimation() {
 function Home() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(0);
+  const journeyContentRef = useRef(null);
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -274,24 +315,37 @@ function Home() {
           icon: <Route sx={{ fontSize: 32, color: 'primary.main' }} />,
           title: 'Leadership Intake',
           text: 'A concise intake to reflect on how you lead and decide.',
+          journeyStage: 0,
           bullets: [
             'Captures meaningful patterns without overwhelming you.',
             'Balances context and day-to-day realities.',
           ],
         },
         {
-          icon: <TrendingUp sx={{ fontSize: 32, color: 'primary.main' }} />,
+          icon: <Psychology sx={{ fontSize: 32, color: 'primary.main' }} />,
           title: 'Reflection Results',
           text: 'A grounded view of strengths, tensions, and trajectory.',
+          journeyStage: 1,
           bullets: [
             'Shows where you are now and what comes next.',
             'Delivered in practical, clear language.',
           ],
         },
         {
+          icon: <TrendingUp sx={{ fontSize: 32, color: 'primary.main' }} />,
+          title: 'Trait Selection',
+          text: 'Choose the growth traits that best fit your current team reality.',
+          journeyStage: 2,
+          bullets: [
+            'Prioritizes practical growth over generic advice.',
+            'Turns awareness into clear decisions.',
+          ],
+        },
+        {
           icon: <Inventory2 sx={{ fontSize: 32, color: 'primary.main' }} />,
           title: 'Growth Campaign',
           text: 'Build your campaign and track progress in the dashboard.',
+          journeyStage: 3,
           bullets: [
             'Turns reflection into a focused development path.',
             'Keeps momentum visible over time.',
@@ -330,6 +384,13 @@ function Home() {
       },
     ];
   }, [activeSection]);
+
+  const handleHeroSectionSelect = (sectionIdx) => {
+    setActiveSection(sectionIdx);
+    window.setTimeout(() => {
+      journeyContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
+  };
 
   return (
     <Box
@@ -446,22 +507,44 @@ function Home() {
                   </Stack>
 
                   <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ pt: 0.5 }}>
-                    {['15-min intake', '5 personalized traits', 'Campaign + dashboard'].map((pill) => (
-                      <Box
-                        key={pill}
+                    {sections.map((section, idx) => (
+                      <Button
+                        key={section.key}
+                        variant={activeSection === idx ? 'contained' : 'outlined'}
+                        size="small"
+                        onClick={() => handleHeroSectionSelect(idx)}
                         sx={{
-                          px: 1.25,
-                          py: 0.55,
+                          px: 1.5,
+                          py: 0.48,
                           borderRadius: 999,
-                          border: '1px solid rgba(255,255,255,0.30)',
-                          color: 'rgba(239,247,255,0.94)',
-                          fontSize: '0.82rem',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
                           letterSpacing: '0.01em',
-                          bgcolor: 'rgba(255,255,255,0.05)',
+                          color:
+                            activeSection === idx ? '#FFFFFF' : 'rgba(239,247,255,0.95)',
+                          bgcolor:
+                            activeSection === idx
+                              ? 'rgba(63,100,123,0.96)'
+                              : 'rgba(255,255,255,0.05)',
+                          borderColor:
+                            activeSection === idx
+                              ? 'rgba(99,147,170,0.95)'
+                              : 'rgba(255,255,255,0.32)',
+                          boxShadow:
+                            activeSection === idx
+                              ? '0 8px 18px rgba(16,33,54,0.34)'
+                              : 'none',
+                          '&:hover': {
+                            bgcolor:
+                              activeSection === idx
+                                ? 'rgba(52,83,106,0.98)'
+                                : 'rgba(255,255,255,0.13)',
+                            borderColor: 'rgba(255,255,255,0.62)',
+                          },
                         }}
                       >
-                        {pill}
-                      </Box>
+                        {section.label}
+                      </Button>
                     ))}
                   </Stack>
                 </Stack>
@@ -518,23 +601,6 @@ function Home() {
                           'linear-gradient(180deg, rgba(8,14,24,0.08), rgba(8,14,24,0.30))',
                       }}
                     />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 10,
-                        right: 10,
-                        top: 10,
-                        display: 'flex',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F26D6D' }} />
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F5C86B' }} />
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#83D18A' }} />
-                      </Box>
-                    </Box>
                     <Box
                       sx={{
                         position: 'absolute',
@@ -602,7 +668,11 @@ function Home() {
         </Container>
       </Box>
 
-      <Container maxWidth="xl" sx={{ py: { xs: 2.2, md: 3.2 }, position: 'relative' }}>
+      <Container
+        maxWidth="xl"
+        ref={journeyContentRef}
+        sx={{ py: { xs: 2.2, md: 3.2 }, position: 'relative' }}
+      >
         <Box
           sx={{
             position: 'absolute',
@@ -613,30 +683,27 @@ function Home() {
           }}
         />
         <Stack spacing={1.4}>
-          <Stack direction="row" spacing={0.9} flexWrap="wrap">
-            {sections.map((section, idx) => (
-              <Button
-                key={section.key}
-                variant={idx === activeSection ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => setActiveSection(idx)}
-                sx={{
-                  px: 2.2,
-                  py: 0.78,
-                  bgcolor: idx === activeSection ? 'primary.main' : '#FFFFFF',
-                  color: idx === activeSection ? '#FFFFFF' : '#163047',
-                  borderColor: idx === activeSection ? 'primary.main' : 'rgba(22,48,71,0.22)',
-                  boxShadow: idx === activeSection ? '0 8px 18px rgba(48,83,110,0.20)' : 'none',
-                }}
-              >
-                {section.label}
-              </Button>
-            ))}
-          </Stack>
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontWeight: 700,
+              color: '#14314A',
+              fontSize: { xs: '1.2rem', md: '1.45rem' },
+            }}
+          >
+            {sections[activeSection].label}
+          </Typography>
+          <Typography sx={{ color: '#4B6076', fontSize: '0.93rem', maxWidth: 840 }}>
+            {activeSection === 1
+              ? 'Your journey stays centered around one hero: you. Each step below shows what happens as you move from intake to campaign momentum.'
+              : activeSection === 0
+                ? 'Core product principles that ensure your reflection feels accurate, practical, and personally relevant.'
+                : 'What you walk away with after completing your Compass experience.'}
+          </Typography>
 
           <Grid container spacing={1.4}>
             {panel.map((item) => (
-              <Grid item xs={12} md={4} key={item.title}>
+              <Grid item xs={12} md={activeSection === 1 ? 6 : 4} key={item.title}>
                 <Box
                   data-hover="lift"
                   sx={{
@@ -663,7 +730,9 @@ function Home() {
                   <Typography sx={{ color: '#44566C', fontSize: '0.93rem', lineHeight: 1.55 }}>
                     {item.text}
                   </Typography>
-                  {item.title === 'Mirror-Accurate' && <StageOneAssessmentAnimation />}
+                  {activeSection === 1 && (
+                    <JourneyStoryAnimation stage={item.journeyStage ?? 0} />
+                  )}
                   <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 2 }}>
                     {item.bullets.map((bullet) => (
                       <Typography
