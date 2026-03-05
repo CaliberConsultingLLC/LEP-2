@@ -485,37 +485,37 @@ function Home() {
                     overflow: 'hidden',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: '#E6F0FF',
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.02rem',
-                      fontWeight: 700,
-                      mb: 1,
-                      letterSpacing: '0.015em',
-                    }}
-                  >
-                    Watch: The Compass in 90 Seconds
-                  </Typography>
                   <Box
                     sx={{
                       position: 'relative',
-                      borderRadius: 2.1,
+                      borderRadius: 2.2,
                       overflow: 'hidden',
-                      border: '1px solid rgba(255,255,255,0.24)',
-                      background:
-                        'linear-gradient(105deg, rgba(8,15,30,0.82), rgba(8,15,30,0.25)), url(/LEP2.jpg)',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
+                      border: '1px solid rgba(255,255,255,0.30)',
+                      background: 'linear-gradient(120deg, rgba(8,15,30,0.50), rgba(8,15,30,0.16))',
                       aspectRatio: '16 / 9',
                     }}
                   >
+                    <Box
+                      component="video"
+                      src="/compass-how-it-works-demo.mp4"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'block',
+                        objectFit: 'cover',
+                        filter: 'saturate(1.05) contrast(1.02)',
+                      }}
+                    />
                     <Box
                       sx={{
                         position: 'absolute',
                         inset: 0,
                         background:
-                          'radial-gradient(360px 180px at 70% 30%, rgba(229,122,63,0.22), transparent 75%)',
+                          'linear-gradient(180deg, rgba(8,14,24,0.08), rgba(8,14,24,0.30))',
                       }}
                     />
                     <Box
@@ -525,7 +525,7 @@ function Home() {
                         right: 10,
                         top: 10,
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'flex-start',
                         alignItems: 'center',
                       }}
                     >
@@ -534,9 +534,6 @@ function Home() {
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F5C86B' }} />
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#83D18A' }} />
                       </Box>
-                      <Typography sx={{ fontSize: '0.72rem', color: 'rgba(233,242,255,0.82)' }}>
-                        Intro Clip
-                      </Typography>
                     </Box>
                     <Box
                       sx={{
@@ -559,6 +556,7 @@ function Home() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
+                          opacity: 0.55,
                         }}
                       >
                         <Box
@@ -595,22 +593,8 @@ function Home() {
                       >
                         <Box sx={{ width: '34%', height: '100%', bgcolor: '#E07A3F' }} />
                       </Box>
-                      <Typography sx={{ fontSize: '0.72rem', color: 'rgba(233,242,255,0.92)' }}>
-                        1:24
-                      </Typography>
                     </Box>
                   </Box>
-                  <Typography
-                    sx={{
-                      mt: 0.95,
-                      color: 'rgba(232,242,255,0.92)',
-                      fontSize: '0.86rem',
-                      lineHeight: 1.45,
-                    }}
-                  >
-                    A short walkthrough of how Compass transforms leadership reflection into a
-                    practical growth campaign.
-                  </Typography>
                 </Box>
               </Grid>
             </Grid>
