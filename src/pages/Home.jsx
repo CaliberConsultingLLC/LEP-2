@@ -186,7 +186,14 @@ function Home() {
   }, [activeSection]);
 
   return (
-    <Box sx={{ minHeight: '100vh', width: '100vw', bgcolor: '#F3F6FB' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100vw',
+        background:
+          'linear-gradient(180deg, #F3F6FB 0%, #EDF3FC 62%, #EAF1FB 100%)',
+      }}
+    >
       <Box
         sx={{
           position: 'relative',
@@ -204,6 +211,19 @@ function Home() {
             inset: 0,
             background:
               'radial-gradient(800px 360px at 84% 18%, rgba(94,145,176,0.30), transparent 65%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <Box
+          component="img"
+          src="/CompassLogo.png"
+          alt=""
+          sx={{
+            position: 'absolute',
+            right: { xs: -88, md: 12 },
+            top: { xs: -62, md: -26 },
+            width: { xs: 200, md: 320 },
+            opacity: 0.2,
             pointerEvents: 'none',
           }}
         />
@@ -252,7 +272,7 @@ function Home() {
                       maxWidth: 760,
                     }}
                   >
-                    Leadership growth that starts with clarity and ends with measurable momentum.
+                    Turn leadership insight into decisive, measurable growth.
                   </Typography>
                   <Typography
                     sx={{
@@ -262,7 +282,8 @@ function Home() {
                       maxWidth: 690,
                     }}
                   >
-                    The Compass translates your leadership patterns into a focused campaign.
+                    The Compass translates your leadership patterns into a focused growth campaign.
+                    <br />
                     Less noise, stronger direction, and a dashboard that keeps progress visible.
                   </Typography>
 
@@ -274,21 +295,6 @@ function Home() {
                       sx={{ px: 3.4, py: 1.1, boxShadow: '0 8px 20px rgba(25,50,72,0.30)' }}
                     >
                       Begin Your Journey
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={handleResumeJourney}
-                      sx={{
-                        color: '#F7FAFF',
-                        borderColor: 'rgba(247,250,255,0.65)',
-                        bgcolor: 'rgba(255,255,255,0.03)',
-                        '&:hover': {
-                          borderColor: '#FFFFFF',
-                          bgcolor: 'rgba(255,255,255,0.12)',
-                        },
-                      }}
-                    >
-                      Resume and Access Dashboard
                     </Button>
                   </Stack>
 
@@ -338,10 +344,10 @@ function Home() {
                     alt=""
                     sx={{
                       position: 'absolute',
-                      right: -44,
-                      top: -58,
-                      width: { xs: 190, md: 230 },
-                      opacity: 0.22,
+                      right: -34,
+                      top: -74,
+                      width: { xs: 210, md: 260 },
+                      opacity: 0.34,
                     }}
                   />
                   <Typography
@@ -385,7 +391,16 @@ function Home() {
         </Container>
       </Box>
 
-      <Container maxWidth="xl" sx={{ py: { xs: 2.2, md: 3.2 } }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 2.2, md: 3.2 }, position: 'relative' }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
         <Stack spacing={1.4}>
           <Stack direction="row" spacing={0.9} flexWrap="wrap">
             {sections.map((section, idx) => (
