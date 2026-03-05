@@ -186,61 +186,37 @@ function Home() {
   }, [activeSection]);
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        width: '100vw',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        backgroundImage:
-          'linear-gradient(rgba(8, 14, 26, 0.56), rgba(8, 14, 26, 0.56)), url(/LEP2.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        py: { xs: 1.2, md: 1.8 },
-      }}
-    >
-      <Container maxWidth="xl" sx={{ py: { xs: 1.5, md: 2.2 } }}>
+    <Box sx={{ minHeight: '100vh', width: '100vw', bgcolor: '#F3F6FB' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          backgroundImage:
+            'linear-gradient(120deg, rgba(9,16,31,0.92), rgba(16,34,60,0.88)), url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderBottom: '1px solid rgba(15,23,42,0.14)',
+        }}
+      >
         <Box
-          data-surface="glass"
           sx={{
-            width: '100%',
-            maxWidth: 1260,
-            mx: 'auto',
-            px: { xs: 2.2, md: 4.4 },
-            py: { xs: 2.2, md: 3 },
-            position: 'relative',
-            overflow: 'hidden',
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(800px 360px at 84% 18%, rgba(94,145,176,0.30), transparent 65%)',
+            pointerEvents: 'none',
           }}
-        >
-          <Box
-            component="img"
-            src="/CompassLogo.png"
-            alt=""
-            sx={{
-              position: 'absolute',
-              right: { xs: -90, md: -120 },
-              top: { xs: -120, md: -180 },
-              width: { xs: 310, md: 520 },
-              opacity: 0.13,
-              pointerEvents: 'none',
-            }}
-          />
-
-          <Stack spacing={2.2} sx={{ position: 'relative', zIndex: 1 }}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ gap: 1.2 }}
-            >
+        />
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 3, md: 5 } }}>
+          <Stack spacing={{ xs: 2.2, md: 3 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: { xs: '1.6rem', md: '2rem' },
-                  color: '#FFFFFF',
+                  fontSize: { xs: '1.55rem', md: '1.95rem' },
                   fontWeight: 700,
-                  letterSpacing: '0.02em',
+                  letterSpacing: '0.025em',
+                  color: '#F7FAFF',
                   textTransform: 'uppercase',
                 }}
               >
@@ -250,11 +226,12 @@ function Home() {
                 variant="outlined"
                 onClick={handleResumeJourney}
                 sx={{
-                  color: '#FFFFFF',
-                  borderColor: 'rgba(255,255,255,0.55)',
+                  color: '#F7FAFF',
+                  borderColor: 'rgba(247,250,255,0.65)',
+                  bgcolor: 'rgba(255,255,255,0.04)',
                   '&:hover': {
-                    borderColor: 'rgba(255,255,255,0.88)',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    borderColor: '#FFFFFF',
+                    bgcolor: 'rgba(255,255,255,0.12)',
                   },
                 }}
               >
@@ -262,191 +239,241 @@ function Home() {
               </Button>
             </Stack>
 
-            <Stack spacing={1.25} sx={{ maxWidth: 960 }}>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  color: '#FFFFFF',
-                  fontSize: { xs: '2rem', md: '2.65rem' },
-                  lineHeight: 1.1,
-                  fontWeight: 700,
-                }}
-              >
-                A growth guide built for your exact leadership reality.
-              </Typography>
-              <Typography
-                sx={{
-                  color: 'rgba(243,248,255,0.96)',
-                  fontSize: { xs: '0.98rem', md: '1.06rem' },
-                  maxWidth: 860,
-                  lineHeight: 1.6,
-                }}
-              >
-                Move from broad feedback to focused growth. The Compass helps you see
-                where to improve, what to prioritize, and how to sustain momentum.
-              </Typography>
-            </Stack>
+            <Grid container spacing={{ xs: 2.2, md: 3 }} alignItems="stretch">
+              <Grid item xs={12} md={7}>
+                <Stack spacing={1.5}>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      color: '#FFFFFF',
+                      fontSize: { xs: '2rem', md: '3rem' },
+                      lineHeight: 1.03,
+                      fontWeight: 700,
+                      maxWidth: 760,
+                    }}
+                  >
+                    Leadership growth that starts with clarity and ends with measurable momentum.
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'rgba(233,242,255,0.96)',
+                      fontSize: { xs: '1rem', md: '1.08rem' },
+                      lineHeight: 1.62,
+                      maxWidth: 690,
+                    }}
+                  >
+                    The Compass translates your leadership patterns into a focused campaign.
+                    Less noise, stronger direction, and a dashboard that keeps progress visible.
+                  </Typography>
 
-            <Stack direction="row" spacing={1.2} flexWrap="wrap">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleBeginJourney}
-                sx={{ px: 3.2, py: 1.05, boxShadow: 'none' }}
-              >
-                Begin Your Journey
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={handleResumeJourney}
-                sx={{
-                  color: '#FFFFFF',
-                  borderColor: 'rgba(255,255,255,0.55)',
-                  '&:hover': {
-                    borderColor: 'rgba(255,255,255,0.88)',
-                    backgroundColor: 'rgba(255,255,255,0.08)',
-                  },
-                }}
-              >
-                Resume and Access Dashboard
-              </Button>
-            </Stack>
-
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-              flexWrap="wrap"
-              sx={{ pt: 0.2 }}
-            >
-              {sections.map((section, idx) => (
-                <Button
-                  key={section.key}
-                  variant={idx === activeSection ? 'contained' : 'outlined'}
-                  color="primary"
-                  onClick={() => setActiveSection(idx)}
-                  sx={{
-                    px: 2.2,
-                    py: 0.72,
-                    color: idx === activeSection ? '#FFFFFF' : 'rgba(255,255,255,0.95)',
-                    borderColor:
-                      idx === activeSection
-                        ? 'primary.main'
-                        : 'rgba(255,255,255,0.45)',
-                    bgcolor:
-                      idx === activeSection ? 'primary.main' : 'rgba(255,255,255,0.06)',
-                    '&:hover': {
-                      borderColor: idx === activeSection ? 'primary.dark' : '#FFFFFF',
-                      bgcolor:
-                        idx === activeSection
-                          ? 'primary.dark'
-                          : 'rgba(255,255,255,0.10)',
-                    },
-                  }}
-                >
-                  {section.label}
-                </Button>
-              ))}
-            </Stack>
-
-            <Box
-              sx={{
-                borderRadius: 2.6,
-                border: '1px solid rgba(255,255,255,0.3)',
-                bgcolor: 'rgba(255,255,255,0.12)',
-                p: { xs: 1.2, md: 1.45 },
-              }}
-            >
-              <Grid container spacing={1.2}>
-                {panel.map((item) => (
-                  <Grid item xs={12} md={4} key={item.title}>
-                    <Box
+                  <Stack direction="row" spacing={1.2} flexWrap="wrap" sx={{ pt: 0.6 }}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleBeginJourney}
+                      sx={{ px: 3.4, py: 1.1, boxShadow: '0 8px 20px rgba(25,50,72,0.30)' }}
+                    >
+                      Begin Your Journey
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={handleResumeJourney}
                       sx={{
-                        height: '100%',
-                        borderRadius: 2,
-                        border: '1px solid rgba(255,255,255,0.26)',
-                        bgcolor: 'rgba(255,255,255,0.92)',
-                        p: 2,
+                        color: '#F7FAFF',
+                        borderColor: 'rgba(247,250,255,0.65)',
+                        bgcolor: 'rgba(255,255,255,0.03)',
+                        '&:hover': {
+                          borderColor: '#FFFFFF',
+                          bgcolor: 'rgba(255,255,255,0.12)',
+                        },
                       }}
                     >
-                      <Box sx={{ mb: 1 }}>{item.icon}</Box>
-                      <Typography
+                      Resume and Access Dashboard
+                    </Button>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ pt: 0.5 }}>
+                    {['15-min intake', '5 personalized traits', 'Campaign + dashboard'].map((pill) => (
+                      <Box
+                        key={pill}
                         sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontWeight: 700,
-                          fontSize: '1.02rem',
-                          color: 'text.primary',
-                          mb: 0.55,
+                          px: 1.25,
+                          py: 0.55,
+                          borderRadius: 999,
+                          border: '1px solid rgba(255,255,255,0.30)',
+                          color: 'rgba(239,247,255,0.94)',
+                          fontSize: '0.82rem',
+                          letterSpacing: '0.01em',
+                          bgcolor: 'rgba(255,255,255,0.05)',
                         }}
                       >
-                        {item.title}
-                      </Typography>
-                      <Typography
-                        sx={{ color: 'text.secondary', fontSize: '0.9rem', lineHeight: 1.55 }}
-                      >
-                        {item.text}
-                      </Typography>
-                      <Box component="ul" sx={{ m: 0, mt: 0.8, pl: 2 }}>
-                        {item.bullets.map((bullet) => (
-                          <Typography
-                            key={bullet}
-                            component="li"
-                            sx={{
-                              color: 'text.secondary',
-                              fontSize: '0.83rem',
-                              lineHeight: 1.5,
-                              mb: 0.2,
-                            }}
-                          >
-                            {bullet}
-                          </Typography>
-                        ))}
+                        {pill}
                       </Box>
-                    </Box>
-                  </Grid>
-                ))}
+                    ))}
+                  </Stack>
+                </Stack>
               </Grid>
-            </Box>
+
+              <Grid item xs={12} md={5}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    minHeight: 240,
+                    borderRadius: 3,
+                    border: '1px solid rgba(255,255,255,0.20)',
+                    background:
+                      'linear-gradient(160deg, rgba(19,37,64,0.78), rgba(10,20,36,0.90))',
+                    boxShadow: '0 16px 34px rgba(3,10,22,0.36)',
+                    p: { xs: 1.6, md: 2 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src="/CompassLogo.png"
+                    alt=""
+                    sx={{
+                      position: 'absolute',
+                      right: -44,
+                      top: -58,
+                      width: { xs: 190, md: 230 },
+                      opacity: 0.22,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      color: '#E6F0FF',
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '1.2rem',
+                      fontWeight: 700,
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  >
+                    Why leaders stay with Compass
+                  </Typography>
+                  <Stack spacing={1} sx={{ position: 'relative', zIndex: 1 }}>
+                    {[
+                      'Clear baseline on how you currently lead',
+                      'Specific traits and actions to target next',
+                      'A visual journey that keeps momentum alive',
+                    ].map((line) => (
+                      <Box
+                        key={line}
+                        sx={{
+                          px: 1.2,
+                          py: 0.8,
+                          borderRadius: 1.6,
+                          bgcolor: 'rgba(255,255,255,0.10)',
+                          color: '#F6FAFF',
+                          fontSize: '0.9rem',
+                          border: '1px solid rgba(255,255,255,0.16)',
+                        }}
+                      >
+                        {line}
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              </Grid>
+            </Grid>
+          </Stack>
+        </Container>
+      </Box>
+
+      <Container maxWidth="xl" sx={{ py: { xs: 2.2, md: 3.2 } }}>
+        <Stack spacing={1.4}>
+          <Stack direction="row" spacing={0.9} flexWrap="wrap">
+            {sections.map((section, idx) => (
+              <Button
+                key={section.key}
+                variant={idx === activeSection ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={() => setActiveSection(idx)}
+                sx={{
+                  px: 2.2,
+                  py: 0.78,
+                  bgcolor: idx === activeSection ? 'primary.main' : '#FFFFFF',
+                  color: idx === activeSection ? '#FFFFFF' : '#163047',
+                  borderColor: idx === activeSection ? 'primary.main' : 'rgba(22,48,71,0.22)',
+                  boxShadow: idx === activeSection ? '0 8px 18px rgba(48,83,110,0.20)' : 'none',
+                }}
+              >
+                {section.label}
+              </Button>
+            ))}
           </Stack>
 
+          <Grid container spacing={1.4}>
+            {panel.map((item) => (
+              <Grid item xs={12} md={4} key={item.title}>
+                <Box
+                  data-hover="lift"
+                  sx={{
+                    height: '100%',
+                    borderRadius: 2.2,
+                    border: '1px solid rgba(15,23,42,0.10)',
+                    bgcolor: '#FFFFFF',
+                    p: { xs: 1.6, md: 1.9 },
+                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                  }}
+                >
+                  <Box sx={{ mb: 0.9 }}>{item.icon}</Box>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontWeight: 700,
+                      fontSize: '1.08rem',
+                      color: '#0F1F32',
+                      mb: 0.55,
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography sx={{ color: '#44566C', fontSize: '0.93rem', lineHeight: 1.55 }}>
+                    {item.text}
+                  </Typography>
+                  <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 2 }}>
+                    {item.bullets.map((bullet) => (
+                      <Typography
+                        key={bullet}
+                        component="li"
+                        sx={{ color: '#526579', fontSize: '0.84rem', lineHeight: 1.5, mb: 0.16 }}
+                      >
+                        {bullet}
+                      </Typography>
+                    ))}
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+
           {showDevTools && (
-            <Stack
-              direction="row"
-              spacing={0.8}
-              useFlexGap
-              flexWrap="wrap"
-              justifyContent="flex-end"
-              sx={{ mt: 1.4, position: 'relative', zIndex: 1 }}
-            >
+            <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap" justifyContent="flex-end">
               <Button variant="outlined" size="small" onClick={handleDevSummary}>
                 Dev Summary
               </Button>
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() =>
-                  navigate(allowDevBypass ? '/dashboard?dev=1' : '/dashboard')
-                }
+                onClick={() => navigate(allowDevBypass ? '/dashboard?dev=1' : '/dashboard')}
               >
                 Dev Dashboard
               </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => navigate('/dev-skip-1')}
-              >
+              <Button variant="outlined" size="small" onClick={() => navigate('/dev-skip-1')}>
                 Dev Skip
               </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => navigate('/dev-assessments')}
-              >
+              <Button variant="outlined" size="small" onClick={() => navigate('/dev-assessments')}>
                 Dev Assessments
               </Button>
             </Stack>
           )}
-        </Box>
+        </Stack>
       </Container>
     </Box>
   );
