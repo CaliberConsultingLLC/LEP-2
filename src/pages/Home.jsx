@@ -24,6 +24,152 @@ const sections = [
   { key: 'deliverables', label: 'Deliverables' },
 ];
 
+function StageOneAssessmentAnimation() {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        mt: 1.05,
+        mb: 0.85,
+        borderRadius: 1.6,
+        border: '1px solid rgba(63,100,123,0.22)',
+        background: 'linear-gradient(180deg, rgba(237,244,251,0.95), rgba(247,250,255,0.95))',
+        p: 1,
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 0.55,
+          fontSize: '0.68rem',
+          letterSpacing: '0.01em',
+          color: '#496179',
+          fontWeight: 700,
+        }}
+      >
+        <Box>Assessment</Box>
+        <Box>Leadership Snapshot</Box>
+      </Box>
+
+      <Box
+        sx={{
+          position: 'relative',
+          height: 4,
+          borderRadius: 999,
+          bgcolor: 'rgba(63,100,123,0.20)',
+          overflow: 'hidden',
+          mb: 0.8,
+        }}
+      >
+        <Box
+          sx={{
+            height: '100%',
+            width: '100%',
+            transformOrigin: 'left center',
+            background: 'linear-gradient(90deg, #6393AA, #3F647B)',
+            animation: 'stageProgress 10s ease-in-out infinite',
+            '@keyframes stageProgress': {
+              '0%, 8%': { transform: 'scaleX(0.02)' },
+              '50%': { transform: 'scaleX(0.55)' },
+              '100%': { transform: 'scaleX(1)' },
+            },
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '2%',
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            bgcolor: '#E07A3F',
+            transform: 'translateY(-50%)',
+            boxShadow: '0 0 0 4px rgba(224,122,63,0.20)',
+            animation: 'stageCursorMove 10s ease-in-out infinite',
+            '@keyframes stageCursorMove': {
+              '0%, 8%': { left: '2%' },
+              '50%': { left: '52%' },
+              '100%': { left: '92%' },
+            },
+          }}
+        />
+      </Box>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 0.9fr', gap: 0.8, alignItems: 'center' }}>
+        <Stack spacing={0.5}>
+          {[0, 1, 2, 3].map((idx) => (
+            <Box
+              key={idx}
+              sx={{
+                height: 8,
+                borderRadius: 999,
+                bgcolor: 'rgba(63,100,123,0.18)',
+                animation: 'stageAnswerPulse 10s ease-in-out infinite',
+                animationDelay: `${idx * 1.2}s`,
+                '@keyframes stageAnswerPulse': {
+                  '0%, 10%, 100%': { bgcolor: 'rgba(63,100,123,0.18)' },
+                  '14%, 24%': { bgcolor: 'rgba(99,147,170,0.66)' },
+                  '28%, 100%': { bgcolor: 'rgba(63,100,123,0.18)' },
+                },
+              }}
+            />
+          ))}
+        </Stack>
+
+        <Box
+          sx={{
+            minHeight: 56,
+            borderRadius: 1.3,
+            border: '1px solid rgba(63,100,123,0.24)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(241,247,252,0.95))',
+            p: 0.65,
+            opacity: 0,
+            transform: 'translateY(7px)',
+            animation: 'stageRevealCard 10s ease-in-out infinite',
+            '@keyframes stageRevealCard': {
+              '0%, 54%': { opacity: 0, transform: 'translateY(7px)' },
+              '62%, 100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.45 }}>
+            <Box sx={{ width: '52%', height: 5, borderRadius: 999, bgcolor: 'rgba(63,100,123,0.30)' }} />
+            <Box
+              sx={{
+                width: 15,
+                height: 15,
+                borderRadius: '50%',
+                border: '2px solid #3F647B',
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  inset: 2,
+                  borderRadius: '50%',
+                  bgcolor: '#3F647B',
+                  animation: 'stageRingPulse 10s ease-in-out infinite',
+                },
+                '@keyframes stageRingPulse': {
+                  '0%, 60%': { transform: 'scale(0.7)', opacity: 0.4 },
+                  '70%, 85%': { transform: 'scale(1)', opacity: 1 },
+                  '100%': { transform: 'scale(0.8)', opacity: 0.65 },
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ width: '100%', height: 5, borderRadius: 999, bgcolor: 'rgba(99,147,170,0.40)', mb: 0.35 }} />
+          <Box sx={{ width: '72%', height: 5, borderRadius: 999, bgcolor: 'rgba(224,122,63,0.38)' }} />
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
 function Home() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(0);
@@ -533,6 +679,7 @@ function Home() {
                   <Typography sx={{ color: '#44566C', fontSize: '0.93rem', lineHeight: 1.55 }}>
                     {item.text}
                   </Typography>
+                  {item.title === 'Mirror-Accurate' && <StageOneAssessmentAnimation />}
                   <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 2 }}>
                     {item.bullets.map((bullet) => (
                       <Typography
