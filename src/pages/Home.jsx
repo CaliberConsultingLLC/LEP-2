@@ -210,7 +210,7 @@ function Home() {
             position: 'absolute',
             inset: 0,
             background:
-              'radial-gradient(800px 360px at 84% 18%, rgba(94,145,176,0.30), transparent 65%)',
+              'radial-gradient(800px 360px at 84% 18%, rgba(94,145,176,0.30), transparent 65%), radial-gradient(560px 300px at 6% 46%, rgba(91,132,167,0.28), transparent 72%)',
             pointerEvents: 'none',
           }}
         />
@@ -220,10 +220,11 @@ function Home() {
           alt=""
           sx={{
             position: 'absolute',
-            right: { xs: -88, md: 12 },
-            top: { xs: -62, md: -26 },
-            width: { xs: 200, md: 320 },
-            opacity: 0.2,
+            left: { xs: -112, md: -178 },
+            top: { xs: 22, md: 8 },
+            width: { xs: 240, md: 380 },
+            opacity: 0.3,
+            filter: 'drop-shadow(0 14px 30px rgba(6,12,24,0.38))',
             pointerEvents: 'none',
           }}
         />
@@ -324,66 +325,146 @@ function Home() {
                 <Box
                   sx={{
                     height: '100%',
-                    minHeight: 240,
+                    minHeight: 280,
                     borderRadius: 3,
-                    border: '1px solid rgba(255,255,255,0.20)',
+                    border: '1px solid rgba(255,255,255,0.24)',
                     background:
-                      'linear-gradient(160deg, rgba(19,37,64,0.78), rgba(10,20,36,0.90))',
+                      'linear-gradient(160deg, rgba(16,33,58,0.86), rgba(8,17,33,0.94))',
                     boxShadow: '0 16px 34px rgba(3,10,22,0.36)',
-                    p: { xs: 1.6, md: 2 },
+                    p: { xs: 1.4, md: 1.7 },
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'space-between',
+                    justifyContent: 'flex-start',
                     position: 'relative',
                     overflow: 'hidden',
                   }}
                 >
-                  <Box
-                    component="img"
-                    src="/CompassLogo.png"
-                    alt=""
-                    sx={{
-                      position: 'absolute',
-                      right: -34,
-                      top: -74,
-                      width: { xs: 210, md: 260 },
-                      opacity: 0.34,
-                    }}
-                  />
                   <Typography
                     sx={{
                       color: '#E6F0FF',
                       fontFamily: 'Gemunu Libre, sans-serif',
-                      fontSize: '1.2rem',
+                      fontSize: '1.02rem',
                       fontWeight: 700,
-                      position: 'relative',
-                      zIndex: 1,
+                      mb: 1,
+                      letterSpacing: '0.015em',
                     }}
                   >
-                    Why leaders stay with Compass
+                    Watch: The Compass in 90 Seconds
                   </Typography>
-                  <Stack spacing={1} sx={{ position: 'relative', zIndex: 1 }}>
-                    {[
-                      'Clear baseline on how you currently lead',
-                      'Specific traits and actions to target next',
-                      'A visual journey that keeps momentum alive',
-                    ].map((line) => (
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      borderRadius: 2.1,
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255,255,255,0.24)',
+                      background:
+                        'linear-gradient(105deg, rgba(8,15,30,0.82), rgba(8,15,30,0.25)), url(/LEP2.jpg)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      aspectRatio: '16 / 9',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        background:
+                          'radial-gradient(360px 180px at 70% 30%, rgba(229,122,63,0.22), transparent 75%)',
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F26D6D' }} />
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#F5C86B' }} />
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#83D18A' }} />
+                      </Box>
+                      <Typography sx={{ fontSize: '0.72rem', color: 'rgba(233,242,255,0.82)' }}>
+                        Intro Clip
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       <Box
-                        key={line}
                         sx={{
-                          px: 1.2,
-                          py: 0.8,
-                          borderRadius: 1.6,
-                          bgcolor: 'rgba(255,255,255,0.10)',
-                          color: '#F6FAFF',
-                          fontSize: '0.9rem',
-                          border: '1px solid rgba(255,255,255,0.16)',
+                          width: 72,
+                          height: 72,
+                          borderRadius: '50%',
+                          bgcolor: 'rgba(255,255,255,0.20)',
+                          border: '1px solid rgba(255,255,255,0.52)',
+                          backdropFilter: 'blur(2px)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
                         }}
                       >
-                        {line}
+                        <Box
+                          sx={{
+                            width: 0,
+                            height: 0,
+                            borderTop: '10px solid transparent',
+                            borderBottom: '10px solid transparent',
+                            borderLeft: '16px solid #FFFFFF',
+                            ml: 0.4,
+                          }}
+                        />
                       </Box>
-                    ))}
-                  </Stack>
+                    </Box>
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: 12,
+                        right: 12,
+                        bottom: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          flex: 1,
+                          height: 4,
+                          borderRadius: 999,
+                          bgcolor: 'rgba(255,255,255,0.26)',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <Box sx={{ width: '34%', height: '100%', bgcolor: '#E07A3F' }} />
+                      </Box>
+                      <Typography sx={{ fontSize: '0.72rem', color: 'rgba(233,242,255,0.92)' }}>
+                        1:24
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography
+                    sx={{
+                      mt: 0.95,
+                      color: 'rgba(232,242,255,0.92)',
+                      fontSize: '0.86rem',
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    A short walkthrough of how Compass transforms leadership reflection into a
+                    practical growth campaign.
+                  </Typography>
                 </Box>
               </Grid>
             </Grid>
