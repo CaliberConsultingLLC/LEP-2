@@ -73,8 +73,8 @@ function Home() {
   };
 
   const handleBeginJourney = () => {
-    console.log('Begin Your Journey button clicked, navigating to /landing');
-    navigate('/landing');
+    console.log('Begin Your Journey button clicked, navigating to /user-info');
+    navigate('/user-info');
   };
 
   const handleResumeJourney = () => {
@@ -219,7 +219,6 @@ function Home() {
             'linear-gradient(120deg, rgba(9,16,31,0.92), rgba(16,34,60,0.88)), url(/LEP2.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          borderBottom: '1px solid rgba(15,23,42,0.14)',
         }}
       >
         <Box
@@ -251,8 +250,8 @@ function Home() {
               <Typography
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: { xs: '1.55rem', md: '1.95rem' },
-                  fontWeight: 700,
+                  fontSize: { xs: '1.2rem', md: '1.45rem' },
+                  fontWeight: 600,
                   letterSpacing: '0.025em',
                   color: '#F7FAFF',
                   textTransform: 'uppercase',
@@ -290,7 +289,7 @@ function Home() {
                       maxWidth: 760,
                     }}
                   >
-                    Turn leadership insight into decisive, measurable growth.
+                    Know where you stand. Choose where to go.
                   </Typography>
                   <Typography
                     sx={{
@@ -300,9 +299,9 @@ function Home() {
                       maxWidth: 690,
                     }}
                   >
-                    The Compass translates your leadership patterns into a focused growth campaign.
+                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities.
                     <br />
-                    Less noise, stronger direction, and a dashboard that keeps progress visible.
+                    It is AI-powered, but human-led, so your outcomes stay grounded in real leadership context.
                   </Typography>
 
                   <Stack direction="row" spacing={1.2} flexWrap="wrap" sx={{ pt: 0.6 }}>
@@ -478,20 +477,18 @@ function Home() {
         </Container>
       </Box>
 
+      <Box
+        sx={{
+          width: '100%',
+          background:
+            'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
+          py: { xs: 2.2, md: 3.2 },
+        }}
+      >
       <Container
         maxWidth="xl"
         ref={journeyContentRef}
-        sx={{ py: { xs: 2.2, md: 3.2 }, position: 'relative' }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
         <Stack spacing={1.4}>
           <Typography
             sx={{
@@ -578,6 +575,7 @@ function Home() {
           )}
         </Stack>
       </Container>
+      </Box>
     </Box>
   );
 }

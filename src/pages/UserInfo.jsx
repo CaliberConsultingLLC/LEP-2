@@ -9,6 +9,12 @@ import {
   Card,
   CardContent,
   Alert,
+  Checkbox,
+  FormControlLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
@@ -20,25 +26,58 @@ function UserInfo() {
   const [userInfo, setUserInfo] = useState({
     name: '',
     email: '',
+    password: '',
+    confirmPassword: '',
+    agreeTerms: false,
+    agreePrivacy: false,
+    agreeComms: false,
   });
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openDialog, setOpenDialog] = useState(null);
 
   const handleChange = (e) => {
     setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
     setError(null);
   };
 
+  const handleConsentChange = (e) => {
+    setUserInfo({ ...userInfo, [e.target.name]: e.target.checked });
+    setError(null);
+  };
+
+  const validatePassword = (password) => {
+    const hasMinLength = password.length >= 10;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    return hasMinLength && hasUpper && hasLower && hasNumber;
+  };
+
   const handleContinue = async () => {
-    if (!userInfo.name || !userInfo.email) {
-      setError('Please fill out all fields.');
+    if (!userInfo.name || !userInfo.email || !userInfo.password || !userInfo.confirmPassword) {
+      setError('Please fill out all required profile fields.');
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(userInfo.email)) {
       setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!validatePassword(userInfo.password)) {
+      setError('Password must be at least 10 characters and include uppercase, lowercase, and a number.');
+      return;
+    }
+
+    if (userInfo.password !== userInfo.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (!userInfo.agreeTerms || !userInfo.agreePrivacy) {
+      setError('You must accept the Terms and Privacy Policy to continue.');
       return;
     }
 
@@ -46,22 +85,37 @@ function UserInfo() {
     setError(null);
 
     try {
-      // Save user info to localStorage for use throughout the app
-      localStorage.setItem('userInfo', JSON.stringify(userInfo));
-      
-      // Optionally save to Firestore
+      localStorage.setItem(
+        'userInfo',
+        JSON.stringify({
+          name: userInfo.name,
+          email: userInfo.email,
+          consent: {
+            terms: userInfo.agreeTerms,
+            privacy: userInfo.agreePrivacy,
+            comms: userInfo.agreeComms,
+            acceptedAt: new Date().toISOString(),
+          },
+        }),
+      );
+
       try {
         await addDoc(collection(db, 'users'), {
           name: userInfo.name,
           email: userInfo.email,
+          consent: {
+            terms: userInfo.agreeTerms,
+            privacy: userInfo.agreePrivacy,
+            comms: userInfo.agreeComms,
+            acceptedAt: new Date().toISOString(),
+            version: 'v1',
+          },
           createdAt: new Date(),
         });
       } catch (firestoreError) {
         console.warn('Could not save to Firestore:', firestoreError);
-        // Continue even if Firestore save fails
       }
 
-      // Navigate to intake form
       navigate('/form');
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -134,19 +188,22 @@ function UserInfo() {
                 color: 'text.primary',
               }}
             >
-              Let's Get Started
+              Compass Profile
             </Typography>
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
                 fontSize: '1rem',
-                mb: 4,
+                mb: 1.2,
                 textAlign: 'center',
                 color: 'text.secondary',
               }}
             >
-              We'll use this information to personalize your leadership development journey.
+              Set up your Compass profile so we can personalize your journey.
             </Typography>
+            <Alert severity="info" sx={{ mb: 3, fontFamily: 'Gemunu Libre, sans-serif' }}>
+              Compass does not share your profile information or assessment results with other users or company leadership/HR without explicit authorization.
+            </Alert>
 
             <Stack spacing={3}>
               <Box>
@@ -215,6 +272,138 @@ function UserInfo() {
                 />
               </Box>
 
+              <Box>
+                <Typography
+                  component="label"
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    display: 'block',
+                    mb: 1,
+                    color: 'text.primary',
+                    fontWeight: 600,
+                  }}
+                >
+                  Create Password
+                </Typography>
+                <TextField
+                  type="password"
+                  name="password"
+                  value={userInfo.password}
+                  onChange={handleChange}
+                  required
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Create a password"
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
+                    },
+                  }}
+                />
+                <Typography sx={{ mt: 0.8, fontSize: '0.8rem', color: 'text.secondary' }}>
+                  Minimum 10 characters with uppercase, lowercase, and a number.
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography
+                  component="label"
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    display: 'block',
+                    mb: 1,
+                    color: 'text.primary',
+                    fontWeight: 600,
+                  }}
+                >
+                  Confirm Password
+                </Typography>
+                <TextField
+                  type="password"
+                  name="confirmPassword"
+                  value={userInfo.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Confirm password"
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
+                    },
+                  }}
+                />
+              </Box>
+
+              <Stack spacing={0.6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={userInfo.agreeTerms}
+                      onChange={handleConsentChange}
+                      name="agreeTerms"
+                    />
+                  }
+                  label={
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.94rem' }}>
+                      I agree to the{' '}
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => setOpenDialog('terms')}
+                        sx={{ minWidth: 'auto', p: 0, fontSize: '0.88rem', fontFamily: 'Gemunu Libre, sans-serif' }}
+                      >
+                        Terms of Use
+                      </Button>
+                      .
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={userInfo.agreePrivacy}
+                      onChange={handleConsentChange}
+                      name="agreePrivacy"
+                    />
+                  }
+                  label={
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.94rem' }}>
+                      I acknowledge the{' '}
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => setOpenDialog('privacy')}
+                        sx={{ minWidth: 'auto', p: 0, fontSize: '0.88rem', fontFamily: 'Gemunu Libre, sans-serif' }}
+                      >
+                        Privacy Policy
+                      </Button>
+                      .
+                    </Typography>
+                  }
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={userInfo.agreeComms}
+                      onChange={handleConsentChange}
+                      name="agreeComms"
+                    />
+                  }
+                  label={
+                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.94rem' }}>
+                      I consent to optional product updates and email communications.
+                    </Typography>
+                  }
+                />
+              </Stack>
+
               {error && (
                 <Alert severity="error" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem' }}>
                   {error}
@@ -226,7 +415,7 @@ function UserInfo() {
                 color="primary"
                 size="large"
                 onClick={handleContinue}
-                disabled={isSubmitting || !userInfo.name || !userInfo.email}
+                disabled={isSubmitting}
                 sx={{
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontSize: '1.1rem',
@@ -238,13 +427,37 @@ function UserInfo() {
                   },
                 }}
               >
-                {isSubmitting ? 'Saving...' : 'Continue to Profile'}
+                {isSubmitting ? 'Saving...' : 'Continue to Assessment'}
               </Button>
             </Stack>
           </CardContent>
         </Card>
         </Box>
       </Container>
+
+      <Dialog open={openDialog === 'terms'} onClose={() => setOpenDialog(null)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>Terms of Use</DialogTitle>
+        <DialogContent dividers>
+          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', lineHeight: 1.6 }}>
+            By using Compass, you agree to use the platform for lawful professional development purposes, keep your access credentials secure, and avoid misuse of generated guidance. Compass provides decision support and reflection tools; final leadership decisions remain your responsibility.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openDialog === 'privacy'} onClose={() => setOpenDialog(null)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>Privacy Policy</DialogTitle>
+        <DialogContent dividers>
+          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', lineHeight: 1.6 }}>
+            Compass collects profile and assessment data to personalize your experience and improve product quality. Data is protected and is not shared with other users or company leadership/HR without explicit authorization, except where required by applicable law.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
