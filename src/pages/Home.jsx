@@ -470,20 +470,41 @@ function Home() {
             </Stack>
           </Stack>
         </Container>
-        <Box
-          component="img"
-          src="/hero2.png"
-          alt="Compass guide model"
+        <Stack
+          direction="row"
+          spacing={{ xs: 0.15, md: 0.45 }}
           sx={{
             position: 'absolute',
-            right: { xs: 10, md: '17%', lg: '16%' },
-            bottom: { xs: -34, md: -84 },
-            width: { xs: 122, md: 188, lg: 214 },
+            right: { xs: 8, md: '13.5%', lg: '12.5%' },
+            bottom: { xs: -30, md: -96 },
             zIndex: 2,
-            filter: 'drop-shadow(0 14px 24px rgba(4,10,20,0.42))',
             pointerEvents: 'none',
+            alignItems: 'flex-end',
           }}
-        />
+        >
+          <Box
+            component="img"
+            src="/herofemale.png"
+            alt="Compass guide model female"
+            sx={{
+              width: { xs: 104, md: 164, lg: 186 },
+              height: 'auto',
+              display: 'block',
+              filter: 'drop-shadow(0 12px 22px rgba(4,10,20,0.40))',
+            }}
+          />
+          <Box
+            component="img"
+            src="/heromale.png"
+            alt="Compass guide model male"
+            sx={{
+              width: { xs: 104, md: 164, lg: 186 },
+              height: 'auto',
+              display: 'block',
+              filter: 'drop-shadow(0 12px 22px rgba(4,10,20,0.40))',
+            }}
+          />
+        </Stack>
       </Box>
 
       <Box
