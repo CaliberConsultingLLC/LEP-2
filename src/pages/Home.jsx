@@ -129,6 +129,8 @@ function Home() {
           text: 'Complete a focused intake that captures your current leadership baseline.',
           bullets: [
             'Fast input, high signal.',
+            'Built around practical leadership context.',
+            'Gives you a clear baseline before reflection.',
           ],
         },
         {
@@ -236,7 +238,7 @@ function Home() {
             pointerEvents: 'none',
           }}
         />
-        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 3, md: 5 } }}>
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 2, md: 3.8 } }}>
           <Stack spacing={{ xs: 2.2, md: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
@@ -369,7 +371,7 @@ function Home() {
                 <Box
                   sx={{
                     height: '100%',
-                    minHeight: { xs: 180, md: 280 },
+                    minHeight: { xs: 140, md: 220 },
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: { xs: 'center', md: 'flex-end' },
@@ -382,45 +384,16 @@ function Home() {
                     alt=""
                     aria-hidden
                     sx={{
-                      width: { xs: '62%', md: '94%' },
-                      maxWidth: 500,
+                      width: { xs: '74%', md: '100%' },
+                      maxWidth: 600,
                       height: 'auto',
-                      opacity: 0.92,
+                      opacity: 0.74,
                       filter: 'drop-shadow(0 18px 38px rgba(3,10,22,0.44))',
                     }}
                   />
                 </Box>
               </Grid>
             </Grid>
-
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={1}
-              sx={{
-                pt: { xs: 0.6, md: 0.2 },
-              }}
-            >
-              {[
-                'Trusted by leadership teams across diverse industries',
-                'AI-powered insights grounded in practical leadership context',
-                'Built to turn reflection into measurable action',
-              ].map((item) => (
-                <Box
-                  key={item}
-                  sx={{
-                    border: '1px solid rgba(233,242,255,0.34)',
-                    borderRadius: 999,
-                    px: 1.2,
-                    py: 0.5,
-                    bgcolor: 'rgba(7,15,28,0.26)',
-                  }}
-                >
-                  <Typography sx={{ color: 'rgba(240,247,255,0.92)', fontSize: '0.78rem', lineHeight: 1.35 }}>
-                    {item}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
           </Stack>
         </Container>
         <Stack
@@ -443,6 +416,7 @@ function Home() {
               width: { xs: 182, md: 306, lg: 338 },
               height: 'auto',
               display: 'block',
+              transform: { xs: 'translateX(8vw)', md: 'translateX(15vw)' },
               filter:
                 'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
@@ -505,35 +479,9 @@ function Home() {
                   ? 'Core product principles that ensure your reflection feels accurate, practical, and personally relevant.'
                   : 'What you walk away with after completing your Compass experience.'}
             </Typography>
-            <Grid container spacing={0.8} sx={{ mb: 0.9 }}>
-              {[
-                { label: 'Avg setup time', value: '9 min' },
-                { label: 'Completion clarity', value: 'High' },
-                { label: 'Action readiness', value: 'Immediate' },
-              ].map((metric) => (
-                <Grid item xs={4} key={metric.label}>
-                  <Box
-                    sx={{
-                      borderRadius: 1.5,
-                      border: '1px solid rgba(15,23,42,0.1)',
-                      bgcolor: 'rgba(255,255,255,0.75)',
-                      px: 0.9,
-                      py: 0.55,
-                    }}
-                  >
-                    <Typography sx={{ color: '#5A6B7E', fontSize: '0.68rem', lineHeight: 1.2 }}>
-                      {metric.label}
-                    </Typography>
-                    <Typography sx={{ color: '#0F1F32', fontSize: '0.86rem', fontWeight: 700, lineHeight: 1.2 }}>
-                      {metric.value}
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
 
             <Grid container spacing={1}>
-              {panel.map((item) => (
+              {panel.map((item, idx) => (
                 <Grid item xs={12} md={activeSection === 1 ? 3 : 4} key={item.title}>
                   <Box
                     data-hover="lift"
@@ -544,9 +492,38 @@ function Home() {
                       bgcolor: '#FFFFFF',
                       p: { xs: 1.1, md: activeSection === 1 ? 1.15 : 1.5 },
                       boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}
                   >
-                    <Box sx={{ mb: 0.52 }}>{item.icon}</Box>
+                    {activeSection === 1 && idx === 0 && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          right: -14,
+                          top: 0,
+                          width: { xs: 72, md: 92 },
+                          height: '67%',
+                          overflow: 'hidden',
+                          opacity: 0.22,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src="/herothink.png"
+                          alt=""
+                          aria-hidden
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'top center',
+                          }}
+                        />
+                      </Box>
+                    )}
+                    {!(activeSection === 1 && idx === 0) && <Box sx={{ mb: 0.52 }}>{item.icon}</Box>}
                     <Typography
                       sx={{
                         fontWeight: 700,
