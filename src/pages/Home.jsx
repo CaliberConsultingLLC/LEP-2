@@ -369,88 +369,26 @@ function Home() {
                 <Box
                   sx={{
                     height: '100%',
-                    minHeight: 280,
-                    borderRadius: 3,
-                    border: '1px solid rgba(255,255,255,0.24)',
-                    background:
-                      'linear-gradient(160deg, rgba(16,33,58,0.86), rgba(8,17,33,0.94))',
-                    boxShadow: '0 16px 34px rgba(3,10,22,0.36)',
-                    p: { xs: 1.4, md: 1.7 },
+                    minHeight: { xs: 180, md: 280 },
                     display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-start',
-                    position: 'relative',
-                    overflow: 'hidden',
+                    alignItems: 'center',
+                    justifyContent: { xs: 'center', md: 'flex-end' },
+                    position: 'relative'
                   }}
                 >
                   <Box
+                    component="img"
+                    src="/CompassLogo.png"
+                    alt=""
+                    aria-hidden
                     sx={{
-                      position: 'relative',
-                      borderRadius: 2.2,
-                      overflow: 'hidden',
-                      border: '1px solid rgba(255,255,255,0.30)',
-                      background: 'radial-gradient(140% 120% at 20% 22%, rgba(111,154,131,0.28), rgba(8,15,30,0.20) 55%, rgba(8,15,30,0.10))',
-                      aspectRatio: '16 / 9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      width: { xs: '62%', md: '94%' },
+                      maxWidth: 500,
+                      height: 'auto',
+                      opacity: 0.92,
+                      filter: 'drop-shadow(0 18px 38px rgba(3,10,22,0.44))',
                     }}
-                  >
-                    <Typography
-                      sx={{
-                        position: 'absolute',
-                        top: 10,
-                        left: 12,
-                        zIndex: 2,
-                        color: 'rgba(255,255,255,0.92)',
-                        fontSize: '0.72rem',
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        bgcolor: 'rgba(6,13,25,0.42)',
-                        border: '1px solid rgba(255,255,255,0.22)',
-                        borderRadius: 999,
-                        px: 1,
-                        py: 0.24,
-                      }}
-                    >
-                      Compass Model
-                    </Typography>
-                    <Box
-                      component="img"
-                      src="/CompassLogo.png"
-                      alt="Compass logo"
-                      sx={{
-                        width: { xs: '72%', md: '76%' },
-                        maxWidth: 420,
-                        height: 'auto',
-                        objectFit: 'contain',
-                        opacity: 0.95,
-                        filter: 'drop-shadow(0 16px 34px rgba(5,12,24,0.42))',
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        background:
-                          'linear-gradient(180deg, rgba(8,14,24,0.04), rgba(8,14,24,0.24))',
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        display: 'none',
-                      }}
-                    >
-                      <Box
-                        component="video"
-                        src="/Recording 2026-03-05 202621.mp4"
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                      />
-                    </Box>
-                  </Box>
+                  />
                 </Box>
               </Grid>
             </Grid>
@@ -487,11 +425,11 @@ function Home() {
         </Container>
         <Stack
           direction="row"
-          spacing={0}
+          spacing={{ xs: -0.75, md: -1.25 }}
           sx={{
             position: 'absolute',
-            right: { xs: -34, md: '-1.5%', lg: '0%' },
-            bottom: { xs: -118, md: -258 },
+            right: { xs: -8, md: '4.8%', lg: '5.1%' },
+            bottom: { xs: -98, md: -208 },
             zIndex: 2,
             pointerEvents: 'none',
             alignItems: 'flex-end',
@@ -502,10 +440,9 @@ function Home() {
             src="/herofemale.png"
             alt="Compass guide model female"
             sx={{
-              width: { xs: 220, md: 410, lg: 465 },
+              width: { xs: 182, md: 306, lg: 338 },
               height: 'auto',
               display: 'block',
-              mr: { xs: -102, md: -220, lg: -250 },
               filter:
                 'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
@@ -515,7 +452,7 @@ function Home() {
             src="/heromale.png"
             alt="Compass guide model male"
             sx={{
-              width: { xs: 220, md: 410, lg: 465 },
+              width: { xs: 182, md: 306, lg: 338 },
               height: 'auto',
               display: 'block',
               filter:
