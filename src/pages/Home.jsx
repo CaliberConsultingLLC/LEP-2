@@ -82,6 +82,7 @@ function Home() {
       return [
         {
           title: 'Mirror-Accurate',
+          hero: '/herothink.png',
           text: 'Objective reflection of your current leadership approach.',
           bullets: [
             'Strengths and growth opportunities with clarity.',
@@ -90,6 +91,7 @@ function Home() {
         },
         {
           title: 'Signal Over Noise',
+          hero: '/heroreflect.png',
           text: 'Focuses your attention on the highest-impact shifts.',
           bullets: [
             'Prioritizes what matters most right now.',
@@ -98,6 +100,7 @@ function Home() {
         },
         {
           title: 'Built for Action',
+          hero: '/herothink.png',
           text: 'You leave with priorities you can apply immediately.',
           bullets: [
             'Connects self-awareness to practical next steps.',
@@ -111,6 +114,7 @@ function Home() {
       return [
         {
           title: 'Capture',
+          hero: '/herothink.png',
           text: 'Focused intake that captures your leadership baseline.',
           bullets: [
             'Fast input, high signal.',
@@ -119,6 +123,7 @@ function Home() {
         },
         {
           title: 'Reflect',
+          hero: '/heroreflect.png',
           text: 'Review your summary and trait priorities to clarify what matters.',
           bullets: [
             'Clarity before action.',
@@ -127,6 +132,7 @@ function Home() {
         },
         {
           title: 'Calibrate',
+          hero: '/herocalibrate.png',
           text: 'Self and team assessments calibrate perspective against lived reality.',
           bullets: [
             'Align perspective and data.',
@@ -135,6 +141,7 @@ function Home() {
         },
         {
           title: 'Embark',
+          hero: '/heroembark.png',
           text: 'Launch a focused growth journey with action planning and momentum.',
           bullets: [
             'Start focused, stay moving.',
@@ -147,6 +154,7 @@ function Home() {
     return [
       {
         title: 'Reflection Summary',
+        hero: '/heroreflect.png',
         text: 'A clear portrait of your leadership with practical context.',
         bullets: [
           'What is working and where growth creates the biggest lift.',
@@ -155,6 +163,7 @@ function Home() {
       },
       {
         title: 'Focus Traits',
+        hero: '/heroreflect.png',
         text: 'Five personalized growth traits tailored to your needs.',
         bullets: [
           'Development path specific and high impact.',
@@ -163,6 +172,7 @@ function Home() {
       },
       {
         title: 'Action Dashboard',
+        hero: '/heroreflect.png',
         text: 'Campaign details, milestones, and resources in one place.',
         bullets: [
           'Prevents momentum loss after insights.',
@@ -442,33 +452,6 @@ function Home() {
               },
             }}
           >
-            <Typography
-              sx={{
-                fontWeight: 800,
-                color: '#0F1F32',
-                fontSize: { xs: '1.15rem', md: '1.32rem' },
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {sections[activeSection].label}
-            </Typography>
-            <Typography
-              sx={{
-                color: '#4B6076',
-                fontSize: { xs: '0.9rem', md: '0.96rem' },
-                lineHeight: 1.55,
-                maxWidth: 760,
-                mt: 0.4,
-                mb: 1.2,
-              }}
-            >
-              {activeSection === 1
-                ? 'Capture signal quickly, reflect with clarity, calibrate against real feedback, and embark with focused action.'
-                : activeSection === 0
-                  ? 'Core product principles that ensure your reflection feels accurate, practical, and personally relevant.'
-                  : 'What you walk away with after completing your Compass experience.'}
-            </Typography>
-
             <Grid container spacing={1.5}>
               {panel.map((item) => (
                 <Grid item xs={12} md={activeSection === 1 ? 3 : 4} key={item.title}>
@@ -485,6 +468,32 @@ function Home() {
                       overflow: 'hidden',
                     }}
                   >
+                    {item.hero && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          right: -8,
+                          top: 0,
+                          width: { xs: 88, md: 110 },
+                          height: '70%',
+                          opacity: 0.15,
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={item.hero}
+                          alt=""
+                          aria-hidden
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            objectPosition: 'top right',
+                          }}
+                        />
+                      </Box>
+                    )}
                     <Typography
                       sx={{
                         fontWeight: 800,
