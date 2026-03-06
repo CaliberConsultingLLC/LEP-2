@@ -30,7 +30,6 @@ function UserInfo() {
     confirmPassword: '',
     agreeTerms: false,
     agreePrivacy: false,
-    agreeComms: false,
   });
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,7 +92,6 @@ function UserInfo() {
           consent: {
             terms: userInfo.agreeTerms,
             privacy: userInfo.agreePrivacy,
-            comms: userInfo.agreeComms,
             acceptedAt: new Date().toISOString(),
           },
         }),
@@ -106,7 +104,6 @@ function UserInfo() {
           consent: {
             terms: userInfo.agreeTerms,
             privacy: userInfo.agreePrivacy,
-            comms: userInfo.agreeComms,
             acceptedAt: new Date().toISOString(),
             version: 'v1',
           },
@@ -216,6 +213,7 @@ function UserInfo() {
                     mb: 1,
                     color: 'text.primary',
                     fontWeight: 600,
+                    textAlign: 'center',
                   }}
                 >
                   Name
@@ -232,6 +230,9 @@ function UserInfo() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
+                    '& .MuiInputBase-input': {
+                      textAlign: 'center',
+                    },
                     '& .MuiOutlinedInput-root': {
                       bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
@@ -249,6 +250,7 @@ function UserInfo() {
                     mb: 1,
                     color: 'text.primary',
                     fontWeight: 600,
+                    textAlign: 'center',
                   }}
                 >
                   Email
@@ -265,6 +267,9 @@ function UserInfo() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
+                    '& .MuiInputBase-input': {
+                      textAlign: 'center',
+                    },
                     '& .MuiOutlinedInput-root': {
                       bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
@@ -282,6 +287,7 @@ function UserInfo() {
                     mb: 1,
                     color: 'text.primary',
                     fontWeight: 600,
+                    textAlign: 'center',
                   }}
                 >
                   Create Password
@@ -298,12 +304,15 @@ function UserInfo() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
+                    '& .MuiInputBase-input': {
+                      textAlign: 'center',
+                    },
                     '& .MuiOutlinedInput-root': {
                       bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
                   }}
                 />
-                <Typography sx={{ mt: 0.8, fontSize: '0.8rem', color: 'text.secondary' }}>
+                <Typography sx={{ mt: 0.8, fontSize: '0.8rem', color: 'text.secondary', textAlign: 'center' }}>
                   Minimum 10 characters with uppercase, lowercase, and a number.
                 </Typography>
               </Box>
@@ -318,6 +327,7 @@ function UserInfo() {
                     mb: 1,
                     color: 'text.primary',
                     fontWeight: 600,
+                    textAlign: 'center',
                   }}
                 >
                   Confirm Password
@@ -334,6 +344,9 @@ function UserInfo() {
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
+                    '& .MuiInputBase-input': {
+                      textAlign: 'center',
+                    },
                     '& .MuiOutlinedInput-root': {
                       bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
@@ -341,7 +354,7 @@ function UserInfo() {
                 />
               </Box>
 
-              <Stack spacing={0.6}>
+              <Stack spacing={0.6} sx={{ alignItems: 'flex-start' }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -385,20 +398,6 @@ function UserInfo() {
                         Privacy Policy
                       </Button>
                       .
-                    </Typography>
-                  }
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={userInfo.agreeComms}
-                      onChange={handleConsentChange}
-                      name="agreeComms"
-                    />
-                  }
-                  label={
-                    <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.94rem' }}>
-                      I consent to optional product updates and email communications.
                     </Typography>
                   }
                 />
