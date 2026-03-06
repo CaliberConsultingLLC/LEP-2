@@ -73,12 +73,10 @@ function Home() {
   };
 
   const handleBeginJourney = () => {
-    console.log('Begin Your Journey button clicked, navigating to /user-info');
     navigate('/user-info');
   };
 
   const handleResumeJourney = () => {
-    console.log('Sign In button clicked, navigating to /sign-in');
     navigate('/sign-in');
   };
 
@@ -128,7 +126,7 @@ function Home() {
         {
           icon: <Inventory2 sx={{ fontSize: 28, color: 'primary.main' }} />,
           title: 'Capture',
-          text: 'Complete a focused intake to capture your current leadership baseline.',
+          text: 'Complete a focused intake that captures your current leadership baseline.',
           bullets: [
             'Fast input, high signal.',
           ],
@@ -136,7 +134,7 @@ function Home() {
         {
           icon: <Psychology sx={{ fontSize: 28, color: 'primary.main' }} />,
           title: 'Reflect',
-          text: 'Review your summary and trait priorities to understand what matters now.',
+          text: 'Review your summary and trait priorities to clarify what matters right now.',
           bullets: [
             'Clarity before action.',
           ],
@@ -144,7 +142,7 @@ function Home() {
         {
           icon: <Insights sx={{ fontSize: 28, color: 'primary.main' }} />,
           title: 'Calibrate',
-          text: 'Run self and team assessments to calibrate perception against lived reality.',
+          text: 'Use self and team assessments to calibrate perspective against lived reality.',
           bullets: [
             'Align perspective and data.',
           ],
@@ -152,7 +150,7 @@ function Home() {
         {
           icon: <Route sx={{ fontSize: 28, color: 'primary.main' }} />,
           title: 'Embark',
-          text: 'Launch your growth journey with action planning and visible momentum.',
+          text: 'Launch a focused growth journey with action planning and visible momentum.',
           bullets: [
             'Start focused, stay moving.',
           ],
@@ -200,7 +198,7 @@ function Home() {
     <Box
       sx={{
         minHeight: '100vh',
-        width: '100vw',
+        width: '100%',
         background:
           'linear-gradient(180deg, #F3F6FB 0%, #EDF3FC 62%, #EAF1FB 100%)',
       }}
@@ -243,10 +241,9 @@ function Home() {
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: { xs: '1.2rem', md: '1.45rem' },
-                  fontWeight: 600,
-                  letterSpacing: '0.025em',
+                  fontSize: { xs: '0.98rem', md: '1.1rem' },
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
                   color: '#F7FAFF',
                   textTransform: 'uppercase',
                 }}
@@ -275,22 +272,22 @@ function Home() {
                 <Stack spacing={1.5}>
                   <Typography
                     sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
                       color: '#FFFFFF',
-                      fontSize: { xs: '2rem', md: '2.9rem' },
-                      lineHeight: 1.04,
-                      fontWeight: 700,
+                      fontSize: { xs: '2rem', md: '2.85rem' },
+                      lineHeight: 1.06,
+                      fontWeight: 800,
+                      letterSpacing: '-0.015em',
                       maxWidth: 760,
                     }}
                   >
                     <Box component="span" sx={{ display: 'block' }}>
-                      <Box component="span" sx={{ color: '#E7B46F', mr: 0.8 }}>
+                      <Box component="span" sx={{ color: 'secondary.light', mr: 0.8, fontWeight: 900 }}>
                         Know
                       </Box>
                       where you stand.
                     </Box>
                     <Box component="span" sx={{ display: 'block', mt: 0.35 }}>
-                      <Box component="span" sx={{ color: '#E7B46F', mr: 0.8 }}>
+                      <Box component="span" sx={{ color: 'secondary.light', mr: 0.8, fontWeight: 900 }}>
                         Choose
                       </Box>
                       where to go.
@@ -299,8 +296,8 @@ function Home() {
                   <Typography
                     sx={{
                       color: 'rgba(233,242,255,0.96)',
-                      fontSize: { xs: '1rem', md: '1.08rem' },
-                      lineHeight: 1.62,
+                      fontSize: { xs: '0.98rem', md: '1.04rem' },
+                      lineHeight: 1.65,
                       fontStyle: 'italic',
                       maxWidth: 690,
                     }}
@@ -313,7 +310,12 @@ function Home() {
                       variant="contained"
                       color="primary"
                       onClick={handleBeginJourney}
-                      sx={{ px: 3.4, py: 1.1, boxShadow: '0 8px 20px rgba(25,50,72,0.30)' }}
+                      sx={{
+                        px: 3.4,
+                        py: 1.1,
+                        boxShadow: '0 8px 20px rgba(25,50,72,0.30)',
+                        fontSize: '0.95rem',
+                      }}
                     >
                       Begin Your Journey
                     </Button>
@@ -334,15 +336,15 @@ function Home() {
                           fontWeight: 700,
                           letterSpacing: '0.01em',
                           color:
-                            activeSection === idx ? '#2A1A10' : '#F8F2EC',
+                            activeSection === idx ? '#2A1A10' : '#FFF7EF',
                           bgcolor:
                             activeSection === idx
-                              ? 'rgba(231,180,111,0.95)'
-                              : 'rgba(224,122,63,0.28)',
+                              ? 'secondary.light'
+                              : 'rgba(224,122,63,0.32)',
                           borderColor:
                             activeSection === idx
-                              ? 'rgba(231,180,111,0.98)'
-                              : 'rgba(244,206,161,0.55)',
+                              ? 'secondary.light'
+                              : 'rgba(244,206,161,0.65)',
                           boxShadow:
                             activeSection === idx
                               ? '0 10px 22px rgba(12,25,44,0.36)'
@@ -350,8 +352,8 @@ function Home() {
                           '&:hover': {
                             bgcolor:
                               activeSection === idx
-                                ? 'rgba(223,168,95,0.98)'
-                                : 'rgba(224,122,63,0.42)',
+                                ? 'secondary.main'
+                                : 'rgba(224,122,63,0.44)',
                             borderColor: 'rgba(244,206,161,0.75)',
                           },
                         }}
@@ -391,6 +393,25 @@ function Home() {
                       aspectRatio: '16 / 9',
                     }}
                   >
+                      <Typography
+                        sx={{
+                          position: 'absolute',
+                          top: 10,
+                          left: 12,
+                          zIndex: 2,
+                          color: 'rgba(255,255,255,0.92)',
+                          fontSize: '0.72rem',
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          bgcolor: 'rgba(6,13,25,0.42)',
+                          border: '1px solid rgba(255,255,255,0.22)',
+                          borderRadius: 999,
+                          px: 1,
+                          py: 0.24,
+                        }}
+                      >
+                        Product Walkthrough
+                      </Typography>
                     <Box
                       component="video"
                       src="/Recording 2026-03-05 202621.mp4"
@@ -414,69 +435,39 @@ function Home() {
                           'linear-gradient(180deg, rgba(8,14,24,0.08), rgba(8,14,24,0.30))',
                       }}
                     />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 72,
-                          height: 72,
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(255,255,255,0.20)',
-                          border: '1px solid rgba(255,255,255,0.52)',
-                          backdropFilter: 'blur(2px)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
-                          opacity: 0.55,
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 0,
-                            height: 0,
-                            borderTop: '10px solid transparent',
-                            borderBottom: '10px solid transparent',
-                            borderLeft: '16px solid #FFFFFF',
-                            ml: 0.4,
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 12,
-                        right: 12,
-                        bottom: 10,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          flex: 1,
-                          height: 4,
-                          borderRadius: 999,
-                          bgcolor: 'rgba(255,255,255,0.26)',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <Box sx={{ width: '34%', height: '100%', bgcolor: '#E07A3F' }} />
-                      </Box>
-                    </Box>
                   </Box>
                 </Box>
               </Grid>
             </Grid>
+
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={1}
+              sx={{
+                pt: { xs: 0.6, md: 0.2 },
+              }}
+            >
+              {[
+                'Trusted by leadership teams across diverse industries',
+                'AI-powered insights grounded in practical leadership context',
+                'Built to turn reflection into measurable action',
+              ].map((item) => (
+                <Box
+                  key={item}
+                  sx={{
+                    border: '1px solid rgba(233,242,255,0.34)',
+                    borderRadius: 999,
+                    px: 1.2,
+                    py: 0.5,
+                    bgcolor: 'rgba(7,15,28,0.26)',
+                  }}
+                >
+                  <Typography sx={{ color: 'rgba(240,247,255,0.92)', fontSize: '0.78rem', lineHeight: 1.35 }}>
+                    {item}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
           </Stack>
         </Container>
       </Box>
@@ -494,20 +485,22 @@ function Home() {
           <Box
             key={activeSection}
             sx={{
-              animation: `${transitionDir === 'left' ? 'cardsSwipeLeft' : 'cardsSwipeRight'} 380ms cubic-bezier(.2,.8,.2,1)`,
+              animation: `${transitionDir === 'left' ? 'cardsSwipeLeft' : 'cardsSwipeRight'} 280ms cubic-bezier(.2,.8,.2,1)`,
               '@keyframes cardsSwipeLeft': {
-                from: { opacity: 0.2, transform: 'translateX(24px)' },
+                from: { opacity: 0.3, transform: 'translateX(16px)' },
                 to: { opacity: 1, transform: 'translateX(0)' },
               },
               '@keyframes cardsSwipeRight': {
-                from: { opacity: 0.2, transform: 'translateX(-24px)' },
+                from: { opacity: 0.3, transform: 'translateX(-16px)' },
                 to: { opacity: 1, transform: 'translateX(0)' },
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                animation: 'none',
               },
             }}
           >
             <Typography
               sx={{
-                fontFamily: 'Gemunu Libre, sans-serif',
                 fontWeight: 700,
                 color: '#14314A',
                 fontSize: { xs: '1.1rem', md: '1.26rem' },
@@ -522,6 +515,32 @@ function Home() {
                   ? 'Core product principles that ensure your reflection feels accurate, practical, and personally relevant.'
                   : 'What you walk away with after completing your Compass experience.'}
             </Typography>
+            <Grid container spacing={0.8} sx={{ mb: 0.9 }}>
+              {[
+                { label: 'Avg setup time', value: '9 min' },
+                { label: 'Completion clarity', value: 'High' },
+                { label: 'Action readiness', value: 'Immediate' },
+              ].map((metric) => (
+                <Grid item xs={4} key={metric.label}>
+                  <Box
+                    sx={{
+                      borderRadius: 1.5,
+                      border: '1px solid rgba(15,23,42,0.1)',
+                      bgcolor: 'rgba(255,255,255,0.75)',
+                      px: 0.9,
+                      py: 0.55,
+                    }}
+                  >
+                    <Typography sx={{ color: '#5A6B7E', fontSize: '0.68rem', lineHeight: 1.2 }}>
+                      {metric.label}
+                    </Typography>
+                    <Typography sx={{ color: '#0F1F32', fontSize: '0.86rem', fontWeight: 700, lineHeight: 1.2 }}>
+                      {metric.value}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
 
             <Grid container spacing={1}>
               {panel.map((item) => (
@@ -540,16 +559,15 @@ function Home() {
                     <Box sx={{ mb: 0.52 }}>{item.icon}</Box>
                     <Typography
                       sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
                         fontWeight: 700,
-                        fontSize: activeSection === 1 ? '0.96rem' : '1.05rem',
+                        fontSize: activeSection === 1 ? '1rem' : '1.05rem',
                         color: '#0F1F32',
                         mb: 0.42,
                       }}
                     >
                       {item.title}
                     </Typography>
-                    <Typography sx={{ color: '#44566C', fontSize: activeSection === 1 ? '0.78rem' : '0.9rem', lineHeight: 1.42 }}>
+                    <Typography sx={{ color: '#44566C', fontSize: activeSection === 1 ? '0.875rem' : '0.9rem', lineHeight: 1.45 }}>
                       {item.text}
                     </Typography>
                     <Box component="ul" sx={{ m: 0, mt: 0.55, pl: 1.65 }}>
@@ -557,7 +575,7 @@ function Home() {
                         <Typography
                           key={bullet}
                           component="li"
-                          sx={{ color: '#526579', fontSize: activeSection === 1 ? '0.73rem' : '0.84rem', lineHeight: 1.36, mb: 0.1 }}
+                          sx={{ color: '#526579', fontSize: activeSection === 1 ? '0.8rem' : '0.84rem', lineHeight: 1.38, mb: 0.1 }}
                         >
                           {bullet}
                         </Typography>
