@@ -62,10 +62,7 @@ function GrowthCampaignTab() {
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
       if (String(campaignId) === '123' && records?.teamCampaignPassword) return records.teamCampaignPassword;
-      const raw = localStorage.getItem('dashboardCredentials');
-      if (!raw) return `campaign-${campaignId}-password`;
-      const parsed = JSON.parse(raw);
-      return parsed?.password || `campaign-${campaignId}-password`;
+      return `campaign-${campaignId}-password`;
     } catch {
       return `campaign-${campaignId}-password`;
     }

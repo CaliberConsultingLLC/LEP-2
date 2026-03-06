@@ -17,8 +17,9 @@ import {
   DialogActions,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import ProcessTopRail from '../components/ProcessTopRail';
 
 function UserInfo() {
@@ -34,6 +35,44 @@ function UserInfo() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDialog, setOpenDialog] = useState(null);
+
+  const mapFirebaseAuthError = (code) => {
+    switch (code) {
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists. Please sign in instead.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/weak-password':
+        return 'Please choose a stronger password and try again.';
+      case 'auth/network-request-failed':
+        return 'Network issue detected. Please check your connection and try again.';
+      default:
+        return 'Could not create your account right now. Please try again.';
+    }
+  };
+
+  const triggerWelcomeEmail = async ({ idToken, email, name }) => {
+    try {
+      const response = await fetch('/api/send-welcome-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          email,
+          name,
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || 'welcome-email-failed');
+      }
+    } catch (emailError) {
+      // Non-blocking: account creation should not fail if transactional email fails.
+      console.warn('Welcome email trigger failed:', emailError);
+    }
+  };
 
   const handleChange = (e) => {
     setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
@@ -84,11 +123,15 @@ function UserInfo() {
     setError(null);
 
     try {
+      const normalizedEmail = String(userInfo.email || '').trim().toLowerCase();
+      const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, userInfo.password);
+      const idToken = await credential.user.getIdToken();
+
       localStorage.setItem(
         'userInfo',
         JSON.stringify({
           name: userInfo.name,
-          email: userInfo.email,
+          email: normalizedEmail,
           consent: {
             terms: userInfo.agreeTerms,
             privacy: userInfo.agreePrivacy,
@@ -100,7 +143,8 @@ function UserInfo() {
       try {
         await addDoc(collection(db, 'users'), {
           name: userInfo.name,
-          email: userInfo.email,
+          email: normalizedEmail,
+          uid: credential.user.uid,
           consent: {
             terms: userInfo.agreeTerms,
             privacy: userInfo.agreePrivacy,
@@ -113,10 +157,17 @@ function UserInfo() {
         console.warn('Could not save to Firestore:', firestoreError);
       }
 
+      await triggerWelcomeEmail({
+        idToken,
+        email: normalizedEmail,
+        name: userInfo.name,
+      });
+
       navigate('/form');
     } catch (err) {
-      setError('An error occurred. Please try again.');
-      console.error('Error saving user info:', err);
+      const errorMessage = mapFirebaseAuthError(err?.code);
+      setError(errorMessage);
+      console.error('Error creating user profile:', err);
     } finally {
       setIsSubmitting(false);
     }

@@ -30,7 +30,6 @@ function CampaignVerify() {
   const [teamCampaignLink, setTeamCampaignLink] = useState('');
   const [teamCampaignPassword, setTeamCampaignPassword] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const [userPassword, setUserPassword] = useState('');
   const [selfCampaignId, setSelfCampaignId] = useState('');
   const [isGenerating, setIsGenerating] = useState(true);
   const [error, setError] = useState(null);
@@ -71,16 +70,7 @@ function CampaignVerify() {
         const userInfoStr = localStorage.getItem('userInfo');
         const userInfo = userInfoStr ? JSON.parse(userInfoStr) : { name: '', email: '' };
         const ownerId = String(userInfo?.email || userInfo?.name || 'anonymous').trim().toLowerCase();
-        const storedCredentialsStr = localStorage.getItem('dashboardCredentials');
-        const storedCredentials = storedCredentialsStr ? JSON.parse(storedCredentialsStr) : null;
-        const dashboardPassword = storedCredentials?.password || generatePassword(10);
-
         setUserEmail(userInfo.email || '');
-        setUserPassword(dashboardPassword);
-        localStorage.setItem('dashboardCredentials', JSON.stringify({
-          email: userInfo.email || '',
-          password: dashboardPassword,
-        }));
 
         const campaignData = JSON.parse(localStorage.getItem('currentCampaign') || '[]');
 
@@ -392,7 +382,7 @@ function CampaignVerify() {
                 <Stack spacing={0.6}>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: 'text.primary' }}>Dashboard credentials</Typography>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: 'text.secondary' }}>
-                    Email: {userEmail || '—'} | Password: {userPassword || '—'}
+                    Email: {userEmail || '—'} | Password: Use the password you created during sign up.
                   </Typography>
                 </Stack>
               </Stack>
