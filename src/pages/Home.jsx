@@ -213,7 +213,7 @@ function Home() {
           aria-hidden
           sx={{
             position: 'absolute',
-            right: { xs: '15%', md: '19%', lg: '21%' },
+            right: { xs: '8%', md: '12%', lg: '14%' },
             top: '50%',
             transform: 'translateY(-50%)',
             width: { xs: 384, md: 576, lg: 672 },
@@ -225,8 +225,8 @@ function Home() {
             zIndex: 0,
           }}
         />
-        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 1.6, md: 2.4 } }}>
-          <Stack spacing={{ xs: 1.8, md: 2.2 }}>
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 1.76, md: 2.64 } }}>
+          <Stack spacing={{ xs: 2, md: 2.4 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
@@ -256,9 +256,9 @@ function Home() {
               </Button>
             </Stack>
 
-            <Grid container spacing={{ xs: 2.2, md: 3 }} alignItems="stretch">
+            <Grid container spacing={{ xs: 2.4, md: 3.3 }} alignItems="stretch">
               <Grid item xs={12} md={7}>
-                <Stack spacing={1.5}>
+                <Stack spacing={1.65}>
                   <Typography
                     sx={{
                       color: '#FFFFFF',
@@ -313,11 +313,11 @@ function Home() {
                   <Box
                     sx={{
                       borderBottom: '1px solid rgba(255,255,255,0.4)',
-                      py: 1.5,
+                      py: 1.8,
                     }}
                   />
 
-                  <Stack direction="row" spacing={1.25} flexWrap="wrap">
+                  <Stack direction="row" spacing={1.25} flexWrap="wrap" sx={{ pt: 0.6, pb: 0.6 }}>
                     {sections.map((section, idx) => (
                       <Button
                         key={section.key}
@@ -364,7 +364,7 @@ function Home() {
               <Grid item xs={12} md={5}>
                 <Box
                   sx={{
-                    minHeight: { xs: 100, md: 140 },
+                    minHeight: { xs: 110, md: 154 },
                     position: 'relative',
                   }}
                 />
@@ -406,7 +406,7 @@ function Home() {
               width: { xs: 160, md: 268, lg: 296 },
               height: 'auto',
               display: 'block',
-              transform: 'translateX(-22vw)',
+              transform: 'translateX(-18vw)',
               filter:
                 'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
