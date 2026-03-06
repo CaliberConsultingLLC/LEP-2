@@ -472,7 +472,7 @@ function Home() {
         </Container>
         <Stack
           direction="row"
-          spacing={{ xs: -1.4, md: -2.6 }}
+          spacing={0}
           sx={{
             position: 'absolute',
             right: { xs: -34, md: '-1.5%', lg: '0%' },
