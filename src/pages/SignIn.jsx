@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, Container, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
@@ -13,6 +13,7 @@ function SignIn() {
   const [infoMessage, setInfoMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [hasAutoResetRun, setHasAutoResetRun] = useState(false);
 
   const mapSignInError = (code) => {
     switch (code) {
@@ -88,6 +89,44 @@ function SignIn() {
       setIsResettingPassword(false);
     }
   };
+
+  useEffect(() => {
+    if (hasAutoResetRun) {
+      return;
+    }
+
+    const params = new URLSearchParams(location.search || '');
+    const shouldReset = params.get('reset') === '1';
+    const prefilledEmail = String(params.get('email') || '').trim().toLowerCase();
+    if (!shouldReset || !prefilledEmail) {
+      return;
+    }
+
+    setHasAutoResetRun(true);
+    setEmail(prefilledEmail);
+
+    const runAutoReset = async () => {
+      setError('');
+      setInfoMessage('');
+      setIsResettingPassword(true);
+      try {
+        await sendPasswordResetEmail(auth, prefilledEmail);
+        setInfoMessage('Password reset link sent. Check your inbox.');
+      } catch (resetError) {
+        if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {
+          setError('Please enter a valid account email address.');
+        } else if (resetError?.code === 'auth/too-many-requests') {
+          setError('Too many reset attempts. Please wait and try again.');
+        } else {
+          setError('Could not send reset email right now. Please try again.');
+        }
+      } finally {
+        setIsResettingPassword(false);
+      }
+    };
+
+    runAutoReset();
+  }, [hasAutoResetRun, location.search]);
 
   return (
     <Box

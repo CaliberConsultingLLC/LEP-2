@@ -110,6 +110,14 @@ function buildWelcomeEmail({ name, email, signInUrl, forgotPasswordUrl }) {
   return { textBody, htmlBody };
 }
 
+function normalizeBaseUrl(input) {
+  const value = String(input || '').trim();
+  if (!value) {
+    return '';
+  }
+  return value.replace(/\/+$/, '');
+}
+
 async function resolveEmailFromIdToken(idToken) {
   const firebaseWebApiKey = process.env.FIREBASE_WEB_API_KEY || process.env.VITE_FIREBASE_API_KEY;
   if (!firebaseWebApiKey) {
@@ -161,9 +169,12 @@ app.post('/api/send-welcome-email', async (req, res) => {
       return res.status(503).json({ error: 'Email service not configured' });
     }
 
-    const appBaseUrl = process.env.APP_BASE_URL || req.headers.origin || 'https://YOUR_DOMAIN';
-    const signInUrl = process.env.APP_SIGN_IN_URL || `${appBaseUrl}/sign-in`;
-    const forgotPasswordUrl = process.env.APP_FORGOT_PASSWORD_URL || `${appBaseUrl}/sign-in`;
+    const originBase = normalizeBaseUrl(req.headers.origin);
+    const envBase = normalizeBaseUrl(process.env.APP_BASE_URL);
+    const resolvedBaseUrl = originBase || envBase || 'https://YOUR_DOMAIN';
+    const signInUrl = process.env.APP_SIGN_IN_URL || `${resolvedBaseUrl}/sign-in`;
+    const forgotPasswordUrl = process.env.APP_FORGOT_PASSWORD_URL
+      || `${resolvedBaseUrl}/sign-in?reset=1&email=${encodeURIComponent(requestEmail)}`;
     const fromEmail = process.env.POSTMARK_FROM_EMAIL || 'YOUR_VERIFIED_SENDER@YOURDOMAIN.COM';
     const { textBody, htmlBody } = buildWelcomeEmail({
       name: requestName,
