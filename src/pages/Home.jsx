@@ -586,7 +586,7 @@ function Home() {
                   >
                     <Box
                       component="video"
-                      src="/compass-how-it-works-demo.mp4"
+                      src="/compass-live-demo.mp4"
                       autoPlay
                       muted
                       loop
