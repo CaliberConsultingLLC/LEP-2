@@ -7,14 +7,6 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import {
-  Psychology,
-  Insights,
-  TrendingUp,
-  AutoAwesome,
-  Route,
-  Inventory2,
-} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { allowDevBypass, showDevTools } from '../config/runtimeFlags';
 
@@ -89,7 +81,6 @@ function Home() {
     if (sections[activeSection].key === 'method') {
       return [
         {
-          icon: <Psychology sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Mirror-Accurate',
           text: 'Objective reflection of your current leadership approach.',
           bullets: [
@@ -98,7 +89,6 @@ function Home() {
           ],
         },
         {
-          icon: <AutoAwesome sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Signal Over Noise',
           text: 'Focuses your attention on the highest-impact shifts.',
           bullets: [
@@ -107,7 +97,6 @@ function Home() {
           ],
         },
         {
-          icon: <Insights sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Built for Action',
           text: 'You leave with priorities you can apply immediately.',
           bullets: [
@@ -121,7 +110,6 @@ function Home() {
     if (sections[activeSection].key === 'process') {
       return [
         {
-          icon: <Inventory2 sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Capture',
           text: 'Focused intake that captures your leadership baseline.',
           bullets: [
@@ -130,7 +118,6 @@ function Home() {
           ],
         },
         {
-          icon: <Psychology sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Reflect',
           text: 'Review your summary and trait priorities to clarify what matters.',
           bullets: [
@@ -139,7 +126,6 @@ function Home() {
           ],
         },
         {
-          icon: <Insights sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Calibrate',
           text: 'Self and team assessments calibrate perspective against lived reality.',
           bullets: [
@@ -148,7 +134,6 @@ function Home() {
           ],
         },
         {
-          icon: <Route sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Embark',
           text: 'Launch a focused growth journey with action planning and momentum.',
           bullets: [
@@ -161,7 +146,6 @@ function Home() {
 
     return [
       {
-        icon: <Route sx={{ fontSize: 30, color: 'primary.main' }} />,
         title: 'Reflection Summary',
         text: 'A clear portrait of your leadership with practical context.',
         bullets: [
@@ -170,7 +154,6 @@ function Home() {
         ],
       },
       {
-        icon: <TrendingUp sx={{ fontSize: 30, color: 'primary.main' }} />,
         title: 'Focus Traits',
         text: 'Five personalized growth traits tailored to your needs.',
         bullets: [
@@ -179,7 +162,6 @@ function Home() {
         ],
       },
       {
-        icon: <Inventory2 sx={{ fontSize: 30, color: 'primary.main' }} />,
         title: 'Action Dashboard',
         text: 'Campaign details, milestones, and resources in one place.',
         bullets: [
@@ -231,11 +213,11 @@ function Home() {
           aria-hidden
           sx={{
             position: 'absolute',
-            right: { xs: '0%', md: '4%', lg: '6%' },
+            right: { xs: '15%', md: '19%', lg: '21%' },
             top: '50%',
             transform: 'translateY(-50%)',
-            width: { xs: 320, md: 480, lg: 560 },
-            maxWidth: '55vw',
+            width: { xs: 384, md: 576, lg: 672 },
+            maxWidth: '66vw',
             height: 'auto',
             opacity: 0.58,
             filter: 'drop-shadow(0 14px 36px rgba(3,10,22,0.35))',
@@ -328,7 +310,14 @@ function Home() {
                     </Button>
                   </Stack>
 
-                  <Stack direction="row" spacing={1.25} flexWrap="wrap" sx={{ pt: 2.1 }}>
+                  <Box
+                    sx={{
+                      borderBottom: '1px solid rgba(255,255,255,0.4)',
+                      py: 1.5,
+                    }}
+                  />
+
+                  <Stack direction="row" spacing={1.25} flexWrap="wrap">
                     {sections.map((section, idx) => (
                       <Button
                         key={section.key}
@@ -404,6 +393,7 @@ function Home() {
               height: 'auto',
               display: 'block',
               mr: { xs: -28, md: -48 },
+              transform: 'translateX(-17vw)',
               filter:
                 'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
@@ -416,6 +406,7 @@ function Home() {
               width: { xs: 160, md: 268, lg: 296 },
               height: 'auto',
               display: 'block',
+              transform: 'translateX(-22vw)',
               filter:
                 'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
@@ -488,13 +479,12 @@ function Home() {
                       borderRadius: 2,
                       border: '1px solid rgba(15,23,42,0.08)',
                       bgcolor: '#FFFFFF',
-                      p: { xs: 1.5, md: 1.75 },
+                      p: { xs: 1.8, md: 2.1 },
                       boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
                   >
-                    <Box sx={{ mb: 0.75 }}>{item.icon}</Box>
                     <Typography
                       sx={{
                         fontWeight: 800,
