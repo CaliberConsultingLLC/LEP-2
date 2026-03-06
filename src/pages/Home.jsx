@@ -270,75 +270,40 @@ function Home() {
             <Grid container spacing={{ xs: 2.2, md: 3 }} alignItems="stretch">
               <Grid item xs={12} md={7}>
                 <Stack spacing={1.5}>
-                  <Stack
-                    direction={{ xs: 'column', md: 'row' }}
-                    spacing={{ xs: 1.1, md: 1.8 }}
-                    alignItems={{ xs: 'center', md: 'flex-start' }}
+                  <Typography
+                    sx={{
+                      color: '#FFFFFF',
+                      fontSize: { xs: '2rem', md: '2.85rem' },
+                      lineHeight: 1.06,
+                      fontWeight: 800,
+                      letterSpacing: '-0.015em',
+                      maxWidth: 760,
+                    }}
                   >
-                    <Box
-                      sx={{
-                        flexShrink: 0,
-                        width: { xs: 136, md: 176 },
-                        borderRadius: 3,
-                        border: '1px solid rgba(255,255,255,0.40)',
-                        bgcolor: 'rgba(9,19,35,0.50)',
-                        boxShadow: '0 12px 24px rgba(2,8,19,0.28)',
-                        p: 0.5,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src="/hero.jpg"
-                        alt="Compass leadership model"
-                        sx={{
-                          width: '100%',
-                          height: 'auto',
-                          display: 'block',
-                          borderRadius: 2.2,
-                        }}
-                      />
+                    <Box component="span" sx={{ display: 'block' }}>
+                      <Box component="span" sx={{ color: 'secondary.light', mr: 0.8, fontWeight: 900 }}>
+                        Know
+                      </Box>
+                      where you stand.
                     </Box>
-
-                    <Stack spacing={1.05} sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography
-                        sx={{
-                          color: '#FFFFFF',
-                          fontSize: { xs: '2rem', md: '2.85rem' },
-                          lineHeight: 1.06,
-                          fontWeight: 800,
-                          letterSpacing: '-0.015em',
-                          maxWidth: 760,
-                          textAlign: { xs: 'center', md: 'left' },
-                        }}
-                      >
-                        <Box component="span" sx={{ display: 'block' }}>
-                          <Box component="span" sx={{ color: 'secondary.light', mr: 0.8, fontWeight: 900 }}>
-                            Know
-                          </Box>
-                          where you stand.
-                        </Box>
-                        <Box component="span" sx={{ display: 'block', mt: 0.35 }}>
-                          <Box component="span" sx={{ color: 'secondary.light', mr: 0.8, fontWeight: 900 }}>
-                            Choose
-                          </Box>
-                          where to go.
-                        </Box>
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: 'rgba(233,242,255,0.96)',
-                          fontSize: { xs: '0.98rem', md: '1.04rem' },
-                          lineHeight: 1.65,
-                          fontStyle: 'italic',
-                          maxWidth: 690,
-                          textAlign: { xs: 'center', md: 'left' },
-                        }}
-                      >
-                        We translate your assessment into a clear map of strengths, tradeoffs, and priorities. It is AI-powered, but human-led, so your outcomes stay grounded in real leadership context.
-                      </Typography>
-                    </Stack>
-                  </Stack>
+                    <Box component="span" sx={{ display: 'block', mt: 0.35 }}>
+                      <Box component="span" sx={{ color: 'secondary.light', mr: 0.8, fontWeight: 900 }}>
+                        Choose
+                      </Box>
+                      where to go.
+                    </Box>
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'rgba(233,242,255,0.96)',
+                      fontSize: { xs: '0.98rem', md: '1.04rem' },
+                      lineHeight: 1.65,
+                      fontStyle: 'italic',
+                      maxWidth: 690,
+                    }}
+                  >
+                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities. It is AI-powered, but human-led, so your outcomes stay grounded in real leadership context.
+                  </Typography>
 
                   <Stack direction="row" spacing={1.2} flexWrap="wrap" sx={{ pt: 0.6 }}>
                     <Button
@@ -505,6 +470,20 @@ function Home() {
             </Stack>
           </Stack>
         </Container>
+        <Box
+          component="img"
+          src="/hero2.png"
+          alt="Compass guide model"
+          sx={{
+            position: 'absolute',
+            right: { xs: 10, md: '17%', lg: '16%' },
+            bottom: { xs: -34, md: -84 },
+            width: { xs: 122, md: 188, lg: 214 },
+            zIndex: 2,
+            filter: 'drop-shadow(0 14px 24px rgba(4,10,20,0.42))',
+            pointerEvents: 'none',
+          }}
+        />
       </Box>
 
       <Box
