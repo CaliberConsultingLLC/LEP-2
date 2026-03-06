@@ -89,32 +89,29 @@ function Home() {
     if (sections[activeSection].key === 'method') {
       return [
         {
-          icon: <Psychology sx={{ fontSize: 32, color: 'primary.main' }} />,
+          icon: <Psychology sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Mirror-Accurate',
           text: 'Objective reflection of your current leadership approach.',
           bullets: [
-            'Highlights strengths and growth opportunities with clarity.',
-            'Shows how your leadership may be experienced by others.',
+            'Strengths and growth opportunities with clarity.',
             'Creates language for meaningful team conversations.',
           ],
         },
         {
-          icon: <AutoAwesome sx={{ fontSize: 32, color: 'primary.main' }} />,
+          icon: <AutoAwesome sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Signal Over Noise',
           text: 'Focuses your attention on the highest-impact shifts.',
           bullets: [
             'Prioritizes what matters most right now.',
-            'Keeps feedback practical and easy to apply.',
             'Turns insight into clear direction.',
           ],
         },
         {
-          icon: <Insights sx={{ fontSize: 32, color: 'primary.main' }} />,
+          icon: <Insights sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Built for Action',
           text: 'You leave with priorities you can apply immediately.',
           bullets: [
             'Connects self-awareness to practical next steps.',
-            'Supports trust and alignment through focused development.',
             'Keeps your growth plan personal and sustainable.',
           ],
         },
@@ -124,37 +121,39 @@ function Home() {
     if (sections[activeSection].key === 'process') {
       return [
         {
-          icon: <Inventory2 sx={{ fontSize: 28, color: 'primary.main' }} />,
+          icon: <Inventory2 sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Capture',
-          text: 'Complete a focused intake that captures your current leadership baseline.',
+          text: 'Focused intake that captures your leadership baseline.',
           bullets: [
             'Fast input, high signal.',
-            'Built around practical leadership context.',
-            'Gives you a clear baseline before reflection.',
+            'Clear baseline before reflection.',
           ],
         },
         {
-          icon: <Psychology sx={{ fontSize: 28, color: 'primary.main' }} />,
+          icon: <Psychology sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Reflect',
-          text: 'Review your summary and trait priorities to clarify what matters right now.',
+          text: 'Review your summary and trait priorities to clarify what matters.',
           bullets: [
             'Clarity before action.',
+            'Practical leadership context.',
           ],
         },
         {
-          icon: <Insights sx={{ fontSize: 28, color: 'primary.main' }} />,
+          icon: <Insights sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Calibrate',
-          text: 'Use self and team assessments to calibrate perspective against lived reality.',
+          text: 'Self and team assessments calibrate perspective against lived reality.',
           bullets: [
             'Align perspective and data.',
+            'Real feedback, real growth.',
           ],
         },
         {
-          icon: <Route sx={{ fontSize: 28, color: 'primary.main' }} />,
+          icon: <Route sx={{ fontSize: 30, color: 'primary.main' }} />,
           title: 'Embark',
-          text: 'Launch a focused growth journey with action planning and visible momentum.',
+          text: 'Launch a focused growth journey with action planning and momentum.',
           bullets: [
             'Start focused, stay moving.',
+            'Visible progress, clear next steps.',
           ],
         },
       ];
@@ -162,30 +161,30 @@ function Home() {
 
     return [
       {
-        icon: <Route sx={{ fontSize: 32, color: 'primary.main' }} />,
+        icon: <Route sx={{ fontSize: 30, color: 'primary.main' }} />,
         title: 'Reflection Summary',
         text: 'A clear portrait of your leadership with practical context.',
         bullets: [
-          'Shows what is working and where growth creates the biggest lift.',
-          'Helps you move with confidence, not just information.',
+          'What is working and where growth creates the biggest lift.',
+          'Move with confidence, not just information.',
         ],
       },
       {
-        icon: <TrendingUp sx={{ fontSize: 32, color: 'primary.main' }} />,
+        icon: <TrendingUp sx={{ fontSize: 30, color: 'primary.main' }} />,
         title: 'Focus Traits',
         text: 'Five personalized growth traits tailored to your needs.',
         bullets: [
-          'Keeps your development path specific and high impact.',
-          'Makes the next step clear and actionable.',
+          'Development path specific and high impact.',
+          'Clear, actionable next steps.',
         ],
       },
       {
-        icon: <Inventory2 sx={{ fontSize: 32, color: 'primary.main' }} />,
+        icon: <Inventory2 sx={{ fontSize: 30, color: 'primary.main' }} />,
         title: 'Action Dashboard',
         text: 'Campaign details, milestones, and resources in one place.',
         bullets: [
-          'Prevents momentum loss after insights are delivered.',
-          'Supports accountability and measurable progress.',
+          'Prevents momentum loss after insights.',
+          'Accountability and measurable progress.',
         ],
       },
     ];
@@ -224,22 +223,28 @@ function Home() {
             pointerEvents: 'none',
           }}
         />
+        {/* Logo as large background treatment in right hero area */}
         <Box
           component="img"
           src="/CompassLogo.png"
           alt=""
+          aria-hidden
           sx={{
             position: 'absolute',
-            left: { xs: -112, md: -178 },
-            top: { xs: 22, md: 8 },
-            width: { xs: 240, md: 380 },
-            opacity: 0.3,
-            filter: 'drop-shadow(0 14px 30px rgba(6,12,24,0.38))',
+            right: { xs: '-8%', md: '-4%', lg: '-2%' },
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: { xs: 320, md: 480, lg: 560 },
+            maxWidth: '55vw',
+            height: 'auto',
+            opacity: 0.58,
+            filter: 'drop-shadow(0 14px 36px rgba(3,10,22,0.35))',
             pointerEvents: 'none',
+            zIndex: 0,
           }}
         />
-        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 2, md: 3.8 } }}>
-          <Stack spacing={{ xs: 2.2, md: 3 }}>
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 1.6, md: 2.4 } }}>
+          <Stack spacing={{ xs: 1.8, md: 2.2 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
@@ -370,39 +375,21 @@ function Home() {
               <Grid item xs={12} md={5}>
                 <Box
                   sx={{
-                    height: '100%',
-                    minHeight: { xs: 140, md: 220 },
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: { xs: 'center', md: 'flex-end' },
-                    position: 'relative'
+                    minHeight: { xs: 100, md: 140 },
+                    position: 'relative',
                   }}
-                >
-                  <Box
-                    component="img"
-                    src="/CompassLogo.png"
-                    alt=""
-                    aria-hidden
-                    sx={{
-                      width: { xs: '74%', md: '100%' },
-                      maxWidth: 600,
-                      height: 'auto',
-                      opacity: 0.74,
-                      filter: 'drop-shadow(0 18px 38px rgba(3,10,22,0.44))',
-                    }}
-                  />
-                </Box>
+                />
               </Grid>
             </Grid>
           </Stack>
         </Container>
         <Stack
           direction="row"
-          spacing={{ xs: -0.75, md: -1.25 }}
+          spacing={0}
           sx={{
             position: 'absolute',
-            right: { xs: -8, md: '4.8%', lg: '5.1%' },
-            bottom: { xs: -98, md: -208 },
+            right: { xs: '-2%', md: '2%', lg: '3%' },
+            bottom: { xs: -72, md: -160 },
             zIndex: 2,
             pointerEvents: 'none',
             alignItems: 'flex-end',
@@ -413,10 +400,10 @@ function Home() {
             src="/herofemale.png"
             alt="Compass guide model female"
             sx={{
-              width: { xs: 182, md: 306, lg: 338 },
+              width: { xs: 160, md: 268, lg: 296 },
               height: 'auto',
               display: 'block',
-              transform: { xs: 'translateX(8vw)', md: 'translateX(15vw)' },
+              mr: { xs: -28, md: -48 },
               filter:
                 'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
@@ -426,7 +413,7 @@ function Home() {
             src="/heromale.png"
             alt="Compass guide model male"
             sx={{
-              width: { xs: 182, md: 306, lg: 338 },
+              width: { xs: 160, md: 268, lg: 296 },
               height: 'auto',
               display: 'block',
               filter:
@@ -439,9 +426,10 @@ function Home() {
       <Box
         sx={{
           width: '100%',
+          minWidth: '100%',
           background:
             'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
-          py: { xs: 1.3, md: 1.7 },
+          py: { xs: 1.5, md: 2 },
         }}
       >
       <Container maxWidth="xl">
@@ -465,14 +453,24 @@ function Home() {
           >
             <Typography
               sx={{
-                fontWeight: 700,
-                color: '#14314A',
-                fontSize: { xs: '1.1rem', md: '1.26rem' },
+                fontWeight: 800,
+                color: '#0F1F32',
+                fontSize: { xs: '1.15rem', md: '1.32rem' },
+                letterSpacing: '-0.02em',
               }}
             >
               {sections[activeSection].label}
             </Typography>
-            <Typography sx={{ color: '#4B6076', fontSize: '0.86rem', maxWidth: 760, mt: 0.35, mb: 0.9 }}>
+            <Typography
+              sx={{
+                color: '#4B6076',
+                fontSize: { xs: '0.9rem', md: '0.96rem' },
+                lineHeight: 1.55,
+                maxWidth: 760,
+                mt: 0.4,
+                mb: 1.2,
+              }}
+            >
               {activeSection === 1
                 ? 'Capture signal quickly, reflect with clarity, calibrate against real feedback, and embark with focused action.'
                 : activeSection === 0
@@ -480,69 +478,56 @@ function Home() {
                   : 'What you walk away with after completing your Compass experience.'}
             </Typography>
 
-            <Grid container spacing={1}>
-              {panel.map((item, idx) => (
+            <Grid container spacing={1.5}>
+              {panel.map((item) => (
                 <Grid item xs={12} md={activeSection === 1 ? 3 : 4} key={item.title}>
                   <Box
                     data-hover="lift"
                     sx={{
                       height: '100%',
                       borderRadius: 2,
-                      border: '1px solid rgba(15,23,42,0.10)',
+                      border: '1px solid rgba(15,23,42,0.08)',
                       bgcolor: '#FFFFFF',
-                      p: { xs: 1.1, md: activeSection === 1 ? 1.15 : 1.5 },
-                      boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
+                      p: { xs: 1.5, md: 1.75 },
+                      boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
                   >
-                    {activeSection === 1 && idx === 0 && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          right: -14,
-                          top: 0,
-                          width: { xs: 72, md: 92 },
-                          height: '67%',
-                          overflow: 'hidden',
-                          opacity: 0.22,
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        <Box
-                          component="img"
-                          src="/herothink.png"
-                          alt=""
-                          aria-hidden
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            objectPosition: 'top center',
-                          }}
-                        />
-                      </Box>
-                    )}
-                    {!(activeSection === 1 && idx === 0) && <Box sx={{ mb: 0.52 }}>{item.icon}</Box>}
+                    <Box sx={{ mb: 0.75 }}>{item.icon}</Box>
                     <Typography
                       sx={{
-                        fontWeight: 700,
-                        fontSize: activeSection === 1 ? '1rem' : '1.05rem',
+                        fontWeight: 800,
+                        fontSize: '1.12rem',
+                        letterSpacing: '-0.015em',
                         color: '#0F1F32',
-                        mb: 0.42,
+                        mb: 0.5,
                       }}
                     >
                       {item.title}
                     </Typography>
-                    <Typography sx={{ color: '#44566C', fontSize: activeSection === 1 ? '0.875rem' : '0.9rem', lineHeight: 1.45 }}>
+                    <Typography
+                      sx={{
+                        color: '#44566C',
+                        fontSize: '0.9375rem',
+                        lineHeight: 1.5,
+                        fontWeight: 500,
+                      }}
+                    >
                       {item.text}
                     </Typography>
-                    <Box component="ul" sx={{ m: 0, mt: 0.55, pl: 1.65 }}>
+                    <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 1.75 }}>
                       {item.bullets.map((bullet) => (
                         <Typography
                           key={bullet}
                           component="li"
-                          sx={{ color: '#526579', fontSize: activeSection === 1 ? '0.8rem' : '0.84rem', lineHeight: 1.38, mb: 0.1 }}
+                          sx={{
+                            color: '#526579',
+                            fontSize: '0.875rem',
+                            lineHeight: 1.45,
+                            mb: 0.25,
+                            fontWeight: 500,
+                          }}
                         >
                           {bullet}
                         </Typography>
