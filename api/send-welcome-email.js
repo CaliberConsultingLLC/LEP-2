@@ -1,5 +1,4 @@
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
-import { adminAuth } from './firebase.js';
 
 function getBearerToken(req) {
   const authHeader = String(req.headers?.authorization || '');
@@ -67,6 +66,33 @@ function buildWelcomeEmail({ name, email, signInUrl, forgotPasswordUrl }) {
   return { textBody, htmlBody };
 }
 
+async function resolveEmailFromIdToken(idToken) {
+  const firebaseWebApiKey = process.env.FIREBASE_WEB_API_KEY || process.env.VITE_FIREBASE_API_KEY;
+  if (!firebaseWebApiKey) {
+    throw new Error('missing-firebase-web-api-key');
+  }
+
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(firebaseWebApiKey)}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken }),
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`accounts-lookup-failed:${response.status}:${body}`);
+  }
+
+  const payload = await response.json().catch(() => ({}));
+  const user = Array.isArray(payload?.users) ? payload.users[0] : null;
+  return String(user?.email || '').trim().toLowerCase();
+}
+
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   if (req.method !== 'POST') {
@@ -92,8 +118,7 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const decoded = await adminAuth.verifyIdToken(token);
-    const tokenEmail = String(decoded?.email || '').trim().toLowerCase();
+    const tokenEmail = await resolveEmailFromIdToken(token);
     const requestEmail = String(req.body?.email || '').trim().toLowerCase();
     const requestName = String(req.body?.name || '').trim();
 
