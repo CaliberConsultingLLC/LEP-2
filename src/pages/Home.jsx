@@ -475,8 +475,8 @@ function Home() {
           spacing={{ xs: 0.15, md: 0.45 }}
           sx={{
             position: 'absolute',
-            right: { xs: 8, md: '13.5%', lg: '12.5%' },
-            bottom: { xs: -30, md: -96 },
+            right: { xs: -34, md: '-1.5%', lg: '0%' },
+            bottom: { xs: -118, md: -258 },
             zIndex: 2,
             pointerEvents: 'none',
             alignItems: 'flex-end',
@@ -487,10 +487,11 @@ function Home() {
             src="/herofemale.png"
             alt="Compass guide model female"
             sx={{
-              width: { xs: 104, md: 164, lg: 186 },
+              width: { xs: 220, md: 410, lg: 465 },
               height: 'auto',
               display: 'block',
-              filter: 'drop-shadow(0 12px 22px rgba(4,10,20,0.40))',
+              filter:
+                'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
           />
           <Box
@@ -498,10 +499,11 @@ function Home() {
             src="/heromale.png"
             alt="Compass guide model male"
             sx={{
-              width: { xs: 104, md: 164, lg: 186 },
+              width: { xs: 220, md: 410, lg: 465 },
               height: 'auto',
               display: 'block',
-              filter: 'drop-shadow(0 12px 22px rgba(4,10,20,0.40))',
+              filter:
+                'drop-shadow(0 0 2px rgba(255,255,255,0.88)) drop-shadow(1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(-1.5px 0 0 rgba(255,255,255,0.80)) drop-shadow(0 1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 -1.5px 0 rgba(255,255,255,0.80)) drop-shadow(0 14px 26px rgba(4,10,20,0.36))',
             }}
           />
         </Stack>
