@@ -231,7 +231,7 @@ function Home() {
           aria-hidden
           sx={{
             position: 'absolute',
-            right: { xs: '-8%', md: '-4%', lg: '-2%' },
+            right: { xs: '0%', md: '4%', lg: '6%' },
             top: '50%',
             transform: 'translateY(-50%)',
             width: { xs: 320, md: 480, lg: 560 },
