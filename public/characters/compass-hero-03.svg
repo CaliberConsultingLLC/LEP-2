@@ -1,0 +1,23 @@
+<svg width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Compass Hero reading map and compass">
+  <rect width="420" height="420" fill="#F3F6FB"/>
+  <ellipse cx="210" cy="366" rx="86" ry="18" fill="#D8E3EE"/>
+
+  <circle cx="210" cy="106" r="34" fill="#E6DCCB" stroke="#1E3550" stroke-width="6"/>
+  <rect x="168" y="140" width="84" height="104" rx="18" fill="#355872" stroke="#1E3550" stroke-width="6"/>
+  <rect x="183" y="161" width="54" height="12" rx="6" fill="#D7B46A"/>
+
+  <path d="M168 170 L126 212" stroke="#1E3550" stroke-width="8" stroke-linecap="round"/>
+  <path d="M252 170 L294 212" stroke="#1E3550" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="124" cy="216" r="11" fill="#E6DCCB" stroke="#1E3550" stroke-width="5"/>
+  <circle cx="296" cy="216" r="11" fill="#E6DCCB" stroke="#1E3550" stroke-width="5"/>
+
+  <rect x="146" y="218" width="128" height="66" rx="10" fill="#F7F9FC" stroke="#1E3550" stroke-width="5"/>
+  <path d="M164 236 L252 236 M164 252 L232 252 M164 268 L214 268" stroke="#8AA8BE" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="246" cy="266" r="14" fill="#FFFFFF" stroke="#1E3550" stroke-width="4"/>
+  <path d="M246 255 L250 266 L246 277 L242 266 Z" fill="#D7B46A" stroke="#1E3550" stroke-width="3"/>
+
+  <rect x="181" y="246" width="22" height="90" rx="11" fill="#1E3550"/>
+  <rect x="217" y="246" width="22" height="90" rx="11" fill="#1E3550"/>
+  <rect x="171" y="328" width="34" height="16" rx="6" fill="#2C3F4F"/>
+  <rect x="215" y="328" width="34" height="16" rx="6" fill="#2C3F4F"/>
+</svg>

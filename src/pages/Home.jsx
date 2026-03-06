@@ -475,7 +475,23 @@ function Home() {
 
             <Grid container spacing={{ xs: 2.2, md: 3 }} alignItems="stretch">
               <Grid item xs={12} md={7}>
-                <Stack spacing={1.5}>
+                <Stack spacing={1.5} sx={{ position: 'relative', pl: { md: 8 } }}>
+                  <Box
+                    component="img"
+                    src="/characters/compass-hero-02.svg"
+                    alt="Compass Hero guide"
+                    sx={{
+                      display: { xs: 'none', md: 'block' },
+                      position: 'absolute',
+                      left: { md: -26 },
+                      top: { md: -4 },
+                      width: { md: 146 },
+                      transform: 'rotate(-6deg)',
+                      opacity: 0.96,
+                      filter: 'drop-shadow(0 10px 18px rgba(6,18,34,0.34))',
+                      pointerEvents: 'none',
+                    }}
+                  />
                   <Typography
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',

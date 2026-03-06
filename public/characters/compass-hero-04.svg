@@ -1,0 +1,22 @@
+<svg width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Compass Hero walking trail with backpack">
+  <rect width="420" height="420" fill="#F3F6FB"/>
+  <path d="M40 362 C120 340 170 352 250 336 C300 326 350 336 380 346 L380 420 L40 420 Z" fill="#DDE8D9"/>
+  <path d="M40 374 C130 352 176 366 260 350 C307 340 350 348 380 356" stroke="#8AA086" stroke-width="5" fill="none"/>
+
+  <circle cx="202" cy="108" r="34" fill="#E6DCCB" stroke="#1E3550" stroke-width="6"/>
+  <rect x="192" y="142" width="18" height="106" rx="8" fill="#27455E"/>
+  <rect x="160" y="142" width="84" height="104" rx="18" fill="#2F4F68" stroke="#1E3550" stroke-width="6"/>
+  <rect x="175" y="163" width="54" height="12" rx="6" fill="#D7B46A"/>
+
+  <path d="M160 170 L128 220" stroke="#1E3550" stroke-width="8" stroke-linecap="round"/>
+  <path d="M244 170 L272 206" stroke="#1E3550" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="126" cy="224" r="11" fill="#E6DCCB" stroke="#1E3550" stroke-width="5"/>
+  <circle cx="275" cy="209" r="11" fill="#E6DCCB" stroke="#1E3550" stroke-width="5"/>
+
+  <rect x="172" y="246" width="22" height="90" rx="11" fill="#1E3550" transform="rotate(-10 183 291)"/>
+  <rect x="214" y="246" width="22" height="90" rx="11" fill="#1E3550" transform="rotate(10 225 291)"/>
+  <rect x="151" y="327" width="36" height="16" rx="6" fill="#2C3F4F" transform="rotate(-8 169 335)"/>
+  <rect x="236" y="327" width="36" height="16" rx="6" fill="#2C3F4F" transform="rotate(8 254 335)"/>
+
+  <path d="M286 228 L330 244 L294 272 Z" fill="#D7B46A" stroke="#1E3550" stroke-width="5"/>
+</svg>
