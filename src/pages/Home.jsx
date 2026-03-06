@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -27,7 +27,7 @@ const sections = [
 function Home() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(0);
-  const journeyContentRef = useRef(null);
+  const [transitionDir, setTransitionDir] = useState('left');
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -126,39 +126,35 @@ function Home() {
     if (sections[activeSection].key === 'process') {
       return [
         {
-          icon: <Route sx={{ fontSize: 32, color: 'primary.main' }} />,
-          title: 'Leadership Intake',
-          text: 'A concise intake to reflect on how you lead and decide.',
+          icon: <Inventory2 sx={{ fontSize: 28, color: 'primary.main' }} />,
+          title: 'Capture',
+          text: 'Complete a focused intake to capture your current leadership baseline.',
           bullets: [
-            'Captures meaningful patterns without overwhelming you.',
-            'Balances context and day-to-day realities.',
+            'Fast input, high signal.',
           ],
         },
         {
-          icon: <Psychology sx={{ fontSize: 32, color: 'primary.main' }} />,
-          title: 'Reflection Results',
-          text: 'A grounded view of strengths, tensions, and trajectory.',
+          icon: <Psychology sx={{ fontSize: 28, color: 'primary.main' }} />,
+          title: 'Reflect',
+          text: 'Review your summary and trait priorities to understand what matters now.',
           bullets: [
-            'Shows where you are now and what comes next.',
-            'Delivered in practical, clear language.',
+            'Clarity before action.',
           ],
         },
         {
-          icon: <TrendingUp sx={{ fontSize: 32, color: 'primary.main' }} />,
-          title: 'Trait Selection',
-          text: 'Choose the growth traits that best fit your current team reality.',
+          icon: <Insights sx={{ fontSize: 28, color: 'primary.main' }} />,
+          title: 'Calibrate',
+          text: 'Run self and team assessments to calibrate perception against lived reality.',
           bullets: [
-            'Prioritizes practical growth over generic advice.',
-            'Turns awareness into clear decisions.',
+            'Align perspective and data.',
           ],
         },
         {
-          icon: <Inventory2 sx={{ fontSize: 32, color: 'primary.main' }} />,
-          title: 'Growth Campaign',
-          text: 'Build your campaign and track progress in the dashboard.',
+          icon: <Route sx={{ fontSize: 28, color: 'primary.main' }} />,
+          title: 'Embark',
+          text: 'Launch your growth journey with action planning and visible momentum.',
           bullets: [
-            'Turns reflection into a focused development path.',
-            'Keeps momentum visible over time.',
+            'Start focused, stay moving.',
           ],
         },
       ];
@@ -196,10 +192,8 @@ function Home() {
   }, [activeSection]);
 
   const handleHeroSectionSelect = (sectionIdx) => {
+    setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
     setActiveSection(sectionIdx);
-    window.setTimeout(() => {
-      journeyContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 40);
   };
 
   return (
@@ -283,25 +277,35 @@ function Home() {
                     sx={{
                       fontFamily: 'Gemunu Libre, sans-serif',
                       color: '#FFFFFF',
-                      fontSize: { xs: '2rem', md: '3rem' },
-                      lineHeight: 1.03,
+                      fontSize: { xs: '2rem', md: '2.9rem' },
+                      lineHeight: 1.04,
                       fontWeight: 700,
                       maxWidth: 760,
                     }}
                   >
-                    Know where you stand. Choose where to go.
+                    <Box component="span" sx={{ display: 'block' }}>
+                      <Box component="span" sx={{ color: '#E7B46F', mr: 0.8 }}>
+                        Know
+                      </Box>
+                      where you stand.
+                    </Box>
+                    <Box component="span" sx={{ display: 'block', mt: 0.35 }}>
+                      <Box component="span" sx={{ color: '#E7B46F', mr: 0.8 }}>
+                        Choose
+                      </Box>
+                      where to go.
+                    </Box>
                   </Typography>
                   <Typography
                     sx={{
                       color: 'rgba(233,242,255,0.96)',
                       fontSize: { xs: '1rem', md: '1.08rem' },
                       lineHeight: 1.62,
+                      fontStyle: 'italic',
                       maxWidth: 690,
                     }}
                   >
-                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities.
-                    <br />
-                    It is AI-powered, but human-led, so your outcomes stay grounded in real leadership context.
+                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities. It is AI-powered, but human-led, so your outcomes stay grounded in real leadership context.
                   </Typography>
 
                   <Stack direction="row" spacing={1.2} flexWrap="wrap" sx={{ pt: 0.6 }}>
@@ -315,7 +319,7 @@ function Home() {
                     </Button>
                   </Stack>
 
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ pt: 0.5 }}>
+                  <Stack direction="row" spacing={1.25} flexWrap="wrap" sx={{ pt: 2.1 }}>
                     {sections.map((section, idx) => (
                       <Button
                         key={section.key}
@@ -323,32 +327,32 @@ function Home() {
                         size="small"
                         onClick={() => handleHeroSectionSelect(idx)}
                         sx={{
-                          px: 1.5,
-                          py: 0.48,
+                          px: 2.25,
+                          py: 0.9,
                           borderRadius: 999,
-                          fontSize: '0.78rem',
+                          fontSize: '0.9rem',
                           fontWeight: 700,
                           letterSpacing: '0.01em',
                           color:
-                            activeSection === idx ? '#FFFFFF' : 'rgba(239,247,255,0.95)',
+                            activeSection === idx ? '#2A1A10' : '#F8F2EC',
                           bgcolor:
                             activeSection === idx
-                              ? 'rgba(63,100,123,0.96)'
-                              : 'rgba(255,255,255,0.05)',
+                              ? 'rgba(231,180,111,0.95)'
+                              : 'rgba(224,122,63,0.28)',
                           borderColor:
                             activeSection === idx
-                              ? 'rgba(99,147,170,0.95)'
-                              : 'rgba(255,255,255,0.32)',
+                              ? 'rgba(231,180,111,0.98)'
+                              : 'rgba(244,206,161,0.55)',
                           boxShadow:
                             activeSection === idx
-                              ? '0 8px 18px rgba(16,33,54,0.34)'
+                              ? '0 10px 22px rgba(12,25,44,0.36)'
                               : 'none',
                           '&:hover': {
                             bgcolor:
                               activeSection === idx
-                                ? 'rgba(52,83,106,0.98)'
-                                : 'rgba(255,255,255,0.13)',
-                            borderColor: 'rgba(255,255,255,0.62)',
+                                ? 'rgba(223,168,95,0.98)'
+                                : 'rgba(224,122,63,0.42)',
+                            borderColor: 'rgba(244,206,161,0.75)',
                           },
                         }}
                       >
@@ -482,76 +486,88 @@ function Home() {
           width: '100%',
           background:
             'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
-          py: { xs: 2.2, md: 3.2 },
+          py: { xs: 1.3, md: 1.7 },
         }}
       >
-      <Container
-        maxWidth="xl"
-        ref={journeyContentRef}
-      >
+      <Container maxWidth="xl">
         <Stack spacing={1.4}>
-          <Typography
+          <Box
+            key={activeSection}
             sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontWeight: 700,
-              color: '#14314A',
-              fontSize: { xs: '1.2rem', md: '1.45rem' },
+              animation: `${transitionDir === 'left' ? 'cardsSwipeLeft' : 'cardsSwipeRight'} 380ms cubic-bezier(.2,.8,.2,1)`,
+              '@keyframes cardsSwipeLeft': {
+                from: { opacity: 0.2, transform: 'translateX(24px)' },
+                to: { opacity: 1, transform: 'translateX(0)' },
+              },
+              '@keyframes cardsSwipeRight': {
+                from: { opacity: 0.2, transform: 'translateX(-24px)' },
+                to: { opacity: 1, transform: 'translateX(0)' },
+              },
             }}
           >
-            {sections[activeSection].label}
-          </Typography>
-          <Typography sx={{ color: '#4B6076', fontSize: '0.93rem', maxWidth: 840 }}>
-            {activeSection === 1
-              ? 'Your journey stays centered around one hero: you. Each step below shows what happens as you move from intake to campaign momentum.'
-              : activeSection === 0
-                ? 'Core product principles that ensure your reflection feels accurate, practical, and personally relevant.'
-                : 'What you walk away with after completing your Compass experience.'}
-          </Typography>
+            <Typography
+              sx={{
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontWeight: 700,
+                color: '#14314A',
+                fontSize: { xs: '1.1rem', md: '1.26rem' },
+              }}
+            >
+              {sections[activeSection].label}
+            </Typography>
+            <Typography sx={{ color: '#4B6076', fontSize: '0.86rem', maxWidth: 760, mt: 0.35, mb: 0.9 }}>
+              {activeSection === 1
+                ? 'Capture signal quickly, reflect with clarity, calibrate against real feedback, and embark with focused action.'
+                : activeSection === 0
+                  ? 'Core product principles that ensure your reflection feels accurate, practical, and personally relevant.'
+                  : 'What you walk away with after completing your Compass experience.'}
+            </Typography>
 
-          <Grid container spacing={1.4}>
-            {panel.map((item) => (
-              <Grid item xs={12} md={activeSection === 1 ? 6 : 4} key={item.title}>
-                <Box
-                  data-hover="lift"
-                  sx={{
-                    height: '100%',
-                    borderRadius: 2.2,
-                    border: '1px solid rgba(15,23,42,0.10)',
-                    bgcolor: '#FFFFFF',
-                    p: { xs: 1.6, md: 1.9 },
-                    boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
-                  }}
-                >
-                  <Box sx={{ mb: 0.9 }}>{item.icon}</Box>
-                  <Typography
+            <Grid container spacing={1}>
+              {panel.map((item) => (
+                <Grid item xs={12} md={activeSection === 1 ? 3 : 4} key={item.title}>
+                  <Box
+                    data-hover="lift"
                     sx={{
-                      fontFamily: 'Gemunu Libre, sans-serif',
-                      fontWeight: 700,
-                      fontSize: '1.08rem',
-                      color: '#0F1F32',
-                      mb: 0.55,
+                      height: '100%',
+                      borderRadius: 2,
+                      border: '1px solid rgba(15,23,42,0.10)',
+                      bgcolor: '#FFFFFF',
+                      p: { xs: 1.1, md: activeSection === 1 ? 1.15 : 1.5 },
+                      boxShadow: '0 8px 24px rgba(15,23,42,0.08)',
                     }}
                   >
-                    {item.title}
-                  </Typography>
-                  <Typography sx={{ color: '#44566C', fontSize: '0.93rem', lineHeight: 1.55 }}>
-                    {item.text}
-                  </Typography>
-                  <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 2 }}>
-                    {item.bullets.map((bullet) => (
-                      <Typography
-                        key={bullet}
-                        component="li"
-                        sx={{ color: '#526579', fontSize: '0.84rem', lineHeight: 1.5, mb: 0.16 }}
-                      >
-                        {bullet}
-                      </Typography>
-                    ))}
+                    <Box sx={{ mb: 0.52 }}>{item.icon}</Box>
+                    <Typography
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        fontWeight: 700,
+                        fontSize: activeSection === 1 ? '0.96rem' : '1.05rem',
+                        color: '#0F1F32',
+                        mb: 0.42,
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+                    <Typography sx={{ color: '#44566C', fontSize: activeSection === 1 ? '0.78rem' : '0.9rem', lineHeight: 1.42 }}>
+                      {item.text}
+                    </Typography>
+                    <Box component="ul" sx={{ m: 0, mt: 0.55, pl: 1.65 }}>
+                      {item.bullets.map((bullet) => (
+                        <Typography
+                          key={bullet}
+                          component="li"
+                          sx={{ color: '#526579', fontSize: activeSection === 1 ? '0.73rem' : '0.84rem', lineHeight: 1.36, mb: 0.1 }}
+                        >
+                          {bullet}
+                        </Typography>
+                      ))}
+                    </Box>
                   </Box>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
 
           {showDevTools && (
             <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap" justifyContent="flex-end">
