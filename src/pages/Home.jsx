@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -78,128 +78,68 @@ function Home() {
     navigate('/summary', { state: { formData: boldVisionaryPreset } });
   };
 
-  const panel = useMemo(() => {
-    if (sections[activeSection].key === 'process') {
-      return [
-        {
-          title: 'Capture',
-          hero: '/herothink.png',
-          text: 'Focused intake that captures your leadership baseline.',
-          bullets: [
-            'Fast input, high signal.',
-            'Clear baseline before reflection.',
-          ],
-        },
-        {
-          title: 'Reflect',
-          hero: '/heroreflect.png',
-          text: 'Review your summary and trait priorities to clarify what matters.',
-          bullets: [
-            'Clarity before action.',
-            'Practical leadership context.',
-          ],
-        },
-        {
-          title: 'Calibrate',
-          hero: '/herocalibrate.png',
-          text: 'Self and team assessments calibrate perspective against lived reality.',
-          bullets: [
-            'Align perspective and data.',
-            'Real feedback, real growth.',
-          ],
-        },
-        {
-          title: 'Embark',
-          hero: '/heroembark.png',
-          text: 'Launch a focused growth journey with action planning and momentum.',
-          bullets: [
-            'Start focused, stay moving.',
-            'Visible progress, clear next steps.',
-          ],
-        },
-      ];
-    }
-
-    if (sections[activeSection].key === 'method') {
-      return [
-        {
-          title: 'Mirror-Accurate',
-          hero: '/herothink.png',
-          text: 'Objective reflection of your current leadership approach.',
-          bullets: [
-            'Strengths and growth opportunities with clarity.',
-            'Creates language for meaningful team conversations.',
-          ],
-        },
-        {
-          title: 'Signal Over Noise',
-          hero: '/heroreflect.png',
-          text: 'Focuses your attention on the highest-impact shifts.',
-          bullets: [
-            'Prioritizes what matters most right now.',
-            'Turns insight into clear direction.',
-          ],
-        },
-        {
-          title: 'Built for Action',
-          hero: '/herothink.png',
-          text: 'You leave with priorities you can apply immediately.',
-          bullets: [
-            'Connects self-awareness to practical next steps.',
-            'Keeps your growth plan personal and sustainable.',
-          ],
-        },
-      ];
-    }
-
-    return [
-      {
-        title: 'Reflection Summary',
-        hero: '/heroreflect.png',
-        text: 'A clear portrait of your leadership with practical context.',
-        bullets: [
-          'What is working and where growth creates the biggest lift.',
-          'Move with confidence, not just information.',
-        ],
-      },
-      {
-        title: 'Focus Traits',
-        hero: '/heroreflect.png',
-        text: 'Five personalized growth traits tailored to your needs.',
-        bullets: [
-          'Development path specific and high impact.',
-          'Clear, actionable next steps.',
-        ],
-      },
-      {
-        title: 'Action Dashboard',
-        hero: '/heroreflect.png',
-        text: 'Campaign details, milestones, and resources in one place.',
-        bullets: [
-          'Prevents momentum loss after insights.',
-          'Accountability and measurable progress.',
-        ],
-      },
-    ];
-  }, [activeSection]);
+  const processCards = [
+    {
+      title: 'Capture',
+      hero: '/herothink.png',
+      text: 'Focused intake that captures your leadership baseline.',
+      points: [
+        'Fast input, high signal.',
+        'Clear baseline before reflection.',
+        'Grounded in your real leadership context.',
+        'Creates a clear starting point for growth.',
+      ],
+    },
+    {
+      title: 'Reflect',
+      hero: '/heroreflect.png',
+      text: 'Review your summary and trait priorities to clarify what matters.',
+      points: [
+        'Clarity before action.',
+        'Practical leadership context.',
+        'Turns insight into language you can use.',
+        'Focuses attention on the highest-leverage shifts.',
+      ],
+    },
+    {
+      title: 'Calibrate',
+      hero: '/herocalibrate.png',
+      text: 'Self and team assessments calibrate perspective against lived reality.',
+      points: [
+        'Align perspective and data.',
+        'Real feedback, real growth.',
+        'Surfaces blind spots with precision.',
+        'Builds trust through shared understanding.',
+      ],
+    },
+    {
+      title: 'Embark',
+      hero: '/heroembark.png',
+      text: 'Launch a focused growth journey with action planning and momentum.',
+      points: [
+        'Start focused, stay moving.',
+        'Visible progress, clear next steps.',
+        'Keeps accountability front and center.',
+        'Sustains momentum beyond the first insight.',
+      ],
+    },
+  ];
 
   const handleHeroSectionSelect = (sectionIdx) => {
-    setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
+    if (activeSection === sectionIdx) {
+      setTransitionDir('right');
+      setActiveSection(null);
+      setFlippedCards({});
+      return;
+    }
+    if (activeSection === null) {
+      setTransitionDir('left');
+    } else {
+      setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
+    }
     setActiveSection(sectionIdx);
     if (sectionIdx !== 0) setFlippedCards({});
   };
-
-  useEffect(() => {
-    if (sections[activeSection].key !== 'process') {
-      setFlippedCards({});
-    }
-  }, [activeSection]);
-
-  useEffect(() => {
-    if (sections[activeSection].key !== 'process') {
-      setFlippedCards({});
-    }
-  }, [activeSection]);
 
   const methodologyPillars = [
     {
@@ -502,7 +442,7 @@ function Home() {
               },
             }}
           >
-            {sections[activeSection].key === 'process' && (
+            {(activeSection === 0) && (
               <Box
                 sx={{
                   display: 'flex',
@@ -513,7 +453,7 @@ function Home() {
                   flexWrap: 'wrap',
                 }}
               >
-                {panel.map((item, idx) => (
+                {processCards.map((item, idx) => (
                   <React.Fragment key={item.title}>
                     {idx > 0 && (
                       <Box
@@ -594,7 +534,7 @@ function Home() {
                               top: '50%',
                               transform: 'translate(-50%, -50%)',
                               fontWeight: 900,
-                              fontSize: { xs: '1.35rem', md: '1.5rem' },
+                              fontSize: { xs: '2.05rem', md: '2.35rem' },
                               letterSpacing: '0.12em',
                               color: '#FFFFFF',
                               WebkitTextStroke: '2px #0F1F32',
@@ -627,10 +567,11 @@ function Home() {
                           <Typography
                             sx={{
                               fontWeight: 800,
-                              fontSize: '1.05rem',
+                              fontSize: '1.3rem',
                               letterSpacing: '-0.015em',
                               color: '#0F1F32',
                               mb: 0.5,
+                              textAlign: 'center',
                             }}
                           >
                             {item.title}
@@ -638,30 +579,40 @@ function Home() {
                           <Typography
                             sx={{
                               color: '#44566C',
-                              fontSize: '0.9rem',
+                              fontSize: '1.02rem',
                               lineHeight: 1.5,
                               fontWeight: 500,
+                              textAlign: 'center',
                             }}
                           >
                             {item.text}
                           </Typography>
-                          <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 1.5 }}>
-                            {item.bullets.map((bullet) => (
-                              <Typography
-                                key={bullet}
-                                component="li"
-                                sx={{
-                                  color: '#526579',
-                                  fontSize: '0.85rem',
-                                  lineHeight: 1.45,
-                                  mb: 0.2,
-                                  fontWeight: 500,
-                                }}
-                              >
-                                {bullet}
-                              </Typography>
+                          <Stack spacing={0.45} sx={{ mt: 1 }}>
+                            {item.points.map((point) => (
+                              <Stack key={point} direction="row" spacing={0.7} justifyContent="center" alignItems="center">
+                                <Box
+                                  sx={{
+                                    width: 5.5,
+                                    height: 5.5,
+                                    borderRadius: '50%',
+                                    bgcolor: '#3F647B',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                                <Typography
+                                  sx={{
+                                    color: '#526579',
+                                    fontSize: '0.93rem',
+                                    lineHeight: 1.42,
+                                    fontWeight: 500,
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  {point}
+                                </Typography>
+                              </Stack>
                             ))}
-                          </Box>
+                          </Stack>
                         </Box>
                       </Box>
                     </Box>
@@ -670,7 +621,97 @@ function Home() {
               </Box>
             )}
 
-            {sections[activeSection].key === 'method' && (
+            {(activeSection === null) && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', md: 'row' },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0,
+                  flexWrap: 'wrap',
+                }}
+              >
+                {processCards.map((item, idx) => (
+                  <React.Fragment key={`compact-${item.title}`}>
+                    {idx > 0 && (
+                      <Box
+                        sx={{
+                          width: { xs: '60%', md: 24 },
+                          height: { xs: 0, md: 'auto' },
+                          minWidth: { xs: 0, md: 24 },
+                          alignSelf: 'center',
+                          borderTop: { xs: '2px dashed rgba(63,100,123,0.45)', md: 'none' },
+                          borderLeft: { xs: 'none', md: '2px dashed rgba(63,100,123,0.45)' },
+                          flexShrink: 0,
+                          mx: { xs: 0, md: 0.5 },
+                          my: { xs: 1, md: 0 },
+                        }}
+                      />
+                    )}
+                    <Box
+                      sx={{
+                        flex: { xs: '1 1 100%', md: '1 1 0' },
+                        minWidth: { xs: '100%', md: 280 },
+                        maxWidth: { xs: '100%', md: 385 },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          width: '100%',
+                          height: { xs: 175, md: 192 },
+                          borderRadius: 2,
+                          border: '1px solid rgba(15,23,42,0.08)',
+                          bgcolor: '#FFFFFF',
+                          boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {item.hero && (
+                          <Box
+                            component="img"
+                            src={item.hero}
+                            alt=""
+                            aria-hidden
+                            sx={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: { xs: 220, md: 270 },
+                              height: 'auto',
+                              objectFit: 'contain',
+                              opacity: 0.6,
+                            }}
+                          />
+                        )}
+                        <Typography
+                          sx={{
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            fontWeight: 900,
+                            fontSize: { xs: '2.05rem', md: '2.35rem' },
+                            letterSpacing: '0.12em',
+                            color: '#0F2B45',
+                            WebkitTextStroke: '2px #FFFFFF',
+                            paintOrder: 'stroke fill',
+                            textTransform: 'uppercase',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {item.title}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </React.Fragment>
+                ))}
+              </Box>
+            )}
+
+            {activeSection === 1 && (
               <Stack spacing={{ xs: 2.5, md: 3 }}>
                 {methodologyPillars.map((pillar, idx) => (
                   <Box
@@ -731,7 +772,7 @@ function Home() {
               </Stack>
             )}
 
-            {sections[activeSection].key === 'deliverables' && (
+            {activeSection === 2 && (
               <Stack spacing={{ xs: 2.5, md: 3 }}>
                 {deliverablesOutcomes.map((outcome, idx) => (
                   <Box
