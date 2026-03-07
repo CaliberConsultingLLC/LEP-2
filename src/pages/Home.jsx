@@ -533,13 +533,17 @@ function Home() {
                               left: '50%',
                               top: '50%',
                               transform: 'translate(-50%, -50%)',
-                              width: '74%',
-                              height: '34%',
+                              width: '78%',
+                              height: '38%',
                               borderRadius: 999,
                               background:
-                                'radial-gradient(ellipse at center, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.22) 40%, rgba(255,255,255,0) 75%)',
-                              filter: 'blur(12px)',
-                              opacity: 0.4,
+                                'radial-gradient(ellipse at center, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.62) 32%, rgba(255,255,255,0.18) 58%, rgba(255,255,255,0) 82%)',
+                              filter: 'blur(16px)',
+                              backdropFilter: 'blur(16px) saturate(1.2)',
+                              WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+                              boxShadow: '0 0 24px rgba(255,255,255,0.45)',
+                              opacity: 0.85,
+                              zIndex: 1,
                               pointerEvents: 'none',
                             }}
                           />
@@ -557,6 +561,7 @@ function Home() {
                               paintOrder: 'stroke fill',
                               textTransform: 'uppercase',
                               whiteSpace: 'nowrap',
+                              zIndex: 2,
                             }}
                           >
                             {item.title}
@@ -708,13 +713,17 @@ function Home() {
                             left: '50%',
                             top: '50%',
                             transform: 'translate(-50%, -50%)',
-                            width: '74%',
-                            height: '34%',
+                            width: '78%',
+                            height: '38%',
                             borderRadius: 999,
                             background:
-                              'radial-gradient(ellipse at center, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.22) 40%, rgba(255,255,255,0) 75%)',
-                            filter: 'blur(12px)',
-                            opacity: 0.4,
+                              'radial-gradient(ellipse at center, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.62) 32%, rgba(255,255,255,0.18) 58%, rgba(255,255,255,0) 82%)',
+                            filter: 'blur(16px)',
+                            backdropFilter: 'blur(16px) saturate(1.2)',
+                            WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+                            boxShadow: '0 0 24px rgba(255,255,255,0.45)',
+                            opacity: 0.85,
+                            zIndex: 1,
                             pointerEvents: 'none',
                           }}
                         />
@@ -732,6 +741,7 @@ function Home() {
                             paintOrder: 'stroke fill',
                             textTransform: 'uppercase',
                             whiteSpace: 'nowrap',
+                            zIndex: 2,
                           }}
                         >
                           {item.title}
