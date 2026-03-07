@@ -11,14 +11,14 @@ import { useNavigate } from 'react-router-dom';
 import { allowDevBypass, showDevTools } from '../config/runtimeFlags';
 
 const sections = [
-  { key: 'method', label: 'Methodology' },
   { key: 'process', label: 'How It Works' },
+  { key: 'method', label: 'Methodology' },
   { key: 'deliverables', label: 'Deliverables' },
 ];
 
 function Home() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState(0);
+  const [activeSection, setActiveSection] = useState(0); // 0=How It Works, 1=Methodology, 2=Deliverables
   const [transitionDir, setTransitionDir] = useState('left');
   const boldVisionaryPreset = {
     industry: 'Media',
@@ -78,38 +78,6 @@ function Home() {
   };
 
   const panel = useMemo(() => {
-    if (sections[activeSection].key === 'method') {
-      return [
-        {
-          title: 'Mirror-Accurate',
-          hero: '/herothink.png',
-          text: 'Objective reflection of your current leadership approach.',
-          bullets: [
-            'Strengths and growth opportunities with clarity.',
-            'Creates language for meaningful team conversations.',
-          ],
-        },
-        {
-          title: 'Signal Over Noise',
-          hero: '/heroreflect.png',
-          text: 'Focuses your attention on the highest-impact shifts.',
-          bullets: [
-            'Prioritizes what matters most right now.',
-            'Turns insight into clear direction.',
-          ],
-        },
-        {
-          title: 'Built for Action',
-          hero: '/herothink.png',
-          text: 'You leave with priorities you can apply immediately.',
-          bullets: [
-            'Connects self-awareness to practical next steps.',
-            'Keeps your growth plan personal and sustainable.',
-          ],
-        },
-      ];
-    }
-
     if (sections[activeSection].key === 'process') {
       return [
         {
@@ -151,6 +119,38 @@ function Home() {
       ];
     }
 
+    if (sections[activeSection].key === 'method') {
+      return [
+        {
+          title: 'Mirror-Accurate',
+          hero: '/herothink.png',
+          text: 'Objective reflection of your current leadership approach.',
+          bullets: [
+            'Strengths and growth opportunities with clarity.',
+            'Creates language for meaningful team conversations.',
+          ],
+        },
+        {
+          title: 'Signal Over Noise',
+          hero: '/heroreflect.png',
+          text: 'Focuses your attention on the highest-impact shifts.',
+          bullets: [
+            'Prioritizes what matters most right now.',
+            'Turns insight into clear direction.',
+          ],
+        },
+        {
+          title: 'Built for Action',
+          hero: '/herothink.png',
+          text: 'You leave with priorities you can apply immediately.',
+          bullets: [
+            'Connects self-awareness to practical next steps.',
+            'Keeps your growth plan personal and sustainable.',
+          ],
+        },
+      ];
+    }
+
     return [
       {
         title: 'Reflection Summary',
@@ -186,6 +186,42 @@ function Home() {
     setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
     setActiveSection(sectionIdx);
   };
+
+  const methodologyPillars = [
+    {
+      hero: '/herothink.png',
+      headline: 'Reflection grounded in your reality',
+      body: 'Most tools give you generic feedback. Compass reflects your actual leadership context—how you show up, how others might experience you. No fluff, no one-size-fits-all.',
+    },
+    {
+      hero: '/heroreflect.png',
+      headline: 'Signal over noise',
+      body: 'Leadership development often overwhelms. Compass distills what matters most right now, so you can focus instead of drowning in data.',
+    },
+    {
+      hero: '/herothink.png',
+      headline: 'Built for action',
+      body: 'Insight without action is just more reading. Compass connects reflection to concrete next steps you can use immediately.',
+    },
+  ];
+
+  const deliverablesOutcomes = [
+    {
+      hero: '/heroreflect.png',
+      headline: 'A clear portrait of your leadership',
+      body: 'What\'s working, where growth creates the biggest lift. Not a report to file away—a map to move with confidence.',
+    },
+    {
+      hero: '/heroreflect.png',
+      headline: 'Five traits tailored to you',
+      body: 'Your development path, specific and high-impact. No more guessing what to work on next.',
+    },
+    {
+      hero: '/heroreflect.png',
+      headline: 'Campaign, milestones, resources—in one place',
+      body: 'Keeps momentum alive after the insight lands. Accountability and measurable progress.',
+    },
+  ];
 
   return (
     <Box
@@ -240,9 +276,9 @@ function Home() {
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
-                  fontSize: { xs: '0.98rem', md: '1.1rem' },
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
+                  fontSize: { xs: '1.35rem', md: '1.65rem' },
+                  fontWeight: 800,
+                  letterSpacing: '0.06em',
                   color: '#F7FAFF',
                   textTransform: 'uppercase',
                 }}
@@ -452,32 +488,33 @@ function Home() {
               },
             }}
           >
-            <Grid container spacing={1.5}>
-              {panel.map((item) => (
-                <Grid item xs={12} md={activeSection === 1 ? 3 : 4} key={item.title}>
-                  <Box
-                    data-hover="lift"
-                    sx={{
-                      height: '100%',
-                      borderRadius: 2,
-                      border: '1px solid rgba(15,23,42,0.08)',
-                      bgcolor: '#FFFFFF',
-                      p: { xs: 1.8, md: 2.1 },
-                      boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {item.hero && (
+            {sections[activeSection].key === 'process' && (
+              <Grid container spacing={1.5}>
+                {panel.map((item) => (
+                  <Grid item xs={12} md={3} key={item.title}>
+                    <Box
+                      data-hover="lift"
+                      sx={{
+                        height: '100%',
+                        minHeight: { xs: 280, md: 340 },
+                        borderRadius: 2,
+                        border: '1px solid rgba(15,23,42,0.08)',
+                        bgcolor: '#FFFFFF',
+                        p: { xs: 2.2, md: 2.8 },
+                        boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      {item.hero && (
                       <Box
                         sx={{
-                          position: 'absolute',
-                          right: -8,
-                          top: 0,
-                          width: { xs: 88, md: 110 },
-                          height: '70%',
-                          opacity: 0.15,
-                          pointerEvents: 'none',
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          mb: 1,
+                          flexShrink: 0,
                         }}
                       >
                         <Box
@@ -486,10 +523,9 @@ function Home() {
                           alt=""
                           aria-hidden
                           sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            objectPosition: 'top right',
+                            width: { xs: 176, md: 220 },
+                            height: 'auto',
+                            filter: 'drop-shadow(0 8px 24px rgba(15,23,42,0.14))',
                           }}
                         />
                       </Box>
@@ -497,10 +533,10 @@ function Home() {
                     <Typography
                       sx={{
                         fontWeight: 800,
-                        fontSize: '1.12rem',
+                        fontSize: '1.2rem',
                         letterSpacing: '-0.015em',
                         color: '#0F1F32',
-                        mb: 0.5,
+                        mb: 0.6,
                       }}
                     >
                       {item.title}
@@ -508,23 +544,23 @@ function Home() {
                     <Typography
                       sx={{
                         color: '#44566C',
-                        fontSize: '0.9375rem',
-                        lineHeight: 1.5,
+                        fontSize: '1rem',
+                        lineHeight: 1.55,
                         fontWeight: 500,
                       }}
                     >
                       {item.text}
                     </Typography>
-                    <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 1.75 }}>
+                    <Box component="ul" sx={{ m: 0, mt: 1, pl: 1.75 }}>
                       {item.bullets.map((bullet) => (
                         <Typography
                           key={bullet}
                           component="li"
                           sx={{
                             color: '#526579',
-                            fontSize: '0.875rem',
-                            lineHeight: 1.45,
-                            mb: 0.25,
+                            fontSize: '0.9rem',
+                            lineHeight: 1.5,
+                            mb: 0.35,
                             fontWeight: 500,
                           }}
                         >
@@ -536,6 +572,134 @@ function Home() {
                 </Grid>
               ))}
             </Grid>
+            )}
+
+            {sections[activeSection].key === 'method' && (
+              <Stack spacing={{ xs: 2.5, md: 3 }}>
+                {methodologyPillars.map((pillar, idx) => (
+                  <Box
+                    key={pillar.headline}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse',
+                      alignItems: 'center',
+                      gap: { xs: 2, md: 3 },
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        flex: { xs: '1 1 100%', md: '0 0 200px' },
+                        display: 'flex',
+                        justifyContent: idx % 2 === 0 ? 'flex-start' : 'flex-end',
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={pillar.hero}
+                        alt=""
+                        aria-hidden
+                        sx={{
+                          width: { xs: 140, md: 180 },
+                          height: 'auto',
+                          filter: 'drop-shadow(0 8px 24px rgba(15,23,42,0.12))',
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '1 1 280px', minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: { xs: '1.25rem', md: '1.4rem' },
+                          letterSpacing: '-0.02em',
+                          color: '#0F1F32',
+                          mb: 0.75,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {pillar.headline}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: '#4B6076',
+                          fontSize: { xs: '0.95rem', md: '1.05rem' },
+                          lineHeight: 1.6,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {pillar.body}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+
+            {sections[activeSection].key === 'deliverables' && (
+              <Stack spacing={{ xs: 2.5, md: 3 }}>
+                {deliverablesOutcomes.map((outcome, idx) => (
+                  <Box
+                    key={outcome.headline}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse',
+                      alignItems: 'center',
+                      gap: { xs: 2, md: 3 },
+                      flexWrap: 'wrap',
+                      p: { xs: 1.5, md: 2 },
+                      borderRadius: 2,
+                      bgcolor: 'rgba(255,255,255,0.7)',
+                      border: '1px solid rgba(15,23,42,0.06)',
+                      boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        flex: { xs: '1 1 100%', md: '0 0 180px' },
+                        display: 'flex',
+                        justifyContent: idx % 2 === 0 ? 'flex-start' : 'flex-end',
+                      }}
+                    >
+                      <Box
+                        component="img"
+                        src={outcome.hero}
+                        alt=""
+                        aria-hidden
+                        sx={{
+                          width: { xs: 120, md: 160 },
+                          height: 'auto',
+                          filter: 'drop-shadow(0 6px 20px rgba(15,23,42,0.1))',
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '1 1 280px', minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: { xs: '1.2rem', md: '1.35rem' },
+                          letterSpacing: '-0.02em',
+                          color: '#0F1F32',
+                          mb: 0.6,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {outcome.headline}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: '#4B6076',
+                          fontSize: { xs: '0.95rem', md: '1.02rem' },
+                          lineHeight: 1.6,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {outcome.body}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            )}
           </Box>
 
           {showDevTools && (
