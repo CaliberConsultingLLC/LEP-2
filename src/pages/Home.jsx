@@ -484,7 +484,7 @@ function Home() {
                         sx={{
                           position: 'relative',
                           width: '100%',
-                          height: { xs: 350, md: 385 },
+                          height: { xs: 315, md: 347 },
                           transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
                           transformStyle: 'preserve-3d',
                           transform: flippedCards[idx] ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -527,6 +527,22 @@ function Home() {
                               }}
                             />
                           )}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '74%',
+                              height: '34%',
+                              borderRadius: 999,
+                              background:
+                                'radial-gradient(ellipse at center, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.22) 40%, rgba(255,255,255,0) 75%)',
+                              filter: 'blur(12px)',
+                              opacity: 0.4,
+                              pointerEvents: 'none',
+                            }}
+                          />
                           <Typography
                             sx={{
                               position: 'absolute',
@@ -537,7 +553,7 @@ function Home() {
                               fontSize: { xs: '2.05rem', md: '2.35rem' },
                               letterSpacing: '0.12em',
                               color: '#FFFFFF',
-                              WebkitTextStroke: '2px #0F1F32',
+                              WebkitTextStroke: '3px #0F1F32',
                               paintOrder: 'stroke fill',
                               textTransform: 'uppercase',
                               whiteSpace: 'nowrap',
@@ -686,6 +702,22 @@ function Home() {
                             }}
                           />
                         )}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '74%',
+                            height: '34%',
+                            borderRadius: 999,
+                            background:
+                              'radial-gradient(ellipse at center, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.22) 40%, rgba(255,255,255,0) 75%)',
+                            filter: 'blur(12px)',
+                            opacity: 0.4,
+                            pointerEvents: 'none',
+                          }}
+                        />
                         <Typography
                           sx={{
                             position: 'absolute',
