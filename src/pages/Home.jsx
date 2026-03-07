@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -20,6 +20,7 @@ function Home() {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState(0); // 0=How It Works, 1=Methodology, 2=Deliverables
   const [transitionDir, setTransitionDir] = useState('left');
+  const [flippedCards, setFlippedCards] = useState({});
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -185,7 +186,20 @@ function Home() {
   const handleHeroSectionSelect = (sectionIdx) => {
     setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
     setActiveSection(sectionIdx);
+    if (sectionIdx !== 0) setFlippedCards({});
   };
+
+  useEffect(() => {
+    if (sections[activeSection].key !== 'process') {
+      setFlippedCards({});
+    }
+  }, [activeSection]);
+
+  useEffect(() => {
+    if (sections[activeSection].key !== 'process') {
+      setFlippedCards({});
+    }
+  }, [activeSection]);
 
   const methodologyPillars = [
     {
@@ -489,89 +503,171 @@ function Home() {
             }}
           >
             {sections[activeSection].key === 'process' && (
-              <Grid container spacing={1.5}>
-                {panel.map((item) => (
-                  <Grid item xs={12} md={3} key={item.title}>
-                    <Box
-                      data-hover="lift"
-                      sx={{
-                        height: '100%',
-                        minHeight: { xs: 280, md: 340 },
-                        borderRadius: 2,
-                        border: '1px solid rgba(15,23,42,0.08)',
-                        bgcolor: '#FFFFFF',
-                        p: { xs: 2.2, md: 2.8 },
-                        boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}
-                    >
-                      {item.hero && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', md: 'row' },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 0,
+                  flexWrap: 'wrap',
+                }}
+              >
+                {panel.map((item, idx) => (
+                  <React.Fragment key={item.title}>
+                    {idx > 0 && (
                       <Box
                         sx={{
-                          display: 'flex',
-                          justifyContent: 'flex-end',
-                          mb: 1,
+                          width: { xs: '60%', md: 24 },
+                          height: { xs: 0, md: 'auto' },
+                          minWidth: { xs: 0, md: 24 },
+                          alignSelf: 'center',
+                          borderTop: { xs: '2px dashed rgba(63,100,123,0.45)', md: 'none' },
+                          borderLeft: { xs: 'none', md: '2px dashed rgba(63,100,123,0.45)' },
                           flexShrink: 0,
+                          mx: { xs: 0, md: 0.5 },
+                          my: { xs: 1, md: 0 },
+                        }}
+                      />
+                    )}
+                    <Box
+                      onClick={() => setFlippedCards((prev) => ({ ...prev, [idx]: !prev[idx] }))}
+                      sx={{
+                        perspective: '1000px',
+                        cursor: 'pointer',
+                        flex: { xs: '1 1 100%', md: '1 1 0' },
+                        minWidth: { xs: '100%', md: 280 },
+                        maxWidth: { xs: '100%', md: 385 },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          position: 'relative',
+                          width: '100%',
+                          height: { xs: 350, md: 385 },
+                          transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                          transformStyle: 'preserve-3d',
+                          transform: flippedCards[idx] ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                          '@media (prefers-reduced-motion: reduce)': {
+                            transition: 'none',
+                          },
                         }}
                       >
+                        {/* Front: hero + label overlay */}
                         <Box
-                          component="img"
-                          src={item.hero}
-                          alt=""
-                          aria-hidden
                           sx={{
-                            width: { xs: 176, md: 220 },
-                            height: 'auto',
-                            filter: 'drop-shadow(0 8px 24px rgba(15,23,42,0.14))',
-                          }}
-                        />
-                      </Box>
-                    )}
-                    <Typography
-                      sx={{
-                        fontWeight: 800,
-                        fontSize: '1.2rem',
-                        letterSpacing: '-0.015em',
-                        color: '#0F1F32',
-                        mb: 0.6,
-                      }}
-                    >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        color: '#44566C',
-                        fontSize: '1rem',
-                        lineHeight: 1.55,
-                        fontWeight: 500,
-                      }}
-                    >
-                      {item.text}
-                    </Typography>
-                    <Box component="ul" sx={{ m: 0, mt: 1, pl: 1.75 }}>
-                      {item.bullets.map((bullet) => (
-                        <Typography
-                          key={bullet}
-                          component="li"
-                          sx={{
-                            color: '#526579',
-                            fontSize: '0.9rem',
-                            lineHeight: 1.5,
-                            mb: 0.35,
-                            fontWeight: 500,
+                            position: 'absolute',
+                            inset: 0,
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                            borderRadius: 2,
+                            border: '1px solid rgba(15,23,42,0.08)',
+                            bgcolor: '#FFFFFF',
+                            boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            p: 1.5,
                           }}
                         >
-                          {bullet}
-                        </Typography>
-                      ))}
+                          {item.hero && (
+                            <Box
+                              component="img"
+                              src={item.hero}
+                              alt=""
+                              aria-hidden
+                              sx={{
+                                width: { xs: 220, md: 270 },
+                                height: 'auto',
+                                objectFit: 'contain',
+                                mx: 'auto',
+                                display: 'block',
+                              }}
+                            />
+                          )}
+                          <Typography
+                            sx={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              fontWeight: 900,
+                              fontSize: { xs: '1.35rem', md: '1.5rem' },
+                              letterSpacing: '0.12em',
+                              color: '#FFFFFF',
+                              WebkitTextStroke: '2px #0F1F32',
+                              paintOrder: 'stroke fill',
+                              textTransform: 'uppercase',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                        </Box>
+                        {/* Back: content */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            backfaceVisibility: 'hidden',
+                            WebkitBackfaceVisibility: 'hidden',
+                            transform: 'rotateY(180deg)',
+                            borderRadius: 2,
+                            border: '1px solid rgba(15,23,42,0.08)',
+                            bgcolor: '#FFFFFF',
+                            boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                            overflow: 'auto',
+                            p: { xs: 1.5, md: 1.75 },
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontWeight: 800,
+                              fontSize: '1.05rem',
+                              letterSpacing: '-0.015em',
+                              color: '#0F1F32',
+                              mb: 0.5,
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              color: '#44566C',
+                              fontSize: '0.9rem',
+                              lineHeight: 1.5,
+                              fontWeight: 500,
+                            }}
+                          >
+                            {item.text}
+                          </Typography>
+                          <Box component="ul" sx={{ m: 0, mt: 0.75, pl: 1.5 }}>
+                            {item.bullets.map((bullet) => (
+                              <Typography
+                                key={bullet}
+                                component="li"
+                                sx={{
+                                  color: '#526579',
+                                  fontSize: '0.85rem',
+                                  lineHeight: 1.45,
+                                  mb: 0.2,
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {bullet}
+                              </Typography>
+                            ))}
+                          </Box>
+                        </Box>
+                      </Box>
                     </Box>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
+                  </React.Fragment>
+                ))}
+              </Box>
             )}
 
             {sections[activeSection].key === 'method' && (
