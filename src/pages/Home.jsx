@@ -84,10 +84,12 @@ function Home() {
       hero: '/herothink.png',
       text: 'Focused intake that captures your leadership baseline.',
       points: [
-        'Fast input, high signal.',
-        'Clear baseline before reflection.',
-        'Grounded in your real leadership context.',
-        'Creates a clear starting point for growth.',
+        'Complete a guided intake in under ten minutes.',
+        'Answer scenario prompts calibrated to your role.',
+        'Map current habits to measurable leadership signals.',
+        'Generate a clean baseline before any interpretation.',
+        'Tag pressure patterns so trends are visible early.',
+        'Lock your starting profile for side-by-side progress checks.',
       ],
     },
     {
@@ -95,10 +97,12 @@ function Home() {
       hero: '/heroreflect.png',
       text: 'Review your summary and trait priorities to clarify what matters.',
       points: [
-        'Clarity before action.',
-        'Practical leadership context.',
-        'Turns insight into language you can use.',
-        'Focuses attention on the highest-leverage shifts.',
+        'Open a plain-language summary of your current pattern.',
+        'Compare trade-offs across your highest-impact traits.',
+        'Sort traits by urgency, lift potential, and effort.',
+        'Translate findings into language you can use with your team.',
+        'Pin two to three priorities for the next growth cycle.',
+        'Set a reflection checkpoint cadence before moving forward.',
       ],
     },
     {
@@ -106,10 +110,12 @@ function Home() {
       hero: '/herocalibrate.png',
       text: 'Self and team assessments calibrate perspective against lived reality.',
       points: [
-        'Align perspective and data.',
-        'Real feedback, real growth.',
-        'Surfaces blind spots with precision.',
-        'Builds trust through shared understanding.',
+        'Run self and team views on the same trait framework.',
+        'Surface agreement and gap areas with side-by-side scoring.',
+        'Highlight blind spots where perception diverges most.',
+        'Weight repeated feedback patterns above one-off noise.',
+        'Convert calibration findings into focused behavior targets.',
+        'Create alignment language for more productive conversations.',
       ],
     },
     {
@@ -117,10 +123,12 @@ function Home() {
       hero: '/heroembark.png',
       text: 'Launch a focused growth journey with action planning and momentum.',
       points: [
-        'Start focused, stay moving.',
-        'Visible progress, clear next steps.',
-        'Keeps accountability front and center.',
-        'Sustains momentum beyond the first insight.',
+        'Build a campaign with milestones tied to selected traits.',
+        'Assign actions with owners, timing, and clear outcomes.',
+        'Track completion and signal movement in one dashboard view.',
+        'Use structured check-ins to adjust based on live feedback.',
+        'Capture wins and friction points after each sprint.',
+        'Roll insights forward into the next development cycle.',
       ],
     },
   ];
@@ -585,18 +593,28 @@ function Home() {
                             flexDirection: 'column',
                           }}
                         >
-                          <Typography
+                          <Box
                             sx={{
-                              fontWeight: 800,
-                              fontSize: '1.3rem',
-                              letterSpacing: '-0.015em',
-                              color: '#0F1F32',
-                              mb: 0.5,
-                              textAlign: 'center',
+                              py: 1.1,
+                              mb: 0.35,
+                              minHeight: { xs: 62, md: 66 },
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
                             }}
                           >
-                            {item.title}
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontWeight: 800,
+                                fontSize: '1.3rem',
+                                letterSpacing: '-0.015em',
+                                color: '#0F1F32',
+                                textAlign: 'center',
+                              }}
+                            >
+                              {item.title}
+                            </Typography>
+                          </Box>
                           <Typography
                             sx={{
                               color: '#44566C',
@@ -604,34 +622,25 @@ function Home() {
                               lineHeight: 1.5,
                               fontWeight: 500,
                               textAlign: 'center',
+                              fontStyle: 'italic',
                             }}
                           >
                             {item.text}
                           </Typography>
-                          <Stack spacing={0.45} sx={{ mt: 1 }}>
+                          <Stack spacing={0.42} sx={{ mt: 1.05 }}>
                             {item.points.map((point) => (
-                              <Stack key={point} direction="row" spacing={0.7} justifyContent="center" alignItems="center">
-                                <Box
-                                  sx={{
-                                    width: 5.5,
-                                    height: 5.5,
-                                    borderRadius: '50%',
-                                    bgcolor: '#3F647B',
-                                    flexShrink: 0,
-                                  }}
-                                />
-                                <Typography
-                                  sx={{
-                                    color: '#526579',
-                                    fontSize: '0.93rem',
-                                    lineHeight: 1.42,
-                                    fontWeight: 500,
-                                    textAlign: 'center',
-                                  }}
-                                >
-                                  {point}
-                                </Typography>
-                              </Stack>
+                              <Typography
+                                key={point}
+                                sx={{
+                                  color: '#526579',
+                                  fontSize: '0.93rem',
+                                  lineHeight: 1.42,
+                                  fontWeight: 500,
+                                  textAlign: 'center',
+                                }}
+                              >
+                                {point}
+                              </Typography>
                             ))}
                           </Stack>
                         </Box>
