@@ -540,12 +540,12 @@ function Home() {
                             left: '50%',
                             top: '50%',
                             transform: 'translate(-50%, -50%)',
-                            width: '82%',
-                            height: '44%',
+                            width: '108%',
+                            height: '58%',
                             borderRadius: 999,
                             background:
                               'radial-gradient(ellipse at center, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.92) 38%, rgba(255,255,255,0.60) 62%, rgba(255,255,255,0) 88%)',
-                            filter: 'blur(10px)',
+                            filter: 'blur(12px)',
                             zIndex: 1,
                             pointerEvents: 'none',
                           }}
