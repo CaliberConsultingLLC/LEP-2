@@ -146,10 +146,10 @@ function Home() {
       points: [],
     },
     {
-      title: 'No Labeling',
+      title: 'Directional Guidance',
       hero: '/herocalibrate.png',
       frameY: 58,
-      text: 'We reflect current reality rather than putting you in a bucket. The aim is honest clarity now, not a permanent identity label.',
+      text: "We aren't here to label you. We aim to provide you with clarity and context, so that you can act with freedom and confidence.",
       points: [],
     },
     {
