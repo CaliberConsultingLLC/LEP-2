@@ -133,57 +133,91 @@ function Home() {
     },
   ];
 
+  const methodologyCards = [
+    {
+      title: 'Mirror-Accurate',
+      hero: '/herothink.png',
+      text: 'Objective reflection of your current leadership approach.',
+      points: [
+        'Compares your responses across scenario clusters.',
+        'Flags trait patterns that appear consistently under pressure.',
+        'Shows strengths and tradeoffs in clear language.',
+        'Builds a grounded baseline before campaign planning.',
+      ],
+    },
+    {
+      title: 'Signal Over Noise',
+      hero: '/heroreflect.png',
+      text: 'Focuses your attention on the highest-impact shifts.',
+      points: [
+        'Sorts signals by impact and urgency, not volume.',
+        'Removes low-value noise from decision making.',
+        'Keeps your focus on the few moves that change outcomes.',
+        'Connects each priority to practical behavior targets.',
+      ],
+    },
+    {
+      title: 'Built for Action',
+      hero: '/heroembark.png',
+      text: 'You leave with priorities you can apply immediately.',
+      points: [
+        'Turns reflection into specific next-step actions.',
+        'Links each action to measurable progress markers.',
+        'Defines cadence for check-ins and recalibration.',
+        'Prepares a campaign path you can execute right away.',
+      ],
+    },
+  ];
+
+  const deliverablesCards = [
+    {
+      title: 'Reflection Summary',
+      hero: '/heroreflect.png',
+      text: 'A clear portrait of your leadership with practical context.',
+      points: [
+        'Snapshot of strengths, risks, and growth pressure points.',
+        'Readable summary you can use in team conversations.',
+        'Prioritized insights tied to real work conditions.',
+        'Baseline ready for follow-up comparison.',
+      ],
+    },
+    {
+      title: 'Focus Traits',
+      hero: '/herocalibrate.png',
+      text: 'Five personalized growth traits tailored to your needs.',
+      points: [
+        'Trait stack ranked by lift potential and urgency.',
+        'Each trait includes behavior-level guidance.',
+        'Highlights where calibration with team input is needed.',
+        'Creates focus for the next growth sprint.',
+      ],
+    },
+    {
+      title: 'Action Dashboard',
+      hero: '/heroembark.png',
+      text: 'Campaign details, milestones, and resources in one place.',
+      points: [
+        'Campaign plan with milestones and owners.',
+        'Progress tracking against selected trait goals.',
+        'Check-in rhythm with visible movement over time.',
+        'Resources connected directly to current priorities.',
+      ],
+    },
+  ];
+
+  const currentCards =
+    activeSection === 0
+      ? processCards
+      : activeSection === 1
+        ? methodologyCards
+        : deliverablesCards;
+
   const handleHeroSectionSelect = (sectionIdx) => {
-    if (activeSection === sectionIdx) {
-      setTransitionDir('right');
-      setActiveSection(null);
-      setFlippedCards({});
-      return;
-    }
-    if (activeSection === null) {
-      setTransitionDir('left');
-    } else {
-      setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
-    }
+    if (sectionIdx === activeSection) return;
+    setTransitionDir(sectionIdx >= activeSection ? 'left' : 'right');
     setActiveSection(sectionIdx);
-    if (sectionIdx !== 0) setFlippedCards({});
+    setFlippedCards({});
   };
-
-  const methodologyPillars = [
-    {
-      hero: '/herothink.png',
-      headline: 'Reflection grounded in your reality',
-      body: 'Most tools give you generic feedback. Compass reflects your actual leadership context—how you show up, how others might experience you. No fluff, no one-size-fits-all.',
-    },
-    {
-      hero: '/heroreflect.png',
-      headline: 'Signal over noise',
-      body: 'Leadership development often overwhelms. Compass distills what matters most right now, so you can focus instead of drowning in data.',
-    },
-    {
-      hero: '/herothink.png',
-      headline: 'Built for action',
-      body: 'Insight without action is just more reading. Compass connects reflection to concrete next steps you can use immediately.',
-    },
-  ];
-
-  const deliverablesOutcomes = [
-    {
-      hero: '/heroreflect.png',
-      headline: 'A clear portrait of your leadership',
-      body: 'What\'s working, where growth creates the biggest lift. Not a report to file away—a map to move with confidence.',
-    },
-    {
-      hero: '/heroreflect.png',
-      headline: 'Five traits tailored to you',
-      body: 'Your development path, specific and high-impact. No more guessing what to work on next.',
-    },
-    {
-      hero: '/heroreflect.png',
-      headline: 'Campaign, milestones, resources—in one place',
-      body: 'Keeps momentum alive after the insight lands. Accountability and measurable progress.',
-    },
-  ];
 
   return (
     <Box
@@ -428,7 +462,8 @@ function Home() {
           minWidth: '100%',
           background:
             'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
-          py: { xs: 1.5, md: 2 },
+          py: { xs: 1.76, md: 2.64 },
+          minHeight: { xs: 'auto', md: 430 },
         }}
       >
       <Container maxWidth="xl">
@@ -450,252 +485,72 @@ function Home() {
               },
             }}
           >
-            {(activeSection === 0) && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', md: 'row' },
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 0,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {processCards.map((item, idx) => (
-                  <React.Fragment key={item.title}>
-                    {idx > 0 && (
-                      <Box
-                        sx={{
-                          width: { xs: '60%', md: 24 },
-                          height: { xs: 0, md: 'auto' },
-                          minWidth: { xs: 0, md: 24 },
-                          alignSelf: 'center',
-                          borderTop: { xs: '2px dashed rgba(63,100,123,0.45)', md: 'none' },
-                          borderLeft: { xs: 'none', md: '2px dashed rgba(63,100,123,0.45)' },
-                          flexShrink: 0,
-                          mx: { xs: 0, md: 0.5 },
-                          my: { xs: 1, md: 0 },
-                        }}
-                      />
-                    )}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0,
+                flexWrap: 'wrap',
+              }}
+            >
+              {currentCards.map((item, idx) => (
+                <React.Fragment key={`${sections[activeSection].key}-${item.title}`}>
+                  {idx > 0 && (
                     <Box
-                      onClick={() => setFlippedCards((prev) => ({ ...prev, [idx]: !prev[idx] }))}
                       sx={{
-                        perspective: '1000px',
-                        cursor: 'pointer',
-                        flex: { xs: '1 1 100%', md: '1 1 0' },
-                        minWidth: { xs: '100%', md: 280 },
-                        maxWidth: { xs: '100%', md: 385 },
+                        width: { xs: '60%', md: 24 },
+                        height: { xs: 0, md: 'auto' },
+                        minWidth: { xs: 0, md: 24 },
+                        alignSelf: 'center',
+                        borderTop: { xs: '2px dashed rgba(63,100,123,0.45)', md: 'none' },
+                        borderLeft: { xs: 'none', md: '2px dashed rgba(63,100,123,0.45)' },
+                        flexShrink: 0,
+                        mx: { xs: 0, md: 0.5 },
+                        my: { xs: 1, md: 0 },
+                      }}
+                    />
+                  )}
+                  <Box
+                    onClick={() => setFlippedCards((prev) => ({ ...prev, [idx]: !prev[idx] }))}
+                    sx={{
+                      perspective: '1000px',
+                      cursor: 'pointer',
+                      flex: { xs: '1 1 100%', md: '1 1 0' },
+                      minWidth: { xs: '100%', md: 280 },
+                      maxWidth: { xs: '100%', md: 385 },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: '100%',
+                        height: { xs: 315, md: 347 },
+                        transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        transformStyle: 'preserve-3d',
+                        transform: flippedCards[idx] ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                        '@media (prefers-reduced-motion: reduce)': {
+                          transition: 'none',
+                        },
                       }}
                     >
                       <Box
                         sx={{
-                          position: 'relative',
-                          width: '100%',
-                          height: { xs: 315, md: 347 },
-                          transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                          transformStyle: 'preserve-3d',
-                          transform: flippedCards[idx] ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                          '@media (prefers-reduced-motion: reduce)': {
-                            transition: 'none',
-                          },
-                        }}
-                      >
-                        {/* Front: hero + label overlay */}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            inset: 0,
-                            backfaceVisibility: 'hidden',
-                            WebkitBackfaceVisibility: 'hidden',
-                            borderRadius: 2,
-                            border: '1px solid rgba(15,23,42,0.08)',
-                            bgcolor: '#FFFFFF',
-                            boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            p: 1.5,
-                          }}
-                        >
-                          {item.hero && (
-                            <Box
-                              component="img"
-                              src={item.hero}
-                              alt=""
-                              aria-hidden
-                              sx={{
-                                width: { xs: 220, md: 270 },
-                                height: 'auto',
-                                objectFit: 'contain',
-                                mx: 'auto',
-                                display: 'block',
-                              }}
-                            />
-                          )}
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              left: '50%',
-                              top: '75%',
-                              transform: 'translate(-50%, -50%)',
-                              width: '78%',
-                              height: '38%',
-                              borderRadius: 999,
-                              background:
-                                'radial-gradient(ellipse at center, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 36%, rgba(255,255,255,0.45) 60%, rgba(255,255,255,0) 84%)',
-                              filter: 'blur(48px)',
-                              backdropFilter: 'blur(48px) saturate(1.2)',
-                              WebkitBackdropFilter: 'blur(48px) saturate(1.2)',
-                              boxShadow: '0 0 34px rgba(255,255,255,0.85)',
-                              opacity: 1,
-                              zIndex: 1,
-                              pointerEvents: 'none',
-                            }}
-                          />
-                          <Typography
-                            sx={{
-                              position: 'absolute',
-                              left: '50%',
-                              top: '75%',
-                              transform: 'translate(-50%, -50%)',
-                              fontWeight: 900,
-                              fontSize: { xs: '1.55rem', md: '1.8rem' },
-                              letterSpacing: '0.12em',
-                              color: '#FFFFFF',
-                              WebkitTextStroke: '3px #0F1F32',
-                              paintOrder: 'stroke fill',
-                              textTransform: 'uppercase',
-                              whiteSpace: 'nowrap',
-                              zIndex: 2,
-                            }}
-                          >
-                            {item.title}
-                          </Typography>
-                        </Box>
-                        {/* Back: content */}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            inset: 0,
-                            backfaceVisibility: 'hidden',
-                            WebkitBackfaceVisibility: 'hidden',
-                            transform: 'rotateY(180deg)',
-                            borderRadius: 2,
-                            border: '1px solid rgba(15,23,42,0.08)',
-                            bgcolor: '#FFFFFF',
-                            boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
-                            overflow: 'auto',
-                            p: { xs: 1.5, md: 1.75 },
-                            display: 'flex',
-                            flexDirection: 'column',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              py: 1.1,
-                              mb: 0.35,
-                              minHeight: { xs: 62, md: 66 },
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontWeight: 800,
-                                fontSize: '1.3rem',
-                                letterSpacing: '-0.015em',
-                                color: '#0F1F32',
-                                textAlign: 'center',
-                              }}
-                            >
-                              {item.title}
-                            </Typography>
-                          </Box>
-                          <Typography
-                            sx={{
-                              color: '#44566C',
-                              fontSize: '1.02rem',
-                              lineHeight: 1.5,
-                              fontWeight: 500,
-                              textAlign: 'center',
-                              fontStyle: 'italic',
-                            }}
-                          >
-                            {item.text}
-                          </Typography>
-                          <Stack spacing={0.42} sx={{ mt: 1.05 }}>
-                            {item.points.map((point) => (
-                              <Typography
-                                key={point}
-                                sx={{
-                                  color: '#526579',
-                                  fontSize: '0.93rem',
-                                  lineHeight: 1.42,
-                                  fontWeight: 500,
-                                  textAlign: 'center',
-                                }}
-                              >
-                                {point}
-                              </Typography>
-                            ))}
-                          </Stack>
-                        </Box>
-                      </Box>
-                    </Box>
-                  </React.Fragment>
-                ))}
-              </Box>
-            )}
-
-            {(activeSection === null) && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', md: 'row' },
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 0,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {processCards.map((item, idx) => (
-                  <React.Fragment key={`compact-${item.title}`}>
-                    {idx > 0 && (
-                      <Box
-                        sx={{
-                          width: { xs: '60%', md: 24 },
-                          height: { xs: 0, md: 'auto' },
-                          minWidth: { xs: 0, md: 24 },
-                          alignSelf: 'center',
-                          borderTop: { xs: '2px dashed rgba(63,100,123,0.45)', md: 'none' },
-                          borderLeft: { xs: 'none', md: '2px dashed rgba(63,100,123,0.45)' },
-                          flexShrink: 0,
-                          mx: { xs: 0, md: 0.5 },
-                          my: { xs: 1, md: 0 },
-                        }}
-                      />
-                    )}
-                    <Box
-                      sx={{
-                        flex: { xs: '1 1 100%', md: '1 1 0' },
-                        minWidth: { xs: '100%', md: 280 },
-                        maxWidth: { xs: '100%', md: 385 },
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          width: '100%',
-                          height: { xs: 175, md: 192 },
+                          position: 'absolute',
+                          inset: 0,
+                          backfaceVisibility: 'hidden',
+                          WebkitBackfaceVisibility: 'hidden',
                           borderRadius: 2,
                           border: '1px solid rgba(15,23,42,0.08)',
                           bgcolor: '#FFFFFF',
                           boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
                           overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          p: 1.5,
                         }}
                       >
                         {item.hero && (
@@ -705,14 +560,11 @@ function Home() {
                             alt=""
                             aria-hidden
                             sx={{
-                              position: 'absolute',
-                              left: '50%',
-                              top: '50%',
-                              transform: 'translate(-50%, -50%)',
                               width: { xs: 220, md: 270 },
                               height: 'auto',
                               objectFit: 'contain',
-                              opacity: 0.6,
+                              mx: 'auto',
+                              display: 'block',
                             }}
                           />
                         )}
@@ -745,8 +597,8 @@ function Home() {
                             fontWeight: 900,
                             fontSize: { xs: '1.55rem', md: '1.8rem' },
                             letterSpacing: '0.12em',
-                            color: '#0F2B45',
-                            WebkitTextStroke: '2px #FFFFFF',
+                            color: '#FFFFFF',
+                            WebkitTextStroke: '3px #0F1F32',
                             paintOrder: 'stroke fill',
                             textTransform: 'uppercase',
                             whiteSpace: 'nowrap',
@@ -756,138 +608,79 @@ function Home() {
                           {item.title}
                         </Typography>
                       </Box>
-                    </Box>
-                  </React.Fragment>
-                ))}
-              </Box>
-            )}
-
-            {activeSection === 1 && (
-              <Stack spacing={{ xs: 2.5, md: 3 }}>
-                {methodologyPillars.map((pillar, idx) => (
-                  <Box
-                    key={pillar.headline}
-                    sx={{
-                      display: 'flex',
-                      flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse',
-                      alignItems: 'center',
-                      gap: { xs: 2, md: 3 },
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        flex: { xs: '1 1 100%', md: '0 0 200px' },
-                        display: 'flex',
-                        justifyContent: idx % 2 === 0 ? 'flex-start' : 'flex-end',
-                      }}
-                    >
                       <Box
-                        component="img"
-                        src={pillar.hero}
-                        alt=""
-                        aria-hidden
                         sx={{
-                          width: { xs: 140, md: 180 },
-                          height: 'auto',
-                          filter: 'drop-shadow(0 8px 24px rgba(15,23,42,0.12))',
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ flex: '1 1 280px', minWidth: 0 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 800,
-                          fontSize: { xs: '1.25rem', md: '1.4rem' },
-                          letterSpacing: '-0.02em',
-                          color: '#0F1F32',
-                          mb: 0.75,
-                          lineHeight: 1.2,
+                          position: 'absolute',
+                          inset: 0,
+                          backfaceVisibility: 'hidden',
+                          WebkitBackfaceVisibility: 'hidden',
+                          transform: 'rotateY(180deg)',
+                          borderRadius: 2,
+                          border: '1px solid rgba(15,23,42,0.08)',
+                          bgcolor: '#FFFFFF',
+                          boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                          overflow: 'auto',
+                          p: { xs: 1.5, md: 1.75 },
+                          display: 'flex',
+                          flexDirection: 'column',
                         }}
                       >
-                        {pillar.headline}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: '#4B6076',
-                          fontSize: { xs: '0.95rem', md: '1.05rem' },
-                          lineHeight: 1.6,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {pillar.body}
-                      </Typography>
+                        <Box
+                          sx={{
+                            py: 1.1,
+                            mb: 0.35,
+                            minHeight: { xs: 62, md: 66 },
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontWeight: 800,
+                              fontSize: '1.3rem',
+                              letterSpacing: '-0.015em',
+                              color: '#0F1F32',
+                              textAlign: 'center',
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          sx={{
+                            color: '#44566C',
+                            fontSize: '1.02rem',
+                            lineHeight: 1.5,
+                            fontWeight: 500,
+                            textAlign: 'center',
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          {item.text}
+                        </Typography>
+                        <Stack spacing={0.42} sx={{ mt: 1.05 }}>
+                          {item.points.map((point) => (
+                            <Typography
+                              key={point}
+                              sx={{
+                                color: '#526579',
+                                fontSize: '0.93rem',
+                                lineHeight: 1.42,
+                                fontWeight: 500,
+                                textAlign: 'center',
+                              }}
+                            >
+                              {point}
+                            </Typography>
+                          ))}
+                        </Stack>
+                      </Box>
                     </Box>
                   </Box>
-                ))}
-              </Stack>
-            )}
-
-            {activeSection === 2 && (
-              <Stack spacing={{ xs: 2.5, md: 3 }}>
-                {deliverablesOutcomes.map((outcome, idx) => (
-                  <Box
-                    key={outcome.headline}
-                    sx={{
-                      display: 'flex',
-                      flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse',
-                      alignItems: 'center',
-                      gap: { xs: 2, md: 3 },
-                      flexWrap: 'wrap',
-                      p: { xs: 1.5, md: 2 },
-                      borderRadius: 2,
-                      bgcolor: 'rgba(255,255,255,0.7)',
-                      border: '1px solid rgba(15,23,42,0.06)',
-                      boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        flex: { xs: '1 1 100%', md: '0 0 180px' },
-                        display: 'flex',
-                        justifyContent: idx % 2 === 0 ? 'flex-start' : 'flex-end',
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={outcome.hero}
-                        alt=""
-                        aria-hidden
-                        sx={{
-                          width: { xs: 120, md: 160 },
-                          height: 'auto',
-                          filter: 'drop-shadow(0 6px 20px rgba(15,23,42,0.1))',
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ flex: '1 1 280px', minWidth: 0 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 800,
-                          fontSize: { xs: '1.2rem', md: '1.35rem' },
-                          letterSpacing: '-0.02em',
-                          color: '#0F1F32',
-                          mb: 0.6,
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        {outcome.headline}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: '#4B6076',
-                          fontSize: { xs: '0.95rem', md: '1.02rem' },
-                          lineHeight: 1.6,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {outcome.body}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Stack>
-            )}
+                </React.Fragment>
+              ))}
+            </Box>
           </Box>
 
           {showDevTools && (
