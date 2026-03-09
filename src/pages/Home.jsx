@@ -540,35 +540,33 @@ function Home() {
                             left: '50%',
                             top: '50%',
                             transform: 'translate(-50%, -50%)',
-                            width: '108%',
-                            height: '58%',
+                            px: 2.75,
+                            py: 0.85,
                             borderRadius: 999,
-                            background:
-                              'radial-gradient(ellipse at center, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.92) 38%, rgba(255,255,255,0.60) 62%, rgba(255,255,255,0) 88%)',
-                            filter: 'blur(12px)',
+                            bgcolor: 'rgba(236, 232, 224, 0.95)',
+                            border: '1.5px solid rgba(15,31,50,0.55)',
+                            boxShadow: '0 2px 10px rgba(15,31,50,0.10)',
                             zIndex: 1,
                             pointerEvents: 'none',
-                          }}
-                        />
-                        <Typography
-                          sx={{
-                            position: 'absolute',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            fontWeight: 900,
-                            fontSize: { xs: '1.55rem', md: '1.8rem' },
-                            letterSpacing: '0.12em',
-                            color: '#0F2B45',
-                            WebkitTextStroke: '2px #FFFFFF',
-                            paintOrder: 'stroke fill',
-                            textTransform: 'uppercase',
-                            whiteSpace: 'nowrap',
-                            zIndex: 2,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                           }}
                         >
-                          {item.title}
-                        </Typography>
+                          <Typography
+                            sx={{
+                              fontWeight: 900,
+                              fontSize: { xs: '1.45rem', md: '1.65rem' },
+                              letterSpacing: '0.12em',
+                              color: '#0F2B45',
+                              textTransform: 'uppercase',
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1,
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                        </Box>
                       </Box>
                       {/* Back: content */}
                       <Box
