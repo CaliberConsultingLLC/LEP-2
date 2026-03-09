@@ -267,8 +267,8 @@ function Home() {
             zIndex: 0,
           }}
         />
-        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 1.76, md: 2.64 } }}>
-          <Stack spacing={{ xs: 2, md: 2.4 }}>
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 2.2, md: 3.3 } }}>
+          <Stack spacing={{ xs: 2.5, md: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
@@ -298,9 +298,9 @@ function Home() {
               </Button>
             </Stack>
 
-            <Grid container spacing={{ xs: 2.4, md: 3.3 }} alignItems="stretch">
+            <Grid container spacing={{ xs: 3, md: 4.1 }} alignItems="stretch">
               <Grid item xs={12} md={7}>
-                <Stack spacing={1.65}>
+                <Stack spacing={2.06}>
                   <Typography
                     sx={{
                       color: '#FFFFFF',
@@ -406,7 +406,7 @@ function Home() {
               <Grid item xs={12} md={5}>
                 <Box
                   sx={{
-                    minHeight: { xs: 118, md: 170 },
+                    minHeight: { xs: 148, md: 212 },
                     position: 'relative',
                   }}
                 />
@@ -420,7 +420,7 @@ function Home() {
           sx={{
             position: 'absolute',
             right: { xs: '-2%', md: '2%', lg: '3%' },
-            bottom: { xs: -72, md: -160 },
+            bottom: { xs: -84, md: -184 },
             zIndex: 2,
             pointerEvents: 'none',
             alignItems: 'flex-end',
@@ -526,7 +526,7 @@ function Home() {
                       sx={{
                         position: 'relative',
                         width: '100%',
-                        height: { xs: 220, md: 243 },
+                        height: { xs: 176, md: 194 },
                         transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         transformStyle: 'preserve-3d',
                         transform: flippedCards[idx] ? 'rotateY(180deg)' : 'rotateY(0deg)',
@@ -565,6 +565,7 @@ function Home() {
                               objectFit: 'contain',
                               mx: 'auto',
                               display: 'block',
+                              filter: 'blur(2.2px)',
                             }}
                           />
                         )}
@@ -578,7 +579,7 @@ function Home() {
                               minHeight: { xs: 48, md: 54 },
                               borderRadius: 999,
                               bgcolor: 'rgba(236, 232, 224, 0.95)',
-                              border: '1px solid rgba(15,31,50,0.08)',
+                              border: '1px solid rgba(0,0,0,0.55)',
                               boxShadow: '0 4px 12px rgba(15,31,50,0.08)',
                               zIndex: 2,
                               display: 'flex',
