@@ -131,32 +131,32 @@ function Home() {
 
   const methodologyCards = [
     {
-      title: 'Mirror-Accurate',
+      title: 'One-to-One',
       hero: '/herothink.png',
       frameY: 57,
-      text: 'Compass reflects your actual leadership context—how you show up, how others might experience you. No fluff, no one-size-fits-all.',
+      text: 'Every leader gets a unique experience built around their real context. We go narrow and deep where most tools stay shallow and wide.',
       points: [],
     },
     {
-      title: 'Signal Over Noise',
+      title: 'Ownership',
       hero: '/heroreflect.png',
       frameY: 42,
       frameScale: 1.2,
-      text: 'Leadership development often overwhelms. Compass distills what matters most right now, so you can focus instead of drowning in data.',
+      text: 'Compass is AI-powered but human-led. No HR or executive infrastructure required; leaders own their growth directly.',
       points: [],
     },
     {
-      title: 'Built for Action',
+      title: 'No Labeling',
       hero: '/herocalibrate.png',
       frameY: 58,
-      text: 'Insight without action is just more reading. Compass connects reflection to concrete next steps you can use immediately.',
+      text: 'We reflect your current reality instead of placing you in a fixed bucket. The goal is clarity about where you are now, not a permanent label.',
       points: [],
     },
     {
-      title: 'Human-Led AI',
+      title: 'Bias Towards Action',
       hero: '/heroembark.png',
       frameY: 58,
-      text: 'AI accelerates pattern recognition while your judgment stays in control, keeping growth practical and grounded in real leadership context.',
+      text: 'Awareness without action is noise and can become harmful over time. We will not hold your hand, but we will hold your feet to the fire.',
       points: [],
     },
   ];
@@ -577,12 +577,16 @@ function Home() {
                           <Typography
                             sx={{
                               fontWeight: 900,
-                              fontSize: { xs: '1.45rem', md: '1.65rem' },
+                              fontSize:
+                                activeSection === 1
+                                  ? { xs: '1.09rem', md: '1.24rem' }
+                                  : { xs: '1.45rem', md: '1.65rem' },
                               letterSpacing: '0.12em',
                               color: '#0F2B45',
                               textTransform: 'uppercase',
-                              whiteSpace: 'nowrap',
-                              lineHeight: 1,
+                              whiteSpace: activeSection === 1 ? 'normal' : 'nowrap',
+                              textAlign: 'center',
+                              lineHeight: activeSection === 1 ? 1.1 : 1,
                             }}
                           >
                             {item.title}
