@@ -82,7 +82,8 @@ function Home() {
     {
       title: 'Capture',
       hero: '/herothink.png',
-      frameY: 75,
+      frameY: 94,
+      frameScale: 1.25,
       text: 'Complete a focused intake that establishes your current leadership state with speed and precision.',
       points: [
         'Role-calibrated scenarios surface how you lead under pressure and in routine moments.',
@@ -104,6 +105,7 @@ function Home() {
       title: 'Calibrate',
       hero: '/herocalibrate.png',
       frameY: 75,
+      frameX: 50,
       text: 'Calibrate self-perception against team input to expose alignment, blind spots, and leverage points.',
       points: [
         'Side-by-side views clarify perception versus reality in concrete terms.',
@@ -113,7 +115,8 @@ function Home() {
     {
       title: 'Embark',
       hero: '/heroembark.png',
-      frameY: 75,
+      frameY: 94,
+      frameScale: 1.25,
       text: 'Launch a year-long growth campaign that converts insight into accountable, measurable progress.',
       points: [
         'Set milestones and shared focus around the traits that matter most.',
@@ -540,7 +543,7 @@ function Home() {
                             aria-hidden
                             sx={{
                               position: 'absolute',
-                              left: '66%',
+                              left: `${item.frameX || 66}%`,
                               top: `${item.frameY || 50}%`,
                               transform: 'translate(-50%, -50%)',
                               width: {
