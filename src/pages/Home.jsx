@@ -463,7 +463,7 @@ function Home() {
           background:
             'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
           py: { xs: 1.76, md: 2.64 },
-          minHeight: { xs: 0, md: 430 },
+          minHeight: { xs: 0, md: 320 },
         }}
       >
       <Container maxWidth="xl">
@@ -526,7 +526,7 @@ function Home() {
                       sx={{
                         position: 'relative',
                         width: '100%',
-                        height: { xs: 315, md: 347 },
+                        height: { xs: 220, md: 243 },
                         transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         transformStyle: 'preserve-3d',
                         transform: flippedCards[idx] ? 'rotateY(180deg)' : 'rotateY(0deg)',
