@@ -203,6 +203,8 @@ function Home() {
       sx={{
         minHeight: '100vh',
         width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         background:
           'linear-gradient(180deg, #F3F6FB 0%, #EDF3FC 62%, #EAF1FB 100%)',
       }}
@@ -439,9 +441,12 @@ function Home() {
         sx={{
           width: '100%',
           minWidth: '100%',
+          flex: '1 0 auto',
           background:
             'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
-          py: { xs: 1.5, md: 2 },
+          py: { xs: 2.2, md: 2.6 },
+          borderTop: '1px solid rgba(13,27,48,0.10)',
+          borderBottom: '1px solid rgba(13,27,48,0.10)',
         }}
       >
       <Container maxWidth="xl">
@@ -647,6 +652,56 @@ function Home() {
           )}
         </Stack>
       </Container>
+      </Box>
+      <Box
+        component="footer"
+        sx={{
+          position: 'relative',
+          mt: 'auto',
+          overflow: 'hidden',
+          backgroundImage:
+            'linear-gradient(120deg, rgba(9,16,31,0.92), rgba(16,34,60,0.88)), url(/LEP2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderTop: '1px solid rgba(255,255,255,0.12)',
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(700px 280px at 84% 18%, rgba(94,145,176,0.22), transparent 65%), radial-gradient(520px 240px at 8% 70%, rgba(91,132,167,0.18), transparent 72%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 1.35, md: 1.6 } }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={{ xs: 0.75, md: 2 }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+          >
+            <Typography
+              sx={{
+                color: 'rgba(233,242,255,0.92)',
+                fontSize: { xs: '0.78rem', md: '0.84rem' },
+                letterSpacing: '0.02em',
+              }}
+            >
+              {`Copyright ${new Date().getFullYear()} North Star Partners. All rights reserved.`}
+            </Typography>
+            <Typography
+              sx={{
+                color: 'rgba(233,242,255,0.88)',
+                fontSize: { xs: '0.74rem', md: '0.82rem' },
+                letterSpacing: '0.015em',
+              }}
+            >
+              Privacy Policy  |  Terms of Use  |  Contact
+            </Typography>
+          </Stack>
+        </Container>
       </Box>
     </Box>
   );
