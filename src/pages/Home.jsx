@@ -494,9 +494,10 @@ function Home() {
                           backfaceVisibility: 'hidden',
                           WebkitBackfaceVisibility: 'hidden',
                           borderRadius: 2,
-                          border: '1px solid rgba(26, 92, 154, 0.45)',
+                          border: '1px solid rgba(15, 61, 112, 0.82)',
                           bgcolor: '#FFFFFF',
-                          boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                          boxShadow:
+                            'inset 0 0 0 2px rgba(255,255,255,0.72), 0 6px 20px rgba(15,23,42,0.06)',
                           overflow: 'hidden',
                         }}
                       >
@@ -562,9 +563,10 @@ function Home() {
                           WebkitBackfaceVisibility: 'hidden',
                           transform: 'rotateY(180deg)',
                           borderRadius: 2,
-                          border: '1px solid rgba(26, 92, 154, 0.45)',
+                          border: '1px solid rgba(15, 61, 112, 0.82)',
                           bgcolor: '#FFFFFF',
-                          boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
+                          boxShadow:
+                            'inset 0 0 0 2px rgba(255,255,255,0.72), 0 6px 20px rgba(15,23,42,0.06)',
                           overflow: 'auto',
                           p: { xs: 1.5, md: 1.75 },
                           display: 'flex',
