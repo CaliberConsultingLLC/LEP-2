@@ -538,18 +538,14 @@ function Home() {
                           sx={{
                             position: 'absolute',
                             left: '50%',
-                            top: '75%',
+                            top: '50%',
                             transform: 'translate(-50%, -50%)',
-                            width: '78%',
-                            height: '38%',
+                            width: '82%',
+                            height: '44%',
                             borderRadius: 999,
                             background:
-                              'radial-gradient(ellipse at center, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 36%, rgba(255,255,255,0.45) 60%, rgba(255,255,255,0) 84%)',
-                            filter: 'blur(48px)',
-                            backdropFilter: 'blur(48px) saturate(1.2)',
-                            WebkitBackdropFilter: 'blur(48px) saturate(1.2)',
-                            boxShadow: '0 0 34px rgba(255,255,255,0.85)',
-                            opacity: 1,
+                              'radial-gradient(ellipse at center, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.92) 38%, rgba(255,255,255,0.60) 62%, rgba(255,255,255,0) 88%)',
+                            filter: 'blur(10px)',
                             zIndex: 1,
                             pointerEvents: 'none',
                           }}
@@ -558,7 +554,7 @@ function Home() {
                           sx={{
                             position: 'absolute',
                             left: '50%',
-                            top: '75%',
+                            top: '50%',
                             transform: 'translate(-50%, -50%)',
                             fontWeight: 900,
                             fontSize: { xs: '1.55rem', md: '1.8rem' },
