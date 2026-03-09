@@ -406,7 +406,7 @@ function Home() {
               <Grid item xs={12} md={5}>
                 <Box
                   sx={{
-                    minHeight: { xs: 110, md: 154 },
+                    minHeight: { xs: 118, md: 170 },
                     position: 'relative',
                   }}
                 />
@@ -463,7 +463,7 @@ function Home() {
           background:
             'radial-gradient(720px 260px at 12% 18%, rgba(111,154,131,0.12), transparent 70%), radial-gradient(720px 260px at 90% 82%, rgba(99,147,170,0.12), transparent 70%)',
           py: { xs: 1.76, md: 2.64 },
-          minHeight: { xs: 'auto', md: 430 },
+          minHeight: { xs: 0, md: 430 },
         }}
       >
       <Container maxWidth="xl">
@@ -568,45 +568,40 @@ function Home() {
                             }}
                           />
                         )}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            left: '50%',
-                            top: '75%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '78%',
-                            height: '38%',
-                            borderRadius: 999,
-                            background:
-                              'radial-gradient(ellipse at center, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 36%, rgba(255,255,255,0.45) 60%, rgba(255,255,255,0) 84%)',
-                            filter: 'blur(48px)',
-                            backdropFilter: 'blur(48px) saturate(1.2)',
-                            WebkitBackdropFilter: 'blur(48px) saturate(1.2)',
-                            boxShadow: '0 0 34px rgba(255,255,255,0.85)',
-                            opacity: 1,
-                            zIndex: 1,
-                            pointerEvents: 'none',
-                          }}
-                        />
-                        <Typography
-                          sx={{
-                            position: 'absolute',
-                            left: '50%',
-                            top: '75%',
-                            transform: 'translate(-50%, -50%)',
-                            fontWeight: 900,
-                            fontSize: { xs: '1.55rem', md: '1.8rem' },
-                            letterSpacing: '0.12em',
-                            color: '#FFFFFF',
-                            WebkitTextStroke: '3px #0F1F32',
-                            paintOrder: 'stroke fill',
-                            textTransform: 'uppercase',
-                            whiteSpace: 'nowrap',
-                            zIndex: 2,
-                          }}
-                        >
-                          {item.title}
-                        </Typography>
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '75%',
+                              transform: 'translate(-50%, -50%)',
+                              width: { xs: '66%', md: '72%' },
+                              minHeight: { xs: 48, md: 54 },
+                              borderRadius: 999,
+                              bgcolor: 'rgba(236, 232, 224, 0.95)',
+                              border: '1px solid rgba(15,31,50,0.08)',
+                              boxShadow: '0 4px 12px rgba(15,31,50,0.08)',
+                              zIndex: 2,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              px: 1.25,
+                              py: 0.6,
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 900,
+                                fontSize: { xs: '1.45rem', md: '1.65rem' },
+                                letterSpacing: '0.12em',
+                                color: '#0F2B45',
+                                textTransform: 'uppercase',
+                                whiteSpace: 'nowrap',
+                                lineHeight: 1,
+                              }}
+                            >
+                              {item.title}
+                            </Typography>
+                          </Box>
                       </Box>
                       <Box
                         sx={{
