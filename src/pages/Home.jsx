@@ -569,8 +569,10 @@ function Home() {
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          p: 1.5,
+                          justifyContent: 'flex-end',
+                          pt: 1,
+                          pb: 0,
+                          px: 1,
                         }}
                       >
                         {item.hero && (
@@ -580,52 +582,46 @@ function Home() {
                             alt=""
                             aria-hidden
                             sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              objectPosition: `${item.focusX || 50}% ${item.focusY || 50}%`,
-                              transform: 'scale(1.5)',
-                              transformOrigin: 'center center',
-                              filter: 'blur(4px)',
+                              width: '88%',
+                              height: 'auto',
+                              objectFit: 'contain',
+                              display: 'block',
+                              flexShrink: 1,
+                              maxHeight: '75%',
                             }}
                           />
                         )}
-                          <Box
+                        <Box
+                          sx={{
+                            width: '80%',
+                            borderRadius: 999,
+                            bgcolor: 'rgba(236, 232, 224, 0.95)',
+                            border: '1px solid rgba(0,0,0,0.55)',
+                            boxShadow: '0 4px 12px rgba(15,31,50,0.08)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            px: 1.5,
+                            py: 0.65,
+                            mb: 1.5,
+                            mt: 0.5,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Typography
                             sx={{
-                              position: 'absolute',
-                              left: '50%',
-                              top: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              width: { xs: '66%', md: '72%' },
-                              minHeight: { xs: 48, md: 54 },
-                              borderRadius: 999,
-                              bgcolor: 'rgba(236, 232, 224, 0.95)',
-                              border: '1px solid rgba(0,0,0,0.55)',
-                              boxShadow: '0 4px 12px rgba(15,31,50,0.08)',
-                              zIndex: 2,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              px: 1.25,
-                              py: 0.6,
+                              fontWeight: 900,
+                              fontSize: { xs: '1.25rem', md: '1.4rem' },
+                              letterSpacing: '0.12em',
+                              color: '#0F2B45',
+                              textTransform: 'uppercase',
+                              whiteSpace: 'nowrap',
+                              lineHeight: 1,
                             }}
                           >
-                            <Typography
-                              sx={{
-                                fontWeight: 900,
-                                fontSize: { xs: '1.45rem', md: '1.65rem' },
-                                letterSpacing: '0.12em',
-                                color: '#0F2B45',
-                                textTransform: 'uppercase',
-                                whiteSpace: 'nowrap',
-                                lineHeight: 1,
-                              }}
-                            >
-                              {item.title}
-                            </Typography>
-                          </Box>
+                            {item.title}
+                          </Typography>
+                        </Box>
                       </Box>
                       <Box
                         sx={{
@@ -639,61 +635,23 @@ function Home() {
                           bgcolor: '#FFFFFF',
                           boxShadow: '0 6px 20px rgba(15,23,42,0.06)',
                           overflow: 'auto',
-                          p: { xs: 1.5, md: 1.75 },
+                          p: { xs: 1.75, md: 2 },
                           display: 'flex',
                           flexDirection: 'column',
+                          justifyContent: 'center',
                         }}
                       >
-                        <Box
-                          sx={{
-                            py: 1.1,
-                            mb: 0.35,
-                            minHeight: { xs: 62, md: 66 },
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              fontWeight: 800,
-                              fontSize: '1.3rem',
-                              letterSpacing: '-0.015em',
-                              color: '#0F1F32',
-                              textAlign: 'center',
-                            }}
-                          >
-                            {item.title}
-                          </Typography>
-                        </Box>
                         <Typography
                           sx={{
                             color: '#44566C',
-                            fontSize: '1.02rem',
-                            lineHeight: 1.5,
+                            fontSize: { xs: '0.88rem', md: '0.93rem' },
+                            lineHeight: 1.6,
                             fontWeight: 500,
                             textAlign: 'center',
-                            fontStyle: 'italic',
                           }}
                         >
-                          {item.text}
+                          {[item.text, ...item.points].join(' ')}
                         </Typography>
-                        <Stack spacing={0.42} sx={{ mt: 1.05 }}>
-                          {item.points.map((point) => (
-                            <Typography
-                              key={point}
-                              sx={{
-                                color: '#526579',
-                                fontSize: '0.93rem',
-                                lineHeight: 1.42,
-                                fontWeight: 500,
-                                textAlign: 'center',
-                              }}
-                            >
-                              {point}
-                            </Typography>
-                          ))}
-                        </Stack>
                       </Box>
                     </Box>
                   </Box>
