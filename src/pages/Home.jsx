@@ -82,6 +82,8 @@ function Home() {
     {
       title: 'Capture',
       hero: '/herothink.png',
+      focusX: 43,
+      focusY: 28,
       text: 'Focused intake that captures your leadership baseline.',
       points: [
         'Complete a guided intake in under ten minutes.',
@@ -95,6 +97,8 @@ function Home() {
     {
       title: 'Reflect',
       hero: '/heroreflect.png',
+      focusX: 58,
+      focusY: 63,
       text: 'Review your summary and trait priorities to clarify what matters.',
       points: [
         'Open a plain-language summary of your current pattern.',
@@ -108,6 +112,8 @@ function Home() {
     {
       title: 'Calibrate',
       hero: '/herocalibrate.png',
+      focusX: 45,
+      focusY: 34,
       text: 'Self and team assessments calibrate perspective against lived reality.',
       points: [
         'Run self and team views on the same trait framework.',
@@ -121,6 +127,8 @@ function Home() {
     {
       title: 'Embark',
       hero: '/heroembark.png',
+      focusX: 57,
+      focusY: 32,
       text: 'Launch a focused growth journey with action planning and momentum.',
       points: [
         'Build a campaign with milestones tied to selected traits.',
@@ -137,6 +145,8 @@ function Home() {
     {
       title: 'Mirror-Accurate',
       hero: '/herothink.png',
+      focusX: 43,
+      focusY: 28,
       text: 'Objective reflection of your current leadership approach.',
       points: [
         'Compares your responses across scenario clusters.',
@@ -148,6 +158,8 @@ function Home() {
     {
       title: 'Signal Over Noise',
       hero: '/heroreflect.png',
+      focusX: 58,
+      focusY: 63,
       text: 'Focuses your attention on the highest-impact shifts.',
       points: [
         'Sorts signals by impact and urgency, not volume.',
@@ -159,6 +171,8 @@ function Home() {
     {
       title: 'Built for Action',
       hero: '/heroembark.png',
+      focusX: 57,
+      focusY: 32,
       text: 'You leave with priorities you can apply immediately.',
       points: [
         'Turns reflection into specific next-step actions.',
@@ -173,6 +187,8 @@ function Home() {
     {
       title: 'Reflection Summary',
       hero: '/heroreflect.png',
+      focusX: 58,
+      focusY: 63,
       text: 'A clear portrait of your leadership with practical context.',
       points: [
         'Snapshot of strengths, risks, and growth pressure points.',
@@ -184,6 +200,8 @@ function Home() {
     {
       title: 'Focus Traits',
       hero: '/herocalibrate.png',
+      focusX: 45,
+      focusY: 34,
       text: 'Five personalized growth traits tailored to your needs.',
       points: [
         'Trait stack ranked by lift potential and urgency.',
@@ -195,6 +213,8 @@ function Home() {
     {
       title: 'Action Dashboard',
       hero: '/heroembark.png',
+      focusX: 57,
+      focusY: 32,
       text: 'Campaign details, milestones, and resources in one place.',
       points: [
         'Campaign plan with milestones and owners.',
@@ -267,8 +287,8 @@ function Home() {
             zIndex: 0,
           }}
         />
-        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 2.2, md: 3.3 } }}>
-          <Stack spacing={{ xs: 2.5, md: 3 }}>
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 2.75, md: 4.1 } }}>
+          <Stack spacing={{ xs: 3.1, md: 3.75 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ gap: 1.2 }}>
               <Typography
                 sx={{
@@ -298,9 +318,9 @@ function Home() {
               </Button>
             </Stack>
 
-            <Grid container spacing={{ xs: 3, md: 4.1 }} alignItems="stretch">
+            <Grid container spacing={{ xs: 3.75, md: 5.1 }} alignItems="stretch">
               <Grid item xs={12} md={7}>
-                <Stack spacing={2.06}>
+                <Stack spacing={2.58}>
                   <Typography
                     sx={{
                       color: '#FFFFFF',
@@ -406,7 +426,7 @@ function Home() {
               <Grid item xs={12} md={5}>
                 <Box
                   sx={{
-                    minHeight: { xs: 148, md: 212 },
+                    minHeight: { xs: 185, md: 265 },
                     position: 'relative',
                   }}
                 />
@@ -420,7 +440,7 @@ function Home() {
           sx={{
             position: 'absolute',
             right: { xs: '-2%', md: '2%', lg: '3%' },
-            bottom: { xs: -84, md: -184 },
+            bottom: { xs: -96, md: -220 },
             zIndex: 2,
             pointerEvents: 'none',
             alignItems: 'flex-end',
@@ -560,12 +580,15 @@ function Home() {
                             alt=""
                             aria-hidden
                             sx={{
-                              width: { xs: 220, md: 270 },
-                              height: 'auto',
-                              objectFit: 'contain',
-                              mx: 'auto',
-                              display: 'block',
-                              filter: 'blur(2.2px)',
+                              position: 'absolute',
+                              inset: 0,
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: `${item.focusX || 50}% ${item.focusY || 50}%`,
+                              transform: 'scale(1.5)',
+                              transformOrigin: 'center center',
+                              filter: 'blur(4px)',
                             }}
                           />
                         )}
@@ -573,7 +596,7 @@ function Home() {
                             sx={{
                               position: 'absolute',
                               left: '50%',
-                              top: '75%',
+                              top: '50%',
                               transform: 'translate(-50%, -50%)',
                               width: { xs: '66%', md: '72%' },
                               minHeight: { xs: 48, md: 54 },
