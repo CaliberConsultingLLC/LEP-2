@@ -132,7 +132,7 @@ function Home() {
   const methodologyCards = [
     {
       title: 'One-to-One',
-      hero: '/herothink.png',
+      hero: '/onetoone.png',
       frameY: 57,
       text: 'Every leader gets a personalized experience shaped by real context. We go narrow and deep where most tools stay broad and shallow.',
       points: [],
@@ -147,7 +147,7 @@ function Home() {
     },
     {
       title: 'Directional Guidance',
-      hero: '/herocalibrate.png',
+      hero: '/compassicon.png',
       frameY: 58,
       text: "We aren't here to label you. We aim to provide you with clarity and context, so that you can act with freedom and confidence.",
       points: [],
