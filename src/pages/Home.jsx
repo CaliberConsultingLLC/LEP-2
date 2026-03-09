@@ -560,6 +560,7 @@ function Home() {
                             left: '50%',
                             top: '50%',
                             transform: 'translate(-50%, -50%)',
+                            width: '84%',
                             px: 2.75,
                             py: 0.85,
                             borderRadius: 999,
@@ -584,9 +585,10 @@ function Home() {
                               letterSpacing: '0.12em',
                               color: '#0F2B45',
                               textTransform: 'uppercase',
-                              whiteSpace: activeSection === 1 ? 'normal' : 'nowrap',
+                              whiteSpace: 'normal',
                               textAlign: 'center',
                               lineHeight: activeSection === 1 ? 1.1 : 1,
+                              overflowWrap: 'anywhere',
                             }}
                           >
                             {item.title}
@@ -606,7 +608,7 @@ function Home() {
                           bgcolor: '#FFFFFF',
                           boxShadow:
                             'inset 0 0 0 2px rgba(255,255,255,0.72), 0 6px 20px rgba(15,23,42,0.06)',
-                          overflow: 'auto',
+                          overflow: 'hidden',
                           p: { xs: 1.5, md: 1.75 },
                           display: 'flex',
                           flexDirection: 'column',
@@ -622,9 +624,7 @@ function Home() {
                             textAlign: 'center',
                           }}
                         >
-                          {item.points && item.points.length > 0
-                            ? [item.text, ...item.points].join(' ')
-                            : item.text}
+                          {item.text}
                         </Typography>
                       </Box>
                     </Box>
