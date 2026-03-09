@@ -82,6 +82,7 @@ function Home() {
     {
       title: 'Capture',
       hero: '/herothink.png',
+      frameY: 57,
       text: 'Complete a guided intake to establish your leadership baseline quickly and clearly.',
       points: [
         'Scenario prompts are tailored to your role and pressure moments.',
@@ -91,6 +92,8 @@ function Home() {
     {
       title: 'Reflect',
       hero: '/heroreflect.png',
+      frameY: 42,
+      frameScale: 1.2,
       text: 'Review a plain-language summary to identify the few traits that matter most right now.',
       points: [
         'Compare trade-offs by urgency, lift potential, and effort.',
@@ -100,6 +103,7 @@ function Home() {
     {
       title: 'Calibrate',
       hero: '/herocalibrate.png',
+      frameY: 58,
       text: 'Align your self-view with team input to reveal where perception and reality diverge.',
       points: [
         'Spot agreement zones and blind spots with side-by-side scoring.',
@@ -109,6 +113,7 @@ function Home() {
     {
       title: 'Embark',
       hero: '/heroembark.png',
+      frameY: 58,
       text: 'Launch a focused campaign that converts insight into accountable, measurable action.',
       points: [
         'Set milestones, owners, and timelines linked to your chosen traits.',
@@ -128,24 +133,29 @@ function Home() {
     {
       title: 'Mirror-Accurate',
       hero: '/herothink.png',
+      frameY: 57,
       text: 'Compass reflects your actual leadership context—how you show up, how others might experience you. No fluff, no one-size-fits-all.',
       points: [],
     },
     {
       title: 'Signal Over Noise',
       hero: '/heroreflect.png',
+      frameY: 42,
+      frameScale: 1.2,
       text: 'Leadership development often overwhelms. Compass distills what matters most right now, so you can focus instead of drowning in data.',
       points: [],
     },
     {
       title: 'Built for Action',
       hero: '/herocalibrate.png',
+      frameY: 58,
       text: 'Insight without action is just more reading. Compass connects reflection to concrete next steps you can use immediately.',
       points: [],
     },
     {
       title: 'Human-Led AI',
       hero: '/heroembark.png',
+      frameY: 58,
       text: 'AI accelerates pattern recognition while your judgment stays in control, keeping growth practical and grounded in real leadership context.',
       points: [],
     },
@@ -155,24 +165,29 @@ function Home() {
     {
       title: 'Your Portrait',
       hero: '/heroreflect.png',
+      frameY: 42,
+      frameScale: 1.2,
       text: "What's working, where growth creates the biggest lift. Not a report to file away—a map to move with confidence.",
       points: [],
     },
     {
       title: 'Five Traits',
       hero: '/herocalibrate.png',
+      frameY: 58,
       text: 'Your development path, specific and high-impact. No more guessing what to work on next.',
       points: [],
     },
     {
       title: 'Your Campaign',
       hero: '/heroembark.png',
+      frameY: 58,
       text: 'Keeps momentum alive after the insight lands. Accountability and measurable progress, in one place.',
       points: [],
     },
     {
       title: 'Team Alignment',
       hero: '/herothink.png',
+      frameY: 57,
       text: 'A shared language for priorities and expectations so leaders and teams can align faster and execute with less friction.',
       points: [],
     },
@@ -522,9 +537,12 @@ function Home() {
                             sx={{
                               position: 'absolute',
                               left: '66%',
-                              top: '50%',
+                              top: `${item.frameY || 50}%`,
                               transform: 'translate(-50%, -50%)',
-                              width: { xs: 264, md: 324 },
+                              width: {
+                                xs: 264 * (item.frameScale || 1),
+                                md: 324 * (item.frameScale || 1),
+                              },
                               height: 'auto',
                               objectFit: 'contain',
                               opacity: 0.6,
