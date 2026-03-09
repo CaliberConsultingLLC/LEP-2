@@ -143,6 +143,12 @@ function Home() {
       text: 'Insight without action is just more reading. Compass connects reflection to concrete next steps you can use immediately.',
       points: [],
     },
+    {
+      title: 'Human-Led AI',
+      hero: '/heroembark.png',
+      text: 'AI accelerates pattern recognition while your judgment stays in control, keeping growth practical and grounded in real leadership context.',
+      points: [],
+    },
   ];
 
   const deliverablesCards = [
@@ -162,6 +168,12 @@ function Home() {
       title: 'Your Campaign',
       hero: '/heroembark.png',
       text: 'Keeps momentum alive after the insight lands. Accountability and measurable progress, in one place.',
+      points: [],
+    },
+    {
+      title: 'Team Alignment',
+      hero: '/herothink.png',
+      text: 'A shared language for priorities and expectations so leaders and teams can align faster and execute with less friction.',
       points: [],
     },
   ];
@@ -509,10 +521,10 @@ function Home() {
                             aria-hidden
                             sx={{
                               position: 'absolute',
-                              left: '50%',
+                              left: '66%',
                               top: '50%',
                               transform: 'translate(-50%, -50%)',
-                              width: { xs: 220, md: 270 },
+                              width: { xs: 264, md: 324 },
                               height: 'auto',
                               objectFit: 'contain',
                               opacity: 0.6,
