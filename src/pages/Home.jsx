@@ -344,6 +344,17 @@ function Home() {
                       py: 1.8,
                     }}
                   />
+                  <Typography
+                    sx={{
+                      color: 'rgba(233,242,255,0.92)',
+                      fontSize: { xs: '0.86rem', md: '0.92rem' },
+                      fontWeight: 600,
+                      letterSpacing: '0.01em',
+                      pt: 0.65,
+                    }}
+                  >
+                    Learn more about The Compass below:
+                  </Typography>
 
                   <Stack direction="row" spacing={1.25} flexWrap="wrap" sx={{ pt: 0.6, pb: 0.6 }}>
                     {sections.map((section, idx) => (
