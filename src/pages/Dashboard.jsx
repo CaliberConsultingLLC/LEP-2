@@ -153,20 +153,20 @@ function Dashboard() {
           position: 'fixed',
           inset: 0,
           zIndex: -2,
-          backgroundImage: 'url(/LEP2.jpg)',
+          backgroundImage:
+            'linear-gradient(120deg, rgba(9,16,31,0.92), rgba(16,34,60,0.88)), url(/LEP2.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
           transform: 'translateZ(0)',
         },
-        // dark overlay
         '&:after': {
           content: '""',
           position: 'fixed',
           inset: 0,
           zIndex: -1,
           background:
-            'radial-gradient(1200px 800px at 16% 16%, rgba(18,42,70,0.26), rgba(5,10,18,0.62))',
+            'radial-gradient(800px 360px at 84% 18%, rgba(94,145,176,0.30), transparent 65%), radial-gradient(560px 300px at 6% 46%, rgba(91,132,167,0.28), transparent 72%)',
         },
       }}
     >

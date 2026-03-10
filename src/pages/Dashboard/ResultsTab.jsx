@@ -881,6 +881,51 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return teamValue - selfValue;
   }, [activeMetrics, benchmarkGapData, selectedTraitStatementIndexes]);
 
+  const buildGapNarrative = (deltaValue, efficacyGapValue, effortGapValue) => {
+    const delta = Math.abs(Number(deltaValue || 0));
+    const efficacyGap = Number(efficacyGapValue || 0);
+    const effortGap = Number(effortGapValue || 0);
+
+    const deltaMeaning = delta < 5
+      ? 'The efficacy-effort gap is tight, which usually means execution pressure is controlled and conversion into impact is relatively steady.'
+      : delta < 12
+        ? 'The efficacy-effort gap is moderate, signaling visible friction between invested energy and experienced results.'
+        : 'The efficacy-effort gap is large, signaling a substantial conversion problem where energy is not consistently becoming impact.';
+
+    const efficacyMeaning = efficacyGap > 1
+      ? 'Your team rates efficacy higher than your self-view, which suggests under-recognized strengths or understated impact signals.'
+      : efficacyGap < -1
+        ? 'Your team rates efficacy lower than your self-view, which points to an execution visibility or consistency gap.'
+        : 'Efficacy perception is closely aligned, indicating shared understanding of performance.';
+
+    const effortMeaning = effortGap > 1
+      ? 'Team-rated effort is higher than your self-view, so others may be experiencing more intensity or load than expected.'
+      : effortGap < -1
+        ? 'Team-rated effort is lower than your self-view, suggesting hidden effort that is not fully visible to others.'
+        : 'Effort perception is closely aligned, indicating shared expectations about workload and pace.';
+
+    return `${deltaMeaning} ${efficacyMeaning} ${effortMeaning}`;
+  };
+
+  const compassGapNarrative = useMemo(
+    () => buildGapNarrative(activeMetrics?.delta, efficacyPerceptionGap, effortPerceptionGap),
+    [activeMetrics?.delta, efficacyPerceptionGap, effortPerceptionGap]
+  );
+
+  const detailGapNarrative = useMemo(
+    () => buildGapNarrative(
+      selectedDetailStatement?.delta ?? detailTraitMetrics?.delta,
+      detailEfficacyPerceptionGap,
+      detailEffortPerceptionGap
+    ),
+    [
+      selectedDetailStatement?.delta,
+      detailTraitMetrics?.delta,
+      detailEfficacyPerceptionGap,
+      detailEffortPerceptionGap,
+    ]
+  );
+
   useEffect(() => {
     if (view !== 'compass') return;
     if (!activeMetrics || !selectedTraitKey) return;
@@ -972,9 +1017,6 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
                       }}
                     >
-                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.6 }}>
-                      Signal View
-                    </Typography>
                     <Box
                       sx={{
                         position: 'relative',
@@ -985,31 +1027,13 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         justifyContent: 'center',
                         alignItems: 'center',
                         borderRadius: 2.2,
-                        border: '1px solid rgba(17,36,58,0.22)',
+                        border: '1px solid rgba(21,62,97,0.28)',
                         background:
-                          'radial-gradient(620px 380px at 50% 44%, rgba(26,54,83,0.95), rgba(12,24,40,0.98))',
-                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                          'radial-gradient(620px 380px at 50% 44%, rgba(255,255,255,0.96), rgba(236,242,251,0.9))',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.32)',
                         overflow: 'hidden',
                       }}
                     >
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        sx={{
-                          position: 'absolute',
-                          top: 10,
-                          left: 12,
-                          right: 12,
-                          zIndex: 15,
-                        }}
-                      >
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(124,191,226,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                          Efficacy
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,182,127,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                          Effort
-                        </Typography>
-                      </Stack>
                       <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
                         <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
                           {(() => {
@@ -1074,12 +1098,12 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const endY = centerY + radius * Math.sin(endAngleSVG);
                                   return (
                                     <g key={`efficacy-trait-${traitIdx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="30" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="33" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="30" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.4" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#7CC0E5' : 'rgba(119,134,153,0.22)'}
+                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(120,139,158,0.5)'}
                                         strokeWidth={trait === selectedTraitKey ? '33' : '24'}
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -1119,12 +1143,12 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const endY = centerY + radius * Math.sin(endAngleSVG);
                                   return (
                                     <g key={`effort-trait-${traitIdx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="30" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="33" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="30" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.4" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#F0A169' : 'rgba(119,134,153,0.22)'}
+                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(120,139,158,0.5)'}
                                         strokeWidth={trait === selectedTraitKey ? '33' : '24'}
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -1287,129 +1311,94 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
                       }}
                     >
-                    <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.55 }}>
-                        Metric Context
-                      </Typography>
-                      <Typography
+                    <Box sx={{ width: '100%', maxWidth: { xs: 760, lg: 760 }, mx: 'auto' }}>
+                      {!!insightError.compass && (
+                        <Alert severity="warning" sx={{ mb: 1.1 }}>
+                          {insightError.compass}
+                        </Alert>
+                      )}
+                      <Box
                         sx={{
-                          fontSize: { xs: '1.62rem', md: '1.96rem' },
-                          fontWeight: 800,
-                          color: '#10253A',
-                          textAlign: 'center',
-                          mb: 1.2,
+                          display: 'grid',
+                          gridTemplateColumns: { xs: '1fr', md: '0.92fr 1.08fr' },
+                          gridTemplateRows: { xs: 'repeat(7, minmax(92px, auto))', md: 'repeat(5, minmax(92px, auto))' },
+                          gap: 1.1,
                         }}
                       >
-                        {selectedSubtraitLabel}
-                      </Typography>
-                      <Grid container spacing={1.4}>
                         {[
-                          { side: 'left', key: 'trait', label: 'Trait Score', value: activeMetrics?.lepScore || 0, color: 'text.primary', help: 'Combined score for this selected trait.' },
-                          { side: 'right', key: 'delta', label: 'Average Delta', value: activeMetrics?.delta || 0, color: getDeltaColor(activeMetrics?.delta || 0), help: 'Absolute gap between efficacy and effort.' },
-                          { side: 'left', key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA', help: 'Team-rated effectiveness for this trait.' },
-                          { side: 'right', key: 'gap-eff', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true, help: 'Team efficacy average minus your self-rating for this trait.' },
-                          { side: 'left', key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F', help: 'Team-rated effort invested in this trait.' },
-                          { side: 'right', key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true, help: 'Team effort average minus your self-rating for this trait.' },
-                        ].map((item) => {
-                          const clickable = item.side === 'left' && item.key === 'trait';
-                          const active = selectedMetric === item.key;
-                          const displayValue = item.signed
-                            ? `${item.value >= 0 ? '+' : ''}${item.value.toFixed(1)}`
-                            : item.value.toFixed(1);
-                          return (
-                            <Grid item xs={6} key={item.key}>
-                              <Paper
-                                onClick={clickable ? () => setSelectedMetric(item.key) : undefined}
-                                sx={{
-                                  p: 1.1,
-                                  position: 'relative',
-                                  borderRadius: 2.2,
-                                  border: '1px solid',
-                                  borderColor: clickable && active ? 'rgba(224,122,63,0.9)' : 'rgba(0,0,0,0.18)',
-                                  background: 'rgba(255,255,255,0.9)',
-                                  boxShadow: clickable && active
-                                    ? '0 4px 8px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(224,122,63,0.55)'
-                                    : '0 4px 8px rgba(0,0,0,0.08)',
-                                  minHeight: 106,
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  justifyContent: 'center',
-                                  textAlign: 'center',
-                                  cursor: clickable ? 'pointer' : 'default',
-                                }}
-                              >
-                                <Tooltip title={item.help} arrow placement="top">
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      top: 8,
-                                      right: 8,
-                                      width: 18,
-                                      height: 18,
-                                      borderRadius: '50%',
-                                      bgcolor: 'rgba(0,0,0,0.08)',
-                                      color: 'text.secondary',
-                                      fontSize: '0.72rem',
-                                      fontWeight: 700,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      lineHeight: 1,
-                                    }}
-                                  >
-                                    ?
-                                  </Box>
-                                </Tooltip>
-                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1, mb: 0.9 }}>
-                                  {item.label}
-                                </Typography>
-                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 700, color: item.color, lineHeight: 1 }}>
-                                  {displayValue}
-                                </Typography>
-                              </Paper>
-                            </Grid>
-                          );
-                        })}
-                      </Grid>
-                      <Stack alignItems="center" sx={{ mt: 1.4 }}>
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.7 }}>
-                          Agent Interpretation
-                        </Typography>
-                        {!!insightError.compass && (
-                          <Alert severity="warning" sx={{ mt: 1.1, width: '100%', maxWidth: 520 }}>
-                            {insightError.compass}
-                          </Alert>
-                        )}
+                          { key: 'overall', label: 'Overall Score', value: activeMetrics?.lepScore || 0, color: '#1F3347' },
+                          { key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
+                          { key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F' },
+                          { key: 'gap-efficacy', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true },
+                          { key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true },
+                        ].map((item, idx) => (
+                          <Paper
+                            key={item.key}
+                            sx={{
+                              gridColumn: { xs: '1 / -1', md: '1 / 2' },
+                              gridRow: { xs: 'auto', md: `${idx + 1} / ${idx + 2}` },
+                              p: 1.05,
+                              borderRadius: 2,
+                              border: '1px solid rgba(22,66,103,0.26)',
+                              background: 'rgba(255,255,255,0.92)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '0.88rem', fontWeight: 700, color: '#45586A', lineHeight: 1.1, mb: 0.55 }}>
+                              {item.label}
+                            </Typography>
+                            <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: item.color, lineHeight: 1 }}>
+                              {item.signed
+                                ? `${Number(item.value || 0) >= 0 ? '+' : ''}${Number(item.value || 0).toFixed(1)}`
+                                : Number(item.value || 0).toFixed(1)}
+                            </Typography>
+                          </Paper>
+                        ))}
+
                         <Paper
                           sx={{
-                            mt: 1.1,
-                            width: '100%',
-                            maxWidth: 520,
-                            p: 1.15,
+                            gridColumn: { xs: '1 / -1', md: '2 / 3' },
+                            gridRow: { xs: 'auto', md: '1 / 4' },
+                            p: 1.25,
                             borderRadius: 2,
-                            bgcolor: 'rgba(255,255,255,0.96)',
                             border: '1px solid rgba(69,112,137,0.35)',
-                            minHeight: 184,
+                            bgcolor: 'rgba(255,255,255,0.96)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
                           }}
                         >
-                          {insightLoading.compass && (
-                            <Typography sx={{ fontSize: '0.8rem', color: '#49637B', mb: 0.8 }}>
-                              Generating interpretation...
-                            </Typography>
-                          )}
-                          {compassAgentInsight ? (
-                            <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
-                              {compassAgentInsight}
-                            </Typography>
-                          ) : (
-                            <Stack justifyContent="center" sx={{ minHeight: 160 }}>
-                              <Typography sx={{ fontSize: '0.86rem', color: '#415A70', lineHeight: 1.45 }}>
-                                Interpretation will load automatically for the selected view.
-                              </Typography>
-                            </Stack>
-                          )}
+                          <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
+                            {insightLoading.compass && !compassAgentInsight
+                              ? 'Generating interpretation...'
+                              : (compassAgentInsight || 'Interpretation will load automatically for the selected view.')}
+                          </Typography>
                         </Paper>
-                      </Stack>
+
+                        <Paper
+                          sx={{
+                            gridColumn: { xs: '1 / -1', md: '2 / 3' },
+                            gridRow: { xs: 'auto', md: '4 / 6' },
+                            p: 1.25,
+                            borderRadius: 2,
+                            border: '1px solid rgba(69,112,137,0.35)',
+                            bgcolor: 'rgba(255,255,255,0.96)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
+                            {compassGapNarrative}
+                          </Typography>
+                        </Paper>
+                      </Box>
                     </Box>
                     </Paper>
                   </Grid>
@@ -1466,9 +1455,6 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
                       }}
                     >
-                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.6 }}>
-                      Signal View
-                    </Typography>
                     <Box
                       sx={{
                         position: 'relative',
@@ -1479,31 +1465,13 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         justifyContent: 'center',
                         alignItems: 'center',
                         borderRadius: 2.2,
-                        border: '1px solid rgba(17,36,58,0.22)',
+                        border: '1px solid rgba(21,62,97,0.28)',
                         background:
-                          'radial-gradient(620px 380px at 50% 44%, rgba(26,54,83,0.95), rgba(12,24,40,0.98))',
-                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                          'radial-gradient(620px 380px at 50% 44%, rgba(255,255,255,0.96), rgba(236,242,251,0.9))',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.32)',
                         overflow: 'hidden',
                       }}
                     >
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        sx={{
-                          position: 'absolute',
-                          top: 10,
-                          left: 12,
-                          right: 12,
-                          zIndex: 15,
-                        }}
-                      >
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(124,191,226,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                          Efficacy
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,182,127,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                          Effort
-                        </Typography>
-                      </Stack>
                       <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
                         <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
                           {(() => {
@@ -1557,12 +1525,12 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const ey = centerY + radius * Math.sin(eAngle);
                                   return (
                                     <g key={`detail-e-${idx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="21" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="24" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="21" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.2" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#7CC0E5' : 'rgba(119,134,153,0.24)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(120,139,158,0.52)'}
                                         strokeWidth={idx === selectedDetailRingIdx ? '24' : '17'}
                                         strokeDasharray={`${eLen} ${arcLength}`}
                                       />
@@ -1588,12 +1556,12 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const fy = centerY + radius * Math.sin(fAngle);
                                   return (
                                     <g key={`detail-f-${idx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="21" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="24" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="21" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.2" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#F0A169' : 'rgba(119,134,153,0.24)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(120,139,158,0.52)'}
                                         strokeWidth={idx === selectedDetailRingIdx ? '24' : '17'}
                                         strokeDasharray={`${fLen} ${arcLength}`}
                                       />
@@ -1660,97 +1628,94 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
                       }}
                     >
-                    <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.55 }}>
-                        Metric Context
-                      </Typography>
-                      <Typography sx={{ fontSize: { xs: '1rem', md: '1.08rem' }, fontWeight: 700, color: '#10253A', textAlign: 'center', mb: 1.2 }}>
-                        {detailQuestionTitle}
-                      </Typography>
-                      <Grid container spacing={1.4}>
+                    <Box sx={{ width: '100%', maxWidth: { xs: 760, lg: 760 }, mx: 'auto' }}>
+                      {!!insightError.detailed && (
+                        <Alert severity="warning" sx={{ mb: 1.1 }}>
+                          {insightError.detailed}
+                        </Alert>
+                      )}
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: { xs: '1fr', md: '0.92fr 1.08fr' },
+                          gridTemplateRows: { xs: 'repeat(7, minmax(92px, auto))', md: 'repeat(5, minmax(92px, auto))' },
+                          gap: 1.1,
+                        }}
+                      >
                         {[
-                          { label: 'Trait Score', value: selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore, color: 'text.primary' },
-                          { label: 'Delta', value: selectedDetailStatement?.delta ?? detailTraitMetrics.delta, color: getDeltaColor(selectedDetailStatement?.delta ?? detailTraitMetrics.delta), help: 'Absolute gap between efficacy and effort.' },
-                          { label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA', help: 'Team-rated effectiveness for this question.' },
-                          { label: 'Perception Gap (Efficacy)', value: detailEfficacyPerceptionGap, color: '#6393AA', signed: true, help: 'Team efficacy average minus your self-rating for this question.' },
-                          { label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F', help: 'Team-rated effort for this question.' },
-                          { label: 'Perception Gap (Effort)', value: detailEffortPerceptionGap, color: '#E07A3F', signed: true, help: 'Team effort average minus your self-rating for this question.' },
-                        ].map((item) => (
-                          <Grid item xs={6} key={item.label}>
-                            <Paper sx={{ p: 1.1, position: 'relative', borderRadius: 2.2, border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.9)', minHeight: 106, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', boxShadow: '0 4px 8px rgba(0,0,0,0.08)' }}>
-                              <Tooltip title={item.help || 'Key metric for this result card.'} arrow placement="top">
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    top: 8,
-                                    right: 8,
-                                    width: 18,
-                                    height: 18,
-                                    borderRadius: '50%',
-                                    bgcolor: 'rgba(0,0,0,0.08)',
-                                    color: 'text.secondary',
-                                    fontSize: '0.72rem',
-                                    fontWeight: 700,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    lineHeight: 1,
-                                  }}
-                                >
-                                  ?
-                                </Box>
-                              </Tooltip>
-                              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: 'text.secondary', lineHeight: 1.1, mb: 0.9 }}>
-                                {item.label}
-                              </Typography>
-                              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 700, color: item.color, lineHeight: 1 }}>
-                                {item.signed
-                                  ? `${item.value >= 0 ? '+' : ''}${Number(item.value || 0).toFixed(1)}`
-                                  : Number(item.value || 0).toFixed(1)}
-                              </Typography>
-                            </Paper>
-                          </Grid>
+                          { key: 'overall', label: 'Overall Score', value: selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore, color: '#1F3347' },
+                          { key: 'efficacy', label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA' },
+                          { key: 'effort', label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F' },
+                          { key: 'gap-efficacy', label: 'Perception Gap (Efficacy)', value: detailEfficacyPerceptionGap, color: '#6393AA', signed: true },
+                          { key: 'gap-effort', label: 'Perception Gap (Effort)', value: detailEffortPerceptionGap, color: '#E07A3F', signed: true },
+                        ].map((item, idx) => (
+                          <Paper
+                            key={item.key}
+                            sx={{
+                              gridColumn: { xs: '1 / -1', md: '1 / 2' },
+                              gridRow: { xs: 'auto', md: `${idx + 1} / ${idx + 2}` },
+                              p: 1.05,
+                              borderRadius: 2,
+                              border: '1px solid rgba(22,66,103,0.26)',
+                              background: 'rgba(255,255,255,0.92)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '0.88rem', fontWeight: 700, color: '#45586A', lineHeight: 1.1, mb: 0.55 }}>
+                              {item.label}
+                            </Typography>
+                            <Typography sx={{ fontSize: '1.75rem', fontWeight: 800, color: item.color, lineHeight: 1 }}>
+                              {item.signed
+                                ? `${Number(item.value || 0) >= 0 ? '+' : ''}${Number(item.value || 0).toFixed(1)}`
+                                : Number(item.value || 0).toFixed(1)}
+                            </Typography>
+                          </Paper>
                         ))}
-                      </Grid>
-                      <Stack alignItems="center" sx={{ mt: 1.4 }}>
-                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.7 }}>
-                          Agent Interpretation
-                        </Typography>
-                        {!!insightError.detailed && (
-                          <Alert severity="warning" sx={{ mt: 1.1, width: '100%', maxWidth: 520 }}>
-                            {insightError.detailed}
-                          </Alert>
-                        )}
+
                         <Paper
                           sx={{
-                            mt: 1.1,
-                            width: '100%',
-                            maxWidth: 520,
-                            p: 1.15,
+                            gridColumn: { xs: '1 / -1', md: '2 / 3' },
+                            gridRow: { xs: 'auto', md: '1 / 4' },
+                            p: 1.25,
                             borderRadius: 2,
-                            bgcolor: 'rgba(255,255,255,0.96)',
                             border: '1px solid rgba(69,112,137,0.35)',
-                            minHeight: 184,
+                            bgcolor: 'rgba(255,255,255,0.96)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
                           }}
                         >
-                          {insightLoading.detailed && (
-                            <Typography sx={{ fontSize: '0.8rem', color: '#49637B', mb: 0.8 }}>
-                              Generating interpretation...
-                            </Typography>
-                          )}
-                          {detailAgentInsight ? (
-                            <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
-                              {detailAgentInsight}
-                            </Typography>
-                          ) : (
-                            <Stack justifyContent="center" sx={{ minHeight: 160 }}>
-                              <Typography sx={{ fontSize: '0.86rem', color: '#415A70', lineHeight: 1.45 }}>
-                                Interpretation will load automatically for the selected view.
-                              </Typography>
-                            </Stack>
-                          )}
+                          <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
+                            {insightLoading.detailed && !detailAgentInsight
+                              ? 'Generating interpretation...'
+                              : (detailAgentInsight || 'Interpretation will load automatically for the selected view.')}
+                          </Typography>
                         </Paper>
-                      </Stack>
+
+                        <Paper
+                          sx={{
+                            gridColumn: { xs: '1 / -1', md: '2 / 3' },
+                            gridRow: { xs: 'auto', md: '4 / 6' },
+                            p: 1.25,
+                            borderRadius: 2,
+                            border: '1px solid rgba(69,112,137,0.35)',
+                            bgcolor: 'rgba(255,255,255,0.96)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
+                            {detailGapNarrative}
+                          </Typography>
+                        </Paper>
+                      </Box>
                     </Box>
                     </Paper>
                   </Grid>
