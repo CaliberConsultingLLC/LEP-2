@@ -179,7 +179,7 @@ function Dashboard() {
             width: navExpanded ? 258 : 86,
             transition: 'width 180ms cubic-bezier(.2,.8,.2,1)',
             borderRight: '1px solid rgba(255,255,255,0.24)',
-            bgcolor: 'rgba(7, 14, 24, 0.62)',
+            bgcolor: 'rgba(8, 14, 26, 0.48)',
             backdropFilter: 'blur(14px)',
             px: 1.1,
             py: 2,

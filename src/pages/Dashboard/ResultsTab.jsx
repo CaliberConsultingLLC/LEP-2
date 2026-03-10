@@ -739,6 +739,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         effort_score: effort,
         delta,
         delta_band: getDeltaBand(delta),
+        significant_gap: Math.abs(Number(delta || 0)) > 10,
         perception_gap: `efficacy ${detailEfficacyPerceptionGap.toFixed(1)}, effort ${detailEffortPerceptionGap.toFixed(1)}`,
         efficacy_perception_gap: Number(detailEfficacyPerceptionGap || 0).toFixed(1),
         effort_perception_gap: Number(detailEffortPerceptionGap || 0).toFixed(1),
@@ -762,6 +763,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       effort_score: effort,
       delta,
       delta_band: getDeltaBand(delta),
+      significant_gap: Math.abs(Number(delta || 0)) > 10,
       perception_gap: `efficacy ${efficacyPerceptionGap.toFixed(1)}, effort ${effortPerceptionGap.toFixed(1)}`,
       efficacy_perception_gap: Number(efficacyPerceptionGap || 0).toFixed(1),
       effort_perception_gap: Number(effortPerceptionGap || 0).toFixed(1),
@@ -917,6 +919,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
           effort_score: traitMetrics.effort,
           delta: traitMetrics.delta,
           delta_band: getDeltaBand(traitMetrics.delta),
+          significant_gap: Math.abs(Number(traitMetrics.delta || 0)) > 10,
           perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
           efficacy_perception_gap: Number(effGap).toFixed(1),
           effort_perception_gap: Number(effortGap).toFixed(1),
@@ -961,6 +964,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
           effort_score: statement.effort,
           delta: statement.delta,
           delta_band: getDeltaBand(statement.delta),
+          significant_gap: Math.abs(Number(statement.delta || 0)) > 10,
           perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
           efficacy_perception_gap: Number(effGap).toFixed(1),
           effort_perception_gap: Number(effortGap).toFixed(1),
@@ -1041,12 +1045,12 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
     const directionLine = (label, gap) => {
       if (gap <= -10) {
-        return `Your team rates ${label} lower than you do by ${Math.abs(gap).toFixed(1)}, which suggests your self-view is ahead of observed experience in this area.`;
+        return `Your team rates ${label} lower than your self-view, so the current experience is landing weaker than intended.`;
       }
       if (gap >= 10) {
-        return `Your team rates ${label} higher than you do by ${Math.abs(gap).toFixed(1)}, which suggests you may be underrating your impact here.`;
+        return `Your team rates ${label} higher than your self-view, which suggests you may be underestimating your leadership impact.`;
       }
-      return `${label[0].toUpperCase()}${label.slice(1)} perception is mostly aligned (gap ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}).`;
+      return `${label[0].toUpperCase()}${label.slice(1)} perception is broadly aligned between self and team.`;
     };
 
     if (Math.abs(efficacyGap) < 10 && Math.abs(effortGap) < 10) {
