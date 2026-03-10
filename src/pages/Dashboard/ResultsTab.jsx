@@ -45,6 +45,8 @@ function ResultsTab({ view = 'compass' }) {
   const [selectedDetailTraitKey, setSelectedDetailTraitKey] = useState(null);
   const [selectedDetailRingIdx, setSelectedDetailRingIdx] = useState(0);
   const [benchmarkGapData, setBenchmarkGapData] = useState(null);
+  const [compassAgentInsight, setCompassAgentInsight] = useState('');
+  const [detailAgentInsight, setDetailAgentInsight] = useState('');
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -660,6 +662,72 @@ function ResultsTab({ view = 'compass' }) {
     return teamValue - selfValue;
   }, [benchmarkGapData, selectedDetailStatementIndex, selectedDetailStatement, detailTraitMetrics]);
 
+  const trimToChars = (text, max = 200) => {
+    const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+    if (normalized.length <= max) return normalized;
+    const sliced = normalized.slice(0, max - 1);
+    const lastSpace = sliced.lastIndexOf(' ');
+    return `${(lastSpace > 120 ? sliced.slice(0, lastSpace) : sliced).trimEnd()}…`;
+  };
+
+  const getAgentPrefix = (agentId) => {
+    switch (agentId) {
+      case 'comedyRoaster':
+        return 'Quick truth:';
+      case 'bluntPracticalFriend':
+        return 'Straight talk:';
+      case 'formalEmpatheticCoach':
+        return 'Coach view:';
+      case 'pragmaticProblemSolver':
+        return 'System view:';
+      case 'highSchoolCoach':
+        return 'Coach huddle:';
+      case 'balancedMentor':
+      default:
+        return 'Insight:';
+    }
+  };
+
+  const buildAgentInsight = (mode) => {
+    const agentId = intakeData?.selectedAgent || 'balancedMentor';
+    const prefix = getAgentPrefix(agentId);
+    const overallAvg = overallMetrics?.avgLEP ?? 0;
+    const overallGap = overallMetrics?.avgDelta ?? 0;
+    const highGapCount = overallMetrics?.highGapCount ?? 0;
+
+    if (mode === 'detailed') {
+      const traitLabel = detailSubtraitLabel || selectedDetailTraitKey || 'this trait';
+      const lep = selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0;
+      const delta = selectedDetailStatement?.delta ?? detailTraitMetrics?.delta ?? 0;
+      const efficacy = selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0;
+      const effort = selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0;
+      const direction = efficacy >= effort
+        ? 'protect strength with tighter execution rhythm'
+        : 'change approach before adding more effort';
+
+      return trimToChars(
+        `${prefix} ${traitLabel} sits at ${lep.toFixed(1)} with a ${delta.toFixed(1)} delta. ` +
+        `Overall baseline is ${overallAvg.toFixed(1)} (${highGapCount} major gaps). ` +
+        `Next move: ${direction}.`
+      );
+    }
+
+    const traitLabel = selectedSubtraitLabel || selectedTraitKey || 'this trait';
+    const lep = activeMetrics?.lepScore ?? 0;
+    const delta = activeMetrics?.delta ?? 0;
+    const efficacy = activeMetrics?.efficacy ?? 0;
+    const effort = activeMetrics?.effort ?? 0;
+    const direction = delta > 25
+      ? (efficacy >= effort ? 'raise intentional effort to match your upside' : 'revise your method, not just intensity')
+      : 'keep this pattern and scale it across the team';
+
+    return trimToChars(
+      `${prefix} ${traitLabel} is at ${lep.toFixed(1)} (${delta.toFixed(1)} delta). ` +
+      `Overall score ${overallAvg.toFixed(1)} and average gap ${overallGap.toFixed(1)}. ` +
+      `Best next step: ${direction}.`
+    );
+  };
+
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
     return selectedTraitMetrics || {
@@ -803,7 +871,7 @@ function ResultsTab({ view = 'compass' }) {
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(99,147,170,0.5)'}
+                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(143,149,158,0.65)'}
                                         strokeWidth="30"
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -812,7 +880,7 @@ function ResultsTab({ view = 'compass' }) {
                                         cx={endX}
                                         cy={endY}
                                         r="15"
-                                        fill={trait === selectedTraitKey ? '#457089' : 'rgba(69,112,137,0.62)'}
+                                        fill={trait === selectedTraitKey ? '#457089' : 'rgba(128,134,143,0.82)'}
                                         stroke="#000"
                                         strokeWidth="2"
                                         style={{ cursor: 'pointer' }}
@@ -848,7 +916,7 @@ function ResultsTab({ view = 'compass' }) {
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(224,122,63,0.5)'}
+                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(143,149,158,0.65)'}
                                         strokeWidth="30"
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -857,7 +925,7 @@ function ResultsTab({ view = 'compass' }) {
                                         cx={endX}
                                         cy={endY}
                                         r="15"
-                                        fill={trait === selectedTraitKey ? '#C85A2A' : 'rgba(200,90,42,0.62)'}
+                                        fill={trait === selectedTraitKey ? '#C85A2A' : 'rgba(128,134,143,0.82)'}
                                         stroke="#000"
                                         strokeWidth="2"
                                         style={{ cursor: 'pointer' }}
@@ -905,10 +973,10 @@ function ResultsTab({ view = 'compass' }) {
                                         x={labelX}
                                         y={labelY + 5}
                                         textAnchor="middle"
-                                        fontSize="14"
+                                        fontSize="17"
                                         fontFamily="Gemunu Libre, sans-serif"
                                         fontWeight="700"
-                                        fill="#000"
+                                        fill={active ? '#111' : '#3F4752'}
                                       >
                                         {labelSubtrait}
                                       </text>
@@ -1004,7 +1072,7 @@ function ResultsTab({ view = 'compass' }) {
                       <Typography
                         sx={{
                           fontFamily: 'Montserrat, sans-serif',
-                          fontSize: { xs: '1.4rem', md: '1.65rem' },
+                          fontSize: { xs: '1.62rem', md: '1.96rem' },
                           fontWeight: 800,
                           color: 'rgba(255,255,255,0.9)',
                           textAlign: 'center',
@@ -1082,6 +1150,37 @@ function ResultsTab({ view = 'compass' }) {
                           );
                         })}
                       </Grid>
+                      <Stack alignItems="center" sx={{ mt: 1.4 }}>
+                        <Button
+                          variant="contained"
+                          onClick={() => setCompassAgentInsight(buildAgentInsight('compass'))}
+                          sx={{
+                            px: 3,
+                            py: 0.9,
+                            fontWeight: 700,
+                            textTransform: 'none',
+                            borderRadius: 2,
+                            bgcolor: '#457089',
+                            '&:hover': { bgcolor: '#375d78' },
+                          }}
+                        >
+                          Agent Insights
+                        </Button>
+                        {!!compassAgentInsight && (
+                          <Alert
+                            severity="info"
+                            sx={{
+                              mt: 1.1,
+                              width: '100%',
+                              maxWidth: 520,
+                              bgcolor: 'rgba(255,255,255,0.92)',
+                              border: '1px solid rgba(69,112,137,0.35)',
+                            }}
+                          >
+                            {compassAgentInsight}
+                          </Alert>
+                        )}
+                      </Stack>
                     </Box>
                   </Grid>
                 </Grid>
@@ -1186,7 +1285,7 @@ function ResultsTab({ view = 'compass' }) {
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(99,147,170,0.45)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(143,149,158,0.62)'}
                                         strokeWidth="21"
                                         strokeDasharray={`${eLen} ${arcLength}`}
                                       />
@@ -1194,7 +1293,7 @@ function ResultsTab({ view = 'compass' }) {
                                         cx={ex}
                                         cy={ey}
                                         r="9"
-                                        fill={idx === selectedDetailRingIdx ? '#457089' : 'rgba(69,112,137,0.62)'}
+                                        fill={idx === selectedDetailRingIdx ? '#457089' : 'rgba(128,134,143,0.82)'}
                                         stroke="#000"
                                         strokeWidth="2"
                                       />
@@ -1217,7 +1316,7 @@ function ResultsTab({ view = 'compass' }) {
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(224,122,63,0.45)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(143,149,158,0.62)'}
                                         strokeWidth="21"
                                         strokeDasharray={`${fLen} ${arcLength}`}
                                       />
@@ -1225,7 +1324,7 @@ function ResultsTab({ view = 'compass' }) {
                                         cx={fx}
                                         cy={fy}
                                         r="9"
-                                        fill={idx === selectedDetailRingIdx ? '#C85A2A' : 'rgba(200,90,42,0.62)'}
+                                        fill={idx === selectedDetailRingIdx ? '#C85A2A' : 'rgba(128,134,143,0.82)'}
                                         stroke="#000"
                                         strokeWidth="2"
                                       />
@@ -1322,6 +1421,37 @@ function ResultsTab({ view = 'compass' }) {
                           </Grid>
                         ))}
                       </Grid>
+                      <Stack alignItems="center" sx={{ mt: 1.4 }}>
+                        <Button
+                          variant="contained"
+                          onClick={() => setDetailAgentInsight(buildAgentInsight('detailed'))}
+                          sx={{
+                            px: 3,
+                            py: 0.9,
+                            fontWeight: 700,
+                            textTransform: 'none',
+                            borderRadius: 2,
+                            bgcolor: '#457089',
+                            '&:hover': { bgcolor: '#375d78' },
+                          }}
+                        >
+                          Agent Insights
+                        </Button>
+                        {!!detailAgentInsight && (
+                          <Alert
+                            severity="info"
+                            sx={{
+                              mt: 1.1,
+                              width: '100%',
+                              maxWidth: 520,
+                              bgcolor: 'rgba(255,255,255,0.92)',
+                              border: '1px solid rgba(69,112,137,0.35)',
+                            }}
+                          >
+                            {detailAgentInsight}
+                          </Alert>
+                        )}
+                      </Stack>
                     </Box>
                   </Grid>
                 </Grid>
