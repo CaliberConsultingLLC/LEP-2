@@ -855,7 +855,41 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.6 }}>
                       Signal View
                     </Typography>
-                    <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: { xs: 420, md: 500, lg: 'auto' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '100%',
+                        minHeight: { xs: 420, md: 500, lg: 'auto' },
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: 2.2,
+                        border: '1px solid rgba(17,36,58,0.22)',
+                        background:
+                          'radial-gradient(620px 380px at 50% 44%, rgba(26,54,83,0.95), rgba(12,24,40,0.98))',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        sx={{
+                          position: 'absolute',
+                          top: 10,
+                          left: 12,
+                          right: 12,
+                          zIndex: 15,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(124,191,226,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          Efficacy
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,182,127,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          Effort
+                        </Typography>
+                      </Stack>
                       <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
                         <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
                           {(() => {
@@ -920,23 +954,23 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const endY = centerY + radius * Math.sin(endAngleSVG);
                                   return (
                                     <g key={`efficacy-trait-${traitIdx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="30" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="33" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="30" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="33" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(143,149,158,0.44)'}
-                                        strokeWidth="30"
+                                        stroke={trait === selectedTraitKey ? '#7CC0E5' : 'rgba(119,134,153,0.22)'}
+                                        strokeWidth={trait === selectedTraitKey ? '33' : '24'}
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
                                       />
                                       <circle
                                         cx={endX}
                                         cy={endY}
-                                        r="15"
-                                        fill={trait === selectedTraitKey ? '#457089' : 'rgba(128,134,143,0.68)'}
-                                        stroke="rgba(17,24,39,0.72)"
-                                        strokeWidth="2"
+                                        r={trait === selectedTraitKey ? '16' : '12'}
+                                        fill={trait === selectedTraitKey ? '#5D9DC2' : 'rgba(121,134,151,0.44)'}
+                                        stroke={trait === selectedTraitKey ? 'rgba(224,243,255,0.82)' : 'rgba(17,24,39,0.5)'}
+                                        strokeWidth={trait === selectedTraitKey ? '2.4' : '1.6'}
                                         style={{ cursor: 'pointer' }}
                                         onMouseEnter={(e) => {
                                           const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
@@ -965,23 +999,23 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const endY = centerY + radius * Math.sin(endAngleSVG);
                                   return (
                                     <g key={`effort-trait-${traitIdx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="30" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="33" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="30" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="33" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(143,149,158,0.44)'}
-                                        strokeWidth="30"
+                                        stroke={trait === selectedTraitKey ? '#F0A169' : 'rgba(119,134,153,0.22)'}
+                                        strokeWidth={trait === selectedTraitKey ? '33' : '24'}
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
                                       />
                                       <circle
                                         cx={endX}
                                         cy={endY}
-                                        r="15"
-                                        fill={trait === selectedTraitKey ? '#C85A2A' : 'rgba(128,134,143,0.68)'}
-                                        stroke="rgba(17,24,39,0.72)"
-                                        strokeWidth="2"
+                                        r={trait === selectedTraitKey ? '16' : '12'}
+                                        fill={trait === selectedTraitKey ? '#E88A4D' : 'rgba(121,134,151,0.44)'}
+                                        stroke={trait === selectedTraitKey ? 'rgba(255,234,220,0.82)' : 'rgba(17,24,39,0.5)'}
+                                        strokeWidth={trait === selectedTraitKey ? '2.4' : '1.6'}
                                         style={{ cursor: 'pointer' }}
                                         onMouseEnter={(e) => {
                                           const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
@@ -1019,8 +1053,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         width={232}
                                         height={30}
                                         rx={15}
-                                        fill={active ? 'rgba(255,244,235,0.98)' : 'rgba(255,255,255,0.95)'}
-                                        stroke={active ? '#E07A3F' : '#000'}
+                                        fill={active ? 'rgba(255,246,236,0.98)' : 'rgba(255,255,255,0.92)'}
+                                        stroke={active ? '#E07A3F' : 'rgba(15,23,42,0.82)'}
                                         strokeWidth={active ? '2.5' : '2'}
                                       />
                                       <text
@@ -1048,7 +1082,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             height: 178,
                             position: 'relative',
                             borderRadius: '50%',
-                            backgroundColor: 'rgba(255,255,255,0.14)',
+                            backgroundColor: 'rgba(255,255,255,0.24)',
                             border: '3px solid',
                             borderColor: selectedMetric === 'efficacy' ? '#6393AA' : selectedMetric === 'effort' ? '#E07A3F' : 'primary.main',
                             display: 'flex',
@@ -1080,7 +1114,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   top: '-29%',
                                   left: '-29%',
                                   objectFit: 'cover',
-                                  filter: 'brightness(0.5)',
+                                  filter: 'brightness(0.66)',
                                   display: 'block',
                                 }}
                               />
@@ -1242,19 +1276,20 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             {insightError.compass}
                           </Alert>
                         )}
-                        {!!compassAgentInsight && (
-                          <Paper
-                            sx={{
-                              mt: 1.1,
-                              width: '100%',
-                              maxWidth: 520,
-                              p: 1.15,
-                              borderRadius: 2,
-                              bgcolor: 'rgba(255,255,255,0.96)',
-                              border: '1px solid rgba(69,112,137,0.35)',
-                            }}
-                          >
-                            {(() => {
+                        <Paper
+                          sx={{
+                            mt: 1.1,
+                            width: '100%',
+                            maxWidth: 520,
+                            p: 1.15,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(255,255,255,0.96)',
+                            border: '1px solid rgba(69,112,137,0.35)',
+                            minHeight: 184,
+                          }}
+                        >
+                          {compassAgentInsight ? (
+                            (() => {
                               const s = splitInsightSections(compassAgentInsight);
                               return (
                                 <Stack spacing={0.7}>
@@ -1276,9 +1311,15 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   )}
                                 </Stack>
                               );
-                            })()}
-                          </Paper>
-                        )}
+                            })()
+                          ) : (
+                            <Stack justifyContent="center" sx={{ minHeight: 160 }}>
+                              <Typography sx={{ fontSize: '0.86rem', color: '#415A70', lineHeight: 1.45 }}>
+                                Tap <strong>Agent Insights</strong> to generate a concise interpretation of this pattern with context and perspective.
+                              </Typography>
+                            </Stack>
+                          )}
+                        </Paper>
                       </Stack>
                     </Box>
                     </Paper>
@@ -1339,7 +1380,41 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.6 }}>
                       Signal View
                     </Typography>
-                    <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: { xs: 420, md: 500, lg: 'auto' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '100%',
+                        minHeight: { xs: 420, md: 500, lg: 'auto' },
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: 2.2,
+                        border: '1px solid rgba(17,36,58,0.22)',
+                        background:
+                          'radial-gradient(620px 380px at 50% 44%, rgba(26,54,83,0.95), rgba(12,24,40,0.98))',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        sx={{
+                          position: 'absolute',
+                          top: 10,
+                          left: 12,
+                          right: 12,
+                          zIndex: 15,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(124,191,226,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          Efficacy
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,182,127,0.95)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          Effort
+                        </Typography>
+                      </Stack>
                       <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
                         <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
                           {(() => {
@@ -1393,22 +1468,22 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const ey = centerY + radius * Math.sin(eAngle);
                                   return (
                                     <g key={`detail-e-${idx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="21" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="24" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="21" />
+                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="24" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(143,149,158,0.44)'}
-                                        strokeWidth="21"
+                                        stroke={idx === selectedDetailRingIdx ? '#7CC0E5' : 'rgba(119,134,153,0.24)'}
+                                        strokeWidth={idx === selectedDetailRingIdx ? '24' : '17'}
                                         strokeDasharray={`${eLen} ${arcLength}`}
                                       />
                                       <circle
                                         cx={ex}
                                         cy={ey}
-                                        r="9"
-                                        fill={idx === selectedDetailRingIdx ? '#457089' : 'rgba(128,134,143,0.68)'}
-                                        stroke="rgba(17,24,39,0.72)"
-                                        strokeWidth="2"
+                                        r={idx === selectedDetailRingIdx ? '10' : '7'}
+                                        fill={idx === selectedDetailRingIdx ? '#5D9DC2' : 'rgba(121,134,151,0.44)'}
+                                        stroke={idx === selectedDetailRingIdx ? 'rgba(224,243,255,0.82)' : 'rgba(17,24,39,0.5)'}
+                                        strokeWidth={idx === selectedDetailRingIdx ? '2.1' : '1.4'}
                                       />
                                     </g>
                                   );
@@ -1424,22 +1499,22 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const fy = centerY + radius * Math.sin(fAngle);
                                   return (
                                     <g key={`detail-f-${idx}`}>
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="21" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.86)" strokeWidth="24" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="21" />
+                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="24" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(143,149,158,0.44)'}
-                                        strokeWidth="21"
+                                        stroke={idx === selectedDetailRingIdx ? '#F0A169' : 'rgba(119,134,153,0.24)'}
+                                        strokeWidth={idx === selectedDetailRingIdx ? '24' : '17'}
                                         strokeDasharray={`${fLen} ${arcLength}`}
                                       />
                                       <circle
                                         cx={fx}
                                         cy={fy}
-                                        r="9"
-                                        fill={idx === selectedDetailRingIdx ? '#C85A2A' : 'rgba(128,134,143,0.68)'}
-                                        stroke="rgba(17,24,39,0.72)"
-                                        strokeWidth="2"
+                                        r={idx === selectedDetailRingIdx ? '10' : '7'}
+                                        fill={idx === selectedDetailRingIdx ? '#E88A4D' : 'rgba(121,134,151,0.44)'}
+                                        stroke={idx === selectedDetailRingIdx ? 'rgba(255,234,220,0.82)' : 'rgba(17,24,39,0.5)'}
+                                        strokeWidth={idx === selectedDetailRingIdx ? '2.1' : '1.4'}
                                       />
                                     </g>
                                   );
@@ -1474,7 +1549,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           })()}
                         </svg>
                         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', zIndex: 10 }}>
-                          <Box sx={{ width: 156, height: 156, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: '3px solid', borderColor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Box sx={{ width: 156, height: 156, borderRadius: '50%', background: 'rgba(255,255,255,0.24)', border: '3px solid', borderColor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2.8rem', fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
                               {((selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore) || 0).toFixed(1)}
                             </Typography>
@@ -1573,19 +1648,20 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             {insightError.detailed}
                           </Alert>
                         )}
-                        {!!detailAgentInsight && (
-                          <Paper
-                            sx={{
-                              mt: 1.1,
-                              width: '100%',
-                              maxWidth: 520,
-                              p: 1.15,
-                              borderRadius: 2,
-                              bgcolor: 'rgba(255,255,255,0.96)',
-                              border: '1px solid rgba(69,112,137,0.35)',
-                            }}
-                          >
-                            {(() => {
+                        <Paper
+                          sx={{
+                            mt: 1.1,
+                            width: '100%',
+                            maxWidth: 520,
+                            p: 1.15,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(255,255,255,0.96)',
+                            border: '1px solid rgba(69,112,137,0.35)',
+                            minHeight: 184,
+                          }}
+                        >
+                          {detailAgentInsight ? (
+                            (() => {
                               const s = splitInsightSections(detailAgentInsight);
                               return (
                                 <Stack spacing={0.7}>
@@ -1607,9 +1683,15 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   )}
                                 </Stack>
                               );
-                            })()}
-                          </Paper>
-                        )}
+                            })()
+                          ) : (
+                            <Stack justifyContent="center" sx={{ minHeight: 160 }}>
+                              <Typography sx={{ fontSize: '0.86rem', color: '#415A70', lineHeight: 1.45 }}>
+                                Tap <strong>Agent Insights</strong> to generate a concise interpretation of this question-level pattern.
+                              </Typography>
+                            </Stack>
+                          )}
+                        </Paper>
                       </Stack>
                     </Box>
                     </Paper>
