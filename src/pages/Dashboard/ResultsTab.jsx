@@ -751,6 +751,24 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     }
   };
 
+  const splitInsightSections = (text) => {
+    const raw = String(text || '');
+    const pattern = raw.match(/Pattern:\s*([\s\S]*?)(?:\n\s*Context:|$)/i)?.[1]?.trim() || '';
+    const context = raw.match(/Context:\s*([\s\S]*?)(?:\n\s*Perspective:|$)/i)?.[1]?.trim() || '';
+    const perspective = raw.match(/Perspective:\s*([\s\S]*?)$/i)?.[1]?.trim() || '';
+
+    if (pattern || context || perspective) {
+      return { pattern, context, perspective };
+    }
+
+    const parts = raw.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    return {
+      pattern: parts[0] || raw.trim(),
+      context: parts[1] || '',
+      perspective: parts[2] || '',
+    };
+  };
+
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
     return selectedTraitMetrics || {
@@ -824,6 +842,19 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
               <CardContent sx={{ px: { xs: 0.8, md: 1.2 }, pt: 0.6, pb: '8px !important' }}>
                 <Grid container spacing={1.4} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
                   <Grid item xs={12} lg={6} sx={{ display: 'flex' }}>
+                    <Paper
+                      sx={{
+                        width: '100%',
+                        p: { xs: 1.2, md: 1.5 },
+                        borderRadius: 2.6,
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(241,246,255,0.86))',
+                        boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+                      }}
+                    >
+                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.6 }}>
+                      Signal View
+                    </Typography>
                     <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: { xs: 420, md: 500, lg: 'auto' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
                         <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
@@ -894,7 +925,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(143,149,158,0.65)'}
+                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(143,149,158,0.44)'}
                                         strokeWidth="30"
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -903,8 +934,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={endX}
                                         cy={endY}
                                         r="15"
-                                        fill={trait === selectedTraitKey ? '#457089' : 'rgba(128,134,143,0.82)'}
-                                        stroke="#000"
+                                        fill={trait === selectedTraitKey ? '#457089' : 'rgba(128,134,143,0.68)'}
+                                        stroke="rgba(17,24,39,0.72)"
                                         strokeWidth="2"
                                         style={{ cursor: 'pointer' }}
                                         onMouseEnter={(e) => {
@@ -939,7 +970,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(143,149,158,0.65)'}
+                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(143,149,158,0.44)'}
                                         strokeWidth="30"
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -948,8 +979,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={endX}
                                         cy={endY}
                                         r="15"
-                                        fill={trait === selectedTraitKey ? '#C85A2A' : 'rgba(128,134,143,0.82)'}
-                                        stroke="#000"
+                                        fill={trait === selectedTraitKey ? '#C85A2A' : 'rgba(128,134,143,0.68)'}
+                                        stroke="rgba(17,24,39,0.72)"
                                         strokeWidth="2"
                                         style={{ cursor: 'pointer' }}
                                         onMouseEnter={(e) => {
@@ -1088,16 +1119,29 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         )}
                       </Box>
                     </Box>
+                    </Paper>
                   </Grid>
 
                   <Grid item xs={12} lg={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Paper
+                      sx={{
+                        width: '100%',
+                        p: { xs: 1.35, md: 1.6 },
+                        borderRadius: 2.6,
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(241,246,255,0.86))',
+                        boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+                      }}
+                    >
                     <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.55 }}>
+                        Metric Context
+                      </Typography>
                       <Typography
                         sx={{
-                          fontFamily: 'Montserrat, sans-serif',
                           fontSize: { xs: '1.62rem', md: '1.96rem' },
                           fontWeight: 800,
-                          color: 'rgba(255,255,255,0.9)',
+                          color: '#10253A',
                           textAlign: 'center',
                           mb: 1.2,
                         }}
@@ -1174,6 +1218,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         })}
                       </Grid>
                       <Stack alignItems="center" sx={{ mt: 1.4 }}>
+                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.7 }}>
+                          Interpretation
+                        </Typography>
                         <Button
                           variant="contained"
                           onClick={() => requestAgentInsight('compass')}
@@ -1196,21 +1243,45 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           </Alert>
                         )}
                         {!!compassAgentInsight && (
-                          <Alert
-                            severity="info"
+                          <Paper
                             sx={{
                               mt: 1.1,
                               width: '100%',
                               maxWidth: 520,
-                              bgcolor: 'rgba(255,255,255,0.92)',
+                              p: 1.15,
+                              borderRadius: 2,
+                              bgcolor: 'rgba(255,255,255,0.96)',
                               border: '1px solid rgba(69,112,137,0.35)',
                             }}
                           >
-                            {compassAgentInsight}
-                          </Alert>
+                            {(() => {
+                              const s = splitInsightSections(compassAgentInsight);
+                              return (
+                                <Stack spacing={0.7}>
+                                  <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pattern</Typography>
+                                  <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.45 }}>{s.pattern}</Typography>
+                                  {!!s.context && (
+                                    <>
+                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
+                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Context</Typography>
+                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.context}</Typography>
+                                    </>
+                                  )}
+                                  {!!s.perspective && (
+                                    <>
+                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
+                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Perspective</Typography>
+                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.perspective}</Typography>
+                                    </>
+                                  )}
+                                </Stack>
+                              );
+                            })()}
+                          </Paper>
                         )}
                       </Stack>
                     </Box>
+                    </Paper>
                   </Grid>
                 </Grid>
               </CardContent>
@@ -1255,6 +1326,19 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
                 <Grid container spacing={1.4} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
                   <Grid item xs={12} lg={6} sx={{ display: 'flex' }}>
+                    <Paper
+                      sx={{
+                        width: '100%',
+                        p: { xs: 1.2, md: 1.5 },
+                        borderRadius: 2.6,
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(241,246,255,0.86))',
+                        boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+                      }}
+                    >
+                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.6 }}>
+                      Signal View
+                    </Typography>
                     <Box sx={{ position: 'relative', width: '100%', height: '100%', minHeight: { xs: 420, md: 500, lg: 'auto' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       <Box sx={{ position: 'relative', width: '100%', maxWidth: { xs: 430, md: 520, lg: 560 }, aspectRatio: '1 / 1', mx: 'auto' }}>
                         <svg width="100%" height="100%" viewBox="0 0 600 600" style={{ position: 'absolute', top: 0, left: 0 }}>
@@ -1314,7 +1398,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(143,149,158,0.62)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(143,149,158,0.44)'}
                                         strokeWidth="21"
                                         strokeDasharray={`${eLen} ${arcLength}`}
                                       />
@@ -1322,8 +1406,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={ex}
                                         cy={ey}
                                         r="9"
-                                        fill={idx === selectedDetailRingIdx ? '#457089' : 'rgba(128,134,143,0.82)'}
-                                        stroke="#000"
+                                        fill={idx === selectedDetailRingIdx ? '#457089' : 'rgba(128,134,143,0.68)'}
+                                        stroke="rgba(17,24,39,0.72)"
                                         strokeWidth="2"
                                       />
                                     </g>
@@ -1345,7 +1429,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(143,149,158,0.62)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(143,149,158,0.44)'}
                                         strokeWidth="21"
                                         strokeDasharray={`${fLen} ${arcLength}`}
                                       />
@@ -1353,8 +1437,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={fx}
                                         cy={fy}
                                         r="9"
-                                        fill={idx === selectedDetailRingIdx ? '#C85A2A' : 'rgba(128,134,143,0.82)'}
-                                        stroke="#000"
+                                        fill={idx === selectedDetailRingIdx ? '#C85A2A' : 'rgba(128,134,143,0.68)'}
+                                        stroke="rgba(17,24,39,0.72)"
                                         strokeWidth="2"
                                       />
                                     </g>
@@ -1398,11 +1482,25 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         </Box>
                       </Box>
                     </Box>
+                    </Paper>
                   </Grid>
 
                   <Grid item xs={12} lg={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Paper
+                      sx={{
+                        width: '100%',
+                        p: { xs: 1.35, md: 1.6 },
+                        borderRadius: 2.6,
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(241,246,255,0.86))',
+                        boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+                      }}
+                    >
                     <Box sx={{ width: '100%', maxWidth: { xs: 560, lg: 520 }, mx: 'auto' }}>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1rem', md: '1.08rem' }, fontWeight: 700, color: 'rgba(255,255,255,0.9)', textAlign: 'center', mb: 1.2 }}>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.55 }}>
+                        Metric Context
+                      </Typography>
+                      <Typography sx={{ fontSize: { xs: '1rem', md: '1.08rem' }, fontWeight: 700, color: '#10253A', textAlign: 'center', mb: 1.2 }}>
                         {detailQuestionTitle}
                       </Typography>
                       <Grid container spacing={1.4}>
@@ -1451,6 +1549,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         ))}
                       </Grid>
                       <Stack alignItems="center" sx={{ mt: 1.4 }}>
+                        <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.7 }}>
+                          Interpretation
+                        </Typography>
                         <Button
                           variant="contained"
                           onClick={() => requestAgentInsight('detailed')}
@@ -1473,21 +1574,45 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           </Alert>
                         )}
                         {!!detailAgentInsight && (
-                          <Alert
-                            severity="info"
+                          <Paper
                             sx={{
                               mt: 1.1,
                               width: '100%',
                               maxWidth: 520,
-                              bgcolor: 'rgba(255,255,255,0.92)',
+                              p: 1.15,
+                              borderRadius: 2,
+                              bgcolor: 'rgba(255,255,255,0.96)',
                               border: '1px solid rgba(69,112,137,0.35)',
                             }}
                           >
-                            {detailAgentInsight}
-                          </Alert>
+                            {(() => {
+                              const s = splitInsightSections(detailAgentInsight);
+                              return (
+                                <Stack spacing={0.7}>
+                                  <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pattern</Typography>
+                                  <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.45 }}>{s.pattern}</Typography>
+                                  {!!s.context && (
+                                    <>
+                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
+                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Context</Typography>
+                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.context}</Typography>
+                                    </>
+                                  )}
+                                  {!!s.perspective && (
+                                    <>
+                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
+                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Perspective</Typography>
+                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.perspective}</Typography>
+                                    </>
+                                  )}
+                                </Stack>
+                              );
+                            })()}
+                          </Paper>
                         )}
                       </Stack>
                     </Box>
+                    </Paper>
                   </Grid>
                 </Grid>
               </CardContent>

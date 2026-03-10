@@ -30,6 +30,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState(0);
   const [navExpanded, setNavExpanded] = useState(false);
+  const DASH_FONT = '"Montserrat", "Inter", "Segoe UI", sans-serif';
   const [selectedAgent, setSelectedAgent] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('latestFormData') || '{}');
@@ -143,6 +144,10 @@ function Dashboard() {
         width: '100vw',
         color: 'text.primary',
         overflowX: 'hidden',
+        '& .MuiTypography-root, & .MuiButton-root, & .MuiChip-root, & .MuiInputBase-root, & .MuiTableCell-root, & .MuiMenuItem-root': {
+          fontFamily: `${DASH_FONT} !important`,
+          letterSpacing: '0 !important',
+        },
         '&:before': {
           content: '""',
           position: 'fixed',
@@ -160,7 +165,8 @@ function Dashboard() {
           position: 'fixed',
           inset: 0,
           zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+          background:
+            'radial-gradient(1200px 800px at 16% 16%, rgba(18,42,70,0.26), rgba(5,10,18,0.62))',
         },
       }}
     >
@@ -173,8 +179,8 @@ function Dashboard() {
             width: navExpanded ? 258 : 86,
             transition: 'width 180ms cubic-bezier(.2,.8,.2,1)',
             borderRight: '1px solid rgba(255,255,255,0.24)',
-            bgcolor: 'rgba(7, 14, 24, 0.54)',
-            backdropFilter: 'blur(10px)',
+            bgcolor: 'rgba(7, 14, 24, 0.62)',
+            backdropFilter: 'blur(14px)',
             px: 1.1,
             py: 2,
             display: 'flex',
@@ -202,8 +208,8 @@ function Dashboard() {
                     px: navExpanded ? 1.25 : 0.8,
                     borderRadius: 2.1,
                     border: '1px solid',
-                    borderColor: active ? 'rgba(224,122,63,0.75)' : 'rgba(255,255,255,0.2)',
-                    bgcolor: active ? 'rgba(224,122,63,0.24)' : 'rgba(255,255,255,0.06)',
+                    borderColor: active ? 'rgba(224,122,63,0.78)' : 'rgba(255,255,255,0.24)',
+                    bgcolor: active ? 'rgba(224,122,63,0.26)' : 'rgba(255,255,255,0.05)',
                     color: 'rgba(255,255,255,0.94)',
                     textTransform: 'none',
                     overflow: 'hidden',
@@ -253,17 +259,17 @@ function Dashboard() {
                   id="agent-persona-select-label"
                   sx={{ color: 'rgba(255,255,255,0.82)' }}
                 >
-                  AI Coach
+                  Coach Persona
                 </InputLabel>
                 <Select
                   labelId="agent-persona-select-label"
-                  label="AI Coach"
+                  label="Coach Persona"
                   value={selectedAgent}
                   onChange={handleAgentChange}
                   sx={{
                     color: 'rgba(255,255,255,0.95)',
                     borderRadius: 2,
-                    bgcolor: 'rgba(255,255,255,0.06)',
+                    bgcolor: 'rgba(255,255,255,0.07)',
                     '.MuiOutlinedInput-notchedOutline': {
                       borderColor: 'rgba(255,255,255,0.28)',
                     },
@@ -313,8 +319,8 @@ function Dashboard() {
               px: { xs: 2, md: 3.5 },
               py: 2.5,
               borderBottom: '1px solid rgba(255,255,255,0.22)',
-              bgcolor: 'rgba(8, 14, 26, 0.40)',
-              backdropFilter: 'blur(8px)',
+              bgcolor: 'rgba(8, 14, 26, 0.48)',
+              backdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -374,7 +380,7 @@ function Dashboard() {
                 <Box
                   sx={{
                     mb: 2,
-                    p: 2,
+                    p: 2.2,
                     borderRadius: 2.5,
                     border: '1px solid rgba(255,255,255,0.25)',
                     background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(240,246,255,0.88))',
