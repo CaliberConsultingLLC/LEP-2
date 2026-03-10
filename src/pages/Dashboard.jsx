@@ -178,8 +178,8 @@ function Dashboard() {
           sx={{
             width: navExpanded ? 258 : 86,
             transition: 'width 180ms cubic-bezier(.2,.8,.2,1)',
-            borderRight: '1px solid rgba(255,255,255,0.24)',
-            bgcolor: 'rgba(8, 14, 26, 0.48)',
+            borderRight: '1px solid rgba(36,74,106,0.28)',
+            background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(240,246,255,0.88))',
             backdropFilter: 'blur(14px)',
             px: 1.1,
             py: 2,
@@ -208,14 +208,14 @@ function Dashboard() {
                     px: navExpanded ? 1.25 : 0.8,
                     borderRadius: 2.1,
                     border: '1px solid',
-                    borderColor: active ? 'rgba(224,122,63,0.78)' : 'rgba(255,255,255,0.24)',
-                    bgcolor: active ? 'rgba(224,122,63,0.26)' : 'rgba(255,255,255,0.05)',
-                    color: 'rgba(255,255,255,0.94)',
+                    borderColor: active ? 'rgba(224,122,63,0.78)' : 'rgba(50,86,117,0.28)',
+                    bgcolor: active ? 'rgba(224,122,63,0.18)' : 'rgba(255,255,255,0.5)',
+                    color: 'rgba(24,42,62,0.95)',
                     textTransform: 'none',
                     overflow: 'hidden',
                     '&:hover': {
-                      bgcolor: active ? 'rgba(224,122,63,0.3)' : 'rgba(255,255,255,0.12)',
-                      borderColor: active ? 'rgba(224,122,63,0.9)' : 'rgba(255,255,255,0.36)',
+                      bgcolor: active ? 'rgba(224,122,63,0.24)' : 'rgba(255,255,255,0.75)',
+                      borderColor: active ? 'rgba(224,122,63,0.9)' : 'rgba(50,86,117,0.4)',
                     },
                   }}
                 >
@@ -249,7 +249,7 @@ function Dashboard() {
             sx={{
               mt: 1.5,
               mb: 1.2,
-              borderColor: 'rgba(255,255,255,0.28)',
+              borderColor: 'rgba(50,86,117,0.24)',
             }}
           />
           <Box sx={{ px: navExpanded ? 0.2 : 0 }}>
@@ -257,7 +257,7 @@ function Dashboard() {
               <FormControl size="small" fullWidth>
                 <InputLabel
                   id="agent-persona-select-label"
-                  sx={{ color: 'rgba(255,255,255,0.82)' }}
+                  sx={{ color: 'rgba(33,58,82,0.86)' }}
                 >
                   Coach Persona
                 </InputLabel>
@@ -267,19 +267,19 @@ function Dashboard() {
                   value={selectedAgent}
                   onChange={handleAgentChange}
                   sx={{
-                    color: 'rgba(255,255,255,0.95)',
+                    color: 'rgba(24,42,62,0.95)',
                     borderRadius: 2,
-                    bgcolor: 'rgba(255,255,255,0.07)',
+                    bgcolor: 'rgba(255,255,255,0.72)',
                     '.MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255,255,255,0.28)',
+                      borderColor: 'rgba(50,86,117,0.28)',
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255,255,255,0.45)',
+                      borderColor: 'rgba(50,86,117,0.45)',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: 'secondary.main',
                     },
-                    '.MuiSvgIcon-root': { color: 'rgba(255,255,255,0.86)' },
+                    '.MuiSvgIcon-root': { color: 'rgba(33,58,82,0.82)' },
                   }}
                 >
                   {agentOptions.map((agent) => (
@@ -296,12 +296,12 @@ function Dashboard() {
                   width: '100%',
                   minWidth: 0,
                   borderRadius: 2,
-                  border: '1px solid rgba(255,255,255,0.24)',
-                  bgcolor: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.9)',
+                  border: '1px solid rgba(50,86,117,0.24)',
+                  bgcolor: 'rgba(255,255,255,0.7)',
+                  color: 'rgba(24,42,62,0.9)',
                   textTransform: 'none',
                   fontSize: '0.72rem',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
                 }}
                 onClick={() => setNavExpanded(true)}
               >
@@ -318,8 +318,8 @@ function Dashboard() {
             sx={{
               px: { xs: 2, md: 3.5 },
               py: 2.5,
-              borderBottom: '1px solid rgba(255,255,255,0.22)',
-              bgcolor: 'rgba(8, 14, 26, 0.48)',
+              borderBottom: '1px solid rgba(36,74,106,0.26)',
+              background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(240,246,255,0.88))',
               backdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
@@ -343,7 +343,7 @@ function Dashboard() {
                   fontFamily: 'Montserrat, sans-serif',
                   fontSize: { xs: '1.5rem', md: '1.72rem' },
                   fontWeight: 800,
-                  color: 'rgba(255,255,255,0.96)',
+                  color: 'text.primary',
                   lineHeight: 1.05,
                 }}
               >
@@ -360,11 +360,11 @@ function Dashboard() {
                   fontFamily: 'Montserrat, sans-serif',
                   fontWeight: 700,
                   textTransform: 'none',
-                  color: 'rgba(255,255,255,0.94)',
-                  borderColor: 'rgba(255,255,255,0.38)',
+                  color: 'text.primary',
+                  borderColor: 'rgba(50,86,117,0.38)',
                   '&:hover': {
-                    borderColor: 'rgba(255,255,255,0.7)',
-                    bgcolor: 'rgba(255,255,255,0.08)',
+                    borderColor: 'rgba(50,86,117,0.7)',
+                    bgcolor: 'rgba(255,255,255,0.8)',
                   },
                 }}
               >

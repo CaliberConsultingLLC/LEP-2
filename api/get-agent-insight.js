@@ -20,6 +20,30 @@ const clampInsightWords = (text, maxWords = 75) => {
   return `${words.slice(0, maxWords).join(' ').trim()}…`;
 };
 
+const normalizeBool = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  const asText = String(value || '').trim().toLowerCase();
+  return asText === 'true' || asText === '1' || asText === 'yes';
+};
+
+const mentionsGapLanguage = (text) =>
+  /\b(delta|gap|spread|difference between efficacy and effort|efficacy[-\s]?effort)\b/i.test(String(text || ''));
+
+const mentionsEfficacyEffortComparison = (text) =>
+  /\b(efficacy).*(effort|higher|lower|more|less|difference|compare)|\b(effort).*(efficacy|higher|lower|more|less|difference|compare)\b/i.test(String(text || ''));
+
+const buildFallbackInsight = (body, significantGap) => {
+  const subtrait = String(body?.selected_subtrait || 'this leadership area');
+  const scoreBand = String(body?.score_band || 'developing range');
+
+  if (!significantGap) {
+    return `In ${subtrait}, your score sits in the ${scoreBand}, which points to a leadership pattern your team can generally track and respond to. The signal here is about consistency and communication quality inside this specific behavior, not major structural friction. This is a calibration moment: strengthen what is already landing and tighten clarity where interpretation can drift.`;
+  }
+
+  return `In ${subtrait}, your score sits in the ${scoreBand}, and the efficacy-effort separation is now large enough to matter. This usually signals leadership energy not converting cleanly into team experience in this behavior. The practical insight is not effort alone, but conversion quality: how clearly intent, communication, and follow-through are being experienced by others in day-to-day execution.`;
+};
+
 const softenImperatives = (text) =>
   String(text || '')
     .replace(/\byou should\b/gi, 'you may notice')
@@ -63,6 +87,7 @@ HARD RULES
 - Prioritize score-position interpretation over gap commentary.
 - Use benchmark framing language carefully (e.g., "early range", "developing range", "strong range") since external benchmark data is limited.
 - Do NOT discuss efficacy-effort gap unless significant_gap is true.
+- If significant_gap is false, do not compare efficacy vs effort at all.
 - Use the selected_subtrait/question as a leadership lens, not just a numeric summary.
 `.trim();
 
@@ -86,6 +111,7 @@ export default async function handler(req, res) {
     if (!ensureJsonObjectBody(req, res)) return;
 
     const body = req.body || {};
+    const significantGap = normalizeBool(body.significant_gap);
     const userPrompt = `INPUTS
 - Selected trait/subtrait: ${body.selected_subtrait ?? ''}
 - Selected view: ${body.view_type ?? ''}
@@ -93,14 +119,14 @@ export default async function handler(req, res) {
 - Score band: ${body.score_band ?? ''}
 - Efficacy score: ${body.efficacy_score ?? ''}
 - Effort score: ${body.effort_score ?? ''}
-- Delta (efficacy vs effort gap): ${body.delta ?? ''}
-- Delta band: ${body.delta_band ?? ''}
+- Delta (efficacy vs effort gap): ${significantGap ? body.delta ?? '' : '[omitted: not significant]'}
+- Delta band: ${significantGap ? body.delta_band ?? '' : '[omitted: not significant]'}
 - Significant gap: ${body.significant_gap ?? false}
-- Perception gap (if available): ${body.perception_gap ?? ''}
-- Efficacy perception gap (team minus self): ${body.efficacy_perception_gap ?? ''}
-- Effort perception gap (team minus self): ${body.effort_perception_gap ?? ''}
-- Efficacy gap direction: ${body.efficacy_gap_direction ?? ''}
-- Effort gap direction: ${body.effort_gap_direction ?? ''}
+- Perception gap (if available): ${significantGap ? body.perception_gap ?? '' : '[omitted: not significant]'}
+- Efficacy perception gap (team minus self): ${significantGap ? body.efficacy_perception_gap ?? '' : '[omitted: not significant]'}
+- Effort perception gap (team minus self): ${significantGap ? body.effort_perception_gap ?? '' : '[omitted: not significant]'}
+- Efficacy gap direction: ${significantGap ? body.efficacy_gap_direction ?? '' : '[omitted: not significant]'}
+- Effort gap direction: ${significantGap ? body.effort_gap_direction ?? '' : '[omitted: not significant]'}
 - Baseline comparison: ${body.overall_baseline_comparison ?? ''}
 - Overall averages: ${body.overall_summary ?? ''}
 - Notable cross-trait patterns: ${body.cross_trait_patterns ?? ''}
@@ -119,8 +145,25 @@ export default async function handler(req, res) {
       ],
     });
 
-    const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const cleaned = clampInsightWords(clampInsightLength(softenImperatives(raw), 420), 75);
+    let raw = completion?.choices?.[0]?.message?.content?.trim() || '';
+
+    if (!significantGap && (mentionsGapLanguage(raw) || mentionsEfficacyEffortComparison(raw))) {
+      const retry = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        max_tokens: 220,
+        temperature: 0.35,
+        messages: [
+          { role: 'system', content: `${buildSystemPrompt()}\n\nENFORCEMENT: significant_gap is false, so you must not mention any gap, delta, spread, or any efficacy-vs-effort comparison.` },
+          { role: 'user', content: userPrompt },
+        ],
+      });
+      raw = retry?.choices?.[0]?.message?.content?.trim() || raw;
+    }
+
+    let cleaned = clampInsightWords(clampInsightLength(softenImperatives(raw), 420), 75);
+    if (!significantGap && (mentionsGapLanguage(cleaned) || mentionsEfficacyEffortComparison(cleaned))) {
+      cleaned = clampInsightWords(clampInsightLength(buildFallbackInsight(body, significantGap), 420), 75);
+    }
     return res.status(200).json({ insight: cleaned });
   } catch (err) {
     return safeServerError(res, 'Agent insight error:', err);

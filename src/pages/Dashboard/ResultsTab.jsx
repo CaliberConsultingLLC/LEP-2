@@ -730,6 +730,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       const efficacy = selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0;
       const effort = selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0;
       const delta = selectedDetailStatement?.delta ?? detailTraitMetrics?.delta ?? 0;
+      const significantGap = Math.abs(Number(delta || 0)) > 10;
       return {
         ...base,
         selected_subtrait: detailQuestionTitle || detailSubtraitLabel || selectedDetailTraitKey || 'Selected statement',
@@ -737,14 +738,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         score_band: getScoreBand(selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0),
         efficacy_score: efficacy,
         effort_score: effort,
-        delta,
-        delta_band: getDeltaBand(delta),
-        significant_gap: Math.abs(Number(delta || 0)) > 10,
-        perception_gap: `efficacy ${detailEfficacyPerceptionGap.toFixed(1)}, effort ${detailEffortPerceptionGap.toFixed(1)}`,
-        efficacy_perception_gap: Number(detailEfficacyPerceptionGap || 0).toFixed(1),
-        effort_perception_gap: Number(detailEffortPerceptionGap || 0).toFixed(1),
-        effort_gap_direction: getGapDirection(detailEffortPerceptionGap),
-        efficacy_gap_direction: getGapDirection(detailEfficacyPerceptionGap),
+        significant_gap: significantGap,
+        ...(significantGap
+          ? {
+              delta,
+              delta_band: getDeltaBand(delta),
+              perception_gap: `efficacy ${detailEfficacyPerceptionGap.toFixed(1)}, effort ${detailEffortPerceptionGap.toFixed(1)}`,
+              efficacy_perception_gap: Number(detailEfficacyPerceptionGap || 0).toFixed(1),
+              effort_perception_gap: Number(detailEffortPerceptionGap || 0).toFixed(1),
+              effort_gap_direction: getGapDirection(detailEffortPerceptionGap),
+              efficacy_gap_direction: getGapDirection(detailEfficacyPerceptionGap),
+            }
+          : {}),
         overall_baseline_comparison: overallMetrics
           ? `Selected LEP ${(selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
           : 'Overall baseline unavailable.',
@@ -754,6 +759,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     const efficacy = activeMetrics?.efficacy ?? 0;
     const effort = activeMetrics?.effort ?? 0;
     const delta = activeMetrics?.delta ?? 0;
+    const significantGap = Math.abs(Number(delta || 0)) > 10;
     return {
       ...base,
       selected_subtrait: selectedSubtraitLabel || selectedTraitKey || 'Selected trait',
@@ -761,14 +767,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       score_band: getScoreBand(activeMetrics?.lepScore ?? 0),
       efficacy_score: efficacy,
       effort_score: effort,
-      delta,
-      delta_band: getDeltaBand(delta),
-      significant_gap: Math.abs(Number(delta || 0)) > 10,
-      perception_gap: `efficacy ${efficacyPerceptionGap.toFixed(1)}, effort ${effortPerceptionGap.toFixed(1)}`,
-      efficacy_perception_gap: Number(efficacyPerceptionGap || 0).toFixed(1),
-      effort_perception_gap: Number(effortPerceptionGap || 0).toFixed(1),
-      effort_gap_direction: getGapDirection(effortPerceptionGap),
-      efficacy_gap_direction: getGapDirection(efficacyPerceptionGap),
+      significant_gap: significantGap,
+      ...(significantGap
+        ? {
+            delta,
+            delta_band: getDeltaBand(delta),
+            perception_gap: `efficacy ${efficacyPerceptionGap.toFixed(1)}, effort ${effortPerceptionGap.toFixed(1)}`,
+            efficacy_perception_gap: Number(efficacyPerceptionGap || 0).toFixed(1),
+            effort_perception_gap: Number(effortPerceptionGap || 0).toFixed(1),
+            effort_gap_direction: getGapDirection(effortPerceptionGap),
+            efficacy_gap_direction: getGapDirection(efficacyPerceptionGap),
+          }
+        : {}),
       overall_baseline_comparison: overallMetrics
         ? `Selected LEP ${(activeMetrics?.lepScore ?? 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
         : 'Overall baseline unavailable.',
@@ -784,6 +794,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       toFixed(payload?.trait_score),
       toFixed(payload?.efficacy_score),
       toFixed(payload?.effort_score),
+      String(Boolean(payload?.significant_gap)),
       toFixed(payload?.delta),
       payload?.delta_band || '',
       toFixed(payload?.effort_perception_gap),
@@ -902,6 +913,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         const effGap = teamEff == null || selfEff == null ? traitMetrics.efficacy - traitMetrics.lepScore : teamEff - selfEff;
         const effortGap = teamEffort == null || selfEffort == null ? traitMetrics.effort - traitMetrics.lepScore : teamEffort - selfEffort;
 
+        const significantGap = Math.abs(Number(traitMetrics.delta || 0)) > 10;
         return {
           view_type: 'campaign_results',
           selectedAgent: selectedAgentProp || intakeData?.selectedAgent || 'balancedMentor',
@@ -917,14 +929,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
           score_band: getScoreBand(traitMetrics.lepScore),
           efficacy_score: traitMetrics.efficacy,
           effort_score: traitMetrics.effort,
-          delta: traitMetrics.delta,
-          delta_band: getDeltaBand(traitMetrics.delta),
-          significant_gap: Math.abs(Number(traitMetrics.delta || 0)) > 10,
-          perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
-          efficacy_perception_gap: Number(effGap).toFixed(1),
-          effort_perception_gap: Number(effortGap).toFixed(1),
-          effort_gap_direction: getGapDirection(effortGap),
-          efficacy_gap_direction: getGapDirection(effGap),
+          significant_gap: significantGap,
+          ...(significantGap
+            ? {
+                delta: traitMetrics.delta,
+                delta_band: getDeltaBand(traitMetrics.delta),
+                perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
+                efficacy_perception_gap: Number(effGap).toFixed(1),
+                effort_perception_gap: Number(effortGap).toFixed(1),
+                effort_gap_direction: getGapDirection(effortGap),
+                efficacy_gap_direction: getGapDirection(effGap),
+              }
+            : {}),
           overall_baseline_comparison: overallMetrics
             ? `Selected LEP ${Number(traitMetrics.lepScore || 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
             : 'Overall baseline unavailable.',
@@ -947,6 +963,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         const effortGap = teamEffort == null || selfEffort == null ? statement.effort - statement.lepScore : teamEffort - selfEffort;
         const subLabel = campaignRows?.[traitIdx]?.subTrait || traitKey;
 
+        const significantGap = Math.abs(Number(statement.delta || 0)) > 10;
         return {
           view_type: 'detailed_results',
           selectedAgent: selectedAgentProp || intakeData?.selectedAgent || 'balancedMentor',
@@ -962,14 +979,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
           score_band: getScoreBand(statement.lepScore),
           efficacy_score: statement.efficacy,
           effort_score: statement.effort,
-          delta: statement.delta,
-          delta_band: getDeltaBand(statement.delta),
-          significant_gap: Math.abs(Number(statement.delta || 0)) > 10,
-          perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
-          efficacy_perception_gap: Number(effGap).toFixed(1),
-          effort_perception_gap: Number(effortGap).toFixed(1),
-          effort_gap_direction: getGapDirection(effortGap),
-          efficacy_gap_direction: getGapDirection(effGap),
+          significant_gap: significantGap,
+          ...(significantGap
+            ? {
+                delta: statement.delta,
+                delta_band: getDeltaBand(statement.delta),
+                perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
+                efficacy_perception_gap: Number(effGap).toFixed(1),
+                effort_perception_gap: Number(effortGap).toFixed(1),
+                effort_gap_direction: getGapDirection(effortGap),
+                efficacy_gap_direction: getGapDirection(effGap),
+              }
+            : {}),
           overall_baseline_comparison: overallMetrics
             ? `Selected LEP ${Number(statement?.lepScore || 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
             : 'Overall baseline unavailable.',
