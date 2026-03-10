@@ -690,6 +690,14 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return 'large';
   };
 
+  const getScoreBand = (score) => {
+    const value = Number(score || 0);
+    if (value < 35) return 'early range';
+    if (value < 55) return 'developing range';
+    if (value < 75) return 'solid range';
+    return 'strong range';
+  };
+
   const getGapDirection = (gap) => {
     const value = Number(gap || 0);
     if (value > 1) return 'team_sees_more';
@@ -718,6 +726,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         ...base,
         selected_subtrait: detailQuestionTitle || detailSubtraitLabel || selectedDetailTraitKey || 'Selected statement',
         trait_score: selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0,
+        score_band: getScoreBand(selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0),
         efficacy_score: efficacy,
         effort_score: effort,
         delta,
@@ -740,6 +749,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       ...base,
       selected_subtrait: selectedSubtraitLabel || selectedTraitKey || 'Selected trait',
       trait_score: activeMetrics?.lepScore ?? 0,
+      score_band: getScoreBand(activeMetrics?.lepScore ?? 0),
       efficacy_score: efficacy,
       effort_score: effort,
       delta,
@@ -886,25 +896,25 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     const efficacyGap = Number(efficacyGapValue || 0);
     const effortGap = Number(effortGapValue || 0);
 
-    const deltaMeaning = delta < 5
-      ? 'The efficacy-effort gap is tight, which usually means execution pressure is controlled and conversion into impact is relatively steady.'
-      : delta < 12
-        ? 'The efficacy-effort gap is moderate, signaling visible friction between invested energy and experienced results.'
-        : 'The efficacy-effort gap is large, signaling a substantial conversion problem where energy is not consistently becoming impact.';
+    const directionLine = (label, gap) => {
+      if (gap <= -10) {
+        return `Your team rates ${label} lower than you do by ${Math.abs(gap).toFixed(1)}, which suggests your self-view is ahead of observed experience in this area.`;
+      }
+      if (gap >= 10) {
+        return `Your team rates ${label} higher than you do by ${Math.abs(gap).toFixed(1)}, which suggests you may be underrating your impact here.`;
+      }
+      return `${label[0].toUpperCase()}${label.slice(1)} perception is mostly aligned (gap ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}).`;
+    };
 
-    const efficacyMeaning = efficacyGap > 1
-      ? 'Your team rates efficacy higher than your self-view, which suggests under-recognized strengths or understated impact signals.'
-      : efficacyGap < -1
-        ? 'Your team rates efficacy lower than your self-view, which points to an execution visibility or consistency gap.'
-        : 'Efficacy perception is closely aligned, indicating shared understanding of performance.';
+    if (Math.abs(efficacyGap) < 10 && Math.abs(effortGap) < 10) {
+      return 'Self and team perception are mostly aligned across efficacy and effort. Differences are minor and likely reflect normal communication noise rather than a major leadership disconnect.';
+    }
 
-    const effortMeaning = effortGap > 1
-      ? 'Team-rated effort is higher than your self-view, so others may be experiencing more intensity or load than expected.'
-      : effortGap < -1
-        ? 'Team-rated effort is lower than your self-view, suggesting hidden effort that is not fully visible to others.'
-        : 'Effort perception is closely aligned, indicating shared expectations about workload and pace.';
+    const significance = delta >= 10
+      ? 'The efficacy-effort spread is significant, so this perception context deserves attention.'
+      : 'The efficacy-effort spread is not significant, so this is more about perception calibration than performance risk.';
 
-    return `${deltaMeaning} ${efficacyMeaning} ${effortMeaning}`;
+    return `${significance} ${directionLine('efficacy', efficacyGap)} ${directionLine('effort', effortGap)}`;
   };
 
   const compassGapNarrative = useMemo(
@@ -1069,25 +1079,6 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
                             return (
                               <>
-                                {radii.map((radius, idx) => {
-                                  const strokeWidth = 30;
-                                  const halfWidth = strokeWidth / 2;
-                                  const topAngleSVG = toSVGAngle(0);
-                                  const topY = centerY + radius * Math.sin(topAngleSVG);
-                                  return (
-                                    <line
-                                      key={`top-divider-${idx}`}
-                                      x1={centerX}
-                                      y1={topY - halfWidth}
-                                      x2={centerX}
-                                      y2={topY + halfWidth}
-                                      stroke="rgba(255,255,255,0.9)"
-                                      strokeWidth="2"
-                                      opacity="0.4"
-                                    />
-                                  );
-                                })}
-
                                 {traits.map(([trait, data], traitIdx) => {
                                   const radius = radii[traitIdx];
                                   const arcLength = getArcLength(radius);
@@ -1099,7 +1090,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   return (
                                     <g key={`efficacy-trait-${traitIdx}`}>
                                       <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="30" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.4" />
+                                      <path d={createArcPath(radius - 15, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.2" />
+                                      <path d={createArcPath(radius + 15, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.2" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
@@ -1144,7 +1136,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   return (
                                     <g key={`effort-trait-${traitIdx}`}>
                                       <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="30" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.4" />
+                                      <path d={createArcPath(radius - 15, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.2" />
+                                      <path d={createArcPath(radius + 15, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.2" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
@@ -1312,6 +1305,21 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       }}
                     >
                     <Box sx={{ width: '100%', maxWidth: { xs: 760, lg: 760 }, mx: 'auto' }}>
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: { xs: '1fr', md: '0.92fr 1.08fr' },
+                          gap: 1.1,
+                          mb: 0.65,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+                          Scores
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+                          Interpretations & Insights
+                        </Typography>
+                      </Box>
                       {!!insightError.compass && (
                         <Alert severity="warning" sx={{ mb: 1.1 }}>
                           {insightError.compass}
@@ -1498,22 +1506,6 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             const getArcLength = (r) => Math.PI * r;
                             return (
                               <>
-                                {radii.map((radius, idx) => {
-                                  const sw = 18;
-                                  const topY = centerY + radius * Math.sin(toSVGAngle(0));
-                                  return (
-                                    <line
-                                      key={`detail-divider-${idx}`}
-                                      x1={centerX}
-                                      y1={topY - sw / 2}
-                                      x2={centerX}
-                                      y2={topY + sw / 2}
-                                      stroke="rgba(255,255,255,0.9)"
-                                      strokeWidth="2"
-                                      opacity="0.42"
-                                    />
-                                  );
-                                })}
                                 {statements.map((stmt, idx) => {
                                   const radius = radii[idx];
                                   if (!radius) return null;
@@ -1526,7 +1518,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   return (
                                     <g key={`detail-e-${idx}`}>
                                       <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="21" />
-                                      <path d={createArcPath(radius, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.2" />
+                                      <path d={createArcPath(radius - 10.5, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.1" />
+                                      <path d={createArcPath(radius + 10.5, 180, 0, 1)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.1" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
@@ -1557,7 +1550,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   return (
                                     <g key={`detail-f-${idx}`}>
                                       <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(180,201,223,0.68)" strokeWidth="21" />
-                                      <path d={createArcPath(radius, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.46)" strokeWidth="1.2" />
+                                      <path d={createArcPath(radius - 10.5, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.1" />
+                                      <path d={createArcPath(radius + 10.5, 180, 0, 0)} fill="none" stroke="rgba(19,61,97,0.58)" strokeWidth="1.1" />
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
@@ -1629,6 +1623,21 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       }}
                     >
                     <Box sx={{ width: '100%', maxWidth: { xs: 760, lg: 760 }, mx: 'auto' }}>
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: { xs: '1fr', md: '0.92fr 1.08fr' },
+                          gap: 1.1,
+                          mb: 0.65,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+                          Scores
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+                          Interpretations & Insights
+                        </Typography>
+                      </Box>
                       {!!insightError.detailed && (
                         <Alert severity="warning" sx={{ mb: 1.1 }}>
                           {insightError.detailed}

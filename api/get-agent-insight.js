@@ -12,6 +12,14 @@ const clampInsightLength = (text, max = 420) => {
   return `${safe.trimEnd()}…`;
 };
 
+const clampInsightWords = (text, maxWords = 75) => {
+  const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  const words = normalized.split(' ');
+  if (words.length <= maxWords) return normalized;
+  return `${words.slice(0, maxWords).join(' ').trim()}…`;
+};
+
 const softenImperatives = (text) =>
   String(text || '')
     .replace(/\byou should\b/gi, 'you may notice')
@@ -29,7 +37,7 @@ You are Compass Insights.
 Your role in this step is interpretation, not action planning.
 The user is reviewing results and needs confidence, clarity, and context.
 
-Write one concise interpretation paragraph (85-130 words) in the user's selected voice:
+Write one concise interpretation paragraph (55-75 words) in the user's selected voice:
 - bluntPracticalFriend
 - formalEmpatheticCoach
 - balancedMentor
@@ -39,9 +47,9 @@ Write one concise interpretation paragraph (85-130 words) in the user's selected
 
 GOAL
 Help the user understand:
-1) the relationship between efficacy and effort,
-2) what the delta size implies (small/moderate/large),
-3) what perception gaps imply about alignment and observed leadership impact.
+1) where the score sits on a practical 0-100 performance scale,
+2) the relationship between efficacy and effort,
+3) why the gap only matters when it is significant.
 
 HARD RULES
 - Do NOT tell the user what to do next.
@@ -50,6 +58,8 @@ HARD RULES
 - Keep language human, specific, and grounded in provided data.
 - If data confidence is limited, briefly acknowledge uncertainty.
 - Output plain text only, with no headings or section labels.
+- Prioritize score-position interpretation over gap commentary.
+- Use benchmark framing language carefully (e.g., "early range", "developing range", "strong range") since external benchmark data is limited.
 `.trim();
 
 export default async function handler(req, res) {
@@ -76,6 +86,7 @@ export default async function handler(req, res) {
 - Selected trait/subtrait: ${body.selected_subtrait ?? ''}
 - Selected view: ${body.view_type ?? ''}
 - Trait score (LEP): ${body.trait_score ?? ''}
+- Score band: ${body.score_band ?? ''}
 - Efficacy score: ${body.efficacy_score ?? ''}
 - Effort score: ${body.effort_score ?? ''}
 - Delta (efficacy vs effort gap): ${body.delta ?? ''}
@@ -104,7 +115,7 @@ export default async function handler(req, res) {
     });
 
     const raw = completion?.choices?.[0]?.message?.content?.trim() || '';
-    const cleaned = clampInsightLength(softenImperatives(raw), 420);
+    const cleaned = clampInsightWords(clampInsightLength(softenImperatives(raw), 420), 75);
     return res.status(200).json({ insight: cleaned });
   } catch (err) {
     return safeServerError(res, 'Agent insight error:', err);
