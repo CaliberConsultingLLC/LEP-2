@@ -1205,9 +1205,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         justifyContent: 'center',
                         alignItems: 'center',
                         borderRadius: 2.2,
-                        border: '1px solid rgba(21,62,97,0.28)',
+                        border: '1px solid rgba(67,95,123,0.32)',
                         background:
-                          'radial-gradient(620px 380px at 50% 44%, rgba(255,255,255,0.96), rgba(236,242,251,0.9))',
+                          'radial-gradient(620px 380px at 50% 44%, rgba(220,230,241,0.92), rgba(204,218,233,0.88))',
                         boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.32)',
                         overflow: 'hidden',
                       }}
@@ -1653,9 +1653,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         justifyContent: 'center',
                         alignItems: 'center',
                         borderRadius: 2.2,
-                        border: '1px solid rgba(21,62,97,0.28)',
+                        border: '1px solid rgba(67,95,123,0.32)',
                         background:
-                          'radial-gradient(620px 380px at 50% 44%, rgba(255,255,255,0.96), rgba(236,242,251,0.9))',
+                          'radial-gradient(620px 380px at 50% 44%, rgba(220,230,241,0.92), rgba(204,218,233,0.88))',
                         boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.32)',
                         overflow: 'hidden',
                       }}

@@ -154,7 +154,7 @@ function Dashboard() {
           inset: 0,
           zIndex: -2,
           backgroundImage:
-            'linear-gradient(120deg, rgba(9,16,31,0.92), rgba(16,34,60,0.88)), url(/LEP2.jpg)',
+            'linear-gradient(120deg, rgba(14,26,40,0.86), rgba(22,38,56,0.84)), url(/LEP2.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -166,7 +166,7 @@ function Dashboard() {
           inset: 0,
           zIndex: -1,
           background:
-            'radial-gradient(800px 360px at 84% 18%, rgba(94,145,176,0.30), transparent 65%), radial-gradient(560px 300px at 6% 46%, rgba(91,132,167,0.28), transparent 72%)',
+            'radial-gradient(860px 420px at 84% 18%, rgba(61,90,120,0.22), transparent 66%), radial-gradient(620px 360px at 8% 52%, rgba(63,92,121,0.2), transparent 74%)',
         },
       }}
     >
@@ -178,8 +178,8 @@ function Dashboard() {
           sx={{
             width: navExpanded ? 258 : 86,
             transition: 'width 180ms cubic-bezier(.2,.8,.2,1)',
-            borderRight: '1px solid rgba(36,74,106,0.28)',
-            background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(240,246,255,0.88))',
+            borderRight: '1px solid rgba(73,101,129,0.34)',
+            bgcolor: 'rgba(58,82,108,0.72)',
             backdropFilter: 'blur(14px)',
             px: 1.1,
             py: 2,
@@ -208,14 +208,14 @@ function Dashboard() {
                     px: navExpanded ? 1.25 : 0.8,
                     borderRadius: 2.1,
                     border: '1px solid',
-                    borderColor: active ? 'rgba(224,122,63,0.78)' : 'rgba(50,86,117,0.28)',
-                    bgcolor: active ? 'rgba(224,122,63,0.18)' : 'rgba(255,255,255,0.5)',
-                    color: 'rgba(24,42,62,0.95)',
+                    borderColor: active ? 'rgba(224,122,63,0.78)' : 'rgba(230,240,250,0.26)',
+                    bgcolor: active ? 'rgba(224,122,63,0.18)' : 'rgba(255,255,255,0.08)',
+                    color: 'rgba(246,250,255,0.95)',
                     textTransform: 'none',
                     overflow: 'hidden',
                     '&:hover': {
-                      bgcolor: active ? 'rgba(224,122,63,0.24)' : 'rgba(255,255,255,0.75)',
-                      borderColor: active ? 'rgba(224,122,63,0.9)' : 'rgba(50,86,117,0.4)',
+                      bgcolor: active ? 'rgba(224,122,63,0.24)' : 'rgba(255,255,255,0.14)',
+                      borderColor: active ? 'rgba(224,122,63,0.9)' : 'rgba(230,240,250,0.34)',
                     },
                   }}
                 >
@@ -249,7 +249,7 @@ function Dashboard() {
             sx={{
               mt: 1.5,
               mb: 1.2,
-              borderColor: 'rgba(50,86,117,0.24)',
+              borderColor: 'rgba(230,240,250,0.24)',
             }}
           />
           <Box sx={{ px: navExpanded ? 0.2 : 0 }}>
@@ -257,7 +257,7 @@ function Dashboard() {
               <FormControl size="small" fullWidth>
                 <InputLabel
                   id="agent-persona-select-label"
-                  sx={{ color: 'rgba(33,58,82,0.86)' }}
+                  sx={{ color: 'rgba(236,244,252,0.86)' }}
                 >
                   Coach Persona
                 </InputLabel>
@@ -267,19 +267,19 @@ function Dashboard() {
                   value={selectedAgent}
                   onChange={handleAgentChange}
                   sx={{
-                    color: 'rgba(24,42,62,0.95)',
+                    color: 'rgba(248,252,255,0.96)',
                     borderRadius: 2,
-                    bgcolor: 'rgba(255,255,255,0.72)',
+                    bgcolor: 'rgba(255,255,255,0.12)',
                     '.MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(50,86,117,0.28)',
+                      borderColor: 'rgba(230,240,250,0.28)',
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(50,86,117,0.45)',
+                      borderColor: 'rgba(230,240,250,0.45)',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: 'secondary.main',
                     },
-                    '.MuiSvgIcon-root': { color: 'rgba(33,58,82,0.82)' },
+                    '.MuiSvgIcon-root': { color: 'rgba(235,245,253,0.82)' },
                   }}
                 >
                   {agentOptions.map((agent) => (
@@ -296,12 +296,12 @@ function Dashboard() {
                   width: '100%',
                   minWidth: 0,
                   borderRadius: 2,
-                  border: '1px solid rgba(50,86,117,0.24)',
-                  bgcolor: 'rgba(255,255,255,0.7)',
-                  color: 'rgba(24,42,62,0.9)',
+                  border: '1px solid rgba(230,240,250,0.24)',
+                  bgcolor: 'rgba(255,255,255,0.1)',
+                  color: 'rgba(248,252,255,0.92)',
                   textTransform: 'none',
                   fontSize: '0.72rem',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
                 }}
                 onClick={() => setNavExpanded(true)}
               >
@@ -318,8 +318,8 @@ function Dashboard() {
             sx={{
               px: { xs: 2, md: 3.5 },
               py: 2.5,
-              borderBottom: '1px solid rgba(36,74,106,0.26)',
-              background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(240,246,255,0.88))',
+              borderBottom: '1px solid rgba(73,101,129,0.34)',
+              bgcolor: 'rgba(58,82,108,0.72)',
               backdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
@@ -343,7 +343,7 @@ function Dashboard() {
                   fontFamily: 'Montserrat, sans-serif',
                   fontSize: { xs: '1.5rem', md: '1.72rem' },
                   fontWeight: 800,
-                  color: 'text.primary',
+                  color: 'rgba(248,252,255,0.96)',
                   lineHeight: 1.05,
                 }}
               >
@@ -360,11 +360,11 @@ function Dashboard() {
                   fontFamily: 'Montserrat, sans-serif',
                   fontWeight: 700,
                   textTransform: 'none',
-                  color: 'text.primary',
-                  borderColor: 'rgba(50,86,117,0.38)',
+                  color: 'rgba(248,252,255,0.94)',
+                  borderColor: 'rgba(230,240,250,0.38)',
                   '&:hover': {
-                    borderColor: 'rgba(50,86,117,0.7)',
-                    bgcolor: 'rgba(255,255,255,0.8)',
+                    borderColor: 'rgba(230,240,250,0.7)',
+                    bgcolor: 'rgba(255,255,255,0.12)',
                   },
                 }}
               >
