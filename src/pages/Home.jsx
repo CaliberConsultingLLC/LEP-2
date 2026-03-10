@@ -545,9 +545,7 @@ function Home() {
                           bgcolor:
                             activeSection === 0
                               ? '#FFFFFF'
-                              : activeSection === 1
-                                ? '#EAF2FB'
-                                : '#EEF4FB',
+                              : '#1F4E7A',
                           boxShadow:
                             'inset 0 0 0 2px rgba(255,255,255,0.72), 0 6px 20px rgba(15,23,42,0.06)',
                           overflow: 'hidden',
@@ -603,7 +601,7 @@ function Home() {
                                   ? { xs: '1.09rem', md: '1.24rem' }
                                   : { xs: '1.45rem', md: '1.65rem' },
                               letterSpacing: '0.12em',
-                              color: '#0F2B45',
+                              color: activeSection === 0 ? '#0F2B45' : '#F7FAFF',
                               textTransform: 'uppercase',
                               whiteSpace: 'normal',
                               textAlign: 'center',
