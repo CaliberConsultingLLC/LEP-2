@@ -47,6 +47,8 @@ function ResultsTab({ view = 'compass' }) {
   const [benchmarkGapData, setBenchmarkGapData] = useState(null);
   const [compassAgentInsight, setCompassAgentInsight] = useState('');
   const [detailAgentInsight, setDetailAgentInsight] = useState('');
+  const [insightLoading, setInsightLoading] = useState({ compass: false, detailed: false });
+  const [insightError, setInsightError] = useState({ compass: '', detailed: '' });
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -662,70 +664,91 @@ function ResultsTab({ view = 'compass' }) {
     return teamValue - selfValue;
   }, [benchmarkGapData, selectedDetailStatementIndex, selectedDetailStatement, detailTraitMetrics]);
 
-  const trimToChars = (text, max = 200) => {
+  const trimToChars = (text, max = 360) => {
     const normalized = String(text || '').replace(/\s+/g, ' ').trim();
     if (normalized.length <= max) return normalized;
     const sliced = normalized.slice(0, max - 1);
     const lastSpace = sliced.lastIndexOf(' ');
-    return `${(lastSpace > 120 ? sliced.slice(0, lastSpace) : sliced).trimEnd()}…`;
+    return `${(lastSpace > 180 ? sliced.slice(0, lastSpace) : sliced).trimEnd()}…`;
   };
 
-  const getAgentPrefix = (agentId) => {
-    switch (agentId) {
-      case 'comedyRoaster':
-        return 'Quick truth:';
-      case 'bluntPracticalFriend':
-        return 'Straight talk:';
-      case 'formalEmpatheticCoach':
-        return 'Coach view:';
-      case 'pragmaticProblemSolver':
-        return 'System view:';
-      case 'highSchoolCoach':
-        return 'Coach huddle:';
-      case 'balancedMentor':
-      default:
-        return 'Insight:';
-    }
+  const getCrossTraitPatterns = () => {
+    if (!criticalGaps?.length) return 'No major cross-trait divergence detected.';
+    return criticalGaps
+      .slice(0, 2)
+      .map((g) => `${g.trait} delta ${Number(g.delta || 0).toFixed(1)}`)
+      .join('; ');
   };
 
-  const buildAgentInsight = (mode) => {
-    const agentId = intakeData?.selectedAgent || 'balancedMentor';
-    const prefix = getAgentPrefix(agentId);
-    const overallAvg = overallMetrics?.avgLEP ?? 0;
-    const overallGap = overallMetrics?.avgDelta ?? 0;
-    const highGapCount = overallMetrics?.highGapCount ?? 0;
+  const buildInsightPayload = (mode) => {
+    const base = {
+      view_type: mode === 'detailed' ? 'detailed_results' : 'campaign_results',
+      selectedAgent: intakeData?.selectedAgent || 'balancedMentor',
+      overall_summary: overallMetrics
+        ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
+        : 'Overall metrics unavailable.',
+      cross_trait_patterns: getCrossTraitPatterns(),
+      confidence_context: benchmarkGapData?.teamResponses?.length
+        ? `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`
+        : `Synthetic response context: ${fakeData.responses.length} team responses.`,
+    };
 
     if (mode === 'detailed') {
-      const traitLabel = detailSubtraitLabel || selectedDetailTraitKey || 'this trait';
-      const lep = selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0;
-      const delta = selectedDetailStatement?.delta ?? detailTraitMetrics?.delta ?? 0;
-      const efficacy = selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0;
-      const effort = selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0;
-      const direction = efficacy >= effort
-        ? 'protect strength with tighter execution rhythm'
-        : 'change approach before adding more effort';
-
-      return trimToChars(
-        `${prefix} ${traitLabel} sits at ${lep.toFixed(1)} with a ${delta.toFixed(1)} delta. ` +
-        `Overall baseline is ${overallAvg.toFixed(1)} (${highGapCount} major gaps). ` +
-        `Next move: ${direction}.`
-      );
+      return {
+        ...base,
+        selected_subtrait: detailQuestionTitle || detailSubtraitLabel || selectedDetailTraitKey || 'Selected statement',
+        trait_score: selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0,
+        efficacy_score: selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0,
+        effort_score: selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0,
+        delta: selectedDetailStatement?.delta ?? detailTraitMetrics?.delta ?? 0,
+        perception_gap: `efficacy ${detailEfficacyPerceptionGap.toFixed(1)}, effort ${detailEffortPerceptionGap.toFixed(1)}`,
+      };
     }
 
-    const traitLabel = selectedSubtraitLabel || selectedTraitKey || 'this trait';
-    const lep = activeMetrics?.lepScore ?? 0;
-    const delta = activeMetrics?.delta ?? 0;
-    const efficacy = activeMetrics?.efficacy ?? 0;
-    const effort = activeMetrics?.effort ?? 0;
-    const direction = delta > 25
-      ? (efficacy >= effort ? 'raise intentional effort to match your upside' : 'revise your method, not just intensity')
-      : 'keep this pattern and scale it across the team';
+    return {
+      ...base,
+      selected_subtrait: selectedSubtraitLabel || selectedTraitKey || 'Selected trait',
+      trait_score: activeMetrics?.lepScore ?? 0,
+      efficacy_score: activeMetrics?.efficacy ?? 0,
+      effort_score: activeMetrics?.effort ?? 0,
+      delta: activeMetrics?.delta ?? 0,
+      perception_gap: `efficacy ${efficacyPerceptionGap.toFixed(1)}, effort ${effortPerceptionGap.toFixed(1)}`,
+    };
+  };
 
-    return trimToChars(
-      `${prefix} ${traitLabel} is at ${lep.toFixed(1)} (${delta.toFixed(1)} delta). ` +
-      `Overall score ${overallAvg.toFixed(1)} and average gap ${overallGap.toFixed(1)}. ` +
-      `Best next step: ${direction}.`
-    );
+  const requestAgentInsight = async (mode) => {
+    const stateKey = mode === 'detailed' ? 'detailed' : 'compass';
+    setInsightLoading((prev) => ({ ...prev, [stateKey]: true }));
+    setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+
+    try {
+      const payload = buildInsightPayload(mode);
+      const res = await fetch('/api/get-agent-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Insight request failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      const insightText = trimToChars(data?.insight || 'No insight available yet.');
+      if (stateKey === 'detailed') {
+        setDetailAgentInsight(insightText);
+      } else {
+        setCompassAgentInsight(insightText);
+      }
+    } catch (err) {
+      const message = 'Unable to generate insights right now. Please try again.';
+      setInsightError((prev) => ({ ...prev, [stateKey]: message }));
+      if (stateKey === 'detailed') setDetailAgentInsight('');
+      else setCompassAgentInsight('');
+      console.error('Agent insight error:', err);
+    } finally {
+      setInsightLoading((prev) => ({ ...prev, [stateKey]: false }));
+    }
   };
 
   const activeMetrics = useMemo(() => {
@@ -1153,7 +1176,8 @@ function ResultsTab({ view = 'compass' }) {
                       <Stack alignItems="center" sx={{ mt: 1.4 }}>
                         <Button
                           variant="contained"
-                          onClick={() => setCompassAgentInsight(buildAgentInsight('compass'))}
+                          onClick={() => requestAgentInsight('compass')}
+                          disabled={insightLoading.compass}
                           sx={{
                             px: 3,
                             py: 0.9,
@@ -1164,8 +1188,13 @@ function ResultsTab({ view = 'compass' }) {
                             '&:hover': { bgcolor: '#375d78' },
                           }}
                         >
-                          Agent Insights
+                          {insightLoading.compass ? 'Generating Insight...' : 'Agent Insights'}
                         </Button>
+                        {!!insightError.compass && (
+                          <Alert severity="warning" sx={{ mt: 1.1, width: '100%', maxWidth: 520 }}>
+                            {insightError.compass}
+                          </Alert>
+                        )}
                         {!!compassAgentInsight && (
                           <Alert
                             severity="info"
@@ -1424,7 +1453,8 @@ function ResultsTab({ view = 'compass' }) {
                       <Stack alignItems="center" sx={{ mt: 1.4 }}>
                         <Button
                           variant="contained"
-                          onClick={() => setDetailAgentInsight(buildAgentInsight('detailed'))}
+                          onClick={() => requestAgentInsight('detailed')}
+                          disabled={insightLoading.detailed}
                           sx={{
                             px: 3,
                             py: 0.9,
@@ -1435,8 +1465,13 @@ function ResultsTab({ view = 'compass' }) {
                             '&:hover': { bgcolor: '#375d78' },
                           }}
                         >
-                          Agent Insights
+                          {insightLoading.detailed ? 'Generating Insight...' : 'Agent Insights'}
                         </Button>
+                        {!!insightError.detailed && (
+                          <Alert severity="warning" sx={{ mt: 1.1, width: '100%', maxWidth: 520 }}>
+                            {insightError.detailed}
+                          </Alert>
+                        )}
                         {!!detailAgentInsight && (
                           <Alert
                             severity="info"

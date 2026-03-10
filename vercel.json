@@ -20,6 +20,7 @@
   "functions": {
     "api/get-ai-summary.js": { "maxDuration": 30 },
     "api/get-ai-reflection.js": { "maxDuration": 30 },
+    "api/get-agent-insight.js": { "maxDuration": 30 },
     "api/send-welcome-email.js": { "maxDuration": 30 },
     "api/get-campaign.js": { "maxDuration": 30 },
     "api/dismiss-statement.js": { "maxDuration": 30 }
