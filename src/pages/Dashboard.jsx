@@ -5,6 +5,10 @@ import {
   Divider,
   Typography,
   Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Campaign,
@@ -26,7 +30,40 @@ function Dashboard() {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState(0);
   const [navExpanded, setNavExpanded] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('latestFormData') || '{}');
+      return stored?.selectedAgent || 'balancedMentor';
+    } catch {
+      return 'balancedMentor';
+    }
+  });
   const CONTENT_MAX_WIDTH = 1180;
+  const agentOptions = [
+    { id: 'balancedMentor', name: 'Balanced Mentor' },
+    { id: 'comedyRoaster', name: 'Comedy Roaster' },
+    { id: 'bluntPracticalFriend', name: 'Blunt Practical Friend' },
+    { id: 'formalEmpatheticCoach', name: 'Formal Empathetic Coach' },
+    { id: 'pragmaticProblemSolver', name: 'Pragmatic Problem Solver' },
+    { id: 'highSchoolCoach', name: 'High School Coach' },
+  ];
+
+  const handleAgentChange = (event) => {
+    const nextAgent = event.target.value;
+    setSelectedAgent(nextAgent);
+    try {
+      const stored = JSON.parse(localStorage.getItem('latestFormData') || '{}');
+      localStorage.setItem(
+        'latestFormData',
+        JSON.stringify({ ...stored, selectedAgent: nextAgent })
+      );
+    } catch {
+      localStorage.setItem(
+        'latestFormData',
+        JSON.stringify({ selectedAgent: nextAgent })
+      );
+    }
+  };
 
   if (!useFakeDashboardData) {
     return (
@@ -202,6 +239,70 @@ function Dashboard() {
               );
             })}
           </Stack>
+          <Divider
+            sx={{
+              mt: 1.5,
+              mb: 1.2,
+              borderColor: 'rgba(255,255,255,0.28)',
+            }}
+          />
+          <Box sx={{ px: navExpanded ? 0.2 : 0 }}>
+            {navExpanded ? (
+              <FormControl size="small" fullWidth>
+                <InputLabel
+                  id="agent-persona-select-label"
+                  sx={{ color: 'rgba(255,255,255,0.82)' }}
+                >
+                  AI Coach
+                </InputLabel>
+                <Select
+                  labelId="agent-persona-select-label"
+                  label="AI Coach"
+                  value={selectedAgent}
+                  onChange={handleAgentChange}
+                  sx={{
+                    color: 'rgba(255,255,255,0.95)',
+                    borderRadius: 2,
+                    bgcolor: 'rgba(255,255,255,0.06)',
+                    '.MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255,255,255,0.28)',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255,255,255,0.45)',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'secondary.main',
+                    },
+                    '.MuiSvgIcon-root': { color: 'rgba(255,255,255,0.86)' },
+                  }}
+                >
+                  {agentOptions.map((agent) => (
+                    <MenuItem key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <Button
+                sx={{
+                  minHeight: 40,
+                  width: '100%',
+                  minWidth: 0,
+                  borderRadius: 2,
+                  border: '1px solid rgba(255,255,255,0.24)',
+                  bgcolor: 'rgba(255,255,255,0.06)',
+                  color: 'rgba(255,255,255,0.9)',
+                  textTransform: 'none',
+                  fontSize: '0.72rem',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                }}
+                onClick={() => setNavExpanded(true)}
+              >
+                Coach
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {/* Main Content Area */}
@@ -306,8 +407,8 @@ function Dashboard() {
 
               <Box sx={{ mt: 1.8 }}>
                 {currentTab === 0 && <GrowthCampaignTab />}
-                {currentTab === 1 && <ResultsTab view="compass" />}
-                {currentTab === 2 && <ResultsTab view="detailed" />}
+                {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
+                {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
                 {currentTab === 3 && <ActionTab />}
                 {currentTab === 4 && <JourneyTab />}
               </Box>

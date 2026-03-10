@@ -31,7 +31,7 @@ import fakeData from '../../data/fakeData.js';
 import { db } from '../../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
-function ResultsTab({ view = 'compass' }) {
+function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' }) {
   const [traitData, setTraitData] = useState({});
   const [intakeData, setIntakeData] = useState(null);
   const [criticalGaps, setCriticalGaps] = useState([]);
@@ -683,7 +683,7 @@ function ResultsTab({ view = 'compass' }) {
   const buildInsightPayload = (mode) => {
     const base = {
       view_type: mode === 'detailed' ? 'detailed_results' : 'campaign_results',
-      selectedAgent: intakeData?.selectedAgent || 'balancedMentor',
+      selectedAgent: selectedAgentProp || intakeData?.selectedAgent || 'balancedMentor',
       overall_summary: overallMetrics
         ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
         : 'Overall metrics unavailable.',
