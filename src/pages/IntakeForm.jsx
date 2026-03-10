@@ -1348,23 +1348,25 @@ function IntakeForm() {
                                         textAlign: 'center',
                                       }}
                                     >
-                                    <Box
-                                      sx={{
-                                        mr: 1.5,
-                                        width: 28,
-                                        height: 28,
-                                        borderRadius: '50%',
-                                        bgcolor: 'rgba(224,122,63,0.15)',
-                                        color: '#E07A3F',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 700,
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      {index + 1}
-                                    </Box>
+                                    {q.id !== 'crisisResponse' && (
+                                      <Box
+                                        sx={{
+                                          mr: 1.5,
+                                          width: 28,
+                                          height: 28,
+                                          borderRadius: '50%',
+                                          bgcolor: 'rgba(224,122,63,0.15)',
+                                          color: '#E07A3F',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          fontWeight: 700,
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        {index + 1}
+                                      </Box>
+                                    )}
                                     <Typography sx={{ textAlign: 'center', flex: 1 }}>{opt}</Typography>
                                   </Box>
                                 )}

@@ -105,10 +105,6 @@ function Dashboard() {
         minHeight: '100vh',
         width: '100vw',
         color: 'text.primary',
-        fontFamily: 'Montserrat, sans-serif',
-        '& *': {
-          fontFamily: 'Montserrat, sans-serif !important',
-        },
         overflowX: 'hidden',
         '&:before': {
           content: '""',
@@ -138,9 +134,9 @@ function Dashboard() {
           onMouseLeave={() => setNavExpanded(false)}
           sx={{
             width: navExpanded ? 258 : 86,
-            transition: 'width 0.24s ease',
+            transition: 'width 180ms cubic-bezier(.2,.8,.2,1)',
             borderRight: '1px solid rgba(255,255,255,0.24)',
-            bgcolor: 'rgba(7, 14, 24, 0.62)',
+            bgcolor: 'rgba(7, 14, 24, 0.54)',
             backdropFilter: 'blur(10px)',
             px: 1.1,
             py: 2,
@@ -209,14 +205,14 @@ function Dashboard() {
         </Box>
 
         {/* Main Content Area */}
-        <Box sx={{ flex: 1, minWidth: 0, ml: navExpanded ? '258px' : '86px', transition: 'margin-left 0.24s ease', position: 'relative' }}>
+        <Box sx={{ flex: 1, minWidth: 0, ml: navExpanded ? '258px' : '86px', transition: 'margin-left 180ms cubic-bezier(.2,.8,.2,1)', position: 'relative' }}>
           {/* Top Banner */}
           <Box
             sx={{
               px: { xs: 2, md: 3.5 },
               py: 2.5,
               borderBottom: '1px solid rgba(255,255,255,0.22)',
-              bgcolor: 'rgba(8, 14, 26, 0.45)',
+              bgcolor: 'rgba(8, 14, 26, 0.40)',
               backdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
@@ -280,8 +276,8 @@ function Dashboard() {
                     p: 2,
                     borderRadius: 2.5,
                     border: '1px solid rgba(255,255,255,0.25)',
-                    background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(236,242,252,0.84))',
-                    boxShadow: '0 10px 26px rgba(0,0,0,0.16)',
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(240,246,255,0.88))',
+                    boxShadow: '0 8px 22px rgba(15,23,42,0.14)',
                     textAlign: 'center',
                   }}
                 >
