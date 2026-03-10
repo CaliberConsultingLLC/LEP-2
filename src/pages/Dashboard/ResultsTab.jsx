@@ -14,7 +14,6 @@ import {
   Alert,
   Divider,
   Paper,
-  Tooltip,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -52,6 +51,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   const insightCacheRef = useRef(new Map());
   const insightTimersRef = useRef({ compass: null, detailed: null });
   const insightAbortRef = useRef({ compass: null, detailed: null });
+  const insightsPreloadedRef = useRef(false);
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -675,6 +675,14 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return `${(lastSpace > 180 ? sliced.slice(0, lastSpace) : sliced).trimEnd()}…`;
   };
 
+  const trimToWords = (text, maxWords = 50) => {
+    const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!normalized) return '';
+    const words = normalized.split(' ');
+    if (words.length <= maxWords) return normalized;
+    return `${words.slice(0, maxWords).join(' ').trim()}…`;
+  };
+
   const getCrossTraitPatterns = () => {
     if (!criticalGaps?.length) return 'No major cross-trait divergence detected.';
     return criticalGaps
@@ -783,14 +791,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
   const requestAgentInsight = async (mode, opts = {}) => {
     const stateKey = mode === 'detailed' ? 'detailed' : 'compass';
-    const payload = buildInsightPayload(mode);
+    const payload = opts.payloadOverride || buildInsightPayload(mode);
     const cacheKey = buildInsightCacheKey(mode, payload);
     const cached = insightCacheRef.current.get(cacheKey);
 
     if (cached) {
-      setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
-      if (stateKey === 'detailed') setDetailAgentInsight(cached);
-      else setCompassAgentInsight(cached);
+      if (!opts.silent) {
+        setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+      }
+      if (!opts.cacheOnly) {
+        if (stateKey === 'detailed') setDetailAgentInsight(cached);
+        else setCompassAgentInsight(cached);
+      }
       return;
     }
 
@@ -807,8 +819,10 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     const runFetch = async () => {
       const abortController = new AbortController();
       insightAbortRef.current[stateKey] = abortController;
-      setInsightLoading((prev) => ({ ...prev, [stateKey]: true }));
-      setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+      if (!opts.silent) {
+        setInsightLoading((prev) => ({ ...prev, [stateKey]: true }));
+        setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+      }
 
       try {
       const res = await fetch('/api/get-agent-insight', {
@@ -825,18 +839,24 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       const data = await res.json();
       const insightText = trimToChars(data?.insight || 'No insight available yet.');
       insightCacheRef.current.set(cacheKey, insightText);
-      if (stateKey === 'detailed') {
-        setDetailAgentInsight(insightText);
-      } else {
-        setCompassAgentInsight(insightText);
+      if (!opts.cacheOnly) {
+        if (stateKey === 'detailed') {
+          setDetailAgentInsight(insightText);
+        } else {
+          setCompassAgentInsight(insightText);
+        }
       }
       } catch (err) {
         if (err?.name === 'AbortError') return;
+      if (!opts.silent) {
         const message = 'Unable to generate interpretation right now.';
         setInsightError((prev) => ({ ...prev, [stateKey]: message }));
-        console.error('Agent insight error:', err);
+      }
+      if (!opts.cacheOnly) console.error('Agent insight error:', err);
       } finally {
+      if (!opts.silent) {
         setInsightLoading((prev) => ({ ...prev, [stateKey]: false }));
+      }
       }
     };
 
@@ -857,6 +877,129 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     if (insightAbortRef.current.compass) insightAbortRef.current.compass.abort();
     if (insightAbortRef.current.detailed) insightAbortRef.current.detailed.abort();
   }, []);
+
+  useEffect(() => {
+    const traitKeys = Object.keys(traitData || {});
+    if (!traitKeys.length || insightsPreloadedRef.current) return;
+    insightsPreloadedRef.current = true;
+    let cancelled = false;
+
+    const prewarmAllInsights = async () => {
+      const campaignRows = fakeCampaign["campaign_123"]?.campaign || [];
+
+      const buildCompassPayloadForTrait = (traitKey) => {
+        const traitMetrics = traitData?.[traitKey];
+        if (!traitMetrics) return null;
+        const traitIdx = campaignRows.findIndex((row) => row.trait === traitKey);
+        const selectedSubtrait = campaignRows?.[traitIdx]?.subTrait || traitKey;
+        const statementIndexes = traitIdx >= 0 ? Array.from({ length: 5 }, (_, i) => traitIdx * 5 + i) : [];
+        const teamEff = averageMetricForIndexes(benchmarkGapData?.teamResponses, statementIndexes, 'efficacy');
+        const selfEff = averageMetricForIndexes(benchmarkGapData?.selfResponses, statementIndexes, 'efficacy');
+        const teamEffort = averageMetricForIndexes(benchmarkGapData?.teamResponses, statementIndexes, 'effort');
+        const selfEffort = averageMetricForIndexes(benchmarkGapData?.selfResponses, statementIndexes, 'effort');
+        const effGap = teamEff == null || selfEff == null ? traitMetrics.efficacy - traitMetrics.lepScore : teamEff - selfEff;
+        const effortGap = teamEffort == null || selfEffort == null ? traitMetrics.effort - traitMetrics.lepScore : teamEffort - selfEffort;
+
+        return {
+          view_type: 'campaign_results',
+          selectedAgent: selectedAgentProp || intakeData?.selectedAgent || 'balancedMentor',
+          overall_summary: overallMetrics
+            ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
+            : 'Overall metrics unavailable.',
+          cross_trait_patterns: getCrossTraitPatterns(),
+          confidence_context: benchmarkGapData?.teamResponses?.length
+            ? `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`
+            : `Synthetic response context: ${fakeData.responses.length} team responses.`,
+          selected_subtrait: selectedSubtrait,
+          trait_score: traitMetrics.lepScore,
+          score_band: getScoreBand(traitMetrics.lepScore),
+          efficacy_score: traitMetrics.efficacy,
+          effort_score: traitMetrics.effort,
+          delta: traitMetrics.delta,
+          delta_band: getDeltaBand(traitMetrics.delta),
+          perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
+          efficacy_perception_gap: Number(effGap).toFixed(1),
+          effort_perception_gap: Number(effortGap).toFixed(1),
+          effort_gap_direction: getGapDirection(effortGap),
+          efficacy_gap_direction: getGapDirection(effGap),
+          overall_baseline_comparison: overallMetrics
+            ? `Selected LEP ${Number(traitMetrics.lepScore || 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
+            : 'Overall baseline unavailable.',
+        };
+      };
+
+      const buildDetailedPayload = (traitKey, ringIdx) => {
+        const traitMetrics = traitData?.[traitKey];
+        if (!traitMetrics) return null;
+        const traitIdx = campaignRows.findIndex((row) => row.trait === traitKey);
+        if (traitIdx < 0) return null;
+        const statement = traitMetrics?.statements?.[ringIdx];
+        if (!statement) return null;
+        const statementIndex = traitIdx * 5 + ringIdx;
+        const teamEff = averageMetricForIndexes(benchmarkGapData?.teamResponses, [statementIndex], 'efficacy');
+        const selfEff = averageMetricForIndexes(benchmarkGapData?.selfResponses, [statementIndex], 'efficacy');
+        const teamEffort = averageMetricForIndexes(benchmarkGapData?.teamResponses, [statementIndex], 'effort');
+        const selfEffort = averageMetricForIndexes(benchmarkGapData?.selfResponses, [statementIndex], 'effort');
+        const effGap = teamEff == null || selfEff == null ? statement.efficacy - statement.lepScore : teamEff - selfEff;
+        const effortGap = teamEffort == null || selfEffort == null ? statement.effort - statement.lepScore : teamEffort - selfEffort;
+        const subLabel = campaignRows?.[traitIdx]?.subTrait || traitKey;
+
+        return {
+          view_type: 'detailed_results',
+          selectedAgent: selectedAgentProp || intakeData?.selectedAgent || 'balancedMentor',
+          overall_summary: overallMetrics
+            ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
+            : 'Overall metrics unavailable.',
+          cross_trait_patterns: getCrossTraitPatterns(),
+          confidence_context: benchmarkGapData?.teamResponses?.length
+            ? `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`
+            : `Synthetic response context: ${fakeData.responses.length} team responses.`,
+          selected_subtrait: statement?.text || subLabel,
+          trait_score: statement.lepScore,
+          score_band: getScoreBand(statement.lepScore),
+          efficacy_score: statement.efficacy,
+          effort_score: statement.effort,
+          delta: statement.delta,
+          delta_band: getDeltaBand(statement.delta),
+          perception_gap: `efficacy ${Number(effGap).toFixed(1)}, effort ${Number(effortGap).toFixed(1)}`,
+          efficacy_perception_gap: Number(effGap).toFixed(1),
+          effort_perception_gap: Number(effortGap).toFixed(1),
+          effort_gap_direction: getGapDirection(effortGap),
+          efficacy_gap_direction: getGapDirection(effGap),
+          overall_baseline_comparison: overallMetrics
+            ? `Selected LEP ${Number(statement?.lepScore || 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
+            : 'Overall baseline unavailable.',
+        };
+      };
+
+      for (const traitKey of traitKeys) {
+        if (cancelled) return;
+        const payload = buildCompassPayloadForTrait(traitKey);
+        if (payload) {
+          await requestAgentInsight('compass', { immediate: true, cacheOnly: true, silent: true, payloadOverride: payload });
+        }
+      }
+
+      for (const traitKey of traitKeys) {
+        for (let i = 0; i < 5; i += 1) {
+          if (cancelled) return;
+          const payload = buildDetailedPayload(traitKey, i);
+          if (payload) {
+            await requestAgentInsight('detailed', { immediate: true, cacheOnly: true, silent: true, payloadOverride: payload });
+          }
+        }
+      }
+
+      if (!cancelled) {
+        requestAgentInsight(view === 'detailed' ? 'detailed' : 'compass', { immediate: true });
+      }
+    };
+
+    prewarmAllInsights();
+    return () => {
+      cancelled = true;
+    };
+  }, [traitData, benchmarkGapData, selectedAgentProp, intakeData?.selectedAgent, view, overallMetrics]);
 
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
@@ -1095,7 +1238,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(120,139,158,0.5)'}
+                                        stroke={trait === selectedTraitKey ? '#6393AA' : 'rgba(101,118,137,0.68)'}
                                         strokeWidth={trait === selectedTraitKey ? '33' : '24'}
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -1104,7 +1247,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={endX}
                                         cy={endY}
                                         r={trait === selectedTraitKey ? '16' : '12'}
-                                        fill={trait === selectedTraitKey ? '#5D9DC2' : 'rgba(121,134,151,0.44)'}
+                                        fill={trait === selectedTraitKey ? '#5D9DC2' : 'rgba(96,112,131,0.72)'}
                                         stroke={trait === selectedTraitKey ? 'rgba(224,243,255,0.82)' : 'rgba(17,24,39,0.5)'}
                                         strokeWidth={trait === selectedTraitKey ? '2.4' : '1.6'}
                                         style={{ cursor: 'pointer' }}
@@ -1141,7 +1284,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(120,139,158,0.5)'}
+                                        stroke={trait === selectedTraitKey ? '#E07A3F' : 'rgba(101,118,137,0.68)'}
                                         strokeWidth={trait === selectedTraitKey ? '33' : '24'}
                                         strokeDasharray={`${filledLength} ${arcLength}`}
                                         style={{ transition: 'stroke 0.25s ease, stroke-dasharray 0.5s ease' }}
@@ -1150,7 +1293,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={endX}
                                         cy={endY}
                                         r={trait === selectedTraitKey ? '16' : '12'}
-                                        fill={trait === selectedTraitKey ? '#E88A4D' : 'rgba(121,134,151,0.44)'}
+                                        fill={trait === selectedTraitKey ? '#E88A4D' : 'rgba(96,112,131,0.72)'}
                                         stroke={trait === selectedTraitKey ? 'rgba(255,234,220,0.82)' : 'rgba(17,24,39,0.5)'}
                                         strokeWidth={trait === selectedTraitKey ? '2.4' : '1.6'}
                                         style={{ cursor: 'pointer' }}
@@ -1403,7 +1546,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           }}
                         >
                           <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
-                            {compassGapNarrative}
+                            {trimToWords(compassGapNarrative, 50)}
                           </Typography>
                         </Paper>
                       </Box>
@@ -1450,6 +1593,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     );
                   })}
                 </Stack>
+                <Typography
+                  sx={{
+                    fontSize: { xs: '1.05rem', md: '1.14rem' },
+                    fontWeight: 700,
+                    color: 'rgba(255,255,255,0.94)',
+                    textAlign: 'center',
+                    mb: 1.2,
+                    px: { xs: 1, md: 0 },
+                  }}
+                >
+                  {detailQuestionTitle}
+                </Typography>
 
                 <Grid container spacing={1.4} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
                   <Grid item xs={12} lg={6} sx={{ display: 'flex' }}>
@@ -1523,7 +1678,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 1)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(120,139,158,0.52)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#6393AA' : 'rgba(101,118,137,0.7)'}
                                         strokeWidth={idx === selectedDetailRingIdx ? '24' : '17'}
                                         strokeDasharray={`${eLen} ${arcLength}`}
                                       />
@@ -1531,7 +1686,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={ex}
                                         cy={ey}
                                         r={idx === selectedDetailRingIdx ? '10' : '7'}
-                                        fill={idx === selectedDetailRingIdx ? '#5D9DC2' : 'rgba(121,134,151,0.44)'}
+                                        fill={idx === selectedDetailRingIdx ? '#5D9DC2' : 'rgba(96,112,131,0.74)'}
                                         stroke={idx === selectedDetailRingIdx ? 'rgba(224,243,255,0.82)' : 'rgba(17,24,39,0.5)'}
                                         strokeWidth={idx === selectedDetailRingIdx ? '2.1' : '1.4'}
                                       />
@@ -1555,7 +1710,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                       <path
                                         d={createArcPath(radius, 180, 0, 0)}
                                         fill="none"
-                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(120,139,158,0.52)'}
+                                        stroke={idx === selectedDetailRingIdx ? '#E07A3F' : 'rgba(101,118,137,0.7)'}
                                         strokeWidth={idx === selectedDetailRingIdx ? '24' : '17'}
                                         strokeDasharray={`${fLen} ${arcLength}`}
                                       />
@@ -1563,7 +1718,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                         cx={fx}
                                         cy={fy}
                                         r={idx === selectedDetailRingIdx ? '10' : '7'}
-                                        fill={idx === selectedDetailRingIdx ? '#E88A4D' : 'rgba(121,134,151,0.44)'}
+                                        fill={idx === selectedDetailRingIdx ? '#E88A4D' : 'rgba(96,112,131,0.74)'}
                                         stroke={idx === selectedDetailRingIdx ? 'rgba(255,234,220,0.82)' : 'rgba(17,24,39,0.5)'}
                                         strokeWidth={idx === selectedDetailRingIdx ? '2.1' : '1.4'}
                                       />
@@ -1721,7 +1876,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           }}
                         >
                           <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
-                            {detailGapNarrative}
+                            {trimToWords(detailGapNarrative, 50)}
                           </Typography>
                         </Paper>
                       </Box>

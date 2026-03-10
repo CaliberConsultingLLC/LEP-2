@@ -56,6 +56,7 @@ HARD RULES
 - Do NOT include imperative advice (no “you should,” “do X,” “next step,” “avoid,” “start by”).
 - Do NOT include action plans, checklists, or recommendations.
 - Keep language human, specific, and grounded in provided data.
+- Use high-signal language only. No filler, no repetition, no setup sentences.
 - If data confidence is limited, briefly acknowledge uncertainty.
 - Output plain text only, with no headings or section labels.
 - Prioritize score-position interpretation over gap commentary.
