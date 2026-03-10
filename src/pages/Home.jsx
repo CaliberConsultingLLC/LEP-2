@@ -542,13 +542,18 @@ function Home() {
                           WebkitBackfaceVisibility: 'hidden',
                           borderRadius: 2,
                           border: '1px solid rgba(15, 61, 112, 0.82)',
-                          bgcolor: '#FFFFFF',
+                          bgcolor:
+                            activeSection === 0
+                              ? '#FFFFFF'
+                              : activeSection === 1
+                                ? '#EAF2FB'
+                                : '#EEF4FB',
                           boxShadow:
                             'inset 0 0 0 2px rgba(255,255,255,0.72), 0 6px 20px rgba(15,23,42,0.06)',
                           overflow: 'hidden',
                         }}
                       >
-                        {item.hero && (
+                        {activeSection === 0 && item.hero && (
                           <Box
                             component="img"
                             src={item.hero}
