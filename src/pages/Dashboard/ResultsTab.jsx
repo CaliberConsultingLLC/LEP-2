@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -49,6 +49,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   const [detailAgentInsight, setDetailAgentInsight] = useState('');
   const [insightLoading, setInsightLoading] = useState({ compass: false, detailed: false });
   const [insightError, setInsightError] = useState({ compass: '', detailed: '' });
+  const insightCacheRef = useRef(new Map());
+  const insightTimersRef = useRef({ compass: null, detailed: null });
+  const insightAbortRef = useRef({ compass: null, detailed: null });
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -680,6 +683,20 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       .join('; ');
   };
 
+  const getDeltaBand = (delta) => {
+    const value = Math.abs(Number(delta || 0));
+    if (value < 5) return 'small';
+    if (value < 12) return 'moderate';
+    return 'large';
+  };
+
+  const getGapDirection = (gap) => {
+    const value = Number(gap || 0);
+    if (value > 1) return 'team_sees_more';
+    if (value < -1) return 'team_sees_less';
+    return 'aligned';
+  };
+
   const buildInsightPayload = (mode) => {
     const base = {
       view_type: mode === 'detailed' ? 'detailed_results' : 'campaign_results',
@@ -694,39 +711,101 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     };
 
     if (mode === 'detailed') {
+      const efficacy = selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0;
+      const effort = selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0;
+      const delta = selectedDetailStatement?.delta ?? detailTraitMetrics?.delta ?? 0;
       return {
         ...base,
         selected_subtrait: detailQuestionTitle || detailSubtraitLabel || selectedDetailTraitKey || 'Selected statement',
         trait_score: selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0,
-        efficacy_score: selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0,
-        effort_score: selectedDetailStatement?.effort ?? detailTraitMetrics?.effort ?? 0,
-        delta: selectedDetailStatement?.delta ?? detailTraitMetrics?.delta ?? 0,
+        efficacy_score: efficacy,
+        effort_score: effort,
+        delta,
+        delta_band: getDeltaBand(delta),
         perception_gap: `efficacy ${detailEfficacyPerceptionGap.toFixed(1)}, effort ${detailEffortPerceptionGap.toFixed(1)}`,
+        efficacy_perception_gap: Number(detailEfficacyPerceptionGap || 0).toFixed(1),
+        effort_perception_gap: Number(detailEffortPerceptionGap || 0).toFixed(1),
+        effort_gap_direction: getGapDirection(detailEffortPerceptionGap),
+        efficacy_gap_direction: getGapDirection(detailEfficacyPerceptionGap),
+        overall_baseline_comparison: overallMetrics
+          ? `Selected LEP ${(selectedDetailStatement?.lepScore ?? detailTraitMetrics?.lepScore ?? 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
+          : 'Overall baseline unavailable.',
       };
     }
 
+    const efficacy = activeMetrics?.efficacy ?? 0;
+    const effort = activeMetrics?.effort ?? 0;
+    const delta = activeMetrics?.delta ?? 0;
     return {
       ...base,
       selected_subtrait: selectedSubtraitLabel || selectedTraitKey || 'Selected trait',
       trait_score: activeMetrics?.lepScore ?? 0,
-      efficacy_score: activeMetrics?.efficacy ?? 0,
-      effort_score: activeMetrics?.effort ?? 0,
-      delta: activeMetrics?.delta ?? 0,
+      efficacy_score: efficacy,
+      effort_score: effort,
+      delta,
+      delta_band: getDeltaBand(delta),
       perception_gap: `efficacy ${efficacyPerceptionGap.toFixed(1)}, effort ${effortPerceptionGap.toFixed(1)}`,
+      efficacy_perception_gap: Number(efficacyPerceptionGap || 0).toFixed(1),
+      effort_perception_gap: Number(effortPerceptionGap || 0).toFixed(1),
+      effort_gap_direction: getGapDirection(effortPerceptionGap),
+      efficacy_gap_direction: getGapDirection(efficacyPerceptionGap),
+      overall_baseline_comparison: overallMetrics
+        ? `Selected LEP ${(activeMetrics?.lepScore ?? 0).toFixed(1)} vs overall avg LEP ${overallMetrics.avgLEP.toFixed(1)}`
+        : 'Overall baseline unavailable.',
     };
   };
 
-  const requestAgentInsight = async (mode) => {
-    const stateKey = mode === 'detailed' ? 'detailed' : 'compass';
-    setInsightLoading((prev) => ({ ...prev, [stateKey]: true }));
-    setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+  const buildInsightCacheKey = (mode, payload) => {
+    const toFixed = (value) => Number(value || 0).toFixed(1);
+    return [
+      mode,
+      payload?.selectedAgent || '',
+      payload?.selected_subtrait || '',
+      toFixed(payload?.trait_score),
+      toFixed(payload?.efficacy_score),
+      toFixed(payload?.effort_score),
+      toFixed(payload?.delta),
+      payload?.delta_band || '',
+      toFixed(payload?.effort_perception_gap),
+      toFixed(payload?.efficacy_perception_gap),
+    ].join('|');
+  };
 
-    try {
-      const payload = buildInsightPayload(mode);
+  const requestAgentInsight = async (mode, opts = {}) => {
+    const stateKey = mode === 'detailed' ? 'detailed' : 'compass';
+    const payload = buildInsightPayload(mode);
+    const cacheKey = buildInsightCacheKey(mode, payload);
+    const cached = insightCacheRef.current.get(cacheKey);
+
+    if (cached) {
+      setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+      if (stateKey === 'detailed') setDetailAgentInsight(cached);
+      else setCompassAgentInsight(cached);
+      return;
+    }
+
+    if (insightTimersRef.current[stateKey]) {
+      window.clearTimeout(insightTimersRef.current[stateKey]);
+      insightTimersRef.current[stateKey] = null;
+    }
+
+    if (insightAbortRef.current[stateKey]) {
+      insightAbortRef.current[stateKey].abort();
+      insightAbortRef.current[stateKey] = null;
+    }
+
+    const runFetch = async () => {
+      const abortController = new AbortController();
+      insightAbortRef.current[stateKey] = abortController;
+      setInsightLoading((prev) => ({ ...prev, [stateKey]: true }));
+      setInsightError((prev) => ({ ...prev, [stateKey]: '' }));
+
+      try {
       const res = await fetch('/api/get-agent-insight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: abortController.signal,
       });
 
       if (!res.ok) {
@@ -735,39 +814,39 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
       const data = await res.json();
       const insightText = trimToChars(data?.insight || 'No insight available yet.');
+      insightCacheRef.current.set(cacheKey, insightText);
       if (stateKey === 'detailed') {
         setDetailAgentInsight(insightText);
       } else {
         setCompassAgentInsight(insightText);
       }
-    } catch (err) {
-      const message = 'Unable to generate insights right now. Please try again.';
-      setInsightError((prev) => ({ ...prev, [stateKey]: message }));
-      if (stateKey === 'detailed') setDetailAgentInsight('');
-      else setCompassAgentInsight('');
-      console.error('Agent insight error:', err);
-    } finally {
-      setInsightLoading((prev) => ({ ...prev, [stateKey]: false }));
-    }
-  };
-
-  const splitInsightSections = (text) => {
-    const raw = String(text || '');
-    const pattern = raw.match(/Pattern:\s*([\s\S]*?)(?:\n\s*Context:|$)/i)?.[1]?.trim() || '';
-    const context = raw.match(/Context:\s*([\s\S]*?)(?:\n\s*Perspective:|$)/i)?.[1]?.trim() || '';
-    const perspective = raw.match(/Perspective:\s*([\s\S]*?)$/i)?.[1]?.trim() || '';
-
-    if (pattern || context || perspective) {
-      return { pattern, context, perspective };
-    }
-
-    const parts = raw.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-    return {
-      pattern: parts[0] || raw.trim(),
-      context: parts[1] || '',
-      perspective: parts[2] || '',
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+        const message = 'Unable to generate interpretation right now.';
+        setInsightError((prev) => ({ ...prev, [stateKey]: message }));
+        console.error('Agent insight error:', err);
+      } finally {
+        setInsightLoading((prev) => ({ ...prev, [stateKey]: false }));
+      }
     };
+
+    if (opts.immediate) {
+      runFetch();
+      return;
+    }
+
+    insightTimersRef.current[stateKey] = window.setTimeout(() => {
+      runFetch();
+      insightTimersRef.current[stateKey] = null;
+    }, 320);
   };
+
+  useEffect(() => () => {
+    if (insightTimersRef.current.compass) window.clearTimeout(insightTimersRef.current.compass);
+    if (insightTimersRef.current.detailed) window.clearTimeout(insightTimersRef.current.detailed);
+    if (insightAbortRef.current.compass) insightAbortRef.current.compass.abort();
+    if (insightAbortRef.current.detailed) insightAbortRef.current.detailed.abort();
+  }, []);
 
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
@@ -801,6 +880,47 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     if (teamValue == null || selfValue == null) return activeMetrics.effort - activeMetrics.lepScore;
     return teamValue - selfValue;
   }, [activeMetrics, benchmarkGapData, selectedTraitStatementIndexes]);
+
+  useEffect(() => {
+    if (view !== 'compass') return;
+    if (!activeMetrics || !selectedTraitKey) return;
+    requestAgentInsight('compass');
+  }, [
+    view,
+    selectedTraitKey,
+    selectedAgentProp,
+    activeMetrics?.lepScore,
+    activeMetrics?.efficacy,
+    activeMetrics?.effort,
+    activeMetrics?.delta,
+    efficacyPerceptionGap,
+    effortPerceptionGap,
+    benchmarkGapData?.teamResponses?.length,
+    benchmarkGapData?.selfResponses?.length,
+  ]);
+
+  useEffect(() => {
+    if (view !== 'detailed') return;
+    if (!selectedDetailTraitKey || !detailTraitMetrics) return;
+    requestAgentInsight('detailed');
+  }, [
+    view,
+    selectedDetailTraitKey,
+    selectedDetailRingIdx,
+    selectedAgentProp,
+    selectedDetailStatement?.lepScore,
+    selectedDetailStatement?.efficacy,
+    selectedDetailStatement?.effort,
+    selectedDetailStatement?.delta,
+    detailTraitMetrics?.lepScore,
+    detailTraitMetrics?.efficacy,
+    detailTraitMetrics?.effort,
+    detailTraitMetrics?.delta,
+    detailEfficacyPerceptionGap,
+    detailEffortPerceptionGap,
+    benchmarkGapData?.teamResponses?.length,
+    benchmarkGapData?.selfResponses?.length,
+  ]);
 
   // Map intake responses to insights
   const selfPerceptionInsights = useMemo(() => {
@@ -1253,24 +1373,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       </Grid>
                       <Stack alignItems="center" sx={{ mt: 1.4 }}>
                         <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.7 }}>
-                          Interpretation
+                          Agent Interpretation
                         </Typography>
-                        <Button
-                          variant="contained"
-                          onClick={() => requestAgentInsight('compass')}
-                          disabled={insightLoading.compass}
-                          sx={{
-                            px: 3,
-                            py: 0.9,
-                            fontWeight: 700,
-                            textTransform: 'none',
-                            borderRadius: 2,
-                            bgcolor: '#457089',
-                            '&:hover': { bgcolor: '#375d78' },
-                          }}
-                        >
-                          {insightLoading.compass ? 'Generating Insight...' : 'Agent Insights'}
-                        </Button>
                         {!!insightError.compass && (
                           <Alert severity="warning" sx={{ mt: 1.1, width: '100%', maxWidth: 520 }}>
                             {insightError.compass}
@@ -1288,34 +1392,19 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             minHeight: 184,
                           }}
                         >
+                          {insightLoading.compass && (
+                            <Typography sx={{ fontSize: '0.8rem', color: '#49637B', mb: 0.8 }}>
+                              Generating interpretation...
+                            </Typography>
+                          )}
                           {compassAgentInsight ? (
-                            (() => {
-                              const s = splitInsightSections(compassAgentInsight);
-                              return (
-                                <Stack spacing={0.7}>
-                                  <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pattern</Typography>
-                                  <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.45 }}>{s.pattern}</Typography>
-                                  {!!s.context && (
-                                    <>
-                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
-                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Context</Typography>
-                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.context}</Typography>
-                                    </>
-                                  )}
-                                  {!!s.perspective && (
-                                    <>
-                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
-                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Perspective</Typography>
-                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.perspective}</Typography>
-                                    </>
-                                  )}
-                                </Stack>
-                              );
-                            })()
+                            <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
+                              {compassAgentInsight}
+                            </Typography>
                           ) : (
                             <Stack justifyContent="center" sx={{ minHeight: 160 }}>
                               <Typography sx={{ fontSize: '0.86rem', color: '#415A70', lineHeight: 1.45 }}>
-                                Tap <strong>Agent Insights</strong> to generate a concise interpretation of this pattern with context and perspective.
+                                Interpretation will load automatically for the selected view.
                               </Typography>
                             </Stack>
                           )}
@@ -1625,24 +1714,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       </Grid>
                       <Stack alignItems="center" sx={{ mt: 1.4 }}>
                         <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', mb: 0.7 }}>
-                          Interpretation
+                          Agent Interpretation
                         </Typography>
-                        <Button
-                          variant="contained"
-                          onClick={() => requestAgentInsight('detailed')}
-                          disabled={insightLoading.detailed}
-                          sx={{
-                            px: 3,
-                            py: 0.9,
-                            fontWeight: 700,
-                            textTransform: 'none',
-                            borderRadius: 2,
-                            bgcolor: '#457089',
-                            '&:hover': { bgcolor: '#375d78' },
-                          }}
-                        >
-                          {insightLoading.detailed ? 'Generating Insight...' : 'Agent Insights'}
-                        </Button>
                         {!!insightError.detailed && (
                           <Alert severity="warning" sx={{ mt: 1.1, width: '100%', maxWidth: 520 }}>
                             {insightError.detailed}
@@ -1660,34 +1733,19 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             minHeight: 184,
                           }}
                         >
+                          {insightLoading.detailed && (
+                            <Typography sx={{ fontSize: '0.8rem', color: '#49637B', mb: 0.8 }}>
+                              Generating interpretation...
+                            </Typography>
+                          )}
                           {detailAgentInsight ? (
-                            (() => {
-                              const s = splitInsightSections(detailAgentInsight);
-                              return (
-                                <Stack spacing={0.7}>
-                                  <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pattern</Typography>
-                                  <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.45 }}>{s.pattern}</Typography>
-                                  {!!s.context && (
-                                    <>
-                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
-                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Context</Typography>
-                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.context}</Typography>
-                                    </>
-                                  )}
-                                  {!!s.perspective && (
-                                    <>
-                                      <Divider sx={{ borderColor: 'rgba(63,100,123,0.2)' }} />
-                                      <Typography sx={{ fontSize: '0.74rem', fontWeight: 800, color: '#3B617F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Perspective</Typography>
-                                      <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.42 }}>{s.perspective}</Typography>
-                                    </>
-                                  )}
-                                </Stack>
-                              );
-                            })()
+                            <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
+                              {detailAgentInsight}
+                            </Typography>
                           ) : (
                             <Stack justifyContent="center" sx={{ minHeight: 160 }}>
                               <Typography sx={{ fontSize: '0.86rem', color: '#415A70', lineHeight: 1.45 }}>
-                                Tap <strong>Agent Insights</strong> to generate a concise interpretation of this question-level pattern.
+                                Interpretation will load automatically for the selected view.
                               </Typography>
                             </Stack>
                           )}

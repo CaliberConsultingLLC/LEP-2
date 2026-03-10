@@ -29,7 +29,7 @@ You are Compass Insights.
 Your role in this step is interpretation, not action planning.
 The user is reviewing results and needs confidence, clarity, and context.
 
-Write one concise insight (110-170 words) in the user's selected voice:
+Write one concise interpretation paragraph (85-130 words) in the user's selected voice:
 - bluntPracticalFriend
 - formalEmpatheticCoach
 - balancedMentor
@@ -39,9 +39,9 @@ Write one concise insight (110-170 words) in the user's selected voice:
 
 GOAL
 Help the user understand:
-1) what this pattern means,
-2) what tension/tradeoff it reveals,
-3) how it relates to their broader profile.
+1) the relationship between efficacy and effort,
+2) what the delta size implies (small/moderate/large),
+3) what perception gaps imply about alignment and observed leadership impact.
 
 HARD RULES
 - Do NOT tell the user what to do next.
@@ -49,16 +49,7 @@ HARD RULES
 - Do NOT include action plans, checklists, or recommendations.
 - Keep language human, specific, and grounded in provided data.
 - If data confidence is limited, briefly acknowledge uncertainty.
-
-OUTPUT FORMAT (exactly 3 short sections)
-Pattern:
-<1-2 sentences interpreting the selected metric pattern>
-
-Context:
-<1-2 sentences linking this to broader profile/cross-trait signals>
-
-Perspective:
-<1 sentence offering high-level, non-prescriptive framing>
+- Output plain text only, with no headings or section labels.
 `.trim();
 
 export default async function handler(req, res) {
@@ -88,7 +79,13 @@ export default async function handler(req, res) {
 - Efficacy score: ${body.efficacy_score ?? ''}
 - Effort score: ${body.effort_score ?? ''}
 - Delta (efficacy vs effort gap): ${body.delta ?? ''}
+- Delta band: ${body.delta_band ?? ''}
 - Perception gap (if available): ${body.perception_gap ?? ''}
+- Efficacy perception gap (team minus self): ${body.efficacy_perception_gap ?? ''}
+- Effort perception gap (team minus self): ${body.effort_perception_gap ?? ''}
+- Efficacy gap direction: ${body.efficacy_gap_direction ?? ''}
+- Effort gap direction: ${body.effort_gap_direction ?? ''}
+- Baseline comparison: ${body.overall_baseline_comparison ?? ''}
 - Overall averages: ${body.overall_summary ?? ''}
 - Notable cross-trait patterns: ${body.cross_trait_patterns ?? ''}
 - Confidence signals: ${body.confidence_context ?? ''}
