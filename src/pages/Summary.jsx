@@ -489,7 +489,7 @@ function Summary() {
         id: 'trailhead',
         label: 'Trailhead',
         title: 'Mirror The Current Signal',
-        subtitle: 'The clearest reflection of how your leadership currently lands.',
+        subtitle: 'Your clearest current-state leadership reflection.',
         icon: WrongLocationOutlined,
         accent: 'rgba(99,147,170,0.38)',
         mode: 'paragraph',
@@ -553,36 +553,35 @@ function Summary() {
       );
     }
     return (
-      <Stack spacing={1.5}>
-        <Box component="ul" sx={{ pl: 2.5, m: 0 }}>
-          {bulletLines.map((line, idx) => {
-            const content = line.replace(/^\s*-\s*/, '');
-            const parts = content.split('—');
-            const head = parts[0]?.replace(/\*\*/g, '').trim();
-            const tail = parts.slice(1).join('—').trim();
-            return (
-              <Box key={`bullet-${idx}`} component="li" sx={{ mb: 0.75 }}>
-                <Typography
-                  sx={{
-                    fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '0.92rem',
-                    lineHeight: 1.6,
-                    color: 'text.primary',
-                  }}
-                >
-                  {head ? (
-                    <>
-                      {head}
-                      {tail ? ` — ${tail}` : ''}
-                    </>
-                  ) : (
-                    renderParagraphWithTooltips(content)
-                  )}
-                </Typography>
-              </Box>
-            );
-          })}
-        </Box>
+      <Stack spacing={1.15} alignItems="center">
+        {bulletLines.map((line, idx) => {
+          const content = line.replace(/^\s*-\s*/, '');
+          const parts = content.split('—');
+          const head = parts[0]?.replace(/\*\*/g, '').trim();
+          const tail = parts.slice(1).join('—').trim();
+          return (
+            <Box key={`bullet-${idx}`} sx={{ py: 0.35 }}>
+              <Typography
+                sx={{
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '0.96rem',
+                  lineHeight: 1.62,
+                  color: 'text.primary',
+                  textAlign: 'center',
+                }}
+              >
+                {head ? (
+                  <>
+                    <strong>{head}</strong>
+                    {tail ? ` — ${tail}` : ''}
+                  </>
+                ) : (
+                  renderParagraphWithTooltips(content)
+                )}
+              </Typography>
+            </Box>
+          );
+        })}
       </Stack>
     );
   };
@@ -591,23 +590,22 @@ function Summary() {
     const lines = String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
     const bulletLines = lines.filter((line) => line.startsWith('- '));
     return (
-      <Stack spacing={1.2}>
-        <Box component="ul" sx={{ pl: 2.3, m: 0 }}>
-          {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
-            <Box key={`marker-${idx}`} component="li" sx={{ mb: 0.65 }}>
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: '0.92rem',
-                  lineHeight: 1.58,
-                  color: 'text.primary',
-                }}
-              >
-                {line.replace(/^\s*-\s*/, '')}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
+      <Stack spacing={1.1} alignItems="center">
+        {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
+          <Box key={`marker-${idx}`} sx={{ py: 0.3 }}>
+            <Typography
+              sx={{
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: '0.96rem',
+                lineHeight: 1.6,
+                color: 'text.primary',
+                textAlign: 'center',
+              }}
+            >
+              {line.replace(/^\s*-\s*/, '')}
+            </Typography>
+          </Box>
+        ))}
       </Stack>
     );
   };
@@ -629,9 +627,10 @@ function Summary() {
       <Typography
         sx={{
           fontFamily: 'Gemunu Libre, sans-serif',
-          fontSize: '0.96rem',
+          fontSize: '1rem',
           lineHeight: 1.65,
           color: 'text.primary',
+          textAlign: 'center',
         }}
       >
         {renderParagraphWithTooltips(limited)}
@@ -648,9 +647,10 @@ function Summary() {
       <Typography
         sx={{
           fontFamily: 'Gemunu Libre, sans-serif',
-          fontSize: { xs: '1rem', md: '1.06rem' },
+          fontSize: { xs: '1rem', md: '1.08rem' },
           lineHeight: 1.72,
           color: '#1E3449',
+          textAlign: 'center',
         }}
       >
         {renderParagraphWithTooltips(stage.text)}
@@ -785,9 +785,9 @@ function Summary() {
                             >
                               <Box
                                 sx={{
-                                  width: 44,
-                                  height: 44,
-                                  borderRadius: '50%',
+                                  width: 55,
+                                  height: 55,
+                                  borderRadius: 1.5,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -796,7 +796,7 @@ function Summary() {
                                   flexShrink: 0,
                                 }}
                               >
-                                <Icon sx={{ fontSize: 28, color: active ? '#2E5573' : '#496783' }} />
+                                <Icon sx={{ fontSize: 35, color: active ? '#2E5573' : '#496783' }} />
                               </Box>
                               <Button
                                 onClick={() => setActiveJourneyStep(idx)}
@@ -834,6 +834,7 @@ function Summary() {
                         border: '1px solid rgba(69,112,137,0.36)',
                         background: 'linear-gradient(176deg, rgba(255,255,255,0.97), rgba(246,251,255,0.92))',
                         boxShadow: '0 8px 20px rgba(12,21,34,0.11)',
+                        position: 'relative',
                       }}
                     >
                       {(() => {
@@ -841,18 +842,40 @@ function Summary() {
                         const StageIcon = stage.icon;
                         return (
                           <>
-                            <Stack spacing={1} alignItems="center" sx={{ mb: 1.2 }}>
-                              <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
-                                <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)', flexShrink: 0 }}>
-                                  <StageIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-                                </Box>
-                                <Box>
-                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '1.12rem', color: '#2B4862', textAlign: 'center' }}>
-                                    {stage.label}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-                              <Typography sx={{ fontSize: '1rem', color: '#3B5C78', maxWidth: 460, lineHeight: 1.45, textAlign: 'center' }}>
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: { xs: 15, md: 18 },
+                                left: { xs: 15, md: 18 },
+                                width: 62,
+                                height: 62,
+                                borderRadius: 2.2,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                bgcolor: 'rgba(69,112,137,0.14)',
+                                border: '1px solid rgba(69,112,137,0.34)',
+                              }}
+                            >
+                              <StageIcon sx={{ fontSize: 38, color: 'primary.main' }} />
+                            </Box>
+                            <Stack spacing={1} alignItems="center" sx={{ mb: 1.2, pt: { xs: 0.3, md: 0.45 } }}>
+                              <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '1.12rem', color: '#2B4862', textAlign: 'center' }}>
+                                {stage.label}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: stage.id === 'trailhead' ? '0.98rem' : '1rem',
+                                  color: '#3B5C78',
+                                  maxWidth: 540,
+                                  lineHeight: 1.45,
+                                  textAlign: 'center',
+                                  whiteSpace: stage.id === 'trailhead' ? 'nowrap' : 'normal',
+                                  overflow: stage.id === 'trailhead' ? 'hidden' : 'visible',
+                                  textOverflow: stage.id === 'trailhead' ? 'ellipsis' : 'clip',
+                                  px: { xs: 1.1, md: 0 },
+                                }}
+                              >
                                 {stage.subtitle}
                               </Typography>
                             </Stack>
