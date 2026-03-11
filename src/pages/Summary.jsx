@@ -737,9 +737,10 @@ function Summary() {
                       boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
                     }}
                   >
-                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
-                      <Box>
-                        <Typography sx={{ fontSize: { xs: '1.16rem', md: '1.36rem' }, fontWeight: 800, color: 'rgba(251,253,255,0.98)', lineHeight: 1.25 }}>
+                    <Stack direction="row" spacing={1.2} alignItems="center" justifyContent="space-between">
+                      <Box sx={{ width: { xs: 0, md: 170 } }} />
+                      <Box sx={{ flex: 1, textAlign: 'center' }}>
+                        <Typography sx={{ fontSize: { xs: '1.16rem', md: '1.36rem' }, fontWeight: 800, color: 'rgba(251,253,255,0.98)', lineHeight: 1.25, textAlign: 'center' }}>
                           Reflecting on your Leadership Approach
                         </Typography>
                       </Box>
@@ -766,36 +767,27 @@ function Summary() {
                       <Typography sx={{ fontSize: '0.77rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#496783', mb: 1.05, textAlign: 'center' }}>
                         Reflection Journey
                       </Typography>
-                      <Stack spacing={0.9}>
+                      <Stack spacing={0.95} alignItems="center">
                         {journeyStages.map((stage, idx) => {
                           const Icon = stage.icon;
                           const active = idx === activeJourneyStep;
                           return (
                             <Box
                               key={stage.id}
-                              onClick={() => setActiveJourneyStep(idx)}
                               sx={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 1,
-                                p: 1.2,
-                                borderRadius: 1.8,
-                                border: '1px solid',
-                                borderColor: 'rgba(85,119,145,0.28)',
-                                bgcolor: active ? 'rgba(224,122,63,0.22)' : 'rgba(255,255,255,0.6)',
-                                cursor: 'pointer',
-                                transition: 'all 0.22s ease',
-                                '&:hover': {
-                                  bgcolor: 'rgba(255,255,255,0.94)',
-                                  borderColor: 'rgba(85,119,145,0.42)',
-                                },
+                                gap: 0.8,
+                                width: '100%',
+                                maxWidth: 360,
+                                justifyContent: 'center',
                               }}
                             >
                               <Box
                                 sx={{
                                   width: 36,
                                   height: 36,
-                                  borderRadius: 1.4,
+                                  borderRadius: '50%',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -806,11 +798,29 @@ function Summary() {
                               >
                                 <Icon sx={{ fontSize: 23, color: active ? '#2E5573' : '#496783' }} />
                               </Box>
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#2B4862', lineHeight: 1.2 }}>
+                              <Button
+                                onClick={() => setActiveJourneyStep(idx)}
+                                variant="outlined"
+                                sx={{
+                                  flex: 1,
+                                  minHeight: 44,
+                                  borderRadius: 1.8,
+                                  borderColor: 'rgba(85,119,145,0.32)',
+                                  bgcolor: active ? 'rgba(224,122,63,0.22)' : 'rgba(255,255,255,0.62)',
+                                  color: '#2B4862',
+                                  justifyContent: 'flex-start',
+                                  textTransform: 'none',
+                                  px: 1.25,
+                                  '&:hover': {
+                                    borderColor: 'rgba(85,119,145,0.46)',
+                                    bgcolor: active ? 'rgba(224,122,63,0.28)' : 'rgba(255,255,255,0.95)',
+                                  },
+                                }}
+                              >
+                                <Typography sx={{ fontWeight: 800, fontSize: '0.98rem', lineHeight: 1.1 }}>
                                   {stage.label}
                                 </Typography>
-                              </Box>
+                              </Button>
                             </Box>
                           );
                         })}
@@ -831,18 +841,18 @@ function Summary() {
                         const StageIcon = stage.icon;
                         return (
                           <>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.2 }}>
-                              <Stack direction="row" spacing={1} alignItems="center">
-                                <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)' }}>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems={{ xs: 'center', sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.2 }}>
+                              <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: { sm: 280 }, justifyContent: 'center' }}>
+                                <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)', flexShrink: 0 }}>
                                   <StageIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                                 </Box>
                                 <Box>
-                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '1.08rem', color: '#2B4862' }}>
+                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '1.12rem', color: '#2B4862', textAlign: 'center' }}>
                                     {stage.label}
                                   </Typography>
                                 </Box>
                               </Stack>
-                              <Typography sx={{ fontSize: '0.92rem', color: '#3B5C78', maxWidth: 390, lineHeight: 1.4 }}>
+                              <Typography sx={{ fontSize: '1rem', color: '#3B5C78', maxWidth: 430, lineHeight: 1.45, textAlign: { xs: 'center', sm: 'left' } }}>
                                 {stage.subtitle}
                               </Typography>
                             </Stack>
@@ -865,7 +875,7 @@ function Summary() {
                       background: 'linear-gradient(180deg, rgba(247,252,255,0.82), rgba(236,246,255,0.7))',
                     }}
                   >
-                    <Typography sx={{ fontSize: '0.84rem', color: '#2E516E', lineHeight: 1.55 }}>
+                    <Typography sx={{ fontSize: '0.84rem', color: '#2E516E', lineHeight: 1.55, textAlign: 'center' }}>
                       This reflection is intentionally staged to keep your attention on one insight layer at a time: first truth, then recurring patterns, then hidden cost, and finally your forward trail.
                     </Typography>
                   </Paper>
