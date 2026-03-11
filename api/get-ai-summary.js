@@ -136,7 +136,7 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
     return `- ${head} — ${tail}`;
   });
 
-  const rebuilt = `We believe improving the following traits will start you down a new path of leadership.\n${finalBullets.join('\n')}`.trim();
+  const rebuilt = `${finalBullets.join('\n')}`.trim();
   sections[lastIdx] = rebuilt;
   return sections.join('\n\n').trim();
 }
@@ -172,7 +172,7 @@ function ensureTrailMarkers(text, insightMap) {
   };
 
   if (bullets.length >= 3 && bullets.length <= 5) {
-    sections[markerIdx] = `A few scenarios you may find yourself in at times:\n${bullets.slice(0, 5).map(normalizeMarker).join('\n')}`;
+    sections[markerIdx] = `${bullets.slice(0, 5).map(normalizeMarker).join('\n')}`;
     return sections.join('\n\n').trim();
   }
 
@@ -190,7 +190,7 @@ function ensureTrailMarkers(text, insightMap) {
       '- Momentum stalls when clarity and urgency diverge'
     );
   }
-  sections[markerIdx] = `A few scenarios you may find yourself in at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
+  sections[markerIdx] = `${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 
@@ -431,14 +431,14 @@ function evaluateNarrativeQuality(text, insightMap) {
   if (markerBullets.length >= 3 && markerBullets.length <= 5) score += 1;
   if (trajectoryParts.length >= 2) score += 1;
   if ((trajectoryParts[0] && sectionSentenceCount(trajectoryParts[0]) >= 4) && (trajectoryParts[1] && sectionSentenceCount(trajectoryParts[1]) >= 2)) score += 1;
-  if (String(newTrail).includes('We believe improving the following traits')) score += 1;
+  if (String(newTrail).includes('- ')) score += 1;
   if (String(insightMap?.signaturePattern || '') && String(text).toLowerCase().includes(String(insightMap.signaturePattern).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (String(insightMap?.hiddenCost || '') && String(text).toLowerCase().includes(String(insightMap.hiddenCost).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (!badPhrases.some((re) => re.test(text))) score += 1;
   if (!/^\s*#+/m.test(text)) score += 1;
   if (!advicePattern.test(`${trailhead} ${trajectory}`)) score += 1;
-  if (boldTrailhead >= 1 && boldTrailhead <= 2) score += 1;
-  if (boldTrajectory >= 1 && boldTrajectory <= 2) score += 1;
+  if (boldTrailhead === 0) score += 1;
+  if (boldTrajectory === 0) score += 1;
   return score;
 }
 
@@ -447,12 +447,12 @@ function buildNarrativeRepairPrompt() {
 Repair this draft to satisfy all requirements:
 - Keep four sections separated by blank lines.
 - Trailhead must be current-state only, 6-7 sentences.
-- Trail Markers must have exact lead sentence and 3-5 outcome bullets, each 6-9 words.
+- Trail Markers must have 3-5 outcome bullets, each 6-9 words.
 - Trajectory must be risk-first (4 sentences), newline, then optimistic prelude (2 sentences).
-- A New Trail must include exact lead sentence and five bullets in required format.
+- A New Trail must include five bullets in required format.
 - Remove generic phrases and repeated sentence openers.
 - Remove all advice/directive phrasing; keep hypothetical future language.
-- Add 1-2 punchy **bold** anchor phrases in Trailhead and Trajectory.
+- Do not use markdown bold markers.
 Return revised content only.
 `.trim();
 }
@@ -864,7 +864,7 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    const maxChars = Math.max(1200, Math.min(Number(charLimit) || 1500, 1800));
+    const maxChars = Math.max(1300, Math.min(Number(charLimit) || 1800, 2200));
 
     // Build a compact persona voice guide
     const voiceGuide = (() => {
@@ -932,7 +932,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
     const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas });
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 1650,
+      max_tokens: 2100,
       temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.12, 0.75),
       frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
       presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
@@ -949,7 +949,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
       const withBullets = ensureFiveSubtraitBullets(withMarkers, focusAreas);
       const softened = softenPrescriptiveLanguage(withBullets);
       const cleanedMarkdown = removeDanglingMarkdown(softened);
-      return ensurePunchAnchors(cleanedMarkdown, insightMap);
+      return cleanedMarkdown.replace(/\*\*/g, '');
     };
     let capped = shapePipeline(raw);
     let quality = evaluateNarrativeQuality(capped, insightMap);
@@ -958,7 +958,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
       const repairPrompt = `${buildNarrativeRepairPrompt()}\n\nDRAFT TO REPAIR:\n${capped}`;
       const retry = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
-        max_tokens: 1650,
+        max_tokens: 2100,
         temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.08, 0.72),
         frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
         presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),

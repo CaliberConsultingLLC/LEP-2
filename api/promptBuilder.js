@@ -113,9 +113,7 @@ SECTION INTENT
 1) Trailhead (6-7 sentences):
    - Current-state only: one identity-level mirror, one productive pattern, one hidden tension.
    - Do not include future consequences or "what if" language here.
-   - Include 1-2 punchy anchor phrases and format them in **bold**.
 2) Trail Markers:
-   - Use this exact lead-in sentence: "A few scenarios you may find yourself in at times:"
    - Frame as likely outcomes this leader may repeatedly encounter.
    - Then 3-5 concise outcome bullets.
    - Each bullet must be 6-9 words.
@@ -132,10 +130,9 @@ SECTION INTENT
    - Keep trajectory concise: reduce verbosity by ~20%, target 12-16 words per sentence.
    - The optimistic prelude should spotlight one desirable outcome likely missing today.
    - Do NOT give practical guidance or fix instructions anywhere in this section.
-   - Include 1-2 punchy anchor phrases and format them in **bold** (3-8 words each).
    - Do not use markdown hashes or heading separators.
 4) A New Trail:
-   - Exactly five bullets from provided subtraits in order (no bridge sentence needed).
+   - Exactly five bullets from provided subtraits in order.
    - Each bullet tail must be 6-8 words and behavior-observable.
 
 AGENT IDENTITY

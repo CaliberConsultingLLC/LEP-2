@@ -11,11 +11,9 @@ import {
   Checkbox,
   Paper,
   Divider,
-  Tooltip,
-  Chip,
   Menu,
 } from '@mui/material';
-import { Warning, Lightbulb, CheckCircle, TrendingUp, PersonSearch, AltRoute, OutlinedFlag } from '@mui/icons-material';
+import { Warning, Lightbulb, CheckCircle, TrendingUp, AltRoute, OutlinedFlag, WrongLocationOutlined, ReportProblemOutlined } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
@@ -498,7 +496,7 @@ function Summary() {
         label: 'Trailhead',
         title: 'Mirror The Current Signal',
         subtitle: 'The clearest reflection of how your leadership currently lands.',
-        icon: PersonSearch,
+        icon: WrongLocationOutlined,
         accent: 'rgba(99,147,170,0.38)',
         mode: 'paragraph',
         text: summarySections[0] || '',
@@ -518,7 +516,7 @@ function Summary() {
         label: 'Trail Hazards',
         title: 'Understand The Cost If Unchanged',
         subtitle: 'How today\'s patterns can quietly tax trust, clarity, and pace.',
-        icon: TrendingUp,
+        icon: ReportProblemOutlined,
         accent: 'rgba(99,147,170,0.4)',
         mode: 'trajectory',
         text: summarySections[2] || '',
@@ -541,80 +539,7 @@ function Summary() {
     setActiveJourneyStep(0);
   }, [aiSummary]);
 
-  const subTraitMap = useMemo(() => {
-    const map = new Map();
-    (focusAreas || []).forEach((area) => {
-      if (area?.subTraitName) {
-        map.set(area.subTraitName.toLowerCase(), area);
-      }
-    });
-    return map;
-  }, [focusAreas]);
-
-  const renderParagraphWithTooltips = (text) => {
-    const parts = String(text).split(/\*\*(.+?)\*\*/g);
-    return parts.map((part, idx) => {
-      if (idx % 2 === 1) {
-        const key = part.toLowerCase();
-        const area = subTraitMap.get(key);
-        if (!area) {
-          return (
-            <Box
-              key={`plain-anchor-${idx}`}
-              component="span"
-              sx={{
-                fontWeight: 800,
-                px: 0.4,
-                py: 0.08,
-                borderRadius: 0.7,
-                bgcolor: 'rgba(224,122,63,0.14)',
-              }}
-            >
-              {part}
-            </Box>
-          );
-        }
-        return (
-          <Tooltip
-            key={`tt-${idx}`}
-            arrow
-            placement="top"
-            title={(
-              <Box sx={{ p: 1, maxWidth: 260 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{area.subTraitName}</Typography>
-                <Typography variant="caption" sx={{ display: 'block', opacity: 0.8 }}>
-                  Parent: {area.traitName}
-                </Typography>
-                {area.subTraitDefinition && (
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>
-                    {area.subTraitDefinition}
-                  </Typography>
-                )}
-                {area.impact && (
-                  <Typography variant="body2" sx={{ mt: 0.75, opacity: 0.9 }}>
-                    {area.impact}
-                  </Typography>
-                )}
-              </Box>
-            )}
-          >
-            <Chip
-              label={area.subTraitName}
-              size="small"
-              sx={{
-                mx: 0.5,
-                fontWeight: 700,
-                bgcolor: 'rgba(99,147,170,0.15)',
-                border: '1px solid rgba(99,147,170,0.45)',
-                cursor: 'help',
-              }}
-            />
-          </Tooltip>
-        );
-      }
-      return <span key={`text-${idx}`}>{part}</span>;
-    });
-  };
+  const renderParagraphWithTooltips = (text) => String(text || '').replace(/\*\*/g, '');
 
   const renderNarrativeWithBullets = (text) => {
     const lines = String(text || '').split('\n');
@@ -635,16 +560,6 @@ function Summary() {
     }
     return (
       <Stack spacing={1.5}>
-        <Typography
-          sx={{
-            fontFamily: 'Gemunu Libre, sans-serif',
-            fontSize: '0.96rem',
-            lineHeight: 1.6,
-            color: 'text.primary',
-          }}
-        >
-          We believe improving the following traits will start you down a new path of leadership.
-        </Typography>
         <Box component="ul" sx={{ pl: 2.5, m: 0 }}>
           {bulletLines.map((line, idx) => {
             const content = line.replace(/^\s*-\s*/, '');
@@ -663,7 +578,7 @@ function Summary() {
                 >
                   {head ? (
                     <>
-                      <strong>{head}</strong>
+                      {head}
                       {tail ? ` — ${tail}` : ''}
                     </>
                   ) : (
@@ -683,16 +598,6 @@ function Summary() {
     const bulletLines = lines.filter((line) => line.startsWith('- '));
     return (
       <Stack spacing={1.2}>
-        <Typography
-          sx={{
-            fontFamily: 'Gemunu Libre, sans-serif',
-            fontSize: '0.96rem',
-            lineHeight: 1.6,
-            color: 'text.primary',
-          }}
-        >
-          A few scenarios you may find yourself in at times:
-        </Typography>
         <Box component="ul" sx={{ pl: 2.3, m: 0 }}>
           {(bulletLines.length ? bulletLines : ['- No dominant trail markers detected yet.']).map((line, idx) => (
             <Box key={`marker-${idx}`} component="li" sx={{ mb: 0.65 }}>
@@ -723,7 +628,8 @@ function Summary() {
     const sentences = merged
       .split(/(?<=[.!?])\s+/)
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
     const limited = sentences.slice(0, 5).join(' ');
     return (
       <Typography
@@ -795,7 +701,7 @@ function Summary() {
         background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
       },
     }}>
-      <ProcessTopRail />
+      <ProcessTopRail titleOverride="Leadership Reflection" />
       <Container
         maxWidth={false}
         sx={{
@@ -839,23 +745,17 @@ function Summary() {
                   >
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
                       <Box>
-                        <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(231,242,251,0.82)' }}>
-                          Insights Review
-                        </Typography>
-                        <Typography sx={{ fontSize: { xs: '1.16rem', md: '1.3rem' }, fontWeight: 800, color: 'rgba(251,253,255,0.98)', lineHeight: 1.25, mt: 0.35 }}>
-                          Guided reflection journey: one moment at a time.
+                        <Typography sx={{ fontSize: { xs: '1.16rem', md: '1.36rem' }, fontWeight: 800, color: 'rgba(251,253,255,0.98)', lineHeight: 1.25 }}>
+                          Reflecting on your Leadership Approach
                         </Typography>
                       </Box>
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-                        <Chip
-                          label={`Agent Lens: ${agentNameById[selectedAgent] || 'Balanced Mentor'}`}
-                          sx={{ fontWeight: 700, color: 'rgba(248,252,255,0.94)', bgcolor: 'rgba(255,255,255,0.14)', border: '1px solid rgba(233,241,249,0.35)', height: 32 }}
-                        />
-                        <Chip
-                          label={`Step ${activeJourneyStep + 1} of ${journeyStages.length}`}
-                          sx={{ fontWeight: 700, color: 'rgba(246,250,255,0.92)', bgcolor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(233,241,249,0.22)', height: 32 }}
-                        />
-                      </Stack>
+                      <Button
+                        variant="contained"
+                        onClick={openAgentMenu}
+                        sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', px: 2.7, py: 1.05, bgcolor: '#457089', color: 'white', '&:hover': { bgcolor: '#375d78' } }}
+                      >
+                        Agent Selection
+                      </Button>
                     </Stack>
                   </Paper>
 
@@ -884,36 +784,36 @@ function Summary() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 1,
-                                p: 1,
+                                p: 1.2,
                                 borderRadius: 1.8,
                                 border: '1px solid',
-                                borderColor: active ? stage.accent : 'rgba(85,119,145,0.24)',
-                                bgcolor: active ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.6)',
+                                borderColor: 'rgba(85,119,145,0.28)',
+                                bgcolor: active ? 'rgba(224,122,63,0.22)' : 'rgba(255,255,255,0.6)',
                                 cursor: 'pointer',
                                 transition: 'all 0.22s ease',
                                 '&:hover': {
                                   bgcolor: 'rgba(255,255,255,0.94)',
-                                  borderColor: active ? stage.accent : 'rgba(85,119,145,0.4)',
+                                  borderColor: 'rgba(85,119,145,0.42)',
                                 },
                               }}
                             >
                               <Box
                                 sx={{
-                                  width: 28,
-                                  height: 28,
+                                  width: 36,
+                                  height: 36,
                                   borderRadius: 1.4,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  bgcolor: active ? 'rgba(69,112,137,0.16)' : 'rgba(69,112,137,0.09)',
+                                  bgcolor: active ? 'rgba(224,122,63,0.24)' : 'rgba(69,112,137,0.09)',
                                   border: '1px solid rgba(69,112,137,0.32)',
                                   flexShrink: 0,
                                 }}
                               >
-                                <Icon sx={{ fontSize: 18, color: active ? '#2E5573' : '#496783' }} />
+                                <Icon sx={{ fontSize: 23, color: active ? '#2E5573' : '#496783' }} />
                               </Box>
                               <Box sx={{ minWidth: 0 }}>
-                                <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#2B4862', lineHeight: 1.2 }}>
+                                <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#2B4862', lineHeight: 1.2 }}>
                                   {idx + 1}. {stage.label}
                                 </Typography>
                                 <Typography sx={{ fontSize: '0.74rem', color: 'rgba(44,66,87,0.78)', mt: 0.25, lineHeight: 1.25 }}>
@@ -943,13 +843,13 @@ function Summary() {
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.2 }}>
                               <Stack direction="row" spacing={1} alignItems="center">
                                 <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)' }}>
-                                  <StageIcon sx={{ fontSize: 21, color: 'primary.main' }} />
+                                  <StageIcon sx={{ fontSize: 27, color: 'primary.main' }} />
                                 </Box>
                                 <Box>
-                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.85rem', color: '#2B4862' }}>
+                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.92rem', color: '#2B4862' }}>
                                     {stage.label}
                                   </Typography>
-                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.08rem' }, color: '#163047', mt: 0.2 }}>
+                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.08rem', md: '1.2rem' }, color: '#163047', mt: 0.2 }}>
                                     {stage.title}
                                   </Typography>
                                 </Box>
@@ -963,46 +863,6 @@ function Summary() {
                               {renderJourneyStageBody(stage)}
                             </Box>
 
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.25 }}>
-                              <Stack direction="row" spacing={0.75}>
-                                {journeyStages.map((stageItem, dotIdx) => (
-                                  <Box
-                                    key={`${stageItem.id}-dot`}
-                                    sx={{
-                                      width: dotIdx === activeJourneyStep ? 20 : 9,
-                                      height: 9,
-                                      borderRadius: 20,
-                                      bgcolor: dotIdx === activeJourneyStep ? 'rgba(69,112,137,0.86)' : 'rgba(69,112,137,0.3)',
-                                      transition: 'all 0.2s ease',
-                                    }}
-                                  />
-                                ))}
-                              </Stack>
-                              <Stack direction="row" spacing={1}>
-                                <Button
-                                  variant="outlined"
-                                  disabled={activeJourneyStep === 0}
-                                  onClick={() => setActiveJourneyStep((prev) => Math.max(0, prev - 1))}
-                                  sx={{ textTransform: 'none', fontWeight: 700 }}
-                                >
-                                  Previous
-                                </Button>
-                                <Button
-                                  variant="contained"
-                                  color="primary"
-                                  onClick={() => {
-                                    if (activeJourneyStep < journeyStages.length - 1) {
-                                      setActiveJourneyStep((prev) => Math.min(journeyStages.length - 1, prev + 1));
-                                    } else {
-                                      navigate('/trait-selection');
-                                    }
-                                  }}
-                                  sx={{ textTransform: 'none', fontWeight: 700 }}
-                                >
-                                  {activeJourneyStep < journeyStages.length - 1 ? 'Next Reflection' : 'Continue To Growth'}
-                                </Button>
-                              </Stack>
-                            </Stack>
                           </>
                         );
                       })()}
@@ -1362,22 +1222,6 @@ function Summary() {
             )}
 
             <Stack direction="row" spacing={3} justifyContent="center" alignItems="center" sx={{ mt: 1.25 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate('/')}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5 }}
-              >
-                Return to Home
-              </Button>
-
-              <Button
-                variant="contained"
-                onClick={openAgentMenu}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 5, py: 1.5, bgcolor: '#457089', color: 'white', '&:hover': { bgcolor: '#375d78' } }}
-              >
-                Rerun with Different Agent
-              </Button>
               <Menu
                 anchorEl={agentMenuAnchor}
                 open={Boolean(agentMenuAnchor)}
