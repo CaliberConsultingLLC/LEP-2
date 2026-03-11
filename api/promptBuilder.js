@@ -110,25 +110,24 @@ SELF-CHECK (silent)
 - Reject output if trajectory sentence counts or paragraph intent drift.
 
 SECTION INTENT
-1) Trailhead (6-7 sentences):
-   - Current-state only: one identity-level mirror, one productive pattern, one hidden tension.
-   - Do not include future consequences or "what if" language here.
+1) Trailhead (8-10 sentences):
+   - Current-state mirror only: identity-level reflection, strongest asset, core tension, and emotional undercurrent.
+   - Must feel specific enough that this leader feels seen, not described generically.
+   - Include concrete impact on people dynamics and decision quality.
+   - Do not include future consequences or solution framing here.
 2) Trail Markers:
-   - Frame as likely outcomes this leader may repeatedly encounter.
+   - Frame as recurring current-state failure points this leader may already notice.
    - Then 3-5 concise outcome bullets.
-   - Each bullet must be 6-9 words.
-   - Focus on observable impact/results (team experience, pace, trust, clarity), not "you do X" behavior narration.
+   - Each bullet must be 8-14 words.
+   - Each bullet must include at least one personal context anchor (role/team/operating environment).
+   - Focus on observable impact/results (team experience, pace, trust, clarity), not abstract statements.
    - Each bullet must be single-clause plain text; no semicolons or colons.
    - Do not start bullets with "you".
-3) Trajectory:
-   - Two paragraphs separated by a single newline.
-   - Paragraph 1 (risk-first): exactly 4 sentences on likely downside if unchanged.
-   - Paragraph 1 must NOT contain "Imagine" or any solution framing.
-   - Paragraph 2 (optimistic prelude): exactly 2 sentences in hypothetical future tense.
-   - Each sentence in paragraph 2 must include one modal: could, might, or would.
-   - Paragraph 2 describes possibility only; never method or steps.
-   - Keep trajectory concise: reduce verbosity by ~20%, target 12-16 words per sentence.
-   - The optimistic prelude should spotlight one desirable outcome likely missing today.
+3) Upcoming Hazards:
+   - 5-6 sentences telling the likely downside if concerns remain unaddressed.
+   - Keep this risk-forward and darker in consequence tone (no optimism block here).
+   - Must include consequences to both people and performance.
+   - Include one plausible barrier/deficit escalation if this pattern hardens.
    - Do NOT give practical guidance or fix instructions anywhere in this section.
    - Do not use markdown hashes or heading separators.
 4) A New Trail:
@@ -143,9 +142,12 @@ ${agentPrompt}
 ${voiceGuide}
 `.trim();
 
-export const buildSummaryNarrativeUserPrompt = ({ insightMap, focusAreas = [] }) => `
+export const buildSummaryNarrativeUserPrompt = ({ insightMap, focusAreas = [], contextSnapshot = {} }) => `
 INSIGHT MAP (JSON)
 ${JSON.stringify(insightMap, null, 2)}
+
+CONTEXT SNAPSHOT (use when relevant for specificity)
+${JSON.stringify(contextSnapshot, null, 2)}
 
 Use these exact subtraits in this exact order in section 4 bullets:
 ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.traitName})`).join('\n')}
@@ -154,4 +156,4 @@ ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.trait
 // Backward-compat aliases
 export const buildSummarySystemPrompt = buildSummaryNarrativeSystemPrompt;
 export const buildSummaryUserPrompt = (body, focusAreas = []) =>
-  buildSummaryNarrativeUserPrompt({ insightMap: body, focusAreas });
+  buildSummaryNarrativeUserPrompt({ insightMap: body, focusAreas, contextSnapshot: body });

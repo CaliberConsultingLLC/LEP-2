@@ -507,9 +507,9 @@ function Summary() {
       },
       {
         id: 'hazards',
-        label: 'Trail Hazards',
-        title: 'Understand The Cost If Unchanged',
-        subtitle: 'How today\'s patterns can quietly tax trust, clarity, and pace.',
+        label: 'Upcoming Hazards',
+        title: 'What May Break If Left Unaddressed',
+        subtitle: 'The likely deficits, barriers, and performance risks if this pattern continues.',
         icon: ReportProblemOutlined,
         accent: 'rgba(99,147,170,0.4)',
         mode: 'trajectory',
@@ -622,7 +622,7 @@ function Summary() {
       .map((s) => s.trim())
       .filter(Boolean)
       .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
-    const limited = sentences.slice(0, 5).join(' ');
+    const limited = sentences.slice(0, 6).join(' ');
     return (
       <Typography
         sx={{
