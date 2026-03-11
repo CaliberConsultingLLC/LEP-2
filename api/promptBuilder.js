@@ -23,16 +23,25 @@ AGENT IDENTITY
 ${agentIdentity}
 `.trim();
 
-export const buildInsightExtractionUserPrompt = (body) => `
+export const buildInsightExtractionUserPrompt = (body, traitCatalog = []) => `
 INTAKE DATA (JSON)
 ${JSON.stringify(body, null, 2)}
 
+VALID FOCUS SUBTRAITS (use names from this catalog)
+${JSON.stringify(traitCatalog, null, 2)}
+
 Return strict JSON with this exact shape:
 {
-  "leadershipEssence": "1-2 sentence identity-level mirror",
-  "signaturePattern": "single sentence describing the dominant recurring loop",
-  "hiddenCost": "single sentence describing non-obvious downside",
-  "missingOutcome": "single sentence naming desirable outcome likely not happening today",
+  "leadershipMirror": "2-3 sentence identity-level mirror",
+  "protectivePattern": "single sentence describing the pattern that keeps this leader safe",
+  "pressurePattern": "single sentence describing how stress distorts behavior",
+  "peopleImpact": "single sentence about likely team-level impact",
+  "performanceImpact": "single sentence about likely performance-level impact",
+  "hiddenTradeoff": "single sentence describing what this approach protects and what it costs",
+  "teamLikelyFeels": ["", "", ""],
+  "whatThisLeaderOveruses": ["", "", ""],
+  "whatThisLeaderAvoids": ["", "", ""],
+  "futureRiskIfUnchanged": "2-3 sentence downside trajectory",
   "coreStrengths": [{"label":"", "evidence":["",""], "implication":""}],
   "coreTensions": [{"label":"", "evidence":["",""], "implication":""}],
   "blindSpots": [{"label":"", "evidence":["",""], "teamImpact":""}],
@@ -41,6 +50,13 @@ Return strict JSON with this exact shape:
     "bestCase": "2-3 sentences",
     "driftCase": "2-3 sentences"
   },
+  "focusRecommendations": [
+    {
+      "subTraitName": "",
+      "parentTraitHint": "",
+      "rationale": ""
+    }
+  ],
   "languageAvoid": ["phrase1", "phrase2"],
   "confidence": {
     "overall": "high|medium|low",
@@ -52,6 +68,8 @@ Return strict JSON with this exact shape:
 Constraints:
 - 3 coreStrengths, 3 coreTensions, 3 blindSpots.
 - 2 contradictionMap entries.
+- 5 focusRecommendations.
+- focusRecommendations must use only likely Compass subtrait names (e.g., Delegation, Psychological Safety, Decision Hygiene, Strategic Framing).
 - "evidence" items must be short reworded observations, not copied answer text.
 - Keep all fields concise and concrete.
 `.trim();
@@ -93,18 +111,13 @@ QUALITY RUBRIC (silent internal scoring before final output)
 - Emotional accuracy (0-2): feels humanly true without exaggeration.
 - Language freshness (0-1): clear, non-cliche phrasing.
 
-WEIGHTING
-- Fidelity/Accuracy: 40%
-- Synthesis depth: 20%
-- Specificity/context grounding: 15%
-- Emotional resonance: 15%
-- Novel framing/language freshness: 10%
-
 SELF-CHECK (silent)
 - If Fidelity < 3, revise before output.
 - Remove any ungrounded claim or invented motive.
 - Keep all novelty grounded in provided signals.
 - Include at least one compact chain in each section: signal -> pattern -> impact.
+- Explicitly anchor interpretation in at least 4 profile fields when available
+  (e.g., generation band, team size, years in role, years in leadership, industry, role, responsibilities).
 - Avoid repeating the same sentence opener more than twice in one section.
 - Reject output if any directive pattern appears.
 - Reject output if trajectory sentence counts or paragraph intent drift.
@@ -114,12 +127,13 @@ SECTION INTENT
    - Current-state mirror only: identity-level reflection, strongest asset, core tension, and emotional undercurrent.
    - Must feel specific enough that this leader feels seen, not described generically.
    - Include concrete impact on people dynamics and decision quality.
+   - Avoid over-indexing on common themes (communication/delegation) unless clearly evidenced by multiple signals.
    - Do not include future consequences or solution framing here.
 2) Trail Markers:
    - Frame as recurring current-state failure points this leader may already notice.
    - Then 3-5 concise outcome bullets.
    - Each bullet must be 8-14 words.
-   - Each bullet must include at least one personal context anchor (role/team/operating environment).
+   - Make each bullet human-specific using contextual anchors (team size, tenure, industry, operating context) without awkward title appends.
    - Focus on observable impact/results (team experience, pace, trust, clarity), not abstract statements.
    - Each bullet must be single-clause plain text; no semicolons or colons.
    - Do not start bullets with "you".
@@ -148,6 +162,11 @@ ${JSON.stringify(insightMap, null, 2)}
 
 CONTEXT SNAPSHOT (use when relevant for specificity)
 ${JSON.stringify(contextSnapshot, null, 2)}
+
+PROFILE INTERPRETATION RULE
+- Use profile context to sharpen specificity and realism.
+- Never append raw profile strings as parenthetical fragments.
+- Weave context naturally into meaning and likely team impact.
 
 Use these exact subtraits in this exact order in section 4 bullets:
 ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.traitName})`).join('\n')}
