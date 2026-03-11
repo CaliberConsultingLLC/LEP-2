@@ -1618,21 +1618,49 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     );
                   })}
                 </Stack>
-                <Typography
+                <Paper
                   sx={{
-                    fontSize: { xs: '1.05rem', md: '1.14rem' },
-                    fontWeight: 700,
-                    color: 'rgba(255,255,255,0.94)',
+                    width: '100%',
+                    maxWidth: 1120,
+                    mx: 'auto',
+                    mb: 1.3,
+                    px: { xs: 1.2, md: 1.8 },
+                    py: { xs: 0.9, md: 1.05 },
+                    borderRadius: 2.2,
+                    border: '1px solid rgba(220,232,245,0.28)',
+                    bgcolor: 'rgba(58,82,108,0.62)',
+                    boxShadow: '0 8px 20px rgba(8,16,28,0.2), inset 0 0 0 1px rgba(255,255,255,0.08)',
                     textAlign: 'center',
-                    mb: 1.2,
-                    px: { xs: 1, md: 0 },
                   }}
                 >
-                  {detailQuestionTitle}
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '0.76rem',
+                      fontWeight: 800,
+                      color: 'rgba(236,245,255,0.84)',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      mb: 0.35,
+                    }}
+                  >
+                    Selected Statement
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: '1rem', md: '1.12rem' },
+                      fontWeight: 700,
+                      color: 'rgba(250,253,255,0.97)',
+                      lineHeight: 1.35,
+                      textWrap: 'balance',
+                      px: { xs: 0.2, md: 1.2 },
+                    }}
+                  >
+                    {detailQuestionTitle}
+                  </Typography>
+                </Paper>
 
-                <Grid container spacing={1.4} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
-                  <Grid item xs={12} lg={6} sx={{ display: 'flex' }}>
+                <Grid container spacing={1.5} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
+                  <Grid item xs={12} lg={5.4} sx={{ display: 'flex' }}>
                     <Paper
                       sx={{
                         width: '100%',
@@ -1791,7 +1819,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     </Paper>
                   </Grid>
 
-                  <Grid item xs={12} lg={6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Grid item xs={12} lg={6.6} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch' }}>
                     <Paper
                       sx={{
                         width: '100%',
