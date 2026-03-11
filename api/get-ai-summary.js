@@ -806,6 +806,57 @@ const agents = {
   }
 };
 
+    const personaInterpretiveLens = {
+      bluntPracticalFriend: {
+        focus: 'decision friction, execution drag, and avoidable complexity',
+        mustSurface: [
+          'Name the highest-cost leadership tradeoff in plain language.',
+          'Explain what the current pattern optimizes for (often unintentionally).',
+          'Call out the single operational consequence that will keep repeating.',
+        ],
+      },
+      formalEmpatheticCoach: {
+        focus: 'trust dynamics, relational safety, and leadership signal consistency',
+        mustSurface: [
+          'Reflect intent vs impact with neutral, respectful language.',
+          'Describe how team confidence is shaped by repeated leadership signals.',
+          'Highlight one tension between care and clarity without blame.',
+        ],
+      },
+      balancedMentor: {
+        focus: 'strength/tension balance and compounding leadership patterns',
+        mustSurface: [
+          'Anchor one clear strength and one costly recurring tension.',
+          'Connect both to role context and likely team-level consequences.',
+          'Frame growth as an achievable shift without prescribing steps.',
+        ],
+      },
+      comedyRoaster: {
+        focus: 'pattern visibility through light contrast while preserving dignity',
+        mustSurface: [
+          'Use humor sparingly to reveal (not mask) the core pattern.',
+          'After each light edge line, land on a specific evidence-backed insight.',
+          'Keep psychological safety intact: sharp on patterns, kind to person.',
+        ],
+      },
+      pragmaticProblemSolver: {
+        focus: 'constraint analysis, signal integrity, and repeatable outcomes',
+        mustSurface: [
+          'Map signal -> operating constraint -> downstream effect clearly.',
+          'Prioritize the bottleneck pattern over broad narrative language.',
+          'Use compact, concrete interpretation with minimal abstraction.',
+        ],
+      },
+      highSchoolCoach: {
+        focus: 'identity confidence, motivation energy, and consistency cues',
+        mustSurface: [
+          'Affirm effort while naming the exact pattern that limits results.',
+          'Translate tension into understandable, emotionally honest language.',
+          'Leave the user feeling challenged, seen, and ready to keep going.',
+        ],
+      },
+    };
+
 
     if (!agents[selectedAgent]) {
       return res
@@ -818,6 +869,7 @@ const agents = {
     // Build a compact persona voice guide
     const voiceGuide = (() => {
       const a = agents[selectedAgent];
+      const lens = personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMentor;
       const structureRuleByAgent = {
         bluntPracticalFriend: 'Use short declarative sentences and explicit tradeoffs.',
         formalEmpatheticCoach: 'Use polished medium-length sentences with calibrated qualifiers.',
@@ -835,6 +887,9 @@ VOICE & TONE GUIDE (apply consistently):
 - Sentence shape: ${sentences}
 - Structural rule: ${structureRuleByAgent[selectedAgent] || 'Use natural, varied sentence structure tied to evidence.'}
 - Prefer vocabulary: ${lex || 'plain, concrete verbs; avoid fluff'}
+- Interpretive lens focus: ${lens.focus}
+- Lens non-negotiables:
+${(lens.mustSurface || []).map((item) => `  - ${item}`).join('\n')}
 - Do:
 ${doList || '- Keep it concrete.\n- Tie to context.\n- End with a clear insight.'}
 - Don’t:
@@ -844,7 +899,15 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 
     // Pass A: structured insight extraction
     const extractSystem = buildInsightExtractionSystemPrompt({ agentIdentity: cleanIdentity });
-    const extractUser = buildInsightExtractionUserPrompt(body);
+    const extractUser = `${buildInsightExtractionUserPrompt(body)}
+
+PERSONA INTERPRETIVE LENS
+- Focus: ${(personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMentor).focus}
+- Must surface:
+${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMentor).mustSurface || [])
+  .map((item) => `  - ${item}`)
+  .join('\n')}
+`.trim();
     const extraction = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       max_tokens: 900,

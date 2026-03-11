@@ -257,6 +257,12 @@ function Summary() {
     { id: 'highSchoolCoach', name: 'High School Coach' },
   ];
   const [selectedAgent, setSelectedAgent] = useState('');
+  const agentNameById = useMemo(
+    () => Object.fromEntries(agents.map((a) => [a.id, a.name])),
+    // agents is static in this component
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const fetchWithTimeout = async (url, options = {}, timeoutMs = 35000) => {
     const controller = new AbortController();
@@ -324,6 +330,7 @@ function Summary() {
         (overrideAgentId && validAgentIds.includes(overrideAgentId) && overrideAgentId) ||
         (data?.selectedAgent && validAgentIds.includes(data.selectedAgent) && data.selectedAgent) ||
         'balancedMentor';
+      setSelectedAgent(baseAgent);
 
       // 3) request the 4-paragraph summary (canonical format)
       const summaryResp = await fetchWithTimeout('/api/get-ai-summary', {
@@ -739,127 +746,196 @@ function Summary() {
             {/* Summary Output */}
             <Paper
               sx={{
-                p: 2.5,
-                pb: 2.9,
-                borderRadius: 3,
-                border: '2px solid',
-                borderColor: 'primary.main',
-                background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(220,230,255,0.85))',
-                boxShadow: 4,
+                p: { xs: 2, md: 2.6 },
+                pb: { xs: 2.2, md: 2.8 },
+                borderRadius: 3.2,
+                border: '1px solid rgba(69,112,137,0.45)',
+                background: 'linear-gradient(158deg, rgba(252,255,255,0.95), rgba(226,237,249,0.86))',
+                boxShadow: '0 18px 42px rgba(15,23,42,0.22)',
                 mb: 0,
                 overflow: 'visible',
               }}
             >
               {summarySections.length ? (
-                <Stack spacing={3}>
-                  {[
-                    [
-                      { label: 'Trailhead', icon: PersonSearch, text: summarySections[0] || '', accent: 'rgba(99,147,170,0.35)', mode: 'paragraph' },
-                      { label: 'Trail Markers', icon: OutlinedFlag, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.35)', mode: 'markers' },
-                    ],
-                    [
-                      { label: 'Trail Hazards', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.35)', mode: 'trajectory' },
-                      { label: 'A New Trail', icon: AltRoute, text: summarySections[3] || '', accent: 'rgba(47,133,90,0.35)', mode: 'narrative' },
-                    ],
-                  ].map((row, rowIdx) => (
-                    <Box
-                      key={`summary-row-${rowIdx}`}
-                      sx={{
-                        p: 1.6,
-                        borderRadius: 2.5,
-                        border: '1px solid',
-                        borderColor: 'rgba(69,112,137,0.28)',
-                        background: 'linear-gradient(180deg, rgba(255,255,255,0.72), rgba(240,247,255,0.56))',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                      }}
-                    >
+                <Stack spacing={2}>
+                  <Paper
+                    sx={{
+                      p: { xs: 1.35, md: 1.7 },
+                      borderRadius: 2.4,
+                      border: '1px solid rgba(61,96,126,0.34)',
+                      background: 'linear-gradient(145deg, rgba(64,91,118,0.86), rgba(56,82,109,0.74))',
+                      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: '0.76rem',
+                            fontWeight: 800,
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase',
+                            color: 'rgba(231,242,251,0.82)',
+                          }}
+                        >
+                          Insights Review
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: { xs: '1.12rem', md: '1.26rem' },
+                            fontWeight: 800,
+                            color: 'rgba(251,253,255,0.98)',
+                            lineHeight: 1.25,
+                            mt: 0.35,
+                          }}
+                        >
+                          Leadership mirror: clear, candid, and forward-facing.
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={`Agent Lens: ${agentNameById[selectedAgent] || 'Balanced Mentor'}`}
+                        sx={{
+                          fontWeight: 700,
+                          color: 'rgba(248,252,255,0.94)',
+                          bgcolor: 'rgba(255,255,255,0.14)',
+                          border: '1px solid rgba(233,241,249,0.35)',
+                          height: 32,
+                        }}
+                      />
+                    </Stack>
+                  </Paper>
+
+                  <Paper
+                    sx={{
+                      p: { xs: 1.6, md: 2.1 },
+                      borderRadius: 2.6,
+                      border: '1px solid rgba(76,115,143,0.38)',
+                      background: 'linear-gradient(172deg, rgba(255,255,255,0.96), rgba(239,247,255,0.92))',
+                      boxShadow: '0 8px 20px rgba(12,21,34,0.12)',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.1} alignItems="center" sx={{ mb: 1.05 }}>
                       <Box
                         sx={{
-                          display: 'grid',
-                          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                          gap: 1.8,
-                          alignItems: 'stretch',
+                          width: 34,
+                          height: 34,
+                          borderRadius: 1.8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(69,112,137,0.12)',
+                          border: '1px solid rgba(69,112,137,0.32)',
                         }}
                       >
-                        {row.map((card) => {
-                          const Icon = card.icon;
-                          return (
-                            <Paper
-                              key={card.label}
+                        <PersonSearch sx={{ fontSize: 23, color: 'primary.main' }} />
+                      </Box>
+                      <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.86rem', color: '#2B4862' }}>
+                        Trailhead: What is true right now
+                      </Typography>
+                    </Stack>
+                    <Typography
+                      sx={{
+                        fontFamily: 'Gemunu Libre, sans-serif',
+                        fontSize: { xs: '1rem', md: '1.06rem' },
+                        lineHeight: 1.72,
+                        color: '#1E3449',
+                      }}
+                    >
+                      {renderParagraphWithTooltips(summarySections[0] || '')}
+                    </Typography>
+                  </Paper>
+
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
+                      gap: 1.5,
+                    }}
+                  >
+                    {[
+                      { label: 'Trail Markers', icon: OutlinedFlag, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.4)', mode: 'markers' },
+                      { label: 'Trail Hazards', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.38)', mode: 'trajectory' },
+                    ].map((card) => {
+                      const Icon = card.icon;
+                      return (
+                        <Paper
+                          key={card.label}
+                          sx={{
+                            p: { xs: 1.45, md: 1.8 },
+                            borderRadius: 2.4,
+                            border: '1px solid',
+                            borderColor: card.accent,
+                            background: 'linear-gradient(176deg, rgba(255,255,255,0.96), rgba(247,251,255,0.9))',
+                            boxShadow: '0 6px 16px rgba(12,21,34,0.1)',
+                          }}
+                        >
+                          <Stack direction="row" spacing={1.05} alignItems="center" sx={{ mb: 1 }}>
+                            <Box
                               sx={{
-                                p: 2.25,
-                                pb: 2.1,
-                                borderRadius: 2.5,
-                                border: '1px solid',
-                                borderColor: card.accent,
-                                background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.9))',
-                                boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
-                                overflow: 'visible',
+                                width: 32,
+                                height: 32,
+                                borderRadius: 1.7,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                bgcolor: 'rgba(69,112,137,0.12)',
+                                border: '1px solid rgba(69,112,137,0.3)',
                               }}
                             >
-                              <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
-                                <Box
-                                  sx={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    bgcolor: 'rgba(69,112,137,0.12)',
-                                    border: '1px solid rgba(69,112,137,0.35)',
-                                  }}
-                                >
-                                  <Icon sx={{ fontSize: 25, color: 'primary.main' }} />
-                                </Box>
-                                <Typography
-                                  sx={{
-                                    fontWeight: 800,
-                                    letterSpacing: 0.5,
-                                    textTransform: 'uppercase',
-                                    fontSize: '0.9rem',
-                                    color: 'text.primary',
-                                  }}
-                                >
-                                  {card.label}
-                                </Typography>
-                              </Stack>
-                              {card.mode === 'markers' ? (
-                                renderTrailMarkers(card.text)
-                              ) : card.mode === 'trajectory' ? (
-                                renderTrajectory(card.text)
-                              ) : card.mode === 'narrative' ? (
-                                renderNarrativeWithBullets(card.text)
-                              ) : (
-                                <Typography
-                                  sx={{
-                                    fontFamily: 'Gemunu Libre, sans-serif',
-                                    fontSize: '0.96rem',
-                                    lineHeight: 1.65,
-                                    color: 'text.primary',
-                                  }}
-                                >
-                                  {renderParagraphWithTooltips(card.text)}
-                                </Typography>
-                              )}
-                            </Paper>
-                          );
-                        })}
+                              <Icon sx={{ fontSize: 20, color: 'primary.main' }} />
+                            </Box>
+                            <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.84rem', color: '#2B4862' }}>
+                              {card.label}
+                            </Typography>
+                          </Stack>
+                          {card.mode === 'markers' ? renderTrailMarkers(card.text) : renderTrajectory(card.text)}
+                        </Paper>
+                      );
+                    })}
+                  </Box>
+
+                  <Paper
+                    sx={{
+                      p: { xs: 1.45, md: 1.8 },
+                      borderRadius: 2.4,
+                      border: '1px solid rgba(47,133,90,0.35)',
+                      background: 'linear-gradient(176deg, rgba(255,255,255,0.96), rgba(244,251,247,0.9))',
+                      boxShadow: '0 6px 16px rgba(12,21,34,0.1)',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1.05} alignItems="center" sx={{ mb: 1 }}>
+                      <Box
+                        sx={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 1.7,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(47,133,90,0.12)',
+                          border: '1px solid rgba(47,133,90,0.3)',
+                        }}
+                      >
+                        <AltRoute sx={{ fontSize: 20, color: '#2F855A' }} />
                       </Box>
-                    </Box>
-                  ))}
+                      <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.84rem', color: '#234C38' }}>
+                        A New Trail: Where momentum can build
+                      </Typography>
+                    </Stack>
+                    {renderNarrativeWithBullets(summarySections[3] || '')}
+                  </Paper>
                 </Stack>
               ) : (
                 <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>
                   {isLoading ? 'Summary is being generated...' : 'No summary available.'}
                 </Typography>
               )}
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Box sx={{ textAlign: 'center', mt: 2.3 }}>
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={() => navigate('/trait-selection')}
-                  sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4 }}
+                  sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4.6, py: 1.15, fontWeight: 700 }}
                 >
                   I'm Ready for Growth
                 </Button>
