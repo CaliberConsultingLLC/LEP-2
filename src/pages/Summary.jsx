@@ -257,6 +257,7 @@ function Summary() {
     { id: 'highSchoolCoach', name: 'High School Coach' },
   ];
   const [selectedAgent, setSelectedAgent] = useState('');
+  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const agentNameById = useMemo(
     () => Object.fromEntries(agents.map((a) => [a.id, a.name])),
     // agents is static in this component
@@ -490,6 +491,56 @@ function Summary() {
     .filter(Boolean)
     .slice(0, 4);
 
+  const journeyStages = useMemo(
+    () => ([
+      {
+        id: 'trailhead',
+        label: 'Trailhead',
+        title: 'Mirror The Current Signal',
+        subtitle: 'The clearest reflection of how your leadership currently lands.',
+        icon: PersonSearch,
+        accent: 'rgba(99,147,170,0.38)',
+        mode: 'paragraph',
+        text: summarySections[0] || '',
+      },
+      {
+        id: 'markers',
+        label: 'Trail Markers',
+        title: 'Notice The Recurring Moments',
+        subtitle: 'Signals that repeatedly show up in pressure and momentum.',
+        icon: OutlinedFlag,
+        accent: 'rgba(224,122,63,0.42)',
+        mode: 'markers',
+        text: summarySections[1] || '',
+      },
+      {
+        id: 'hazards',
+        label: 'Trail Hazards',
+        title: 'Understand The Cost If Unchanged',
+        subtitle: 'How today\'s patterns can quietly tax trust, clarity, and pace.',
+        icon: TrendingUp,
+        accent: 'rgba(99,147,170,0.4)',
+        mode: 'trajectory',
+        text: summarySections[2] || '',
+      },
+      {
+        id: 'new-trail',
+        label: 'A New Trail',
+        title: 'Choose Where To Build Forward',
+        subtitle: 'Focused growth traits that create a sharper leadership trajectory.',
+        icon: AltRoute,
+        accent: 'rgba(47,133,90,0.42)',
+        mode: 'narrative',
+        text: summarySections[3] || '',
+      },
+    ]),
+    [summarySections]
+  );
+
+  useEffect(() => {
+    setActiveJourneyStep(0);
+  }, [aiSummary]);
+
   const subTraitMap = useMemo(() => {
     const map = new Map();
     (focusAreas || []).forEach((area) => {
@@ -688,6 +739,25 @@ function Summary() {
     );
   };
 
+  const renderJourneyStageBody = (stage) => {
+    if (!stage) return null;
+    if (stage.mode === 'markers') return renderTrailMarkers(stage.text);
+    if (stage.mode === 'trajectory') return renderTrajectory(stage.text);
+    if (stage.mode === 'narrative') return renderNarrativeWithBullets(stage.text);
+    return (
+      <Typography
+        sx={{
+          fontFamily: 'Gemunu Libre, sans-serif',
+          fontSize: { xs: '1rem', md: '1.06rem' },
+          lineHeight: 1.72,
+          color: '#1E3449',
+        }}
+      >
+        {renderParagraphWithTooltips(stage.text)}
+      </Typography>
+    );
+  };
+
   if (isLoading) {
     return (
       <LoadingScreen
@@ -769,160 +839,187 @@ function Summary() {
                   >
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
                       <Box>
-                        <Typography
-                          sx={{
-                            fontSize: '0.76rem',
-                            fontWeight: 800,
-                            letterSpacing: '0.08em',
-                            textTransform: 'uppercase',
-                            color: 'rgba(231,242,251,0.82)',
-                          }}
-                        >
+                        <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(231,242,251,0.82)' }}>
                           Insights Review
                         </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: { xs: '1.12rem', md: '1.26rem' },
-                            fontWeight: 800,
-                            color: 'rgba(251,253,255,0.98)',
-                            lineHeight: 1.25,
-                            mt: 0.35,
-                          }}
-                        >
-                          Leadership mirror: clear, candid, and forward-facing.
+                        <Typography sx={{ fontSize: { xs: '1.16rem', md: '1.3rem' }, fontWeight: 800, color: 'rgba(251,253,255,0.98)', lineHeight: 1.25, mt: 0.35 }}>
+                          Guided reflection journey: one moment at a time.
                         </Typography>
                       </Box>
-                      <Chip
-                        label={`Agent Lens: ${agentNameById[selectedAgent] || 'Balanced Mentor'}`}
-                        sx={{
-                          fontWeight: 700,
-                          color: 'rgba(248,252,255,0.94)',
-                          bgcolor: 'rgba(255,255,255,0.14)',
-                          border: '1px solid rgba(233,241,249,0.35)',
-                          height: 32,
-                        }}
-                      />
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                        <Chip
+                          label={`Agent Lens: ${agentNameById[selectedAgent] || 'Balanced Mentor'}`}
+                          sx={{ fontWeight: 700, color: 'rgba(248,252,255,0.94)', bgcolor: 'rgba(255,255,255,0.14)', border: '1px solid rgba(233,241,249,0.35)', height: 32 }}
+                        />
+                        <Chip
+                          label={`Step ${activeJourneyStep + 1} of ${journeyStages.length}`}
+                          sx={{ fontWeight: 700, color: 'rgba(246,250,255,0.92)', bgcolor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(233,241,249,0.22)', height: 32 }}
+                        />
+                      </Stack>
                     </Stack>
                   </Paper>
 
-                  <Paper
-                    sx={{
-                      p: { xs: 1.6, md: 2.1 },
-                      borderRadius: 2.6,
-                      border: '1px solid rgba(76,115,143,0.38)',
-                      background: 'linear-gradient(172deg, rgba(255,255,255,0.96), rgba(239,247,255,0.92))',
-                      boxShadow: '0 8px 20px rgba(12,21,34,0.12)',
-                    }}
-                  >
-                    <Stack direction="row" spacing={1.1} alignItems="center" sx={{ mb: 1.05 }}>
-                      <Box
-                        sx={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: 1.8,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: 'rgba(69,112,137,0.12)',
-                          border: '1px solid rgba(69,112,137,0.32)',
-                        }}
-                      >
-                        <PersonSearch sx={{ fontSize: 23, color: 'primary.main' }} />
-                      </Box>
-                      <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.86rem', color: '#2B4862' }}>
-                        Trailhead: What is true right now
-                      </Typography>
-                    </Stack>
-                    <Typography
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '0.34fr 0.66fr' }, gap: 1.5 }}>
+                    <Paper
                       sx={{
-                        fontFamily: 'Gemunu Libre, sans-serif',
-                        fontSize: { xs: '1rem', md: '1.06rem' },
-                        lineHeight: 1.72,
-                        color: '#1E3449',
+                        p: { xs: 1.2, md: 1.45 },
+                        borderRadius: 2.4,
+                        border: '1px solid rgba(67,102,131,0.33)',
+                        background: 'linear-gradient(168deg, rgba(255,255,255,0.94), rgba(241,248,255,0.88))',
+                        boxShadow: '0 7px 16px rgba(12,21,34,0.1)',
                       }}
                     >
-                      {renderParagraphWithTooltips(summarySections[0] || '')}
-                    </Typography>
-                  </Paper>
-
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' },
-                      gap: 1.5,
-                    }}
-                  >
-                    {[
-                      { label: 'Trail Markers', icon: OutlinedFlag, text: summarySections[1] || '', accent: 'rgba(224,122,63,0.4)', mode: 'markers' },
-                      { label: 'Trail Hazards', icon: TrendingUp, text: summarySections[2] || '', accent: 'rgba(99,147,170,0.38)', mode: 'trajectory' },
-                    ].map((card) => {
-                      const Icon = card.icon;
-                      return (
-                        <Paper
-                          key={card.label}
-                          sx={{
-                            p: { xs: 1.45, md: 1.8 },
-                            borderRadius: 2.4,
-                            border: '1px solid',
-                            borderColor: card.accent,
-                            background: 'linear-gradient(176deg, rgba(255,255,255,0.96), rgba(247,251,255,0.9))',
-                            boxShadow: '0 6px 16px rgba(12,21,34,0.1)',
-                          }}
-                        >
-                          <Stack direction="row" spacing={1.05} alignItems="center" sx={{ mb: 1 }}>
+                      <Typography sx={{ fontSize: '0.77rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#496783', mb: 1.05 }}>
+                        Reflection Journey
+                      </Typography>
+                      <Stack spacing={0.9}>
+                        {journeyStages.map((stage, idx) => {
+                          const Icon = stage.icon;
+                          const active = idx === activeJourneyStep;
+                          return (
                             <Box
+                              key={stage.id}
+                              onClick={() => setActiveJourneyStep(idx)}
                               sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 1.7,
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                bgcolor: 'rgba(69,112,137,0.12)',
-                                border: '1px solid rgba(69,112,137,0.3)',
+                                gap: 1,
+                                p: 1,
+                                borderRadius: 1.8,
+                                border: '1px solid',
+                                borderColor: active ? stage.accent : 'rgba(85,119,145,0.24)',
+                                bgcolor: active ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.6)',
+                                cursor: 'pointer',
+                                transition: 'all 0.22s ease',
+                                '&:hover': {
+                                  bgcolor: 'rgba(255,255,255,0.94)',
+                                  borderColor: active ? stage.accent : 'rgba(85,119,145,0.4)',
+                                },
                               }}
                             >
-                              <Icon sx={{ fontSize: 20, color: 'primary.main' }} />
+                              <Box
+                                sx={{
+                                  width: 28,
+                                  height: 28,
+                                  borderRadius: 1.4,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  bgcolor: active ? 'rgba(69,112,137,0.16)' : 'rgba(69,112,137,0.09)',
+                                  border: '1px solid rgba(69,112,137,0.32)',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <Icon sx={{ fontSize: 18, color: active ? '#2E5573' : '#496783' }} />
+                              </Box>
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#2B4862', lineHeight: 1.2 }}>
+                                  {idx + 1}. {stage.label}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.74rem', color: 'rgba(44,66,87,0.78)', mt: 0.25, lineHeight: 1.25 }}>
+                                  {stage.title}
+                                </Typography>
+                              </Box>
                             </Box>
-                            <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.84rem', color: '#2B4862' }}>
-                              {card.label}
-                            </Typography>
-                          </Stack>
-                          {card.mode === 'markers' ? renderTrailMarkers(card.text) : renderTrajectory(card.text)}
-                        </Paper>
-                      );
-                    })}
+                          );
+                        })}
+                      </Stack>
+                    </Paper>
+
+                    <Paper
+                      sx={{
+                        p: { xs: 1.45, md: 1.9 },
+                        borderRadius: 2.4,
+                        border: '1px solid rgba(69,112,137,0.36)',
+                        background: 'linear-gradient(176deg, rgba(255,255,255,0.97), rgba(246,251,255,0.92))',
+                        boxShadow: '0 8px 20px rgba(12,21,34,0.11)',
+                      }}
+                    >
+                      {(() => {
+                        const stage = journeyStages[activeJourneyStep] || journeyStages[0];
+                        const StageIcon = stage.icon;
+                        return (
+                          <>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.2 }}>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)' }}>
+                                  <StageIcon sx={{ fontSize: 21, color: 'primary.main' }} />
+                                </Box>
+                                <Box>
+                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.85rem', color: '#2B4862' }}>
+                                    {stage.label}
+                                  </Typography>
+                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.08rem' }, color: '#163047', mt: 0.2 }}>
+                                    {stage.title}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                              <Typography sx={{ fontSize: '0.82rem', color: '#3B5C78', maxWidth: 350, lineHeight: 1.35 }}>
+                                {stage.subtitle}
+                              </Typography>
+                            </Stack>
+
+                            <Box sx={{ borderRadius: 2, border: '1px solid rgba(99,147,170,0.28)', bgcolor: 'rgba(255,255,255,0.88)', p: { xs: 1.05, md: 1.25 } }}>
+                              {renderJourneyStageBody(stage)}
+                            </Box>
+
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.25 }}>
+                              <Stack direction="row" spacing={0.75}>
+                                {journeyStages.map((stageItem, dotIdx) => (
+                                  <Box
+                                    key={`${stageItem.id}-dot`}
+                                    sx={{
+                                      width: dotIdx === activeJourneyStep ? 20 : 9,
+                                      height: 9,
+                                      borderRadius: 20,
+                                      bgcolor: dotIdx === activeJourneyStep ? 'rgba(69,112,137,0.86)' : 'rgba(69,112,137,0.3)',
+                                      transition: 'all 0.2s ease',
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                              <Stack direction="row" spacing={1}>
+                                <Button
+                                  variant="outlined"
+                                  disabled={activeJourneyStep === 0}
+                                  onClick={() => setActiveJourneyStep((prev) => Math.max(0, prev - 1))}
+                                  sx={{ textTransform: 'none', fontWeight: 700 }}
+                                >
+                                  Previous
+                                </Button>
+                                <Button
+                                  variant="contained"
+                                  color="primary"
+                                  onClick={() => {
+                                    if (activeJourneyStep < journeyStages.length - 1) {
+                                      setActiveJourneyStep((prev) => Math.min(journeyStages.length - 1, prev + 1));
+                                    } else {
+                                      navigate('/trait-selection');
+                                    }
+                                  }}
+                                  sx={{ textTransform: 'none', fontWeight: 700 }}
+                                >
+                                  {activeJourneyStep < journeyStages.length - 1 ? 'Next Reflection' : 'Continue To Growth'}
+                                </Button>
+                              </Stack>
+                            </Stack>
+                          </>
+                        );
+                      })()}
+                    </Paper>
                   </Box>
 
                   <Paper
                     sx={{
-                      p: { xs: 1.45, md: 1.8 },
-                      borderRadius: 2.4,
-                      border: '1px solid rgba(47,133,90,0.35)',
-                      background: 'linear-gradient(176deg, rgba(255,255,255,0.96), rgba(244,251,247,0.9))',
-                      boxShadow: '0 6px 16px rgba(12,21,34,0.1)',
+                      p: { xs: 1.2, md: 1.35 },
+                      borderRadius: 2.1,
+                      border: '1px solid rgba(69,112,137,0.24)',
+                      background: 'linear-gradient(180deg, rgba(247,252,255,0.82), rgba(236,246,255,0.7))',
                     }}
                   >
-                    <Stack direction="row" spacing={1.05} alignItems="center" sx={{ mb: 1 }}>
-                      <Box
-                        sx={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 1.7,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: 'rgba(47,133,90,0.12)',
-                          border: '1px solid rgba(47,133,90,0.3)',
-                        }}
-                      >
-                        <AltRoute sx={{ fontSize: 20, color: '#2F855A' }} />
-                      </Box>
-                      <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.84rem', color: '#234C38' }}>
-                        A New Trail: Where momentum can build
-                      </Typography>
-                    </Stack>
-                    {renderNarrativeWithBullets(summarySections[3] || '')}
+                    <Typography sx={{ fontSize: '0.84rem', color: '#2E516E', lineHeight: 1.55 }}>
+                      This reflection is intentionally staged to keep your attention on one insight layer at a time: first truth, then recurring patterns, then hidden cost, and finally your forward trail.
+                    </Typography>
                   </Paper>
                 </Stack>
               ) : (
