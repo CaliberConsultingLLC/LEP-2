@@ -256,12 +256,6 @@ function Summary() {
   ];
   const [selectedAgent, setSelectedAgent] = useState('');
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
-  const agentNameById = useMemo(
-    () => Object.fromEntries(agents.map((a) => [a.id, a.name])),
-    // agents is static in this component
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
 
   const fetchWithTimeout = async (url, options = {}, timeoutMs = 35000) => {
     const controller = new AbortController();
@@ -752,7 +746,7 @@ function Summary() {
                       <Button
                         variant="contained"
                         onClick={openAgentMenu}
-                        sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', px: 2.7, py: 1.05, bgcolor: '#457089', color: 'white', '&:hover': { bgcolor: '#375d78' } }}
+                        sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.95rem', px: 2.7, py: 1.05, bgcolor: '#E07A3F', color: 'white', '&:hover': { bgcolor: '#C85A2A' } }}
                       >
                         Agent Selection
                       </Button>
@@ -769,7 +763,7 @@ function Summary() {
                         boxShadow: '0 7px 16px rgba(12,21,34,0.1)',
                       }}
                     >
-                      <Typography sx={{ fontSize: '0.77rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#496783', mb: 1.05 }}>
+                      <Typography sx={{ fontSize: '0.77rem', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#496783', mb: 1.05, textAlign: 'center' }}>
                         Reflection Journey
                       </Typography>
                       <Stack spacing={0.9}>
@@ -814,10 +808,7 @@ function Summary() {
                               </Box>
                               <Box sx={{ minWidth: 0 }}>
                                 <Typography sx={{ fontWeight: 800, fontSize: '0.9rem', color: '#2B4862', lineHeight: 1.2 }}>
-                                  {idx + 1}. {stage.label}
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.74rem', color: 'rgba(44,66,87,0.78)', mt: 0.25, lineHeight: 1.25 }}>
-                                  {stage.title}
+                                  {stage.label}
                                 </Typography>
                               </Box>
                             </Box>
@@ -828,7 +819,7 @@ function Summary() {
 
                     <Paper
                       sx={{
-                        p: { xs: 1.45, md: 1.9 },
+                        p: { xs: 1.75, md: 2.2 },
                         borderRadius: 2.4,
                         border: '1px solid rgba(69,112,137,0.36)',
                         background: 'linear-gradient(176deg, rgba(255,255,255,0.97), rgba(246,251,255,0.92))',
@@ -843,23 +834,20 @@ function Summary() {
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.2 }}>
                               <Stack direction="row" spacing={1} alignItems="center">
                                 <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)' }}>
-                                  <StageIcon sx={{ fontSize: 27, color: 'primary.main' }} />
+                                  <StageIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                                 </Box>
                                 <Box>
-                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.92rem', color: '#2B4862' }}>
+                                  <Typography sx={{ fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '1.08rem', color: '#2B4862' }}>
                                     {stage.label}
-                                  </Typography>
-                                  <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.08rem', md: '1.2rem' }, color: '#163047', mt: 0.2 }}>
-                                    {stage.title}
                                   </Typography>
                                 </Box>
                               </Stack>
-                              <Typography sx={{ fontSize: '0.82rem', color: '#3B5C78', maxWidth: 350, lineHeight: 1.35 }}>
+                              <Typography sx={{ fontSize: '0.92rem', color: '#3B5C78', maxWidth: 390, lineHeight: 1.4 }}>
                                 {stage.subtitle}
                               </Typography>
                             </Stack>
 
-                            <Box sx={{ borderRadius: 2, border: '1px solid rgba(99,147,170,0.28)', bgcolor: 'rgba(255,255,255,0.88)', p: { xs: 1.05, md: 1.25 } }}>
+                            <Box sx={{ borderRadius: 2, border: '1px solid rgba(99,147,170,0.28)', bgcolor: 'rgba(255,255,255,0.88)', p: { xs: 1.5, md: 1.9 } }}>
                               {renderJourneyStageBody(stage)}
                             </Box>
 
@@ -894,7 +882,7 @@ function Summary() {
                   onClick={() => navigate('/trait-selection')}
                   sx={{ fontFamily: 'Gemunu Libre, sans-serif', px: 4.6, py: 1.15, fontWeight: 700 }}
                 >
-                  I'm Ready for Growth
+                  I'm Ready to Take a New Trail
                 </Button>
               </Box>
             </Paper>
