@@ -785,8 +785,8 @@ function Summary() {
                             >
                               <Box
                                 sx={{
-                                  width: 36,
-                                  height: 36,
+                                  width: 44,
+                                  height: 44,
                                   borderRadius: '50%',
                                   display: 'flex',
                                   alignItems: 'center',
@@ -796,19 +796,19 @@ function Summary() {
                                   flexShrink: 0,
                                 }}
                               >
-                                <Icon sx={{ fontSize: 23, color: active ? '#2E5573' : '#496783' }} />
+                                <Icon sx={{ fontSize: 28, color: active ? '#2E5573' : '#496783' }} />
                               </Box>
                               <Button
                                 onClick={() => setActiveJourneyStep(idx)}
                                 variant="outlined"
                                 sx={{
                                   flex: 1,
-                                  minHeight: 44,
+                                  minHeight: 56,
                                   borderRadius: 1.8,
                                   borderColor: 'rgba(85,119,145,0.32)',
                                   bgcolor: active ? 'rgba(224,122,63,0.22)' : 'rgba(255,255,255,0.62)',
                                   color: '#2B4862',
-                                  justifyContent: 'flex-start',
+                                  justifyContent: 'center',
                                   textTransform: 'none',
                                   px: 1.25,
                                   '&:hover': {
@@ -817,7 +817,7 @@ function Summary() {
                                   },
                                 }}
                               >
-                                <Typography sx={{ fontWeight: 800, fontSize: '0.98rem', lineHeight: 1.1 }}>
+                                <Typography sx={{ fontWeight: 800, fontSize: '1.08rem', lineHeight: 1.1, textAlign: 'center' }}>
                                   {stage.label}
                                 </Typography>
                               </Button>
@@ -841,8 +841,8 @@ function Summary() {
                         const StageIcon = stage.icon;
                         return (
                           <>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems={{ xs: 'center', sm: 'center' }} justifyContent="space-between" sx={{ mb: 1.2 }}>
-                              <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: { sm: 280 }, justifyContent: 'center' }}>
+                            <Stack spacing={1} alignItems="center" sx={{ mb: 1.2 }}>
+                              <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ width: '100%' }}>
                                 <Box sx={{ width: 34, height: 34, borderRadius: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.32)', flexShrink: 0 }}>
                                   <StageIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                                 </Box>
@@ -852,7 +852,7 @@ function Summary() {
                                   </Typography>
                                 </Box>
                               </Stack>
-                              <Typography sx={{ fontSize: '1rem', color: '#3B5C78', maxWidth: 430, lineHeight: 1.45, textAlign: { xs: 'center', sm: 'left' } }}>
+                              <Typography sx={{ fontSize: '1rem', color: '#3B5C78', maxWidth: 460, lineHeight: 1.45, textAlign: 'center' }}>
                                 {stage.subtitle}
                               </Typography>
                             </Stack>
