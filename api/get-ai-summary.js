@@ -378,6 +378,19 @@ function hasOverusedGenericTheme(text) {
   return communicationHits + delegationHits >= 4;
 }
 
+function hasEmotionalArc(text) {
+  const src = String(text || '').toLowerCase();
+  const seenTokens = /\b(seen|accurate|mirror|recognized|understood)\b/g;
+  const exposedTokens = /\b(tension|friction|strain|cost|tradeoff|pressure)\b/g;
+  const hopefulTokens = /\b(agency|possible|path|opening|regain|stabilize)\b/g;
+  const motivatedTokens = /\b(momentum|forward|commitment|energized|intentional|ready)\b/g;
+  const hasSeen = (src.match(seenTokens) || []).length >= 1;
+  const hasExposed = (src.match(exposedTokens) || []).length >= 1;
+  const hasHopeful = (src.match(hopefulTokens) || []).length >= 1;
+  const hasMotivated = (src.match(motivatedTokens) || []).length >= 1;
+  return hasSeen && hasExposed && hasHopeful && hasMotivated;
+}
+
 function softenPrescriptiveLanguage(text) {
   return String(text || '')
     .replace(/\byou should\b/gi, 'you may feel pressure to')
@@ -437,6 +450,7 @@ function evaluateNarrativeQuality(text, insightMap) {
   if (String(insightMap?.hiddenCost || '') && String(text).toLowerCase().includes(String(insightMap.hiddenCost).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (!badPhrases.some((re) => re.test(text))) score += 1;
   if (!hasOverusedGenericTheme(text)) score += 1;
+  if (hasEmotionalArc(text)) score += 1;
   if (!/^\s*#+/m.test(text)) score += 1;
   if (!advicePattern.test(`${trailhead} ${trajectory}`)) score += 1;
   if (boldTrailhead === 0) score += 1;
@@ -455,6 +469,7 @@ Repair this draft to satisfy all requirements:
 - Remove generic phrases and repeated sentence openers.
 - Weave profile context naturally (team size, tenure, industry, role scope) without awkward title append.
 - Avoid communication/delegation themes unless clearly grounded in multiple intake signals.
+- Preserve emotional sequence across sections: Seen -> Exposed -> Hopeful -> Motivated.
 - Remove all advice/directive phrasing; keep hypothetical future language.
 - Do not use markdown bold markers.
 Return revised content only.

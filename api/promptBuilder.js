@@ -99,6 +99,8 @@ NON-NEGOTIABLES
   "unlock potential", "effective leader", "growth mindset", "improve communication",
   "high-performing team", "be more strategic".
 - Include exactly four sections separated by blank lines.
+- Emotional sequence across the full output must progress in this order:
+  Seen -> Exposed -> Hopeful -> Motivated.
 - Section 2 must include 3-5 bullets in this format:
   - concise predicted behavior trail
 - Section 4 must include exactly five bullets in this format:
@@ -129,6 +131,7 @@ SECTION INTENT
    - Include concrete impact on people dynamics and decision quality.
    - Avoid over-indexing on common themes (communication/delegation) unless clearly evidenced by multiple signals.
    - Do not include future consequences or solution framing here.
+   - Emotional target: "Seen + Exposed" (clear mirror, honest tension, zero generic filler).
 2) Trail Markers:
    - Frame as recurring current-state failure points this leader may already notice.
    - Then 3-5 concise outcome bullets.
@@ -137,6 +140,7 @@ SECTION INTENT
    - Focus on observable impact/results (team experience, pace, trust, clarity), not abstract statements.
    - Each bullet must be single-clause plain text; no semicolons or colons.
    - Do not start bullets with "you".
+   - Emotional target: "Exposed" (named friction points with human texture).
 3) Upcoming Hazards:
    - 5-6 sentences telling the likely downside if concerns remain unaddressed.
    - Keep this risk-forward and darker in consequence tone (no optimism block here).
@@ -144,9 +148,11 @@ SECTION INTENT
    - Include one plausible barrier/deficit escalation if this pattern hardens.
    - Do NOT give practical guidance or fix instructions anywhere in this section.
    - Do not use markdown hashes or heading separators.
+   - Emotional target: "Hopeful realism" (risk is clear, but agency remains intact).
 4) A New Trail:
    - Exactly five bullets from provided subtraits in order.
    - Each bullet tail must be 6-8 words and behavior-observable.
+   - Emotional target: "Motivated" (energizing and specific, never prescriptive).
 
 AGENT IDENTITY
 ${agentIdentity}
