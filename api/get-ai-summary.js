@@ -14,6 +14,7 @@ import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_securi
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const EXTRACTION_MODEL = process.env.SUMMARY_EXTRACTION_MODEL || 'gpt-4o-mini';
 const NARRATIVE_MODEL = process.env.SUMMARY_NARRATIVE_MODEL || 'gpt-4o-mini';
+const SUMMARY_ENABLE_RETRY = process.env.SUMMARY_ENABLE_RETRY === '1';
 
 // Cache AgentIdentity.txt at module scope to avoid re-reading on every request
 let cachedAgentIdentity = '';
@@ -559,11 +560,7 @@ function buildFocusAreas(data, insightMap = null) {
 function buildFocusTraitCatalog() {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   return CORE_TRAITS.flatMap((trait) =>
-    (trait?.subTraits || []).map((subTrait) => ({
-      parentTrait: trait.name,
-      subTraitName: subTrait.name,
-      shortDefinition: subTrait.shortDescription || subTrait.definition || '',
-    }))
+    (trait?.subTraits || []).map((subTrait) => String(subTrait?.name || '').trim()).filter(Boolean)
   );
 }
 
@@ -858,7 +855,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
 `.trim();
     const extraction = await openai.chat.completions.create({
       model: EXTRACTION_MODEL,
-      max_tokens: 900,
+      max_tokens: 650,
       temperature: 0.2,
       frequency_penalty: 0.0,
       presence_penalty: 0.0,
@@ -924,7 +921,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
     let capped = shapePipeline(raw);
     let quality = evaluateNarrativeQuality(capped, insightMap);
 
-    if (quality < 10) {
+    if (SUMMARY_ENABLE_RETRY && quality < 10) {
       const repairPrompt = `${buildNarrativeRepairPrompt()}\n\nDRAFT TO REPAIR:\n${capped}`;
       const retry = await openai.chat.completions.create({
         model: NARRATIVE_MODEL,

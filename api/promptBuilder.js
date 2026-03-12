@@ -25,10 +25,10 @@ ${agentIdentity}
 
 export const buildInsightExtractionUserPrompt = (body, traitCatalog = []) => `
 INTAKE DATA (JSON)
-${JSON.stringify(body, null, 2)}
+${JSON.stringify(body)}
 
 VALID FOCUS SUBTRAITS (use names from this catalog)
-${JSON.stringify(traitCatalog, null, 2)}
+${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
 
 Return strict JSON with this exact shape:
 {

@@ -750,6 +750,28 @@ export default function DevSkipOne() {
     responsibilities: false,
   });
 
+  const isFirestorePermissionError = (err) => {
+    const code = String(err?.code || '').toLowerCase();
+    const message = String(err?.message || '').toLowerCase();
+    return code.includes('permission-denied') || message.includes('insufficient permissions');
+  };
+
+  const persistResponse = async (sessionId, payload, extra = {}) => {
+    try {
+      await setDoc(
+        doc(db, 'responses', sessionId),
+        { ...payload, ...extra },
+        { merge: true }
+      );
+    } catch (err) {
+      if (isFirestorePermissionError(err)) {
+        console.warn('[DevSkipOne] Firestore write skipped (permission denied).');
+        return;
+      }
+      throw err;
+    }
+  };
+
   const numberOptions = useMemo(() => {
     const make = (min, max) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
     return {
@@ -770,7 +792,7 @@ export default function DevSkipOne() {
       const payload = generateRandomPayload(sessionId);
 
       try {
-        await setDoc(doc(db, 'responses', sessionId), { ...payload }, { merge: true });
+        await persistResponse(sessionId, payload);
         localStorage.setItem('societalResponses', JSON.stringify(societalResponses));
         await rerunBoth(payload, societalResponses, false);
       } catch (e) {
@@ -787,11 +809,10 @@ export default function DevSkipOne() {
     if (setBusy) setLoading(true);
     try {
       const sessionId = payload?.sessionId || localStorage.getItem('sessionId') || `sess-${Date.now()}`;
-      await setDoc(
-        doc(db, 'responses', sessionId),
-        { ...payload, societalResponses: norms, timestamp: new Date().toISOString() },
-        { merge: true }
-      );
+      await persistResponse(sessionId, payload, {
+        societalResponses: norms,
+        timestamp: new Date().toISOString(),
+      });
 
       const refRes = await fetch('/api/get-ai-reflection', {
         method: 'POST',
