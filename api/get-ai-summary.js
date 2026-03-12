@@ -13,7 +13,7 @@ import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_securi
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const EXTRACTION_MODEL = process.env.SUMMARY_EXTRACTION_MODEL || 'gpt-4o-mini';
-const NARRATIVE_MODEL = process.env.SUMMARY_NARRATIVE_MODEL || 'gpt-4.1';
+const NARRATIVE_MODEL = process.env.SUMMARY_NARRATIVE_MODEL || 'gpt-4o-mini';
 
 // Cache AgentIdentity.txt at module scope to avoid re-reading on every request
 let cachedAgentIdentity = '';
@@ -902,7 +902,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
     const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas, contextSnapshot });
     const completion = await openai.chat.completions.create({
       model: NARRATIVE_MODEL,
-      max_tokens: 2100,
+      max_tokens: 1300,
       temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.12, 0.75),
       frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
       presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
@@ -928,7 +928,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
       const repairPrompt = `${buildNarrativeRepairPrompt()}\n\nDRAFT TO REPAIR:\n${capped}`;
       const retry = await openai.chat.completions.create({
         model: NARRATIVE_MODEL,
-        max_tokens: 2100,
+        max_tokens: 1300,
         temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.08, 0.72),
         frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
         presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
