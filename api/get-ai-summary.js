@@ -9,10 +9,12 @@ import {
   buildSummaryNarrativeUserPrompt,
 } from './promptBuilder.js';
 import traitSystem from '../src/data/traitSystem.js';
-import { intakeContext } from '../src/data/intakeContext.js';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const EXTRACTION_MODEL = process.env.SUMMARY_EXTRACTION_MODEL || 'gpt-4o-mini';
+const NARRATIVE_MODEL = process.env.SUMMARY_NARRATIVE_MODEL || 'gpt-4o-mini';
+const SUMMARY_ENABLE_RETRY = process.env.SUMMARY_ENABLE_RETRY === '1';
 
 // Cache AgentIdentity.txt at module scope to avoid re-reading on every request
 let cachedAgentIdentity = '';
@@ -22,8 +24,6 @@ try {
 } catch {
   cachedAgentIdentity = '';
 }
-
-// Norms context is centralized in src/data/intakeContext.js
 
 // ---- utils ---------------------------------------------------------------
 
@@ -136,7 +136,7 @@ function ensureFiveSubtraitBullets(text, focusAreas) {
     return `- ${head} — ${tail}`;
   });
 
-  const rebuilt = `We believe improving the following traits will start you down a new path of leadership.\n${finalBullets.join('\n')}`.trim();
+  const rebuilt = `${finalBullets.join('\n')}`.trim();
   sections[lastIdx] = rebuilt;
   return sections.join('\n\n').trim();
 }
@@ -155,28 +155,33 @@ function ensureTrailMarkers(text, insightMap) {
       .replace(/^this pattern can lead to\s*/i, '')
       .replace(/^you (may|might)\s+/i, '')
       .replace(/[.*_`#]/g, '')
+      .replace(/\([^)]*\)$/g, '')
       .replace(/\s+/g, ' ')
       .trim();
     const source = cleaned || 'mixed priorities quietly erode team confidence over time';
-    const words = source.split(' ').filter(Boolean).slice(0, 9);
-    const extenders = ['over', 'time', 'for', 'the', 'team'];
+    const words = source.split(' ').filter(Boolean).slice(0, 12);
+    const extenders = ['in', 'daily', 'operations', 'over', 'time'];
     let idx = 0;
-    while (words.length < 6 && idx < extenders.length) {
+    while (words.length < 8 && idx < extenders.length) {
       words.push(extenders[idx]);
       idx += 1;
     }
-    if (words.length < 6) {
+    if (words.length < 8) {
       words.push('steadily');
     }
-    return `- ${words.join(' ')}`;
+    const marker = words.join(' ');
+    return `- ${marker}`;
   };
 
   if (bullets.length >= 3 && bullets.length <= 5) {
-    sections[markerIdx] = `A few scenarios you may find yourself in at times:\n${bullets.slice(0, 5).map(normalizeMarker).join('\n')}`;
+    sections[markerIdx] = `${bullets.slice(0, 5).map(normalizeMarker).join('\n')}`;
     return sections.join('\n\n').trim();
   }
 
   const candidates = [
+    ...(insightMap?.whatThisLeaderOveruses || []),
+    ...(insightMap?.whatThisLeaderAvoids || []),
+    ...(insightMap?.teamLikelyFeels || []),
     ...(insightMap?.coreTensions || []).map((x) => x?.label).filter(Boolean),
     ...(insightMap?.blindSpots || []).map((x) => x?.label).filter(Boolean),
     ...(insightMap?.coreStrengths || []).map((x) => x?.label).filter(Boolean),
@@ -190,7 +195,7 @@ function ensureTrailMarkers(text, insightMap) {
       '- Momentum stalls when clarity and urgency diverge'
     );
   }
-  sections[markerIdx] = `A few scenarios you may find yourself in at times:\n${fallbackMarkers.slice(0, 4).join('\n')}`;
+  sections[markerIdx] = `${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 
@@ -233,10 +238,21 @@ function normalizeInsightMap(map) {
       : [];
 
   return {
-    leadershipEssence: String(src.leadershipEssence || '').trim(),
-    signaturePattern: String(src.signaturePattern || '').trim(),
-    hiddenCost: String(src.hiddenCost || '').trim(),
-    missingOutcome: String(src.missingOutcome || '').trim(),
+    leadershipMirror: String(src.leadershipMirror || src.leadershipEssence || '').trim(),
+    protectivePattern: String(src.protectivePattern || src.signaturePattern || '').trim(),
+    pressurePattern: String(src.pressurePattern || '').trim(),
+    peopleImpact: String(src.peopleImpact || '').trim(),
+    performanceImpact: String(src.performanceImpact || '').trim(),
+    hiddenTradeoff: String(src.hiddenTradeoff || src.hiddenCost || '').trim(),
+    teamLikelyFeels: Array.isArray(src.teamLikelyFeels) ? src.teamLikelyFeels.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 4) : [],
+    whatThisLeaderOveruses: Array.isArray(src.whatThisLeaderOveruses) ? src.whatThisLeaderOveruses.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 4) : [],
+    whatThisLeaderAvoids: Array.isArray(src.whatThisLeaderAvoids) ? src.whatThisLeaderAvoids.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 4) : [],
+    futureRiskIfUnchanged: String(src.futureRiskIfUnchanged || '').trim(),
+    // Backward-compatible aliases used throughout shaping logic.
+    leadershipEssence: String(src.leadershipEssence || src.leadershipMirror || '').trim(),
+    signaturePattern: String(src.signaturePattern || src.protectivePattern || '').trim(),
+    hiddenCost: String(src.hiddenCost || src.hiddenTradeoff || '').trim(),
+    missingOutcome: String(src.missingOutcome || src.performanceImpact || '').trim(),
     coreStrengths: normArray(src.coreStrengths, 3),
     coreTensions: normArray(src.coreTensions, 3),
     blindSpots: normArray(src.blindSpots, 3),
@@ -254,6 +270,16 @@ function normalizeInsightMap(map) {
       bestCase: String(src?.trajectory?.bestCase || '').trim(),
       driftCase: String(src?.trajectory?.driftCase || '').trim(),
     },
+    focusRecommendations: Array.isArray(src.focusRecommendations)
+      ? src.focusRecommendations
+          .slice(0, 7)
+          .map((x) => ({
+            subTraitName: String(x?.subTraitName || '').trim(),
+            parentTraitHint: String(x?.parentTraitHint || '').trim(),
+            rationale: String(x?.rationale || '').trim(),
+          }))
+          .filter((x) => x.subTraitName)
+      : [],
     languageAvoid: Array.isArray(src.languageAvoid) ? src.languageAvoid.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 6) : [],
     confidence: {
       overall: String(src?.confidence?.overall || '').trim().toLowerCase() || 'medium',
@@ -273,7 +299,7 @@ function normalizeFourSections(text, insightMap) {
 
   const stripHeading = (s) =>
     String(s || '')
-      .replace(/^(trailhead|trail markers|trajectory|a new trail|snapshot|a new way forward)\s*[:\-]\s*/i, '')
+      .replace(/^(trailhead|trail markers|trajectory|upcoming hazards|a new trail|snapshot|a new way forward)\s*[:\-]\s*/i, '')
       .trim();
 
   const hasAdvice = (s) =>
@@ -296,84 +322,74 @@ function normalizeFourSections(text, insightMap) {
     return `${clipped}${end}`;
   };
 
-  const p1 = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
-  const p2 = stripHeading(parts[1] || '');
   const toSentences = (input) =>
     (String(input || '')
       .replace(/^\s*#+\s*/gm, '')
       .match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [])
       .map((s) => s.trim())
       .filter(Boolean);
+  const p1Raw = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
+  const p1Sentences = toSentences(p1Raw);
+  const trailheadTopUps = [
+    String(insightMap?.signaturePattern || '').trim(),
+    String(insightMap?.hiddenCost || '').trim(),
+    String(insightMap?.missingOutcome || '').trim(),
+    ...(Array.isArray(insightMap?.coreStrengths) ? insightMap.coreStrengths.map((x) => x?.implication).filter(Boolean) : []),
+    ...(Array.isArray(insightMap?.coreTensions) ? insightMap.coreTensions.map((x) => x?.implication).filter(Boolean) : []),
+  ]
+    .map((s) => String(s || '').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
+  let p1List = [...p1Sentences];
+  for (let i = 0; i < trailheadTopUps.length && p1List.length < 8; i += 1) {
+    p1List.push(trailheadTopUps[i]);
+  }
+  if (p1List.length > 10) p1List = p1List.slice(0, 10);
+  const p1 = p1List.join(' ').trim();
+  const p2 = stripHeading(parts[1] || '');
 
   const riskSentences = keepNonAdvisory(toSentences(parts[2] || insightMap?.trajectory?.driftCase || ''))
     .filter((s) => !/\bimagine\b/i.test(s))
     .map(stripDirectiveFraming)
     .filter(Boolean);
-  const optimisticSentences = keepNonAdvisory(toSentences(insightMap?.trajectory?.bestCase || ''));
   const fallbackRisk = toSentences('If current patterns hold, role confusion can quietly spread across the team. Execution momentum may slow as people spend energy interpreting mixed signals. Trust can weaken when urgency repeatedly outpaces clarity. Over time, this friction can become the team’s default operating rhythm.');
-  const fallbackOptimistic = toSentences('Imagine your team feeling trusted instead of second-guessing. Greater clarity and alignment could open a higher-ceiling culture your people have not yet experienced.');
+  const escalationCandidates = [
+    'Capability gaps can harden into cultural norms that are harder to reverse later.',
+    'High performers may disengage when uncertainty repeatedly overrides accountability.',
+    'Execution stalls can evolve into reputation drag with stakeholders and customers.',
+    'Morale can decline as teams absorb repeated friction without clear relief.',
+  ];
   const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk)
-    .slice(0, 4)
+    .slice(0, 5)
     .map((s) => compactSentence(s, 0.8))
     .join(' ');
-  const secondHalf = (optimisticSentences.length ? optimisticSentences : fallbackOptimistic)
-    .map((s) => {
-      const cleaned = stripDirectiveFraming(s).replace(/^imagine\b[:,]?\s*/i, '').trim();
-      if (/\b(could|would|might)\b/i.test(cleaned)) return cleaned;
-      return `A healthier trajectory could ${cleaned.charAt(0).toLowerCase()}${cleaned.slice(1)}`;
-    })
+  const secondHalf = escalationCandidates
     .slice(0, 2)
     .map((s) => compactSentence(s, 0.8))
     .join(' ');
-  const p3 = `${firstHalf}\n${secondHalf}`.trim();
+  const p3 = `${firstHalf} ${secondHalf}`.trim();
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
   return [p1, p2, p3, p4].join('\n\n').trim();
 }
 
-function ensurePunchAnchors(text, insightMap) {
-  const sections = String(text || '').split(/\n\s*\n/);
-  while (sections.length < 4) sections.push('');
+function hasOverusedGenericTheme(text) {
+  const src = String(text || '').toLowerCase();
+  const communicationHits = (src.match(/\bcommunicat\w*\b/g) || []).length;
+  const delegationHits = (src.match(/\bdelegat\w*\b/g) || []).length;
+  return communicationHits + delegationHits >= 4;
+}
 
-  const capBoldAnchors = (input, max = 2) => {
-    let count = 0;
-    return String(input || '').replace(/\*\*([^*]+)\*\*/g, (_, phrase) => {
-      count += 1;
-      return count <= max ? `**${phrase}**` : phrase;
-    });
-  };
-
-  const addAnchorIfMissing = (input, fallbackPhrase) => {
-    const boldCount = (String(input || '').match(/\*\*([^*]+)\*\*/g) || []).length;
-    if (boldCount >= 1) return capBoldAnchors(input, 2);
-    return capBoldAnchors(`${String(input || '').trim()} **${fallbackPhrase}**.`, 2).trim();
-  };
-
-  const addTrajectoryAnchorInFirstParagraph = (input, fallbackPhrase) => {
-    const raw = String(input || '').trim();
-    const boldCount = (raw.match(/\*\*([^*]+)\*\*/g) || []).length;
-    if (boldCount >= 1) return capBoldAnchors(raw, 2);
-
-    const parts = raw.split('\n').map((s) => s.trim()).filter(Boolean);
-    if (!parts.length) return capBoldAnchors(`**${fallbackPhrase}**.`, 2);
-    const [first, ...rest] = parts;
-    const firstWithAnchor = capBoldAnchors(`${first} **${fallbackPhrase}**.`, 2).trim();
-    return [firstWithAnchor, ...rest].join('\n').trim();
-  };
-
-  const trailheadFallback = (insightMap?.signaturePattern || insightMap?.hiddenCost || 'This is the part most leaders avoid')
-    .split('.')
-    .find(Boolean)
-    ?.trim()
-    ?.slice(0, 64) || 'This is the part most leaders avoid';
-  const trajectoryFallback = (insightMap?.missingOutcome || 'This is where momentum quietly breaks')
-    .split('.')
-    .find(Boolean)
-    ?.trim()
-    ?.slice(0, 64) || 'This is where momentum quietly breaks';
-
-  sections[0] = addAnchorIfMissing(sections[0], trailheadFallback);
-  sections[2] = addTrajectoryAnchorInFirstParagraph(sections[2], trajectoryFallback);
-  return sections.join('\n\n').trim();
+function hasEmotionalArc(text) {
+  const src = String(text || '').toLowerCase();
+  const seenTokens = /\b(seen|accurate|mirror|recognized|understood)\b/g;
+  const exposedTokens = /\b(tension|friction|strain|cost|tradeoff|pressure)\b/g;
+  const hopefulTokens = /\b(agency|possible|path|opening|regain|stabilize)\b/g;
+  const motivatedTokens = /\b(momentum|forward|commitment|energized|intentional|ready)\b/g;
+  const hasSeen = (src.match(seenTokens) || []).length >= 1;
+  const hasExposed = (src.match(exposedTokens) || []).length >= 1;
+  const hasHopeful = (src.match(hopefulTokens) || []).length >= 1;
+  const hasMotivated = (src.match(motivatedTokens) || []).length >= 1;
+  return hasSeen && hasExposed && hasHopeful && hasMotivated;
 }
 
 function softenPrescriptiveLanguage(text) {
@@ -412,7 +428,6 @@ function evaluateNarrativeQuality(text, insightMap) {
   const sections = String(text || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
   const [trailhead = '', markers = '', trajectory = '', newTrail = ''] = sections;
   const markerBullets = markers.split('\n').filter((l) => l.trim().startsWith('- '));
-  const trajectoryParts = trajectory.split('\n').map((s) => s.trim()).filter(Boolean);
   const badPhrases = [
     /unlock potential/i,
     /effective leader/i,
@@ -427,18 +442,20 @@ function evaluateNarrativeQuality(text, insightMap) {
 
   let score = 0;
   if (sections.length >= 4) score += 1;
-  if (sectionSentenceCount(trailhead) >= 6) score += 1;
+  if (sectionSentenceCount(trailhead) >= 8) score += 1;
   if (markerBullets.length >= 3 && markerBullets.length <= 5) score += 1;
-  if (trajectoryParts.length >= 2) score += 1;
-  if ((trajectoryParts[0] && sectionSentenceCount(trajectoryParts[0]) >= 4) && (trajectoryParts[1] && sectionSentenceCount(trajectoryParts[1]) >= 2)) score += 1;
-  if (String(newTrail).includes('We believe improving the following traits')) score += 1;
+  if (sectionSentenceCount(trajectory) >= 5) score += 1;
+  if (sectionSentenceCount(newTrail) >= 5) score += 1;
+  if (String(newTrail).includes('- ')) score += 1;
   if (String(insightMap?.signaturePattern || '') && String(text).toLowerCase().includes(String(insightMap.signaturePattern).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (String(insightMap?.hiddenCost || '') && String(text).toLowerCase().includes(String(insightMap.hiddenCost).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (!badPhrases.some((re) => re.test(text))) score += 1;
+  if (!hasOverusedGenericTheme(text)) score += 1;
+  if (hasEmotionalArc(text)) score += 1;
   if (!/^\s*#+/m.test(text)) score += 1;
   if (!advicePattern.test(`${trailhead} ${trajectory}`)) score += 1;
-  if (boldTrailhead >= 1 && boldTrailhead <= 2) score += 1;
-  if (boldTrajectory >= 1 && boldTrajectory <= 2) score += 1;
+  if (boldTrailhead === 0) score += 1;
+  if (boldTrajectory === 0) score += 1;
   return score;
 }
 
@@ -446,13 +463,16 @@ function buildNarrativeRepairPrompt() {
   return `
 Repair this draft to satisfy all requirements:
 - Keep four sections separated by blank lines.
-- Trailhead must be current-state only, 6-7 sentences.
-- Trail Markers must have exact lead sentence and 3-5 outcome bullets, each 6-9 words.
-- Trajectory must be risk-first (4 sentences), newline, then optimistic prelude (2 sentences).
-- A New Trail must include exact lead sentence and five bullets in required format.
+- Trailhead must be current-state only, 8-10 sentences.
+- Trail Markers must have 3-5 outcome bullets, each 8-14 words and context-specific.
+- Upcoming Hazards must be a dark risk-forward narrative of 5-6 sentences (no optimism paragraph).
+- A New Trail must include five bullets in required format.
 - Remove generic phrases and repeated sentence openers.
+- Weave profile context naturally (team size, tenure, industry, role scope) without awkward title append.
+- Avoid communication/delegation themes unless clearly grounded in multiple intake signals.
+- Preserve emotional sequence across sections: Seen -> Exposed -> Hopeful -> Motivated.
 - Remove all advice/directive phrasing; keep hypothetical future language.
-- Add 1-2 punchy **bold** anchor phrases in Trailhead and Trajectory.
+- Do not use markdown bold markers.
 Return revised content only.
 `.trim();
 }
@@ -461,163 +481,87 @@ Return revised content only.
 function buildFocusAreas(data, insightMap = null) {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   if (!CORE_TRAITS.length) return [];
+  const allSubtraits = CORE_TRAITS.flatMap((trait) =>
+    (trait?.subTraits || []).map((subTrait) => ({
+      trait,
+      subTrait,
+      key: `${trait.id}-${subTrait.id}`,
+      nameLc: String(subTrait?.name || '').toLowerCase(),
+      parentLc: String(trait?.name || '').toLowerCase(),
+    }))
+  );
+  if (!allSubtraits.length) return [];
 
-  const scores = {};
-  CORE_TRAITS.forEach((trait) => { scores[trait.id] = 0; });
+  const profileSeed = JSON.stringify({
+    birthYear: data?.birthYear || '',
+    industry: data?.industry || '',
+    department: data?.department || '',
+    role: data?.role || '',
+    responsibilities: data?.responsibilities || '',
+    teamSize: data?.teamSize || '',
+    leadershipExperience: data?.leadershipExperience || '',
+    careerExperience: data?.careerExperience || '',
+  });
+  let hash = 0;
+  for (let i = 0; i < profileSeed.length; i += 1) hash = (hash * 31 + profileSeed.charCodeAt(i)) >>> 0;
 
-  const addScore = (traitId, weight = 1) => {
-    if (!traitId || scores[traitId] == null) return;
-    scores[traitId] += weight;
+  const selected = [];
+  const seen = new Set();
+  const pick = (entry) => {
+    if (!entry) return;
+    if (seen.has(entry.key)) return;
+    seen.add(entry.key);
+    selected.push(entry);
   };
 
-  // ---- norms-based scoring ----
-  const norms = Array.isArray(data?.societalResponses) ? data.societalResponses : [];
-  const normItems = intakeContext?.societalNorms?.items || [];
-  if (normItems.length && norms.length) {
-    const traitMap = {
-      Shepherd: 'teamDevelopment',
-      Courage: 'emotionalIntelligence',
-      Navigator: 'strategicThinking',
-    };
-    const scored = normItems.map((item, idx) => {
-      const raw = Number(norms[idx]);
-      const score = item.reverse ? (11 - raw) : raw;
-      return { item, score };
-    });
-    let flagged = scored.filter((s) => s.score <= 3);
-    if (!flagged.length) {
-      flagged = scored.filter((s) => s.score >= 4 && s.score <= 5);
+  const recs = Array.isArray(insightMap?.focusRecommendations) ? insightMap.focusRecommendations : [];
+  recs.forEach((rec) => {
+    const subTraitName = String(rec?.subTraitName || '').trim().toLowerCase();
+    const parentHint = String(rec?.parentTraitHint || '').trim().toLowerCase();
+    if (!subTraitName) return;
+    const exact = allSubtraits.find((e) => e.nameLc === subTraitName && (!parentHint || e.parentLc.includes(parentHint)));
+    if (exact) return pick(exact);
+    const partial = allSubtraits.find((e) => e.nameLc.includes(subTraitName) || subTraitName.includes(e.nameLc));
+    pick(partial);
+  });
+
+  const byTraitBuckets = CORE_TRAITS.map((trait) =>
+    allSubtraits.filter((entry) => entry.trait.id === trait.id)
+  );
+  let traitCursor = hash % byTraitBuckets.length;
+  while (selected.length < 5) {
+    const bucket = byTraitBuckets[traitCursor % byTraitBuckets.length] || [];
+    if (bucket.length) {
+      const pickIdx = (hash + traitCursor * 7) % bucket.length;
+      pick(bucket[pickIdx]);
     }
-    flagged.forEach(({ item, score }) => {
-      const weight = score <= 3 ? (4 - score) : 1;
-      (item.traitsUndermined || []).forEach((t) => addScore(traitMap[t], weight));
-    });
+    traitCursor += 1;
+    if (traitCursor > byTraitBuckets.length * 3) break;
   }
 
-  // ---- behavior-based scoring ----
-  const roleModelTraitMap = {
-    communicated: 'communication',
-    'made decisions': 'decisionMaking',
-    'thought strategically': 'strategicThinking',
-    'executed & followed through': 'execution',
-    'developed their team': 'teamDevelopment',
-    'shaped culture': 'teamDevelopment',
-    'built relationships': 'emotionalIntelligence',
-    'handled challenges': 'decisionMaking',
-    'inspired others': 'teamDevelopment',
-    'balanced priorities': 'strategicThinking',
-  };
-  addScore(roleModelTraitMap[data?.roleModelTrait], 2);
-
-  if (data?.decisionPace?.includes('Fix')) addScore('execution', 1);
-  if (data?.decisionPace?.includes('Feedback')) addScore('decisionMaking', 1);
-
-  if (Array.isArray(data?.leaderFuel) && data.leaderFuel[0]) {
-    const topFuel = data.leaderFuel[0];
-    if (topFuel.includes('team gel') || topFuel.includes('learned') || topFuel.includes('recognition')) {
-      addScore('teamDevelopment', 1);
-    } else if (topFuel.includes('project') || topFuel.includes('chaos')) {
-      addScore('execution', 1);
-    } else if (topFuel.includes('problem')) {
-      addScore('decisionMaking', 1);
-    }
+  while (selected.length < 5) {
+    const pickIdx = (hash + selected.length * 11) % allSubtraits.length;
+    pick(allSubtraits[pickIdx]);
+    if (selected.length > allSubtraits.length) break;
   }
 
-  if (data?.visibilityComfort?.includes('spotlight')) addScore('communication', 1);
-  if (data?.visibilityComfort?.includes('behind the scenes')) addScore('execution', 1);
+  return selected.slice(0, 5).map(({ trait, subTrait }) => ({
+    id: `${trait.id}-${subTrait.id}`,
+    traitName: trait.name,
+    traitDefinition: trait.definition || trait.description,
+    subTraitName: subTrait.name,
+    subTraitDefinition: subTrait.definition || subTrait.shortDescription,
+    example: Array.isArray(subTrait?.examples) ? (subTrait.examples[0] || '') : '',
+    risk: Array.isArray(subTrait?.riskSignals?.underuse) ? (subTrait.riskSignals.underuse[0] || '') : '',
+    impact: subTrait.impact || '',
+  }));
+}
 
-  const ranked = Object.entries(scores)
-    .sort((a, b) => b[1] - a[1])
-    .map(([id]) => CORE_TRAITS.find((t) => t.id === id))
-    .filter(Boolean);
-
-  const pickSubTrait = (trait) => {
-    if (!trait?.subTraits?.length) return null;
-    const key = JSON.stringify({
-      role: data?.role || '',
-      industry: data?.industry || '',
-      department: data?.department || '',
-      trait: trait.id,
-    });
-    let hash = 0;
-    for (let i = 0; i < key.length; i += 1) {
-      hash = (hash * 31 + key.charCodeAt(i)) % trait.subTraits.length;
-    }
-    return trait.subTraits[hash] || trait.subTraits[0];
-  };
-
-  const generatedAreas = ranked.slice(0, 5).map((trait) => {
-    const subTrait = pickSubTrait(trait);
-    if (!subTrait) return null;
-    const decisionContext = [
-      data?.decisionPace,
-      data?.teamPerception,
-      data?.projectApproach,
-      data?.responsibilities,
-      data?.role,
-    ]
-      .map((v) => String(v || '').toLowerCase())
-      .join(' ');
-    const impactTerms = /\b(trust|clarity|alignment|pace|ownership|engagement|morale|confidence|friction|execution)\b/g;
-    const contextTerms = new Set(
-      decisionContext
-        .replace(/[^a-z\s]/g, ' ')
-        .split(/\s+/)
-        .filter((w) => w.length > 3)
-    );
-    const normalizeMarkerText = (value) => {
-      const src = String(value || '')
-        .replace(/[.*_`#]/g, '')
-        .replace(/\byou (may|might|tend to|often)\b/gi, '')
-        .replace(/\bthis can\b/gi, '')
-        .replace(/\bthis pattern\b/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      const words = src.split(' ').filter(Boolean).slice(0, 9);
-      while (words.length < 6) words.push('over time');
-      return words.join(' ').replace(/\s+over time\b/g, ' over time');
-    };
-    const scoreCandidate = (candidate) => {
-      const c = String(candidate || '').toLowerCase();
-      const words = c.replace(/[^a-z\s]/g, ' ').split(/\s+/).filter((w) => w.length > 3);
-      const overlap = words.filter((w) => contextTerms.has(w)).length;
-      const impactHits = (c.match(impactTerms) || []).length;
-      return (overlap * 2) + impactHits;
-    };
-    const underuse = Array.isArray(subTrait.riskSignals?.underuse) ? subTrait.riskSignals.underuse : [];
-    const agentCandidates = [
-      ...(Array.isArray(insightMap?.blindSpots)
-        ? insightMap.blindSpots.flatMap((b) => [b?.teamImpact, b?.implication, b?.label]).filter(Boolean)
-        : []),
-      ...(Array.isArray(insightMap?.coreTensions)
-        ? insightMap.coreTensions.flatMap((t) => [t?.implication, t?.label]).filter(Boolean)
-        : []),
-      String(insightMap?.hiddenCost || '').trim(),
-      String(insightMap?.missingOutcome || '').trim(),
-    ].filter(Boolean);
-    const candidatePool = [...underuse, ...agentCandidates];
-    const sorted = candidatePool
-      .map((item) => ({ item, score: scoreCandidate(item) }))
-      .sort((a, b) => b.score - a.score);
-    const selectedMarker = sorted[0]?.item || underuse[0];
-    const example = normalizeMarkerText(selectedMarker)
-      || `Decision confidence drops when ${subTrait.name.toLowerCase()} is inconsistent`;
-    const risk = subTrait.riskSignals?.underuse?.[1] || example;
-    const impact = subTrait.impact
-      || `Improving ${subTrait.name.toLowerCase()} can strengthen trust, alignment, and outcomes.`;
-    return {
-      id: `${trait.id}-${subTrait.id}`,
-      traitName: trait.name,
-      traitDefinition: trait.definition || trait.description,
-      subTraitName: subTrait.name,
-      subTraitDefinition: subTrait.definition || subTrait.shortDescription,
-      example,
-      risk,
-      impact,
-    };
-  }).filter(Boolean);
-
-  return generatedAreas.slice(0, 5);
+function buildFocusTraitCatalog() {
+  const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
+  return CORE_TRAITS.flatMap((trait) =>
+    (trait?.subTraits || []).map((subTrait) => String(subTrait?.name || '').trim()).filter(Boolean)
+  );
 }
 
 /**
@@ -806,6 +750,57 @@ const agents = {
   }
 };
 
+    const personaInterpretiveLens = {
+      bluntPracticalFriend: {
+        focus: 'decision friction, execution drag, and avoidable complexity',
+        mustSurface: [
+          'Name the highest-cost leadership tradeoff in plain language.',
+          'Explain what the current pattern optimizes for (often unintentionally).',
+          'Call out the single operational consequence that will keep repeating.',
+        ],
+      },
+      formalEmpatheticCoach: {
+        focus: 'trust dynamics, relational safety, and leadership signal consistency',
+        mustSurface: [
+          'Reflect intent vs impact with neutral, respectful language.',
+          'Describe how team confidence is shaped by repeated leadership signals.',
+          'Highlight one tension between care and clarity without blame.',
+        ],
+      },
+      balancedMentor: {
+        focus: 'strength/tension balance and compounding leadership patterns',
+        mustSurface: [
+          'Anchor one clear strength and one costly recurring tension.',
+          'Connect both to role context and likely team-level consequences.',
+          'Frame growth as an achievable shift without prescribing steps.',
+        ],
+      },
+      comedyRoaster: {
+        focus: 'pattern visibility through light contrast while preserving dignity',
+        mustSurface: [
+          'Use humor sparingly to reveal (not mask) the core pattern.',
+          'After each light edge line, land on a specific evidence-backed insight.',
+          'Keep psychological safety intact: sharp on patterns, kind to person.',
+        ],
+      },
+      pragmaticProblemSolver: {
+        focus: 'constraint analysis, signal integrity, and repeatable outcomes',
+        mustSurface: [
+          'Map signal -> operating constraint -> downstream effect clearly.',
+          'Prioritize the bottleneck pattern over broad narrative language.',
+          'Use compact, concrete interpretation with minimal abstraction.',
+        ],
+      },
+      highSchoolCoach: {
+        focus: 'identity confidence, motivation energy, and consistency cues',
+        mustSurface: [
+          'Affirm effort while naming the exact pattern that limits results.',
+          'Translate tension into understandable, emotionally honest language.',
+          'Leave the user feeling challenged, seen, and ready to keep going.',
+        ],
+      },
+    };
+
 
     if (!agents[selectedAgent]) {
       return res
@@ -813,11 +808,12 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    const maxChars = Math.max(1200, Math.min(Number(charLimit) || 1500, 1800));
+    const maxChars = Math.max(1300, Math.min(Number(charLimit) || 1800, 2200));
 
     // Build a compact persona voice guide
     const voiceGuide = (() => {
       const a = agents[selectedAgent];
+      const lens = personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMentor;
       const structureRuleByAgent = {
         bluntPracticalFriend: 'Use short declarative sentences and explicit tradeoffs.',
         formalEmpatheticCoach: 'Use polished medium-length sentences with calibrated qualifiers.',
@@ -835,6 +831,9 @@ VOICE & TONE GUIDE (apply consistently):
 - Sentence shape: ${sentences}
 - Structural rule: ${structureRuleByAgent[selectedAgent] || 'Use natural, varied sentence structure tied to evidence.'}
 - Prefer vocabulary: ${lex || 'plain, concrete verbs; avoid fluff'}
+- Interpretive lens focus: ${lens.focus}
+- Lens non-negotiables:
+${(lens.mustSurface || []).map((item) => `  - ${item}`).join('\n')}
 - Do:
 ${doList || '- Keep it concrete.\n- Tie to context.\n- End with a clear insight.'}
 - Don’t:
@@ -844,10 +843,19 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
 
     // Pass A: structured insight extraction
     const extractSystem = buildInsightExtractionSystemPrompt({ agentIdentity: cleanIdentity });
-    const extractUser = buildInsightExtractionUserPrompt(body);
+    const focusTraitCatalog = buildFocusTraitCatalog();
+    const extractUser = `${buildInsightExtractionUserPrompt(body, focusTraitCatalog)}
+
+PERSONA INTERPRETIVE LENS
+- Focus: ${(personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMentor).focus}
+- Must surface:
+${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMentor).mustSurface || [])
+  .map((item) => `  - ${item}`)
+  .join('\n')}
+`.trim();
     const extraction = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: 900,
+      model: EXTRACTION_MODEL,
+      max_tokens: 650,
       temperature: 0.2,
       frequency_penalty: 0.0,
       presence_penalty: 0.0,
@@ -866,10 +874,32 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
       voiceGuide,
       agentIdentity: cleanIdentity,
     });
-    const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas });
+    const contextSnapshot = {
+      birthYear: body?.birthYear || '',
+      generationBand: body?.birthYear ? (
+        Number(body.birthYear) >= 1997 ? 'Gen Z' :
+        Number(body.birthYear) >= 1981 ? 'Millennial' :
+        Number(body.birthYear) >= 1965 ? 'Gen X' :
+        Number(body.birthYear) > 0 ? 'Boomer+' : ''
+      ) : '',
+      teamSize: body?.teamSize || '',
+      yearsInRole: body?.leadershipExperience || '',
+      yearsInLeadership: body?.careerExperience || '',
+      role: body?.role || '',
+      industry: body?.industry || '',
+      department: body?.department || '',
+      responsibilities: body?.responsibilities || '',
+      projectApproach: body?.projectApproach || '',
+      crisisResponse: body?.crisisResponse || '',
+      pushbackFeeling: body?.pushbackFeeling || '',
+      warningLabel: body?.warningLabel || '',
+      teamPerception: body?.teamPerception || '',
+      decisionPace: body?.decisionPace || '',
+    };
+    const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas, contextSnapshot });
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: 1650,
+      model: NARRATIVE_MODEL,
+      max_tokens: 1300,
       temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.12, 0.75),
       frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
       presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
@@ -886,16 +916,16 @@ ${dontList || '- No fluff.\n- No hedging.\n- No generic platitudes.'}
       const withBullets = ensureFiveSubtraitBullets(withMarkers, focusAreas);
       const softened = softenPrescriptiveLanguage(withBullets);
       const cleanedMarkdown = removeDanglingMarkdown(softened);
-      return ensurePunchAnchors(cleanedMarkdown, insightMap);
+      return cleanedMarkdown.replace(/\*\*/g, '');
     };
     let capped = shapePipeline(raw);
     let quality = evaluateNarrativeQuality(capped, insightMap);
 
-    if (quality < 10) {
+    if (SUMMARY_ENABLE_RETRY && quality < 10) {
       const repairPrompt = `${buildNarrativeRepairPrompt()}\n\nDRAFT TO REPAIR:\n${capped}`;
       const retry = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        max_tokens: 1650,
+        model: NARRATIVE_MODEL,
+        max_tokens: 1300,
         temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.08, 0.72),
         frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
         presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),

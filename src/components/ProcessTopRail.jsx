@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const PHASES = [
   { id: 'profile', title: 'Profile Creation', icon: AccountCircle, fallbackPath: '/user-info' },
   { id: 'behaviors', title: 'Behaviors & Instincts', icon: Psychology, fallbackPath: '/form' },
-  { id: 'insights', title: 'Insights Review', icon: Insights, fallbackPath: '/summary' },
+  { id: 'insights', title: 'Leadership Reflection', icon: Insights, fallbackPath: '/summary' },
   { id: 'campaign', title: 'Campaign Creation', icon: BuildCircle, fallbackPath: '/campaign-builder' },
   { id: 'self', title: 'Self-Assess', icon: SelfImprovement, fallbackPath: null },
   { id: 'team', title: 'Team Assess', icon: Groups, fallbackPath: null },
