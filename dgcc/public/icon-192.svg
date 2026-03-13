@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c1014"/>
+      <stop offset="100%" stop-color="#07090a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00c8b4"/>
+      <stop offset="100%" stop-color="#4a9eff"/>
+    </linearGradient>
+  </defs>
+  <!-- Angular shape -->
+  <polygon points="20,0 192,0 172,192 0,192" fill="url(#bg)" stroke="#005a50" stroke-width="2"/>
+  <!-- Top accent line -->
+  <line x1="20" y1="1" x2="192" y2="1" stroke="url(#accent)" stroke-width="2"/>
+  <!-- Corner brackets -->
+  <polyline points="30,12 30,30 48,30" fill="none" stroke="#00c8b4" stroke-width="2"/>
+  <polyline points="162,162 162,180 144,180" fill="none" stroke="#1a2530" stroke-width="2"/>
+  <!-- DG text -->
+  <text x="96" y="108" font-family="sans-serif" font-weight="700" font-size="64" fill="#00c8b4" text-anchor="middle" letter-spacing="6">DG</text>
+  <!-- Subtitle -->
+  <text x="96" y="140" font-family="monospace" font-size="14" fill="#2e4858" text-anchor="middle" letter-spacing="3">COMMAND</text>
+</svg>
