@@ -311,15 +311,19 @@ function normalizeFourSections(text, insightMap) {
       .replace(/\bif addressed\b[:,]?\s*/gi, '')
       .replace(/\bif fixed\b[:,]?\s*/gi, '')
       .trim();
-  const compactSentence = (s, ratio = 0.8) => {
-    const raw = String(s || '').replace(/\s+/g, ' ').trim();
+  const polishHazardSentence = (s) => {
+    const raw = String(s || '')
+      .replace(/[.*_`#]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
     if (!raw) return '';
-    const end = /[.!?]$/.test(raw) ? raw.slice(-1) : '.';
-    const body = raw.replace(/[.!?]$/, '');
+    const body = raw.replace(/[.!?]+$/, '').trim();
+    if (!body) return '';
     const words = body.split(' ').filter(Boolean);
-    const target = Math.max(8, Math.round(words.length * ratio));
-    const clipped = words.slice(0, target).join(' ').trim();
-    return `${clipped}${end}`;
+    if (words.length < 6) return '';
+    const danglingEnd = /\b(to|by|of|for|with|into|onto|from|about|as|at|in|on|and|or|but|if|when|while)\b$/i;
+    if (danglingEnd.test(body)) return '';
+    return `${body}.`;
   };
 
   const toSentences = (input) =>
@@ -359,15 +363,21 @@ function normalizeFourSections(text, insightMap) {
     'Execution stalls can evolve into reputation drag with stakeholders and customers.',
     'Morale can decline as teams absorb repeated friction without clear relief.',
   ];
-  const firstHalf = (riskSentences.length ? riskSentences : fallbackRisk)
-    .slice(0, 5)
-    .map((s) => compactSentence(s, 0.8))
-    .join(' ');
-  const secondHalf = escalationCandidates
-    .slice(0, 2)
-    .map((s) => compactSentence(s, 0.8))
-    .join(' ');
-  const p3 = `${firstHalf} ${secondHalf}`.trim();
+  const riskPool = (riskSentences.length ? riskSentences : fallbackRisk)
+    .map((s) => polishHazardSentence(s))
+    .filter(Boolean);
+  const escalationPool = escalationCandidates
+    .map((s) => polishHazardSentence(s))
+    .filter(Boolean);
+  const selectedRisk = [...riskPool.slice(0, 4)];
+  for (let i = 0; i < escalationPool.length && selectedRisk.length < 6; i += 1) {
+    selectedRisk.push(escalationPool[i]);
+  }
+  for (let i = 0; i < fallbackRisk.length && selectedRisk.length < 5; i += 1) {
+    const candidate = polishHazardSentence(fallbackRisk[i]);
+    if (candidate && !selectedRisk.includes(candidate)) selectedRisk.push(candidate);
+  }
+  const p3 = selectedRisk.slice(0, 6).join(' ');
   const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
   return [p1, p2, p3, p4].join('\n\n').trim();
 }
@@ -439,6 +449,7 @@ function evaluateNarrativeQuality(text, insightMap) {
   const advicePattern = /\b(you should|should|must|need to|have to|try to|focus on|start with|begin by|by\s+[a-z]+ing)\b/i;
   const boldTrailhead = (trailhead.match(/\*\*([^*]+)\*\*/g) || []).length;
   const boldTrajectory = (trajectory.match(/\*\*([^*]+)\*\*/g) || []).length;
+  const danglingFragment = /(?:^|[.!?]\s+)[^.!?]*\b(to|by|of|for|with|into|onto|from|about|as|at|in|on|and|or|but|if|when|while)\.\s*(?:$|[A-Z])/i;
 
   let score = 0;
   if (sections.length >= 4) score += 1;
@@ -452,6 +463,7 @@ function evaluateNarrativeQuality(text, insightMap) {
   if (!badPhrases.some((re) => re.test(text))) score += 1;
   if (!hasOverusedGenericTheme(text)) score += 1;
   if (hasEmotionalArc(text)) score += 1;
+  if (!danglingFragment.test(trajectory)) score += 1;
   if (!/^\s*#+/m.test(text)) score += 1;
   if (!advicePattern.test(`${trailhead} ${trajectory}`)) score += 1;
   if (boldTrailhead === 0) score += 1;
@@ -471,6 +483,7 @@ Repair this draft to satisfy all requirements:
 - Weave profile context naturally (team size, tenure, industry, role scope) without awkward title append.
 - Avoid communication/delegation themes unless clearly grounded in multiple intake signals.
 - Preserve emotional sequence across sections: Seen -> Exposed -> Hopeful -> Motivated.
+- Remove trailing sentence fragments (e.g., ending on "to." or "by.").
 - Remove all advice/directive phrasing; keep hypothetical future language.
 - Do not use markdown bold markers.
 Return revised content only.
