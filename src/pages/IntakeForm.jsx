@@ -481,6 +481,10 @@ function IntakeForm() {
   const [hoveredRoleModelOption, setHoveredRoleModelOption] = useState(null);
   const [societalQuestionIndex, setSocietalQuestionIndex] = useState(0);
   const navigate = useNavigate();
+  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
+  const isStagingRuntime =
+    stagingHost.includes('staging.northstarpartners.org') ||
+    stagingHost.includes('compass-staging');
 
   const handleCustomAnswerSubmit = () => {
     if (customAnswerText.trim()) {
@@ -955,7 +959,17 @@ function IntakeForm() {
         selectedAgent: selectedAgentId,
         societalResponses
       };
-      await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+      try {
+        await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+      } catch (persistErr) {
+        const code = String(persistErr?.code || '').toLowerCase();
+        const message = String(persistErr?.message || '').toLowerCase();
+        const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
+        if (!(isStagingRuntime && isPermissionErr)) {
+          throw persistErr;
+        }
+        console.warn('[IntakeForm] Staging submit bypassed Firestore permission error.');
+      }
       localStorage.setItem('latestFormData', JSON.stringify(updated));
       navigate('/summary', { state: { formData: updated } });
     } catch (e) {

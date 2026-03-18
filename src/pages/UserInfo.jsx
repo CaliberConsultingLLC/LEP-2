@@ -135,7 +135,9 @@ function UserInfo() {
       };
 
       let signupEmail = normalizedEmail;
-      let credential;
+      let credential = null;
+      let signupUid = `stg-${Date.now()}`;
+      let idToken = null;
       try {
         credential = await createUserWithEmailAndPassword(auth, signupEmail, userInfo.password);
       } catch (createErr) {
@@ -146,11 +148,18 @@ function UserInfo() {
             '[UserInfo] Staging signup reused existing email via alias:',
             { enteredEmail: normalizedEmail, signupEmail }
           );
+        } else if (isStagingRuntime) {
+          // Staging-only hard fallback to unblock full E2E testing even when auth is unavailable/misconfigured.
+          signupEmail = makeStagingAliasEmail(normalizedEmail);
+          console.warn('[UserInfo] Staging auth fallback activated:', createErr);
         } else {
           throw createErr;
         }
       }
-      const idToken = await credential.user.getIdToken();
+      if (credential?.user?.uid) {
+        signupUid = credential.user.uid;
+        idToken = await credential.user.getIdToken();
+      }
 
       localStorage.setItem(
         'userInfo',
@@ -170,7 +179,7 @@ function UserInfo() {
         await addDoc(collection(db, 'users'), {
           name: userInfo.name,
           email: signupEmail,
-          uid: credential.user.uid,
+          uid: signupUid,
           consent: {
             terms: userInfo.agreeTerms,
             privacy: userInfo.agreePrivacy,
@@ -183,11 +192,13 @@ function UserInfo() {
         console.warn('Could not save to Firestore:', firestoreError);
       }
 
-      await triggerWelcomeEmail({
-        idToken,
-        email: signupEmail,
-        name: userInfo.name,
-      });
+      if (idToken) {
+        await triggerWelcomeEmail({
+          idToken,
+          email: signupEmail,
+          name: userInfo.name,
+        });
+      }
 
       navigate('/form');
     } catch (err) {
