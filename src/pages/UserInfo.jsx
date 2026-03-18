@@ -24,6 +24,10 @@ import ProcessTopRail from '../components/ProcessTopRail';
 
 function UserInfo() {
   const navigate = useNavigate();
+  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
+  const isStagingRuntime =
+    stagingHost.includes('staging.northstarpartners.org') ||
+    stagingHost.includes('compass-staging');
   const [userInfo, setUserInfo] = useState({
     name: '',
     email: '',
@@ -124,14 +128,36 @@ function UserInfo() {
 
     try {
       const normalizedEmail = String(userInfo.email || '').trim().toLowerCase();
-      const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, userInfo.password);
+      const makeStagingAliasEmail = (email) => {
+        const [localPart = '', domain = 'example.com'] = String(email || '').split('@');
+        const safeLocal = localPart.replace(/[^a-z0-9._%+-]/gi, '') || 'user';
+        return `${safeLocal}+stg${Date.now()}@${domain}`;
+      };
+
+      let signupEmail = normalizedEmail;
+      let credential;
+      try {
+        credential = await createUserWithEmailAndPassword(auth, signupEmail, userInfo.password);
+      } catch (createErr) {
+        if (isStagingRuntime && createErr?.code === 'auth/email-already-in-use') {
+          signupEmail = makeStagingAliasEmail(normalizedEmail);
+          credential = await createUserWithEmailAndPassword(auth, signupEmail, userInfo.password);
+          console.info(
+            '[UserInfo] Staging signup reused existing email via alias:',
+            { enteredEmail: normalizedEmail, signupEmail }
+          );
+        } else {
+          throw createErr;
+        }
+      }
       const idToken = await credential.user.getIdToken();
 
       localStorage.setItem(
         'userInfo',
         JSON.stringify({
           name: userInfo.name,
-          email: normalizedEmail,
+          email: signupEmail,
+          enteredEmail: normalizedEmail,
           consent: {
             terms: userInfo.agreeTerms,
             privacy: userInfo.agreePrivacy,
@@ -143,7 +169,7 @@ function UserInfo() {
       try {
         await addDoc(collection(db, 'users'), {
           name: userInfo.name,
-          email: normalizedEmail,
+          email: signupEmail,
           uid: credential.user.uid,
           consent: {
             terms: userInfo.agreeTerms,
@@ -159,7 +185,7 @@ function UserInfo() {
 
       await triggerWelcomeEmail({
         idToken,
-        email: normalizedEmail,
+        email: signupEmail,
         name: userInfo.name,
       });
 
