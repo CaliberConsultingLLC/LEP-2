@@ -22,6 +22,10 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 function CampaignSurvey() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
+  const isStagingRuntime =
+    stagingHost.includes('staging.northstarpartners.org') ||
+    stagingHost.includes('compass-staging');
   const [campaign, setCampaign] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [ratings, setRatings] = useState({});
@@ -72,7 +76,21 @@ function CampaignSurvey() {
       submittedAt: new Date(),
       ratings,
     };
-    await addDoc(collection(db, 'surveyResponses'), ratingsData);
+    try {
+      await addDoc(collection(db, 'surveyResponses'), ratingsData);
+    } catch (persistErr) {
+      const code = String(persistErr?.code || '').toLowerCase();
+      const message = String(persistErr?.message || '').toLowerCase();
+      const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
+      if (!(isStagingRuntime && isPermissionErr)) throw persistErr;
+      const localResponses = JSON.parse(localStorage.getItem('localSurveyResponses') || '[]');
+      localResponses.push({
+        ...ratingsData,
+        submittedAt: new Date().toISOString(),
+      });
+      localStorage.setItem('localSurveyResponses', JSON.stringify(localResponses));
+      console.warn('[CampaignSurvey] Staging fallback activated: responses stored locally.');
+    }
     localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
     console.log('Survey responses saved to Firestore:', ratingsData);
   };

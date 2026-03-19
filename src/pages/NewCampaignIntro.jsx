@@ -27,6 +27,14 @@ function NewCampaignIntro() {
 
     const fetchCampaignData = async () => {
       try {
+        const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
+        if (localCampaignDocs && localCampaignDocs[id]) {
+          if (isMounted) {
+            setCampaignData(localCampaignDocs[id]);
+          }
+          return;
+        }
+
         console.log('Fetching campaign data for ID:', id);
         const docRef = doc(db, 'campaigns', id);
         const docSnap = await getDoc(docRef);
