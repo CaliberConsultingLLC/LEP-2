@@ -35,13 +35,32 @@ function TraitSelection() {
 
   const buildTrailMarker = (focusArea) => {
     const { subTrait } = getTraitLibraryEntry(focusArea);
-    const fromFocus = sentenceCase(focusArea?.example);
-    if (fromFocus) return fromFocus;
     const underuse = Array.isArray(subTrait?.riskSignals?.underuse) ? subTrait.riskSignals.underuse : [];
-    if (underuse[0]) return sentenceCase(underuse[0]);
     const examples = Array.isArray(subTrait?.examples) ? subTrait.examples : [];
-    if (examples[0]) return sentenceCase(examples[0]);
-    return sentenceCase(`Early signs of strain emerge when ${String(focusArea?.subTraitName || 'this subtrait').toLowerCase()} is inconsistent`);
+    const teamSignalRe = /\b(team|people|trust|morale|confidence|alignment|engagement|retention|clarity|ownership|follow[-\s]?through|execution|safety)\b/i;
+    const source =
+      [focusArea?.example, ...underuse, ...examples]
+        .map((x) => String(x || '').trim())
+        .find((x) => teamSignalRe.test(x))
+      || [focusArea?.example, ...underuse, ...examples]
+        .map((x) => String(x || '').trim())
+        .find(Boolean)
+      || '';
+
+    if (source) {
+      const cleaned = source
+        .replace(/\byou\b/gi, 'the leader')
+        .replace(/\byour\b/gi, 'the leader\'s')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return sentenceCase(`Likely team signal: ${cleaned}`);
+    }
+
+    return sentenceCase(
+      `Likely team signal: people may experience lower trust, less clarity, and weaker execution when ${String(
+        focusArea?.subTraitName || 'this subtrait'
+      ).toLowerCase()} remains low`
+    );
   };
 
   const buildHazard = (focusArea) => {
@@ -345,7 +364,7 @@ function TraitSelection() {
                             background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
                           }}
                         >
-                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                          <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 1 }}>
                             <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
                             <Typography
                               sx={{
@@ -355,6 +374,7 @@ function TraitSelection() {
                                 color: 'white',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
+                                textAlign: 'center',
                               }}
                             >
                               Trail Marker
@@ -366,6 +386,7 @@ function TraitSelection() {
                               fontSize: '0.75rem',
                               color: 'white',
                               lineHeight: 1.4,
+                              textAlign: 'center',
                             }}
                           >
                             {trailMarker}
@@ -382,7 +403,7 @@ function TraitSelection() {
                             background: 'linear-gradient(135deg, #ED6C02, #D84315)',
                           }}
                         >
-                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                          <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 1 }}>
                             <Warning sx={{ color: 'white', fontSize: 16 }} />
                             <Typography
                               sx={{
@@ -392,6 +413,7 @@ function TraitSelection() {
                                 color: 'white',
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.5px',
+                                textAlign: 'center',
                               }}
                             >
                               Hazard
@@ -403,6 +425,7 @@ function TraitSelection() {
                               fontSize: '0.75rem',
                               color: 'white',
                               lineHeight: 1.4,
+                              textAlign: 'center',
                             }}
                           >
                             {hazard}
