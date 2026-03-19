@@ -11,12 +11,57 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
 import ProcessTopRail from '../components/ProcessTopRail';
+import traitSystem from '../data/traitSystem';
 
 function TraitSelection() {
   const navigate = useNavigate();
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [focusAreas, setFocusAreas] = useState([]);
   const [loadError, setLoadError] = useState('');
+
+  const getTraitLibraryEntry = (focusArea) => {
+    const [traitId, subTraitId] = String(focusArea?.id || '').split('-');
+    const coreTraits = traitSystem?.CORE_TRAITS || [];
+    const trait = coreTraits.find((t) => t?.id === traitId) || null;
+    const subTrait = trait?.subTraits?.find((st) => st?.id === subTraitId) || null;
+    return { trait, subTrait };
+  };
+
+  const sentenceCase = (value) => {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (!text) return '';
+    return /[.!?]$/.test(text) ? text : `${text}.`;
+  };
+
+  const buildTrailMarker = (focusArea) => {
+    const { subTrait } = getTraitLibraryEntry(focusArea);
+    const fromFocus = sentenceCase(focusArea?.example);
+    if (fromFocus) return fromFocus;
+    const underuse = Array.isArray(subTrait?.riskSignals?.underuse) ? subTrait.riskSignals.underuse : [];
+    if (underuse[0]) return sentenceCase(underuse[0]);
+    const examples = Array.isArray(subTrait?.examples) ? subTrait.examples : [];
+    if (examples[0]) return sentenceCase(examples[0]);
+    return sentenceCase(`Early signs of strain emerge when ${String(focusArea?.subTraitName || 'this subtrait').toLowerCase()} is inconsistent`);
+  };
+
+  const buildHazard = (focusArea) => {
+    const { subTrait } = getTraitLibraryEntry(focusArea);
+    const sourceRisk = sentenceCase(focusArea?.risk)
+      || sentenceCase(Array.isArray(subTrait?.riskSignals?.underuse) ? subTrait.riskSignals.underuse?.[1] : '')
+      || sentenceCase(Array.isArray(subTrait?.riskSignals?.underuse) ? subTrait.riskSignals.underuse?.[0] : '');
+    if (sourceRisk) {
+      const core = sourceRisk.replace(/\.$/, '');
+      return `${core} if this subtrait remains underdeveloped.`;
+    }
+    return sentenceCase(`If ${String(focusArea?.subTraitName || 'this subtrait').toLowerCase()} does not improve, team confidence and execution consistency are likely to decline`);
+  };
+
+  const buildImpactPreview = (focusArea) => {
+    const { subTrait } = getTraitLibraryEntry(focusArea);
+    return sentenceCase(focusArea?.impact)
+      || sentenceCase(subTrait?.impact)
+      || sentenceCase(`Strengthening ${String(focusArea?.subTraitName || 'this subtrait').toLowerCase()} increases trust, alignment, and execution quality`);
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem('focusAreas');
@@ -136,6 +181,17 @@ function TraitSelection() {
             {focusAreas.map((focusArea) => {
               const isSelected = selectedTraits.includes(focusArea.id);
               const isDisabled = !isSelected && selectedTraits.length >= 3;
+              const trailMarker = buildTrailMarker(focusArea);
+              const hazard = buildHazard(focusArea);
+              const impact = buildImpactPreview(focusArea);
+              const headingTextSx = {
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: '#111111',
+                lineHeight: 1.3,
+                mb: 0.5,
+              };
 
               return (
                 <Paper
@@ -167,10 +223,10 @@ function TraitSelection() {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'stretch', minHeight: '140px' }}>
-                    {/* Trait */}
+                    {/* Subtrait */}
                     <Box
                       sx={{
-                        width: '33.33%',
+                        width: '20%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
@@ -183,18 +239,11 @@ function TraitSelection() {
                       }}
                     >
                       <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '1rem',
-                          fontWeight: 700,
-                          color: 'primary.main',
-                          lineHeight: 1.3,
-                          mb: 0.5,
-                        }}
+                        sx={headingTextSx}
                       >
-                        {focusArea.traitName}
+                        {focusArea.subTraitName}
                       </Typography>
-                      {focusArea.traitDefinition && (
+                      {focusArea.subTraitDefinition && (
                         <Typography
                           sx={{
                             fontFamily: 'Gemunu Libre, sans-serif',
@@ -204,15 +253,15 @@ function TraitSelection() {
                             lineHeight: 1.2,
                           }}
                         >
-                          {focusArea.traitDefinition}
+                          {focusArea.subTraitDefinition}
                         </Typography>
                       )}
                     </Box>
 
-                    {/* Subtrait */}
+                    {/* Parent Trait */}
                     <Box
                       sx={{
-                        width: '33.33%',
+                        width: '20%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
@@ -225,18 +274,11 @@ function TraitSelection() {
                       }}
                     >
                       <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '0.95rem',
-                          fontWeight: 600,
-                          color: 'secondary.main',
-                          lineHeight: 1.3,
-                          mb: 0.5,
-                        }}
+                        sx={headingTextSx}
                       >
-                        {focusArea.subTraitName}
+                        {focusArea.traitName}
                       </Typography>
-                      {focusArea.subTraitDefinition && (
+                      {focusArea.traitDefinition && (
                         <Typography
                           sx={{
                             fontFamily: 'Gemunu Libre, sans-serif',
@@ -246,127 +288,124 @@ function TraitSelection() {
                             lineHeight: 1.2,
                           }}
                         >
-                          {focusArea.subTraitDefinition}
+                          {focusArea.traitDefinition}
                         </Typography>
                       )}
                     </Box>
 
-                    {/* Example/Risk or Impact */}
-                    {isSelected ? (
-                      <Box
-                        sx={{
-                          width: '33.33%',
-                          p: 2,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          bgcolor: '#457089',
-                          background: 'linear-gradient(135deg, #457089, #375d78)',
-                        }}
-                      >
-                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                          <TrendingUp sx={{ color: 'white', fontSize: 16 }} />
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              color: 'white',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px',
-                            }}
-                          >
-                            Impact
-                          </Typography>
-                        </Stack>
+                    {/* Trail Marker */}
+                    <Box
+                      sx={{
+                        width: '20%',
+                        p: 2,
+                        borderRight: '1px solid',
+                        borderColor: 'rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: 'primary.main',
+                        background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
+                      }}
+                    >
+                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                        <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
                         <Typography
                           sx={{
                             fontFamily: 'Gemunu Libre, sans-serif',
                             fontSize: '0.75rem',
+                            fontWeight: 700,
                             color: 'white',
-                            lineHeight: 1.4,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
                           }}
                         >
-                          {focusArea.impact}
+                          Trail Marker
                         </Typography>
-                      </Box>
-                    ) : (
-                      <>
-                        <Box
+                      </Stack>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.75rem',
+                          color: 'white',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {trailMarker}
+                      </Typography>
+                    </Box>
+                    {/* Hazard */}
+                    <Box
+                      sx={{
+                        width: '20%',
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: 'warning.main',
+                        background: 'linear-gradient(135deg, #ED6C02, #D84315)',
+                      }}
+                    >
+                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                        <Warning sx={{ color: 'white', fontSize: 16 }} />
+                        <Typography
                           sx={{
-                            width: '16.67%',
-                            p: 2,
-                            borderRight: '1px solid',
-                            borderColor: 'rgba(0,0,0,0.1)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            bgcolor: 'primary.main',
-                            background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            color: 'white',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
                           }}
                         >
-                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                            <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                color: 'white',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px',
-                              }}
-                            >
-                              Trail Marker
-                            </Typography>
-                          </Stack>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.75rem',
-                              color: 'white',
-                              lineHeight: 1.4,
-                            }}
-                          >
-                            {focusArea.example}
-                          </Typography>
-                        </Box>
-                        <Box
+                          Hazard
+                        </Typography>
+                      </Stack>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.75rem',
+                          color: 'white',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {hazard}
+                      </Typography>
+                    </Box>
+                    {/* Impact */}
+                    <Box
+                      sx={{
+                        width: '20%',
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: '#457089',
+                        background: 'linear-gradient(135deg, #457089, #375d78)',
+                      }}
+                    >
+                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                        <TrendingUp sx={{ color: 'white', fontSize: 16 }} />
+                        <Typography
                           sx={{
-                            width: '16.67%',
-                            p: 2,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            bgcolor: 'warning.main',
-                            background: 'linear-gradient(135deg, #ED6C02, #D84315)',
+                            fontFamily: 'Gemunu Libre, sans-serif',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            color: 'white',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
                           }}
                         >
-                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                            <Warning sx={{ color: 'white', fontSize: 16 }} />
-                            <Typography
-                              sx={{
-                                fontFamily: 'Gemunu Libre, sans-serif',
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                color: 'white',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px',
-                              }}
-                            >
-                              Risk
-                            </Typography>
-                          </Stack>
-                          <Typography
-                            sx={{
-                              fontFamily: 'Gemunu Libre, sans-serif',
-                              fontSize: '0.75rem',
-                              color: 'white',
-                              lineHeight: 1.4,
-                            }}
-                          >
-                            {focusArea.risk}
-                          </Typography>
-                        </Box>
-                      </>
-                    )}
+                          Impact
+                        </Typography>
+                      </Stack>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          fontSize: '0.75rem',
+                          color: 'white',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {impact}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Paper>
               );

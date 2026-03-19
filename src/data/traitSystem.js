@@ -3468,11 +3468,72 @@ const CORE_TRAITS = [
   },
 ];
 
+function toSentence(text) {
+  const cleaned = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!cleaned) return '';
+  return /[.!?]$/.test(cleaned) ? cleaned : `${cleaned}.`;
+}
+
+function buildDefaultExamples(subTrait) {
+  const strengthSignals = Array.isArray(subTrait?.strengthSignals) ? subTrait.strengthSignals : [];
+  const dailyHabits = Array.isArray(subTrait?.actions?.dailyHabits) ? subTrait.actions.dailyHabits : [];
+  const situationalTactics = Array.isArray(subTrait?.actions?.situationalTactics) ? subTrait.actions.situationalTactics : [];
+
+  const fromSignals = strengthSignals
+    .map((x) => String(x || '').trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  if (fromSignals.length >= 2) return fromSignals;
+
+  const fromActions = [...dailyHabits, ...situationalTactics]
+    .map((x) => String(x || '').trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  if (fromActions.length >= 2) return fromActions;
+
+  const traitName = String(subTrait?.name || 'this subtrait').toLowerCase();
+  return [
+    `You consistently model ${traitName} during key team moments`,
+    `Your team reflects stronger ${traitName} in daily execution`,
+  ];
+}
+
+function buildDefaultImpact(coreTrait, subTrait) {
+  const existing = toSentence(subTrait?.impact);
+  if (existing) return existing;
+
+  const strengthSignals = Array.isArray(subTrait?.strengthSignals) ? subTrait.strengthSignals : [];
+  const primarySignal = String(strengthSignals[0] || '').trim();
+  if (primarySignal) {
+    return toSentence(
+      `As ${subTrait?.name || 'this subtrait'} improves, ${primarySignal.toLowerCase()}, which strengthens ${String(coreTrait?.name || 'leadership outcomes').toLowerCase()} and lifts team performance`
+    );
+  }
+
+  return toSentence(
+    `Improving ${String(subTrait?.name || 'this subtrait').toLowerCase()} increases clarity, trust, and execution reliability across ${String(coreTrait?.name || 'your leadership context').toLowerCase()}`
+  );
+}
+
+const NORMALIZED_CORE_TRAITS = CORE_TRAITS.map((coreTrait) => ({
+  ...coreTrait,
+  subTraits: (coreTrait?.subTraits || []).map((subTrait) => {
+    const examples = Array.isArray(subTrait?.examples)
+      ? subTrait.examples.map((x) => String(x || '').trim()).filter(Boolean)
+      : [];
+    return {
+      ...subTrait,
+      examples: examples.length ? examples : buildDefaultExamples(subTrait),
+      impact: buildDefaultImpact(coreTrait, subTrait),
+    };
+  }),
+}));
+
 /**
  * Helper function to get a sub-trait by ID
  */
 export function getSubTrait(coreTraitId, subTraitId) {
-  const coreTrait = CORE_TRAITS.find((t) => t.id === coreTraitId);
+  const coreTrait = NORMALIZED_CORE_TRAITS.find((t) => t.id === coreTraitId);
   if (!coreTrait) return null;
   return coreTrait.subTraits.find((st) => st.id === subTraitId) || null;
 }
@@ -3481,7 +3542,7 @@ export function getSubTrait(coreTraitId, subTraitId) {
  * Helper function to get all sub-traits for a core trait
  */
 export function getSubTraitsForCoreTrait(coreTraitId) {
-  const coreTrait = CORE_TRAITS.find((t) => t.id === coreTraitId);
+  const coreTrait = NORMALIZED_CORE_TRAITS.find((t) => t.id === coreTraitId);
   return coreTrait?.subTraits || [];
 }
 
@@ -3500,7 +3561,7 @@ export function getToneAdjustedContent(subTrait, agentId = 'balancedMentor') {
  * Export the trait system
  */
 export default {
-  CORE_TRAITS,
+  CORE_TRAITS: NORMALIZED_CORE_TRAITS,
   TONE_TAGS,
   getSubTrait,
   getSubTraitsForCoreTrait,
