@@ -226,7 +226,7 @@ function TraitSelection() {
                     {/* Subtrait */}
                     <Box
                       sx={{
-                        width: '20%',
+                        width: '25%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
@@ -261,7 +261,7 @@ function TraitSelection() {
                     {/* Parent Trait */}
                     <Box
                       sx={{
-                        width: '20%',
+                        width: '25%',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center',
@@ -293,119 +293,123 @@ function TraitSelection() {
                       )}
                     </Box>
 
-                    {/* Trail Marker */}
-                    <Box
-                      sx={{
-                        width: '20%',
-                        p: 2,
-                        borderRight: '1px solid',
-                        borderColor: 'rgba(0,0,0,0.1)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        bgcolor: 'primary.main',
-                        background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                        <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
+                    {isSelected ? (
+                      <Box
+                        sx={{
+                          width: '50%',
+                          p: 2,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          bgcolor: '#457089',
+                          background: 'linear-gradient(135deg, #457089, #375d78)',
+                        }}
+                      >
+                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                          <TrendingUp sx={{ color: 'white', fontSize: 16 }} />
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              color: 'white',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px',
+                            }}
+                          >
+                            Impact
+                          </Typography>
+                        </Stack>
                         <Typography
                           sx={{
                             fontFamily: 'Gemunu Libre, sans-serif',
                             fontSize: '0.75rem',
-                            fontWeight: 700,
                             color: 'white',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
+                            lineHeight: 1.4,
                           }}
                         >
-                          Trail Marker
+                          {impact}
                         </Typography>
-                      </Stack>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '0.75rem',
-                          color: 'white',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {trailMarker}
-                      </Typography>
-                    </Box>
-                    {/* Hazard */}
-                    <Box
-                      sx={{
-                        width: '20%',
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        bgcolor: 'warning.main',
-                        background: 'linear-gradient(135deg, #ED6C02, #D84315)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                        <Warning sx={{ color: 'white', fontSize: 16 }} />
-                        <Typography
+                      </Box>
+                    ) : (
+                      <>
+                        {/* Trail Marker */}
+                        <Box
                           sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            color: 'white',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
+                            width: '25%',
+                            p: 2,
+                            borderRight: '1px solid',
+                            borderColor: 'rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            bgcolor: 'primary.main',
+                            background: 'linear-gradient(135deg, #E07A3F, #C85A2A)',
                           }}
                         >
-                          Hazard
-                        </Typography>
-                      </Stack>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '0.75rem',
-                          color: 'white',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {hazard}
-                      </Typography>
-                    </Box>
-                    {/* Impact */}
-                    <Box
-                      sx={{
-                        width: '20%',
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        bgcolor: '#457089',
-                        background: 'linear-gradient(135deg, #457089, #375d78)',
-                      }}
-                    >
-                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
-                        <TrendingUp sx={{ color: 'white', fontSize: 16 }} />
-                        <Typography
+                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                            <Lightbulb sx={{ color: 'white', fontSize: 16 }} />
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: 'white',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                              }}
+                            >
+                              Trail Marker
+                            </Typography>
+                          </Stack>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '0.75rem',
+                              color: 'white',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {trailMarker}
+                          </Typography>
+                        </Box>
+                        {/* Hazard */}
+                        <Box
                           sx={{
-                            fontFamily: 'Gemunu Libre, sans-serif',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            color: 'white',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
+                            width: '25%',
+                            p: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            bgcolor: 'warning.main',
+                            background: 'linear-gradient(135deg, #ED6C02, #D84315)',
                           }}
                         >
-                          Impact
-                        </Typography>
-                      </Stack>
-                      <Typography
-                        sx={{
-                          fontFamily: 'Gemunu Libre, sans-serif',
-                          fontSize: '0.75rem',
-                          color: 'white',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {impact}
-                      </Typography>
-                    </Box>
+                          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 1 }}>
+                            <Warning sx={{ color: 'white', fontSize: 16 }} />
+                            <Typography
+                              sx={{
+                                fontFamily: 'Gemunu Libre, sans-serif',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: 'white',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                              }}
+                            >
+                              Hazard
+                            </Typography>
+                          </Stack>
+                          <Typography
+                            sx={{
+                              fontFamily: 'Gemunu Libre, sans-serif',
+                              fontSize: '0.75rem',
+                              color: 'white',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {hazard}
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
                   </Box>
                 </Paper>
               );
