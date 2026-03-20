@@ -72,9 +72,14 @@ function UserInfo() {
         const body = await response.json().catch(() => ({}));
         throw new Error(body?.error || 'welcome-email-failed');
       }
+      return { ok: true };
     } catch (emailError) {
       // Non-blocking: account creation should not fail if transactional email fails.
       console.warn('Welcome email trigger failed:', emailError);
+      return {
+        ok: false,
+        error: String(emailError?.message || 'welcome-email-failed'),
+      };
     }
   };
 
@@ -194,11 +199,22 @@ function UserInfo() {
       }
 
       if (idToken) {
-        await triggerWelcomeEmail({
+        const emailResult = await triggerWelcomeEmail({
           idToken,
           email: signupEmail,
           name: userInfo.name,
         });
+        if (!emailResult?.ok) {
+          localStorage.setItem(
+            'postSignupNotice',
+            JSON.stringify({
+              severity: 'warning',
+              message: 'Your account was created, but the welcome email did not send. You can continue now and use Sign In or Forgot Password later if needed.',
+            })
+          );
+        } else {
+          localStorage.removeItem('postSignupNotice');
+        }
       }
 
       navigate('/form');

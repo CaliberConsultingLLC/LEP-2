@@ -74,6 +74,46 @@ function normalizeBaseUrl(input) {
   return value.replace(/\/+$/, '');
 }
 
+async function sendPostmarkEmail(payload, token, maxAttempts = 2) {
+  let lastResponse = null;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await fetch('https://api.postmarkapp.com/email', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Postmark-Server-Token': token,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        return response;
+      }
+
+      lastResponse = response;
+      const shouldRetry = response.status >= 500 && attempt < maxAttempts;
+      if (!shouldRetry) {
+        return response;
+      }
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxAttempts) {
+        throw error;
+      }
+    }
+  }
+
+  if (lastResponse) {
+    return lastResponse;
+  }
+
+  throw lastError || new Error('postmark-send-failed');
+}
+
 async function resolveEmailFromIdToken(idToken) {
   const firebaseWebApiKey = process.env.FIREBASE_WEB_API_KEY || process.env.VITE_FIREBASE_API_KEY;
   if (!firebaseWebApiKey) {
@@ -154,22 +194,14 @@ export default async function handler(req, res) {
       forgotPasswordUrl,
     });
 
-    const postmarkResponse = await fetch('https://api.postmarkapp.com/email', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        'X-Postmark-Server-Token': postmarkServerToken,
-      },
-      body: JSON.stringify({
-        From: fromEmail,
-        To: requestEmail,
-        Subject: 'Welcome to Compass',
-        TextBody: textBody,
-        HtmlBody: htmlBody,
-        MessageStream: process.env.POSTMARK_MESSAGE_STREAM || 'outbound',
-      }),
-    });
+    const postmarkResponse = await sendPostmarkEmail({
+      From: fromEmail,
+      To: requestEmail,
+      Subject: 'Welcome to Compass',
+      TextBody: textBody,
+      HtmlBody: htmlBody,
+      MessageStream: process.env.POSTMARK_MESSAGE_STREAM || 'outbound',
+    }, postmarkServerToken);
 
     if (!postmarkResponse.ok) {
       const details = await postmarkResponse.text().catch(() => '');

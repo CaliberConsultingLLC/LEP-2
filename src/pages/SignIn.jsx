@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { buildPasswordResetActionSettings } from '../utils/authActionLinks';
 
 function SignIn() {
   const navigate = useNavigate();
@@ -196,7 +197,7 @@ function SignIn() {
 
     setIsResettingPassword(true);
     try {
-      await sendPasswordResetEmail(auth, inputEmail);
+      await sendPasswordResetEmail(auth, inputEmail, buildPasswordResetActionSettings(inputEmail));
       setInfoMessage('Password reset link sent. Check your inbox.');
     } catch (resetError) {
       if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {
@@ -231,7 +232,7 @@ function SignIn() {
       setInfoMessage('');
       setIsResettingPassword(true);
       try {
-        await sendPasswordResetEmail(auth, prefilledEmail);
+        await sendPasswordResetEmail(auth, prefilledEmail, buildPasswordResetActionSettings(prefilledEmail));
         setInfoMessage('Password reset link sent. Check your inbox.');
       } catch (resetError) {
         if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {

@@ -491,6 +491,7 @@ function IntakeForm() {
   const [societalQuestionIndex, setSocietalQuestionIndex] = useState(0);
   const [resumeNotice, setResumeNotice] = useState(null);
   const [autosaveStatus, setAutosaveStatus] = useState({ state: 'idle', updatedAt: '' });
+  const [postSignupNotice, setPostSignupNotice] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const autosaveTimeoutRef = useRef(null);
@@ -536,6 +537,23 @@ function IntakeForm() {
   };
 
   // Load profile context immediately, then hydrate any local/remote intake draft.
+  useEffect(() => {
+    const rawNotice = localStorage.getItem('postSignupNotice');
+    if (!rawNotice) return;
+    try {
+      const parsed = JSON.parse(rawNotice);
+      if (parsed?.message) {
+        setPostSignupNotice({
+          severity: parsed?.severity || 'info',
+          message: parsed.message,
+        });
+      }
+    } catch {
+      // ignore malformed transient notice
+    }
+    localStorage.removeItem('postSignupNotice');
+  }, []);
+
   useEffect(() => {
     let active = true;
 
@@ -1304,6 +1322,11 @@ function IntakeForm() {
       )}
 
       <PageContainer>
+        {postSignupNotice && (
+          <Alert severity={postSignupNotice.severity} sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}>
+            {postSignupNotice.message}
+          </Alert>
+        )}
         {resumeNotice && (
           <Alert
             severity={resumeNotice.source === 'missing' ? 'warning' : 'success'}
