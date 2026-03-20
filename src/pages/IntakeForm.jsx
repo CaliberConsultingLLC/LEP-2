@@ -1,12 +1,12 @@
 import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, CardActions, Grid, Paper, Divider
+  Card, CardContent, CardActions, Grid, Paper, Divider, Alert
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { questionBank } from '../data/questionBank';
 import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 import ProcessTopRail from '../components/ProcessTopRail';
@@ -489,7 +489,10 @@ function IntakeForm() {
   const [roleModelCustomAnswerText, setRoleModelCustomAnswerText] = useState('');
   const [hoveredRoleModelOption, setHoveredRoleModelOption] = useState(null);
   const [societalQuestionIndex, setSocietalQuestionIndex] = useState(0);
+  const [resumeNotice, setResumeNotice] = useState(null);
+  const [autosaveStatus, setAutosaveStatus] = useState({ state: 'idle', updatedAt: '' });
   const navigate = useNavigate();
+  const location = useLocation();
   const autosaveTimeoutRef = useRef(null);
   const autosaveReadyRef = useRef(false);
   const authUidRef = useRef('');
@@ -569,6 +572,7 @@ function IntakeForm() {
     };
 
     const bootstrapDraft = async (user) => {
+      let localDraft = null;
       try {
         const userInfo = parseJson(localStorage.getItem('userInfo'), {});
         if (active) {
@@ -579,9 +583,18 @@ function IntakeForm() {
           }));
         }
 
-        const localDraft = parseJson(localStorage.getItem('intakeDraft'), null);
+        localDraft = parseJson(localStorage.getItem('intakeDraft'), null);
+        const localStatus = parseJson(localStorage.getItem('intakeStatus'), null);
         if (localDraft) {
           applyDraft(localDraft);
+          if (active) {
+            setResumeNotice({
+              source: 'local',
+              currentStep: localDraft?.currentStep ?? 0,
+              totalSteps: localStatus?.totalSteps || totalSteps,
+              updatedAt: localStatus?.updatedAt || '',
+            });
+          }
         }
 
         if (user?.uid) {
@@ -598,6 +611,14 @@ function IntakeForm() {
             }
             if (remote?.intakeStatus) {
               localStorage.setItem('intakeStatus', JSON.stringify(remote.intakeStatus));
+              if (active && remote?.intakeDraft && !remote?.intakeStatus?.complete) {
+                setResumeNotice({
+                  source: 'cloud',
+                  currentStep: remote?.intakeDraft?.currentStep ?? 0,
+                  totalSteps: remote?.intakeStatus?.totalSteps || totalSteps,
+                  updatedAt: remote?.intakeStatus?.updatedAt || '',
+                });
+              }
             }
           }
         } else {
@@ -608,6 +629,17 @@ function IntakeForm() {
       } finally {
         if (active) {
           autosaveReadyRef.current = true;
+          if (new URLSearchParams(location.search || '').get('resume') === '1' && !localDraft) {
+            const remoteStatus = parseJson(localStorage.getItem('intakeStatus'), null);
+            if (!remoteStatus?.started || remoteStatus?.complete) {
+              setResumeNotice({
+                source: 'missing',
+                currentStep: 0,
+                totalSteps,
+                updatedAt: '',
+              });
+            }
+          }
         }
       }
     };
@@ -620,7 +652,7 @@ function IntakeForm() {
       active = false;
       unsubscribe();
     };
-  }, []);
+  }, [location.search, totalSteps]);
 
   // Behavior Questions
   const behaviorSet = [
@@ -999,23 +1031,41 @@ function IntakeForm() {
       lastDraftJsonRef.current = draftJson;
     }
 
+    setAutosaveStatus((prev) => ({
+      state: 'saving',
+      updatedAt: prev?.updatedAt || '',
+    }));
     syncLocalIntakeState(draft);
 
     if (autosaveTimeoutRef.current) {
       clearTimeout(autosaveTimeoutRef.current);
     }
 
-    autosaveTimeoutRef.current = setTimeout(() => {
-      persistDraftToFirestore(draft).catch((persistErr) => {
+    autosaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await persistDraftToFirestore(draft);
+        setAutosaveStatus({
+          state: 'saved',
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (persistErr) {
         const code = String(persistErr?.code || '').toLowerCase();
         const message = String(persistErr?.message || '').toLowerCase();
         const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
         if (isStagingRuntime && isPermissionErr) {
           console.warn('[IntakeForm] Draft autosave bypassed Firestore permission error.');
+          setAutosaveStatus({
+            state: 'saved',
+            updatedAt: new Date().toISOString(),
+          });
           return;
         }
         console.warn('[IntakeForm] Draft autosave failed:', persistErr);
-      });
+        setAutosaveStatus((prev) => ({
+          state: 'error',
+          updatedAt: prev?.updatedAt || '',
+        }));
+      }
     }, 1600);
 
     return () => {
@@ -1147,6 +1197,18 @@ function IntakeForm() {
   setCurrentStep(behaviorStart);
 };
 
+  const formatAutosaveTime = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
 
   const handleSubmit = async () => {
     try {
@@ -1242,6 +1304,28 @@ function IntakeForm() {
       )}
 
       <PageContainer>
+        {resumeNotice && (
+          <Alert
+            severity={resumeNotice.source === 'missing' ? 'warning' : 'success'}
+            sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}
+          >
+            {resumeNotice.source === 'missing'
+              ? 'No saved intake draft was found for this account. You can continue from the beginning.'
+              : `Draft restored. You are back at step ${Math.min((resumeNotice.currentStep || 0) + 1, resumeNotice.totalSteps || totalSteps)} of ${resumeNotice.totalSteps || totalSteps}${resumeNotice.updatedAt ? `, last saved ${formatAutosaveTime(resumeNotice.updatedAt)}` : ''}.`}
+          </Alert>
+        )}
+        <Alert
+          severity={autosaveStatus.state === 'error' ? 'warning' : 'info'}
+          sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}
+        >
+          {autosaveStatus.state === 'saving'
+            ? 'Saving your progress...'
+            : autosaveStatus.state === 'saved'
+              ? `Progress saved automatically${autosaveStatus.updatedAt ? ` at ${formatAutosaveTime(autosaveStatus.updatedAt)}` : ''}.`
+              : autosaveStatus.state === 'error'
+                ? 'Autosave hit a problem. Your local draft is still retained in this browser.'
+                : 'Your intake progress saves automatically as you move through the experience.'}
+        </Alert>
         {/* Profile Page (Step 1) - Combined */}
         {currentStep === 1 && (
           <SectionCard narrow={true}>
