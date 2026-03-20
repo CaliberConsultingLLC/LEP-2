@@ -163,6 +163,7 @@ function CampaignVerify() {
           const selfDocRef = await addDoc(collection(db, 'campaigns'), {
             userInfo,
             ownerId,
+            ownerUid: userInfo?.uid || null,
             bundleId,
             campaignType: 'self',
             campaign: selfCampaign,
@@ -173,6 +174,7 @@ function CampaignVerify() {
           const teamDocRef = await addDoc(collection(db, 'campaigns'), {
             userInfo,
             ownerId,
+            ownerUid: userInfo?.uid || null,
             bundleId,
             campaignType: 'team',
             campaign: campaignData,
@@ -195,6 +197,7 @@ function CampaignVerify() {
           localCampaignDocs[selfCampaignId] = {
             userInfo,
             ownerId,
+            ownerUid: userInfo?.uid || null,
             bundleId,
             campaignType: 'self',
             campaign: selfCampaign,
@@ -204,6 +207,7 @@ function CampaignVerify() {
           localCampaignDocs[teamCampaignId] = {
             userInfo,
             ownerId,
+            ownerUid: userInfo?.uid || null,
             bundleId,
             campaignType: 'team',
             campaign: campaignData,
@@ -230,6 +234,7 @@ function CampaignVerify() {
           JSON.stringify({
             bundleId,
             ownerId,
+            ownerUid: userInfo?.uid || null,
             campaignSignature,
             selfCampaignId,
             teamCampaignId,

@@ -72,6 +72,7 @@ function CampaignSurvey() {
       campaignId: id,
       campaignType,
       ownerId: campaignMeta?.ownerId || null,
+      ownerUid: campaignMeta?.ownerUid || campaignMeta?.userInfo?.uid || null,
       bundleId: campaignMeta?.bundleId || null,
       submittedAt: new Date(),
       ratings,

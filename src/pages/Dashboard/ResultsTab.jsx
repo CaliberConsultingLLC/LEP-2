@@ -27,7 +27,7 @@ import {
 } from '@mui/icons-material';
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
-import { db } from '../../firebase';
+import { auth, db } from '../../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
 function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' }) {
@@ -427,14 +427,15 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
         const teamCampaignId = records?.teamCampaignId;
         const selfCampaignId = records?.selfCampaignId;
-        if (!teamCampaignId || !selfCampaignId) {
+        const ownerUid = auth?.currentUser?.uid || null;
+        if (!teamCampaignId || !selfCampaignId || !ownerUid) {
           if (active) setBenchmarkGapData(null);
           return;
         }
 
         const [teamSnap, selfSnap] = await Promise.all([
-          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId))),
-          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', selfCampaignId))),
+          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId), where('ownerUid', '==', ownerUid))),
+          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', selfCampaignId), where('ownerUid', '==', ownerUid))),
         ]);
 
         const teamResponses = teamSnap.docs.map((d) => d.data()).filter((d) => d?.ratings);

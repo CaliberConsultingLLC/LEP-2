@@ -5,8 +5,17 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isOwnerUid(uid) {
+      return isSignedIn() && uid is string && uid == request.auth.uid;
+    }
+
     match /responses/{docId} {
-      allow create, get, update: if isSignedIn();
+      allow create: if isOwnerUid(docId)
+        && request.resource.data.ownerUid is string
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow get, update: if isOwnerUid(docId)
+        && resource.data.ownerUid is string
+        && resource.data.ownerUid == request.auth.uid;
       allow list, delete: if false;
     }
 
@@ -16,18 +25,32 @@ service cloud.firestore {
     }
 
     match /campaigns/{docId} {
-      allow create, get, update: if isSignedIn();
+      allow create: if (
+        (request.resource.data.ownerUid is string && request.resource.data.ownerUid == request.auth.uid)
+        || (request.resource.data.userInfo.uid is string && request.resource.data.userInfo.uid == request.auth.uid)
+      );
+      allow get, update: if (
+        (resource.data.ownerUid is string && resource.data.ownerUid == request.auth.uid)
+        || (resource.data.userInfo.uid is string && resource.data.userInfo.uid == request.auth.uid)
+      );
       allow list, delete: if false;
     }
 
     match /surveyResponses/{docId} {
-      allow create, get, list: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid is string;
+      allow get, list: if isSignedIn()
+        && resource.data.ownerUid is string
+        && resource.data.ownerUid == request.auth.uid;
       allow update, delete: if false;
     }
 
     match /users/{docId} {
-      allow create: if isSignedIn();
-      allow get, list, update, delete: if false;
+      allow create: if request.resource.data.uid is string
+        && request.resource.data.uid == request.auth.uid;
+      allow get, update: if resource.data.uid is string
+        && resource.data.uid == request.auth.uid;
+      allow list, delete: if false;
     }
 
     match /{document=**} {
