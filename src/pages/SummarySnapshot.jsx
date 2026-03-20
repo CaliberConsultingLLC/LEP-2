@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Container,
   Paper,
@@ -54,26 +55,55 @@ function SummarySnapshot() {
     const userInfo = parseJson(localStorage.getItem('userInfo'), {});
     return String(userInfo?.name || '').trim();
   });
+  const [savedAt, setSavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
+  const [isHydrating, setIsHydrating] = useState(true);
+
+  const formatSavedAt = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
 
   useEffect(() => {
     let active = true;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user?.uid) return;
+      if (!user?.uid) {
+        if (active) setIsHydrating(false);
+        return;
+      }
       try {
         const snap = await getDoc(doc(db, 'responses', user.uid));
-        if (!active || !snap.exists()) return;
+        if (!active) return;
+        if (!snap.exists()) {
+          setIsHydrating(false);
+          return;
+        }
         const payload = snap.data() || {};
-        const cachedSummary = String(payload?.summaryCache?.aiSummary || '').trim();
+        const summaryCache = payload?.summaryCache || {};
+        const cachedSummary = String(summaryCache?.aiSummary || '').trim();
         if (cachedSummary) {
           setAiSummary(cachedSummary);
           localStorage.setItem('aiSummary', cachedSummary);
+        }
+        if (summaryCache?.savedAt) {
+          const savedValue = String(summaryCache.savedAt || '').trim();
+          setSavedAt(savedValue);
+          localStorage.setItem('summarySavedAt', savedValue);
         }
         if (!userName && payload?.ownerName) {
           setUserName(String(payload.ownerName || '').trim());
         }
       } catch (err) {
         console.warn('Unable to load cached summary snapshot:', err);
+      } finally {
+        if (active) setIsHydrating(false);
       }
     });
 
@@ -161,7 +191,25 @@ function SummarySnapshot() {
             >
               This is a static copy of the original leadership summary so you can revisit the reflection without rerunning the experience.
             </Typography>
+            {savedAt && (
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontFamily: 'Montserrat, sans-serif',
+                  fontSize: '0.9rem',
+                  color: 'rgba(19,38,58,0.58)',
+                }}
+              >
+                Saved to your account on {formatSavedAt(savedAt)}.
+              </Typography>
+            )}
           </Paper>
+
+          {isHydrating && (
+            <Alert severity="info" sx={{ borderRadius: 3 }}>
+              Loading your saved reflection snapshot...
+            </Alert>
+          )}
 
           {sections.some((section) => section.text) ? (
             sections.map(({ title, description, text, icon: Icon }) => (

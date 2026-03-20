@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -11,6 +11,9 @@ import {
 import fakeData from '../../data/fakeData.js';
 import { Launch, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
 
 const parseJson = (raw, fallback = null) => {
   try {
@@ -23,12 +26,13 @@ const parseJson = (raw, fallback = null) => {
 function GrowthCampaignTab() {
   const navigate = useNavigate();
   const [copiedKey, setCopiedKey] = useState('');
+  const [cachedSummary, setCachedSummary] = useState(() => String(localStorage.getItem('aiSummary') || '').trim());
+  const [summarySavedAt, setSummarySavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
   const now = new Date();
   const selfCampaignCompleted = String(localStorage.getItem('selfCampaignCompleted') || '').toLowerCase() === 'true';
   const intakeStatus = parseJson(localStorage.getItem('intakeStatus'), {});
   const intakeDraft = parseJson(localStorage.getItem('intakeDraft'), null);
   const latestFormData = parseJson(localStorage.getItem('latestFormData'), null);
-  const aiSummary = String(localStorage.getItem('aiSummary') || '').trim();
   const intakeStarted = Boolean(intakeStatus?.started || intakeDraft || latestFormData);
   const intakeComplete = Boolean(intakeStatus?.complete || latestFormData);
   const intakeStepLabel = useMemo(() => {
@@ -64,6 +68,53 @@ function GrowthCampaignTab() {
     .filter((row) => row.openDate <= now)
     .sort((a, b) => b.openDate.getTime() - a.openDate.getTime())[0];
   const currentCampaignId = currentCampaign?.id || campaignRows[0]?.id;
+
+  useEffect(() => {
+    let active = true;
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user?.uid) return;
+      try {
+        const snap = await getDoc(doc(db, 'responses', user.uid));
+        if (!active || !snap.exists()) return;
+        const payload = snap.data() || {};
+        const summaryCache = payload?.summaryCache || {};
+        const remoteSummary = String(summaryCache?.aiSummary || '').trim();
+        if (remoteSummary) {
+          setCachedSummary(remoteSummary);
+          localStorage.setItem('aiSummary', remoteSummary);
+        }
+        if (Array.isArray(summaryCache?.focusAreas)) {
+          localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
+        }
+        if (summaryCache?.savedAt) {
+          const savedValue = String(summaryCache.savedAt || '').trim();
+          setSummarySavedAt(savedValue);
+          localStorage.setItem('summarySavedAt', savedValue);
+        }
+      } catch (err) {
+        console.warn('Unable to hydrate saved reflection from Firestore:', err);
+      }
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
+
+  const formatSavedAt = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
   const getCampaignStatus = (row) => {
     if (row.id === '123') return 'Complete';
     if (row.pct >= 100) return 'Complete';
@@ -186,7 +237,7 @@ function GrowthCampaignTab() {
                   }}
                 >
                   {intakeComplete
-                    ? 'Your intake is complete and your reflection is cached for future review.'
+                    ? 'Your intake is complete and your reflection is saved to your account for future review.'
                     : intakeStarted
                       ? 'Your intake is saved progressively. You can jump back in exactly where you left off.'
                       : 'Start the intake flow to generate your leadership reflection and prepare your campaign path.'}
@@ -202,6 +253,18 @@ function GrowthCampaignTab() {
                 >
                   Status: {intakeStepLabel}
                 </Typography>
+                {cachedSummary && (
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '0.86rem',
+                      color: 'rgba(43,108,176,0.84)',
+                      mt: 0.45,
+                    }}
+                  >
+                    Reflection snapshot ready{summarySavedAt ? ` • saved ${formatSavedAt(summarySavedAt)}` : ''}.
+                  </Typography>
+                )}
               </Box>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                 {!intakeComplete && (
@@ -222,7 +285,6 @@ function GrowthCampaignTab() {
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/summary-static')}
-                  disabled={!aiSummary}
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
                     textTransform: 'none',

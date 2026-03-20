@@ -86,6 +86,11 @@ function SignIn() {
             } else {
               localStorage.removeItem('aiSummary');
             }
+            if (summaryCache?.savedAt) {
+              localStorage.setItem('summarySavedAt', String(summaryCache.savedAt || '').trim());
+            } else {
+              localStorage.removeItem('summarySavedAt');
+            }
             if (Array.isArray(summaryCache?.focusAreas)) {
               localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
             } else {
@@ -99,6 +104,7 @@ function SignIn() {
             localStorage.removeItem('intakeStatus');
             localStorage.removeItem('latestFormData');
             localStorage.removeItem('aiSummary');
+            localStorage.removeItem('summarySavedAt');
             localStorage.removeItem('focusAreas');
           }
         }

@@ -43,6 +43,7 @@ function Summary() {
   const persistSummaryCache = async ({ data, agentId, text, areas }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
     if (!uid || !text) return;
+    const savedAt = new Date().toISOString();
 
     await setDoc(
       doc(db, 'responses', uid),
@@ -60,11 +61,12 @@ function Summary() {
           aiSummary: text,
           focusAreas: Array.isArray(areas) ? areas : [],
           selectedAgent: agentId || 'balancedMentor',
-          savedAt: new Date().toISOString(),
+          savedAt,
         },
       },
       { merge: true }
     );
+    localStorage.setItem('summarySavedAt', savedAt);
   };
 
   // Generate focus areas based on intake data (instead of random)
