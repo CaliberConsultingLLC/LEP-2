@@ -493,6 +493,7 @@ function IntakeForm() {
   const autosaveTimeoutRef = useRef(null);
   const autosaveReadyRef = useRef(false);
   const authUidRef = useRef('');
+  const lastDraftJsonRef = useRef('');
   const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
   const isStagingRuntime =
     stagingHost.includes('staging.northstarpartners.org') ||
@@ -537,6 +538,11 @@ function IntakeForm() {
 
     const applyDraft = (draft) => {
       if (!active || !draft || typeof draft !== 'object') return;
+      try {
+        lastDraftJsonRef.current = JSON.stringify(draft);
+      } catch {
+        lastDraftJsonRef.current = '';
+      }
       if (draft?.formData && typeof draft.formData === 'object') {
         setFormData((prev) => ({ ...prev, ...draft.formData }));
       }
@@ -978,6 +984,21 @@ function IntakeForm() {
     if (!autosaveReadyRef.current) return undefined;
 
     const draft = buildDraftPayload();
+    let draftJson = '';
+    try {
+      draftJson = JSON.stringify(draft);
+    } catch {
+      draftJson = '';
+    }
+
+    if (draftJson && draftJson === lastDraftJsonRef.current) {
+      return undefined;
+    }
+
+    if (draftJson) {
+      lastDraftJsonRef.current = draftJson;
+    }
+
     syncLocalIntakeState(draft);
 
     if (autosaveTimeoutRef.current) {
@@ -995,7 +1016,7 @@ function IntakeForm() {
         }
         console.warn('[IntakeForm] Draft autosave failed:', persistErr);
       });
-    }, 700);
+    }, 1600);
 
     return () => {
       if (autosaveTimeoutRef.current) {
