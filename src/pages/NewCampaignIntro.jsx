@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Stack, Button, Paper, Grid } from '@mui/material';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
@@ -9,7 +9,6 @@ import ProcessTopRail from '../components/ProcessTopRail';
 function NewCampaignIntro() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const [campaignData, setCampaignData] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -71,7 +70,7 @@ function NewCampaignIntro() {
     return () => clearInterval(interval);
   }, [campaignData]);
 
-  const isSelfCampaign = campaignData?.campaignType === 'self' || new URLSearchParams(location.search).get('mode') === 'self';
+  const isSelfCampaign = campaignData?.campaignType === 'self';
 
   useEffect(() => {
     if (!campaignData || !isSelfCampaign || isNavigating) return;

@@ -91,7 +91,7 @@ function CampaignVerify() {
   };
 
   const buildCampaignLinks = (origin, records) => ({
-    selfLink: `${origin}/campaign/${records.selfCampaignId}?mode=self`,
+    selfLink: `${origin}/campaign/${records.selfCampaignId}`,
     teamLink: `${origin}/campaign/${records.teamCampaignId}`,
   });
 
@@ -215,7 +215,7 @@ function CampaignVerify() {
           console.warn('[CampaignVerify] Staging fallback activated: campaign docs stored locally.');
         }
 
-        const selfLink = `${window.location.origin}/campaign/${selfCampaignId}?mode=self`;
+        const selfLink = `${window.location.origin}/campaign/${selfCampaignId}`;
         const teamLink = `${window.location.origin}/campaign/${teamCampaignId}`;
 
         setSelfCampaignId(selfCampaignId);
@@ -375,7 +375,7 @@ function CampaignVerify() {
                       <Button
                         variant="contained"
                         startIcon={<TrendingUp />}
-                        onClick={() => navigate(`/campaign/${selfCampaignId}?mode=self`)}
+                        onClick={() => navigate(`/campaign/${selfCampaignId}`)}
                         sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 2.2, py: 1 }}
                       >
                         Start My Growth Campaign

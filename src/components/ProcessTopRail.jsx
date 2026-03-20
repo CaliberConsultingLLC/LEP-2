@@ -45,7 +45,7 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
     const teamComplete = localStorage.getItem('teamCampaignCompleted') === 'true';
 
     const selfPath = campaignRecords?.selfCampaignId
-      ? `/campaign/${campaignRecords.selfCampaignId}?mode=self`
+      ? `/campaign/${campaignRecords.selfCampaignId}`
       : null;
     const teamPath = campaignRecords?.teamCampaignId
       ? `/campaign/${campaignRecords.teamCampaignId}`
@@ -77,12 +77,11 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
       if (pathname.startsWith('/campaign/')) {
         const match = pathname.match(/^\/campaign\/([^/]+)/);
         const campaignId = match?.[1];
-        const isSelfMode = searchParams.get('mode') === 'self';
         const campaignFromStorage = campaignId
           ? parseJson(localStorage.getItem(`campaign_${campaignId}`), {})
           : {};
         const isSelfType = campaignFromStorage?.campaignType === 'self';
-        return isSelfMode || isSelfType ? 'self' : 'team';
+        return isSelfType ? 'self' : 'team';
       }
       if (pathname.startsWith('/dashboard') || pathname.startsWith('/sign-in')) return 'review';
       return null;

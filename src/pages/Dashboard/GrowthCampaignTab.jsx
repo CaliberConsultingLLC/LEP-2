@@ -116,10 +116,10 @@ function GrowthCampaignTab() {
   };
 
   const openSelfAssessment = () => {
-    const fallbackUrl = '/campaign/123?mode=self';
+    const fallbackUrl = '/campaign/123';
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
-      const selfUrl = records?.selfCampaignLink || (records?.selfCampaignId ? `${window.location.origin}/campaign/${records.selfCampaignId}?mode=self` : null);
+      const selfUrl = records?.selfCampaignLink || (records?.selfCampaignId ? `${window.location.origin}/campaign/${records.selfCampaignId}` : null);
       window.location.href = selfUrl || fallbackUrl;
     } catch {
       window.location.href = fallbackUrl;
