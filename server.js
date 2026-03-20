@@ -213,6 +213,69 @@ app.post('/api/send-welcome-email', async (req, res) => {
   }
 });
 
+app.post('/api/get-user-journey', async (req, res) => {
+  try {
+    const bearerToken = getBearerToken(req);
+    if (!bearerToken) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const decoded = await admin.auth().verifyIdToken(bearerToken);
+    const uid = String(decoded?.uid || '').trim();
+    if (!uid) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const responseSnap = await db.collection('responses').doc(uid).get();
+    const payload = responseSnap.exists ? (responseSnap.data() || {}) : {};
+
+    return res.json({
+      ok: true,
+      journey: {
+        ownerUid: uid,
+        ownerEmail: String(payload?.ownerEmail || decoded?.email || '').trim(),
+        ownerName: String(payload?.ownerName || '').trim(),
+        intakeDraft: payload?.intakeDraft || null,
+        intakeStatus: payload?.intakeStatus || null,
+        latestFormData: payload?.latestFormData || null,
+        summaryCache: payload?.summaryCache || null,
+        campaignBundle: payload?.campaignBundle || null,
+        ops: payload?.ops || null,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user journey:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/log-auth-event', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    const eventType = String(req.body?.eventType || '').trim();
+    const status = String(req.body?.status || '').trim();
+    const message = String(req.body?.message || '').trim();
+
+    if (!email || eventType !== 'password-reset' || !['success', 'failed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid auth event payload' });
+    }
+
+    await db.collection('authEvents').add({
+      email,
+      eventType,
+      status,
+      message,
+      createdAt: new Date().toISOString(),
+      origin: String(req.headers?.origin || '').trim(),
+    });
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error('Error logging auth event:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/get-latest-response', async (req, res) => {
   try {
     const snapshot = await withRetry(() =>

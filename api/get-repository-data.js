@@ -50,6 +50,12 @@ function deriveCampaignStatus(campaignType, responsesCount) {
   return 'Awaiting Team Responses';
 }
 
+function deriveWelcomeEmailStatus(ops) {
+  const status = String(ops?.welcomeEmail?.status || '').trim();
+  if (!status) return '—';
+  return status === 'sent' ? 'Sent' : 'Failed';
+}
+
 function getTraitCount(campaign) {
   return Array.isArray(campaign) ? campaign.length : 0;
 }
@@ -81,11 +87,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const [usersSnap, responsesSnap, campaignsSnap, surveyResponsesSnap] = await Promise.all([
+    const [usersSnap, responsesSnap, campaignsSnap, surveyResponsesSnap, authEventsSnap] = await Promise.all([
       db.collection('users').get(),
       db.collection('responses').get(),
       db.collection('campaigns').get(),
       db.collection('surveyResponses').get(),
+      db.collection('authEvents').get(),
     ]);
 
     const surveyResponseCounts = {};
@@ -101,12 +108,17 @@ export default async function handler(req, res) {
       const latestFormData = data?.latestFormData || {};
       const intakeStatus = data?.intakeStatus || {};
       const summaryCache = data?.summaryCache || {};
+      const campaignBundle = data?.campaignBundle || {};
       return {
         docId: docSnap.id,
         uid: String(data?.ownerUid || '').trim(),
         email: normalizeEmail(data?.ownerEmail || latestFormData?.email || data?.email),
         intakeStatus,
         summaryReady: Boolean(String(summaryCache?.aiSummary || '').trim()),
+        summarySavedAt: toIsoString(summaryCache?.savedAt),
+        campaignBundleReady: Boolean(campaignBundle?.campaignRecords),
+        selfCompleted: Boolean(campaignBundle?.campaignRecords?.selfCompleted),
+        welcomeEmailStatus: deriveWelcomeEmailStatus(data?.ops || {}),
         latestFormData,
         updatedAt: toIsoString(intakeStatus?.updatedAt || data?.timestamp),
       };
@@ -117,6 +129,22 @@ export default async function handler(req, res) {
     normalizedResponses.forEach((row) => {
       if (row.uid && !responseByUid.has(row.uid)) responseByUid.set(row.uid, row);
       if (row.email && !responseByEmail.has(row.email)) responseByEmail.set(row.email, row);
+    });
+
+    const lastPasswordResetByEmail = new Map();
+    authEventsSnap.docs.forEach((docSnap) => {
+      const data = docSnap.data() || {};
+      if (String(data?.eventType || '').trim() !== 'password-reset') return;
+      const email = normalizeEmail(data?.email);
+      if (!email) return;
+      const existing = lastPasswordResetByEmail.get(email);
+      const nextStamp = toIsoString(data?.createdAt);
+      if (!existing || String(nextStamp || '') > String(existing?.createdAt || '')) {
+        lastPasswordResetByEmail.set(email, {
+          status: String(data?.status || '').trim(),
+          createdAt: nextStamp,
+        });
+      }
     });
 
     const campaignRowsRaw = campaignsSnap.docs.map((docSnap) => {
@@ -181,6 +209,13 @@ export default async function handler(req, res) {
         role: String(response?.latestFormData?.role || '').trim(),
         industry: String(response?.latestFormData?.industry || '').trim(),
         teamSize: asNumber(response?.latestFormData?.teamSize),
+        summaryReady,
+        summarySavedAt: response?.summarySavedAt || '',
+        campaignBundleReady: Boolean(response?.campaignBundleReady),
+        selfCompleted: Boolean(response?.selfCompleted),
+        welcomeEmailStatus: response?.welcomeEmailStatus || '—',
+        lastPasswordResetAt: lastPasswordResetByEmail.get(email)?.createdAt || '',
+        lastPasswordResetStatus: lastPasswordResetByEmail.get(email)?.status || '',
         campaignCount,
         responseCount,
       };

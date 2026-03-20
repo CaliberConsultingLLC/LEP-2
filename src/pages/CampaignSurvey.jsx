@@ -18,6 +18,7 @@ import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 
 function CampaignSurvey() {
   const { id } = useParams();
@@ -34,20 +35,31 @@ function CampaignSurvey() {
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
 
   const TRAIT_QUESTION_COUNT = 5;
+  const parseJson = (raw, fallback) => {
+    try {
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
 
   useEffect(() => {
-    const campaignData = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
-    if (campaignData?.campaign) {
-      setCampaign(campaignData.campaign);
-      setCampaignMeta(campaignData);
+    const campaignData = parseJson(localStorage.getItem(`campaign_${id}`), {});
+    const normalizedCampaign = normalizeCampaignItems(campaignData?.campaign);
+    if (campaignData?.campaignType && isCampaignReady(normalizedCampaign)) {
+      setCampaign(normalizedCampaign);
+      setCampaignMeta({
+        ...campaignData,
+        campaign: normalizedCampaign,
+      });
     } else {
       navigate('/');
     }
 
     try {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const userInfo = parseJson(localStorage.getItem('userInfo'), {});
       const userKey = userInfo?.email || userInfo?.name || 'anonymous';
-      const byCampaign = JSON.parse(localStorage.getItem('actionPlansByCampaign') || '{}');
+      const byCampaign = parseJson(localStorage.getItem('actionPlansByCampaign'), {});
       const plans = byCampaign?.[String(id)]?.[userKey]?.plans
         || byCampaign?.['123']?.[userKey]?.plans
         || {};
@@ -101,7 +113,7 @@ function CampaignSurvey() {
       const message = String(persistErr?.message || '').toLowerCase();
       const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
       if (!(isStagingRuntime && isPermissionErr)) throw persistErr;
-      const localResponses = JSON.parse(localStorage.getItem('localSurveyResponses') || '[]');
+      const localResponses = parseJson(localStorage.getItem('localSurveyResponses'), []);
       localResponses.push({
         ...ratingsData,
         submittedAt: new Date().toISOString(),
@@ -207,6 +219,7 @@ function CampaignSurvey() {
 
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
+  const leaderName = getLeaderDisplayName(campaignMeta);
   const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
   const currentTrait = campaign[traitIndex]?.trait || '';
   const r = ratings[`${currentQuestion}`];
@@ -476,7 +489,7 @@ function CampaignSurvey() {
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.5, textAlign: 'center' }}>
                     {isSelfCampaign
                       ? 'How intentional and attentive I am in this area'
-                      : 'How intentional and attentive Brian behaves in this area'}
+                      : `How intentional and attentive ${leaderName} is in this area`}
                   </Typography>
                   <Box sx={{ px: { xs: 1.6, md: 2.2 }, position: 'relative', overflow: 'hidden' }}>
                     <Box
@@ -531,7 +544,7 @@ function CampaignSurvey() {
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.93rem', fontStyle: 'italic', color: 'rgba(22,35,54,0.84)', mb: 0.5, textAlign: 'center' }}>
                     {isSelfCampaign
                       ? 'How effectively I meet the demands of this area'
-                      : 'Is Brian meeting my needs in this area'}
+                      : `How effectively ${leaderName} meets the needs of this area`}
                   </Typography>
                   <Box sx={{ px: { xs: 1.6, md: 2.2 }, position: 'relative', overflow: 'hidden' }}>
                   <Box

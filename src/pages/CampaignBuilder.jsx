@@ -21,6 +21,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import traitSystem from '../data/traitSystem';
+import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 
 function CampaignBuilder() {
   const [campaign, setCampaign] = useState(null);
@@ -212,8 +213,8 @@ function CampaignBuilder() {
         }
 
         // Expect exactly 3 traits with up to 5 statements each
-        const campaignData = Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : [];
-        if (campaignData.length === 0) {
+        const campaignData = normalizeCampaignItems(data?.campaign);
+        if (!isCampaignReady(campaignData, { minTraits: 1, minStatementsPerTrait: 1 })) {
           console.warn('No campaign data received');
           setError('No campaign data was generated. Please try again.');
         } else {
@@ -311,8 +312,8 @@ function CampaignBuilder() {
             return;
           }
 
-          const campaignData = Array.isArray(data.campaign) ? data.campaign.slice(0, 3) : [];
-          if (campaignData.length === 0) {
+          const campaignData = normalizeCampaignItems(data?.campaign);
+          if (!isCampaignReady(campaignData, { minTraits: 1, minStatementsPerTrait: 1 })) {
             setError('No campaign data was generated. Please try again.');
           } else {
             setCampaign(campaignData);
@@ -652,7 +653,7 @@ function CampaignBuilder() {
                     variant="contained"
                     color="primary"
                     onClick={() => {
-                      localStorage.setItem('currentCampaign', JSON.stringify(campaign || []));
+                      localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
                       navigate('/campaign-verify');
                     }}
                     sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.875rem', px: 2, py: 0.75 }}

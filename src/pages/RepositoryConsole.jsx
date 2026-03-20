@@ -155,7 +155,7 @@ function RepositoryConsole() {
                   Repository Console
                 </Typography>
                 <Typography sx={{ mt: 0.6, color: 'rgba(19,38,58,0.68)' }}>
-                  Readonly staging repository for user progress and campaign activity.
+                  Readonly repository for user progress, campaign activity, and Monday readiness checks.
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1} alignItems="center">
@@ -221,6 +221,11 @@ function RepositoryConsole() {
                         <TableCell>Created</TableCell>
                         <TableCell>Current Stage</TableCell>
                         <TableCell>Current Step</TableCell>
+                        <TableCell>Summary</TableCell>
+                        <TableCell>Campaign Bundle</TableCell>
+                        <TableCell>Self Complete</TableCell>
+                        <TableCell>Welcome Email</TableCell>
+                        <TableCell>Last Reset</TableCell>
                         <TableCell>Role</TableCell>
                         <TableCell>Industry</TableCell>
                         <TableCell>Team Size</TableCell>
@@ -235,6 +240,11 @@ function RepositoryConsole() {
                           <TableCell>{fmtDate(row.createdAt)}</TableCell>
                           <TableCell>{showValue(row.currentStage)}</TableCell>
                           <TableCell>{showValue(row.currentStep)}</TableCell>
+                          <TableCell>{row.summaryReady ? `Ready${row.summarySavedAt ? ` • ${fmtDate(row.summarySavedAt)}` : ''}` : '—'}</TableCell>
+                          <TableCell>{row.campaignBundleReady ? 'Ready' : '—'}</TableCell>
+                          <TableCell>{row.selfCompleted ? 'Yes' : '—'}</TableCell>
+                          <TableCell>{showValue(row.welcomeEmailStatus)}</TableCell>
+                          <TableCell>{row.lastPasswordResetAt ? `${fmtDate(row.lastPasswordResetAt)}${row.lastPasswordResetStatus ? ` • ${row.lastPasswordResetStatus}` : ''}` : '—'}</TableCell>
                           <TableCell>{showValue(row.role)}</TableCell>
                           <TableCell>{showValue(row.industry)}</TableCell>
                           <TableCell>{showValue(row.teamSize)}</TableCell>
@@ -242,7 +252,7 @@ function RepositoryConsole() {
                       ))}
                       {!users.length && (
                         <TableRow>
-                          <TableCell colSpan={9} align="center">No user records found.</TableCell>
+                          <TableCell colSpan={14} align="center">No user records found.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>

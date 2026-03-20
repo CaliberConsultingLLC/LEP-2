@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 
 function NewCampaignIntro() {
   const { id } = useParams();
@@ -20,24 +21,39 @@ function NewCampaignIntro() {
     "Leadership is not about being in charge. It’s about taking care of those in your charge. — Simon Sinek",
     "The only way to grow is to step outside your comfort zone. — Unknown",
   ];
+  const parseJson = (raw, fallback) => {
+    try {
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchCampaignData = async () => {
       try {
-        const cachedCampaign = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
+        const cachedCampaign = parseJson(localStorage.getItem(`campaign_${id}`), {});
         if (cachedCampaign?.campaignType) {
+          const normalizedCached = {
+            ...cachedCampaign,
+            campaign: normalizeCampaignItems(cachedCampaign?.campaign),
+          };
           if (isMounted) {
-            setCampaignData(cachedCampaign);
+            setCampaignData(normalizedCached);
           }
           return;
         }
 
-        const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
+        const localCampaignDocs = parseJson(localStorage.getItem('localCampaignDocs'), {});
         if (localCampaignDocs && localCampaignDocs[id]) {
+          const normalizedLocal = {
+            ...localCampaignDocs[id],
+            campaign: normalizeCampaignItems(localCampaignDocs[id]?.campaign),
+          };
           if (isMounted) {
-            setCampaignData(localCampaignDocs[id]);
+            setCampaignData(normalizedLocal);
           }
           return;
         }
@@ -47,7 +63,11 @@ function NewCampaignIntro() {
           const docRef = doc(db, 'campaigns', id);
           const docSnap = await getDoc(docRef);
           if (isMounted && docSnap.exists()) {
-            setCampaignData(docSnap.data());
+            const payload = docSnap.data() || {};
+            setCampaignData({
+              ...payload,
+              campaign: normalizeCampaignItems(payload?.campaign),
+            });
             loaded = true;
           }
         } catch (firestoreError) {
@@ -64,7 +84,10 @@ function NewCampaignIntro() {
         if (introResp.ok) {
           const payload = await introResp.json();
           if (isMounted) {
-            setCampaignData(payload?.campaign || { campaignType: 'team' });
+            setCampaignData({
+              ...(payload?.campaign || { campaignType: 'team' }),
+              campaign: normalizeCampaignItems(payload?.campaign?.campaign),
+            });
           }
           return;
         }
@@ -99,18 +122,20 @@ function NewCampaignIntro() {
   }, [campaignData]);
 
   const isSelfCampaign = campaignData?.campaignType === 'self';
+  const hasUsableCampaign = isCampaignReady(campaignData?.campaign, { minTraits: isSelfCampaign ? 1 : 0, minStatementsPerTrait: isSelfCampaign ? 1 : 0 });
 
   useEffect(() => {
     if (!campaignData || !isSelfCampaign || isNavigating) return;
+    if (!hasUsableCampaign) return;
     localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
     setIsNavigating(true);
     navigate(`/campaign/${id}/survey`, { replace: true });
-  }, [campaignData, id, isNavigating, isSelfCampaign, navigate]);
+  }, [campaignData, hasUsableCampaign, id, isNavigating, isSelfCampaign, navigate]);
 
   const handleStart = () => {
     if (isNavigating) return;
     const existingTeamAccess = localStorage.getItem(`teamCampaignAccess_${id}`);
-    if (!isSelfCampaign && existingTeamAccess && campaignData?.campaign?.length) {
+    if (!isSelfCampaign && existingTeamAccess && hasUsableCampaign) {
       setIsNavigating(true);
       navigate(`/campaign/${id}/survey`, { replace: true });
       setTimeout(() => setIsNavigating(false), 100);
@@ -133,9 +158,21 @@ function NewCampaignIntro() {
         }
 
         const payload = await verifyResp.json();
-        localStorage.setItem(`campaign_${id}`, JSON.stringify(payload?.campaign || {}));
+        const normalizedCampaign = {
+          ...(payload?.campaign || {}),
+          campaign: normalizeCampaignItems(payload?.campaign?.campaign),
+        };
+        if (!isCampaignReady(normalizedCampaign.campaign)) {
+          alert('Campaign is not ready yet. Please try again shortly.');
+          return;
+        }
+        localStorage.setItem(`campaign_${id}`, JSON.stringify(normalizedCampaign));
         localStorage.setItem(`teamCampaignAccess_${id}`, String(payload?.accessToken || ''));
       } else {
+        if (!hasUsableCampaign) {
+          alert('Campaign is not ready yet. Please try again shortly.');
+          return;
+        }
         localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
       }
 

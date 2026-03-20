@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import {
   TrendingUp,
   ContentCopy,
@@ -162,9 +163,9 @@ function CampaignVerify() {
         const ownerId = String(userInfo?.email || userInfo?.name || 'anonymous').trim().toLowerCase();
         setUserEmail(userInfo.email || '');
 
-        const campaignData = parseJson(localStorage.getItem('currentCampaign'), []);
+        const campaignData = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
 
-        if (campaignData.length === 0) {
+        if (!isCampaignReady(campaignData)) {
           setError('No campaign data found. Please return to the campaign builder.');
           setIsGenerating(false);
           return;

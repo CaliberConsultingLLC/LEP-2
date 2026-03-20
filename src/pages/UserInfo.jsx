@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import ProcessTopRail from '../components/ProcessTopRail';
 
@@ -80,6 +80,30 @@ function UserInfo() {
         ok: false,
         error: String(emailError?.message || 'welcome-email-failed'),
       };
+    }
+  };
+
+  const persistWelcomeEmailStatus = async ({ uid, email, name, result }) => {
+    if (!uid) return;
+    try {
+      await setDoc(
+        doc(db, 'responses', uid),
+        {
+          ownerUid: uid,
+          ownerEmail: String(email || '').trim(),
+          ownerName: String(name || '').trim(),
+          ops: {
+            welcomeEmail: {
+              status: result?.ok ? 'sent' : 'failed',
+              message: result?.ok ? 'Welcome email sent.' : String(result?.error || 'welcome-email-failed'),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        },
+        { merge: true }
+      );
+    } catch (persistError) {
+      console.warn('Failed to persist welcome email status:', persistError);
     }
   };
 
@@ -203,6 +227,12 @@ function UserInfo() {
           idToken,
           email: signupEmail,
           name: userInfo.name,
+        });
+        await persistWelcomeEmailStatus({
+          uid: signupUid,
+          email: signupEmail,
+          name: userInfo.name,
+          result: emailResult,
         });
         if (!emailResult?.ok) {
           localStorage.setItem(

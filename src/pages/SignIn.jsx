@@ -57,6 +57,82 @@ function SignIn() {
     }
   };
 
+  const hydrateJourneyState = (responseData, setSyncedName) => {
+    const intakeDraft = responseData?.intakeDraft || null;
+    const intakeStatus = responseData?.intakeStatus || {
+      started: Boolean(intakeDraft),
+      complete: Boolean(responseData?.latestFormData),
+      currentStep: intakeDraft?.currentStep ?? 0,
+    };
+    const summaryCache = responseData?.summaryCache || {};
+    const campaignBundle = responseData?.campaignBundle || {};
+
+    if (intakeDraft) {
+      localStorage.setItem('intakeDraft', JSON.stringify(intakeDraft));
+    } else {
+      localStorage.removeItem('intakeDraft');
+    }
+    localStorage.setItem('intakeStatus', JSON.stringify(intakeStatus));
+
+    if (responseData?.latestFormData) {
+      localStorage.setItem('latestFormData', JSON.stringify(responseData.latestFormData));
+    } else {
+      localStorage.removeItem('latestFormData');
+    }
+    if (summaryCache?.aiSummary) {
+      localStorage.setItem('aiSummary', summaryCache.aiSummary);
+    } else {
+      localStorage.removeItem('aiSummary');
+    }
+    if (summaryCache?.savedAt) {
+      localStorage.setItem('summarySavedAt', String(summaryCache.savedAt || '').trim());
+    } else {
+      localStorage.removeItem('summarySavedAt');
+    }
+    if (Array.isArray(summaryCache?.focusAreas)) {
+      localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
+    } else {
+      localStorage.removeItem('focusAreas');
+    }
+    if (campaignBundle?.campaignRecords && typeof campaignBundle.campaignRecords === 'object') {
+      const records = campaignBundle.campaignRecords;
+      localStorage.setItem('campaignRecords', JSON.stringify(records));
+      if (records?.selfCampaignId) {
+        const selfDone = Boolean(records?.selfCompleted);
+        localStorage.setItem(`selfCampaignCompleted_${records.selfCampaignId}`, selfDone ? 'true' : 'false');
+        localStorage.setItem('selfCampaignCompleted', selfDone ? 'true' : 'false');
+      }
+    } else {
+      localStorage.removeItem('campaignRecords');
+      localStorage.removeItem('selfCampaignCompleted');
+    }
+    if (Array.isArray(campaignBundle?.currentCampaign)) {
+      localStorage.setItem('currentCampaign', JSON.stringify(campaignBundle.currentCampaign));
+    } else {
+      clearLocalCampaignState();
+    }
+    if (responseData?.ownerName) {
+      setSyncedName(String(responseData.ownerName || '').trim());
+    }
+  };
+
+  const logAuthEvent = async ({ emailAddress, status, message }) => {
+    try {
+      await fetch('/api/log-auth-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'password-reset',
+          email: String(emailAddress || '').trim().toLowerCase(),
+          status,
+          message,
+        }),
+      });
+    } catch (logError) {
+      console.warn('Failed to log auth event:', logError);
+    }
+  };
+
   const handleSignIn = async () => {
     setError('');
     setInfoMessage('');
@@ -84,73 +160,45 @@ function SignIn() {
 
       try {
         if (signedInUser?.uid) {
-          const responseSnap = await getDoc(doc(db, 'responses', signedInUser.uid));
-          if (responseSnap.exists()) {
-            const responseData = responseSnap.data() || {};
-            const intakeDraft = responseData?.intakeDraft || null;
-            const intakeStatus = responseData?.intakeStatus || {
-              started: Boolean(intakeDraft),
-              complete: Boolean(responseData?.latestFormData),
-              currentStep: intakeDraft?.currentStep ?? 0,
-            };
-            const summaryCache = responseData?.summaryCache || {};
-            const campaignBundle = responseData?.campaignBundle || {};
+          let hydrated = false;
+          try {
+            const idToken = await signedInUser.getIdToken();
+            const response = await fetch('/api/get-user-journey', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${idToken}`,
+              },
+              body: JSON.stringify({ uid: signedInUser.uid }),
+            });
+            if (response.ok) {
+              const payload = await response.json().catch(() => ({}));
+              if (payload?.journey && typeof payload.journey === 'object') {
+                hydrateJourneyState(payload.journey, (nextName) => {
+                  syncedName = nextName;
+                });
+                hydrated = true;
+              }
+            }
+          } catch (serverSyncError) {
+            console.warn('Server-side journey sync failed, falling back to Firestore client read:', serverSyncError);
+          }
 
-            if (intakeDraft) {
-              localStorage.setItem('intakeDraft', JSON.stringify(intakeDraft));
+          if (!hydrated) {
+            const responseSnap = await getDoc(doc(db, 'responses', signedInUser.uid));
+            if (responseSnap.exists()) {
+              hydrateJourneyState(responseSnap.data() || {}, (nextName) => {
+                syncedName = nextName;
+              });
             } else {
               localStorage.removeItem('intakeDraft');
-            }
-            localStorage.setItem('intakeStatus', JSON.stringify(intakeStatus));
-
-            if (responseData?.latestFormData) {
-              localStorage.setItem('latestFormData', JSON.stringify(responseData.latestFormData));
-            } else {
+              localStorage.removeItem('intakeStatus');
               localStorage.removeItem('latestFormData');
-            }
-            if (summaryCache?.aiSummary) {
-              localStorage.setItem('aiSummary', summaryCache.aiSummary);
-            } else {
               localStorage.removeItem('aiSummary');
-            }
-            if (summaryCache?.savedAt) {
-              localStorage.setItem('summarySavedAt', String(summaryCache.savedAt || '').trim());
-            } else {
               localStorage.removeItem('summarySavedAt');
-            }
-            if (Array.isArray(summaryCache?.focusAreas)) {
-              localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
-            } else {
               localStorage.removeItem('focusAreas');
-            }
-            if (campaignBundle?.campaignRecords && typeof campaignBundle.campaignRecords === 'object') {
-              const records = campaignBundle.campaignRecords;
-              localStorage.setItem('campaignRecords', JSON.stringify(records));
-              if (records?.selfCampaignId) {
-                const selfDone = Boolean(records?.selfCompleted);
-                localStorage.setItem(`selfCampaignCompleted_${records.selfCampaignId}`, selfDone ? 'true' : 'false');
-                localStorage.setItem('selfCampaignCompleted', selfDone ? 'true' : 'false');
-              }
-            } else {
-              localStorage.removeItem('campaignRecords');
-              localStorage.removeItem('selfCampaignCompleted');
-            }
-            if (Array.isArray(campaignBundle?.currentCampaign)) {
-              localStorage.setItem('currentCampaign', JSON.stringify(campaignBundle.currentCampaign));
-            } else {
               clearLocalCampaignState();
             }
-            if (responseData?.ownerName) {
-              syncedName = String(responseData.ownerName || '').trim();
-            }
-          } else {
-            localStorage.removeItem('intakeDraft');
-            localStorage.removeItem('intakeStatus');
-            localStorage.removeItem('latestFormData');
-            localStorage.removeItem('aiSummary');
-            localStorage.removeItem('summarySavedAt');
-            localStorage.removeItem('focusAreas');
-            clearLocalCampaignState();
           }
         }
       } catch (syncError) {
@@ -198,8 +246,14 @@ function SignIn() {
     setIsResettingPassword(true);
     try {
       await sendPasswordResetEmail(auth, inputEmail, buildPasswordResetActionSettings(inputEmail));
+      logAuthEvent({ emailAddress: inputEmail, status: 'success', message: 'Password reset email sent.' });
       setInfoMessage('Password reset link sent. Check your inbox.');
     } catch (resetError) {
+      logAuthEvent({
+        emailAddress: inputEmail,
+        status: 'failed',
+        message: String(resetError?.code || resetError?.message || 'Password reset failed.'),
+      });
       if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {
         setError('Please enter a valid account email address.');
       } else if (resetError?.code === 'auth/too-many-requests') {
@@ -233,8 +287,14 @@ function SignIn() {
       setIsResettingPassword(true);
       try {
         await sendPasswordResetEmail(auth, prefilledEmail, buildPasswordResetActionSettings(prefilledEmail));
+        logAuthEvent({ emailAddress: prefilledEmail, status: 'success', message: 'Password reset email sent.' });
         setInfoMessage('Password reset link sent. Check your inbox.');
       } catch (resetError) {
+        logAuthEvent({
+          emailAddress: prefilledEmail,
+          status: 'failed',
+          message: String(resetError?.code || resetError?.message || 'Password reset failed.'),
+        });
         if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {
           setError('Please enter a valid account email address.');
         } else if (resetError?.code === 'auth/too-many-requests') {
