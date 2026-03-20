@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Box,
@@ -19,25 +19,8 @@ import {
   Typography,
 } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { auth } from '../firebase';
-
-const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
-
-const allowedAdminEmails = (() => {
-  const configured = String(import.meta.env.VITE_REPOSITORY_ADMIN_EMAILS || '')
-    .split(',')
-    .map((entry) => normalizeEmail(entry))
-    .filter(Boolean);
-
-  if (configured.length) return configured;
-
-  return [
-    'dustin@northstarpartners.org',
-    'dustin@caliberconsultingllc.org',
-  ];
-})();
 
 function fmtDate(value) {
   if (!value) return '—';
@@ -58,41 +41,26 @@ function showValue(value) {
 }
 
 function RepositoryConsole() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [email, setEmail] = useState('');
+  const [session, setSession] = useState(null);
   const [rows, setRows] = useState({ users: [], campaigns: [], meta: {} });
-
-  const isAllowed = useMemo(() => allowedAdminEmails.includes(normalizeEmail(email)), [email]);
-
-  const loadData = async (user) => {
-    if (!user) {
-      setError('Sign in with an approved admin account to view the repositories.');
-      setRows({ users: [], campaigns: [], meta: {} });
-      setLoading(false);
-      return;
-    }
-
-    const normalizedEmail = normalizeEmail(user.email);
-    setEmail(normalizedEmail);
-
-    if (!allowedAdminEmails.includes(normalizedEmail)) {
-      setError('This signed-in account is not approved for repository access.');
-      setRows({ users: [], campaigns: [], meta: {} });
-      setLoading(false);
+  const loadData = async (activeSession) => {
+    if (!activeSession?.active || !activeSession?.token) {
+      navigate('/dev-repository-login', { replace: true });
       return;
     }
 
     setLoading(true);
     setError('');
     try {
-      const idToken = await user.getIdToken();
       const response = await fetch('/api/get-repository-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
+          'X-Repository-Session': activeSession.token,
         },
         body: JSON.stringify({ scope: 'all' }),
       });
@@ -108,6 +76,11 @@ function RepositoryConsole() {
         meta: payload?.meta || {},
       });
     } catch (fetchErr) {
+      if (String(fetchErr?.message || '').toLowerCase().includes('unauthorized')) {
+        localStorage.removeItem('repositoryAdminSession');
+        navigate('/dev-repository-login', { replace: true });
+        return;
+      }
       setError(fetchErr?.message || 'Could not load repository data.');
       setRows({ users: [], campaigns: [], meta: {} });
     } finally {
@@ -116,11 +89,14 @@ function RepositoryConsole() {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      loadData(user);
-    });
-    return () => unsubscribe();
-  }, []);
+    try {
+      const stored = JSON.parse(localStorage.getItem('repositoryAdminSession') || 'null');
+      setSession(stored);
+      loadData(stored);
+    } catch {
+      navigate('/dev-repository-login', { replace: true });
+    }
+  }, [navigate]);
 
   const users = rows.users || [];
   const campaigns = rows.campaigns || [];
@@ -188,19 +164,29 @@ function RepositoryConsole() {
                 <Button
                   variant="outlined"
                   startIcon={<Refresh />}
-                  onClick={() => loadData(auth.currentUser)}
+                  onClick={() => loadData(session)}
                   disabled={loading}
                 >
                   Refresh
+                </Button>
+                <Button
+                  variant="text"
+                  color="inherit"
+                  onClick={() => {
+                    localStorage.removeItem('repositoryAdminSession');
+                    navigate('/dev-repository-login', { replace: true });
+                  }}
+                >
+                  Log Out
                 </Button>
               </Stack>
             </Stack>
           </Paper>
 
           {error && <Alert severity="error">{error}</Alert>}
-          {!error && isAllowed && (
+          {!error && session?.active && (
             <Alert severity="info">
-              Signed in as `{email}`. This view is readonly and does not expose passwords.
+              Signed in as `{session?.username || 'repository-admin'}`. This view is readonly and does not expose passwords.
             </Alert>
           )}
 

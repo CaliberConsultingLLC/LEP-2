@@ -19,6 +19,7 @@ import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
 import DevSkipAssessments from './pages/DevSkipAssessments';
 import RepositoryConsole from './pages/RepositoryConsole';
+import RepositoryLogin from './pages/RepositoryLogin';
 import SignIn from './pages/SignIn';
 import ProtectedRoute from './components/ProtectedRoute';
 import { showDevTools } from './config/runtimeFlags';
@@ -46,7 +47,8 @@ function App() {
   {showDevTools && <Route path="/dev-skip-1" element={<DevSkipOne />} />}
   {showDevTools && <Route path="/dev-skip-two" element={<DevSkipTwo />} />}
   {showDevTools && <Route path="/dev-assessments" element={<DevSkipAssessments />} />}
-  {showDevTools && <Route path="/dev-repository" element={<ProtectedRoute><RepositoryConsole /></ProtectedRoute>} />}
+  {showDevTools && <Route path="/dev-repository-login" element={<RepositoryLogin />} />}
+  {showDevTools && <Route path="/dev-repository" element={<RepositoryConsole />} />}
  
 
   <Route path="*" element={<Typography sx={{ fontFamily: 'Montserrat, sans-serif' }}>No match found</Typography>} />

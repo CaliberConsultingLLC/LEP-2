@@ -1,29 +1,8 @@
-import { adminAuth, db } from './firebase.js';
+import { db } from './firebase.js';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
-function getBearerToken(req) {
-  const authHeader = String(req.headers?.authorization || '');
-  const [scheme, token] = authHeader.split(' ');
-  if (scheme !== 'Bearer' || !token) return null;
-  return token.trim();
-}
-
-function normalizeEmail(value) {
-  return String(value || '').trim().toLowerCase();
-}
-
-function getAllowedAdminEmails() {
-  const configured = String(process.env.REPOSITORY_ADMIN_EMAILS || '')
-    .split(',')
-    .map((entry) => normalizeEmail(entry))
-    .filter(Boolean);
-
-  if (configured.length) return configured;
-
-  return [
-    'dustin@northstarpartners.org',
-    'dustin@caliberconsultingllc.org',
-  ];
+function getRepositorySessionToken() {
+  return process.env.REPOSITORY_SESSION_TOKEN || 'compass-repository-session-v1';
 }
 
 function toIsoString(value) {
@@ -97,17 +76,9 @@ export default async function handler(req, res) {
 
   try {
     if (!ensureJsonObjectBody(req, res)) return;
-
-    const token = getBearerToken(req);
-    if (!token) {
+    const sessionToken = String(req.headers['x-repository-session'] || '').trim();
+    if (!sessionToken || sessionToken !== getRepositorySessionToken()) {
       return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const decoded = await adminAuth.verifyIdToken(token);
-    const requesterEmail = normalizeEmail(decoded?.email);
-    const allowedEmails = getAllowedAdminEmails();
-    if (!requesterEmail || !allowedEmails.includes(requesterEmail)) {
-      return res.status(403).json({ error: 'Forbidden' });
     }
 
     const [usersSnap, responsesSnap, campaignsSnap, surveyResponsesSnap] = await Promise.all([
@@ -223,7 +194,7 @@ export default async function handler(req, res) {
       meta: {
         userCount: userRows.length,
         campaignCount: campaignRows.length,
-        requesterEmail,
+        accessMode: 'static-admin',
       },
     });
   } catch (error) {
