@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -10,11 +10,35 @@ import {
 } from '@mui/material';
 import fakeData from '../../data/fakeData.js';
 import { Launch, CheckCircle } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
+const parseJson = (raw, fallback = null) => {
+  try {
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 function GrowthCampaignTab() {
+  const navigate = useNavigate();
   const [copiedKey, setCopiedKey] = useState('');
   const now = new Date();
   const selfCampaignCompleted = String(localStorage.getItem('selfCampaignCompleted') || '').toLowerCase() === 'true';
+  const intakeStatus = parseJson(localStorage.getItem('intakeStatus'), {});
+  const intakeDraft = parseJson(localStorage.getItem('intakeDraft'), null);
+  const latestFormData = parseJson(localStorage.getItem('latestFormData'), null);
+  const aiSummary = String(localStorage.getItem('aiSummary') || '').trim();
+  const intakeStarted = Boolean(intakeStatus?.started || intakeDraft || latestFormData);
+  const intakeComplete = Boolean(intakeStatus?.complete || latestFormData);
+  const intakeStepLabel = useMemo(() => {
+    if (!intakeStarted) return 'Not started';
+    if (intakeComplete) return 'Complete';
+    const current = Number(intakeStatus?.currentStep ?? intakeDraft?.currentStep ?? 0);
+    const total = Number(intakeStatus?.totalSteps || 0);
+    if (current > 0 && total > 0) return `In progress • step ${Math.min(current + 1, total)} of ${total}`;
+    return 'In progress';
+  }, [intakeComplete, intakeDraft, intakeStarted, intakeStatus]);
   const needsSelfAssessment = (campaignId) => String(campaignId) === '123' || String(campaignId) === '125';
   const addDays = (date, days) => {
     const d = new Date(date);
@@ -104,6 +128,121 @@ function GrowthCampaignTab() {
 
   return (
     <Stack spacing={2.2} sx={{ width: '100%' }}>
+      <Card
+        sx={{
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(241,246,252,0.9))',
+          border: '1px solid rgba(69,112,137,0.28)',
+          borderRadius: 3,
+          boxShadow: 3,
+        }}
+      >
+        <CardContent>
+          <Typography
+            sx={{
+              fontFamily: 'Gemunu Libre, sans-serif',
+              fontSize: '1.4rem',
+              fontWeight: 700,
+              color: 'text.primary',
+              mb: 1.2,
+              textAlign: 'center',
+            }}
+          >
+            Intake Experience
+          </Typography>
+          <Paper
+            sx={{
+              p: 1.7,
+              borderRadius: 2,
+              border: '1px solid rgba(69,112,137,0.28)',
+              background: intakeComplete
+                ? 'linear-gradient(180deg, rgba(236,246,255,0.98), rgba(224,239,252,0.9))'
+                : 'linear-gradient(180deg, rgba(255,250,244,0.98), rgba(255,242,229,0.92))',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+            }}
+          >
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={1.5}
+              justifyContent="space-between"
+              alignItems={{ xs: 'stretch', md: 'center' }}
+            >
+              <Box>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1.04rem',
+                    fontWeight: 700,
+                    color: 'text.primary',
+                  }}
+                >
+                  Trailhead Intake + Reflection
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '0.92rem',
+                    color: 'text.secondary',
+                    mt: 0.3,
+                  }}
+                >
+                  {intakeComplete
+                    ? 'Your intake is complete and your reflection is cached for future review.'
+                    : intakeStarted
+                      ? 'Your intake is saved progressively. You can jump back in exactly where you left off.'
+                      : 'Start the intake flow to generate your leadership reflection and prepare your campaign path.'}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '0.94rem',
+                    fontWeight: 700,
+                    color: intakeComplete ? '#2B6CB0' : '#E07A3F',
+                    mt: 0.8,
+                  }}
+                >
+                  Status: {intakeStepLabel}
+                </Typography>
+              </Box>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                {!intakeComplete && (
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate('/form?resume=1')}
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      textTransform: 'none',
+                      bgcolor: '#457089',
+                      minWidth: 136,
+                      '&:hover': { bgcolor: '#375d78' },
+                    }}
+                  >
+                    {intakeStarted ? 'Resume Intake' : 'Start Intake'}
+                  </Button>
+                )}
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/summary-static')}
+                  disabled={!aiSummary}
+                  sx={{
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    textTransform: 'none',
+                    minWidth: 164,
+                    borderColor: 'rgba(69,112,137,0.38)',
+                    color: '#457089',
+                    '&:hover': {
+                      borderColor: '#457089',
+                      bgcolor: 'rgba(69,112,137,0.08)',
+                    },
+                  }}
+                >
+                  Reflection / Summary
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
+        </CardContent>
+      </Card>
+
       <Card
         sx={{
           background: 'linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,248,220,0.8))',

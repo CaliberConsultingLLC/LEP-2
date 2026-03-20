@@ -165,6 +165,7 @@ function UserInfo() {
         'userInfo',
         JSON.stringify({
           name: userInfo.name,
+          uid: signupUid,
           email: signupEmail,
           enteredEmail: normalizedEmail,
           consent: {

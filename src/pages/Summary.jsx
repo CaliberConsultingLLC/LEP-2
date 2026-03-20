@@ -19,6 +19,8 @@ import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
+import { auth, db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 
 function Summary() {
@@ -37,6 +39,33 @@ function Summary() {
   const showInlineTraitSelection = false;
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
   const activeRunIdRef = useRef(0);
+
+  const persistSummaryCache = async ({ data, agentId, text, areas }) => {
+    const uid = String(auth?.currentUser?.uid || '').trim();
+    if (!uid || !text) return;
+
+    await setDoc(
+      doc(db, 'responses', uid),
+      {
+        ownerUid: uid,
+        ownerEmail: String(data?.email || '').trim(),
+        ownerName: String(data?.name || '').trim(),
+        latestFormData: data,
+        intakeStatus: {
+          started: true,
+          complete: true,
+          updatedAt: new Date().toISOString(),
+        },
+        summaryCache: {
+          aiSummary: text,
+          focusAreas: Array.isArray(areas) ? areas : [],
+          selectedAgent: agentId || 'balancedMentor',
+          savedAt: new Date().toISOString(),
+        },
+      },
+      { merge: true }
+    );
+  };
 
   // Generate focus areas based on intake data (instead of random)
   const generateAndSetFocusAreas = () => {
@@ -355,6 +384,16 @@ function Summary() {
 
       if (text) {
         localStorage.setItem('aiSummary', text);
+        try {
+          await persistSummaryCache({
+            data,
+            agentId: baseAgent,
+            text,
+            areas: Array.isArray(payload?.focusAreas) ? payload.focusAreas : focusAreas,
+          });
+        } catch (persistErr) {
+          console.warn('Failed to cache summary to Firestore:', persistErr);
+        }
       }
       // Unblock UI immediately after summary returns.
       setIsLoading(false);

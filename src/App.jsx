@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import UserInfo from './pages/UserInfo';
 import IntakeForm from './pages/IntakeForm';
 import Summary from './pages/Summary';
+import SummarySnapshot from './pages/SummarySnapshot';
 import TraitSelection from './pages/TraitSelection';
 import CampaignIntro from './pages/CampaignIntro';
 import CampaignBuilder from './pages/CampaignBuilder';
@@ -30,6 +31,7 @@ function App() {
   <Route path="/user-info" element={<UserInfo />} />
   <Route path="/form" element={<IntakeForm />} />
   <Route path="/summary" element={<Summary />} />
+  <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />
   <Route path="/trait-selection" element={<TraitSelection />} />
   <Route path="/campaign-intro" element={<CampaignIntro />} />
   <Route path="/campaign-builder" element={<CampaignBuilder />} />

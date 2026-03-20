@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, Container, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 function SignIn() {
   const navigate = useNavigate();
@@ -44,17 +45,87 @@ function SignIn() {
     setIsSubmitting(true);
 
     try {
-      await signInWithEmailAndPassword(auth, inputEmail, inputPassword);
+      const credential = await signInWithEmailAndPassword(auth, inputEmail, inputPassword);
+      const signedInUser = credential?.user || null;
+      const existingUserInfo = (() => {
+        try {
+          return JSON.parse(localStorage.getItem('userInfo') || '{}');
+        } catch {
+          return {};
+        }
+      })();
+      let syncedName = String(existingUserInfo?.name || '').trim();
+
+      try {
+        if (signedInUser?.uid) {
+          const responseSnap = await getDoc(doc(db, 'responses', signedInUser.uid));
+          if (responseSnap.exists()) {
+            const responseData = responseSnap.data() || {};
+            const intakeDraft = responseData?.intakeDraft || null;
+            const intakeStatus = responseData?.intakeStatus || {
+              started: Boolean(intakeDraft),
+              complete: Boolean(responseData?.latestFormData),
+              currentStep: intakeDraft?.currentStep ?? 0,
+            };
+            const summaryCache = responseData?.summaryCache || {};
+
+            if (intakeDraft) {
+              localStorage.setItem('intakeDraft', JSON.stringify(intakeDraft));
+            } else {
+              localStorage.removeItem('intakeDraft');
+            }
+            localStorage.setItem('intakeStatus', JSON.stringify(intakeStatus));
+
+            if (responseData?.latestFormData) {
+              localStorage.setItem('latestFormData', JSON.stringify(responseData.latestFormData));
+            } else {
+              localStorage.removeItem('latestFormData');
+            }
+            if (summaryCache?.aiSummary) {
+              localStorage.setItem('aiSummary', summaryCache.aiSummary);
+            } else {
+              localStorage.removeItem('aiSummary');
+            }
+            if (Array.isArray(summaryCache?.focusAreas)) {
+              localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
+            } else {
+              localStorage.removeItem('focusAreas');
+            }
+            if (responseData?.ownerName) {
+              syncedName = String(responseData.ownerName || '').trim();
+            }
+          } else {
+            localStorage.removeItem('intakeDraft');
+            localStorage.removeItem('intakeStatus');
+            localStorage.removeItem('latestFormData');
+            localStorage.removeItem('aiSummary');
+            localStorage.removeItem('focusAreas');
+          }
+        }
+      } catch (syncError) {
+        console.warn('Unable to sync saved journey data on sign in:', syncError);
+      }
+
+      localStorage.setItem(
+        'userInfo',
+        JSON.stringify({
+          ...existingUserInfo,
+          uid: signedInUser?.uid || existingUserInfo?.uid || '',
+          email: signedInUser?.email || inputEmail,
+          name: syncedName || signedInUser?.displayName || '',
+        })
+      );
+
       localStorage.setItem(
         'dashboardSession',
         JSON.stringify({
           active: true,
           email: inputEmail,
+          uid: signedInUser?.uid || '',
           signedInAt: new Date().toISOString(),
         })
       );
-      const selfCompleted = localStorage.getItem('selfCampaignCompleted') === 'true';
-      const nextPath = selfCompleted ? (location?.state?.from || '/dashboard') : '/campaign-verify';
+      const nextPath = location?.state?.from || '/dashboard';
       navigate(nextPath, { replace: true });
       return;
     } catch (signInError) {

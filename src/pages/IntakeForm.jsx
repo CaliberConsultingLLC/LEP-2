@@ -4,12 +4,13 @@ import {
   Card, CardContent, CardActions, Grid, Paper, Divider
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { questionBank } from '../data/questionBank';
 import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { auth, db } from '../firebase';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -17,6 +18,14 @@ const MemoSlider = memo(Slider);
 const MemoButton = memo(Button);
 const MemoBox = memo(Box);
 const MemoCard = memo(Card);
+
+const parseJson = (raw, fallback = null) => {
+  try {
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 // ---------- Message Dialog (reusable for pop-ups) ----------
 const MessageDialog = ({ open, onClose, title, content }) => (
@@ -481,6 +490,9 @@ function IntakeForm() {
   const [hoveredRoleModelOption, setHoveredRoleModelOption] = useState(null);
   const [societalQuestionIndex, setSocietalQuestionIndex] = useState(0);
   const navigate = useNavigate();
+  const autosaveTimeoutRef = useRef(null);
+  const autosaveReadyRef = useRef(false);
+  const authUidRef = useRef('');
   const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
   const isStagingRuntime =
     stagingHost.includes('staging.northstarpartners.org') ||
@@ -519,21 +531,89 @@ function IntakeForm() {
     }
   };
 
-  // Load user info (name, email) from localStorage if available
+  // Load profile context immediately, then hydrate any local/remote intake draft.
   useEffect(() => {
-    try {
-      const savedUserInfo = localStorage.getItem('userInfo');
-      if (savedUserInfo) {
-        const userInfo = JSON.parse(savedUserInfo);
-        setFormData((prev) => ({
-          ...prev,
-          name: userInfo.name || '',
-          email: userInfo.email || '',
-        }));
+    let active = true;
+
+    const applyDraft = (draft) => {
+      if (!active || !draft || typeof draft !== 'object') return;
+      if (draft?.formData && typeof draft.formData === 'object') {
+        setFormData((prev) => ({ ...prev, ...draft.formData }));
       }
-    } catch (err) {
-      console.warn('Could not load user info from localStorage:', err);
-    }
+      if (Array.isArray(draft?.societalResponses)) {
+        setSocietalResponses((prev) => {
+          const next = Array(10).fill(null);
+          prev.forEach((value, index) => { next[index] = value; });
+          draft.societalResponses.forEach((value, index) => { next[index] = value ?? null; });
+          return next;
+        });
+      }
+      if (Number.isInteger(draft?.currentStep)) {
+        setCurrentStep(draft.currentStep);
+      }
+      if (Number.isInteger(draft?.reflectionNumber)) {
+        setReflectionNumber(draft.reflectionNumber);
+      }
+      if (typeof draft?.reflectionText === 'string') {
+        setReflectionText(draft.reflectionText);
+      }
+      if (Number.isInteger(draft?.societalQuestionIndex)) {
+        setSocietalQuestionIndex(draft.societalQuestionIndex);
+      }
+    };
+
+    const bootstrapDraft = async (user) => {
+      try {
+        const userInfo = parseJson(localStorage.getItem('userInfo'), {});
+        if (active) {
+          setFormData((prev) => ({
+            ...prev,
+            name: userInfo?.name || '',
+            email: userInfo?.email || '',
+          }));
+        }
+
+        const localDraft = parseJson(localStorage.getItem('intakeDraft'), null);
+        if (localDraft) {
+          applyDraft(localDraft);
+        }
+
+        if (user?.uid) {
+          authUidRef.current = user.uid;
+          const docSnap = await getDoc(doc(db, 'responses', user.uid));
+          if (active && docSnap.exists()) {
+            const remote = docSnap.data() || {};
+            applyDraft(remote?.intakeDraft || null);
+            if (remote?.latestFormData && remote?.intakeStatus?.complete) {
+              localStorage.setItem('latestFormData', JSON.stringify(remote.latestFormData));
+            }
+            if (remote?.intakeDraft) {
+              localStorage.setItem('intakeDraft', JSON.stringify(remote.intakeDraft));
+            }
+            if (remote?.intakeStatus) {
+              localStorage.setItem('intakeStatus', JSON.stringify(remote.intakeStatus));
+            }
+          }
+        } else {
+          authUidRef.current = '';
+        }
+      } catch (err) {
+        console.warn('Could not hydrate intake draft:', err);
+      } finally {
+        if (active) {
+          autosaveReadyRef.current = true;
+        }
+      }
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      bootstrapDraft(user);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   // Behavior Questions
@@ -770,6 +850,63 @@ function IntakeForm() {
     societalStart, societalEnd, agentStep, totalSteps
   } = stepVars;
 
+  const buildDraftPayload = () => ({
+    formData,
+    societalResponses,
+    currentStep,
+    reflectionNumber,
+    reflectionText,
+    societalQuestionIndex,
+  });
+
+  const syncLocalIntakeState = (draft, options = {}) => {
+    const nowIso = new Date().toISOString();
+    const complete = Boolean(options.complete);
+    const normalizedDraft = draft || buildDraftPayload();
+    localStorage.setItem('intakeDraft', JSON.stringify(normalizedDraft));
+    localStorage.setItem(
+      'intakeStatus',
+      JSON.stringify({
+        started: true,
+        complete,
+        currentStep: normalizedDraft?.currentStep ?? currentStep,
+        totalSteps,
+        updatedAt: nowIso,
+      })
+    );
+    if (complete && options.latestFormData) {
+      localStorage.setItem('latestFormData', JSON.stringify(options.latestFormData));
+    }
+  };
+
+  const persistDraftToFirestore = async (draft, options = {}) => {
+    const uid = String(authUidRef.current || '').trim();
+    if (!uid) return;
+
+    const nowIso = new Date().toISOString();
+    const complete = Boolean(options.complete);
+    const latestFormData = options.latestFormData || null;
+
+    await setDoc(
+      doc(db, 'responses', uid),
+      {
+        ownerUid: uid,
+        ownerEmail: String(formData?.email || '').trim(),
+        ownerName: String(formData?.name || '').trim(),
+        intakeDraft: draft,
+        intakeStatus: {
+          started: true,
+          complete,
+          currentStep: draft?.currentStep ?? currentStep,
+          totalSteps,
+          updatedAt: nowIso,
+        },
+        ...(latestFormData ? { latestFormData } : {}),
+      },
+      { merge: true }
+    );
+  };
+
   // ---- dialogs and reflection text ----
   useEffect(() => {
     const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Insights intro
@@ -836,6 +973,45 @@ function IntakeForm() {
       setSocietalQuestionIndex(0);
     }
   }, [currentStep, societalStart]);
+
+  useEffect(() => {
+    if (!autosaveReadyRef.current) return undefined;
+
+    const draft = buildDraftPayload();
+    syncLocalIntakeState(draft);
+
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+
+    autosaveTimeoutRef.current = setTimeout(() => {
+      persistDraftToFirestore(draft).catch((persistErr) => {
+        const code = String(persistErr?.code || '').toLowerCase();
+        const message = String(persistErr?.message || '').toLowerCase();
+        const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
+        if (isStagingRuntime && isPermissionErr) {
+          console.warn('[IntakeForm] Draft autosave bypassed Firestore permission error.');
+          return;
+        }
+        console.warn('[IntakeForm] Draft autosave failed:', persistErr);
+      });
+    }, 700);
+
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, [
+    currentStep,
+    formData,
+    societalResponses,
+    reflectionNumber,
+    reflectionText,
+    societalQuestionIndex,
+    totalSteps,
+    isStagingRuntime,
+  ]);
 
 
   // ---------- state helpers ----------
@@ -959,8 +1135,16 @@ function IntakeForm() {
         selectedAgent: selectedAgentId,
         societalResponses
       };
+      const finalDraft = {
+        ...buildDraftPayload(),
+        formData: updated,
+        currentStep: totalSteps - 1,
+      };
       try {
-        await addDoc(collection(db, 'responses'), { ...updated, timestamp: new Date() });
+        await persistDraftToFirestore(finalDraft, {
+          complete: true,
+          latestFormData: updated,
+        });
       } catch (persistErr) {
         const code = String(persistErr?.code || '').toLowerCase();
         const message = String(persistErr?.message || '').toLowerCase();
@@ -970,7 +1154,10 @@ function IntakeForm() {
         }
         console.warn('[IntakeForm] Staging submit bypassed Firestore permission error.');
       }
-      localStorage.setItem('latestFormData', JSON.stringify(updated));
+      syncLocalIntakeState(finalDraft, {
+        complete: true,
+        latestFormData: updated,
+      });
       navigate('/summary', { state: { formData: updated } });
     } catch (e) {
       console.error('Submit failed', e);
