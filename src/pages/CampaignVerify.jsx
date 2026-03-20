@@ -40,6 +40,14 @@ function CampaignVerify() {
   const [copied, setCopied] = useState({ selfLink: false, selfPassword: false, teamLink: false, teamPassword: false });
   const [selfCompleted, setSelfCompleted] = useState(false);
 
+  const parseJson = (raw, fallback) => {
+    try {
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const generatePassword = (length = 10) => {
     const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
     return Array.from({ length }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
@@ -68,6 +76,43 @@ function CampaignVerify() {
     return text;
   };
 
+  const buildCampaignSignature = (campaign) => {
+    const normalized = Array.isArray(campaign)
+      ? campaign.map((traitItem) => ({
+          traitId: traitItem?.traitId || '',
+          traitName: traitItem?.traitName || '',
+          title: traitItem?.title || '',
+          statements: Array.isArray(traitItem?.statements)
+            ? traitItem.statements.map((stmt) => String(stmt || '').trim())
+            : [],
+        }))
+      : [];
+    return JSON.stringify(normalized);
+  };
+
+  const buildCampaignLinks = (origin, records) => ({
+    selfLink: `${origin}/campaign/${records.selfCampaignId}?mode=self`,
+    teamLink: `${origin}/campaign/${records.teamCampaignId}`,
+  });
+
+  const applyCampaignRecords = (records) => {
+    const { selfLink, teamLink } = buildCampaignLinks(window.location.origin, records);
+    setSelfCampaignId(records.selfCampaignId || '');
+    setSelfCampaignLink(records.selfCampaignLink || selfLink);
+    setSelfCampaignPassword(records.selfCampaignPassword || '');
+    setTeamCampaignLink(records.teamCampaignLink || teamLink);
+    setTeamCampaignPassword(records.teamCampaignPassword || '');
+    setSelfCompleted(localStorage.getItem(`selfCampaignCompleted_${records.selfCampaignId}`) === 'true');
+    localStorage.setItem(
+      'campaignRecords',
+      JSON.stringify({
+        ...records,
+        selfCampaignLink: records.selfCampaignLink || selfLink,
+        teamCampaignLink: records.teamCampaignLink || teamLink,
+      })
+    );
+  };
+
   useEffect(() => {
     const generateCampaigns = async () => {
       try {
@@ -76,7 +121,7 @@ function CampaignVerify() {
         const ownerId = String(userInfo?.email || userInfo?.name || 'anonymous').trim().toLowerCase();
         setUserEmail(userInfo.email || '');
 
-        const campaignData = JSON.parse(localStorage.getItem('currentCampaign') || '[]');
+        const campaignData = parseJson(localStorage.getItem('currentCampaign'), []);
 
         if (campaignData.length === 0) {
           setError('No campaign data found. Please return to the campaign builder.');
@@ -88,6 +133,24 @@ function CampaignVerify() {
           ...traitItem,
           statements: (traitItem?.statements || []).map((stmt) => toSelfStatement(stmt)),
         }));
+        const campaignSignature = buildCampaignSignature(campaignData);
+
+        const existingRecords = parseJson(localStorage.getItem('campaignRecords'), null);
+        const matchesExistingCampaign =
+          existingRecords
+          && existingRecords.ownerId === ownerId
+          && existingRecords.campaignSignature === campaignSignature
+          && existingRecords.selfCampaignId
+          && existingRecords.teamCampaignId
+          && existingRecords.selfCampaignPassword
+          && existingRecords.teamCampaignPassword;
+
+        if (matchesExistingCampaign) {
+          applyCampaignRecords(existingRecords);
+          setError(null);
+          setIsGenerating(false);
+          return;
+        }
 
         const bundleId = `bundle_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
         const selfPasswordGenerated = generatePassword(8);
@@ -167,6 +230,7 @@ function CampaignVerify() {
           JSON.stringify({
             bundleId,
             ownerId,
+            campaignSignature,
             selfCampaignId,
             teamCampaignId,
             selfCampaignLink: selfLink,
