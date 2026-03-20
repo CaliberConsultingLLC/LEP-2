@@ -26,6 +26,14 @@ function NewCampaignIntro() {
 
     const fetchCampaignData = async () => {
       try {
+        const cachedCampaign = JSON.parse(localStorage.getItem(`campaign_${id}`) || '{}');
+        if (cachedCampaign?.campaignType) {
+          if (isMounted) {
+            setCampaignData(cachedCampaign);
+          }
+          return;
+        }
+
         const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
         if (localCampaignDocs && localCampaignDocs[id]) {
           if (isMounted) {
@@ -34,14 +42,34 @@ function NewCampaignIntro() {
           return;
         }
 
-        console.log('Fetching campaign data for ID:', id);
-        const docRef = doc(db, 'campaigns', id);
-        const docSnap = await getDoc(docRef);
-        if (isMounted && docSnap.exists()) {
-          console.log('Campaign data found:', docSnap.data());
-          setCampaignData(docSnap.data());
-        } else if (isMounted) {
-          console.log('Campaign not found for ID:', id);
+        let loaded = false;
+        try {
+          const docRef = doc(db, 'campaigns', id);
+          const docSnap = await getDoc(docRef);
+          if (isMounted && docSnap.exists()) {
+            setCampaignData(docSnap.data());
+            loaded = true;
+          }
+        } catch (firestoreError) {
+          console.warn('Campaign Firestore read failed, trying anonymous intro path:', firestoreError);
+        }
+
+        if (loaded || !isMounted) return;
+
+        const introResp = await fetch('/api/get-team-campaign-intro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaignId: id }),
+        });
+        if (introResp.ok) {
+          const payload = await introResp.json();
+          if (isMounted) {
+            setCampaignData(payload?.campaign || { campaignType: 'team' });
+          }
+          return;
+        }
+
+        if (isMounted) {
           alert('Campaign not found.');
           navigate('/');
         }
@@ -81,17 +109,46 @@ function NewCampaignIntro() {
 
   const handleStart = () => {
     if (isNavigating) return;
-    if (!isSelfCampaign) {
-      const enteredPassword = prompt('Please enter the campaign password:');
-      if (enteredPassword !== campaignData?.password) {
-        alert('Incorrect password. Please try again.');
-        return;
-      }
+    const existingTeamAccess = localStorage.getItem(`teamCampaignAccess_${id}`);
+    if (!isSelfCampaign && existingTeamAccess && campaignData?.campaign?.length) {
+      setIsNavigating(true);
+      navigate(`/campaign/${id}/survey`, { replace: true });
+      setTimeout(() => setIsNavigating(false), 100);
+      return;
     }
-    localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
-    setIsNavigating(true);
-    navigate(`/campaign/${id}/survey`, { replace: true });
-    setTimeout(() => setIsNavigating(false), 100);
+
+    const proceed = async () => {
+      if (!isSelfCampaign) {
+        const enteredPassword = prompt('Please enter the campaign password:');
+        if (!enteredPassword) return;
+
+        const verifyResp = await fetch('/api/verify-team-campaign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaignId: id, password: enteredPassword }),
+        });
+        if (!verifyResp.ok) {
+          alert('Incorrect password. Please try again.');
+          return;
+        }
+
+        const payload = await verifyResp.json();
+        localStorage.setItem(`campaign_${id}`, JSON.stringify(payload?.campaign || {}));
+        localStorage.setItem(`teamCampaignAccess_${id}`, String(payload?.accessToken || ''));
+      } else {
+        localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
+      }
+
+      setIsNavigating(true);
+      navigate(`/campaign/${id}/survey`, { replace: true });
+      setTimeout(() => setIsNavigating(false), 100);
+    };
+
+    proceed().catch((err) => {
+      console.error('Campaign start failed:', err);
+      alert('Failed to start campaign. Please try again.');
+      setIsNavigating(false);
+    });
   };
 
   const handleOptOut = () => {

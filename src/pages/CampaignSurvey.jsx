@@ -78,7 +78,24 @@ function CampaignSurvey() {
       ratings,
     };
     try {
-      await addDoc(collection(db, 'surveyResponses'), ratingsData);
+      if (campaignType === 'team') {
+        const accessToken = String(localStorage.getItem(`teamCampaignAccess_${id}`) || '').trim();
+        const response = await fetch('/api/submit-team-response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaignId: id,
+            accessToken,
+            ratings,
+          }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload?.error || 'team-response-submit-failed');
+        }
+      } else {
+        await addDoc(collection(db, 'surveyResponses'), ratingsData);
+      }
     } catch (persistErr) {
       const code = String(persistErr?.code || '').toLowerCase();
       const message = String(persistErr?.message || '').toLowerCase();

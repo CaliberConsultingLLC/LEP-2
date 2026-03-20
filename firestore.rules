@@ -38,7 +38,8 @@ service cloud.firestore {
 
     match /surveyResponses/{docId} {
       allow create: if isSignedIn()
-        && request.resource.data.ownerUid is string;
+        && request.resource.data.ownerUid is string
+        && request.resource.data.ownerUid == request.auth.uid;
       allow get, list: if isSignedIn()
         && resource.data.ownerUid is string
         && resource.data.ownerUid == request.auth.uid;
