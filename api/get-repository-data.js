@@ -1,0 +1,232 @@
+import { adminAuth, db } from './firebase.js';
+import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
+
+function getBearerToken(req) {
+  const authHeader = String(req.headers?.authorization || '');
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) return null;
+  return token.trim();
+}
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getAllowedAdminEmails() {
+  const configured = String(process.env.REPOSITORY_ADMIN_EMAILS || '')
+    .split(',')
+    .map((entry) => normalizeEmail(entry))
+    .filter(Boolean);
+
+  if (configured.length) return configured;
+
+  return [
+    'dustin@northstarpartners.org',
+    'dustin@caliberconsultingllc.org',
+  ];
+}
+
+function toIsoString(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value?.toDate === 'function') return value.toDate().toISOString();
+  if (typeof value?._seconds === 'number') {
+    return new Date(value._seconds * 1000).toISOString();
+  }
+  return '';
+}
+
+function asNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
+function deriveUserStage({ intakeStarted, intakeComplete, summaryReady, campaignCount, responseCount }) {
+  if (responseCount > 0) return 'Assessment Responses Collected';
+  if (campaignCount > 0) return 'Campaign Created';
+  if (summaryReady) return 'Summary Ready';
+  if (intakeComplete) return 'Intake Complete';
+  if (intakeStarted) return 'Intake In Progress';
+  return 'Profile Created';
+}
+
+function deriveCurrentStepLabel(intakeStatus, stage) {
+  if (intakeStatus?.complete) return 'Complete';
+  const current = Number(intakeStatus?.currentStep);
+  const total = Number(intakeStatus?.totalSteps);
+  if (Number.isFinite(current) && Number.isFinite(total) && total > 0) {
+    return `Step ${Math.min(current + 1, total)} of ${total}`;
+  }
+  return stage;
+}
+
+function deriveCampaignStatus(campaignType, responsesCount) {
+  if (campaignType === 'self') {
+    return responsesCount > 0 ? 'Self Assessment Submitted' : 'Self Assessment Ready';
+  }
+  if (responsesCount > 0) {
+    return responsesCount === 1 ? '1 Team Response' : `${responsesCount} Team Responses`;
+  }
+  return 'Awaiting Team Responses';
+}
+
+function getTraitCount(campaign) {
+  return Array.isArray(campaign) ? campaign.length : 0;
+}
+
+function getStatementCount(campaign) {
+  if (!Array.isArray(campaign)) return 0;
+  return campaign.reduce((sum, item) => sum + (Array.isArray(item?.statements) ? item.statements.length : 0), 0);
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const rate = applyRateLimit(req, res, {
+    action: 'get-repository-data',
+    limit: 20,
+    windowMs: 60_000,
+  });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
+  try {
+    if (!ensureJsonObjectBody(req, res)) return;
+
+    const token = getBearerToken(req);
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const decoded = await adminAuth.verifyIdToken(token);
+    const requesterEmail = normalizeEmail(decoded?.email);
+    const allowedEmails = getAllowedAdminEmails();
+    if (!requesterEmail || !allowedEmails.includes(requesterEmail)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const [usersSnap, responsesSnap, campaignsSnap, surveyResponsesSnap] = await Promise.all([
+      db.collection('users').get(),
+      db.collection('responses').get(),
+      db.collection('campaigns').get(),
+      db.collection('surveyResponses').get(),
+    ]);
+
+    const surveyResponseCounts = {};
+    surveyResponsesSnap.docs.forEach((docSnap) => {
+      const data = docSnap.data() || {};
+      const campaignId = String(data?.campaignId || data?.id || '').trim();
+      if (!campaignId) return;
+      surveyResponseCounts[campaignId] = (surveyResponseCounts[campaignId] || 0) + 1;
+    });
+
+    const normalizedResponses = responsesSnap.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const latestFormData = data?.latestFormData || {};
+      const intakeStatus = data?.intakeStatus || {};
+      const summaryCache = data?.summaryCache || {};
+      return {
+        docId: docSnap.id,
+        uid: String(data?.ownerUid || '').trim(),
+        email: normalizeEmail(data?.ownerEmail || latestFormData?.email || data?.email),
+        intakeStatus,
+        summaryReady: Boolean(String(summaryCache?.aiSummary || '').trim()),
+        latestFormData,
+        updatedAt: toIsoString(intakeStatus?.updatedAt || data?.timestamp),
+      };
+    });
+
+    const responseByUid = new Map();
+    const responseByEmail = new Map();
+    normalizedResponses.forEach((row) => {
+      if (row.uid && !responseByUid.has(row.uid)) responseByUid.set(row.uid, row);
+      if (row.email && !responseByEmail.has(row.email)) responseByEmail.set(row.email, row);
+    });
+
+    const campaignRowsRaw = campaignsSnap.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const email = normalizeEmail(data?.userInfo?.email);
+      const uid = String(data?.userInfo?.uid || '').trim();
+      const responsesCount = surveyResponseCounts[docSnap.id] || 0;
+      return {
+        campaignId: docSnap.id,
+        uid,
+        email,
+        name: String(data?.userInfo?.name || '').trim(),
+        bundleId: String(data?.bundleId || '').trim(),
+        campaignType: String(data?.campaignType || '').trim() || 'team',
+        campaignStatus: deriveCampaignStatus(String(data?.campaignType || '').trim(), responsesCount),
+        responsesCount,
+        traitsCount: getTraitCount(data?.campaign),
+        statementsCount: getStatementCount(data?.campaign),
+        createdAt: toIsoString(data?.createdAt),
+        selfCampaignId: String(data?.selfCampaignId || '').trim(),
+      };
+    });
+
+    const campaignCountsByUid = {};
+    const campaignCountsByEmail = {};
+    const responseCountsByUid = {};
+    const responseCountsByEmail = {};
+    campaignRowsRaw.forEach((row) => {
+      if (row.uid) campaignCountsByUid[row.uid] = (campaignCountsByUid[row.uid] || 0) + 1;
+      if (row.email) campaignCountsByEmail[row.email] = (campaignCountsByEmail[row.email] || 0) + 1;
+      if (row.uid) responseCountsByUid[row.uid] = (responseCountsByUid[row.uid] || 0) + row.responsesCount;
+      if (row.email) responseCountsByEmail[row.email] = (responseCountsByEmail[row.email] || 0) + row.responsesCount;
+    });
+
+    const userRows = usersSnap.docs.map((docSnap) => {
+      const data = docSnap.data() || {};
+      const uid = String(data?.uid || '').trim();
+      const email = normalizeEmail(data?.email);
+      const response = responseByUid.get(uid) || responseByEmail.get(email) || null;
+      const intakeStatus = response?.intakeStatus || {};
+      const intakeStarted = Boolean(intakeStatus?.started || response?.latestFormData);
+      const intakeComplete = Boolean(intakeStatus?.complete || response?.latestFormData);
+      const summaryReady = Boolean(response?.summaryReady);
+      const campaignCount = campaignCountsByUid[uid] || campaignCountsByEmail[email] || 0;
+      const responseCount = responseCountsByUid[uid] || responseCountsByEmail[email] || 0;
+      const stage = deriveUserStage({
+        intakeStarted,
+        intakeComplete,
+        summaryReady,
+        campaignCount,
+        responseCount,
+      });
+
+      return {
+        id: docSnap.id,
+        uid,
+        name: String(data?.name || response?.latestFormData?.name || '').trim(),
+        email,
+        createdAt: toIsoString(data?.createdAt),
+        currentStage: stage,
+        currentStep: deriveCurrentStepLabel(intakeStatus, stage),
+        role: String(response?.latestFormData?.role || '').trim(),
+        industry: String(response?.latestFormData?.industry || '').trim(),
+        teamSize: asNumber(response?.latestFormData?.teamSize),
+        campaignCount,
+        responseCount,
+      };
+    }).sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+    const campaignRows = campaignRowsRaw.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+    return res.status(200).json({
+      users: userRows,
+      campaigns: campaignRows,
+      meta: {
+        userCount: userRows.length,
+        campaignCount: campaignRows.length,
+        requesterEmail,
+      },
+    });
+  } catch (error) {
+    return safeServerError(res, 'get-repository-data error:', error);
+  }
+}

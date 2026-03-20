@@ -670,6 +670,9 @@ function Home() {
               <Button variant="outlined" size="small" onClick={() => navigate('/dev-assessments')}>
                 Dev Assessments
               </Button>
+              <Button variant="outlined" size="small" onClick={() => navigate('/dev-repository')}>
+                Dev Repository
+              </Button>
             </Stack>
           )}
         </Stack>
