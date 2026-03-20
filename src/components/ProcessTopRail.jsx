@@ -41,7 +41,10 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
     const campaignRecords = parseJson(localStorage.getItem('campaignRecords'), {});
     const aiSummary = String(localStorage.getItem('aiSummary') || '').trim();
     const currentCampaign = parseJson(localStorage.getItem('currentCampaign'), []);
-    const selfComplete = localStorage.getItem('selfCampaignCompleted') === 'true';
+    const selfCampaignId = String(campaignRecords?.selfCampaignId || '').trim();
+    const selfComplete = selfCampaignId
+      ? localStorage.getItem(`selfCampaignCompleted_${selfCampaignId}`) === 'true' || Boolean(campaignRecords?.selfCompleted)
+      : localStorage.getItem('selfCampaignCompleted') === 'true';
     const teamComplete = localStorage.getItem('teamCampaignCompleted') === 'true';
 
     const selfPath = campaignRecords?.selfCampaignId

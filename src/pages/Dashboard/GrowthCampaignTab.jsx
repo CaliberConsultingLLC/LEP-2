@@ -29,7 +29,11 @@ function GrowthCampaignTab() {
   const [cachedSummary, setCachedSummary] = useState(() => String(localStorage.getItem('aiSummary') || '').trim());
   const [summarySavedAt, setSummarySavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
   const now = new Date();
-  const selfCampaignCompleted = String(localStorage.getItem('selfCampaignCompleted') || '').toLowerCase() === 'true';
+  const campaignRecords = parseJson(localStorage.getItem('campaignRecords'), {});
+  const activeSelfCampaignId = String(campaignRecords?.selfCampaignId || '').trim();
+  const selfCampaignCompleted = activeSelfCampaignId
+    ? String(localStorage.getItem(`selfCampaignCompleted_${activeSelfCampaignId}`) || campaignRecords?.selfCompleted || '').toLowerCase() === 'true'
+    : String(localStorage.getItem('selfCampaignCompleted') || '').toLowerCase() === 'true';
   const intakeStatus = parseJson(localStorage.getItem('intakeStatus'), {});
   const intakeDraft = parseJson(localStorage.getItem('intakeDraft'), null);
   const latestFormData = parseJson(localStorage.getItem('latestFormData'), null);

@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Container, Box, Typography, Stack, Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import { doc, setDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { auth, db } from '../firebase';
 
 function CampaignComplete() {
   const { id } = useParams();
@@ -15,10 +17,47 @@ function CampaignComplete() {
   }, [id]);
   const isSelfCampaign = campaignData?.campaignType === 'self';
 
-  if (isSelfCampaign) {
+  useEffect(() => {
+    if (!isSelfCampaign) return;
+
+    const completedAt = new Date().toISOString();
     localStorage.setItem(`selfCampaignCompleted_${id}`, 'true');
     localStorage.setItem('selfCampaignCompleted', 'true');
-  }
+
+    try {
+      const campaignRecords = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+      localStorage.setItem(
+        'campaignRecords',
+        JSON.stringify({
+          ...campaignRecords,
+          selfCompleted: true,
+          selfCompletedAt: completedAt,
+        })
+      );
+    } catch {
+      // Keep local completion flags even if campaignRecords parsing fails.
+    }
+
+    const uid = String(auth?.currentUser?.uid || '').trim();
+    if (!uid) return;
+
+    setDoc(
+      doc(db, 'responses', uid),
+      {
+        ownerUid: uid,
+        campaignBundle: {
+          campaignRecords: {
+            selfCompleted: true,
+            selfCompletedAt: completedAt,
+          },
+          savedAt: completedAt,
+        },
+      },
+      { merge: true }
+    ).catch((err) => {
+      console.warn('Unable to persist self campaign completion:', err);
+    });
+  }, [id, isSelfCampaign]);
 
   return (
     <Box

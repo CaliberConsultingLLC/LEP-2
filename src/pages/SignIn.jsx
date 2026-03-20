@@ -16,6 +16,31 @@ function SignIn() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [hasAutoResetRun, setHasAutoResetRun] = useState(false);
 
+  const clearLocalCampaignState = () => {
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (
+          key === 'campaignRecords'
+          || key === 'currentCampaign'
+          || key === 'selfCampaignCompleted'
+          || key.startsWith('selfCampaignCompleted_')
+          || key.startsWith('teamCampaignAccess_')
+          || /^campaign_[^/]+$/.test(key)
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+    } catch {
+      localStorage.removeItem('campaignRecords');
+      localStorage.removeItem('currentCampaign');
+      localStorage.removeItem('selfCampaignCompleted');
+    }
+  };
+
   const mapSignInError = (code) => {
     switch (code) {
       case 'auth/invalid-credential':
@@ -68,6 +93,7 @@ function SignIn() {
               currentStep: intakeDraft?.currentStep ?? 0,
             };
             const summaryCache = responseData?.summaryCache || {};
+            const campaignBundle = responseData?.campaignBundle || {};
 
             if (intakeDraft) {
               localStorage.setItem('intakeDraft', JSON.stringify(intakeDraft));
@@ -96,6 +122,23 @@ function SignIn() {
             } else {
               localStorage.removeItem('focusAreas');
             }
+            if (campaignBundle?.campaignRecords && typeof campaignBundle.campaignRecords === 'object') {
+              const records = campaignBundle.campaignRecords;
+              localStorage.setItem('campaignRecords', JSON.stringify(records));
+              if (records?.selfCampaignId) {
+                const selfDone = Boolean(records?.selfCompleted);
+                localStorage.setItem(`selfCampaignCompleted_${records.selfCampaignId}`, selfDone ? 'true' : 'false');
+                localStorage.setItem('selfCampaignCompleted', selfDone ? 'true' : 'false');
+              }
+            } else {
+              localStorage.removeItem('campaignRecords');
+              localStorage.removeItem('selfCampaignCompleted');
+            }
+            if (Array.isArray(campaignBundle?.currentCampaign)) {
+              localStorage.setItem('currentCampaign', JSON.stringify(campaignBundle.currentCampaign));
+            } else {
+              clearLocalCampaignState();
+            }
             if (responseData?.ownerName) {
               syncedName = String(responseData.ownerName || '').trim();
             }
@@ -106,6 +149,7 @@ function SignIn() {
             localStorage.removeItem('aiSummary');
             localStorage.removeItem('summarySavedAt');
             localStorage.removeItem('focusAreas');
+            clearLocalCampaignState();
           }
         }
       } catch (syncError) {

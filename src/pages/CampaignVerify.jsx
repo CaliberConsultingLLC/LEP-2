@@ -20,8 +20,8 @@ import {
   Link as LinkIcon,
   Lock,
 } from '@mui/icons-material';
-import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 
 function CampaignVerify() {
   const navigate = useNavigate();
@@ -95,18 +95,59 @@ function CampaignVerify() {
     teamLink: `${origin}/campaign/${records.teamCampaignId}`,
   });
 
-  const applyCampaignRecords = (records) => {
+  const persistCampaignBundle = async ({ userInfo, campaignData, records }) => {
+    const uid = String(auth?.currentUser?.uid || userInfo?.uid || '').trim();
+    if (!uid) return;
+
+    const normalizedRecords = {
+      ...records,
+      selfCompleted: Boolean(
+        records?.selfCompleted
+        || localStorage.getItem(`selfCampaignCompleted_${records?.selfCampaignId}`) === 'true'
+      ),
+      savedAt: new Date().toISOString(),
+    };
+
+    await setDoc(
+      doc(db, 'responses', uid),
+      {
+        ownerUid: uid,
+        ownerEmail: String(userInfo?.email || '').trim(),
+        ownerName: String(userInfo?.name || '').trim(),
+        campaignBundle: {
+          campaignRecords: normalizedRecords,
+          currentCampaign: Array.isArray(campaignData) ? campaignData : [],
+          savedAt: normalizedRecords.savedAt,
+        },
+      },
+      { merge: true }
+    );
+  };
+
+  const applyCampaignRecords = (records, campaignData = null) => {
     const { selfLink, teamLink } = buildCampaignLinks(window.location.origin, records);
     setSelfCampaignId(records.selfCampaignId || '');
     setSelfCampaignLink(records.selfCampaignLink || selfLink);
     setSelfCampaignPassword(records.selfCampaignPassword || '');
     setTeamCampaignLink(records.teamCampaignLink || teamLink);
     setTeamCampaignPassword(records.teamCampaignPassword || '');
-    setSelfCompleted(localStorage.getItem(`selfCampaignCompleted_${records.selfCampaignId}`) === 'true');
+    const completed = Boolean(
+      records?.selfCompleted
+      || localStorage.getItem(`selfCampaignCompleted_${records.selfCampaignId}`) === 'true'
+    );
+    setSelfCompleted(completed);
+    localStorage.setItem('selfCampaignCompleted', completed ? 'true' : 'false');
+    if (records?.selfCampaignId) {
+      localStorage.setItem(`selfCampaignCompleted_${records.selfCampaignId}`, completed ? 'true' : 'false');
+    }
+    if (Array.isArray(campaignData) && campaignData.length) {
+      localStorage.setItem('currentCampaign', JSON.stringify(campaignData));
+    }
     localStorage.setItem(
       'campaignRecords',
       JSON.stringify({
         ...records,
+        selfCompleted: completed,
         selfCampaignLink: records.selfCampaignLink || selfLink,
         teamCampaignLink: records.teamCampaignLink || teamLink,
       })
@@ -146,7 +187,10 @@ function CampaignVerify() {
           && existingRecords.teamCampaignPassword;
 
         if (matchesExistingCampaign) {
-          applyCampaignRecords(existingRecords);
+          applyCampaignRecords(existingRecords, campaignData);
+          persistCampaignBundle({ userInfo, campaignData, records: existingRecords }).catch((persistErr) => {
+            console.warn('Failed to persist existing campaign bundle:', persistErr);
+          });
           setError(null);
           setIsGenerating(false);
           return;
@@ -227,24 +271,29 @@ function CampaignVerify() {
         setSelfCampaignPassword(selfPasswordGenerated);
         setTeamCampaignLink(teamLink);
         setTeamCampaignPassword(teamPasswordGenerated);
-        setSelfCompleted(localStorage.getItem(`selfCampaignCompleted_${selfCampaignId}`) === 'true');
+        const completed = localStorage.getItem(`selfCampaignCompleted_${selfCampaignId}`) === 'true';
+        setSelfCompleted(completed);
+        localStorage.setItem('selfCampaignCompleted', completed ? 'true' : 'false');
 
-        localStorage.setItem(
-          'campaignRecords',
-          JSON.stringify({
-            bundleId,
-            ownerId,
-            ownerUid: userInfo?.uid || null,
-            campaignSignature,
-            selfCampaignId,
-            teamCampaignId,
-            selfCampaignLink: selfLink,
-            selfCampaignPassword: selfPasswordGenerated,
-            teamCampaignLink: teamLink,
-            teamCampaignPassword: teamPasswordGenerated,
-            createdAt: new Date().toISOString(),
-          })
-        );
+        const records = {
+          bundleId,
+          ownerId,
+          ownerUid: userInfo?.uid || null,
+          campaignSignature,
+          selfCampaignId,
+          teamCampaignId,
+          selfCampaignLink: selfLink,
+          selfCampaignPassword: selfPasswordGenerated,
+          teamCampaignLink: teamLink,
+          teamCampaignPassword: teamPasswordGenerated,
+          selfCompleted: completed,
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem('currentCampaign', JSON.stringify(campaignData));
+        localStorage.setItem('campaignRecords', JSON.stringify(records));
+        persistCampaignBundle({ userInfo, campaignData, records }).catch((persistErr) => {
+          console.warn('Failed to persist campaign bundle:', persistErr);
+        });
         setError(null);
       } catch (err) {
         console.error('Error generating campaigns:', err);
