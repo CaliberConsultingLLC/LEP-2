@@ -670,7 +670,7 @@ function IntakeForm() {
       active = false;
       unsubscribe();
     };
-  }, [location.search, totalSteps]);
+  }, [location.search]);
 
   // Behavior Questions
   const behaviorSet = [
