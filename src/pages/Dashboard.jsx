@@ -21,6 +21,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import ResultsTab from './Dashboard/ResultsTab';
 import ActionTab from './Dashboard/ActionTab';
+import ActionTabStaging from './Dashboard/ActionTabStaging';
 import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
 import ProcessTopRail from '../components/ProcessTopRail';
@@ -40,6 +41,12 @@ function Dashboard() {
     }
   });
   const CONTENT_MAX_WIDTH = 1180;
+  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
+  const useStagingActionPlan =
+    import.meta.env.DEV
+    || stagingHost.includes('staging.northstarpartners.org')
+    || stagingHost.includes('compass-staging')
+    || stagingHost.endsWith('.vercel.app');
   const agentOptions = [
     { id: 'balancedMentor', name: 'Balanced Mentor' },
     { id: 'comedyRoaster', name: 'Comedy Roaster' },
@@ -415,7 +422,11 @@ function Dashboard() {
                 {currentTab === 0 && <GrowthCampaignTab />}
                 {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
                 {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
-                {currentTab === 3 && <ActionTab />}
+                {currentTab === 3 && (
+                  useStagingActionPlan
+                    ? <ActionTabStaging selectedAgent={selectedAgent} onOpenJourney={() => setCurrentTab(4)} />
+                    : <ActionTab />
+                )}
                 {currentTab === 4 && <JourneyTab />}
               </Box>
             </Box>
