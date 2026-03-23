@@ -1,27 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Box,
   Button,
   Card,
   CardContent,
   Chip,
-  Divider,
   Grid,
-  IconButton,
-  LinearProgress,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
 import {
-  Add,
   ArrowForward,
   AutoAwesome,
-  CheckCircle,
-  DeleteOutline,
   FlagOutlined,
-  ShieldOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material';
 import fakeCampaign from '../../data/fakeCampaign.js';
@@ -40,6 +32,8 @@ const parseJson = (raw, fallback = null) => {
   }
 };
 
+const trimText = (value) => String(value || '').trim();
+
 const safeAverage = (values) => {
   if (!Array.isArray(values) || !values.length) return 0;
   return values.reduce((sum, value) => sum + Number(value || 0), 0) / values.length;
@@ -48,18 +42,14 @@ const safeAverage = (values) => {
 const buildSeedPlan = (traitId, subTraitId) => ({
   commitment: '',
   teamSignal: '',
-  cadence: 'Weekly',
   proof: '',
-  friction: '',
+  cadence: '',
   support: '',
-  note: '',
   items: [],
   updatedAt: '',
-  planVersion: 'staging-v2',
+  planVersion: 'staging-v3',
   seedKey: `${traitId}-${subTraitId}`,
 });
-
-const trimText = (value) => String(value || '').trim();
 
 const getTraitFromName = (traitName) => (
   CORE_TRAITS.find((trait) => String(trait?.name || '').toLowerCase() === String(traitName || '').toLowerCase())
@@ -67,30 +57,12 @@ const getTraitFromName = (traitName) => (
 
 const getPersonaVoice = (selectedAgent) => {
   const voices = {
-    bluntPracticalFriend: {
-      kicker: 'Straight read',
-      close: 'Keep the move simple enough to survive a real week.',
-    },
-    formalEmpatheticCoach: {
-      kicker: 'Leadership lens',
-      close: 'Choose a commitment your team can feel without needing an explanation.',
-    },
-    comedyRoaster: {
-      kicker: 'Friendly nudge',
-      close: 'If the plan only works on your best day, it is not a plan yet.',
-    },
-    pragmaticProblemSolver: {
-      kicker: 'Execution read',
-      close: 'Build the smallest repeatable move that changes team experience quickly.',
-    },
-    highSchoolCoach: {
-      kicker: 'Coach’s challenge',
-      close: 'Pick something you can repeat until it becomes part of your default rhythm.',
-    },
-    balancedMentor: {
-      kicker: 'Agent reflection',
-      close: 'Aim for a move that is specific, visible, and sustainable under pressure.',
-    },
+    bluntPracticalFriend: 'Straight read',
+    formalEmpatheticCoach: 'Leadership lens',
+    comedyRoaster: 'Friendly nudge',
+    pragmaticProblemSolver: 'Execution read',
+    highSchoolCoach: 'Coach challenge',
+    balancedMentor: 'Agent reflection',
   };
   return voices[selectedAgent] || voices.balancedMentor;
 };
@@ -100,59 +72,66 @@ const summarizeSignal = ({ efficacy, effort, delta, compassScore }) => {
     return {
       label: 'Heavy effort, weak landing',
       tone: '#C85A2A',
-      description: 'You may be investing energy here without creating consistent team lift.',
+      description: 'The effort is there, but the team may not be feeling the lift yet.',
     };
   }
   if (efficacy >= 7.4 && effort < 5.8) {
     return {
       label: 'Strength to protect',
       tone: '#2F855A',
-      description: 'This area is landing well. The risk is assuming it will stay strong without intention.',
+      description: 'This is already landing well. The move here is protecting the standard.',
     };
   }
   if (delta >= 1.3) {
     return {
       label: 'Perception tension',
       tone: '#E07A3F',
-      description: 'Effort and impact are drifting apart enough to deserve a sharper operating move.',
+      description: 'Intent and visible impact may be drifting apart in this area.',
     };
   }
   if (compassScore < 6.2) {
     return {
       label: 'Low traction zone',
       tone: '#9B2C2C',
-      description: 'This is one of the clearest opportunities to change team experience through deliberate action.',
+      description: 'This is one of the clearest places to create a felt change for your team.',
     };
   }
   return {
     label: 'Buildable opportunity',
     tone: '#457089',
-    description: 'There is solid footing here, but the next level will likely require more visible consistency.',
+    description: 'There is traction here, but a sharper move could make it more dependable.',
   };
 };
 
-const getAgentLens = ({ selectedAgent, focusName, traitName, signal }) => {
-  const persona = getPersonaVoice(selectedAgent);
-  const questionBySignal = {
-    'Heavy effort, weak landing': `Where does ${focusName} break down between your intent and what your team actually feels?`,
-    'Strength to protect': `What would cause ${focusName} to quietly slip if your attention moved elsewhere?`,
-    'Perception tension': `What are you doing in ${focusName} that feels meaningful to you, but may not be registering clearly to others?`,
-    'Low traction zone': `If ${focusName} stayed unchanged for six more months, what would your team start normalizing that you do not want normalized?`,
-    'Buildable opportunity': `What one repeated behavior would make ${focusName} feel more dependable to your team?`,
+const getSupportModel = ({ selectedAgent, focusName, signal }) => {
+  const voice = getPersonaVoice(selectedAgent);
+  const reflections = {
+    'Heavy effort, weak landing': `${focusName} looks like a translation problem, not a caring problem.`,
+    'Strength to protect': `${focusName} is already helping you. The goal is to keep it deliberate.`,
+    'Perception tension': `${focusName} may be sending mixed signals even when your intent is good.`,
+    'Low traction zone': `${focusName} is likely one of the places your team feels most quickly.`,
+    'Buildable opportunity': `${focusName} is close enough to improve without needing a full reset.`,
   };
-  const reflectionBySignal = {
-    'Heavy effort, weak landing': `${focusName} does not look like a motivation problem. It looks more like your energy is not yet translating into a repeatable team experience.`,
-    'Strength to protect': `${focusName} is already giving you leverage. The goal here is not reinvention, but protecting what already lands well.`,
-    'Perception tension': `${focusName} may be producing mixed signals. The next move should make your intent easier for other people to recognize.`,
-    'Low traction zone': `${focusName} is likely one of the clearest places where a disciplined action could change how your leadership is felt day to day.`,
-    'Buildable opportunity': `${focusName} is close enough to working that a sharper operating habit could create visible gains without needing a full reset.`,
+  const questions = {
+    'Heavy effort, weak landing': `Where does ${focusName} break down between what you mean and what others experience?`,
+    'Strength to protect': `What would your team lose first if ${focusName} slipped quietly over the next quarter?`,
+    'Perception tension': `What are you doing here that matters to you, but may not be obvious to others?`,
+    'Low traction zone': `If ${focusName} stayed unchanged for six months, what would your team start normalizing?`,
+    'Buildable opportunity': `What repeated move would make ${focusName} feel more dependable to your team?`,
+  };
+  const outcomes = {
+    'Heavy effort, weak landing': 'Your plan should make impact more visible, not just effort more sincere.',
+    'Strength to protect': 'Your plan should keep this from becoming assumed or invisible.',
+    'Perception tension': 'Your plan should make the behavior easier for other people to notice.',
+    'Low traction zone': 'Your plan should create a visible shift your team can feel early.',
+    'Buildable opportunity': 'Your plan should turn a decent pattern into a trustworthy one.',
   };
 
   return {
-    title: persona.kicker,
-    reflection: reflectionBySignal[signal.label] || `${focusName} is a live development area inside ${traitName}.`,
-    question: questionBySignal[signal.label] || `What would better ${focusName} look like in observable behavior this month?`,
-    close: persona.close,
+    voice,
+    reflection: reflections[signal.label],
+    question: questions[signal.label],
+    outcome: outcomes[signal.label],
   };
 };
 
@@ -160,29 +139,22 @@ const buildJourneyItems = (plan) => {
   const items = [];
   const pushIfPresent = (value) => {
     const text = trimText(value);
-    if (text) items.push({ id: `item-${items.length + 1}-${Date.now()}`, text, createdAt: new Date().toISOString() });
+    if (text) {
+      items.push({
+        id: `item-${items.length + 1}-${Date.now()}`,
+        text,
+        createdAt: new Date().toISOString(),
+      });
+    }
   };
 
   pushIfPresent(plan.commitment);
   pushIfPresent(plan.teamSignal ? `Team-visible signal: ${plan.teamSignal}` : '');
-  pushIfPresent(plan.cadence ? `Cadence: ${plan.cadence}` : '');
-  pushIfPresent(plan.proof ? `Proof of follow-through: ${plan.proof}` : '');
-  (plan.items || []).forEach((item) => pushIfPresent(item?.text || ''));
-  pushIfPresent(plan.support ? `Support / guardrail: ${plan.support}` : '');
+  pushIfPresent(plan.proof ? `Proof marker: ${plan.proof}` : '');
+  pushIfPresent(plan.support ? `Supporting move: ${plan.support}` : '');
+  pushIfPresent(plan.cadence ? `Check-in rhythm: ${plan.cadence}` : '');
 
-  return items.slice(0, 6);
-};
-
-const getPlanReadiness = (plan) => {
-  const fields = [
-    trimText(plan?.commitment),
-    trimText(plan?.teamSignal),
-    trimText(plan?.cadence),
-    trimText(plan?.proof),
-    trimText(plan?.friction),
-  ];
-  const completed = fields.filter(Boolean).length;
-  return Math.round((completed / fields.length) * 100);
+  return items.slice(0, 5);
 };
 
 function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
@@ -198,6 +170,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     return campaign.map((campaignTrait, traitIndex) => {
       const trait = getTraitFromName(campaignTrait?.trait);
       if (!trait) return null;
+
       const subTrait = trait?.subTraits?.find(
         (item) => String(item?.name || '').toLowerCase() === String(campaignTrait?.subTrait || '').toLowerCase()
       ) || trait?.subTraits?.[0];
@@ -222,11 +195,9 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
       const delta = Math.abs(effort - efficacy);
       const signal = summarizeSignal({ efficacy, effort, delta, compassScore });
       const plan = plans?.[trait.id]?.[subTrait.id] || buildSeedPlan(trait.id, subTrait.id);
-      const readiness = getPlanReadiness(plan);
-      const agentLens = getAgentLens({
+      const supportModel = getSupportModel({
         selectedAgent,
         focusName: subTrait.name,
-        traitName: trait.name,
         signal,
       });
 
@@ -234,15 +205,13 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
         key: `${trait.id}:${subTrait.id}`,
         trait,
         subTrait,
-        campaignTrait,
         efficacy,
         effort,
         compassScore,
         delta,
         signal,
         plan,
-        readiness,
-        agentLens,
+        supportModel,
       };
     }).filter(Boolean);
   }, [plans, selectedAgent]);
@@ -258,14 +227,11 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
 
       const legacy = parseJson(localStorage.getItem('actionPlans'), {});
       const migrated = {};
-      Object.entries(legacy || {}).forEach(([traitId, subtraits]) => {
+      Object.entries(legacy || {}).forEach(([traitId, subTraits]) => {
         migrated[traitId] = {};
-        Object.entries(subtraits || {}).forEach(([subTraitId, payload]) => {
+        Object.entries(subTraits || {}).forEach(([subTraitId, payload]) => {
           const seeded = buildSeedPlan(traitId, subTraitId);
           seeded.commitment = trimText(payload?.text);
-          seeded.items = seeded.commitment
-            ? [{ id: `${traitId}-${subTraitId}-legacy`, text: seeded.commitment, createdAt: payload?.createdAt || new Date().toISOString() }]
-            : [];
           seeded.updatedAt = payload?.createdAt || '';
           migrated[traitId][subTraitId] = seeded;
         });
@@ -299,34 +265,6 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     }));
   };
 
-  const updateMicroAction = (traitId, subTraitId, itemId, text) => {
-    const currentItems = plans?.[traitId]?.[subTraitId]?.items || [];
-    updatePlan(traitId, subTraitId, {
-      items: currentItems.map((item) => (item.id === itemId ? { ...item, text } : item)),
-    });
-  };
-
-  const addMicroAction = (traitId, subTraitId) => {
-    const currentItems = plans?.[traitId]?.[subTraitId]?.items || [];
-    updatePlan(traitId, subTraitId, {
-      items: [
-        ...currentItems,
-        {
-          id: `${traitId}-${subTraitId}-${Date.now()}`,
-          text: '',
-          createdAt: new Date().toISOString(),
-        },
-      ],
-    });
-  };
-
-  const removeMicroAction = (traitId, subTraitId, itemId) => {
-    const currentItems = plans?.[traitId]?.[subTraitId]?.items || [];
-    updatePlan(traitId, subTraitId, {
-      items: currentItems.filter((item) => item.id !== itemId),
-    });
-  };
-
   const savePlans = (openJourney = false) => {
     const sanitized = {};
     Object.entries(plans || {}).forEach(([traitId, subTraits]) => {
@@ -337,16 +275,11 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           ...rawPlan,
           commitment: trimText(rawPlan?.commitment),
           teamSignal: trimText(rawPlan?.teamSignal),
-          cadence: trimText(rawPlan?.cadence) || 'Weekly',
           proof: trimText(rawPlan?.proof),
-          friction: trimText(rawPlan?.friction),
+          cadence: trimText(rawPlan?.cadence),
           support: trimText(rawPlan?.support),
-          note: trimText(rawPlan?.note),
-          items: (rawPlan?.items || [])
-            .map((item) => ({ ...item, text: trimText(item?.text) }))
-            .filter((item) => item.text),
           updatedAt: new Date().toISOString(),
-          planVersion: 'staging-v2',
+          planVersion: 'staging-v3',
         };
 
         const journeyItems = buildJourneyItems(plan);
@@ -367,7 +300,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     all[CURRENT_CAMPAIGN_ID][userKey] = {
       user: { name: userInfo?.name || '', email: userInfo?.email || '' },
       selectedAgent,
-      planVersion: 'staging-v2',
+      planVersion: 'staging-v3',
       savedAt: new Date().toISOString(),
       plans: sanitized,
     };
@@ -411,400 +344,250 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     );
   }
 
-  const completedCount = focusCards.filter((item) => item.readiness >= 80).length;
   const activePlan = activeFocus.plan || buildSeedPlan(activeFocus.trait.id, activeFocus.subTrait.id);
   const activeJourneyItems = buildJourneyItems(activePlan);
 
   return (
-    <Stack spacing={2.2}>
+    <Stack spacing={2.5}>
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 2.2, md: 2.8 },
-          borderRadius: 3,
+          p: { xs: 2.4, md: 3.2 },
+          borderRadius: 3.2,
           border: '1px solid rgba(255,255,255,0.2)',
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(241,246,252,0.9))',
-          boxShadow: '0 14px 30px rgba(15,23,42,0.14)',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.97), rgba(241,246,252,0.92))',
+          boxShadow: '0 14px 30px rgba(15,23,42,0.12)',
         }}
       >
-        <Stack spacing={1.4}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
-            <Box>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.4rem', md: '1.7rem' }, fontWeight: 800, color: '#13263A' }}>
-                Build Your Next Moves
-              </Typography>
-              <Typography sx={{ mt: 0.55, fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', color: 'rgba(19,38,58,0.72)', maxWidth: 760 }}>
-                This staging redesign turns action planning into a guided build process: clarify the move, make it visible to your team, pressure-test it, and send it forward into your journey.
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip label={`${focusCards.length} focus areas`} sx={{ bgcolor: 'rgba(69,112,137,0.12)', border: '1px solid rgba(69,112,137,0.24)' }} />
-              <Chip label={`${completedCount} ready for journey`} sx={{ bgcolor: 'rgba(47,133,90,0.12)', border: '1px solid rgba(47,133,90,0.24)' }} />
-            </Stack>
-          </Stack>
-          <Box>
-            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.6 }}>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', fontWeight: 700, color: '#20384F' }}>
-                Action readiness
-              </Typography>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', fontWeight: 700, color: '#20384F' }}>
-                {Math.round((completedCount / Math.max(focusCards.length, 1)) * 100)}%
-              </Typography>
-            </Stack>
-            <LinearProgress
-              variant="determinate"
-              value={Math.round((completedCount / Math.max(focusCards.length, 1)) * 100)}
-              sx={{
-                height: 10,
-                borderRadius: 999,
-                bgcolor: 'rgba(69,112,137,0.12)',
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 999,
-                  background: 'linear-gradient(90deg, #E07A3F, #457089)',
-                },
-              }}
-            />
-          </Box>
+        <Stack spacing={1}>
+          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.38rem', md: '1.68rem' }, fontWeight: 800, color: '#13263A' }}>
+            Turn Insight Into a Clear Next Move
+          </Typography>
+          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.97rem', color: 'rgba(19,38,58,0.72)', maxWidth: 760, lineHeight: 1.6 }}>
+            Choose one focus area, get just enough perspective to steady yourself, and build a simple plan your team could actually feel.
+          </Typography>
         </Stack>
       </Paper>
 
-      <Grid container spacing={2.2} alignItems="stretch">
-        <Grid item xs={12} lg={4}>
-          <Stack spacing={1.4}>
-            {focusCards.map((focus) => (
-              <Paper
-                key={focus.key}
-                onClick={() => setActiveKey(focus.key)}
-                sx={{
-                  p: 1.8,
-                  borderRadius: 3,
-                  cursor: 'pointer',
-                  border: focus.key === activeKey ? '1px solid rgba(224,122,63,0.6)' : '1px solid rgba(255,255,255,0.18)',
-                  background: focus.key === activeKey
-                    ? 'linear-gradient(145deg, rgba(255,250,245,0.98), rgba(246,239,230,0.92))'
-                    : 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(242,246,251,0.88))',
-                  boxShadow: focus.key === activeKey ? '0 12px 26px rgba(15,23,42,0.16)' : '0 10px 22px rgba(15,23,42,0.10)',
-                  transition: 'transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 14px 28px rgba(15,23,42,0.16)',
-                  },
-                }}
-              >
-                <Stack spacing={1.1}>
-                  <Stack direction="row" justifyContent="space-between" spacing={1}>
-                    <Box>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.02rem', fontWeight: 800, color: '#13263A' }}>
-                        {focus.subTrait.name}
-                      </Typography>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(19,38,58,0.68)' }}>
-                        {focus.trait.name}
-                      </Typography>
-                    </Box>
-                    {focus.readiness >= 80 ? (
-                      <CheckCircle sx={{ color: '#2F855A', fontSize: 22 }} />
-                    ) : (
-                      <ArrowForward sx={{ color: '#457089', fontSize: 22 }} />
-                    )}
-                  </Stack>
-
-                  <Stack direction="row" spacing={0.8} flexWrap="wrap">
-                    <Chip label={`Compass ${focus.compassScore.toFixed(1)}`} sx={{ bgcolor: 'rgba(69,112,137,0.12)' }} />
-                    <Chip label={`Gap ${focus.delta.toFixed(1)}`} sx={{ bgcolor: 'rgba(224,122,63,0.12)' }} />
-                    <Chip label={focus.signal.label} sx={{ bgcolor: `${focus.signal.tone}16`, color: focus.signal.tone, border: `1px solid ${focus.signal.tone}44` }} />
-                  </Stack>
-
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'rgba(19,38,58,0.78)', lineHeight: 1.55 }}>
-                    {focus.agentLens.question}
-                  </Typography>
-
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.45 }}>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: '#20384F' }}>
-                        Plan readiness
-                      </Typography>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: '#20384F' }}>
-                        {focus.readiness}%
-                      </Typography>
-                    </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={focus.readiness}
-                      sx={{
-                        height: 8,
-                        borderRadius: 999,
-                        bgcolor: 'rgba(69,112,137,0.12)',
-                        '& .MuiLinearProgress-bar': {
-                          borderRadius: 999,
-                          background: focus.readiness >= 80 ? 'linear-gradient(90deg, #2F855A, #6F9A83)' : 'linear-gradient(90deg, #E07A3F, #457089)',
-                        },
-                      }}
-                    />
-                  </Box>
-                </Stack>
-              </Paper>
-            ))}
-          </Stack>
-        </Grid>
-
+      <Grid container spacing={2.4} alignItems="flex-start">
         <Grid item xs={12} lg={8}>
           <Card
             sx={{
-              height: '100%',
               borderRadius: 3.2,
               border: '1px solid rgba(255,255,255,0.2)',
               background: 'linear-gradient(145deg, rgba(255,255,255,0.97), rgba(244,248,253,0.9))',
-              boxShadow: '0 14px 30px rgba(15,23,42,0.14)',
+              boxShadow: '0 14px 30px rgba(15,23,42,0.12)',
             }}
           >
-            <CardContent sx={{ p: { xs: 2, md: 2.6 } }}>
-              <Stack spacing={2}>
-                <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.4}>
-                  <Box>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.3rem', md: '1.55rem' }, fontWeight: 800, color: '#13263A' }}>
-                      {activeFocus.subTrait.name}
-                    </Typography>
-                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', color: 'rgba(19,38,58,0.7)', maxWidth: 700 }}>
-                      {activeFocus.signal.description}
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip icon={<FlagOutlined />} label={`Efficacy ${activeFocus.efficacy.toFixed(1)}`} sx={{ bgcolor: 'rgba(99,147,170,0.14)' }} />
-                    <Chip icon={<AutoAwesome />} label={`Effort ${activeFocus.effort.toFixed(1)}`} sx={{ bgcolor: 'rgba(224,122,63,0.14)' }} />
-                    <Chip label={`Compass ${activeFocus.compassScore.toFixed(1)}`} sx={{ bgcolor: 'rgba(69,112,137,0.10)' }} />
+            <CardContent sx={{ p: { xs: 2.2, md: 3 } }}>
+              <Stack spacing={2.2}>
+                <Stack spacing={1.1}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.24rem', md: '1.5rem' }, fontWeight: 800, color: '#13263A' }}>
+                    {activeFocus.subTrait.name}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: 'rgba(19,38,58,0.68)' }}>
+                    {activeFocus.trait.name}
+                  </Typography>
+                  <Stack direction="row" spacing={0.9} flexWrap="wrap">
+                    <Chip icon={<FlagOutlined />} label={`Compass ${activeFocus.compassScore.toFixed(1)}`} sx={{ bgcolor: 'rgba(69,112,137,0.12)' }} />
+                    <Chip icon={<VisibilityOutlined />} label={`Gap ${activeFocus.delta.toFixed(1)}`} sx={{ bgcolor: 'rgba(224,122,63,0.12)' }} />
+                    <Chip label={activeFocus.signal.label} sx={{ bgcolor: `${activeFocus.signal.tone}14`, color: activeFocus.signal.tone, border: `1px solid ${activeFocus.signal.tone}33` }} />
                   </Stack>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', color: '#20384F', lineHeight: 1.6 }}>
+                    {activeFocus.signal.description}
+                  </Typography>
                 </Stack>
 
-                <Grid container spacing={1.4}>
-                  <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 1.6, borderRadius: 2.6, border: '1px solid rgba(69,112,137,0.2)', background: 'linear-gradient(145deg, rgba(239,246,252,0.95), rgba(229,239,248,0.9))', height: '100%' }}>
-                      <Stack spacing={0.9}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <AutoAwesome sx={{ color: '#457089', fontSize: 20 }} />
-                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.94rem', fontWeight: 800, color: '#13263A' }}>
-                            {activeFocus.agentLens.title}
-                          </Typography>
-                        </Stack>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.6 }}>
-                          {activeFocus.agentLens.reflection}
+                <Grid container spacing={1.3}>
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 1.5, borderRadius: 2.5, border: '1px solid rgba(69,112,137,0.18)', background: 'linear-gradient(145deg, rgba(239,246,252,0.95), rgba(230,239,248,0.9))', height: '100%' }}>
+                      <Stack spacing={0.6}>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {activeFocus.supportModel.voice}
                         </Typography>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#13263A', fontWeight: 700, lineHeight: 1.55 }}>
-                          {activeFocus.agentLens.question}
-                        </Typography>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(19,38,58,0.72)', lineHeight: 1.5 }}>
-                          {activeFocus.agentLens.close}
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                          {activeFocus.supportModel.reflection}
                         </Typography>
                       </Stack>
                     </Paper>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 1.6, borderRadius: 2.6, border: '1px solid rgba(224,122,63,0.22)', background: 'linear-gradient(145deg, rgba(255,248,243,0.96), rgba(250,241,233,0.92))', height: '100%' }}>
-                      <Stack spacing={0.9}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <VisibilityOutlined sx={{ color: '#E07A3F', fontSize: 20 }} />
-                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.94rem', fontWeight: 800, color: '#13263A' }}>
-                            Build Standard
-                          </Typography>
-                        </Stack>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                          Strong plans are specific, visible to other people, protected against pressure, and easy to recognize later in the Journey map.
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 1.5, borderRadius: 2.5, border: '1px solid rgba(224,122,63,0.18)', background: 'linear-gradient(145deg, rgba(255,249,244,0.96), rgba(250,241,233,0.92))', height: '100%' }}>
+                      <Stack spacing={0.6}>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#E07A3F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Pressure Test
                         </Typography>
-                        <Stack direction="row" spacing={0.8} flexWrap="wrap">
-                          <Chip label="Specific" sx={{ bgcolor: 'rgba(255,255,255,0.72)' }} />
-                          <Chip label="Team-visible" sx={{ bgcolor: 'rgba(255,255,255,0.72)' }} />
-                          <Chip label="Repeatable" sx={{ bgcolor: 'rgba(255,255,255,0.72)' }} />
-                          <Chip label="Provable" sx={{ bgcolor: 'rgba(255,255,255,0.72)' }} />
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                          {activeFocus.supportModel.question}
+                        </Typography>
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 1.5, borderRadius: 2.5, border: '1px solid rgba(19,38,58,0.12)', background: 'rgba(255,255,255,0.78)', height: '100%' }}>
+                      <Stack spacing={0.6}>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#13263A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Aim Of The Plan
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                          {activeFocus.supportModel.outcome}
+                        </Typography>
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                <Grid container spacing={1.4}>
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: { xs: 1.5, md: 1.8 }, borderRadius: 2.7, border: '1px solid rgba(19,38,58,0.1)', background: 'rgba(255,255,255,0.76)' }}>
+                      <Stack spacing={1}>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          Step 1
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+                          Name the move
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'rgba(19,38,58,0.66)', lineHeight: 1.55 }}>
+                          Keep it specific and behavioral. What are you actually going to do differently?
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          placeholder="Example: I will close every weekly staff meeting by clarifying the one decision, owner, and deadline."
+                          value={activePlan.commitment || ''}
+                          onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { commitment: event.target.value })}
+                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.9)' } }}
+                        />
+                      </Stack>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: { xs: 1.5, md: 1.8 }, borderRadius: 2.7, border: '1px solid rgba(19,38,58,0.1)', background: 'rgba(255,255,255,0.76)' }}>
+                      <Stack spacing={1}>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          Step 2
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+                          Make it visible
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'rgba(19,38,58,0.66)', lineHeight: 1.55 }}>
+                          If this improved, what would your team notice first without needing you to explain it?
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          placeholder="Example: My team would leave meetings with less ambiguity and fewer repeated follow-up questions."
+                          value={activePlan.teamSignal || ''}
+                          onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { teamSignal: event.target.value })}
+                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.9)' } }}
+                        />
+                      </Stack>
+                    </Paper>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: { xs: 1.5, md: 1.8 }, borderRadius: 2.7, border: '1px solid rgba(19,38,58,0.1)', background: 'rgba(255,255,255,0.76)' }}>
+                      <Stack spacing={1.1}>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          Step 3
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+                          Keep it honest
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'rgba(19,38,58,0.66)', lineHeight: 1.55 }}>
+                          What proof would tell you this is really happening in the flow of work?
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          placeholder="Example: I can point to three meetings this month where ownership and next steps were clearly understood."
+                          value={activePlan.proof || ''}
+                          onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { proof: event.target.value })}
+                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.9)' } }}
+                        />
+
+                        <Stack spacing={0.8} sx={{ pt: 0.4 }}>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#13263A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            Optional Check-In Rhythm
+                          </Typography>
+                          <Stack direction="row" spacing={0.8} flexWrap="wrap">
+                            {CADENCE_OPTIONS.map((option) => {
+                              const active = activePlan.cadence === option;
+                              return (
+                                <Chip
+                                  key={option}
+                                  clickable
+                                  label={option}
+                                  onClick={() => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { cadence: active ? '' : option })}
+                                  sx={{
+                                    fontFamily: 'Montserrat, sans-serif',
+                                    fontWeight: 700,
+                                    bgcolor: active ? '#457089' : 'rgba(69,112,137,0.08)',
+                                    color: active ? '#FFFFFF' : '#20384F',
+                                    border: `1px solid ${active ? '#457089' : 'rgba(69,112,137,0.2)'}`,
+                                  }}
+                                />
+                              );
+                            })}
+                          </Stack>
                         </Stack>
                       </Stack>
                     </Paper>
                   </Grid>
                 </Grid>
 
-                <Divider sx={{ borderColor: 'rgba(69,112,137,0.2)' }} />
-
-                <Grid container spacing={1.4}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Primary commitment"
-                      placeholder="What is the one move you are committing to here?"
-                      value={activePlan.commitment || ''}
-                      onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { commitment: event.target.value })}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Team-visible signal"
-                      placeholder="What would your team notice first if this improved?"
-                      value={activePlan.teamSignal || ''}
-                      onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { teamSignal: event.target.value })}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Stack spacing={0.8}>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', fontWeight: 700, color: '#20384F' }}>
-                        Cadence
-                      </Typography>
-                      <Stack direction="row" spacing={0.8} flexWrap="wrap">
-                        {CADENCE_OPTIONS.map((option) => {
-                          const active = String(activePlan.cadence || 'Weekly') === option;
-                          return (
-                            <Chip
-                              key={option}
-                              clickable
-                              label={option}
-                              onClick={() => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { cadence: option })}
-                              sx={{
-                                fontFamily: 'Montserrat, sans-serif',
-                                fontWeight: 700,
-                                bgcolor: active ? '#457089' : 'rgba(69,112,137,0.08)',
-                                color: active ? '#fff' : '#20384F',
-                                border: `1px solid ${active ? '#457089' : 'rgba(69,112,137,0.2)'}`,
-                              }}
-                            />
-                          );
-                        })}
-                      </Stack>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      minRows={3}
-                      label="Pressure plan"
-                      placeholder="When pressure rises, what are you likely to avoid and how will you guard against that?"
-                      value={activePlan.friction || ''}
-                      onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { friction: event.target.value })}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      minRows={3}
-                      label="Proof of follow-through"
-                      placeholder="How will you know this actually happened in the real flow of work?"
-                      value={activePlan.proof || ''}
-                      onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { proof: event.target.value })}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                <Paper sx={{ p: { xs: 1.5, md: 1.8 }, borderRadius: 2.7, border: '1px solid rgba(224,122,63,0.18)', background: 'linear-gradient(145deg, rgba(255,249,244,0.96), rgba(250,241,233,0.92))' }}>
+                  <Stack spacing={1}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#E07A3F', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      Optional Support Move
+                    </Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'rgba(19,38,58,0.68)', lineHeight: 1.55 }}>
+                      Add one smaller behavior only if it helps support the main plan. This should not become a second full plan.
+                    </Typography>
                     <TextField
                       fullWidth
                       multiline
                       minRows={2}
-                      label="Support / guardrail"
-                      placeholder="What support, reminder, or constraint would make this easier to sustain?"
+                      placeholder="Example: I will block ten minutes after each team meeting to write and send the follow-through summary."
                       value={activePlan.support || ''}
                       onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { support: event.target.value })}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
+                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.9)' } }}
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      label="Private note"
-                      placeholder="Anything else you want to remember about this focus area?"
-                      value={activePlan.note || ''}
-                      onChange={(event) => updatePlan(activeFocus.trait.id, activeFocus.subTrait.id, { note: event.target.value })}
-                      sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
-                    />
-                  </Grid>
-                </Grid>
-
-                <Paper sx={{ p: 1.6, borderRadius: 2.6, border: '1px solid rgba(69,112,137,0.18)', background: 'rgba(255,255,255,0.74)' }}>
-                  <Stack spacing={1.1}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', fontWeight: 800, color: '#13263A' }}>
-                        Supporting moves
-                      </Typography>
-                      <Button
-                        size="small"
-                        startIcon={<Add />}
-                        onClick={() => addMicroAction(activeFocus.trait.id, activeFocus.subTrait.id)}
-                        sx={{ textTransform: 'none', fontWeight: 700 }}
-                      >
-                        Add move
-                      </Button>
-                    </Stack>
-                    {(activePlan.items || []).length ? (
-                      <Stack spacing={1}>
-                        {(activePlan.items || []).map((item, index) => (
-                          <Box key={item.id || `${activeFocus.key}-${index}`} sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                            <TextField
-                              fullWidth
-                              multiline
-                              minRows={2}
-                              label={`Supporting move ${index + 1}`}
-                              placeholder="Add a smaller move that reinforces the primary commitment."
-                              value={item?.text || ''}
-                              onChange={(event) => updateMicroAction(activeFocus.trait.id, activeFocus.subTrait.id, item.id, event.target.value)}
-                              sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.86)' } }}
-                            />
-                            <IconButton
-                              onClick={() => removeMicroAction(activeFocus.trait.id, activeFocus.subTrait.id, item.id)}
-                              sx={{ mt: 1, border: '1px solid rgba(19,38,58,0.15)' }}
-                            >
-                              <DeleteOutline fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        ))}
-                      </Stack>
-                    ) : (
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.68)' }}>
-                        Add supporting moves if you want a few concrete behaviors under the main commitment. This replaces the old unlimited blank-action approach with a cleaner stack.
-                      </Typography>
-                    )}
                   </Stack>
                 </Paper>
 
-                <Paper sx={{ p: 1.7, borderRadius: 2.8, border: '1px solid rgba(224,122,63,0.24)', background: 'linear-gradient(145deg, rgba(255,250,245,0.98), rgba(250,241,233,0.92))' }}>
-                  <Stack spacing={1.1}>
+                <Paper sx={{ p: { xs: 1.5, md: 1.8 }, borderRadius: 2.7, border: '1px solid rgba(69,112,137,0.16)', background: 'rgba(255,255,255,0.76)' }}>
+                  <Stack spacing={0.9}>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <ShieldOutlined sx={{ color: '#E07A3F', fontSize: 20 }} />
+                      <AutoAwesome sx={{ color: '#457089', fontSize: 18 }} />
                       <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', fontWeight: 800, color: '#13263A' }}>
-                        Journey handoff preview
+                        What carries into My Journey
                       </Typography>
                     </Stack>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'rgba(19,38,58,0.76)', lineHeight: 1.55 }}>
-                      When you save this focus area, these commitments are what the Journey map will carry forward as your visible trail markers.
-                    </Typography>
                     {activeJourneyItems.length ? (
                       <Stack spacing={0.65}>
                         {activeJourneyItems.map((item) => (
-                          <Typography key={item.id} sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: '#20384F', lineHeight: 1.45 }}>
+                          <Typography key={item.id} sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: '#20384F', lineHeight: 1.5 }}>
                             • {item.text}
                           </Typography>
                         ))}
                       </Stack>
                     ) : (
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: 'rgba(19,38,58,0.62)' }}>
-                        Nothing is being handed forward yet. Build at least the primary commitment and one visible proof marker.
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
+                        Build the plan above and this section will show the exact trail commitments that move forward.
                       </Typography>
                     )}
                   </Stack>
                 </Paper>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }}>
-                  <Box>
-                    {saveMessage ? (
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#2F855A', fontWeight: 700 }}>
-                        {saveMessage}
-                      </Typography>
-                    ) : (
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: 'rgba(19,38,58,0.64)' }}>
-                        Saved actions remain backward-compatible with the current Journey page while this redesign iterates on staging.
-                      </Typography>
-                    )}
-                  </Box>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: saveMessage ? '#2F855A' : 'rgba(19,38,58,0.64)', fontWeight: saveMessage ? 700 : 500 }}>
+                    {saveMessage || 'The goal here is clarity and momentum, not a perfect plan on the first pass.'}
+                  </Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                     <Button
                       variant="outlined"
@@ -831,6 +614,48 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
               </Stack>
             </CardContent>
           </Card>
+        </Grid>
+
+        <Grid item xs={12} lg={4}>
+          <Stack spacing={1.15}>
+            {focusCards.map((focus) => {
+              const active = focus.key === activeKey;
+              return (
+                <Paper
+                  key={focus.key}
+                  onClick={() => setActiveKey(focus.key)}
+                  sx={{
+                    p: 1.45,
+                    borderRadius: 2.6,
+                    cursor: 'pointer',
+                    border: active ? '1px solid rgba(224,122,63,0.55)' : '1px solid rgba(255,255,255,0.18)',
+                    background: active
+                      ? 'linear-gradient(145deg, rgba(255,250,245,0.98), rgba(246,239,230,0.92))'
+                      : 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(242,246,251,0.9))',
+                    boxShadow: active ? '0 10px 24px rgba(15,23,42,0.14)' : '0 8px 18px rgba(15,23,42,0.08)',
+                    transition: 'transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 12px 24px rgba(15,23,42,0.12)',
+                    },
+                  }}
+                >
+                  <Stack spacing={0.85}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A', lineHeight: 1.3 }}>
+                      {focus.subTrait.name}
+                    </Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: 'rgba(19,38,58,0.66)' }}>
+                      {focus.trait.name}
+                    </Typography>
+                    <Stack direction="row" spacing={0.7} flexWrap="wrap">
+                      <Chip label={`Compass ${focus.compassScore.toFixed(1)}`} sx={{ bgcolor: 'rgba(69,112,137,0.1)', fontWeight: 700 }} />
+                      <Chip label={`Gap ${focus.delta.toFixed(1)}`} sx={{ bgcolor: 'rgba(224,122,63,0.1)', fontWeight: 700 }} />
+                    </Stack>
+                  </Stack>
+                </Paper>
+              );
+            })}
+          </Stack>
         </Grid>
       </Grid>
     </Stack>
