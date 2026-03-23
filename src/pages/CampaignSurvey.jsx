@@ -91,20 +91,11 @@ function CampaignSurvey() {
     };
     try {
       if (campaignType === 'team') {
-        const accessToken = String(localStorage.getItem(`teamCampaignAccess_${id}`) || '').trim();
-        const response = await fetch('/api/submit-team-response', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            campaignId: id,
-            accessToken,
-            ratings,
-          }),
+        await addDoc(collection(db, 'surveyResponses'), {
+          ...ratingsData,
+          accessMode: 'anonymous-link',
+          submittedAt: new Date(),
         });
-        if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
-          throw new Error(payload?.error || 'team-response-submit-failed');
-        }
       } else {
         await addDoc(collection(db, 'surveyResponses'), ratingsData);
       }
@@ -188,23 +179,23 @@ function CampaignSurvey() {
     const efficacyRange = efficacy <= 4 ? 'Low' : efficacy <= 7 ? 'Medium' : 'High';
 
     if (effortRange === 'High' && efficacyRange === 'High') {
-      return 'Execution is consistently strong, with effort and outcomes aligned at a high level.';
+      return 'High effort and high results. This area is showing up strongly and consistently.';
     } else if (effortRange === 'High' && efficacyRange === 'Medium') {
-      return 'Effort is high, but outcomes need more consistency to fully match the demands of this area.';
+      return 'High effort with middle-of-the-road results. A lot is being put in, but it is not landing as strongly as it could.';
     } else if (effortRange === 'High' && efficacyRange === 'Low') {
-      return 'Effort is strong, but outcomes are still falling short and indicate a capability gap in this area.';
+      return 'High effort and low results. There is a clear disconnect between how much is being put in and what people are experiencing.';
     } else if (effortRange === 'Medium' && efficacyRange === 'High') {
-      return 'Outcomes are strong with moderate effort, indicating efficient execution in this area.';
+      return 'Moderate effort and high results. This appears to be working well without feeling overextended.';
     } else if (effortRange === 'Medium' && efficacyRange === 'Medium') {
-      return 'Effort and outcomes are steady, with clear room to elevate both.';
+      return 'Moderate effort and moderate results. This feels steady, but there is still room to strengthen it.';
     } else if (effortRange === 'Medium' && efficacyRange === 'Low') {
-      return 'Moderate effort is not producing the needed outcomes, suggesting this area needs stronger follow-through.';
+      return 'Moderate effort and low results. Some attention is there, but people are not feeling a strong outcome yet.';
     } else if (effortRange === 'Low' && efficacyRange === 'High') {
-      return 'Outcomes are currently strong despite low effort, but this level may be hard to sustain over time.';
+      return 'Low effort and high results. This may feel natural right now, but it could be harder to sustain over time.';
     } else if (effortRange === 'Low' && efficacyRange === 'Medium') {
-      return 'Outcomes are mixed and effort is low, leaving avoidable inconsistency in this area.';
+      return 'Low effort and mixed results. This area likely feels inconsistent from one moment to the next.';
     } else {
-      return 'Both effort and outcomes are low here, signaling a high-priority development area.';
+      return 'Low effort and low results. This is one of the clearest areas needing more attention.';
     }
   };
 
@@ -222,6 +213,7 @@ function CampaignSurvey() {
   const leaderName = getLeaderDisplayName(campaignMeta);
   const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
   const currentTrait = campaign[traitIndex]?.trait || '';
+  const currentSubTrait = campaign[traitIndex]?.subTrait || campaign[traitIndex]?.title || currentTrait;
   const r = ratings[`${currentQuestion}`];
   const currentRating = (r && typeof r.effort === 'number' && typeof r.efficacy === 'number') ? r : { effort: 5, efficacy: 5 };
   const traitRecap = getTraitRecapMetrics(currentQuestion);
@@ -421,17 +413,15 @@ function CampaignSurvey() {
               textAlign: 'center',
             }}
           >
-            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: { xs: '1.32rem', md: '1.48rem' }, fontWeight: 700, mb: 0.35, color: '#FFFFFF', letterSpacing: '0.01em' }}>
-              {currentTrait}
-            </Typography>
             <Typography
               sx={{
                 fontFamily: 'Gemunu Libre, sans-serif',
-                fontSize: { xs: '0.92rem', md: '1rem' },
-                fontStyle: 'italic',
+                fontSize: { xs: '1.02rem', md: '1.1rem' },
+                fontStyle: 'normal',
+                fontWeight: 600,
                 color: 'rgba(247, 250, 255, 0.95)',
                 lineHeight: 1.35,
-                minHeight: 30,
+                minHeight: 40,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -617,7 +607,7 @@ function CampaignSurvey() {
             >
                 <Stack direction="row" spacing={0.6} justifyContent="center" alignItems="center" sx={{ mb: 0.1 }}>
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.05rem', fontWeight: 700, color: '#162336', textAlign: 'center' }}>
-                    {currentTrait} Results
+                    {currentSubTrait} Results
                   </Typography>
                   <Tooltip
                     title="Preview of what your leader will see in aggregate once all feedback is combined."
@@ -807,7 +797,7 @@ function CampaignSurvey() {
           fullWidth
         >
           <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 700, textAlign: 'center' }}>
-            {currentTrait} Recap
+            {currentSubTrait} Recap
           </DialogTitle>
           <DialogContent sx={{ pt: 1 }}>
             <Stack spacing={1.3} alignItems="center">

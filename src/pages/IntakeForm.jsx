@@ -617,27 +617,37 @@ function IntakeForm() {
 
         if (user?.uid) {
           authUidRef.current = user.uid;
-          const docSnap = await getDoc(doc(db, 'responses', user.uid));
-          if (active && docSnap.exists()) {
-            const remote = docSnap.data() || {};
-            applyDraft(remote?.intakeDraft || null);
-            if (remote?.latestFormData && remote?.intakeStatus?.complete) {
-              localStorage.setItem('latestFormData', JSON.stringify(remote.latestFormData));
-            }
-            if (remote?.intakeDraft) {
-              localStorage.setItem('intakeDraft', JSON.stringify(remote.intakeDraft));
-            }
-            if (remote?.intakeStatus) {
-              localStorage.setItem('intakeStatus', JSON.stringify(remote.intakeStatus));
-              if (active && remote?.intakeDraft && !remote?.intakeStatus?.complete) {
-                setResumeNotice({
-                  source: 'cloud',
-                  currentStep: remote?.intakeDraft?.currentStep ?? 0,
-                  totalSteps: remote?.intakeStatus?.totalSteps || totalSteps,
-                  updatedAt: remote?.intakeStatus?.updatedAt || '',
-                });
+          try {
+            const docSnap = await getDoc(doc(db, 'responses', user.uid));
+            if (active && docSnap.exists()) {
+              const remote = docSnap.data() || {};
+              applyDraft(remote?.intakeDraft || null);
+              if (remote?.latestFormData && remote?.intakeStatus?.complete) {
+                localStorage.setItem('latestFormData', JSON.stringify(remote.latestFormData));
+              }
+              if (remote?.intakeDraft) {
+                localStorage.setItem('intakeDraft', JSON.stringify(remote.intakeDraft));
+              }
+              if (remote?.intakeStatus) {
+                localStorage.setItem('intakeStatus', JSON.stringify(remote.intakeStatus));
+                if (active && remote?.intakeDraft && !remote?.intakeStatus?.complete) {
+                  setResumeNotice({
+                    source: 'cloud',
+                    currentStep: remote?.intakeDraft?.currentStep ?? 0,
+                    totalSteps: remote?.intakeStatus?.totalSteps || totalSteps,
+                    updatedAt: remote?.intakeStatus?.updatedAt || '',
+                  });
+                }
               }
             }
+          } catch (remoteDraftErr) {
+            const code = String(remoteDraftErr?.code || '').toLowerCase();
+            const message = String(remoteDraftErr?.message || '').toLowerCase();
+            const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
+            if (!isPermissionErr) {
+              throw remoteDraftErr;
+            }
+            console.warn('[IntakeForm] No readable remote intake draft yet.');
           }
         } else {
           authUidRef.current = '';
@@ -936,7 +946,8 @@ function IntakeForm() {
   };
 
   const persistDraftToFirestore = async (draft, options = {}) => {
-    const uid = String(authUidRef.current || '').trim();
+    const localUserInfo = parseJson(localStorage.getItem('userInfo'), {});
+    const uid = String(authUidRef.current || auth.currentUser?.uid || localUserInfo?.uid || '').trim();
     if (!uid) return;
 
     const nowIso = new Date().toISOString();
@@ -947,8 +958,8 @@ function IntakeForm() {
       doc(db, 'responses', uid),
       {
         ownerUid: uid,
-        ownerEmail: String(formData?.email || '').trim(),
-        ownerName: String(formData?.name || '').trim(),
+        ownerEmail: String(formData?.email || localUserInfo?.email || '').trim(),
+        ownerName: String(formData?.name || localUserInfo?.name || '').trim(),
         intakeDraft: draft,
         intakeStatus: {
           started: true,

@@ -8,12 +8,12 @@ import {
   Button,
   Paper,
 } from '@mui/material';
-import fakeData from '../../data/fakeData.js';
 import { Launch, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
+import { useFakeDashboardData } from '../../config/runtimeFlags';
 
 const parseJson = (raw, fallback = null) => {
   try {
@@ -26,14 +26,17 @@ const parseJson = (raw, fallback = null) => {
 function GrowthCampaignTab() {
   const navigate = useNavigate();
   const [copiedKey, setCopiedKey] = useState('');
+  const [responseSummary, setResponseSummary] = useState({});
   const [cachedSummary, setCachedSummary] = useState(() => String(localStorage.getItem('aiSummary') || '').trim());
   const [summarySavedAt, setSummarySavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
   const now = new Date();
-  const campaignRecords = parseJson(localStorage.getItem('campaignRecords'), {});
+  const [campaignRecords, setCampaignRecords] = useState(() => parseJson(localStorage.getItem('campaignRecords'), {}));
+  const activeTeamCampaignId = String(campaignRecords?.teamCampaignId || '').trim();
   const activeSelfCampaignId = String(campaignRecords?.selfCampaignId || '').trim();
   const selfCampaignCompleted = activeSelfCampaignId
     ? String(localStorage.getItem(`selfCampaignCompleted_${activeSelfCampaignId}`) || campaignRecords?.selfCompleted || '').toLowerCase() === 'true'
     : String(localStorage.getItem('selfCampaignCompleted') || '').toLowerCase() === 'true';
+  const teamCampaignClosed = String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
   const intakeStatus = parseJson(localStorage.getItem('intakeStatus'), {});
   const intakeDraft = parseJson(localStorage.getItem('intakeDraft'), null);
   const latestFormData = parseJson(localStorage.getItem('latestFormData'), null);
@@ -47,27 +50,42 @@ function GrowthCampaignTab() {
     if (current > 0 && total > 0) return `In progress • step ${Math.min(current + 1, total)} of ${total}`;
     return 'In progress';
   }, [intakeComplete, intakeDraft, intakeStarted, intakeStatus]);
-  const needsSelfAssessment = (campaignId) => String(campaignId) === '123' || String(campaignId) === '125';
+  const needsSelfAssessment = (campaignId) => String(campaignId) === String(activeTeamCampaignId || campaignId);
   const addDays = (date, days) => {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
     return d;
   };
   const fmt = (date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const campaignRows = [
-    { id: '123', title: 'Trailhead Campaign', openDate: addDays(now, -6), invited: 14 },
-    { id: '124', title: 'Basecamp Campaign', openDate: addDays(now, -2), invited: 14 },
-    { id: '125', title: 'Summit Campaign', openDate: addDays(now, 3), invited: 14 },
-  ].map((row) => {
-    const responses = fakeData.responses.filter((r) => String(r.campaignId) === row.id).length;
-    const pct = Math.min(100, Math.round((responses / row.invited) * 100));
-    return {
-      ...row,
+  const trailheadOpenDate = useMemo(() => {
+    const raw = String(campaignRecords?.savedAt || summarySavedAt || '').trim();
+    const parsed = raw ? new Date(raw) : null;
+    return parsed && !Number.isNaN(parsed.getTime()) ? parsed : addDays(now, -6);
+  }, [campaignRecords?.savedAt, summarySavedAt]);
+  const campaignRows = useMemo(() => {
+    if (useFakeDashboardData) {
+      return [
+        { id: '123', title: 'Trailhead Campaign', openDate: addDays(now, -6), invited: 14, responses: 7, pct: 50, closeDate: addDays(addDays(now, -6), 10) },
+        { id: '124', title: 'Basecamp Campaign', openDate: addDays(now, -2), invited: 14, responses: 0, pct: 0, closeDate: addDays(addDays(now, -2), 10) },
+        { id: '125', title: 'Summit Campaign', openDate: addDays(now, 3), invited: 14, responses: 0, pct: 0, closeDate: addDays(addDays(now, 3), 10) },
+      ];
+    }
+
+    if (!activeTeamCampaignId) return [];
+    const summary = responseSummary?.[activeTeamCampaignId] || {};
+    const responses = Number(summary?.submitted || 0);
+    const optOuts = Number(summary?.optOuts || 0);
+    return [{
+      id: activeTeamCampaignId,
+      title: 'Trailhead Campaign',
+      openDate: trailheadOpenDate,
+      invited: null,
       responses,
-      pct,
-      closeDate: addDays(row.openDate, 10),
-    };
-  });
+      optOuts,
+      pct: null,
+      closeDate: addDays(trailheadOpenDate, 10),
+    }];
+  }, [activeTeamCampaignId, now, responseSummary, trailheadOpenDate]);
   const currentCampaign = campaignRows
     .filter((row) => row.openDate <= now)
     .sort((a, b) => b.openDate.getTime() - a.openDate.getTime())[0];
@@ -75,6 +93,7 @@ function GrowthCampaignTab() {
 
   useEffect(() => {
     let active = true;
+    let unsubscribeSurvey = null;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user?.uid) return;
@@ -82,6 +101,9 @@ function GrowthCampaignTab() {
         const snap = await getDoc(doc(db, 'responses', user.uid));
         if (!active || !snap.exists()) return;
         const payload = snap.data() || {};
+        const nextCampaignRecords = payload?.campaignBundle?.campaignRecords || campaignRecords || {};
+        setCampaignRecords(nextCampaignRecords);
+        localStorage.setItem('campaignRecords', JSON.stringify(nextCampaignRecords));
         const summaryCache = payload?.summaryCache || {};
         const remoteSummary = String(summaryCache?.aiSummary || '').trim();
         if (remoteSummary) {
@@ -96,6 +118,29 @@ function GrowthCampaignTab() {
           setSummarySavedAt(savedValue);
           localStorage.setItem('summarySavedAt', savedValue);
         }
+
+        if (!useFakeDashboardData) {
+          const teamCampaignId = String(nextCampaignRecords?.teamCampaignId || '').trim();
+          if (teamCampaignId) {
+            if (unsubscribeSurvey) unsubscribeSurvey();
+            unsubscribeSurvey = onSnapshot(
+              query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId), where('ownerUid', '==', user.uid)),
+              (teamSnap) => {
+                if (!active) return;
+                const docs = teamSnap.docs.map((docSnap) => docSnap.data() || {});
+                const submitted = docs.filter((entry) => entry?.ratings && !entry?.optedOut).length;
+                const optOuts = docs.filter((entry) => entry?.optedOut).length;
+                setResponseSummary((prev) => ({
+                  ...prev,
+                  [teamCampaignId]: { submitted, optOuts, total: docs.length },
+                }));
+              },
+              (err) => {
+                console.warn('Unable to subscribe to team response counts:', err);
+              }
+            );
+          }
+        }
       } catch (err) {
         console.warn('Unable to hydrate saved reflection from Firestore:', err);
       }
@@ -103,9 +148,10 @@ function GrowthCampaignTab() {
 
     return () => {
       active = false;
+      if (unsubscribeSurvey) unsubscribeSurvey();
       unsubscribe();
     };
-  }, []);
+  }, [campaignRecords?.teamCampaignId]);
 
   const formatSavedAt = (value) => {
     if (!value) return '';
@@ -120,8 +166,9 @@ function GrowthCampaignTab() {
   };
 
   const getCampaignStatus = (row) => {
-    if (row.id === '123') return 'Complete';
-    if (row.pct >= 100) return 'Complete';
+    if (!useFakeDashboardData && !selfCampaignCompleted) return 'Pending self';
+    if (!useFakeDashboardData && teamCampaignClosed) return 'Closed';
+    if (row.pct != null && row.pct >= 100) return 'Complete';
     if (now >= row.openDate && now <= row.closeDate) return 'Open';
     return 'Closed';
   };
@@ -129,7 +176,7 @@ function GrowthCampaignTab() {
   const getCampaignLink = (campaignId) => {
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
-      if (String(campaignId) === '123' && records?.teamCampaignLink) return records.teamCampaignLink;
+      if (String(campaignId) === String(records?.teamCampaignId || '') && records?.teamCampaignLink) return records.teamCampaignLink;
     } catch {
       // fallback to synthetic link below
     }
@@ -140,7 +187,7 @@ function GrowthCampaignTab() {
   const getCampaignPassword = (campaignId) => {
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
-      if (String(campaignId) === '123' && records?.teamCampaignPassword) return records.teamCampaignPassword;
+      if (String(campaignId) === String(records?.teamCampaignId || '') && records?.teamCampaignPassword) return records.teamCampaignPassword;
       return `campaign-${campaignId}-password`;
     } catch {
       return `campaign-${campaignId}-password`;
@@ -171,13 +218,50 @@ function GrowthCampaignTab() {
   };
 
   const openSelfAssessment = () => {
-    const fallbackUrl = '/campaign/123';
+    const fallbackUrl = activeSelfCampaignId ? `/campaign/${activeSelfCampaignId}` : '/campaign/123';
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
       const selfUrl = records?.selfCampaignLink || (records?.selfCampaignId ? `${window.location.origin}/campaign/${records.selfCampaignId}` : null);
       window.location.href = selfUrl || fallbackUrl;
     } catch {
       window.location.href = fallbackUrl;
+    }
+  };
+
+  const handleCloseSurvey = async () => {
+    const ownerUid = String(auth?.currentUser?.uid || '').trim();
+    if (!ownerUid || !activeTeamCampaignId) return;
+    const confirmed = window.confirm('Close this survey and unlock results for review?');
+    if (!confirmed) return;
+
+    const closedAt = new Date().toISOString();
+    const nextCampaignRecords = {
+      ...campaignRecords,
+      teamCampaignClosed: true,
+      teamCampaignClosedAt: closedAt,
+    };
+    setCampaignRecords(nextCampaignRecords);
+    localStorage.setItem('campaignRecords', JSON.stringify(nextCampaignRecords));
+    localStorage.setItem('teamCampaignCompleted', 'true');
+
+    try {
+      await setDoc(
+        doc(db, 'responses', ownerUid),
+        {
+          ownerUid,
+          campaignBundle: {
+            campaignRecords: {
+              teamCampaignId: activeTeamCampaignId,
+              teamCampaignClosed: true,
+              teamCampaignClosedAt: closedAt,
+            },
+            savedAt: closedAt,
+          },
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('Unable to persist close-survey state:', err);
     }
   };
 
@@ -389,7 +473,9 @@ function GrowthCampaignTab() {
                       Opened: {fmt(row.openDate)} | Closes: {fmt(row.closeDate)}
                     </Typography>
                     <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.9rem', color: 'text.secondary' }}>
-                      Response Rate: {row.pct}% ({row.responses}/{row.invited})
+                      {row.pct == null
+                        ? `Responses submitted: ${row.responses}${row.optOuts ? ` • Opt outs: ${row.optOuts}` : ''}`
+                        : `Response Rate: ${row.pct}% (${row.responses}/${row.invited})`}
                     </Typography>
                     </Box>
                   </Stack>
@@ -468,6 +554,31 @@ function GrowthCampaignTab() {
                     >
                       {copiedKey === `${row.id}-password` ? 'Copied Password' : 'Password'}
                     </Button>
+                    {!useFakeDashboardData && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        disabled={!selfCampaignCompleted || teamCampaignClosed}
+                        onClick={handleCloseSurvey}
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          textTransform: 'none',
+                          minWidth: 118,
+                          borderColor: 'rgba(69,112,137,0.38)',
+                          color: '#457089',
+                          '&:hover': {
+                            borderColor: '#457089',
+                            bgcolor: 'rgba(69,112,137,0.08)',
+                          },
+                          '&.Mui-disabled': {
+                            borderColor: 'rgba(69,112,137,0.22)',
+                            color: 'rgba(69,112,137,0.42)',
+                          },
+                        }}
+                      >
+                        {teamCampaignClosed ? 'Survey Closed' : 'Close Survey'}
+                      </Button>
+                    )}
                   </Stack>
                 </Stack>
               </Paper>

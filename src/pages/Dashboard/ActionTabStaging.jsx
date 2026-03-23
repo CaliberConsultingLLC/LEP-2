@@ -4,24 +4,27 @@ import {
   Button,
   Card,
   CardContent,
+  IconButton,
   Paper,
-  Slider,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { ArrowForward, AutoAwesome } from '@mui/icons-material';
+import { Add, ArrowForward, AutoAwesome, Remove } from '@mui/icons-material';
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
 import traitSystem from '../../data/traitSystem.js';
 import { getActionPlanGuide } from '../../data/actionPlanGuides.js';
+import { auth, db } from '../../firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { useFakeDashboardData } from '../../config/runtimeFlags';
+import {
+  getDashboardCampaignRows,
+  normalizeDashboardScore,
+  parseDashboardJson,
+} from '../../utils/dashboardData.js';
 
 const { CORE_TRAITS } = traitSystem;
-const CURRENT_CAMPAIGN_ID = '123';
-const SCORE_MARKS = Array.from({ length: 10 }, (_, index) => ({
-  value: index + 1,
-  label: String(index + 1),
-}));
 
 const parseJson = (raw, fallback = null) => {
   try {
@@ -32,6 +35,8 @@ const parseJson = (raw, fallback = null) => {
 };
 
 const trimText = (value) => String(value || '').trim();
+const clampGoalScore = (value) => Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+const toPercent = (value) => normalizeDashboardScore(value);
 
 const safeAverage = (values) => {
   if (!Array.isArray(values) || !values.length) return 0;
@@ -124,12 +129,22 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
   const [plans, setPlans] = useState({});
   const [selectedTraitKey, setSelectedTraitKey] = useState(null);
   const [saveMessage, setSaveMessage] = useState('');
+  const [campaignRows, setCampaignRows] = useState(() => getDashboardCampaignRows());
+  const [teamResponses, setTeamResponses] = useState(() => (useFakeDashboardData ? fakeData.responses : []));
 
   const userInfo = useMemo(() => parseJson(localStorage.getItem('userInfo'), {}), []);
   const userKey = userInfo?.email || userInfo?.name || 'anonymous';
+  const teamCampaignClosed = useMemo(() => {
+    const records = parseJson(localStorage.getItem('campaignRecords'), {});
+    return useFakeDashboardData || String(records?.teamCampaignClosed || '').toLowerCase() === 'true';
+  }, []);
+  const currentCampaignId = useMemo(() => {
+    const records = parseDashboardJson(localStorage.getItem('campaignRecords'), {});
+    return String(records?.teamCampaignId || '123').trim() || '123';
+  }, []);
 
   const traitRows = useMemo(() => {
-    const campaign = fakeCampaign?.campaign_123?.campaign || [];
+    const campaign = campaignRows.length ? campaignRows : (fakeCampaign?.campaign_123?.campaign || []);
     return campaign
       .map((campaignTrait, traitIndex) => {
         const trait = getTraitFromName(campaignTrait?.trait);
@@ -142,13 +157,13 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
 
         const efficacyValues = [];
         const effortValues = [];
-        fakeData.responses.forEach((response) => {
+        teamResponses.forEach((response) => {
           for (let i = 0; i < 5; i += 1) {
             const statementIndex = traitIndex * 5 + i;
-            const rating = response?.ratings?.[statementIndex];
+            const rating = response?.ratings?.[statementIndex] || response?.ratings?.[String(statementIndex)];
             if (rating) {
-              efficacyValues.push(Number(rating?.efficacy || 0));
-              effortValues.push(Number(rating?.effort || 0));
+              efficacyValues.push(normalizeDashboardScore(rating?.efficacy));
+              effortValues.push(normalizeDashboardScore(rating?.effort));
             }
           }
         });
@@ -174,12 +189,49 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
         };
       })
       .filter(Boolean);
-  }, [plans]);
+  }, [campaignRows, plans, teamResponses]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadDashboardContext = async () => {
+      try {
+        const nextCampaignRows = getDashboardCampaignRows();
+        if (active && nextCampaignRows.length) {
+          setCampaignRows(nextCampaignRows);
+        }
+
+        const records = parseDashboardJson(localStorage.getItem('campaignRecords'), {});
+        const teamCampaignId = String(records?.teamCampaignId || '').trim();
+        const ownerUid = auth?.currentUser?.uid || null;
+        if (!teamCampaignId || !ownerUid) {
+          if (active) setTeamResponses(useFakeDashboardData ? fakeData.responses : []);
+          return;
+        }
+
+        const teamSnap = await getDocs(
+          query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId), where('ownerUid', '==', ownerUid))
+        );
+        const nextResponses = teamSnap.docs.map((docSnap) => docSnap.data()).filter((entry) => entry?.ratings);
+        if (active) {
+          setTeamResponses(nextResponses.length ? nextResponses : (useFakeDashboardData ? fakeData.responses : []));
+        }
+      } catch (error) {
+        console.error('Failed to load action-plan campaign context:', error);
+        if (active) setTeamResponses(useFakeDashboardData ? fakeData.responses : []);
+      }
+    };
+
+    loadDashboardContext();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     try {
       const byCampaign = parseJson(localStorage.getItem('actionPlansByCampaign'), {});
-      const savedForUser = byCampaign?.[CURRENT_CAMPAIGN_ID]?.[userKey]?.plans;
+      const savedForUser = byCampaign?.[currentCampaignId]?.[userKey]?.plans;
       if (savedForUser && typeof savedForUser === 'object') {
         setPlans(savedForUser);
         return;
@@ -203,7 +255,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     } catch (error) {
       console.error('Failed to load action plans:', error);
     }
-  }, [userKey]);
+  }, [currentCampaignId, userKey]);
 
   useEffect(() => {
     if (!selectedTraitKey && traitRows.length) {
@@ -236,6 +288,20 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
 
   const guidedAnswers = activePlan.guidedAnswers && typeof activePlan.guidedAnswers === 'object' ? activePlan.guidedAnswers : {};
   const activeJourneyItems = activeRow ? buildJourneyItems(activePlan, guide.guidedSteps) : [];
+  const currentEfficacyScore = activeRow ? clampGoalScore(toPercent(activeRow.efficacy)) : 0;
+  const currentEffortScore = activeRow ? clampGoalScore(toPercent(activeRow.effort)) : 0;
+  const currentOverallScore = activeRow ? clampGoalScore(toPercent(activeRow.compassScore)) : 0;
+  const targetEfficacyScore = clampGoalScore(
+    guidedAnswers.goalEfficacy == null || guidedAnswers.goalEfficacy === ''
+      ? currentEfficacyScore
+      : guidedAnswers.goalEfficacy
+  );
+  const targetEffortScore = clampGoalScore(
+    guidedAnswers.goalEffort == null || guidedAnswers.goalEffort === ''
+      ? currentEffortScore
+      : guidedAnswers.goalEffort
+  );
+  const targetOverallScore = clampGoalScore(((targetEfficacyScore * 2) + targetEffortScore) / 3);
 
   const updatePlan = (traitId, subTraitId, updates) => {
     setPlans((prev) => ({
@@ -254,10 +320,11 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
 
   const setGuidedAnswer = (stepId, value) => {
     if (!activeRow) return;
-    const next = { ...guidedAnswers, [stepId]: value };
+    const normalizedValue = ['goalEffort', 'goalEfficacy'].includes(stepId) ? clampGoalScore(value) : value;
+    const next = { ...guidedAnswers, [stepId]: normalizedValue };
     const updates = { guidedAnswers: next };
     if (stepId === 'commitment' || stepId === 'behaviorCommitment') {
-      updates.commitment = trimText(value);
+      updates.commitment = trimText(normalizedValue);
     }
     updatePlan(activeRow.trait.id, activeRow.subTrait.id, updates);
   };
@@ -278,7 +345,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
         Object.entries(merged.guidedAnswers || {}).forEach(([k, v]) => {
           const t = ['goalEffort', 'goalEfficacy'].includes(k) ? Number(v || 0) : trimText(v);
           if (['goalEffort', 'goalEfficacy'].includes(k)) {
-            if (Number.isFinite(t) && t >= 1 && t <= 10) ga[k] = t;
+            if (Number.isFinite(t) && t >= 0 && t <= 100) ga[k] = Math.round(t);
             return;
           }
           if (t) ga[k] = t;
@@ -300,8 +367,8 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     });
 
     const all = parseJson(localStorage.getItem('actionPlansByCampaign'), {});
-    if (!all[CURRENT_CAMPAIGN_ID]) all[CURRENT_CAMPAIGN_ID] = {};
-    all[CURRENT_CAMPAIGN_ID][userKey] = {
+    if (!all[currentCampaignId]) all[currentCampaignId] = {};
+    all[currentCampaignId][userKey] = {
       user: { name: userInfo?.name || '', email: userInfo?.email || '' },
       selectedAgent,
       planVersion: 'staging-v5',
@@ -341,6 +408,27 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
       >
         <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', color: 'text.secondary' }}>
           No focus areas are ready for action planning yet.
+        </Typography>
+      </Paper>
+    );
+  }
+
+  if (!teamCampaignClosed) {
+    return (
+      <Paper
+        sx={{
+          p: 3,
+          borderRadius: 1,
+          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,248,253,0.9))',
+          textAlign: 'center',
+        }}
+      >
+        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.08rem', fontWeight: 700, color: 'text.primary', mb: 0.8 }}>
+          Planning opens after survey close
+        </Typography>
+        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', color: 'text.secondary', lineHeight: 1.6 }}>
+          Keep the Trailhead survey open while responses come in. Once you close it from the Growth Campaign dashboard, Compass will unlock the action-planning flow.
         </Typography>
       </Paper>
     );
@@ -410,10 +498,10 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                   </Typography>
                 </Stack>
 
-                <Stack direction={{ xs: 'row', md: 'column' }} spacing={1} sx={{ minWidth: { xs: '100%', md: 186 } }}>
+                <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', md: 'auto' }, minWidth: { xs: '100%', md: 560 } }}>
                   <Paper
                     sx={{
-                      p: 1.2,
+                      p: 1.35,
                       borderRadius: 1,
                       border: '1px solid rgba(69,112,137,0.22)',
                       bgcolor: 'rgba(69,112,137,0.06)',
@@ -424,13 +512,13 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em' }}>
                       TEAM EFFICACY
                     </Typography>
-                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.18rem', fontWeight: 800, color: '#13263A' }}>
-                      {activeRow.efficacy.toFixed(1)}
+                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
+                      {currentEfficacyScore}
                     </Typography>
                   </Paper>
                   <Paper
                     sx={{
-                      p: 1.2,
+                      p: 1.35,
                       borderRadius: 1,
                       border: '1px solid rgba(224,122,63,0.24)',
                       bgcolor: 'rgba(224,122,63,0.06)',
@@ -441,8 +529,25 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.08em' }}>
                       TEAM EFFORT
                     </Typography>
-                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.18rem', fontWeight: 800, color: '#13263A' }}>
-                      {activeRow.effort.toFixed(1)}
+                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
+                      {currentEffortScore}
+                    </Typography>
+                  </Paper>
+                  <Paper
+                    sx={{
+                      p: 1.35,
+                      borderRadius: 1,
+                      border: '1px solid rgba(19,38,58,0.18)',
+                      bgcolor: 'rgba(19,38,58,0.04)',
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.08em' }}>
+                      OVERALL SCORE
+                    </Typography>
+                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
+                      {currentOverallScore}
                     </Typography>
                   </Paper>
                 </Stack>
@@ -520,54 +625,115 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                       {promptSet[0].helper}
                     </Typography>
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.6}>
-                      <Paper sx={{ flex: 1, p: 1.3, borderRadius: 1, border: '1px solid rgba(69,112,137,0.16)', bgcolor: 'rgba(69,112,137,0.04)' }}>
+                      <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(69,112,137,0.16)', bgcolor: 'rgba(69,112,137,0.04)' }}>
                         <Stack spacing={0.9}>
                           <Stack direction="row" justifyContent="space-between" alignItems="baseline">
                             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', letterSpacing: '0.06em' }}>
                               TARGET EFFICACY
                             </Typography>
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
-                              {Number(guidedAnswers.goalEfficacy || Math.max(1, Math.round(activeRow.efficacy))).toFixed(0)}
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
+                              current {currentEfficacyScore}
                             </Typography>
                           </Stack>
-                          <Slider
-                            min={1}
-                            max={10}
-                            step={1}
-                            marks={SCORE_MARKS}
-                            value={Number(guidedAnswers.goalEfficacy || Math.max(1, Math.round(activeRow.efficacy)))}
-                            onChange={(_, value) => setGuidedAnswer('goalEfficacy', Array.isArray(value) ? value[0] : value)}
-                            valueLabelDisplay="auto"
-                            sx={{
-                              color: '#457089',
-                              '& .MuiSlider-markLabel': { fontSize: '0.68rem' },
-                            }}
-                          />
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <IconButton
+                              onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)}
+                              sx={{ border: '1px solid rgba(69,112,137,0.18)' }}
+                            >
+                              <Remove fontSize="small" />
+                            </IconButton>
+                            <TextField
+                              value={targetEfficacyScore}
+                              onChange={(event) => setGuidedAnswer('goalEfficacy', event.target.value)}
+                              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
+                              sx={{
+                                width: 92,
+                                '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
+                                '& input': {
+                                  fontFamily: 'Montserrat, sans-serif',
+                                  fontSize: '1.08rem',
+                                  fontWeight: 800,
+                                  color: '#13263A',
+                                  textAlign: 'center',
+                                },
+                              }}
+                            />
+                            <IconButton
+                              onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)}
+                              sx={{ border: '1px solid rgba(69,112,137,0.18)' }}
+                            >
+                              <Add fontSize="small" />
+                            </IconButton>
+                          </Stack>
                         </Stack>
                       </Paper>
-                      <Paper sx={{ flex: 1, p: 1.3, borderRadius: 1, border: '1px solid rgba(224,122,63,0.18)', bgcolor: 'rgba(224,122,63,0.04)' }}>
+                      <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(224,122,63,0.18)', bgcolor: 'rgba(224,122,63,0.04)' }}>
                         <Stack spacing={0.9}>
                           <Stack direction="row" justifyContent="space-between" alignItems="baseline">
                             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.06em' }}>
                               TARGET EFFORT
                             </Typography>
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
-                              {Number(guidedAnswers.goalEffort || Math.max(1, Math.round(activeRow.effort))).toFixed(0)}
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
+                              current {currentEffortScore}
                             </Typography>
                           </Stack>
-                          <Slider
-                            min={1}
-                            max={10}
-                            step={1}
-                            marks={SCORE_MARKS}
-                            value={Number(guidedAnswers.goalEffort || Math.max(1, Math.round(activeRow.effort)))}
-                            onChange={(_, value) => setGuidedAnswer('goalEffort', Array.isArray(value) ? value[0] : value)}
-                            valueLabelDisplay="auto"
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <IconButton
+                              onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)}
+                              sx={{ border: '1px solid rgba(224,122,63,0.18)' }}
+                            >
+                              <Remove fontSize="small" />
+                            </IconButton>
+                            <TextField
+                              value={targetEffortScore}
+                              onChange={(event) => setGuidedAnswer('goalEffort', event.target.value)}
+                              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
+                              sx={{
+                                width: 92,
+                                '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
+                                '& input': {
+                                  fontFamily: 'Montserrat, sans-serif',
+                                  fontSize: '1.08rem',
+                                  fontWeight: 800,
+                                  color: '#13263A',
+                                  textAlign: 'center',
+                                },
+                              }}
+                            />
+                            <IconButton
+                              onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)}
+                              sx={{ border: '1px solid rgba(224,122,63,0.18)' }}
+                            >
+                              <Add fontSize="small" />
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                      </Paper>
+                      <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(19,38,58,0.14)', bgcolor: 'rgba(19,38,58,0.04)' }}>
+                        <Stack spacing={0.9}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.06em' }}>
+                              OVERALL TRAIT GOAL
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
+                              auto
+                            </Typography>
+                          </Stack>
+                          <Paper
+                            variant="outlined"
                             sx={{
-                              color: '#E07A3F',
-                              '& .MuiSlider-markLabel': { fontSize: '0.68rem' },
+                              px: 1.2,
+                              py: 1.15,
+                              borderRadius: 1,
+                              bgcolor: 'rgba(255,255,255,0.96)',
+                              borderColor: 'rgba(19,38,58,0.14)',
+                              textAlign: 'center',
                             }}
-                          />
+                          >
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.12rem', fontWeight: 800, color: '#13263A' }}>
+                              {targetOverallScore}
+                            </Typography>
+                          </Paper>
                         </Stack>
                       </Paper>
                     </Stack>

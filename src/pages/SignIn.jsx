@@ -27,6 +27,7 @@ function SignIn() {
           key === 'campaignRecords'
           || key === 'currentCampaign'
           || key === 'selfCampaignCompleted'
+          || key === 'teamCampaignCompleted'
           || key.startsWith('selfCampaignCompleted_')
           || key.startsWith('teamCampaignAccess_')
           || /^campaign_[^/]+$/.test(key)
@@ -39,6 +40,7 @@ function SignIn() {
       localStorage.removeItem('campaignRecords');
       localStorage.removeItem('currentCampaign');
       localStorage.removeItem('selfCampaignCompleted');
+      localStorage.removeItem('teamCampaignCompleted');
     }
   };
 
@@ -102,9 +104,11 @@ function SignIn() {
         localStorage.setItem(`selfCampaignCompleted_${records.selfCampaignId}`, selfDone ? 'true' : 'false');
         localStorage.setItem('selfCampaignCompleted', selfDone ? 'true' : 'false');
       }
+      localStorage.setItem('teamCampaignCompleted', String(Boolean(records?.teamCampaignClosed)));
     } else {
       localStorage.removeItem('campaignRecords');
       localStorage.removeItem('selfCampaignCompleted');
+      localStorage.removeItem('teamCampaignCompleted');
     }
     if (Array.isArray(campaignBundle?.currentCampaign)) {
       localStorage.setItem('currentCampaign', JSON.stringify(campaignBundle.currentCampaign));
@@ -160,45 +164,19 @@ function SignIn() {
 
       try {
         if (signedInUser?.uid) {
-          let hydrated = false;
-          try {
-            const idToken = await signedInUser.getIdToken();
-            const response = await fetch('/api/get-user-journey', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${idToken}`,
-              },
-              body: JSON.stringify({ uid: signedInUser.uid }),
+          const responseSnap = await getDoc(doc(db, 'responses', signedInUser.uid));
+          if (responseSnap.exists()) {
+            hydrateJourneyState(responseSnap.data() || {}, (nextName) => {
+              syncedName = nextName;
             });
-            if (response.ok) {
-              const payload = await response.json().catch(() => ({}));
-              if (payload?.journey && typeof payload.journey === 'object') {
-                hydrateJourneyState(payload.journey, (nextName) => {
-                  syncedName = nextName;
-                });
-                hydrated = true;
-              }
-            }
-          } catch (serverSyncError) {
-            console.warn('Server-side journey sync failed, falling back to Firestore client read:', serverSyncError);
-          }
-
-          if (!hydrated) {
-            const responseSnap = await getDoc(doc(db, 'responses', signedInUser.uid));
-            if (responseSnap.exists()) {
-              hydrateJourneyState(responseSnap.data() || {}, (nextName) => {
-                syncedName = nextName;
-              });
-            } else {
-              localStorage.removeItem('intakeDraft');
-              localStorage.removeItem('intakeStatus');
-              localStorage.removeItem('latestFormData');
-              localStorage.removeItem('aiSummary');
-              localStorage.removeItem('summarySavedAt');
-              localStorage.removeItem('focusAreas');
-              clearLocalCampaignState();
-            }
+          } else {
+            localStorage.removeItem('intakeDraft');
+            localStorage.removeItem('intakeStatus');
+            localStorage.removeItem('latestFormData');
+            localStorage.removeItem('aiSummary');
+            localStorage.removeItem('summarySavedAt');
+            localStorage.removeItem('focusAreas');
+            clearLocalCampaignState();
           }
         }
       } catch (syncError) {

@@ -1,5 +1,34 @@
 const normalizeUrl = (value) => String(value || '').trim().replace(/\/+$/, '');
 
+function coerceSignInUrl(candidate, fallbackBase = '') {
+  const normalizedCandidate = normalizeUrl(candidate);
+  const normalizedBase = normalizeUrl(fallbackBase);
+  const fallbackUrl = normalizedBase ? `${normalizedBase}/sign-in` : '/sign-in';
+
+  if (!normalizedCandidate) return fallbackUrl;
+
+  try {
+    const parsed = normalizedCandidate.startsWith('http')
+      ? new URL(normalizedCandidate)
+      : new URL(normalizedCandidate, normalizedBase || 'https://compass.local');
+
+    if (parsed.pathname === '/user-info') {
+      parsed.pathname = '/sign-in';
+      parsed.search = '';
+      parsed.hash = '';
+      return parsed.origin === 'https://compass.local'
+        ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+        : normalizeUrl(parsed.toString());
+    }
+
+    return parsed.origin === 'https://compass.local'
+      ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+      : normalizeUrl(parsed.toString());
+  } catch {
+    return fallbackUrl;
+  }
+}
+
 export function getCompassBaseUrl() {
   const envBase = normalizeUrl(import.meta.env.VITE_APP_BASE_URL);
   if (envBase) return envBase;
@@ -12,11 +41,8 @@ export function getCompassBaseUrl() {
 }
 
 export function getCompassSignInUrl() {
-  const envSignIn = normalizeUrl(import.meta.env.VITE_APP_SIGN_IN_URL);
-  if (envSignIn) return envSignIn;
-
   const baseUrl = getCompassBaseUrl();
-  return baseUrl ? `${baseUrl}/sign-in` : '/sign-in';
+  return coerceSignInUrl(import.meta.env.VITE_APP_SIGN_IN_URL, baseUrl);
 }
 
 export function buildPasswordResetActionSettings(email = '') {

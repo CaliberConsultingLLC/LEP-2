@@ -33,3 +33,4 @@ serviceAccountKey.json
 # .vercel  (commented out for now to test)
 !api/
 .vercel
+.env*.local

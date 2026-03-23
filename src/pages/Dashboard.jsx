@@ -20,12 +20,10 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import ResultsTab from './Dashboard/ResultsTab';
-import ActionTab from './Dashboard/ActionTab';
 import ActionTabStaging from './Dashboard/ActionTabStaging';
 import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { useFakeDashboardData } from '../config/runtimeFlags';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -41,12 +39,6 @@ function Dashboard() {
     }
   });
   const CONTENT_MAX_WIDTH = 1180;
-  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
-  const useStagingActionPlan =
-    import.meta.env.DEV
-    || stagingHost.includes('staging.northstarpartners.org')
-    || stagingHost.includes('compass-staging')
-    || stagingHost.endsWith('.vercel.app');
   const agentOptions = [
     { id: 'balancedMentor', name: 'Balanced Mentor' },
     { id: 'comedyRoaster', name: 'Comedy Roaster' },
@@ -72,48 +64,6 @@ function Dashboard() {
       );
     }
   };
-
-  if (!useFakeDashboardData) {
-    return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          width: '100vw',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundImage: 'linear-gradient(rgba(8, 14, 26, 0.58), rgba(8, 14, 26, 0.58)), url(/LEP2.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          p: 3,
-        }}
-      >
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: 760,
-            p: 3,
-            borderRadius: 3,
-            border: '1px solid rgba(255,255,255,0.22)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(240,246,255,0.9))',
-            boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
-            textAlign: 'center',
-          }}
-        >
-          <Typography sx={{ fontSize: { xs: '1.4rem', md: '1.7rem' }, fontWeight: 800, mb: 1.1 }}>
-            Real Dashboard Mode
-          </Typography>
-          <Typography sx={{ color: 'text.secondary', lineHeight: 1.6, mb: 2 }}>
-            Fake dashboard data is disabled in this environment. Use the staging environment for mock data and dev skips while we finish wiring production dashboard views to live user-specific data.
-          </Typography>
-          <Button variant="contained" onClick={() => navigate('/')}>
-            Return Home
-          </Button>
-        </Box>
-      </Box>
-    );
-  }
 
   const navItems = [
     {
@@ -423,9 +373,7 @@ function Dashboard() {
                 {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
                 {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
                 {currentTab === 3 && (
-                  useStagingActionPlan
-                    ? <ActionTabStaging selectedAgent={selectedAgent} onOpenJourney={() => setCurrentTab(4)} />
-                    : <ActionTab />
+            <ActionTabStaging selectedAgent={selectedAgent} onOpenJourney={() => setCurrentTab(4)} />
                 )}
                 {currentTab === 4 && <JourneyTab />}
               </Box>

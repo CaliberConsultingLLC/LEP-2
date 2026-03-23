@@ -74,6 +74,33 @@ function normalizeBaseUrl(input) {
   return value.replace(/\/+$/, '');
 }
 
+function resolveSignInUrl(candidate, fallbackBase) {
+  const fallbackUrl = fallbackBase ? `${fallbackBase}/sign-in` : '/sign-in';
+  const value = normalizeBaseUrl(candidate);
+  if (!value) return fallbackUrl;
+
+  try {
+    const parsed = value.startsWith('http')
+      ? new URL(value)
+      : new URL(value, fallbackBase || 'https://compass.local');
+
+    if (parsed.pathname === '/user-info') {
+      parsed.pathname = '/sign-in';
+      parsed.search = '';
+      parsed.hash = '';
+      return parsed.origin === 'https://compass.local'
+        ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+        : normalizeBaseUrl(parsed.toString());
+    }
+
+    return parsed.origin === 'https://compass.local'
+      ? `${parsed.pathname}${parsed.search}${parsed.hash}`
+      : normalizeBaseUrl(parsed.toString());
+  } catch {
+    return fallbackUrl;
+  }
+}
+
 async function sendPostmarkEmail(payload, token, maxAttempts = 2) {
   let lastResponse = null;
   let lastError = null;
@@ -179,7 +206,7 @@ export default async function handler(req, res) {
     const originBase = normalizeBaseUrl(req.headers.origin);
     const envBase = normalizeBaseUrl(process.env.APP_BASE_URL);
     const resolvedBaseUrl = originBase || envBase || 'https://YOUR_DOMAIN';
-    const signInUrl = process.env.APP_SIGN_IN_URL || `${resolvedBaseUrl}/sign-in`;
+    const signInUrl = resolveSignInUrl(process.env.APP_SIGN_IN_URL, resolvedBaseUrl);
     const forgotPasswordUrl = process.env.APP_FORGOT_PASSWORD_URL
       || `${resolvedBaseUrl}/sign-in?reset=1&email=${encodeURIComponent(requestEmail)}`;
 

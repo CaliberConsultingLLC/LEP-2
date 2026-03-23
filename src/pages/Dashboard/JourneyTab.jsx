@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -29,6 +29,11 @@ import {
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
 import traitSystem from '../../data/traitSystem.js';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
+import { useFakeDashboardData } from '../../config/runtimeFlags';
+import { getDashboardCampaignRows, normalizeDashboardScore } from '../../utils/dashboardData.js';
 const { CORE_TRAITS } = traitSystem;
 const JOURNEY_MAP_SRC = '/map.jpg';
 
@@ -50,6 +55,20 @@ function JourneyTab() {
   const [secondNodeExpanded, setSecondNodeExpanded] = useState(false);
   const svgRef = useRef(null);
   const containerRef = useRef(null);
+  const useDemoJourney = useFakeDashboardData;
+  const campaignRecords = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+    } catch {
+      return {};
+    }
+  }, []);
+  const liveCampaignId = String(campaignRecords?.teamCampaignId || '').trim();
+  const teamCampaignClosed = useMemo(() => {
+    return useDemoJourney || String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
+  }, [campaignRecords, useDemoJourney]);
+  const liveCampaignRows = useMemo(() => getDashboardCampaignRows(), []);
+  const [liveResponses, setLiveResponses] = useState([]);
 
   // Load action plans
   useEffect(() => {
@@ -57,11 +76,15 @@ function JourneyTab() {
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
       const userKey = userInfo?.email || userInfo?.name || 'anonymous';
       const byCampaign = JSON.parse(localStorage.getItem('actionPlansByCampaign') || '{}');
-      const campaignPlansById = {
-        '123': byCampaign?.['123']?.[userKey]?.plans || {},
-        '124': byCampaign?.['124']?.[userKey]?.plans || {},
-        '125': byCampaign?.['125']?.[userKey]?.plans || {},
-      };
+      const campaignPlansById = useDemoJourney
+        ? {
+            '123': byCampaign?.['123']?.[userKey]?.plans || {},
+            '124': byCampaign?.['124']?.[userKey]?.plans || {},
+            '125': byCampaign?.['125']?.[userKey]?.plans || {},
+          }
+        : {
+            [liveCampaignId || 'current']: byCampaign?.[liveCampaignId || 'current']?.[userKey]?.plans || {},
+          };
       const flat = [];
       Object.entries(campaignPlansById).forEach(([campaignId, campaignPlans]) => {
         Object.entries(campaignPlans || {}).forEach(([traitId, subtraits]) => {
@@ -82,31 +105,81 @@ function JourneyTab() {
     } catch (e) {
       console.error('Failed to parse action plans:', e);
     }
-  }, []);
+  }, [liveCampaignId, useDemoJourney]);
 
   useEffect(() => {
     setActionPanelOpen(false);
   }, [selectedNode]);
 
+  useEffect(() => {
+    if (useDemoJourney) return;
+    let active = true;
+
+    const loadLiveResponses = async () => {
+      try {
+        if (!liveCampaignId) {
+          if (active) setLiveResponses([]);
+          return;
+        }
+
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (!user?.uid) {
+            if (active) setLiveResponses([]);
+            return;
+          }
+
+          try {
+            const snap = await getDocs(
+              query(collection(db, 'surveyResponses'), where('campaignId', '==', liveCampaignId), where('ownerUid', '==', user.uid))
+            );
+            if (active) {
+              setLiveResponses(snap.docs.map((docSnap) => docSnap.data()).filter((entry) => entry?.ratings));
+            }
+          } catch (error) {
+            console.error('Failed to load journey responses:', error);
+            if (active) setLiveResponses([]);
+          }
+        });
+
+        return unsubscribe;
+      } catch (error) {
+        console.error('Failed to bootstrap journey responses:', error);
+        if (active) setLiveResponses([]);
+        return null;
+      }
+    };
+
+    let unsubscribe = null;
+    loadLiveResponses().then((cleanup) => {
+      unsubscribe = cleanup;
+    });
+
+    return () => {
+      active = false;
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, [liveCampaignId, useDemoJourney]);
+
   // Calculate subtrait data for campaign 123 and 124
-  const calculateSubTraitData = (campaignId) => {
+  const calculateSubTraitData = (campaign, responses) => {
     const calculatedSubTraitData = [];
-    const campaign = fakeCampaign[`campaign_${campaignId}`].campaign;
-    const responses = fakeData.responses.filter(r => r.campaignId === String(campaignId));
+    const safeCampaign = Array.isArray(campaign) ? campaign : [];
+    const safeResponses = Array.isArray(responses) ? responses : [];
 
     // Each subtrait has 5 questions: Clarity (0-4), Decision Quality (5-9), Prioritization (10-14)
-    campaign.forEach((item, subtraitIndex) => {
+    safeCampaign.forEach((item, subtraitIndex) => {
       const subTraitRatings = { efficacy: [], effort: [] };
       
       // Each subtrait uses all 5 of its questions
       const startIndex = subtraitIndex * 5; // 0, 5, or 10
       
-      responses.forEach(response => {
+      safeResponses.forEach(response => {
         for (let i = 0; i < 5; i++) {
           const statementIndex = startIndex + i;
-          if (response.ratings[statementIndex]) {
-            subTraitRatings.efficacy.push(response.ratings[statementIndex].efficacy);
-            subTraitRatings.effort.push(response.ratings[statementIndex].effort);
+          const rating = response?.ratings?.[statementIndex] || response?.ratings?.[String(statementIndex)];
+          if (rating) {
+            subTraitRatings.efficacy.push(normalizeDashboardScore(rating?.efficacy));
+            subTraitRatings.effort.push(normalizeDashboardScore(rating?.effort));
           }
         }
       });
@@ -130,10 +203,17 @@ function JourneyTab() {
   };
 
   useEffect(() => {
-    setSubTraitData(calculateSubTraitData(123));
-    setSubTraitData124(calculateSubTraitData(124));
-    setSubTraitData125(calculateSubTraitData(125));
-  }, []);
+    if (useDemoJourney) {
+      setSubTraitData(calculateSubTraitData(fakeCampaign.campaign_123?.campaign || [], fakeData.responses.filter(r => r.campaignId === '123')));
+      setSubTraitData124(calculateSubTraitData(fakeCampaign.campaign_124?.campaign || [], fakeData.responses.filter(r => r.campaignId === '124')));
+      setSubTraitData125(calculateSubTraitData(fakeCampaign.campaign_125?.campaign || [], fakeData.responses.filter(r => r.campaignId === '125')));
+      return;
+    }
+
+    setSubTraitData(calculateSubTraitData(liveCampaignRows, liveResponses));
+    setSubTraitData124([]);
+    setSubTraitData125([]);
+  }, [liveCampaignRows, liveResponses, useDemoJourney]);
 
   // Calculate overall Compass score from subtrait scores
   const overallCompassScore = subTraitData.length > 0
@@ -155,6 +235,11 @@ function JourneyTab() {
   };
 
   const journeyProgress = (() => {
+    if (!useDemoJourney) {
+      if (!liveCampaignId) return { trailhead: 'incomplete', checkin: 'incomplete', summit: 'incomplete' };
+      if (!subTraitData.length) return { trailhead: 'incomplete', checkin: 'incomplete', summit: 'incomplete' };
+      return { trailhead: 'in_progress', checkin: 'incomplete', summit: 'incomplete' };
+    }
     try {
       const raw = localStorage.getItem('mockJourneyProgress');
       if (!raw) return { trailhead: 'complete', checkin: 'complete', summit: 'in_progress' };
@@ -183,30 +268,32 @@ function JourneyTab() {
       compassScore: overallCompassScore,
     });
 
-    // Check-in point
-    newNodes.push({
-      id: 'checkin',
-      x: 59,
-      y: 70,
-      type: 'checkin',
-      status: journeyProgress.checkin,
-      campaignId: 124,
-      compassScore: overallCompassScore124,
-    });
+    if (useDemoJourney) {
+      // Check-in point
+      newNodes.push({
+        id: 'checkin',
+        x: 59,
+        y: 70,
+        type: 'checkin',
+        status: journeyProgress.checkin,
+        campaignId: 124,
+        compassScore: overallCompassScore124,
+      });
 
-    // Summit
-    newNodes.push({
-      id: 'summit',
-      x: 78,
-      y: 28,
-      type: 'summit',
-      status: journeyProgress.summit,
-      campaignId: 125,
-      compassScore: overallCompassScore125,
-    });
+      // Summit
+      newNodes.push({
+        id: 'summit',
+        x: 78,
+        y: 28,
+        type: 'summit',
+        status: journeyProgress.summit,
+        campaignId: 125,
+        compassScore: overallCompassScore125,
+      });
+    }
 
     setNodes(newNodes);
-  }, [overallCompassScore, overallCompassScore124, overallCompassScore125, journeyProgress.trailhead, journeyProgress.checkin, journeyProgress.summit]);
+  }, [overallCompassScore, overallCompassScore124, overallCompassScore125, journeyProgress.trailhead, journeyProgress.checkin, journeyProgress.summit, useDemoJourney]);
 
   const toggleNode = (nodeId) => {
     setSelectedNode(nodeId);
@@ -226,7 +313,7 @@ function JourneyTab() {
     return '#E07A3F'; // orange
   };
 
-  const hasActionPlanForSubTrait = (subTraitName, traitName, campaignId = '123') => {
+  const hasActionPlanForSubTrait = (subTraitName, traitName, campaignId = liveCampaignId || '123') => {
     const trait = CORE_TRAITS.find((t) => String(t.name || '').toLowerCase() === String(traitName || '').toLowerCase());
     const subTrait = trait?.subTraits?.find((st) => String(st.name || '').toLowerCase() === String(subTraitName || '').toLowerCase());
     if (!trait || !subTrait) return false;
@@ -250,6 +337,17 @@ function JourneyTab() {
   };
 
   const panelModel = (() => {
+    if (!useDemoJourney) {
+      return {
+        id: 'trailhead',
+        title: 'Trailhead Campaign',
+        subtitle: liveCampaignId ? `Current campaign • ${liveCampaignId}` : 'Current campaign',
+        campaignId: liveCampaignId || 'current',
+        status: journeyProgress.trailhead,
+        current: subTraitData,
+        baseline: [],
+      };
+    }
     if (selectedNode === 'checkin') {
       return {
         id: 'checkin',
@@ -333,6 +431,28 @@ function JourneyTab() {
       URL.revokeObjectURL(url);
     });
   };
+
+  if (!teamCampaignClosed) {
+    return (
+      <Paper
+        sx={{
+          p: 3,
+          borderRadius: 2.2,
+          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(241,246,255,0.86))',
+          boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+          textAlign: 'center',
+        }}
+      >
+        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.35rem', fontWeight: 700, mb: 0.9, color: 'text.primary' }}>
+          Journey view opens after survey close
+        </Typography>
+        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', color: 'text.secondary', lineHeight: 1.65, maxWidth: 760, mx: 'auto' }}>
+          Keep collecting team responses first. Once the Trailhead survey is closed, Compass will unlock the results journey and action-tracking views.
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Stack spacing={4}>

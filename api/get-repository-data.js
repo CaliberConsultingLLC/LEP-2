@@ -5,6 +5,10 @@ function getRepositorySessionToken() {
   return process.env.REPOSITORY_SESSION_TOKEN || 'compass-repository-session-v1';
 }
 
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
 function toIsoString(value) {
   if (!value) return '';
   if (typeof value === 'string') return value;

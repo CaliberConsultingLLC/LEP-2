@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Stack, Button, Paper, Grid } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
@@ -11,6 +11,7 @@ function NewCampaignIntro() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [campaignData, setCampaignData] = useState(null);
+  const [campaignPassword, setCampaignPassword] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('what');
@@ -48,6 +49,7 @@ function NewCampaignIntro() {
 
         const localCampaignDocs = parseJson(localStorage.getItem('localCampaignDocs'), {});
         if (localCampaignDocs && localCampaignDocs[id]) {
+          setCampaignPassword(String(localCampaignDocs[id]?.password || ''));
           const normalizedLocal = {
             ...localCampaignDocs[id],
             campaign: normalizeCampaignItems(localCampaignDocs[id]?.campaign),
@@ -64,33 +66,19 @@ function NewCampaignIntro() {
           const docSnap = await getDoc(docRef);
           if (isMounted && docSnap.exists()) {
             const payload = docSnap.data() || {};
+            setCampaignPassword(String(payload?.password || ''));
             setCampaignData({
               ...payload,
+              password: undefined,
               campaign: normalizeCampaignItems(payload?.campaign),
             });
             loaded = true;
           }
         } catch (firestoreError) {
-          console.warn('Campaign Firestore read failed, trying anonymous intro path:', firestoreError);
+          console.warn('Campaign Firestore read failed:', firestoreError);
         }
 
         if (loaded || !isMounted) return;
-
-        const introResp = await fetch('/api/get-team-campaign-intro', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ campaignId: id }),
-        });
-        if (introResp.ok) {
-          const payload = await introResp.json();
-          if (isMounted) {
-            setCampaignData({
-              ...(payload?.campaign || { campaignType: 'team' }),
-              campaign: normalizeCampaignItems(payload?.campaign?.campaign),
-            });
-          }
-          return;
-        }
 
         if (isMounted) {
           alert('Campaign not found.');
@@ -147,27 +135,25 @@ function NewCampaignIntro() {
         const enteredPassword = prompt('Please enter the campaign password:');
         if (!enteredPassword) return;
 
-        const verifyResp = await fetch('/api/verify-team-campaign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ campaignId: id, password: enteredPassword }),
-        });
-        if (!verifyResp.ok) {
-          alert('Incorrect password. Please try again.');
+        if (!campaignPassword) {
+          alert('This campaign could not be verified right now. Please refresh and try again.');
           return;
         }
 
-        const payload = await verifyResp.json();
+        if (String(enteredPassword) !== String(campaignPassword)) {
+          alert('Incorrect password. Please try again.');
+          return;
+        }
         const normalizedCampaign = {
-          ...(payload?.campaign || {}),
-          campaign: normalizeCampaignItems(payload?.campaign?.campaign),
+          ...(campaignData || {}),
+          campaign: normalizeCampaignItems(campaignData?.campaign),
         };
         if (!isCampaignReady(normalizedCampaign.campaign)) {
           alert('Campaign is not ready yet. Please try again shortly.');
           return;
         }
         localStorage.setItem(`campaign_${id}`, JSON.stringify(normalizedCampaign));
-        localStorage.setItem(`teamCampaignAccess_${id}`, String(payload?.accessToken || ''));
+        localStorage.setItem(`teamCampaignAccess_${id}`, 'granted');
       } else {
         if (!hasUsableCampaign) {
           alert('Campaign is not ready yet. Please try again shortly.');
@@ -189,7 +175,27 @@ function NewCampaignIntro() {
   };
 
   const handleOptOut = () => {
-    navigate('/');
+    if (isSelfCampaign) {
+      navigate('/');
+      return;
+    }
+
+    addDoc(collection(db, 'surveyResponses'), {
+      campaignId: id,
+      campaignType: 'team',
+      ownerId: campaignData?.ownerId || null,
+      ownerUid: campaignData?.ownerUid || campaignData?.userInfo?.uid || null,
+      bundleId: campaignData?.bundleId || null,
+      optedOut: true,
+      accessMode: 'anonymous-opt-out',
+      submittedAt: new Date(),
+    })
+      .catch((error) => {
+        console.warn('Unable to record anonymous opt-out:', error);
+      })
+      .finally(() => {
+        navigate(`/campaign/${id}/complete`);
+      });
   };
 
 

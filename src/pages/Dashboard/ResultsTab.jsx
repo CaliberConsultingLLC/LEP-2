@@ -29,6 +29,13 @@ import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
 import { auth, db } from '../../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { useFakeDashboardData } from '../../config/runtimeFlags';
+import {
+  calculateCampaignTraitMetrics,
+  getDashboardCampaignRows,
+  normalizeDashboardScore,
+  parseDashboardJson,
+} from '../../utils/dashboardData.js';
 
 function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' }) {
   const [traitData, setTraitData] = useState({});
@@ -44,6 +51,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   const [selectedDetailTraitKey, setSelectedDetailTraitKey] = useState(null);
   const [selectedDetailRingIdx, setSelectedDetailRingIdx] = useState(0);
   const [benchmarkGapData, setBenchmarkGapData] = useState(null);
+  const [campaignRows, setCampaignRows] = useState(() => getDashboardCampaignRows());
   const [compassAgentInsight, setCompassAgentInsight] = useState('');
   const [detailAgentInsight, setDetailAgentInsight] = useState('');
   const [insightLoading, setInsightLoading] = useState({ compass: false, detailed: false });
@@ -52,6 +60,26 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   const insightTimersRef = useRef({ compass: null, detailed: null });
   const insightAbortRef = useRef({ compass: null, detailed: null });
   const insightsPreloadedRef = useRef(false);
+  const resolvedCampaignRows = useMemo(
+    () => (campaignRows.length ? campaignRows : (fakeCampaign['campaign_123']?.campaign || [])),
+    [campaignRows]
+  );
+  const primaryResponses = useMemo(() => {
+    if (benchmarkGapData?.teamResponses?.length) return benchmarkGapData.teamResponses;
+    return useFakeDashboardData ? fakeData.responses : [];
+  }, [benchmarkGapData]);
+  const confidenceContext = useMemo(() => {
+    if (benchmarkGapData?.teamResponses?.length) {
+      return `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`;
+    }
+    return useFakeDashboardData
+      ? `Synthetic response context: ${fakeData.responses.length} team responses.`
+      : 'Team response data is not available yet.';
+  }, [benchmarkGapData]);
+  const teamCampaignClosed = useMemo(() => {
+    const records = parseDashboardJson(localStorage.getItem('campaignRecords'), {});
+    return useFakeDashboardData || String(records?.teamCampaignClosed || '').toLowerCase() === 'true';
+  }, [useFakeDashboardData]);
 
   // Efficacy statement bank (3-5 words, no periods)
   const getEfficacyStatement = (efficacy) => {
@@ -424,18 +452,30 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     let active = true;
     const loadBenchmarkData = async () => {
       try {
-        const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+        const nextCampaignRows = getDashboardCampaignRows();
+        if (active && nextCampaignRows.length) {
+          setCampaignRows(nextCampaignRows);
+        }
+
+        const records = parseDashboardJson(localStorage.getItem('campaignRecords'), {});
         const teamCampaignId = records?.teamCampaignId;
         const selfCampaignId = records?.selfCampaignId;
         const ownerUid = auth?.currentUser?.uid || null;
-        if (!teamCampaignId || !selfCampaignId || !ownerUid) {
-          if (active) setBenchmarkGapData(null);
+        if (!teamCampaignId || !ownerUid) {
+          if (active) {
+            setBenchmarkGapData({
+              teamResponses: useFakeDashboardData ? fakeData.responses : [],
+              selfResponses: [],
+            });
+          }
           return;
         }
 
         const [teamSnap, selfSnap] = await Promise.all([
           getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId), where('ownerUid', '==', ownerUid))),
-          getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', selfCampaignId), where('ownerUid', '==', ownerUid))),
+          selfCampaignId
+            ? getDocs(query(collection(db, 'surveyResponses'), where('campaignId', '==', selfCampaignId), where('ownerUid', '==', ownerUid)))
+            : Promise.resolve({ docs: [] }),
         ]);
 
         const teamResponses = teamSnap.docs.map((d) => d.data()).filter((d) => d?.ratings);
@@ -443,13 +483,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
         if (active) {
           setBenchmarkGapData({
-            teamResponses,
+            teamResponses: teamResponses.length ? teamResponses : (useFakeDashboardData ? fakeData.responses : []),
             selfResponses,
           });
         }
       } catch (err) {
         console.error('Failed to load benchmark gap data:', err);
-        if (active) setBenchmarkGapData(null);
+        if (active) {
+          setBenchmarkGapData({
+            teamResponses: useFakeDashboardData ? fakeData.responses : [],
+            selfResponses: [],
+          });
+        }
       }
     };
 
@@ -461,76 +506,18 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
   // Calculate all metrics
   useEffect(() => {
-    const calculatedData = {};
-    const gaps = [];
-    const traits = fakeCampaign["campaign_123"].campaign;
+    if (!resolvedCampaignRows.length || !primaryResponses.length) {
+      setTraitData({});
+      setCriticalGaps([]);
+      setPrimaryOpportunity(null);
+      return;
+    }
 
-    traits.forEach((traitObj, traitIndex) => {
-      const traitRatings = { efficacy: [], effort: [] };
-      const statementData = [];
-      
-      fakeData.responses.forEach(response => {
-        for (let i = 0; i < 5; i++) {
-          const statementIndex = traitIndex * 5 + i;
-          if (response.ratings[statementIndex]) {
-            traitRatings.efficacy.push(response.ratings[statementIndex].efficacy);
-            traitRatings.effort.push(response.ratings[statementIndex].effort);
-          }
-        }
-      });
-
-      const avgEfficacy = traitRatings.efficacy.reduce((sum, val) => sum + val, 0) / traitRatings.efficacy.length;
-      const avgEffort = traitRatings.effort.reduce((sum, val) => sum + val, 0) / traitRatings.effort.length;
-      const delta = Math.abs(avgEffort - avgEfficacy);
-      const lepScore = (avgEfficacy * 2 + avgEffort) / 3;
-
-      // Calculate statement-level data
-      const statements = traitObj.statements.map((statement, idx) => {
-        const stmtIdx = traitIndex * 5 + idx;
-        const stmtEfficacy = fakeData.responses.map(r => r.ratings[stmtIdx]?.efficacy || 0);
-        const stmtEffort = fakeData.responses.map(r => r.ratings[stmtIdx]?.effort || 0);
-        const avgStmtEfficacy = stmtEfficacy.reduce((a, b) => a + b, 0) / stmtEfficacy.length;
-        const avgStmtEffort = stmtEffort.reduce((a, b) => a + b, 0) / stmtEffort.length;
-        const stmtDelta = Math.abs(avgStmtEffort - avgStmtEfficacy);
-
-        return {
-          text: statement,
-          efficacy: avgStmtEfficacy,
-          effort: avgStmtEffort,
-          delta: stmtDelta,
-          lepScore: (avgStmtEfficacy * 2 + avgStmtEffort) / 3,
-        };
-      });
-
-      calculatedData[traitObj.trait] = { 
-        efficacy: avgEfficacy, 
-        effort: avgEffort, 
-        delta,
-        lepScore,
-        statements,
-      };
-
-      // Identify critical gaps (delta > 30 or high effort/low efficacy)
-      if (delta > 30 || (avgEffort > 70 && avgEfficacy < 50)) {
-        gaps.push({
-          trait: traitObj.trait,
-          effort: avgEffort,
-          efficacy: avgEfficacy,
-          delta,
-          insight: avgEffort > avgEfficacy
-            ? 'High effort but low impactΓÇöconsider refining approach'
-            : 'High impact but low effortΓÇöopportunity to scale this strength',
-        });
-      }
-    });
-
-    setTraitData(calculatedData);
-
-    // Sort gaps by severity and set primary opportunity
-    const sortedGaps = gaps.sort((a, b) => b.delta - a.delta);
-    setCriticalGaps(sortedGaps);
-    setPrimaryOpportunity(sortedGaps[0] || null);
-  }, []);
+    const calculated = calculateCampaignTraitMetrics(resolvedCampaignRows, primaryResponses);
+    setTraitData(calculated.traitData);
+    setCriticalGaps(calculated.criticalGaps);
+    setPrimaryOpportunity(calculated.criticalGaps[0] || null);
+  }, [resolvedCampaignRows, primaryResponses]);
 
   const toggleTrait = (trait) => {
     setExpandedTraits(prev => ({
@@ -591,17 +578,17 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
   const selectedSubtraitLabel = useMemo(() => {
     if (!selectedTraitKey) return '';
-    const match = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === selectedTraitKey);
+    const match = resolvedCampaignRows.find((item) => item.trait === selectedTraitKey);
     return match?.subTrait || selectedTraitKey;
-  }, [selectedTraitKey]);
+  }, [resolvedCampaignRows, selectedTraitKey]);
 
   const getStatementIndexesForTrait = (traitKey) => {
-    const idx = fakeCampaign['campaign_123']?.campaign?.findIndex((item) => item.trait === traitKey);
+    const idx = resolvedCampaignRows.findIndex((item) => item.trait === traitKey);
     if (idx === -1 || idx == null) return [];
     return Array.from({ length: 5 }, (_, i) => idx * 5 + i);
   };
 
-  const toPercent = (value) => Number(value || 0) * 10;
+  const toPercent = (value) => normalizeDashboardScore(value);
   const averageMetricForIndexes = (responses, statementIndexes, metric) => {
     if (!Array.isArray(responses) || responses.length === 0 || statementIndexes.length === 0) return null;
     const values = [];
@@ -622,9 +609,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   }, [traitData, selectedDetailTraitKey]);
   const detailSubtraitLabel = useMemo(() => {
     if (!selectedDetailTraitKey) return '';
-    const match = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === selectedDetailTraitKey);
+    const match = resolvedCampaignRows.find((item) => item.trait === selectedDetailTraitKey);
     return match?.subTrait || selectedDetailTraitKey;
-  }, [selectedDetailTraitKey]);
+  }, [resolvedCampaignRows, selectedDetailTraitKey]);
   const detailStatements = useMemo(() => (detailTraitMetrics?.statements || []).slice(0, 5), [detailTraitMetrics]);
   const selectedDetailStatement = useMemo(
     () => detailStatements[selectedDetailRingIdx] || detailStatements[0] || null,
@@ -641,10 +628,10 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   );
 
   const selectedDetailStatementIndex = useMemo(() => {
-    const idx = fakeCampaign['campaign_123']?.campaign?.findIndex((item) => item.trait === selectedDetailTraitKey);
+    const idx = resolvedCampaignRows.findIndex((item) => item.trait === selectedDetailTraitKey);
     if (idx === -1 || idx == null) return null;
     return idx * 5 + selectedDetailRingIdx;
-  }, [selectedDetailTraitKey, selectedDetailRingIdx]);
+  }, [resolvedCampaignRows, selectedDetailTraitKey, selectedDetailRingIdx]);
 
   const detailEfficacyPerceptionGap = useMemo(() => {
     const fallback = (selectedDetailStatement?.efficacy ?? detailTraitMetrics?.efficacy ?? 0)
@@ -722,9 +709,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
         : 'Overall metrics unavailable.',
       cross_trait_patterns: getCrossTraitPatterns(),
-      confidence_context: benchmarkGapData?.teamResponses?.length
-        ? `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`
-        : `Synthetic response context: ${fakeData.responses.length} team responses.`,
+      confidence_context: confidenceContext,
     };
 
     if (mode === 'detailed') {
@@ -899,13 +884,13 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     let cancelled = false;
 
     const prewarmAllInsights = async () => {
-      const campaignRows = fakeCampaign["campaign_123"]?.campaign || [];
+      const liveCampaignRows = resolvedCampaignRows;
 
       const buildCompassPayloadForTrait = (traitKey) => {
         const traitMetrics = traitData?.[traitKey];
         if (!traitMetrics) return null;
-        const traitIdx = campaignRows.findIndex((row) => row.trait === traitKey);
-        const selectedSubtrait = campaignRows?.[traitIdx]?.subTrait || traitKey;
+        const traitIdx = liveCampaignRows.findIndex((row) => row.trait === traitKey);
+        const selectedSubtrait = liveCampaignRows?.[traitIdx]?.subTrait || traitKey;
         const statementIndexes = traitIdx >= 0 ? Array.from({ length: 5 }, (_, i) => traitIdx * 5 + i) : [];
         const teamEff = averageMetricForIndexes(benchmarkGapData?.teamResponses, statementIndexes, 'efficacy');
         const selfEff = averageMetricForIndexes(benchmarkGapData?.selfResponses, statementIndexes, 'efficacy');
@@ -922,9 +907,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
             ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
             : 'Overall metrics unavailable.',
           cross_trait_patterns: getCrossTraitPatterns(),
-          confidence_context: benchmarkGapData?.teamResponses?.length
-            ? `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`
-            : `Synthetic response context: ${fakeData.responses.length} team responses.`,
+          confidence_context: confidenceContext,
           selected_subtrait: selectedSubtrait,
           trait_score: traitMetrics.lepScore,
           score_band: getScoreBand(traitMetrics.lepScore),
@@ -951,7 +934,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       const buildDetailedPayload = (traitKey, ringIdx) => {
         const traitMetrics = traitData?.[traitKey];
         if (!traitMetrics) return null;
-        const traitIdx = campaignRows.findIndex((row) => row.trait === traitKey);
+        const traitIdx = liveCampaignRows.findIndex((row) => row.trait === traitKey);
         if (traitIdx < 0) return null;
         const statement = traitMetrics?.statements?.[ringIdx];
         if (!statement) return null;
@@ -962,7 +945,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         const selfEffort = averageMetricForIndexes(benchmarkGapData?.selfResponses, [statementIndex], 'effort');
         const effGap = teamEff == null || selfEff == null ? statement.efficacy - statement.lepScore : teamEff - selfEff;
         const effortGap = teamEffort == null || selfEffort == null ? statement.effort - statement.lepScore : teamEffort - selfEffort;
-        const subLabel = campaignRows?.[traitIdx]?.subTrait || traitKey;
+        const subLabel = liveCampaignRows?.[traitIdx]?.subTrait || traitKey;
 
         const significantGap = Math.abs(Number(statement.delta || 0)) > 10;
         return {
@@ -972,9 +955,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
             ? `avgLEP ${overallMetrics.avgLEP.toFixed(1)}, avgDelta ${overallMetrics.avgDelta.toFixed(1)}, highGapCount ${overallMetrics.highGapCount}`
             : 'Overall metrics unavailable.',
           cross_trait_patterns: getCrossTraitPatterns(),
-          confidence_context: benchmarkGapData?.teamResponses?.length
-            ? `Team responses: ${benchmarkGapData.teamResponses.length}; Self responses: ${benchmarkGapData?.selfResponses?.length || 0}`
-            : `Synthetic response context: ${fakeData.responses.length} team responses.`,
+          confidence_context: confidenceContext,
           selected_subtrait: statement?.text || subLabel,
           trait_score: statement.lepScore,
           score_band: getScoreBand(statement.lepScore),
@@ -1025,7 +1006,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return () => {
       cancelled = true;
     };
-  }, [traitData, benchmarkGapData, selectedAgentProp, intakeData?.selectedAgent, view, overallMetrics]);
+  }, [traitData, benchmarkGapData, selectedAgentProp, intakeData?.selectedAgent, view, overallMetrics, resolvedCampaignRows, confidenceContext]);
 
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
@@ -1174,6 +1155,25 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   }, [intakeData]);
 
   return (
+    !teamCampaignClosed ? (
+      <Paper
+        sx={{
+          p: 3,
+          borderRadius: 2.2,
+          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'linear-gradient(160deg, rgba(255,255,255,0.92), rgba(241,246,255,0.86))',
+          boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+          textAlign: 'center',
+        }}
+      >
+        <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.35rem', fontWeight: 700, mb: 0.9, color: 'text.primary' }}>
+          Results unlock after you close the survey
+        </Typography>
+        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', color: 'text.secondary', lineHeight: 1.65, maxWidth: 760, mx: 'auto' }}>
+          Keep collecting responses from your team. The Growth Campaign dashboard will show submitted responses and anonymous opt outs while the survey is open. Once you close the survey, Compass will unlock the analytics and interpretation views.
+        </Typography>
+      </Paper>
+    ) : (
     <Stack spacing={4}>
           {/* Combined Trait Circular Graph */}
           {view === 'compass' && Object.keys(traitData).length > 0 && (
@@ -1346,7 +1346,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   const labelX = centerX + radius * Math.cos(svgAngle);
                                   const labelY = centerY + radius * Math.sin(svgAngle) + 2;
                                   const active = trait === selectedTraitKey;
-                                  const labelSubtrait = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === trait)?.subTrait || trait;
+                                  const labelSubtrait = resolvedCampaignRows.find((item) => item.trait === trait)?.subTrait || trait;
                                   return (
                                     <g
                                       key={`label-${traitIdx}`}
@@ -1595,7 +1595,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
               <CardContent sx={{ px: { xs: 0.8, md: 1.2 }, pt: 0.6 }}>
                 <Stack direction="row" spacing={1.2} justifyContent="center" sx={{ mb: 1.4 }}>
                   {detailTraitOptions.map((traitKey) => {
-                    const subLabel = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === traitKey)?.subTrait || traitKey;
+                    const subLabel = resolvedCampaignRows.find((item) => item.trait === traitKey)?.subTrait || traitKey;
                     const active = selectedDetailTraitKey === traitKey;
                     return (
                       <Button
@@ -1957,7 +1957,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                 </Typography>
                 <Stack spacing={6}>
                   {Object.entries(traitData).map(([trait, data], traitIndex) => {
-                    const displaySubTrait = fakeCampaign["campaign_123"]?.campaign?.find((item) => item.trait === trait)?.subTrait || trait;
+                    const displaySubTrait = resolvedCampaignRows.find((item) => item.trait === trait)?.subTrait || trait;
                     return (
                     <Box key={trait}>
                       <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.5rem', fontWeight: 700, mb: 3, color: 'text.primary' }}>
@@ -2600,6 +2600,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
           )}
 
           </Stack>
+    )
   );
 }
 
