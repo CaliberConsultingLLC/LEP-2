@@ -1086,6 +1086,56 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     ]
   );
 
+  const detailStatementComparisonRows = useMemo(() => {
+    return detailStatements.map((stmt, idx) => {
+      const statementIndex = resolvedCampaignRows.findIndex((item) => item.trait === selectedDetailTraitKey);
+      const absoluteStatementIndex = statementIndex === -1 ? null : (statementIndex * 5) + idx;
+      const indexes = absoluteStatementIndex == null ? [] : [absoluteStatementIndex];
+      const teamEfficacy = averageMetricForIndexes(benchmarkGapData?.teamResponses, indexes, 'efficacy');
+      const selfEfficacy = averageMetricForIndexes(benchmarkGapData?.selfResponses, indexes, 'efficacy');
+      const teamEffort = averageMetricForIndexes(benchmarkGapData?.teamResponses, indexes, 'effort');
+      const selfEffort = averageMetricForIndexes(benchmarkGapData?.selfResponses, indexes, 'effort');
+      const efficacyGap = teamEfficacy != null && selfEfficacy != null ? teamEfficacy - selfEfficacy : null;
+      const effortGap = teamEffort != null && selfEffort != null ? teamEffort - selfEffort : null;
+      const scoreGap = Math.abs(Number(stmt?.effort || 0) - Number(stmt?.efficacy || 0));
+
+      let gapLabel = 'Balanced';
+      if (scoreGap >= 20) gapLabel = 'Large gap';
+      else if (scoreGap >= 10) gapLabel = 'Watch gap';
+
+      const perceptionLabel = (() => {
+        const effGap = Number(efficacyGap || 0);
+        const attnGap = Number(effortGap || 0);
+        if (Math.abs(effGap) < 10 && Math.abs(attnGap) < 10) return 'Self/team mostly aligned';
+        if (effGap <= -10 || attnGap <= -10) return 'Team sees this weaker';
+        if (effGap >= 10 || attnGap >= 10) return 'Team sees this stronger';
+        return 'Mixed perception';
+      })();
+
+      return {
+        id: `statement-row-${idx}`,
+        idx,
+        text: stmt?.text || `Statement ${idx + 1}`,
+        overall: Number(stmt?.lepScore || 0),
+        efficacy: Number(stmt?.efficacy || 0),
+        effort: Number(stmt?.effort || 0),
+        scoreGap,
+        gapLabel,
+        efficacyGap,
+        effortGap,
+        perceptionLabel,
+        insight: getGapAnalysis(stmt?.efficacy, stmt?.effort, idx),
+      };
+    });
+  }, [
+    averageMetricForIndexes,
+    benchmarkGapData?.selfResponses,
+    benchmarkGapData?.teamResponses,
+    detailStatements,
+    resolvedCampaignRows,
+    selectedDetailTraitKey,
+  ]);
+
   useEffect(() => {
     if (view !== 'compass') return;
     if (!activeMetrics || !selectedTraitKey) return;
@@ -1658,6 +1708,141 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                   >
                     {detailQuestionTitle}
                   </Typography>
+                </Paper>
+
+                <Paper
+                  sx={{
+                    width: '100%',
+                    maxWidth: 1120,
+                    mx: 'auto',
+                    mb: 1.5,
+                    p: { xs: 1.15, md: 1.4 },
+                    borderRadius: 2.4,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(241,246,255,0.88))',
+                    boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+                  }}
+                >
+                  <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: 'flex-start', md: 'center' }}
+                    spacing={0.8}
+                    sx={{ mb: 1.15 }}
+                  >
+                    <Box>
+                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Statement Comparison
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.92rem', color: '#51677C', lineHeight: 1.45, mt: 0.2 }}>
+                        Compare all five statements at once, then select a row to focus the detailed visual below.
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ fontSize: '0.82rem', color: '#637B90', fontWeight: 700 }}>
+                      Selected: Statement {selectedDetailRingIdx + 1}
+                    </Typography>
+                  </Stack>
+
+                  <Box sx={{ overflowX: 'auto', pb: 0.2 }}>
+                    <Box sx={{ minWidth: 980 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2.6fr) repeat(4, minmax(74px, 0.72fr)) minmax(128px, 1fr) minmax(0, 1.55fr)', gap: 0.9, px: 0.5, pb: 0.75 }}>
+                        {[
+                          'Statement',
+                          'Overall',
+                          'Efficacy',
+                          'Effort',
+                          'Gap',
+                          'Perception',
+                          'Insight',
+                        ].map((header) => (
+                          <Typography
+                            key={header}
+                            sx={{
+                              fontSize: '0.76rem',
+                              fontWeight: 800,
+                              color: '#4B6278',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.06em',
+                              px: 0.6,
+                            }}
+                          >
+                            {header}
+                          </Typography>
+                        ))}
+                      </Box>
+
+                      <Stack spacing={0.85}>
+                        {detailStatementComparisonRows.map((row) => {
+                          const isSelected = row.idx === selectedDetailRingIdx;
+                          return (
+                            <Box
+                              key={row.id}
+                              onClick={() => setSelectedDetailRingIdx(row.idx)}
+                              sx={{
+                                display: 'grid',
+                                gridTemplateColumns: 'minmax(0, 2.6fr) repeat(4, minmax(74px, 0.72fr)) minmax(128px, 1fr) minmax(0, 1.55fr)',
+                                gap: 0.9,
+                                alignItems: 'center',
+                                p: 0.9,
+                                borderRadius: 1.9,
+                                border: isSelected ? '1px solid rgba(69,112,137,0.48)' : '1px solid rgba(67,95,123,0.16)',
+                                background: isSelected
+                                  ? 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(232,241,249,0.92))'
+                                  : 'rgba(255,255,255,0.82)',
+                                boxShadow: isSelected ? '0 8px 18px rgba(15,23,42,0.08)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.18s ease',
+                                '&:hover': {
+                                  background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(236,243,250,0.94))',
+                                  borderColor: 'rgba(69,112,137,0.32)',
+                                },
+                              }}
+                            >
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#3F647B', mb: 0.22 }}>
+                                  Statement {row.idx + 1}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.88rem', color: '#1F3347', lineHeight: 1.35 }}>
+                                  {row.text}
+                                </Typography>
+                              </Box>
+
+                              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#1F3347', textAlign: 'center' }}>
+                                {row.overall.toFixed(1)}
+                              </Typography>
+                              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#6393AA', textAlign: 'center' }}>
+                                {row.efficacy.toFixed(1)}
+                              </Typography>
+                              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#E07A3F', textAlign: 'center' }}>
+                                {row.effort.toFixed(1)}
+                              </Typography>
+                              <Box sx={{ textAlign: 'center' }}>
+                                <Typography sx={{ fontSize: '0.98rem', fontWeight: 800, color: row.scoreGap >= 20 ? '#C85A2A' : row.scoreGap >= 10 ? '#A05B35' : '#2E5B77' }}>
+                                  {row.scoreGap.toFixed(1)}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.68rem', color: '#647A8E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                  {row.gapLabel}
+                                </Typography>
+                              </Box>
+
+                              <Box sx={{ textAlign: 'center' }}>
+                                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#36556F', lineHeight: 1.25 }}>
+                                  {row.perceptionLabel}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.68rem', color: '#6A8094', mt: 0.18 }}>
+                                  Eff {row.efficacyGap == null ? 'n/a' : `${row.efficacyGap >= 0 ? '+' : ''}${row.efficacyGap.toFixed(1)}`} | Attn {row.effortGap == null ? 'n/a' : `${row.effortGap >= 0 ? '+' : ''}${row.effortGap.toFixed(1)}`}
+                                </Typography>
+                              </Box>
+
+                              <Typography sx={{ fontSize: '0.8rem', color: '#2E465B', lineHeight: 1.42 }}>
+                                {trimToChars(row.insight, 150)}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  </Box>
                 </Paper>
 
                 <Grid container spacing={1.5} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
