@@ -37,7 +37,7 @@ const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 6,
   },
   typography: {
     fontFamily: '"Montserrat", "Inter", "Segoe UI", sans-serif',
@@ -67,7 +67,7 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 999,
+          borderRadius: 8,
           minHeight: 40,
           transition: 'all 180ms cubic-bezier(.2,.8,.2,1)',
           whiteSpace: 'nowrap',
@@ -81,7 +81,7 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 8,
           border: '1px solid rgba(15,23,42,0.10)',
           boxShadow: '0 6px 20px rgba(15,23,42,0.08)',
         },
@@ -90,7 +90,7 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 14,
+          borderRadius: 8,
           border: '1px solid rgba(15,23,42,0.10)',
           boxShadow: '0 8px 24px rgba(15,23,42,0.10)',
         },
@@ -99,7 +99,7 @@ const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 999,
+          borderRadius: 8,
           fontWeight: 700,
           border: '1px solid rgba(15,23,42,0.16)',
         },
@@ -108,7 +108,7 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 8,
           backgroundColor: 'rgba(255,255,255,0.9)',
         },
       },
@@ -116,10 +116,15 @@ const theme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          borderRadius: 8,
+          borderRadius: 6,
           fontSize: '0.75rem',
           fontWeight: 600,
         },
+      },
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: { borderRadius: 8 },
       },
     },
   },

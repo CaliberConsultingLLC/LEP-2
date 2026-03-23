@@ -348,7 +348,7 @@ function Landing() {
               fontSize: '1.05rem',
               px: 5,
               py: 1.35,
-              borderRadius: 999,
+              borderRadius: 10,
               boxShadow: 'none',
               fontWeight: 700,
               letterSpacing: '0.02em',
@@ -463,7 +463,7 @@ function Landing() {
                 color="primary"
                 onClick={() => setActiveSection(idx)}
                 sx={{
-                  borderRadius: 999,
+                  borderRadius: 10,
                   px: 2.8,
                   py: 0.9,
                   fontFamily: 'Gemunu Libre, sans-serif',

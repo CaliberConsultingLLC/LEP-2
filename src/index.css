@@ -12,6 +12,8 @@ html {
   --border-soft: rgba(15, 23, 42, 0.12);
   --ring-focus: rgba(63, 100, 123, 0.28);
   --motion-standard: 180ms cubic-bezier(.2, .8, .2, 1);
+  --radius-sm: 6px;
+  --radius-md: 8px;
 }
 
 body {
@@ -37,7 +39,7 @@ a {
   background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(244,248,255,0.90));
   border: 1px solid var(--border-soft);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
 }
 
 [data-hover='lift'] {

@@ -366,7 +366,7 @@ function Home() {
                         sx={{
                           px: 2.25,
                           py: 0.9,
-                          borderRadius: 999,
+                          borderRadius: 10,
                           fontSize: '0.9rem',
                           fontWeight: 700,
                           letterSpacing: '0.01em',
@@ -581,7 +581,7 @@ function Home() {
                             width: '84%',
                             px: 2.75,
                             py: 0.85,
-                            borderRadius: 999,
+                            borderRadius: 10,
                             bgcolor: 'rgba(236, 232, 224, 0.95)',
                             border: '1.5px solid rgba(15,31,50,0.55)',
                             boxShadow:

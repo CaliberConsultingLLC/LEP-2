@@ -249,7 +249,7 @@ function CampaignSurvey() {
       bgcolor: 'transparent',
       background: 'linear-gradient(90deg, #dbe4ee 0%, #ccd8e6 100%)',
       height: 8,
-      borderRadius: 999,
+      borderRadius: 10,
     },
     '& .MuiSlider-track': {
       bgcolor: trackColor,
@@ -501,7 +501,7 @@ function CampaignSurvey() {
                         width: 2,
                         height: 18,
                         bgcolor: 'rgba(22,35,54,0.24)',
-                        borderRadius: 999,
+                        borderRadius: 10,
                         zIndex: 1,
                         pointerEvents: 'none',
                       }}
@@ -556,7 +556,7 @@ function CampaignSurvey() {
                       width: 2,
                       height: 18,
                       bgcolor: 'rgba(22,35,54,0.24)',
-                      borderRadius: 999,
+                      borderRadius: 10,
                       zIndex: 1,
                       pointerEvents: 'none',
                     }}
@@ -718,7 +718,7 @@ function CampaignSurvey() {
             width: '100%',
             maxWidth: 1120,
             mx: 'auto',
-            borderRadius: 999,
+            borderRadius: 10,
             border: '1px solid rgba(15,30,58,0.12)',
             bgcolor: 'rgba(255,255,255,0.84)',
             px: { xs: 1.2, md: 1.6 },
@@ -741,7 +741,7 @@ function CampaignSurvey() {
               py: 0.72,
               minWidth: 198,
               minHeight: 40,
-              borderRadius: 999,
+              borderRadius: 10,
               borderColor: 'rgba(69,112,137,0.58)',
               color: '#375d78',
               justifySelf: { xs: 'center', md: 'start' },
@@ -767,7 +767,7 @@ function CampaignSurvey() {
               value={progressValue}
               sx={{
                 height: 8,
-                borderRadius: 999,
+                borderRadius: 10,
                 bgcolor: 'rgba(15,30,58,0.14)',
                 '& .MuiLinearProgress-bar': { bgcolor: '#3F647B' },
               }}
@@ -785,7 +785,7 @@ function CampaignSurvey() {
               py: 1.05,
               minWidth: 198,
               minHeight: 44,
-              borderRadius: 999,
+              borderRadius: 10,
               bgcolor: '#457089',
               boxShadow: 'none',
               justifySelf: { xs: 'center', md: 'end' },
