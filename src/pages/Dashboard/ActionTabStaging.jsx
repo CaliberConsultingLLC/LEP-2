@@ -5,11 +5,12 @@ import {
   Card,
   CardContent,
   Paper,
+  Slider,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { ArrowForward, AutoAwesome, FlagOutlined, VisibilityOutlined } from '@mui/icons-material';
+import { ArrowForward, AutoAwesome } from '@mui/icons-material';
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
 import traitSystem from '../../data/traitSystem.js';
@@ -17,6 +18,10 @@ import { getActionPlanGuide } from '../../data/actionPlanGuides.js';
 
 const { CORE_TRAITS } = traitSystem;
 const CURRENT_CAMPAIGN_ID = '123';
+const SCORE_MARKS = Array.from({ length: 10 }, (_, index) => ({
+  value: index + 1,
+  label: String(index + 1),
+}));
 
 const parseJson = (raw, fallback = null) => {
   try {
@@ -38,7 +43,7 @@ const buildSeedPlan = (traitId, subTraitId) => ({
   guidedAnswers: {},
   items: [],
   updatedAt: '',
-  planVersion: 'staging-v4',
+  planVersion: 'staging-v5',
   seedKey: `${traitId}-${subTraitId}`,
 });
 
@@ -95,11 +100,19 @@ function buildJourneyItems(plan, guidedSteps) {
     }
   };
 
-  const commitment = trimText(g.commitment || plan.commitment);
+  const commitment = trimText(g.behaviorCommitment || g.commitment || plan.commitment);
   pushIfPresent(commitment);
 
+  if (g.goalEffort || g.goalEfficacy) {
+    const effortText = g.goalEffort ? `Effort ${g.goalEffort}` : null;
+    const efficacyText = g.goalEfficacy ? `Efficacy ${g.goalEfficacy}` : null;
+    pushIfPresent(`Score goals: ${[effortText, efficacyText].filter(Boolean).join(' / ')}`);
+  }
+
+  pushIfPresent(g.learningTraining ? `Learning / training: ${g.learningTraining}` : '');
+
   (guidedSteps || []).forEach((step) => {
-    if (step.id === 'commitment') return;
+    if (step.id === 'commitment' || step.id === 'behaviorCommitment' || step.id === 'goalEffort' || step.id === 'goalEfficacy') return;
     const a = trimText(g[step.id]);
     if (a) pushIfPresent(a);
   });
@@ -203,6 +216,23 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
   const activePlan = activeRow
     ? plans?.[activeRow.trait.id]?.[activeRow.subTrait.id] || buildSeedPlan(activeRow.trait.id, activeRow.subTrait.id)
     : buildSeedPlan('_', '_');
+  const promptSet = [
+    {
+      id: 'goals',
+      title: 'What score goals do you have for this year of growth?',
+      helper: 'Set a target for how you want this trait to improve across team effort and team efficacy.',
+    },
+    {
+      id: 'learningTraining',
+      title: 'What learning or training do you intend to pursue regarding this leadership trait and its impact on people?',
+      placeholder: 'Books, podcasts, coaching conversations, training, observation, or other learning you want to pursue…',
+    },
+    {
+      id: 'behaviorCommitment',
+      title: 'What is one behavior or habit that you will commit to improve throughout this process?',
+      placeholder: 'Name one concrete behavior you will work to strengthen…',
+    },
+  ];
 
   const guidedAnswers = activePlan.guidedAnswers && typeof activePlan.guidedAnswers === 'object' ? activePlan.guidedAnswers : {};
   const activeJourneyItems = activeRow ? buildJourneyItems(activePlan, guide.guidedSteps) : [];
@@ -226,7 +256,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     if (!activeRow) return;
     const next = { ...guidedAnswers, [stepId]: value };
     const updates = { guidedAnswers: next };
-    if (stepId === 'commitment') {
+    if (stepId === 'commitment' || stepId === 'behaviorCommitment') {
       updates.commitment = trimText(value);
     }
     updatePlan(activeRow.trait.id, activeRow.subTrait.id, updates);
@@ -242,15 +272,19 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           ...rawPlan,
           guidedAnswers: { ...(rawPlan?.guidedAnswers || {}) },
           updatedAt: new Date().toISOString(),
-          planVersion: 'staging-v4',
+          planVersion: 'staging-v5',
         };
         const ga = {};
         Object.entries(merged.guidedAnswers || {}).forEach(([k, v]) => {
-          const t = trimText(v);
+          const t = ['goalEffort', 'goalEfficacy'].includes(k) ? Number(v || 0) : trimText(v);
+          if (['goalEffort', 'goalEfficacy'].includes(k)) {
+            if (Number.isFinite(t) && t >= 1 && t <= 10) ga[k] = t;
+            return;
+          }
           if (t) ga[k] = t;
         });
         merged.guidedAnswers = ga;
-        merged.commitment = trimText(ga.commitment || merged.commitment);
+        merged.commitment = trimText(ga.behaviorCommitment || ga.commitment || merged.commitment);
 
         const traitMeta = CORE_TRAITS.find((t) => t.id === traitId);
         const subTraitMeta = traitMeta?.subTraits?.find((s) => s.id === subTraitId);
@@ -270,7 +304,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     all[CURRENT_CAMPAIGN_ID][userKey] = {
       user: { name: userInfo?.name || '', email: userInfo?.email || '' },
       selectedAgent,
-      planVersion: 'staging-v4',
+      planVersion: 'staging-v5',
       savedAt: new Date().toISOString(),
       plans: sanitized,
     };
@@ -363,68 +397,55 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
         >
           <CardContent sx={{ p: { xs: 2, md: 2.75 } }}>
             <Stack spacing={2.25}>
-              <Stack spacing={1}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A' }}>
-                  {activeRow.subTraitLabel}
-                </Typography>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
-                  {activeRow.trait.name}
-                </Typography>
-                <Stack direction="row" flexWrap="wrap" sx={{ gap: 0.75 }}>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'stretch' }}>
+                <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A' }}>
+                    {activeRow.subTraitLabel}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
+                    {activeRow.trait.name}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.6, maxWidth: 760 }}>
+                    {activeRow.signal.description}
+                  </Typography>
+                </Stack>
+
+                <Stack direction={{ xs: 'row', md: 'column' }} spacing={1} sx={{ minWidth: { xs: '100%', md: 186 } }}>
                   <Paper
-                    variant="outlined"
                     sx={{
-                      px: 1.1,
-                      py: 0.45,
+                      p: 1.2,
                       borderRadius: 1,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      borderColor: 'rgba(69,112,137,0.25)',
+                      border: '1px solid rgba(69,112,137,0.22)',
                       bgcolor: 'rgba(69,112,137,0.06)',
+                      minWidth: 0,
+                      flex: 1,
                     }}
                   >
-                    <FlagOutlined sx={{ fontSize: 16, color: '#457089' }} />
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontWeight: 700 }}>
-                      Compass {activeRow.compassScore.toFixed(1)}
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em' }}>
+                      TEAM EFFICACY
+                    </Typography>
+                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.18rem', fontWeight: 800, color: '#13263A' }}>
+                      {activeRow.efficacy.toFixed(1)}
                     </Typography>
                   </Paper>
                   <Paper
-                    variant="outlined"
                     sx={{
-                      px: 1.1,
-                      py: 0.45,
+                      p: 1.2,
                       borderRadius: 1,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      borderColor: 'rgba(224,122,63,0.28)',
+                      border: '1px solid rgba(224,122,63,0.24)',
                       bgcolor: 'rgba(224,122,63,0.06)',
+                      minWidth: 0,
+                      flex: 1,
                     }}
                   >
-                    <VisibilityOutlined sx={{ fontSize: 16, color: '#E07A3F' }} />
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontWeight: 700 }}>
-                      Gap {activeRow.delta.toFixed(1)}
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.08em' }}>
+                      TEAM EFFORT
                     </Typography>
-                  </Paper>
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      px: 1.1,
-                      py: 0.45,
-                      borderRadius: 1,
-                      borderColor: `${activeRow.signal.tone}44`,
-                      bgcolor: `${activeRow.signal.tone}10`,
-                    }}
-                  >
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontWeight: 700, color: activeRow.signal.tone }}>
-                      {activeRow.signal.label}
+                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.18rem', fontWeight: 800, color: '#13263A' }}>
+                      {activeRow.effort.toFixed(1)}
                     </Typography>
                   </Paper>
                 </Stack>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.6 }}>
-                  {activeRow.signal.description}
-                </Typography>
               </Stack>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
@@ -478,39 +499,126 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 </Paper>
               </Stack>
 
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 800, color: '#13263A', pt: 0.5 }}>
-                Guided prompts
-              </Typography>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: 'rgba(19,38,58,0.65)', lineHeight: 1.55 }}>
-                Answer in your own words. There are no right answers — only what you are willing to try.
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.98rem', fontWeight: 800, color: '#13263A', pt: 0.5 }}>
+                Setting a New Path
               </Typography>
 
               <Stack spacing={2}>
-                {guide.guidedSteps.map((step) => (
-                  <Paper
-                    key={step.id}
-                    sx={{
-                      p: { xs: 1.5, md: 1.75 },
-                      borderRadius: 1,
-                      border: '1px solid rgba(15,23,42,0.1)',
-                      bgcolor: 'rgba(255,255,255,0.88)',
-                    }}
-                  >
-                    <Stack spacing={1}>
-                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
-                        {step.prompt}
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={step.id === 'commitment' ? 2 : 3}
-                        placeholder={step.placeholder || 'Your response…'}
-                        value={guidedAnswers[step.id] ?? ''}
-                        onChange={(e) => setGuidedAnswer(step.id, e.target.value)}
-                      />
+                <Paper
+                  sx={{
+                    p: { xs: 1.5, md: 1.75 },
+                    borderRadius: 1,
+                    border: '1px solid rgba(15,23,42,0.1)',
+                    bgcolor: 'rgba(255,255,255,0.88)',
+                  }}
+                >
+                  <Stack spacing={1.4}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
+                      {promptSet[0].title}
+                    </Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(19,38,58,0.65)', lineHeight: 1.55 }}>
+                      {promptSet[0].helper}
+                    </Typography>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.6}>
+                      <Paper sx={{ flex: 1, p: 1.3, borderRadius: 1, border: '1px solid rgba(69,112,137,0.16)', bgcolor: 'rgba(69,112,137,0.04)' }}>
+                        <Stack spacing={0.9}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', letterSpacing: '0.06em' }}>
+                              TARGET EFFICACY
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+                              {Number(guidedAnswers.goalEfficacy || Math.max(1, Math.round(activeRow.efficacy))).toFixed(0)}
+                            </Typography>
+                          </Stack>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            marks={SCORE_MARKS}
+                            value={Number(guidedAnswers.goalEfficacy || Math.max(1, Math.round(activeRow.efficacy)))}
+                            onChange={(_, value) => setGuidedAnswer('goalEfficacy', Array.isArray(value) ? value[0] : value)}
+                            valueLabelDisplay="auto"
+                            sx={{
+                              color: '#457089',
+                              '& .MuiSlider-markLabel': { fontSize: '0.68rem' },
+                            }}
+                          />
+                        </Stack>
+                      </Paper>
+                      <Paper sx={{ flex: 1, p: 1.3, borderRadius: 1, border: '1px solid rgba(224,122,63,0.18)', bgcolor: 'rgba(224,122,63,0.04)' }}>
+                        <Stack spacing={0.9}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.06em' }}>
+                              TARGET EFFORT
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+                              {Number(guidedAnswers.goalEffort || Math.max(1, Math.round(activeRow.effort))).toFixed(0)}
+                            </Typography>
+                          </Stack>
+                          <Slider
+                            min={1}
+                            max={10}
+                            step={1}
+                            marks={SCORE_MARKS}
+                            value={Number(guidedAnswers.goalEffort || Math.max(1, Math.round(activeRow.effort)))}
+                            onChange={(_, value) => setGuidedAnswer('goalEffort', Array.isArray(value) ? value[0] : value)}
+                            valueLabelDisplay="auto"
+                            sx={{
+                              color: '#E07A3F',
+                              '& .MuiSlider-markLabel': { fontSize: '0.68rem' },
+                            }}
+                          />
+                        </Stack>
+                      </Paper>
                     </Stack>
-                  </Paper>
-                ))}
+                  </Stack>
+                </Paper>
+
+                <Paper
+                  sx={{
+                    p: { xs: 1.5, md: 1.75 },
+                    borderRadius: 1,
+                    border: '1px solid rgba(15,23,42,0.1)',
+                    bgcolor: 'rgba(255,255,255,0.88)',
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
+                      {promptSet[1].title}
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      placeholder={promptSet[1].placeholder}
+                      value={guidedAnswers.learningTraining ?? ''}
+                      onChange={(e) => setGuidedAnswer('learningTraining', e.target.value)}
+                    />
+                  </Stack>
+                </Paper>
+
+                <Paper
+                  sx={{
+                    p: { xs: 1.5, md: 1.75 },
+                    borderRadius: 1,
+                    border: '1px solid rgba(15,23,42,0.1)',
+                    bgcolor: 'rgba(255,255,255,0.88)',
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
+                      {promptSet[2].title}
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      placeholder={promptSet[2].placeholder}
+                      value={guidedAnswers.behaviorCommitment ?? ''}
+                      onChange={(e) => setGuidedAnswer('behaviorCommitment', e.target.value)}
+                    />
+                  </Stack>
+                </Paper>
               </Stack>
 
               <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(69,112,137,0.18)', bgcolor: 'rgba(255,255,255,0.82)' }}>
