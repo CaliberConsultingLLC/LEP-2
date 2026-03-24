@@ -7,6 +7,10 @@ import {
   Stack,
   Button,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { Launch, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +33,7 @@ function GrowthCampaignTab() {
   const [responseSummary, setResponseSummary] = useState({});
   const [cachedSummary, setCachedSummary] = useState(() => String(localStorage.getItem('aiSummary') || '').trim());
   const [summarySavedAt, setSummarySavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
+  const [showCloseNotice, setShowCloseNotice] = useState(false);
   const now = new Date();
   const [campaignRecords, setCampaignRecords] = useState(() => parseJson(localStorage.getItem('campaignRecords'), {}));
   const activeTeamCampaignId = String(campaignRecords?.teamCampaignId || '').trim();
@@ -99,6 +104,15 @@ function GrowthCampaignTab() {
     .filter((row) => row.openDate <= now)
     .sort((a, b) => b.openDate.getTime() - a.openDate.getTime())[0];
   const currentCampaignId = currentCampaign?.id || campaignRows[0]?.id;
+
+  useEffect(() => {
+    if (useFakeDashboardData) {
+      setShowCloseNotice(false);
+      return;
+    }
+    const shouldShow = Boolean(activeTeamCampaignId) && !teamCampaignClosed;
+    setShowCloseNotice(shouldShow);
+  }, [activeTeamCampaignId, teamCampaignClosed]);
 
   useEffect(() => {
     let active = true;
@@ -269,13 +283,22 @@ function GrowthCampaignTab() {
         },
         { merge: true }
       );
+      await setDoc(
+        doc(db, 'campaigns', activeTeamCampaignId),
+        {
+          surveyClosed: true,
+          surveyClosedAt: closedAt,
+        },
+        { merge: true }
+      );
     } catch (err) {
       console.warn('Unable to persist close-survey state:', err);
     }
   };
 
   return (
-    <Stack spacing={2.2} sx={{ width: '100%' }}>
+    <>
+      <Stack spacing={2.2} sx={{ width: '100%' }}>
       <Card
         sx={{
           background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(241,246,252,0.9))',
@@ -377,7 +400,7 @@ function GrowthCampaignTab() {
                     mt: 0.7,
                   }}
                 >
-                  {intakeStepLabel}
+                  {!intakeComplete ? intakeStepLabel : ''}
                 </Typography>
                 {cachedSummary && (
                   <Typography
@@ -625,7 +648,25 @@ function GrowthCampaignTab() {
           </Stack>
         </CardContent>
       </Card>
-    </Stack>
+      </Stack>
+
+      <Dialog open={showCloseNotice} onClose={() => setShowCloseNotice(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 800 }}>
+          Manual survey close required
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', lineHeight: 1.6 }}>
+            Once you are confident in the response count, click <b>Close Survey</b> on this page so results can calculate.
+            After closing, no additional team surveys will be accepted for this campaign.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 2.2, pb: 1.8 }}>
+          <Button onClick={() => setShowCloseNotice(false)} variant="contained" sx={{ textTransform: 'none' }}>
+            Understood
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 

@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
@@ -33,6 +33,7 @@ function CampaignSurvey() {
   const [savedActionItems, setSavedActionItems] = useState([]);
   const [campaignMeta, setCampaignMeta] = useState({});
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
+  const [surveyClosed, setSurveyClosed] = useState(false);
 
   const TRAIT_QUESTION_COUNT = 5;
   const parseJson = (raw, fallback) => {
@@ -56,6 +57,26 @@ function CampaignSurvey() {
       navigate('/');
     }
 
+    const checkIfSurveyClosed = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'campaigns', id));
+        if (!snap.exists()) return;
+        const payload = snap.data() || {};
+        if (String(payload?.campaignType || campaignData?.campaignType || '').toLowerCase() === 'team' && payload?.surveyClosed) {
+          setSurveyClosed(true);
+          setCampaignMeta((prev) => ({
+            ...prev,
+            ...payload,
+            campaignType: 'team',
+          }));
+        }
+      } catch (err) {
+        console.warn('Unable to verify survey closed state:', err);
+      }
+    };
+
+    checkIfSurveyClosed();
+
     try {
       const userInfo = parseJson(localStorage.getItem('userInfo'), {});
       const userKey = userInfo?.email || userInfo?.name || 'anonymous';
@@ -78,6 +99,7 @@ function CampaignSurvey() {
   }, [id, navigate]);
 
   const saveResponses = async () => {
+    if (surveyClosed) return;
     const campaignType = campaignMeta?.campaignType || 'team';
     const ratingsData = {
       id,
@@ -316,6 +338,64 @@ function CampaignSurvey() {
   const recapCenterScore = (traitRecap.effortAvg + traitRecap.efficacyAvg) / 2;
 
   if (currentQuestion >= questions.length) return null;
+  if (surveyClosed && !isSelfCampaign) {
+    return (
+      <Box
+        sx={{
+          position: 'relative',
+          minHeight: '100vh',
+          width: '100%',
+          overflowX: 'hidden',
+          '&:before': {
+            content: '""',
+            position: 'fixed',
+            inset: 0,
+            zIndex: -2,
+            backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+          },
+          '&:after': {
+            content: '""',
+            position: 'fixed',
+            inset: 0,
+            zIndex: -1,
+            background: 'radial-gradient(1200px 800px at 20% 20%, rgba(15,30,58,0.22), rgba(15,30,58,0.40))',
+          },
+        }}
+      >
+        <ProcessTopRail />
+        <Container maxWidth="md" sx={{ py: { xs: 3.5, md: 5.2 } }}>
+          <Paper
+            sx={{
+              p: { xs: 2.2, md: 2.8 },
+              borderRadius: 2.4,
+              border: '1px solid rgba(255,255,255,0.35)',
+              background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(241,246,255,0.88))',
+              boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+              textAlign: 'center',
+            }}
+          >
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.4rem', fontWeight: 700, color: '#1F3347', mb: 0.9 }}>
+              Survey closed
+            </Typography>
+            <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', lineHeight: 1.6 }}>
+              This campaign has been manually closed by the owner. New responses are no longer being accepted.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/')}
+              sx={{ mt: 1.8, textTransform: 'none', fontWeight: 700 }}
+            >
+              Return Home
+            </Button>
+          </Paper>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box

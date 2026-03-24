@@ -15,6 +15,7 @@ function NewCampaignIntro() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('what');
+  const [surveyClosed, setSurveyClosed] = useState(false);
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -37,6 +38,7 @@ function NewCampaignIntro() {
       try {
         const cachedCampaign = parseJson(localStorage.getItem(`campaign_${id}`), {});
         if (cachedCampaign?.campaignType) {
+          setSurveyClosed(Boolean(cachedCampaign?.surveyClosed));
           const normalizedCached = {
             ...cachedCampaign,
             campaign: normalizeCampaignItems(cachedCampaign?.campaign),
@@ -49,6 +51,7 @@ function NewCampaignIntro() {
 
         const localCampaignDocs = parseJson(localStorage.getItem('localCampaignDocs'), {});
         if (localCampaignDocs && localCampaignDocs[id]) {
+          setSurveyClosed(Boolean(localCampaignDocs[id]?.surveyClosed));
           setCampaignPassword(String(localCampaignDocs[id]?.password || ''));
           const normalizedLocal = {
             ...localCampaignDocs[id],
@@ -66,6 +69,7 @@ function NewCampaignIntro() {
           const docSnap = await getDoc(docRef);
           if (isMounted && docSnap.exists()) {
             const payload = docSnap.data() || {};
+            setSurveyClosed(Boolean(payload?.surveyClosed));
             setCampaignPassword(String(payload?.password || ''));
             setCampaignData({
               ...payload,
@@ -122,6 +126,10 @@ function NewCampaignIntro() {
 
   const handleStart = () => {
     if (isNavigating) return;
+    if (!isSelfCampaign && surveyClosed) {
+      alert('This survey has been closed by the campaign owner. New responses are no longer accepted.');
+      return;
+    }
     const existingTeamAccess = localStorage.getItem(`teamCampaignAccess_${id}`);
     if (!isSelfCampaign && existingTeamAccess && hasUsableCampaign) {
       setIsNavigating(true);
@@ -368,10 +376,10 @@ function NewCampaignIntro() {
                   variant="contained"
                   color="primary"
                   onClick={handleStart}
-                  disabled={isNavigating}
+                  disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
                   sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
                 >
-                  Proceed with Feedback
+                  {!isSelfCampaign && surveyClosed ? 'Survey Closed' : 'Proceed with Feedback'}
                 </Button>
                 <Button
                   variant="outlined"
@@ -382,6 +390,11 @@ function NewCampaignIntro() {
                   Opt Out Anonymously
                 </Button>
               </Stack>
+              {!isSelfCampaign && surveyClosed && (
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: '#9B2C2C', mt: 1.1 }}>
+                  This campaign has been manually closed. New survey responses are no longer accepted.
+                </Typography>
+              )}
             </Paper>
           )}
         </Paper>

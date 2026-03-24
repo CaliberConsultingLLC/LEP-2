@@ -1393,13 +1393,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             };
 
                             const getArcLength = (radius) => Math.PI * radius;
-                            const allOverallScores = traits.flatMap(([, d]) => [d.efficacy, d.effort]).filter((v) => typeof v === 'number');
-                            const lowestOverallScore = allOverallScores.length ? Math.min(...allOverallScores) : 0;
-                            const minScaleScore = Math.max(0, lowestOverallScore - 20);
-                            const scaleSpan = Math.max(1, 100 - minScaleScore);
                             const normalizeScore = (score) => {
-                              const n = (score - minScaleScore) / scaleSpan;
-                              return Math.min(1, Math.max(0, n));
+                              const clamped = Math.max(1, Math.min(100, Number(score) || 0));
+                              return clamped / 100;
                             };
 
                             return (
@@ -1906,9 +1902,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                 sx={{
                                   position: 'relative',
                                   minWidth: 0,
-                                  minHeight: 92,
-                                  px: 1.4,
-                                  py: 1.25,
+                                  minHeight: 74,
+                                  px: 1.2,
+                                  py: 1,
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -1924,7 +1920,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   },
                                 }}
                               >
-                                <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: '#1F3347', lineHeight: 1.4, textAlign: 'center' }}>
+                                <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#1F3347', lineHeight: 1.35, textAlign: 'center' }}>
                                   {row.text}
                                 </Typography>
                               </Box>
@@ -1939,9 +1935,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                   key={`${row.id}-cell-${cellIdx}`}
                                   sx={{
                                     position: 'relative',
-                                    minHeight: 92,
-                                    px: 1.2,
-                                    py: 1.2,
+                                    minHeight: 74,
+                                    px: 1.1,
+                                    py: 0.95,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -1957,7 +1953,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                     } : {},
                                   }}
                                 >
-                                  <Typography sx={{ fontSize: '1.42rem', fontWeight: 800, color: cell.color, textAlign: 'center', lineHeight: 1 }}>
+                                  <Typography sx={{ fontSize: '1.21rem', fontWeight: 800, color: cell.color, textAlign: 'center', lineHeight: 1 }}>
                                     {cell.value}
                                   </Typography>
                                 </Box>
@@ -1975,8 +1971,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     width: '100%',
                     maxWidth: 1120,
                     mx: 'auto',
-                    my: 0.55,
-                    borderColor: 'rgba(95,119,142,0.28)',
+                    my: 1.45,
+                    borderColor: 'rgba(86,113,138,0.52)',
+                    borderBottomWidth: '2px',
                   }}
                 />
 
@@ -2058,10 +2055,10 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                               const end = { x: centerX + radius * Math.cos(endAngleSVG), y: centerY + radius * Math.sin(endAngleSVG) };
                               return `M ${start.x} ${start.y} A ${radius} ${radius} 0 1 ${sweepFlag} ${end.x} ${end.y}`;
                             };
-                            const allScores = statements.flatMap((s) => [s?.efficacy || 0, s?.effort || 0]);
-                            const minScale = Math.max(0, (allScores.length ? Math.min(...allScores) : 0) - 20);
-                            const span = Math.max(1, 100 - minScale);
-                            const norm = (v) => Math.max(0, Math.min(1, ((v || 0) - minScale) / span));
+                            const norm = (v) => {
+                              const clamped = Math.max(1, Math.min(100, Number(v) || 0));
+                              return clamped / 100;
+                            };
                             const getArcLength = (r) => Math.PI * r;
                             return (
                               <>
