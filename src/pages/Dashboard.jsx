@@ -83,7 +83,7 @@ function Dashboard() {
       icon: Insights,
     },
     {
-      label: 'Building Your Growth Plan',
+      label: 'Growth Plan',
       subtitle: 'Translate your insight data into concrete leadership moves your team will actually feel. This page helps you define focused actions by trait, verify progress commitments, and keep your execution anchored to measurable behavior change.',
       icon: Lightbulb,
     },
