@@ -1779,6 +1779,29 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
                   }}
                 >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontSize: { xs: '1.28rem', md: '1.44rem' },
+                      fontWeight: 800,
+                      color: 'text.primary',
+                      textAlign: 'center',
+                    }}
+                  >
+                    Detailed Results
+                  </Typography>
+                  <Divider sx={{ my: 1.05, borderColor: 'rgba(69,112,137,0.25)' }} />
+                  <Typography
+                    sx={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontSize: '0.95rem',
+                      color: 'text.secondary',
+                      textAlign: 'center',
+                      mb: 1.1,
+                    }}
+                  >
+                    Inspect statement-level scoring with five-ring breakdowns and question-specific efficacy and effort patterns. Use this page to drill into the precise items shaping each trait outcome.
+                  </Typography>
                   <Tabs
                     value={selectedDetailTraitKey || false}
                     onChange={(_, value) => setSelectedDetailTraitKey(value)}
