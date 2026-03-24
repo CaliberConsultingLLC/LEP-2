@@ -1209,18 +1209,14 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     [effortPerceptionGap]
   );
 
-  const detailGapNarrative = useMemo(
-    () => buildGapNarrative(
-      selectedDetailStatement?.delta ?? detailTraitMetrics?.delta,
-      detailEfficacyPerceptionGap,
-      detailEffortPerceptionGap
-    ),
-    [
-      selectedDetailStatement?.delta,
-      detailTraitMetrics?.delta,
-      detailEfficacyPerceptionGap,
-      detailEffortPerceptionGap,
-    ]
+  const detailEfficacyPerceptionNarrative = useMemo(
+    () => getPerceptionGapMessage('efficacy', detailEfficacyPerceptionGap),
+    [detailEfficacyPerceptionGap]
+  );
+
+  const detailEffortPerceptionNarrative = useMemo(
+    () => getPerceptionGapMessage('effort', detailEffortPerceptionGap),
+    [detailEffortPerceptionGap]
   );
 
   const detailStatementComparisonRows = useMemo(() => {
@@ -1804,7 +1800,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     maxWidth: 1120,
                     mx: 'auto',
                     mb: 1.5,
-                    p: { xs: 1.5, md: 1.95 },
+                    p: { xs: 1.7, md: 2.2 },
                     borderRadius: 2.4,
                     border: '1px solid rgba(255,255,255,0.2)',
                     background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(241,246,255,0.88))',
@@ -1940,7 +1936,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                     } : {},
                                   }}
                                 >
-                                  <Typography sx={{ fontSize: '1.18rem', fontWeight: 800, color: cell.color, textAlign: 'center' }}>
+                                  <Typography sx={{ fontSize: '1.42rem', fontWeight: 800, color: cell.color, textAlign: 'center', lineHeight: 1 }}>
                                     {cell.value}
                                   </Typography>
                                 </Box>
@@ -1958,8 +1954,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     width: '100%',
                     maxWidth: 1120,
                     mx: 'auto',
-                    my: 0.1,
-                    borderColor: 'rgba(95,119,142,0.22)',
+                    my: 0.55,
+                    borderColor: 'rgba(95,119,142,0.28)',
                   }}
                 />
 
@@ -2231,7 +2227,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           sx={{
                             gridColumn: { xs: '1 / -1', md: '2 / 3' },
                             gridRow: { xs: 'auto', md: '1 / 4' },
-                            p: 1.25,
+                            p: 1.35,
                             borderRadius: 2,
                             border: '1px solid rgba(69,112,137,0.35)',
                             bgcolor: 'rgba(255,255,255,0.96)',
@@ -2241,31 +2237,52 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             textAlign: 'center',
                           }}
                         >
-                          <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
+                          <Typography sx={{ fontSize: '0.94rem', color: '#1F3347', lineHeight: 1.55 }}>
                             {insightLoading.detailed && !detailAgentInsight
                               ? 'Generating interpretation...'
                               : (detailAgentInsight || 'Interpretation will load automatically for the selected view.')}
                           </Typography>
                         </Paper>
 
-                        <Paper
-                          sx={{
-                            gridColumn: { xs: '1 / -1', md: '2 / 3' },
-                            gridRow: { xs: 'auto', md: '4 / 6' },
-                            p: 1.25,
-                            borderRadius: 2,
-                            border: '1px solid rgba(69,112,137,0.35)',
-                            bgcolor: 'rgba(255,255,255,0.96)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
-                            {trimToWords(detailGapNarrative, 50)}
-                          </Typography>
-                        </Paper>
+                        {[
+                          {
+                            key: 'detail-efficacy-gap-context',
+                            title: 'Efficacy Interpretation',
+                            text: detailEfficacyPerceptionNarrative,
+                            row: '4 / 5',
+                          },
+                          {
+                            key: 'detail-effort-gap-context',
+                            title: 'Effort Interpretation',
+                            text: detailEffortPerceptionNarrative,
+                            row: '5 / 6',
+                          },
+                        ].map((item) => (
+                          <Paper
+                            key={item.key}
+                            sx={{
+                              gridColumn: { xs: '1 / -1', md: '2 / 3' },
+                              gridRow: { xs: 'auto', md: item.row },
+                              p: 1.25,
+                              borderRadius: 2,
+                              border: '1px solid rgba(69,112,137,0.35)',
+                              bgcolor: 'rgba(255,255,255,0.96)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                              gap: 0.45,
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, color: '#4B6278', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                              {item.title}
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
+                              {item.text}
+                            </Typography>
+                          </Paper>
+                        ))}
                       </Box>
                     </Box>
                     </Paper>
