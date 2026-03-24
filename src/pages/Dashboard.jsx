@@ -333,7 +333,7 @@ function Dashboard() {
           {/* Content */}
           <Box sx={{ px: { xs: 2, md: 3.5 }, py: 2.4 }}>
             <Box sx={{ width: '100%', maxWidth: CONTENT_MAX_WIDTH, mx: 'auto' }}>
-              {currentTab !== 4 && (
+              {currentTab !== 4 && currentTab !== 3 && (
                 <Box
                   sx={{
                     mb: 2,
