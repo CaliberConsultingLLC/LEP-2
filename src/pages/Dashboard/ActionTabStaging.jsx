@@ -572,7 +572,10 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
                   <Stack spacing={1}>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                      {`Envision you are a member of this team. What is one challenge that you might experience under a leader who struggles with ${activeRow.subTraitLabel}?`}
+                      <Box component="span" sx={{ fontWeight: 800 }}>
+                        Envision you are a member of a team.
+                      </Box>{' '}
+                      {`What is one challenge that you might experience under a leader who struggles with ${activeRow.subTraitLabel}?`}
                     </Typography>
                     <TextField
                       fullWidth
@@ -601,7 +604,10 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
                   <Stack spacing={1.1}>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                      Root question: What education or training will you pursue to increase your understanding of this leadership concept?
+                      <Box component="span" sx={{ fontWeight: 800 }}>
+                        Root question:
+                      </Box>{' '}
+                      What education or training will you pursue to increase your understanding of this leadership concept?
                     </Typography>
                     <TextField
                       fullWidth
@@ -612,7 +618,10 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                       onChange={(e) => setGuidedAnswer('learningTraining', e.target.value)}
                     />
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                      Branch question: What is one behavior shift you will commit to in your effort to meet your team's needs?
+                      <Box component="span" sx={{ fontWeight: 800 }}>
+                        Branch question:
+                      </Box>{' '}
+                      What is one behavior shift you will commit to in your effort to meet your team's needs?
                     </Typography>
                     <TextField
                       fullWidth
