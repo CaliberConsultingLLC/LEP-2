@@ -443,12 +443,14 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
             <Tabs
               value={selectedTraitKey || false}
               onChange={(_, value) => setSelectedTraitKey(value)}
-              variant="scrollable"
-              scrollButtons="auto"
+              variant="fullWidth"
               sx={{
-                minHeight: 40,
-                '& .MuiTabs-flexContainer': { gap: 0.8 },
-                '& .MuiTabs-indicator': { display: 'none' },
+                minHeight: 44,
+                mt: 0.35,
+                border: '1px solid rgba(15,23,42,0.14)',
+                borderRadius: 1,
+                overflow: 'hidden',
+                '& .MuiTabs-indicator': { bgcolor: '#457089', height: 3 },
               }}
             >
               {traitRows.map((row) => (
@@ -459,72 +461,60 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                   sx={{
                     textTransform: 'none',
                     fontWeight: 700,
-                    minHeight: 38,
-                    borderRadius: 1,
-                    border: '1px solid rgba(15,23,42,0.2)',
-                    bgcolor: selectedTraitKey === row.traitKey ? '#457089' : 'rgba(255,255,255,0.96)',
-                    color: selectedTraitKey === row.traitKey ? '#fff' : '#13263A',
-                    '&.Mui-selected': { color: '#fff' },
+                    minHeight: 44,
+                    bgcolor: selectedTraitKey === row.traitKey ? 'rgba(69,112,137,0.08)' : 'rgba(255,255,255,0.98)',
+                    color: '#13263A',
+                    '&.Mui-selected': { color: '#13263A' },
                   }}
                 />
               ))}
             </Tabs>
-          </Stack>
-        </Paper>
 
-        <Divider sx={{ borderColor: 'rgba(95,119,142,0.2)' }} />
+            <Divider sx={{ borderColor: 'rgba(95,119,142,0.2)', my: 0.3 }} />
 
-        <Paper
-          sx={{
-            p: { xs: 1.7, md: 2.1 },
-            borderRadius: 1,
-            border: '1px solid rgba(15,23,42,0.12)',
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,248,253,0.94))',
-            boxShadow: '0 8px 22px rgba(15,23,42,0.08)',
-          }}
-        >
-          <Stack spacing={1.2}>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A' }}>
-              {activeRow.subTraitLabel}
-            </Typography>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
-              {activeRow.trait.name}
-            </Typography>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.58 }}>
-              {traitDescription}
-            </Typography>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
-                gap: 1,
-                pt: 0.35,
-              }}
-            >
-              {[
-                { label: 'Overall Score', value: currentOverallScore, color: '#243A53' },
-                { label: 'Efficacy Score', value: currentEfficacyScore, color: '#5B8FA8' },
-                { label: 'Effort Score', value: currentEffortScore, color: '#DE763A' },
-              ].map((card) => (
-                <Paper
-                  key={card.label}
-                  sx={{
-                    p: 1.4,
-                    borderRadius: 1,
-                    border: '1px solid rgba(15,23,42,0.14)',
-                    bgcolor: '#F2F5F8',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontWeight: 700, color: '#364E64', mb: 0.4 }}>
-                    {card.label}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: card.color, lineHeight: 1 }}>
-                    {Number(card.value || 0).toFixed(1)}
-                  </Typography>
-                </Paper>
-              ))}
-            </Box>
+            <Stack spacing={1.2}>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A' }}>
+                {activeRow.subTraitLabel}
+              </Typography>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
+                {activeRow.trait.name}
+              </Typography>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.58 }}>
+                {traitDescription}
+              </Typography>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
+                  gap: 1,
+                  pt: 0.35,
+                }}
+              >
+                {[
+                  { label: 'Overall Score', value: currentOverallScore, color: '#243A53' },
+                  { label: 'Efficacy Score', value: currentEfficacyScore, color: '#5B8FA8' },
+                  { label: 'Effort Score', value: currentEffortScore, color: '#DE763A' },
+                ].map((card) => (
+                  <Paper
+                    key={card.label}
+                    sx={{
+                      p: 1.4,
+                      borderRadius: 1,
+                      border: '1px solid rgba(15,23,42,0.14)',
+                      bgcolor: '#F2F5F8',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontWeight: 700, color: '#364E64', mb: 0.4 }}>
+                      {card.label}
+                    </Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: card.color, lineHeight: 1 }}>
+                      {Number(card.value || 0).toFixed(1)}
+                    </Typography>
+                  </Paper>
+                ))}
+              </Box>
+            </Stack>
           </Stack>
         </Paper>
 
@@ -540,158 +530,167 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
         >
           <CardContent sx={{ p: { xs: 2, md: 2.4 } }}>
             <Stack spacing={1.65}>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.16rem', md: '1.3rem' }, fontWeight: 800, color: '#13263A' }}>
                 Action Planning Process
               </Typography>
 
-              <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)' }}>
-                <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Box sx={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif' }}>
-                      1
-                    </Box>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.97rem', fontWeight: 800, color: '#13263A' }}>
-                      Review & Reflect
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'stretch' }}>
+                <Box sx={{ width: 58, height: 58, borderRadius: '50%', border: '3px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif', fontSize: '1.5rem', flexShrink: 0, mt: { xs: 0, md: 0.2 }, ml: { xs: 0.2, md: 0 } }}>
+                  1
+                </Box>
+                <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
+                  <Stack spacing={1}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={0.65} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.08rem', fontWeight: 800, color: '#13263A' }}>
+                        Review & Reflect
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', fontWeight: 700, color: '#457089' }}>
+                        Put yourself in their shoes...
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                      {`Envision you are a member of this team. What is one challenge that you might experience under a leader who struggles with ${activeRow.subTraitLabel}?`}
                     </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      placeholder="Describe the challenge from the team member perspective..."
+                      value={guidedAnswers.reviewReflect ?? ''}
+                      onChange={(e) => setGuidedAnswer('reviewReflect', e.target.value)}
+                    />
                   </Stack>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                    {`Envision you are a member of this team. What is one challenge that you might experience under a leader who struggles with ${activeRow.subTraitLabel}?`}
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    placeholder="Describe the challenge from the team member perspective..."
-                    value={guidedAnswers.reviewReflect ?? ''}
-                    onChange={(e) => setGuidedAnswer('reviewReflect', e.target.value)}
-                  />
-                </Stack>
-              </Paper>
+                </Paper>
+              </Stack>
 
-              <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)' }}>
-                <Stack spacing={1.1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Box sx={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif' }}>
-                      2
-                    </Box>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.97rem', fontWeight: 800, color: '#13263A' }}>
-                      Roots & Branches
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'stretch' }}>
+                <Box sx={{ width: 58, height: 58, borderRadius: '50%', border: '3px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif', fontSize: '1.5rem', flexShrink: 0, mt: { xs: 0, md: 0.2 }, ml: { xs: 0.2, md: 0 } }}>
+                  2
+                </Box>
+                <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
+                  <Stack spacing={1.1}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={0.65} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.08rem', fontWeight: 800, color: '#13263A' }}>
+                        Roots & Branches
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#457089' }}>
+                        healthy leaders grow both mindset and behavior
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                      Root question: What education or training will you pursue to increase your understanding of this leadership concept?
                     </Typography>
-                  </Stack>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                    Root question: What education or training will you pursue to increase your understanding of this leadership concept?
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    placeholder="Name the education, training, or feedback source you will use..."
-                    value={guidedAnswers.learningTraining ?? ''}
-                    onChange={(e) => setGuidedAnswer('learningTraining', e.target.value)}
-                  />
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                    Branch question: What is one behavior shift you will commit to in your effort to meet your team's needs?
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    multiline
-                    minRows={3}
-                    placeholder="Describe one behavior shift you commit to..."
-                    value={guidedAnswers.behaviorCommitment ?? ''}
-                    onChange={(e) => setGuidedAnswer('behaviorCommitment', e.target.value)}
-                  />
-                </Stack>
-              </Paper>
-
-              <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)' }}>
-                <Stack spacing={1.1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Box sx={{ width: 34, height: 34, borderRadius: '50%', border: '2px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif' }}>
-                      3
-                    </Box>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.97rem', fontWeight: 800, color: '#13263A' }}>
-                      Lock In
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      placeholder="Name the education, training, or feedback source you will use..."
+                      value={guidedAnswers.learningTraining ?? ''}
+                      onChange={(e) => setGuidedAnswer('learningTraining', e.target.value)}
+                    />
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                      Branch question: What is one behavior shift you will commit to in your effort to meet your team's needs?
                     </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={3}
+                      placeholder="Describe one behavior shift you commit to..."
+                      value={guidedAnswers.behaviorCommitment ?? ''}
+                      onChange={(e) => setGuidedAnswer('behaviorCommitment', e.target.value)}
+                    />
                   </Stack>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                    We measure what matters. Set your efficacy and effort targets, and your overall trait goal will update automatically.
-                  </Typography>
+                </Paper>
+              </Stack>
 
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', md: '1.2fr 1fr 1fr' },
-                      gap: 1,
-                    }}
-                  >
-                    <Paper sx={{ p: 1.35, borderRadius: 1, border: '1px solid rgba(15,23,42,0.14)', bgcolor: '#F2F5F8' }}>
-                      <Stack spacing={0.8}>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 800, color: '#243A53', letterSpacing: '0.04em' }}>
-                          OVERALL TRAIT GOAL
-                        </Typography>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: '#243A53', lineHeight: 1 }}>
-                          {targetOverallScore}
-                        </Typography>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', color: 'rgba(36,58,83,0.62)' }}>
-                          Auto-adjusted from efficacy and effort
-                        </Typography>
-                      </Stack>
-                    </Paper>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'flex-start', md: 'stretch' }}>
+                <Box sx={{ width: 58, height: 58, borderRadius: '50%', border: '3px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif', fontSize: '1.5rem', flexShrink: 0, mt: { xs: 0, md: 0.2 }, ml: { xs: 0.2, md: 0 } }}>
+                  3
+                </Box>
+                <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
+                  <Stack spacing={1.1}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={0.65} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.08rem', fontWeight: 800, color: '#13263A' }}>
+                        Make a Commitment
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', fontWeight: 700, color: '#457089' }}>
+                        we measure what matters
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
+                      Set your efficacy and effort targets, and your overall trait goal will update automatically.
+                    </Typography>
 
-                    <Paper sx={{ p: 1.25, borderRadius: 1, border: '1px solid rgba(69,112,137,0.2)', bgcolor: '#F2F5F8' }}>
-                      <Stack spacing={0.75}>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 800, color: '#5B8FA8', letterSpacing: '0.04em' }}>
-                          EFFICACY
-                        </Typography>
-                        <Stack direction="row" spacing={0.8} alignItems="center">
-                          <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.75 }}>
-                            <Remove fontSize="small" />
-                          </IconButton>
-                          <TextField
-                            value={targetEfficacyScore}
-                            onChange={(event) => setGuidedAnswer('goalEfficacy', event.target.value)}
-                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
-                            sx={{
-                              width: '100%',
-                              '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
-                              '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.8 },
-                            }}
-                          />
-                          <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.75 }}>
-                            <Add fontSize="small" />
-                          </IconButton>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent={{ xs: 'stretch', md: 'center' }} alignItems={{ xs: 'stretch', md: 'stretch' }} sx={{ pt: 0.25 }}>
+                      <Paper sx={{ p: 1.35, borderRadius: 1, border: '1px solid rgba(15,23,42,0.14)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 300 }, flexShrink: 0 }}>
+                        <Stack spacing={0.8}>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', fontWeight: 800, color: '#243A53', letterSpacing: '0.04em' }}>
+                            OVERALL TRAIT GOAL
+                          </Typography>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2.2rem', fontWeight: 800, color: '#243A53', lineHeight: 1 }}>
+                            {targetOverallScore}
+                          </Typography>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', color: 'rgba(36,58,83,0.62)' }}>
+                            Auto-adjusted from efficacy and effort
+                          </Typography>
                         </Stack>
-                      </Stack>
-                    </Paper>
+                      </Paper>
 
-                    <Paper sx={{ p: 1.25, borderRadius: 1, border: '1px solid rgba(224,122,63,0.2)', bgcolor: '#F2F5F8' }}>
-                      <Stack spacing={0.75}>
-                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 800, color: '#DE763A', letterSpacing: '0.04em' }}>
-                          EFFORT
-                        </Typography>
-                        <Stack direction="row" spacing={0.8} alignItems="center">
-                          <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.75 }}>
-                            <Remove fontSize="small" />
-                          </IconButton>
-                          <TextField
-                            value={targetEffortScore}
-                            onChange={(event) => setGuidedAnswer('goalEffort', event.target.value)}
-                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
-                            sx={{
-                              width: '100%',
-                              '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
-                              '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.1rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.8 },
-                            }}
-                          />
-                          <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.75 }}>
-                            <Add fontSize="small" />
-                          </IconButton>
+                      <Paper sx={{ p: 1.25, borderRadius: 1, border: '1px solid rgba(69,112,137,0.2)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 238 }, flexShrink: 0 }}>
+                        <Stack spacing={0.75}>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', fontWeight: 800, color: '#5B8FA8', letterSpacing: '0.04em' }}>
+                            EFFICACY
+                          </Typography>
+                          <Stack direction="row" spacing={0.8} alignItems="center">
+                            <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.75 }}>
+                              <Remove fontSize="small" />
+                            </IconButton>
+                            <TextField
+                              value={targetEfficacyScore}
+                              onChange={(event) => setGuidedAnswer('goalEfficacy', event.target.value)}
+                              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
+                              sx={{
+                                width: '100%',
+                                '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
+                                '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.16rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.8 },
+                              }}
+                            />
+                            <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.75 }}>
+                              <Add fontSize="small" />
+                            </IconButton>
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    </Paper>
-                  </Box>
-                </Stack>
-              </Paper>
+                      </Paper>
+
+                      <Paper sx={{ p: 1.25, borderRadius: 1, border: '1px solid rgba(224,122,63,0.2)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 238 }, flexShrink: 0 }}>
+                        <Stack spacing={0.75}>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', fontWeight: 800, color: '#DE763A', letterSpacing: '0.04em' }}>
+                            EFFORT
+                          </Typography>
+                          <Stack direction="row" spacing={0.8} alignItems="center">
+                            <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.75 }}>
+                              <Remove fontSize="small" />
+                            </IconButton>
+                            <TextField
+                              value={targetEffortScore}
+                              onChange={(event) => setGuidedAnswer('goalEffort', event.target.value)}
+                              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
+                              sx={{
+                                width: '100%',
+                                '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
+                                '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.16rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.8 },
+                              }}
+                            />
+                            <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.75 }}>
+                              <Add fontSize="small" />
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                      </Paper>
+                    </Stack>
+                  </Stack>
+                </Paper>
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
