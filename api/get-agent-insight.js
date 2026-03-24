@@ -36,6 +36,15 @@ const mentionsEfficacyEffortComparison = (text) =>
 const buildFallbackInsight = (body, significantGap) => {
   const subtrait = String(body?.selected_subtrait || 'this leadership area');
   const scoreBand = String(body?.score_band || 'developing range');
+  const isCampaignResults = String(body?.view_type || '').trim().toLowerCase() === 'campaign_results';
+
+  if (isCampaignResults) {
+    if (!significantGap) {
+      return `Your team reads ${subtrait} as a ${scoreBand} signal overall, with sentiment centered more on consistency and clarity than on any major disconnect in how this trait is landing.`;
+    }
+
+    return `Your team reads ${subtrait} as a ${scoreBand} signal, and the efficacy-effort relationship suggests visible energy is not converting cleanly into the experience they are actually having.`;
+  }
 
   if (!significantGap) {
     return `In ${subtrait}, your score sits in the ${scoreBand}, which points to a leadership pattern your team can generally track and respond to. The signal here is about consistency and communication quality inside this specific behavior, not major structural friction. This is a calibration moment: strengthen what is already landing and tighten clarity where interpretation can drift.`;
@@ -55,7 +64,43 @@ const softenImperatives = (text) =>
     .replace(/\bdo this\b/gi, 'this pattern often appears')
     .trim();
 
-const buildSystemPrompt = () => `
+const buildSystemPrompt = (body = {}) => {
+  const viewType = String(body?.view_type || '').trim().toLowerCase();
+
+  if (viewType === 'campaign_results') {
+    return `
+You are Compass Leadership Interpretation.
+
+Your role in this step is to synthesize team sentiment, not to coach, advise, or prescribe action.
+The user is reviewing campaign results and needs a sharp interpretation that feels intelligent, grounded, and specific.
+
+Write one concise interpretation in the user's selected voice:
+- bluntPracticalFriend
+- formalEmpatheticCoach
+- balancedMentor
+- comedyRoaster
+- pragmaticProblemSolver
+- highSchoolCoach
+
+GOAL
+Consider the selected subtrait, the supplied trait-library context, the supplied intake context, and the displayed efficacy and effort scores.
+Act like a data analyst with deep expertise in this leadership trait.
+Give the user one concise perspective on the synthesis provided by their team through feedback.
+
+HARD RULES
+- Length must be 20-35 words.
+- Focus on team sentiment and what the score relationship suggests.
+- Do NOT tell the user what to do next.
+- Do NOT include action plans, checklists, or recommendations.
+- Do NOT use headings, labels, bullets, or multiple paragraphs.
+- Keep language specific, human, and high-signal.
+- Avoid generic praise and avoid filler.
+- If significant_gap is false, do not force gap commentary.
+- Output plain text only.
+`.trim();
+  }
+
+  return `
 You are Compass Leadership Interpretation.
 
 Your role in this step is leadership interpretation, not action planning.
@@ -90,6 +135,7 @@ HARD RULES
 - If significant_gap is false, do not compare efficacy vs effort at all.
 - Use the selected_subtrait/question as a leadership lens, not just a numeric summary.
 `.trim();
+};
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -111,6 +157,7 @@ export default async function handler(req, res) {
     if (!ensureJsonObjectBody(req, res)) return;
 
     const body = req.body || {};
+    const isCampaignResults = String(body?.view_type || '').trim().toLowerCase() === 'campaign_results';
     const significantGap = normalizeBool(body.significant_gap);
     const userPrompt = `INPUTS
 - Selected trait/subtrait: ${body.selected_subtrait ?? ''}
@@ -119,6 +166,8 @@ export default async function handler(req, res) {
 - Score band: ${body.score_band ?? ''}
 - Efficacy score: ${body.efficacy_score ?? ''}
 - Effort score: ${body.effort_score ?? ''}
+- Trait library context: ${body.trait_library_context ?? ''}
+- Intake context summary: ${body.intake_context_summary ?? ''}
 - Delta (efficacy vs effort gap): ${significantGap ? body.delta ?? '' : '[omitted: not significant]'}
 - Delta band: ${significantGap ? body.delta_band ?? '' : '[omitted: not significant]'}
 - Significant gap: ${body.significant_gap ?? false}
@@ -140,7 +189,7 @@ export default async function handler(req, res) {
       frequency_penalty: 0.15,
       presence_penalty: 0.1,
       messages: [
-        { role: 'system', content: buildSystemPrompt() },
+        { role: 'system', content: buildSystemPrompt(body) },
         { role: 'user', content: userPrompt },
       ],
     });
@@ -153,16 +202,16 @@ export default async function handler(req, res) {
         max_tokens: 220,
         temperature: 0.35,
         messages: [
-          { role: 'system', content: `${buildSystemPrompt()}\n\nENFORCEMENT: significant_gap is false, so you must not mention any gap, delta, spread, or any efficacy-vs-effort comparison.` },
+          { role: 'system', content: `${buildSystemPrompt(body)}\n\nENFORCEMENT: significant_gap is false, so you must not mention any gap, delta, spread, or any efficacy-vs-effort comparison.` },
           { role: 'user', content: userPrompt },
         ],
       });
       raw = retry?.choices?.[0]?.message?.content?.trim() || raw;
     }
 
-    let cleaned = clampInsightWords(clampInsightLength(softenImperatives(raw), 420), 75);
+    let cleaned = clampInsightWords(clampInsightLength(softenImperatives(raw), 420), isCampaignResults ? 35 : 75);
     if (!significantGap && (mentionsGapLanguage(cleaned) || mentionsEfficacyEffortComparison(cleaned))) {
-      cleaned = clampInsightWords(clampInsightLength(buildFallbackInsight(body, significantGap), 420), 75);
+      cleaned = clampInsightWords(clampInsightLength(buildFallbackInsight(body, significantGap), 420), isCampaignResults ? 35 : 75);
     }
     return res.status(200).json({ insight: cleaned });
   } catch (err) {

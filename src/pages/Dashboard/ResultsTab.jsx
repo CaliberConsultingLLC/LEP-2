@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import fakeCampaign from '../../data/fakeCampaign.js';
 import fakeData from '../../data/fakeData.js';
+import traitSystem from '../../data/traitSystem.js';
 import { auth, db } from '../../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useFakeDashboardData } from '../../config/runtimeFlags';
@@ -36,6 +37,8 @@ import {
   normalizeDashboardScore,
   parseDashboardJson,
 } from '../../utils/dashboardData.js';
+
+const { CORE_TRAITS } = traitSystem;
 
 function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' }) {
   const [traitData, setTraitData] = useState({});
@@ -582,6 +585,14 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return match?.subTrait || selectedTraitKey;
   }, [resolvedCampaignRows, selectedTraitKey]);
 
+  const selectedTraitLibraryContext = useMemo(() => {
+    const traitDef = CORE_TRAITS.find((trait) => String(trait?.name || '').toLowerCase() === String(selectedTraitKey || '').toLowerCase());
+    const subTraitDef = traitDef?.subTraits?.find((subTrait) => String(subTrait?.name || '').toLowerCase() === String(selectedSubtraitLabel || '').toLowerCase());
+    return summarizeTraitLibraryContext(traitDef, subTraitDef);
+  }, [selectedSubtraitLabel, selectedTraitKey]);
+
+  const intakeContextSummary = useMemo(() => summarizeIntakeContext(intakeData), [intakeData]);
+
   const getStatementIndexesForTrait = (traitKey) => {
     const idx = resolvedCampaignRows.findIndex((item) => item.trait === traitKey);
     if (idx === -1 || idx == null) return [];
@@ -701,6 +712,121 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return 'aligned';
   };
 
+  const summarizeTraitLibraryContext = (traitDef, subTraitDef) => {
+    const details = [
+      traitDef?.name,
+      traitDef?.description,
+      subTraitDef?.name,
+      subTraitDef?.description,
+      subTraitDef?.default,
+      subTraitDef?.summary,
+      subTraitDef?.impact?.default,
+      subTraitDef?.peopleImpact?.default,
+      subTraitDef?.formalEmpatheticCoach,
+      subTraitDef?.balancedMentor,
+    ]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean);
+
+    if (!details.length) return 'Trait library context unavailable.';
+    return trimToChars(details.join(' | '), 700);
+  };
+
+  const summarizeIntakeContext = (data) => {
+    if (!data || typeof data !== 'object') return 'Intake context unavailable.';
+    const keys = [
+      'warningLabel',
+      'selfReflection',
+      'whyNow',
+      'leadershipVision',
+      'biggestChallenge',
+      'teamSize',
+      'role',
+      'industry',
+    ];
+    const pairs = keys
+      .map((key) => {
+        const value = data?.[key];
+        const normalized = Array.isArray(value) ? value.join(', ') : String(value || '').trim();
+        return normalized ? `${key}: ${normalized}` : '';
+      })
+      .filter(Boolean);
+
+    if (!pairs.length) return 'Intake context unavailable.';
+    return trimToChars(pairs.join(' | '), 700);
+  };
+
+  const getPerceptionGapMessage = (metric, gapValue) => {
+    const gap = Number(gapValue || 0);
+    const absGap = Math.abs(gap);
+    const band =
+      absGap < 5 ? 0
+        : absGap < 10 ? 1
+          : absGap < 20 ? 2
+            : absGap < 30 ? 3
+              : absGap < 40 ? 4
+                : 5;
+
+    const messages = {
+      efficacy: {
+        aligned: [
+          'Your view of impact is closely aligned with your team. They are reading this trait in about the same way you are.',
+          'There is very little daylight in efficacy here. The impact you believe you are having is largely the impact your team is reporting.',
+          'Your self-view and team view of efficacy are mostly in sync, which suggests the signal around impact is fairly clear.',
+          'The efficacy gap is small, so this trait appears to be landing about as expected from both sides.',
+          'This is a relatively aligned efficacy picture. Your team is not reporting a materially different level of impact than you are.',
+          'There is not much separation in efficacy here, so perception and team experience are tracking fairly closely.',
+        ],
+        positive: [
+          'Your team sees slightly more impact here than you do, which suggests this trait may be landing a bit more clearly than you realize.',
+          'The team is rating efficacy a little higher, so your influence in this area may be stronger than your own read suggests.',
+          'This positive efficacy gap indicates your team is experiencing this trait more favorably than you are giving yourself credit for.',
+          'Your team sees noticeably stronger impact here, which suggests the trait is landing better than your self-assessment implies.',
+          'A gap this size suggests your team is receiving more value from this trait than you may currently recognize.',
+          'Your team is reading efficacy much higher, which points to a materially stronger impact than your own self-view.',
+        ],
+        negative: [
+          'Your team sees slightly less impact here than you do, which suggests the trait is not landing quite as strongly as intended.',
+          'The team is rating efficacy lower, so there may be a mild disconnect between your intent and their actual experience.',
+          'This negative efficacy gap suggests your impact is being felt as weaker than your self-view would imply.',
+          'Your team is seeing meaningfully less efficacy here, which points to a clearer disconnect in how this trait is landing.',
+          'A gap this size suggests your approach is not translating into the level of impact you believe it is.',
+          'Your team is reading efficacy much lower, which demonstrates a major disconnect between intended impact and received experience.',
+        ],
+      },
+      effort: {
+        aligned: [
+          'Your view of effort is closely aligned with your team. They are seeing about the same level of attention and energy that you believe you are giving.',
+          'There is very little daylight in effort here, so the amount of visible energy in this trait is reading consistently.',
+          'Your self-view and team view of effort are mostly in sync, which suggests your level of attention is coming through clearly.',
+          'The effort gap is small, so your team is reading your consistency here about the same way you are.',
+          'This is a relatively aligned effort picture. The amount of visible focus in this trait is not being interpreted very differently.',
+          'There is not much separation in effort here, so your team perception of follow-through is fairly close to your own read.',
+        ],
+        positive: [
+          'Your team sees slightly more effort here than you do, which suggests your attention to this trait is more visible than you may realize.',
+          'The team is rating effort a little higher, so your consistency in this area may be showing up more clearly than you think.',
+          'This positive effort gap indicates your team is noticing more energy and follow-through than your self-view suggests.',
+          'Your team sees noticeably stronger effort here, which suggests your attention to this trait is more evident than expected.',
+          'A gap this size suggests your team is clearly noticing the work you are putting into this area.',
+          'Your team is reading effort much higher, which points to a very visible level of consistency and energy in this trait.',
+        ],
+        negative: [
+          'Your team sees slightly less effort here than you do, which suggests some of your attention is not fully visible to them.',
+          'The team is rating effort lower, so the consistency you feel may not be coming through as clearly as intended.',
+          'This negative effort gap suggests your level of attention is being experienced as lighter than your self-view implies.',
+          'Your team is seeing meaningfully less effort here, which points to a clearer disconnect in how visible your follow-through is.',
+          'A gap this size suggests the work you believe you are putting in is not being fully felt by the team.',
+          'Your team is reading effort much lower, which demonstrates a major disconnect in the visibility of your consistency and attention.',
+        ],
+      },
+    };
+
+    if (gap >= 5) return messages[metric]?.positive?.[band] || '';
+    if (gap <= -5) return messages[metric]?.negative?.[band] || '';
+    return messages[metric]?.aligned?.[band] || '';
+  };
+
   const buildInsightPayload = (mode) => {
     const base = {
       view_type: mode === 'detailed' ? 'detailed_results' : 'campaign_results',
@@ -753,6 +879,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       score_band: getScoreBand(activeMetrics?.lepScore ?? 0),
       efficacy_score: efficacy,
       effort_score: effort,
+      trait_library_context: selectedTraitLibraryContext,
+      intake_context_summary: intakeContextSummary,
       significant_gap: significantGap,
       ...(significantGap
         ? {
@@ -900,6 +1028,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         const effortGap = teamEffort == null || selfEffort == null ? traitMetrics.effort - traitMetrics.lepScore : teamEffort - selfEffort;
 
         const significantGap = Math.abs(Number(traitMetrics.delta || 0)) > 10;
+        const traitDef = CORE_TRAITS.find((trait) => String(trait?.name || '').toLowerCase() === String(traitKey || '').toLowerCase());
+        const subTraitDef = traitDef?.subTraits?.find((subTrait) => String(subTrait?.name || '').toLowerCase() === String(selectedSubtrait || '').toLowerCase());
         return {
           view_type: 'campaign_results',
           selectedAgent: selectedAgentProp || intakeData?.selectedAgent || 'balancedMentor',
@@ -913,6 +1043,8 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
           score_band: getScoreBand(traitMetrics.lepScore),
           efficacy_score: traitMetrics.efficacy,
           effort_score: traitMetrics.effort,
+          trait_library_context: summarizeTraitLibraryContext(traitDef, subTraitDef),
+          intake_context_summary: summarizeIntakeContext(intakeData),
           significant_gap: significantGap,
           ...(significantGap
             ? {
@@ -1006,7 +1138,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return () => {
       cancelled = true;
     };
-  }, [traitData, benchmarkGapData, selectedAgentProp, intakeData?.selectedAgent, view, overallMetrics, resolvedCampaignRows, confidenceContext]);
+  }, [traitData, benchmarkGapData, selectedAgentProp, intakeData?.selectedAgent, intakeContextSummary, view, overallMetrics, resolvedCampaignRows, confidenceContext]);
 
   const activeMetrics = useMemo(() => {
     if (!overallMetrics) return null;
@@ -1067,9 +1199,14 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return `${significance} ${directionLine('efficacy', efficacyGap)} ${directionLine('effort', effortGap)}`;
   };
 
-  const compassGapNarrative = useMemo(
-    () => buildGapNarrative(activeMetrics?.delta, efficacyPerceptionGap, effortPerceptionGap),
-    [activeMetrics?.delta, efficacyPerceptionGap, effortPerceptionGap]
+  const efficacyPerceptionNarrative = useMemo(
+    () => getPerceptionGapMessage('efficacy', efficacyPerceptionGap),
+    [efficacyPerceptionGap]
+  );
+
+  const effortPerceptionNarrative = useMemo(
+    () => getPerceptionGapMessage('effort', effortPerceptionGap),
+    [effortPerceptionGap]
   );
 
   const detailGapNarrative = useMemo(
@@ -1088,29 +1225,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
   const detailStatementComparisonRows = useMemo(() => {
     return detailStatements.map((stmt, idx) => {
-      const statementIndex = resolvedCampaignRows.findIndex((item) => item.trait === selectedDetailTraitKey);
-      const absoluteStatementIndex = statementIndex === -1 ? null : (statementIndex * 5) + idx;
-      const indexes = absoluteStatementIndex == null ? [] : [absoluteStatementIndex];
-      const teamEfficacy = averageMetricForIndexes(benchmarkGapData?.teamResponses, indexes, 'efficacy');
-      const selfEfficacy = averageMetricForIndexes(benchmarkGapData?.selfResponses, indexes, 'efficacy');
-      const teamEffort = averageMetricForIndexes(benchmarkGapData?.teamResponses, indexes, 'effort');
-      const selfEffort = averageMetricForIndexes(benchmarkGapData?.selfResponses, indexes, 'effort');
-      const efficacyGap = teamEfficacy != null && selfEfficacy != null ? teamEfficacy - selfEfficacy : null;
-      const effortGap = teamEffort != null && selfEffort != null ? teamEffort - selfEffort : null;
       const scoreGap = Math.abs(Number(stmt?.effort || 0) - Number(stmt?.efficacy || 0));
-
-      let gapLabel = 'Balanced';
-      if (scoreGap >= 20) gapLabel = 'Large gap';
-      else if (scoreGap >= 10) gapLabel = 'Watch gap';
-
-      const perceptionLabel = (() => {
-        const effGap = Number(efficacyGap || 0);
-        const attnGap = Number(effortGap || 0);
-        if (Math.abs(effGap) < 10 && Math.abs(attnGap) < 10) return 'Self/team mostly aligned';
-        if (effGap <= -10 || attnGap <= -10) return 'Team sees this weaker';
-        if (effGap >= 10 || attnGap >= 10) return 'Team sees this stronger';
-        return 'Mixed perception';
-      })();
 
       return {
         id: `statement-row-${idx}`,
@@ -1120,20 +1235,10 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         efficacy: Number(stmt?.efficacy || 0),
         effort: Number(stmt?.effort || 0),
         scoreGap,
-        gapLabel,
-        efficacyGap,
-        effortGap,
-        perceptionLabel,
-        insight: getGapAnalysis(stmt?.efficacy, stmt?.effort, idx),
       };
     });
   }, [
-    averageMetricForIndexes,
-    benchmarkGapData?.selfResponses,
-    benchmarkGapData?.teamResponses,
     detailStatements,
-    resolvedCampaignRows,
-    selectedDetailTraitKey,
   ]);
 
   useEffect(() => {
@@ -1143,7 +1248,10 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
   }, [
     view,
     selectedTraitKey,
+    selectedSubtraitLabel,
     selectedAgentProp,
+    selectedTraitLibraryContext,
+    intakeContextSummary,
     activeMetrics?.lepScore,
     activeMetrics?.efficacy,
     activeMetrics?.effort,
@@ -1590,7 +1698,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                           sx={{
                             gridColumn: { xs: '1 / -1', md: '2 / 3' },
                             gridRow: { xs: 'auto', md: '1 / 4' },
-                            p: 1.25,
+                            p: 1.35,
                             borderRadius: 2,
                             border: '1px solid rgba(69,112,137,0.35)',
                             bgcolor: 'rgba(255,255,255,0.96)',
@@ -1600,31 +1708,52 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                             textAlign: 'center',
                           }}
                         >
-                          <Typography sx={{ fontSize: '0.9rem', color: '#1F3347', lineHeight: 1.5 }}>
+                          <Typography sx={{ fontSize: '0.94rem', color: '#1F3347', lineHeight: 1.55 }}>
                             {insightLoading.compass && !compassAgentInsight
                               ? 'Generating interpretation...'
                               : (compassAgentInsight || 'Interpretation will load automatically for the selected view.')}
                           </Typography>
                         </Paper>
 
-                        <Paper
-                          sx={{
-                            gridColumn: { xs: '1 / -1', md: '2 / 3' },
-                            gridRow: { xs: 'auto', md: '4 / 6' },
-                            p: 1.25,
-                            borderRadius: 2,
-                            border: '1px solid rgba(69,112,137,0.35)',
-                            bgcolor: 'rgba(255,255,255,0.96)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
-                            {trimToWords(compassGapNarrative, 50)}
-                          </Typography>
-                        </Paper>
+                        {[
+                          {
+                            key: 'efficacy-gap-context',
+                            title: 'Efficacy Interpretation',
+                            text: efficacyPerceptionNarrative,
+                            row: '4 / 5',
+                          },
+                          {
+                            key: 'effort-gap-context',
+                            title: 'Effort Interpretation',
+                            text: effortPerceptionNarrative,
+                            row: '5 / 6',
+                          },
+                        ].map((item) => (
+                          <Paper
+                            key={item.key}
+                            sx={{
+                              gridColumn: { xs: '1 / -1', md: '2 / 3' },
+                              gridRow: { xs: 'auto', md: item.row },
+                              p: 1.25,
+                              borderRadius: 2,
+                              border: '1px solid rgba(69,112,137,0.35)',
+                              bgcolor: 'rgba(255,255,255,0.96)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                              gap: 0.45,
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '0.76rem', fontWeight: 800, color: '#4B6278', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                              {item.title}
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.88rem', color: '#2E465B', lineHeight: 1.5 }}>
+                              {item.text}
+                            </Typography>
+                          </Paper>
+                        ))}
                       </Box>
                     </Box>
                     </Paper>
@@ -1674,100 +1803,58 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     width: '100%',
                     maxWidth: 1120,
                     mx: 'auto',
-                    mb: 1.3,
-                    px: { xs: 1.2, md: 1.8 },
-                    py: { xs: 0.9, md: 1.05 },
-                    borderRadius: 2.2,
-                    border: '1px solid rgba(220,232,245,0.28)',
-                    bgcolor: 'rgba(58,82,108,0.62)',
-                    boxShadow: '0 8px 20px rgba(8,16,28,0.2), inset 0 0 0 1px rgba(255,255,255,0.08)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: '0.76rem',
-                      fontWeight: 800,
-                      color: 'rgba(236,245,255,0.84)',
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      mb: 0.35,
-                    }}
-                  >
-                    Selected Statement
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: { xs: '1rem', md: '1.12rem' },
-                      fontWeight: 700,
-                      color: 'rgba(250,253,255,0.97)',
-                      lineHeight: 1.35,
-                      textWrap: 'balance',
-                      px: { xs: 0.2, md: 1.2 },
-                    }}
-                  >
-                    {detailQuestionTitle}
-                  </Typography>
-                </Paper>
-
-                <Paper
-                  sx={{
-                    width: '100%',
-                    maxWidth: 1120,
-                    mx: 'auto',
                     mb: 1.5,
-                    p: { xs: 1.15, md: 1.4 },
+                    p: { xs: 1.5, md: 1.95 },
                     borderRadius: 2.4,
                     border: '1px solid rgba(255,255,255,0.2)',
                     background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(241,246,255,0.88))',
                     boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
                   }}
                 >
-                  <Stack
-                    direction={{ xs: 'column', md: 'row' }}
-                    justifyContent="space-between"
-                    alignItems={{ xs: 'flex-start', md: 'center' }}
-                    spacing={0.8}
-                    sx={{ mb: 1.15 }}
-                  >
-                    <Box>
-                      <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#385772', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        Statement Comparison
-                      </Typography>
-                      <Typography sx={{ fontSize: '0.92rem', color: '#51677C', lineHeight: 1.45, mt: 0.2 }}>
-                        Compare all five statements at once, then select a row to focus the detailed visual below.
-                      </Typography>
-                    </Box>
-                    <Typography sx={{ fontSize: '0.82rem', color: '#637B90', fontWeight: 700 }}>
-                      Selected: Statement {selectedDetailRingIdx + 1}
-                    </Typography>
-                  </Stack>
-
                   <Box sx={{ overflowX: 'auto', pb: 0.2 }}>
-                    <Box sx={{ minWidth: 980 }}>
-                      <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2.6fr) repeat(4, minmax(74px, 0.72fr)) minmax(128px, 1fr) minmax(0, 1.55fr)', gap: 0.9, px: 0.5, pb: 0.75 }}>
+                    <Box sx={{ minWidth: 920 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 3.1fr) repeat(4, minmax(94px, 0.9fr))', gap: 0, px: 0.1, pb: 0.8 }}>
                         {[
                           'Statement',
                           'Overall',
                           'Efficacy',
                           'Effort',
                           'Gap',
-                          'Perception',
-                          'Insight',
                         ].map((header) => (
-                          <Typography
+                          <Box
                             key={header}
                             sx={{
-                              fontSize: '0.76rem',
-                              fontWeight: 800,
-                              color: '#4B6278',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.06em',
-                              px: 0.6,
+                              position: 'relative',
+                              minHeight: 56,
+                              px: 1.2,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                              '&:after': header !== 'Gap' ? {
+                                content: '""',
+                                position: 'absolute',
+                                right: 0,
+                                top: '12.5%',
+                                height: '75%',
+                                width: '1px',
+                                bgcolor: 'rgba(76,101,124,0.16)',
+                              } : {},
                             }}
                           >
-                            {header}
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.86rem',
+                                fontWeight: 800,
+                                color: '#4B6278',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.06em',
+                                textAlign: 'center',
+                              }}
+                            >
+                              {header}
+                            </Typography>
+                          </Box>
                         ))}
                       </Box>
 
@@ -1780,10 +1867,10 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                               onClick={() => setSelectedDetailRingIdx(row.idx)}
                               sx={{
                                 display: 'grid',
-                                gridTemplateColumns: 'minmax(0, 2.6fr) repeat(4, minmax(74px, 0.72fr)) minmax(128px, 1fr) minmax(0, 1.55fr)',
-                                gap: 0.9,
+                                gridTemplateColumns: 'minmax(0, 3.1fr) repeat(4, minmax(94px, 0.9fr))',
+                                gap: 0,
                                 alignItems: 'center',
-                                p: 0.9,
+                                p: 0,
                                 borderRadius: 1.9,
                                 border: isSelected ? '1px solid rgba(69,112,137,0.48)' : '1px solid rgba(67,95,123,0.16)',
                                 background: isSelected
@@ -1798,51 +1885,112 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                                 },
                               }}
                             >
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#3F647B', mb: 0.22 }}>
-                                  Statement {row.idx + 1}
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.88rem', color: '#1F3347', lineHeight: 1.35 }}>
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  minWidth: 0,
+                                  minHeight: 92,
+                                  px: 1.4,
+                                  py: 1.25,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  textAlign: 'center',
+                                  '&:after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: '12.5%',
+                                    height: '75%',
+                                    width: '1px',
+                                    bgcolor: 'rgba(76,101,124,0.16)',
+                                  },
+                                }}
+                              >
+                                <Typography sx={{ fontSize: '1rem', fontWeight: 700, color: '#1F3347', lineHeight: 1.4, textAlign: 'center' }}>
                                   {row.text}
                                 </Typography>
                               </Box>
 
-                              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#1F3347', textAlign: 'center' }}>
-                                {row.overall.toFixed(1)}
-                              </Typography>
-                              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#6393AA', textAlign: 'center' }}>
-                                {row.efficacy.toFixed(1)}
-                              </Typography>
-                              <Typography sx={{ fontSize: '1rem', fontWeight: 800, color: '#E07A3F', textAlign: 'center' }}>
-                                {row.effort.toFixed(1)}
-                              </Typography>
-                              <Box sx={{ textAlign: 'center' }}>
-                                <Typography sx={{ fontSize: '0.98rem', fontWeight: 800, color: row.scoreGap >= 20 ? '#C85A2A' : row.scoreGap >= 10 ? '#A05B35' : '#2E5B77' }}>
-                                  {row.scoreGap.toFixed(1)}
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.68rem', color: '#647A8E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                  {row.gapLabel}
-                                </Typography>
-                              </Box>
-
-                              <Box sx={{ textAlign: 'center' }}>
-                                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#36556F', lineHeight: 1.25 }}>
-                                  {row.perceptionLabel}
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.68rem', color: '#6A8094', mt: 0.18 }}>
-                                  Eff {row.efficacyGap == null ? 'n/a' : `${row.efficacyGap >= 0 ? '+' : ''}${row.efficacyGap.toFixed(1)}`} | Attn {row.effortGap == null ? 'n/a' : `${row.effortGap >= 0 ? '+' : ''}${row.effortGap.toFixed(1)}`}
-                                </Typography>
-                              </Box>
-
-                              <Typography sx={{ fontSize: '0.8rem', color: '#2E465B', lineHeight: 1.42 }}>
-                                {trimToChars(row.insight, 150)}
-                              </Typography>
+                              {[
+                                { value: row.overall.toFixed(1), color: '#1F3347' },
+                                { value: row.efficacy.toFixed(1), color: '#6393AA' },
+                                { value: row.effort.toFixed(1), color: '#E07A3F' },
+                                { value: row.scoreGap.toFixed(1), color: row.scoreGap >= 20 ? '#C85A2A' : row.scoreGap >= 10 ? '#A05B35' : '#2E5B77', isLast: true },
+                              ].map((cell, cellIdx) => (
+                                <Box
+                                  key={`${row.id}-cell-${cellIdx}`}
+                                  sx={{
+                                    position: 'relative',
+                                    minHeight: 92,
+                                    px: 1.2,
+                                    py: 1.2,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textAlign: 'center',
+                                    '&:after': !cell.isLast ? {
+                                      content: '""',
+                                      position: 'absolute',
+                                      right: 0,
+                                      top: '12.5%',
+                                      height: '75%',
+                                      width: '1px',
+                                      bgcolor: 'rgba(76,101,124,0.16)',
+                                    } : {},
+                                  }}
+                                >
+                                  <Typography sx={{ fontSize: '1.18rem', fontWeight: 800, color: cell.color, textAlign: 'center' }}>
+                                    {cell.value}
+                                  </Typography>
+                                </Box>
+                              ))}
                             </Box>
                           );
                         })}
                       </Stack>
                     </Box>
                   </Box>
+                </Paper>
+
+                <Divider
+                  sx={{
+                    width: '100%',
+                    maxWidth: 1120,
+                    mx: 'auto',
+                    my: 0.1,
+                    borderColor: 'rgba(95,119,142,0.22)',
+                  }}
+                />
+
+                <Paper
+                  sx={{
+                    width: '100%',
+                    maxWidth: 1120,
+                    mx: 'auto',
+                    mb: 1.35,
+                    px: { xs: 1.45, md: 1.95 },
+                    py: { xs: 1.1, md: 1.2 },
+                    borderRadius: 2.2,
+                    border: '1px solid rgba(220,232,245,0.28)',
+                    bgcolor: 'rgba(58,82,108,0.62)',
+                    boxShadow: '0 8px 20px rgba(8,16,28,0.2), inset 0 0 0 1px rgba(255,255,255,0.08)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: { xs: '1rem', md: '1.1rem' },
+                      fontWeight: 700,
+                      color: 'rgba(250,253,255,0.97)',
+                      lineHeight: 1.4,
+                      textWrap: 'balance',
+                      maxWidth: 920,
+                      mx: 'auto',
+                    }}
+                  >
+                    {detailQuestionTitle}
+                  </Typography>
                 </Paper>
 
                 <Grid container spacing={1.5} alignItems="stretch" sx={{ minHeight: { lg: 560 } }}>
