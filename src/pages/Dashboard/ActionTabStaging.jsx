@@ -435,9 +435,18 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           }}
         >
           <Stack spacing={1.3}>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 800, color: '#457089', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              Plan of Attack
+            <Typography
+              sx={{
+                fontFamily: 'Montserrat, sans-serif',
+                fontSize: { xs: '1.28rem', md: '1.44rem' },
+                fontWeight: 800,
+                color: '#13263A',
+                textAlign: 'center',
+              }}
+            >
+              Growth Plan
             </Typography>
+            <Divider sx={{ my: 0.2, borderColor: 'rgba(69,112,137,0.25)' }} />
             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', color: '#20384F', lineHeight: 1.58 }}>
               Translate your insight data into concrete leadership moves your team will actually feel. Use this page to convert campaign data into one focused growth plan, verify progress commitments, and keep execution anchored to measurable behavior change.
             </Typography>
@@ -557,7 +566,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     Review & Reflect
                   </Typography>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
-                    Put yourself in their shoes...
+                    Put yourself in their shoes
                   </Typography>
                 </Stack>
                 <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
@@ -586,7 +595,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     Roots & Branches
                   </Typography>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
-                    healthy leaders grow both mindset and behavior
+                    Healthy leaders grow both mindset and behavior
                   </Typography>
                 </Stack>
                 <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
@@ -626,7 +635,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     Make a Commitment
                   </Typography>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
-                    we measure what matters
+                    We measure what matters
                   </Typography>
                 </Stack>
                 <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
@@ -636,7 +645,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     </Typography>
 
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent={{ xs: 'stretch', md: 'center' }} alignItems={{ xs: 'stretch', md: 'stretch' }} sx={{ pt: 0.25 }}>
-                      <Paper sx={{ p: 1.35, borderRadius: 1, border: '1px solid rgba(15,23,42,0.14)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 300 }, flexShrink: 0 }}>
+                      <Paper sx={{ p: { xs: 1.1, md: 1.2 }, borderRadius: 1, border: '1px solid rgba(15,23,42,0.14)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 300 }, flexShrink: 0 }}>
                         <Stack spacing={0.8} alignItems="center" justifyContent="center" textAlign="center">
                           <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', fontWeight: 800, color: '#243A53', letterSpacing: '0.04em', textAlign: 'center' }}>
                             OVERALL TRAIT GOAL
@@ -644,19 +653,16 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                           <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2.45rem', fontWeight: 800, color: '#243A53', lineHeight: 1, textAlign: 'center' }}>
                             {targetOverallScore}
                           </Typography>
-                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(36,58,83,0.62)', textAlign: 'center' }}>
-                            Auto-adjusted from efficacy and effort
-                          </Typography>
                         </Stack>
                       </Paper>
 
-                      <Paper sx={{ p: 1.25, borderRadius: 1, border: '1px solid rgba(69,112,137,0.2)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 238 }, flexShrink: 0 }}>
-                        <Stack spacing={0.75} alignItems="center" justifyContent="center" textAlign="center">
+                      <Paper sx={{ pt: 0.85, pb: 0.55, px: 0.85, borderRadius: 1, border: '1px solid rgba(69,112,137,0.2)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 238 }, flexShrink: 0 }}>
+                        <Stack spacing={0.45} alignItems="center" justifyContent="center" textAlign="center">
                           <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', fontWeight: 800, color: '#5B8FA8', letterSpacing: '0.04em', textAlign: 'center' }}>
                             EFFICACY
                           </Typography>
                           <Stack direction="row" spacing={0.8} alignItems="center">
-                            <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.75 }}>
+                            <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.55 }}>
                               <Remove fontSize="small" />
                             </IconButton>
                             <TextField
@@ -666,23 +672,23 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                               sx={{
                                 width: '100%',
                                 '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
-                                '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.24rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.8 },
+                                '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.46rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.5 },
                               }}
                             />
-                            <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.75 }}>
+                            <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)} sx={{ border: '1px solid rgba(69,112,137,0.2)', p: 0.55 }}>
                               <Add fontSize="small" />
                             </IconButton>
                           </Stack>
                         </Stack>
                       </Paper>
 
-                      <Paper sx={{ p: 1.25, borderRadius: 1, border: '1px solid rgba(224,122,63,0.2)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 238 }, flexShrink: 0 }}>
-                        <Stack spacing={0.75} alignItems="center" justifyContent="center" textAlign="center">
+                      <Paper sx={{ pt: 0.85, pb: 0.55, px: 0.85, borderRadius: 1, border: '1px solid rgba(224,122,63,0.2)', bgcolor: '#F2F5F8', width: { xs: '100%', md: 238 }, flexShrink: 0 }}>
+                        <Stack spacing={0.45} alignItems="center" justifyContent="center" textAlign="center">
                           <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', fontWeight: 800, color: '#DE763A', letterSpacing: '0.04em', textAlign: 'center' }}>
                             EFFORT
                           </Typography>
                           <Stack direction="row" spacing={0.8} alignItems="center">
-                            <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.75 }}>
+                            <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.55 }}>
                               <Remove fontSize="small" />
                             </IconButton>
                             <TextField
@@ -692,10 +698,10 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                               sx={{
                                 width: '100%',
                                 '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
-                                '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.24rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.8 },
+                                '& input': { fontFamily: 'Montserrat, sans-serif', fontSize: '1.46rem', fontWeight: 800, color: '#243A53', textAlign: 'center', py: 0.5 },
                               }}
                             />
-                            <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.75 }}>
+                            <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)} sx={{ border: '1px solid rgba(224,122,63,0.2)', p: 0.55 }}>
                               <Add fontSize="small" />
                             </IconButton>
                           </Stack>
