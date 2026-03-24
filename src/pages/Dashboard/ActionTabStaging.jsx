@@ -496,13 +496,13 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           }}
         >
           <Stack spacing={1.2}>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A' }}>
+            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A', textAlign: 'center' }}>
               {activeRow.subTraitLabel}
             </Typography>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
+            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)', textAlign: 'center' }}>
               {activeRow.trait.name}
             </Typography>
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.58 }}>
+            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.58, textAlign: 'center' }}>
               {traitDescription}
             </Typography>
             <Box
