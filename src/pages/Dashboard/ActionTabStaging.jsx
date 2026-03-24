@@ -114,10 +114,11 @@ function buildJourneyItems(plan, guidedSteps) {
     pushIfPresent(`Score goals: ${[effortText, efficacyText].filter(Boolean).join(' / ')}`);
   }
 
+  pushIfPresent(g.visibleSignal ? `Visible team signal: ${g.visibleSignal}` : '');
   pushIfPresent(g.learningTraining ? `Learning / training: ${g.learningTraining}` : '');
 
   (guidedSteps || []).forEach((step) => {
-    if (step.id === 'commitment' || step.id === 'behaviorCommitment' || step.id === 'goalEffort' || step.id === 'goalEfficacy') return;
+    if (step.id === 'commitment' || step.id === 'behaviorCommitment' || step.id === 'goalEffort' || step.id === 'goalEfficacy' || step.id === 'visibleSignal') return;
     const a = trimText(g[step.id]);
     if (a) pushIfPresent(a);
   });
@@ -270,24 +271,35 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     : buildSeedPlan('_', '_');
   const promptSet = [
     {
-      id: 'goals',
-      title: 'What score goals do you have for this year of growth?',
-      helper: 'Set a target for how you want this trait to improve across team effort and team efficacy.',
+      id: 'behaviorCommitment',
+      step: '01',
+      title: 'What is the one behavior shift you want your team to feel more consistently?',
+      helper: 'Name a visible move, not a general intention. If someone watched you lead for a week, what would be different?',
+      placeholder: 'Example: I will close each weekly check-in by naming the decision, owner, and next step out loud.',
+    },
+    {
+      id: 'visibleSignal',
+      step: '02',
+      title: 'If this plan works, what would your team notice first?',
+      helper: 'Describe the first signal of progress they could observe without you having to explain it.',
+      placeholder: 'Example: Meetings end with fewer clarifying questions and clearer ownership on next steps.',
     },
     {
       id: 'learningTraining',
-      title: 'What learning or training do you intend to pursue regarding this leadership trait and its impact on people?',
-      placeholder: 'Books, podcasts, coaching conversations, training, observation, or other learning you want to pursue…',
+      step: '03',
+      title: 'What support will help you improve this more intelligently this quarter?',
+      helper: 'Choose support that sharpens the behavior: coaching, observation, training, feedback, practice, or a resource you will actually use.',
+      placeholder: 'Example: I will review one meeting recording each week and get direct feedback on how clearly I frame next steps.',
     },
     {
-      id: 'behaviorCommitment',
-      title: 'What is one behavior or habit that you will commit to improve throughout this process?',
-      placeholder: 'Name one concrete behavior you will work to strengthen…',
+      id: 'goals',
+      step: '04',
+      title: 'Where do you want these scores to move?',
+      helper: 'Use the numeric goals to calibrate the level of shift you are trying to create, not to replace the behavior itself.',
     },
   ];
 
   const guidedAnswers = activePlan.guidedAnswers && typeof activePlan.guidedAnswers === 'object' ? activePlan.guidedAnswers : {};
-  const activeJourneyItems = activeRow ? buildJourneyItems(activePlan, guide.guidedSteps) : [];
   const currentEfficacyScore = activeRow ? clampGoalScore(toPercent(activeRow.efficacy)) : 0;
   const currentEffortScore = activeRow ? clampGoalScore(toPercent(activeRow.effort)) : 0;
   const currentOverallScore = activeRow ? clampGoalScore(toPercent(activeRow.compassScore)) : 0;
@@ -302,6 +314,53 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
       : guidedAnswers.goalEffort
   );
   const targetOverallScore = clampGoalScore(((targetEfficacyScore * 2) + targetEffortScore) / 3);
+  const contextPanels = [
+    {
+      title: 'Why This Matters',
+      tone: '#457089',
+      background: 'linear-gradient(145deg, rgba(239,246,252,0.95), rgba(230,239,248,0.88))',
+      border: '1px solid rgba(69,112,137,0.2)',
+      text: guide.friendlyNudge,
+    },
+    {
+      title: 'Where It Can Break',
+      tone: '#E07A3F',
+      background: 'linear-gradient(145deg, rgba(255,249,244,0.96), rgba(250,241,233,0.9))',
+      border: '1px solid rgba(224,122,63,0.22)',
+      text: guide.pressureLens,
+    },
+    {
+      title: 'What Success Should Look Like',
+      tone: '#13263A',
+      background: 'rgba(255,255,255,0.85)',
+      border: '1px solid rgba(19,38,58,0.12)',
+      text: guide.aimOfPlan,
+    },
+  ];
+  const planSnapshotSections = [
+    {
+      title: 'Growth Move',
+      empty: 'Define the one behavior shift you want your team to feel more consistently.',
+      value: trimText(guidedAnswers.behaviorCommitment),
+    },
+    {
+      title: 'What Your Team Should Notice',
+      empty: 'Name the first visible signal of progress your team would notice.',
+      value: trimText(guidedAnswers.visibleSignal),
+    },
+    {
+      title: 'Support You Will Use',
+      empty: 'Capture the support, training, or feedback loop that will help this stick.',
+      value: trimText(guidedAnswers.learningTraining),
+    },
+    {
+      title: 'Target Scores',
+      empty: '',
+      value: `Efficacy ${targetEfficacyScore} | Effort ${targetEffortScore} | Overall ${targetOverallScore}`,
+      alwaysShow: true,
+    },
+  ];
+  const planIsReady = Boolean(trimText(guidedAnswers.behaviorCommitment) && trimText(guidedAnswers.visibleSignal));
 
   const updatePlan = (traitId, subTraitId, updates) => {
     setPlans((prev) => ({
@@ -436,22 +495,120 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 1180, mx: 'auto' }}>
-      <Stack spacing={2.2}>
+      <Stack spacing={2.15}>
+        <Paper
+          sx={{
+            p: { xs: 1.7, md: 2.2 },
+            borderRadius: 1,
+            border: '1px solid rgba(15,23,42,0.12)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,248,253,0.94))',
+            boxShadow: '0 8px 22px rgba(15,23,42,0.08)',
+          }}
+        >
+          <Stack spacing={1.5}>
+            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 800, color: '#457089', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Plan of Attack
+            </Typography>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'stretch' }}>
+              <Stack spacing={0.9} sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.3rem', md: '1.55rem' }, fontWeight: 800, color: '#13263A' }}>
+                  {activeRow.subTraitLabel}
+                </Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
+                  {activeRow.trait.name}
+                </Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', color: '#20384F', lineHeight: 1.6, maxWidth: 760 }}>
+                  {activeRow.signal.description}
+                </Typography>
+                <Paper
+                  sx={{
+                    p: 1.1,
+                    borderRadius: 1,
+                    border: '1px solid rgba(69,112,137,0.18)',
+                    bgcolor: 'rgba(69,112,137,0.05)',
+                    maxWidth: 760,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.76rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em', textTransform: 'uppercase', mb: 0.45 }}>
+                    Your Role On This Page
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.89rem', color: '#20384F', lineHeight: 1.55 }}>
+                    Choose one growth move your team could actually feel this quarter. Keep it concrete, visible, and realistic enough to lead on purpose.
+                  </Typography>
+                </Paper>
+              </Stack>
+
+              <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', md: 'auto' }, minWidth: { xs: '100%', md: 560 } }}>
+                <Paper
+                  sx={{
+                    p: 1.35,
+                    borderRadius: 1,
+                    border: '1px solid rgba(69,112,137,0.22)',
+                    bgcolor: 'rgba(69,112,137,0.06)',
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em' }}>
+                    TEAM EFFICACY
+                  </Typography>
+                  <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
+                    {currentEfficacyScore}
+                  </Typography>
+                </Paper>
+                <Paper
+                  sx={{
+                    p: 1.35,
+                    borderRadius: 1,
+                    border: '1px solid rgba(224,122,63,0.24)',
+                    bgcolor: 'rgba(224,122,63,0.06)',
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.08em' }}>
+                    TEAM EFFORT
+                  </Typography>
+                  <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
+                    {currentEffortScore}
+                  </Typography>
+                </Paper>
+                <Paper
+                  sx={{
+                    p: 1.35,
+                    borderRadius: 1,
+                    border: '1px solid rgba(19,38,58,0.18)',
+                    bgcolor: 'rgba(19,38,58,0.04)',
+                    minWidth: 0,
+                    flex: 1,
+                  }}
+                >
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.08em' }}>
+                    OVERALL SCORE
+                  </Typography>
+                  <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
+                    {currentOverallScore}
+                  </Typography>
+                </Paper>
+              </Stack>
+            </Stack>
+          </Stack>
+        </Paper>
+
         <Typography
           sx={{
             fontFamily: 'Montserrat, sans-serif',
-            fontSize: { xs: '0.95rem', md: '1.02rem' },
+            fontSize: { xs: '0.94rem', md: '1rem' },
             color: 'rgba(19,38,58,0.78)',
             lineHeight: 1.65,
             maxWidth: 900,
           }}
         >
-          Build a focused action for each growth area from your campaign results. Pick a subtrait below, read the short
-          context for that capability, then answer the prompts — they are questions, not prescriptions. Your answers
-          become the plan you carry into My Journey.
+          Choose one growth move for this leadership area. You do not need to solve everything here. Your job is to define
+          one clear shift, why it matters, and what progress should look like for your team.
         </Typography>
 
-        <Stack direction="row" spacing={1.2} justifyContent="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
+        <Stack direction="row" spacing={1.2} justifyContent="center" flexWrap="wrap" sx={{ mb: 0.25 }}>
           {traitRows.map((row) => {
             const active = selectedTraitKey === row.traitKey;
             return (
@@ -475,139 +632,23 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           })}
         </Stack>
 
-        <Card
+        <Box
           sx={{
-            borderRadius: 1,
-            border: '1px solid rgba(15,23,42,0.12)',
-            background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,248,253,0.94))',
-            boxShadow: '0 8px 22px rgba(15,23,42,0.08)',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1.65fr) minmax(320px, 0.95fr)' },
+            gap: 1.5,
+            alignItems: 'start',
           }}
         >
-          <CardContent sx={{ p: { xs: 2, md: 2.75 } }}>
-            <Stack spacing={2.25}>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'stretch' }}>
-                <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.2rem', md: '1.45rem' }, fontWeight: 800, color: '#13263A' }}>
-                    {activeRow.subTraitLabel}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: 'rgba(19,38,58,0.62)' }}>
-                    {activeRow.trait.name}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.6, maxWidth: 760 }}>
-                    {activeRow.signal.description}
-                  </Typography>
-                </Stack>
-
-                <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', md: 'auto' }, minWidth: { xs: '100%', md: 560 } }}>
-                  <Paper
-                    sx={{
-                      p: 1.35,
-                      borderRadius: 1,
-                      border: '1px solid rgba(69,112,137,0.22)',
-                      bgcolor: 'rgba(69,112,137,0.06)',
-                      minWidth: 0,
-                      flex: 1,
-                    }}
-                  >
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em' }}>
-                      TEAM EFFICACY
-                    </Typography>
-                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
-                      {currentEfficacyScore}
-                    </Typography>
-                  </Paper>
-                  <Paper
-                    sx={{
-                      p: 1.35,
-                      borderRadius: 1,
-                      border: '1px solid rgba(224,122,63,0.24)',
-                      bgcolor: 'rgba(224,122,63,0.06)',
-                      minWidth: 0,
-                      flex: 1,
-                    }}
-                  >
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.08em' }}>
-                      TEAM EFFORT
-                    </Typography>
-                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
-                      {currentEffortScore}
-                    </Typography>
-                  </Paper>
-                  <Paper
-                    sx={{
-                      p: 1.35,
-                      borderRadius: 1,
-                      border: '1px solid rgba(19,38,58,0.18)',
-                      bgcolor: 'rgba(19,38,58,0.04)',
-                      minWidth: 0,
-                      flex: 1,
-                    }}
-                  >
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.08em' }}>
-                      OVERALL SCORE
-                    </Typography>
-                    <Typography sx={{ mt: 0.35, fontFamily: 'Montserrat, sans-serif', fontSize: '1.42rem', fontWeight: 800, color: '#13263A' }}>
-                      {currentOverallScore}
-                    </Typography>
-                  </Paper>
-                </Stack>
-              </Stack>
-
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
-                <Paper
-                  sx={{
-                    flex: 1,
-                    p: 1.5,
-                    borderRadius: 1,
-                    border: '1px solid rgba(69,112,137,0.2)',
-                    background: 'linear-gradient(145deg, rgba(239,246,252,0.95), rgba(230,239,248,0.88))',
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em', mb: 0.75 }}>
-                    FRIENDLY NUDGE
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: '#20384F', lineHeight: 1.55 }}>
-                    {guide.friendlyNudge}
-                  </Typography>
-                </Paper>
-                <Paper
-                  sx={{
-                    flex: 1,
-                    p: 1.5,
-                    borderRadius: 1,
-                    border: '1px solid rgba(224,122,63,0.22)',
-                    background: 'linear-gradient(145deg, rgba(255,249,244,0.96), rgba(250,241,233,0.9))',
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.08em', mb: 0.75 }}>
-                    PRESSURE TEST
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: '#20384F', lineHeight: 1.55 }}>
-                    {guide.pressureLens}
-                  </Typography>
-                </Paper>
-                <Paper
-                  sx={{
-                    flex: 1,
-                    p: 1.5,
-                    borderRadius: 1,
-                    border: '1px solid rgba(19,38,58,0.12)',
-                    bgcolor: 'rgba(255,255,255,0.85)',
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.08em', mb: 0.75 }}>
-                    AIM OF THE PLAN
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: '#20384F', lineHeight: 1.55 }}>
-                    {guide.aimOfPlan}
-                  </Typography>
-                </Paper>
-              </Stack>
-
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.98rem', fontWeight: 800, color: '#13263A', pt: 0.5 }}>
-                Setting a New Path
-              </Typography>
-
+          <Card
+            sx={{
+              borderRadius: 1,
+              border: '1px solid rgba(15,23,42,0.12)',
+              background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,248,253,0.94))',
+              boxShadow: '0 8px 22px rgba(15,23,42,0.08)',
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2, md: 2.75 } }}>
               <Stack spacing={2}>
                 <Paper
                   sx={{
@@ -617,219 +658,292 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                     bgcolor: 'rgba(255,255,255,0.88)',
                   }}
                 >
-                  <Stack spacing={1.4}>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
-                      {promptSet[0].title}
+                  <Stack spacing={1.2}>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.98rem', fontWeight: 800, color: '#13263A' }}>
+                      Understand the Moment
                     </Typography>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(19,38,58,0.65)', lineHeight: 1.55 }}>
-                      {promptSet[0].helper}
-                    </Typography>
-                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.6}>
-                      <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(69,112,137,0.16)', bgcolor: 'rgba(69,112,137,0.04)' }}>
-                        <Stack spacing={0.9}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', letterSpacing: '0.06em' }}>
-                              TARGET EFFICACY
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
-                              current {currentEfficacyScore}
-                            </Typography>
-                          </Stack>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <IconButton
-                              onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)}
-                              sx={{ border: '1px solid rgba(69,112,137,0.18)' }}
-                            >
-                              <Remove fontSize="small" />
-                            </IconButton>
-                            <TextField
-                              value={targetEfficacyScore}
-                              onChange={(event) => setGuidedAnswer('goalEfficacy', event.target.value)}
-                              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
-                              sx={{
-                                width: 92,
-                                '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
-                                '& input': {
-                                  fontFamily: 'Montserrat, sans-serif',
-                                  fontSize: '1.08rem',
-                                  fontWeight: 800,
-                                  color: '#13263A',
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
+                        gap: 1.2,
+                      }}
+                    >
+                      {contextPanels.map((panel) => (
+                        <Paper
+                          key={panel.title}
+                          sx={{
+                            p: 1.35,
+                            borderRadius: 1,
+                            border: panel.border,
+                            background: panel.background,
+                            minHeight: '100%',
+                          }}
+                        >
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: panel.tone, letterSpacing: '0.08em', mb: 0.7, textTransform: 'uppercase' }}>
+                            {panel.title}
+                          </Typography>
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: '#20384F', lineHeight: 1.58 }}>
+                            {panel.text}
+                          </Typography>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Stack>
+                </Paper>
+
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 800, color: '#13263A' }}>
+                  Build Your Growth Move
+                </Typography>
+
+                {promptSet.map((prompt) => (
+                  <Paper
+                    key={prompt.id}
+                    sx={{
+                      p: { xs: 1.5, md: 1.75 },
+                      borderRadius: 1,
+                      border: '1px solid rgba(15,23,42,0.1)',
+                      bgcolor: 'rgba(255,255,255,0.88)',
+                    }}
+                  >
+                    <Stack spacing={1.2}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Paper
+                          sx={{
+                            minWidth: 38,
+                            px: 1,
+                            py: 0.55,
+                            borderRadius: 999,
+                            border: '1px solid rgba(69,112,137,0.18)',
+                            bgcolor: 'rgba(69,112,137,0.06)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.04em' }}>
+                            {prompt.step}
+                          </Typography>
+                        </Paper>
+                        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
+                          {prompt.title}
+                        </Typography>
+                      </Stack>
+                      <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(19,38,58,0.67)', lineHeight: 1.6 }}>
+                        {prompt.helper}
+                      </Typography>
+
+                      {prompt.id === 'goals' ? (
+                        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.6}>
+                          <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(69,112,137,0.16)', bgcolor: 'rgba(69,112,137,0.04)' }}>
+                            <Stack spacing={0.9}>
+                              <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#457089', letterSpacing: '0.06em' }}>
+                                  TARGET EFFICACY
+                                </Typography>
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
+                                  current {currentEfficacyScore}
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore - 1)} sx={{ border: '1px solid rgba(69,112,137,0.18)' }}>
+                                  <Remove fontSize="small" />
+                                </IconButton>
+                                <TextField
+                                  value={targetEfficacyScore}
+                                  onChange={(event) => setGuidedAnswer('goalEfficacy', event.target.value)}
+                                  inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
+                                  sx={{
+                                    width: 92,
+                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
+                                    '& input': {
+                                      fontFamily: 'Montserrat, sans-serif',
+                                      fontSize: '1.08rem',
+                                      fontWeight: 800,
+                                      color: '#13263A',
+                                      textAlign: 'center',
+                                    },
+                                  }}
+                                />
+                                <IconButton onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)} sx={{ border: '1px solid rgba(69,112,137,0.18)' }}>
+                                  <Add fontSize="small" />
+                                </IconButton>
+                              </Stack>
+                            </Stack>
+                          </Paper>
+
+                          <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(224,122,63,0.18)', bgcolor: 'rgba(224,122,63,0.04)' }}>
+                            <Stack spacing={0.9}>
+                              <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.06em' }}>
+                                  TARGET EFFORT
+                                </Typography>
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
+                                  current {currentEffortScore}
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)} sx={{ border: '1px solid rgba(224,122,63,0.18)' }}>
+                                  <Remove fontSize="small" />
+                                </IconButton>
+                                <TextField
+                                  value={targetEffortScore}
+                                  onChange={(event) => setGuidedAnswer('goalEffort', event.target.value)}
+                                  inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
+                                  sx={{
+                                    width: 92,
+                                    '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
+                                    '& input': {
+                                      fontFamily: 'Montserrat, sans-serif',
+                                      fontSize: '1.08rem',
+                                      fontWeight: 800,
+                                      color: '#13263A',
+                                      textAlign: 'center',
+                                    },
+                                  }}
+                                />
+                                <IconButton onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)} sx={{ border: '1px solid rgba(224,122,63,0.18)' }}>
+                                  <Add fontSize="small" />
+                                </IconButton>
+                              </Stack>
+                            </Stack>
+                          </Paper>
+
+                          <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(19,38,58,0.14)', bgcolor: 'rgba(19,38,58,0.04)' }}>
+                            <Stack spacing={0.9}>
+                              <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.06em' }}>
+                                  OVERALL TRAIT GOAL
+                                </Typography>
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
+                                  auto
+                                </Typography>
+                              </Stack>
+                              <Paper
+                                variant="outlined"
+                                sx={{
+                                  px: 1.2,
+                                  py: 1.15,
+                                  borderRadius: 1,
+                                  bgcolor: 'rgba(255,255,255,0.96)',
+                                  borderColor: 'rgba(19,38,58,0.14)',
                                   textAlign: 'center',
-                                },
-                              }}
-                            />
-                            <IconButton
-                              onClick={() => setGuidedAnswer('goalEfficacy', targetEfficacyScore + 1)}
-                              sx={{ border: '1px solid rgba(69,112,137,0.18)' }}
-                            >
-                              <Add fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        </Stack>
-                      </Paper>
-                      <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(224,122,63,0.18)', bgcolor: 'rgba(224,122,63,0.04)' }}>
-                        <Stack spacing={0.9}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#E07A3F', letterSpacing: '0.06em' }}>
-                              TARGET EFFORT
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
-                              current {currentEffortScore}
-                            </Typography>
-                          </Stack>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <IconButton
-                              onClick={() => setGuidedAnswer('goalEffort', targetEffortScore - 1)}
-                              sx={{ border: '1px solid rgba(224,122,63,0.18)' }}
-                            >
-                              <Remove fontSize="small" />
-                            </IconButton>
-                            <TextField
-                              value={targetEffortScore}
-                              onChange={(event) => setGuidedAnswer('goalEffort', event.target.value)}
-                              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*', min: 0, max: 100, style: { textAlign: 'center' } }}
-                              sx={{
-                                width: 92,
-                                '& .MuiOutlinedInput-root': { bgcolor: 'rgba(255,255,255,0.96)' },
-                                '& input': {
-                                  fontFamily: 'Montserrat, sans-serif',
-                                  fontSize: '1.08rem',
-                                  fontWeight: 800,
-                                  color: '#13263A',
-                                  textAlign: 'center',
-                                },
-                              }}
-                            />
-                            <IconButton
-                              onClick={() => setGuidedAnswer('goalEffort', targetEffortScore + 1)}
-                              sx={{ border: '1px solid rgba(224,122,63,0.18)' }}
-                            >
-                              <Add fontSize="small" />
-                            </IconButton>
-                          </Stack>
-                        </Stack>
-                      </Paper>
-                      <Paper sx={{ flex: 1, p: 1.35, borderRadius: 1, border: '1px solid rgba(19,38,58,0.14)', bgcolor: 'rgba(19,38,58,0.04)' }}>
-                        <Stack spacing={0.9}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.06em' }}>
-                              OVERALL TRAIT GOAL
-                            </Typography>
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.74rem', fontWeight: 700, color: 'rgba(19,38,58,0.62)' }}>
-                              auto
-                            </Typography>
-                          </Stack>
-                          <Paper
-                            variant="outlined"
-                            sx={{
-                              px: 1.2,
-                              py: 1.15,
-                              borderRadius: 1,
-                              bgcolor: 'rgba(255,255,255,0.96)',
-                              borderColor: 'rgba(19,38,58,0.14)',
-                              textAlign: 'center',
-                            }}
-                          >
-                            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.12rem', fontWeight: 800, color: '#13263A' }}>
-                              {targetOverallScore}
-                            </Typography>
+                                }}
+                              >
+                                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.12rem', fontWeight: 800, color: '#13263A' }}>
+                                  {targetOverallScore}
+                                </Typography>
+                              </Paper>
+                            </Stack>
                           </Paper>
                         </Stack>
-                      </Paper>
+                      ) : (
+                        <TextField
+                          fullWidth
+                          multiline
+                          minRows={3}
+                          placeholder={prompt.placeholder}
+                          value={guidedAnswers[prompt.id] ?? ''}
+                          onChange={(e) => setGuidedAnswer(prompt.id, e.target.value)}
+                        />
+                      )}
                     </Stack>
-                  </Stack>
-                </Paper>
-
-                <Paper
-                  sx={{
-                    p: { xs: 1.5, md: 1.75 },
-                    borderRadius: 1,
-                    border: '1px solid rgba(15,23,42,0.1)',
-                    bgcolor: 'rgba(255,255,255,0.88)',
-                  }}
-                >
-                  <Stack spacing={1}>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
-                      {promptSet[1].title}
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      minRows={3}
-                      placeholder={promptSet[1].placeholder}
-                      value={guidedAnswers.learningTraining ?? ''}
-                      onChange={(e) => setGuidedAnswer('learningTraining', e.target.value)}
-                    />
-                  </Stack>
-                </Paper>
-
-                <Paper
-                  sx={{
-                    p: { xs: 1.5, md: 1.75 },
-                    borderRadius: 1,
-                    border: '1px solid rgba(15,23,42,0.1)',
-                    bgcolor: 'rgba(255,255,255,0.88)',
-                  }}
-                >
-                  <Stack spacing={1}>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', fontWeight: 700, color: '#13263A', lineHeight: 1.45 }}>
-                      {promptSet[2].title}
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      minRows={3}
-                      placeholder={promptSet[2].placeholder}
-                      value={guidedAnswers.behaviorCommitment ?? ''}
-                      onChange={(e) => setGuidedAnswer('behaviorCommitment', e.target.value)}
-                    />
-                  </Stack>
-                </Paper>
+                  </Paper>
+                ))}
               </Stack>
+            </CardContent>
+          </Card>
 
-              <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(69,112,137,0.18)', bgcolor: 'rgba(255,255,255,0.82)' }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                  <AutoAwesome sx={{ color: '#457089', fontSize: 18 }} />
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.94rem', fontWeight: 800, color: '#13263A' }}>
-                    Carries into My Journey
-                  </Typography>
-                </Stack>
-                {activeJourneyItems.length ? (
-                  <Stack spacing={0.5}>
-                    {activeJourneyItems.map((item) => (
-                      <Typography key={item.id} sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: '#20384F', lineHeight: 1.5 }}>
-                        • {item.text}
-                      </Typography>
-                    ))}
-                  </Stack>
-                ) : (
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: 'rgba(19,38,58,0.6)' }}>
-                    As you answer the prompts, this list will show what will move forward when you save.
-                  </Typography>
-                )}
-              </Paper>
-
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: saveMessage ? '#2F855A' : 'rgba(19,38,58,0.62)', fontWeight: saveMessage ? 700 : 500 }}>
-                  {saveMessage || 'Save when you are ready; you can refine later.'}
+          <Stack spacing={1.4} sx={{ position: { lg: 'sticky' }, top: { lg: 18 } }}>
+            <Paper
+              sx={{
+                p: 1.5,
+                borderRadius: 1,
+                border: '1px solid rgba(69,112,137,0.18)',
+                bgcolor: 'rgba(255,255,255,0.88)',
+                boxShadow: '0 8px 18px rgba(15,23,42,0.06)',
+              }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                <AutoAwesome sx={{ color: '#457089', fontSize: 18 }} />
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', fontWeight: 800, color: '#13263A' }}>
+                  Your Plan Snapshot
                 </Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                  <Button variant="outlined" onClick={() => savePlans(false)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1 }}>
-                    Save draft
-                  </Button>
-                  <Button
-                    variant="contained"
-                    endIcon={<ArrowForward />}
-                    onClick={() => savePlans(true)}
-                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 1, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
-                  >
-                    Save and open My Journey
-                  </Button>
-                </Stack>
               </Stack>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: 'rgba(19,38,58,0.64)', lineHeight: 1.55, mb: 1.15 }}>
+                This is the version of your plan that will carry forward into My Journey.
+              </Typography>
+              <Stack spacing={1}>
+                {planSnapshotSections.map((section) => (
+                  <Paper
+                    key={section.title}
+                    sx={{
+                      p: 1.1,
+                      borderRadius: 1,
+                      border: '1px solid rgba(15,23,42,0.08)',
+                      bgcolor: 'rgba(255,255,255,0.84)',
+                    }}
+                  >
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 800, color: '#457089', letterSpacing: '0.08em', textTransform: 'uppercase', mb: 0.45 }}>
+                      {section.title}
+                    </Typography>
+                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: section.value ? '#20384F' : 'rgba(19,38,58,0.52)', lineHeight: 1.55 }}>
+                      {section.value || section.empty}
+                    </Typography>
+                  </Paper>
+                ))}
+              </Stack>
+            </Paper>
+
+            <Paper
+              sx={{
+                p: 1.4,
+                borderRadius: 1,
+                border: '1px solid rgba(19,38,58,0.1)',
+                bgcolor: 'rgba(255,255,255,0.9)',
+                boxShadow: '0 8px 18px rgba(15,23,42,0.05)',
+              }}
+            >
+              <Stack spacing={0.8}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.76rem', fontWeight: 800, color: '#13263A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Completion Check
+                </Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.88rem', color: '#20384F', lineHeight: 1.55 }}>
+                  {planIsReady
+                    ? 'You have the core of a strong plan: one visible growth move and one team-facing signal of progress.'
+                    : 'A strong plan starts with two things: the specific behavior you will change and what your team should notice if it is working.'}
+                </Typography>
+              </Stack>
+            </Paper>
+          </Stack>
+        </Box>
+
+        <Paper
+          sx={{
+            p: { xs: 1.5, md: 1.7 },
+            borderRadius: 1,
+            border: '1px solid rgba(15,23,42,0.12)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(244,248,253,0.94))',
+            boxShadow: '0 8px 22px rgba(15,23,42,0.08)',
+          }}
+        >
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.84rem', color: saveMessage ? '#2F855A' : 'rgba(19,38,58,0.62)', fontWeight: saveMessage ? 700 : 500 }}>
+              {saveMessage || 'Save when you are ready. You can refine the plan later, but the strongest next step is to carry a clear move into My Journey.'}
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button variant="outlined" onClick={() => savePlans(false)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 1 }}>
+                Save plan draft
+              </Button>
+              <Button
+                variant="contained"
+                endIcon={<ArrowForward />}
+                onClick={() => savePlans(true)}
+                sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 1, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
+              >
+                Save plan and open My Journey
+              </Button>
             </Stack>
-          </CardContent>
-        </Card>
+          </Stack>
+        </Paper>
       </Stack>
     </Box>
   );
