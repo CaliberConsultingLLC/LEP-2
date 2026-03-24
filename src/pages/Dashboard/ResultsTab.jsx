@@ -666,21 +666,21 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return teamValue - selfValue;
   }, [benchmarkGapData, selectedDetailStatementIndex, selectedDetailStatement, detailTraitMetrics]);
 
-  const trimToChars = (text, max = 360) => {
+  function trimToChars(text, max = 360) {
     const normalized = String(text || '').replace(/\s+/g, ' ').trim();
     if (normalized.length <= max) return normalized;
     const sliced = normalized.slice(0, max - 1);
     const lastSpace = sliced.lastIndexOf(' ');
     return `${(lastSpace > 180 ? sliced.slice(0, lastSpace) : sliced).trimEnd()}…`;
-  };
+  }
 
-  const trimToWords = (text, maxWords = 50) => {
+  function trimToWords(text, maxWords = 50) {
     const normalized = String(text || '').replace(/\s+/g, ' ').trim();
     if (!normalized) return '';
     const words = normalized.split(' ');
     if (words.length <= maxWords) return normalized;
     return `${words.slice(0, maxWords).join(' ').trim()}…`;
-  };
+  }
 
   const getCrossTraitPatterns = () => {
     if (!criticalGaps?.length) return 'No major cross-trait divergence detected.';
