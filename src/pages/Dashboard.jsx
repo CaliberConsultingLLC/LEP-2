@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -18,7 +18,7 @@ import {
   Map,
   HelpOutline,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ResultsTab from './Dashboard/ResultsTab';
 import ActionTabStaging from './Dashboard/ActionTabStaging';
 import JourneyTab from './Dashboard/JourneyTab';
@@ -27,6 +27,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 
 function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentTab, setCurrentTab] = useState(0);
   const [navExpanded, setNavExpanded] = useState(false);
   const DASH_FONT = '"Montserrat", "Inter", "Segoe UI", sans-serif';
@@ -92,6 +93,28 @@ function Dashboard() {
       icon: Map,
     },
   ];
+
+  useEffect(() => {
+    const tab = String(new URLSearchParams(location.search || '').get('tab') || '').trim().toLowerCase();
+    if (!tab) return;
+
+    const tabIndexByKey = {
+      'campaign-details': 0,
+      campaign: 0,
+      'campaign-results': 1,
+      results: 1,
+      'detailed-results': 2,
+      detailed: 2,
+      'growth-plan': 3,
+      plan: 3,
+      'my-journey': 4,
+      journey: 4,
+    };
+
+    if (Object.prototype.hasOwnProperty.call(tabIndexByKey, tab)) {
+      setCurrentTab(tabIndexByKey[tab]);
+    }
+  }, [location.search]);
 
   return (
     <Box

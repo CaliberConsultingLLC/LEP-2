@@ -8,8 +8,10 @@ import {
   SelfImprovement,
   Groups,
   FactCheck,
+  HomeRounded,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { auth } from '../firebase';
 
 const PHASES = [
   { id: 'profile', title: 'Profile Creation', icon: AccountCircle, fallbackPath: '/user-info' },
@@ -33,12 +35,12 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname || '';
-  const searchParams = new URLSearchParams(location.search || '');
 
   const model = useMemo(() => {
     const userInfo = parseJson(localStorage.getItem('userInfo'), {});
     const latestFormData = parseJson(localStorage.getItem('latestFormData'), null);
     const campaignRecords = parseJson(localStorage.getItem('campaignRecords'), {});
+    const actionPlansByCampaign = parseJson(localStorage.getItem('actionPlansByCampaign'), {});
     const aiSummary = String(localStorage.getItem('aiSummary') || '').trim();
     const currentCampaign = parseJson(localStorage.getItem('currentCampaign'), []);
     const selfCampaignId = String(campaignRecords?.selfCampaignId || '').trim();
@@ -50,15 +52,31 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
     const selfPath = campaignRecords?.selfCampaignId
       ? `/campaign/${campaignRecords.selfCampaignId}`
       : null;
-    const teamPath = campaignRecords?.teamCampaignId
-      ? `/campaign/${campaignRecords.teamCampaignId}`
-      : null;
-
     const profileComplete = Boolean(String(userInfo?.name || '').trim() || String(userInfo?.email || '').trim());
     const behaviorsComplete = Boolean(latestFormData && typeof latestFormData === 'object');
     const insightsComplete = Boolean(aiSummary);
     const campaignComplete = Array.isArray(currentCampaign) && currentCampaign.length > 0
       || Boolean(campaignRecords?.bundleId || campaignRecords?.teamCampaignId || campaignRecords?.selfCampaignId);
+    const userKey = String(userInfo?.email || userInfo?.name || userInfo?.uid || 'anonymous').trim() || 'anonymous';
+    const currentCampaignId = String(
+      campaignRecords?.teamCampaignId
+      || campaignRecords?.selfCampaignId
+      || campaignRecords?.bundleId
+      || '123'
+    ).trim();
+    const savedPlans = actionPlansByCampaign?.[currentCampaignId]?.[userKey]?.plans;
+    const savedPlanCount = Object.values(savedPlans || {}).reduce((count, subTraitsByTrait) => {
+      const subTraitPlans = Object.values(subTraitsByTrait || {});
+      const completedInTrait = subTraitPlans.filter((plan) => {
+        const commitment = String(plan?.commitment || '').trim();
+        const behaviorCommitment = String(plan?.guidedAnswers?.behaviorCommitment || '').trim();
+        const checklistItems = Array.isArray(plan?.items) ? plan.items.length : 0;
+        return Boolean(commitment || behaviorCommitment || checklistItems > 0);
+      }).length;
+      return count + completedInTrait;
+    }, 0);
+    const reviewComplete = savedPlanCount >= 3;
+    const isSignedIn = Boolean(auth?.currentUser || userInfo?.uid || userInfo?.email);
 
     const completionMap = {
       profile: profileComplete,
@@ -67,7 +85,7 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
       campaign: campaignComplete,
       self: selfComplete,
       team: teamComplete,
-      review: false,
+      review: reviewComplete,
     };
 
     const getRoutePhase = () => {
@@ -102,8 +120,8 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
       insights: '/summary',
       campaign: '/campaign-builder',
       self: selfPath,
-      team: teamPath,
-      review: '/dashboard',
+      team: '/dashboard?tab=campaign-details',
+      review: '/dashboard?tab=growth-plan',
     };
 
     return {
@@ -111,8 +129,9 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
       completionMap,
       phaseLinks,
       currentPhaseTitle: PHASES[currentIndex]?.title || 'Growth Path',
+      homeTarget: isSignedIn ? '/dashboard?tab=campaign-details' : '/sign-in',
     };
-  }, [pathname, location.search, searchParams]);
+  }, [pathname, location.search]);
 
   const wrapperSx = embedded
     ? {}
@@ -172,7 +191,7 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
             const Icon = phase.icon;
             const isCurrent = idx === model.currentIndex;
             const isComplete = Boolean(model.completionMap[phase.id]) && !isCurrent;
-            const canNavigate = Boolean(model.phaseLinks[phase.id]) && (isCurrent || isComplete || idx <= model.currentIndex);
+            const canNavigate = Boolean(model.phaseLinks[phase.id]) && !isComplete && (isCurrent || idx <= model.currentIndex);
             const bg = isCurrent ? '#ECC94B' : isComplete ? '#2F855A' : 'rgba(142, 152, 166, 0.65)';
             const fg = isCurrent ? '#1E1E1E' : '#FFFFFF';
 
@@ -213,6 +232,35 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
               </Tooltip>
             );
           })}
+          <Box sx={{ width: 1, height: 24, bgcolor: 'rgba(255,255,255,0.35)', mx: 0.2 }} />
+          <Tooltip title="Dashboard Home" arrow placement="bottom">
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: 1.3,
+                bgcolor: 'rgba(84, 108, 133, 0.72)',
+                border: '1px solid rgba(255,255,255,0.34)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': { transform: 'translateY(-1px)' },
+              }}
+            >
+              <IconButton
+                onClick={() => navigate(model.homeTarget)}
+                size="small"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 1,
+                  color: '#FFFFFF',
+                }}
+              >
+                <HomeRounded sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+          </Tooltip>
         </Stack>
       </Box>
     </Box>
