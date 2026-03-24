@@ -558,7 +558,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
               </Typography>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'stretch', md: 'center' }}>
-                <Stack sx={{ width: { xs: '100%', md: 190 }, flexShrink: 0 }} spacing={0.35} alignItems="center" justifyContent="center">
+                <Stack sx={{ width: { xs: '100%', md: 238 }, px: { xs: 0, md: 1 }, flexShrink: 0 }} spacing={0.35} alignItems="center" justifyContent="center">
                   <Box sx={{ width: 62, height: 62, borderRadius: '50%', border: '3px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif', fontSize: '1.6rem', flexShrink: 0 }}>
                     1
                   </Box>
@@ -587,7 +587,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
               </Stack>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'stretch', md: 'center' }}>
-                <Stack sx={{ width: { xs: '100%', md: 190 }, flexShrink: 0 }} spacing={0.35} alignItems="center" justifyContent="center">
+                <Stack sx={{ width: { xs: '100%', md: 238 }, px: { xs: 0, md: 1 }, flexShrink: 0 }} spacing={0.35} alignItems="center" justifyContent="center">
                   <Box sx={{ width: 62, height: 62, borderRadius: '50%', border: '3px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif', fontSize: '1.6rem', flexShrink: 0 }}>
                     2
                   </Box>
@@ -627,7 +627,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
               </Stack>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'stretch', md: 'center' }}>
-                <Stack sx={{ width: { xs: '100%', md: 190 }, flexShrink: 0 }} spacing={0.35} alignItems="center" justifyContent="center">
+                <Stack sx={{ width: { xs: '100%', md: 238 }, px: { xs: 0, md: 1 }, flexShrink: 0 }} spacing={0.35} alignItems="center" justifyContent="center">
                   <Box sx={{ width: 62, height: 62, borderRadius: '50%', border: '3px solid #457089', color: '#457089', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontFamily: 'Montserrat, sans-serif', fontSize: '1.6rem', flexShrink: 0 }}>
                     3
                   </Box>
