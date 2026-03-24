@@ -83,7 +83,7 @@ function Dashboard() {
       icon: Insights,
     },
     {
-      label: 'Growth Plan',
+      label: 'Building Your Growth Plan',
       subtitle: 'Translate your insight data into concrete leadership moves your team will actually feel. This page helps you define focused actions by trait, verify progress commitments, and keep your execution anchored to measurable behavior change.',
       icon: Lightbulb,
     },
@@ -327,7 +327,7 @@ function Dashboard() {
                   lineHeight: 1.05,
                 }}
               >
-                Growth Dashboard
+                Compass Dashboard
               </Typography>
             </Stack>
             <Stack direction="row" spacing={1.4} alignItems="center">

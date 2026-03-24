@@ -50,6 +50,15 @@ function GrowthCampaignTab() {
     if (current > 0 && total > 0) return `In progress • step ${Math.min(current + 1, total)} of ${total}`;
     return 'In progress';
   }, [intakeComplete, intakeDraft, intakeStarted, intakeStatus]);
+  const intakeStatusTone = useMemo(() => {
+    if (intakeComplete) {
+      return { label: 'Complete', color: '#2B6CB0' };
+    }
+    if (intakeStarted) {
+      return { label: 'In Progress', color: '#2F855A' };
+    }
+    return { label: 'Not Started', color: '#9B2C2C' };
+  }, [intakeComplete, intakeStarted]);
   const needsSelfAssessment = (campaignId) => String(campaignId) === String(activeTeamCampaignId || campaignId);
   const addDays = (date, days) => {
     const d = new Date(date);
@@ -305,7 +314,36 @@ function GrowthCampaignTab() {
               justifyContent="space-between"
               alignItems={{ xs: 'stretch', md: 'center' }}
             >
-              <Box>
+              <Stack direction="row" spacing={1.5} alignItems="stretch" sx={{ width: '100%' }}>
+                <Box
+                  sx={{
+                    minWidth: 92,
+                    borderRadius: 1.5,
+                    border: '1px solid',
+                    borderColor: 'rgba(69,112,137,0.3)',
+                    bgcolor: 'rgba(255,255,255,0.55)',
+                    px: 1.1,
+                    py: 0.9,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: 'Gemunu Libre, sans-serif',
+                      fontSize: '0.95rem',
+                      fontWeight: 800,
+                      color: intakeStatusTone.color,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {intakeStatusTone.label}
+                  </Typography>
+                </Box>
+                <Box>
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
@@ -333,13 +371,13 @@ function GrowthCampaignTab() {
                 <Typography
                   sx={{
                     fontFamily: 'Gemunu Libre, sans-serif',
-                    fontSize: '0.94rem',
-                    fontWeight: 700,
-                    color: intakeComplete ? '#2B6CB0' : '#E07A3F',
-                    mt: 0.8,
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    color: 'text.secondary',
+                    mt: 0.7,
                   }}
                 >
-                  Status: {intakeStepLabel}
+                  {intakeStepLabel}
                 </Typography>
                 {cachedSummary && (
                   <Typography
@@ -353,7 +391,8 @@ function GrowthCampaignTab() {
                     Reflection snapshot ready{summarySavedAt ? ` • saved ${formatSavedAt(summarySavedAt)}` : ''}.
                   </Typography>
                 )}
-              </Box>
+                </Box>
+              </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                 {!intakeComplete && (
                   <Button

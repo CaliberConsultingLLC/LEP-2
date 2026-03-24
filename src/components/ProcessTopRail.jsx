@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Stack, Tooltip, IconButton, Typography } from '@mui/material';
+import { Box, Stack, Tooltip, IconButton, Typography, Divider } from '@mui/material';
 import {
   AccountCircle,
   Psychology,
@@ -232,7 +232,17 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
               </Tooltip>
             );
           })}
-          <Box sx={{ width: 1, height: 24, bgcolor: 'rgba(255,255,255,0.35)', mx: 0.2 }} />
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{
+              mx: 0.25,
+              borderColor: 'rgba(255,255,255,0.42)',
+              borderRightWidth: '1px',
+              height: 24,
+              alignSelf: 'center',
+            }}
+          />
           <Tooltip title="Dashboard Home" arrow placement="bottom">
             <Box
               sx={{

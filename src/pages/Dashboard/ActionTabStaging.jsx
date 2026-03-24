@@ -444,7 +444,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 textAlign: 'center',
               }}
             >
-              Growth Plan
+              Building Your Growth Plan
             </Typography>
             <Divider sx={{ my: 0.2, borderColor: 'rgba(69,112,137,0.25)' }} />
             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', color: '#20384F', lineHeight: 1.58 }}>
@@ -565,7 +565,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.06rem', fontWeight: 800, color: '#13263A', textAlign: 'center' }}>
                     Review & Reflect
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
                     Put yourself in their shoes
                   </Typography>
                 </Stack>
@@ -643,7 +643,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.06rem', fontWeight: 800, color: '#13263A', textAlign: 'center' }}>
                     Make a Commitment
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', fontStyle: 'italic', fontWeight: 700, color: '#457089', textAlign: 'center' }}>
                     We measure what matters
                   </Typography>
                 </Stack>

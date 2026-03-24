@@ -14,6 +14,8 @@ import {
   Alert,
   Divider,
   Paper,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -1768,32 +1770,51 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
               }}
             >
               <CardContent sx={{ px: { xs: 0.8, md: 1.2 }, pt: 0.6 }}>
-                <Stack direction="row" spacing={1.2} justifyContent="center" sx={{ mb: 1.4 }}>
-                  {detailTraitOptions.map((traitKey) => {
-                    const subLabel = resolvedCampaignRows.find((item) => item.trait === traitKey)?.subTrait || traitKey;
-                    const active = selectedDetailTraitKey === traitKey;
-                    return (
-                      <Button
-                        key={traitKey}
-                        variant={active ? 'contained' : 'outlined'}
-                        onClick={() => setSelectedDetailTraitKey(traitKey)}
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          borderRadius: 2,
-                          bgcolor: active ? undefined : 'white',
-                          color: active ? undefined : 'text.primary',
-                          borderColor: active ? undefined : 'rgba(0,0,0,0.24)',
-                          '&:hover': {
-                            bgcolor: active ? undefined : 'rgba(255,255,255,0.92)',
-                          },
-                        }}
-                      >
-                        {subLabel}
-                      </Button>
-                    );
-                  })}
-                </Stack>
+                <Paper
+                  sx={{
+                    p: { xs: 1.35, md: 1.6 },
+                    width: '100%',
+                    maxWidth: 1120,
+                    mx: 'auto',
+                    mb: 1.4,
+                    borderRadius: 2.2,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(160deg, rgba(255,255,255,0.94), rgba(241,246,255,0.88))',
+                    boxShadow: '0 10px 24px rgba(15,23,42,0.14)',
+                  }}
+                >
+                  <Tabs
+                    value={selectedDetailTraitKey || false}
+                    onChange={(_, value) => setSelectedDetailTraitKey(value)}
+                    variant="fullWidth"
+                    sx={{
+                      minHeight: 44,
+                      border: '1px solid rgba(15,23,42,0.14)',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      '& .MuiTabs-indicator': { bgcolor: '#457089', height: 3 },
+                    }}
+                  >
+                    {detailTraitOptions.map((traitKey) => {
+                      const subLabel = resolvedCampaignRows.find((item) => item.trait === traitKey)?.subTrait || traitKey;
+                      return (
+                        <Tab
+                          key={traitKey}
+                          value={traitKey}
+                          label={subLabel}
+                          sx={{
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            minHeight: 44,
+                            bgcolor: selectedDetailTraitKey === traitKey ? 'rgba(69,112,137,0.08)' : 'rgba(255,255,255,0.98)',
+                            color: '#13263A',
+                            '&.Mui-selected': { color: '#13263A' },
+                          }}
+                        />
+                      );
+                    })}
+                  </Tabs>
+                </Paper>
                 <Paper
                   sx={{
                     width: '100%',
