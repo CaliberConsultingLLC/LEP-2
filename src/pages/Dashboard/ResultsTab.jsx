@@ -712,7 +712,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     return 'aligned';
   };
 
-  const summarizeTraitLibraryContext = (traitDef, subTraitDef) => {
+  function summarizeTraitLibraryContext(traitDef, subTraitDef) {
     const details = [
       traitDef?.name,
       traitDef?.description,
@@ -730,9 +730,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
     if (!details.length) return 'Trait library context unavailable.';
     return trimToChars(details.join(' | '), 700);
-  };
+  }
 
-  const summarizeIntakeContext = (data) => {
+  function summarizeIntakeContext(data) {
     if (!data || typeof data !== 'object') return 'Intake context unavailable.';
     const keys = [
       'warningLabel',
@@ -754,7 +754,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
 
     if (!pairs.length) return 'Intake context unavailable.';
     return trimToChars(pairs.join(' | '), 700);
-  };
+  }
 
   const getPerceptionGapMessage = (metric, gapValue) => {
     const gap = Number(gapValue || 0);
