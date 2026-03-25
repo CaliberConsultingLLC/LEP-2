@@ -36,8 +36,14 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       campaign: {
+        id: campaignId,
         campaignType: 'team',
         bundleId: String(data?.bundleId || '').trim(),
+        ownerId: String(data?.ownerId || '').trim(),
+        ownerUid: String(data?.ownerUid || data?.userInfo?.uid || '').trim(),
+        ownerName: String(data?.userInfo?.name || '').trim(),
+        surveyClosed: Boolean(data?.surveyClosed),
+        statementsReady: Array.isArray(data?.campaign) && data.campaign.length > 0,
       },
     });
   } catch (error) {

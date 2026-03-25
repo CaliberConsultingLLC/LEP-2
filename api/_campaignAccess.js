@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 function getCampaignAccessSecret() {
-  return process.env.CAMPAIGN_ACCESS_SECRET || process.env.INTERNAL_API_KEY || 'compass-campaign-access-secret';
+  return process.env.CAMPAIGN_ACCESS_SECRET || process.env.INTERNAL_API_KEY || '';
 }
 
 function encodePayload(payload) {
@@ -21,6 +21,10 @@ function signEncodedPayload(encodedPayload) {
 }
 
 export function createCampaignAccessToken(campaignId, expiresInMs = 12 * 60 * 60 * 1000) {
+  const secret = getCampaignAccessSecret();
+  if (!secret) {
+    throw new Error('Campaign access secret is not configured');
+  }
   const payload = {
     campaignId: String(campaignId || ''),
     exp: Date.now() + expiresInMs,
@@ -31,6 +35,8 @@ export function createCampaignAccessToken(campaignId, expiresInMs = 12 * 60 * 60
 }
 
 export function verifyCampaignAccessToken(token, campaignId) {
+  const secret = getCampaignAccessSecret();
+  if (!secret) return false;
   const parts = String(token || '').split('.');
   if (parts.length !== 2) return false;
   const [encodedPayload, signature] = parts;

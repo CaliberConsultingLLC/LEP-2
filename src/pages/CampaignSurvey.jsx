@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
@@ -23,10 +23,6 @@ import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '.
 function CampaignSurvey() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
-  const isStagingRuntime =
-    stagingHost.includes('staging.northstarpartners.org') ||
-    stagingHost.includes('compass-staging');
   const [campaign, setCampaign] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [ratings, setRatings] = useState({});
@@ -58,16 +54,24 @@ function CampaignSurvey() {
     }
 
     const checkIfSurveyClosed = async () => {
+      if (String(campaignData?.campaignType || '').toLowerCase() !== 'team') return;
       try {
-        const snap = await getDoc(doc(db, 'campaigns', id));
-        if (!snap.exists()) return;
-        const payload = snap.data() || {};
-        if (String(payload?.campaignType || campaignData?.campaignType || '').toLowerCase() === 'team' && payload?.surveyClosed) {
+        const response = await fetch('/api/get-team-campaign-intro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaignId: id }),
+        });
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        if (Boolean(payload?.campaign?.surveyClosed)) {
           setSurveyClosed(true);
           setCampaignMeta((prev) => ({
             ...prev,
-            ...payload,
             campaignType: 'team',
+            surveyClosed: true,
+            ownerUid: payload?.campaign?.ownerUid || prev?.ownerUid || null,
+            ownerId: payload?.campaign?.ownerId || prev?.ownerId || null,
+            bundleId: payload?.campaign?.bundleId || prev?.bundleId || null,
           }));
         }
       } catch (err) {
@@ -113,26 +117,38 @@ function CampaignSurvey() {
     };
     try {
       if (campaignType === 'team') {
-        await addDoc(collection(db, 'surveyResponses'), {
-          ...ratingsData,
-          accessMode: 'anonymous-link',
-          submittedAt: new Date(),
+        const accessToken = String(campaignMeta?.accessToken || '').trim();
+        if (!accessToken) {
+          throw new Error('missing-access-token');
+        }
+        const submitResponse = await fetch('/api/submit-team-response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaignId: id,
+            accessToken,
+            ratings,
+          }),
         });
+        const submitPayload = await submitResponse.json().catch(() => ({}));
+        if (!submitResponse.ok) {
+          const normalizedError = String(submitPayload?.error || '').toLowerCase();
+          if (submitResponse.status === 409 || normalizedError.includes('closed')) {
+            setSurveyClosed(true);
+          }
+          throw new Error(submitPayload?.error || 'team-survey-submit-failed');
+        }
       } else {
         await addDoc(collection(db, 'surveyResponses'), ratingsData);
       }
     } catch (persistErr) {
-      const code = String(persistErr?.code || '').toLowerCase();
       const message = String(persistErr?.message || '').toLowerCase();
-      const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
-      if (!(isStagingRuntime && isPermissionErr)) throw persistErr;
-      const localResponses = parseJson(localStorage.getItem('localSurveyResponses'), []);
-      localResponses.push({
-        ...ratingsData,
-        submittedAt: new Date().toISOString(),
-      });
-      localStorage.setItem('localSurveyResponses', JSON.stringify(localResponses));
-      console.warn('[CampaignSurvey] Staging fallback activated: responses stored locally.');
+      if (message.includes('missing-access-token')) {
+        alert('Campaign access expired. Please re-enter the campaign password.');
+        navigate(`/campaign/${id}`, { replace: true });
+        return;
+      }
+      throw persistErr;
     }
     localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
     console.log('Survey responses saved to Firestore:', ratingsData);
@@ -169,8 +185,13 @@ function CampaignSurvey() {
         setTraitRecapOpen(true);
         return;
       }
-      await saveResponses();
-      navigate(`/campaign/${id}/complete`);
+      try {
+        await saveResponses();
+        navigate(`/campaign/${id}/complete`);
+      } catch (error) {
+        console.warn('Survey submit failed:', error);
+        alert('Could not submit this survey right now. Please try again.');
+      }
     }
   };
 
@@ -181,8 +202,13 @@ function CampaignSurvey() {
       setCurrentQuestion((prev) => prev + 1);
       return;
     }
-    await saveResponses();
-    navigate(`/campaign/${id}/complete`);
+    try {
+      await saveResponses();
+      navigate(`/campaign/${id}/complete`);
+    } catch (error) {
+      console.warn('Survey submit failed:', error);
+      alert('Could not submit this survey right now. Please try again.');
+    }
   };
 
   const handleMakeAdjustments = () => {

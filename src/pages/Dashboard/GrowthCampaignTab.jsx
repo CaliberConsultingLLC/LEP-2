@@ -34,6 +34,7 @@ function GrowthCampaignTab() {
   const [cachedSummary, setCachedSummary] = useState(() => String(localStorage.getItem('aiSummary') || '').trim());
   const [summarySavedAt, setSummarySavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
   const [showCloseNotice, setShowCloseNotice] = useState(false);
+  const [teamCampaignMeta, setTeamCampaignMeta] = useState({});
   const now = new Date();
   const [campaignRecords, setCampaignRecords] = useState(() => parseJson(localStorage.getItem('campaignRecords'), {}));
   const activeTeamCampaignId = String(campaignRecords?.teamCampaignId || '').trim();
@@ -145,6 +146,17 @@ function GrowthCampaignTab() {
         if (!useFakeDashboardData) {
           const teamCampaignId = String(nextCampaignRecords?.teamCampaignId || '').trim();
           if (teamCampaignId) {
+            const campaignSnap = await getDoc(doc(db, 'campaigns', teamCampaignId));
+            if (campaignSnap.exists()) {
+              const campaignPayload = campaignSnap.data() || {};
+              if (active) {
+                setTeamCampaignMeta({
+                  id: teamCampaignId,
+                  password: String(campaignPayload?.password || '').trim(),
+                  link: `${window.location.origin}/campaign/${teamCampaignId}`,
+                });
+              }
+            }
             if (unsubscribeSurvey) unsubscribeSurvey();
             unsubscribeSurvey = onSnapshot(
               query(collection(db, 'surveyResponses'), where('campaignId', '==', teamCampaignId), where('ownerUid', '==', user.uid)),
@@ -162,6 +174,8 @@ function GrowthCampaignTab() {
                 console.warn('Unable to subscribe to team response counts:', err);
               }
             );
+          } else if (active) {
+            setTeamCampaignMeta({});
           }
         }
       } catch (err) {
@@ -197,6 +211,9 @@ function GrowthCampaignTab() {
   };
 
   const getCampaignLink = (campaignId) => {
+    if (String(campaignId) === String(teamCampaignMeta?.id || '') && String(teamCampaignMeta?.link || '').trim()) {
+      return teamCampaignMeta.link;
+    }
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
       if (String(campaignId) === String(records?.teamCampaignId || '') && records?.teamCampaignLink) return records.teamCampaignLink;
@@ -208,12 +225,15 @@ function GrowthCampaignTab() {
   };
 
   const getCampaignPassword = (campaignId) => {
+    if (String(campaignId) === String(teamCampaignMeta?.id || '') && String(teamCampaignMeta?.password || '').trim()) {
+      return teamCampaignMeta.password;
+    }
     try {
       const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
       if (String(campaignId) === String(records?.teamCampaignId || '') && records?.teamCampaignPassword) return records.teamCampaignPassword;
-      return `campaign-${campaignId}-password`;
+      return '';
     } catch {
-      return `campaign-${campaignId}-password`;
+      return '';
     }
   };
 
@@ -597,7 +617,7 @@ function GrowthCampaignTab() {
                     <Button
                       variant="contained"
                       size="small"
-                      disabled={!selfCampaignCompleted}
+                      disabled={!selfCampaignCompleted || !getCampaignPassword(row.id)}
                       onClick={() => copyText(getCampaignPassword(row.id), `${row.id}-password`)}
                       sx={{
                         fontFamily: 'Gemunu Libre, sans-serif',

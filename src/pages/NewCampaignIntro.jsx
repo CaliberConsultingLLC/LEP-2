@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Stack, Button, Paper, Grid } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
@@ -11,7 +11,6 @@ function NewCampaignIntro() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [campaignData, setCampaignData] = useState(null);
-  const [campaignPassword, setCampaignPassword] = useState('');
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('what');
@@ -49,28 +48,44 @@ function NewCampaignIntro() {
           return;
         }
 
-        const localCampaignDocs = parseJson(localStorage.getItem('localCampaignDocs'), {});
-        if (localCampaignDocs && localCampaignDocs[id]) {
-          setSurveyClosed(Boolean(localCampaignDocs[id]?.surveyClosed));
-          setCampaignPassword(String(localCampaignDocs[id]?.password || ''));
-          const normalizedLocal = {
-            ...localCampaignDocs[id],
-            campaign: normalizeCampaignItems(localCampaignDocs[id]?.campaign),
-          };
-          if (isMounted) {
-            setCampaignData(normalizedLocal);
+        let loaded = false;
+        try {
+          const introResponse = await fetch('/api/get-team-campaign-intro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ campaignId: id }),
+          });
+          if (introResponse.ok) {
+            const payload = await introResponse.json().catch(() => ({}));
+            if (isMounted) {
+              setSurveyClosed(Boolean(payload?.campaign?.surveyClosed));
+              setCampaignData({
+                campaignType: 'team',
+                campaign: [],
+                ownerId: payload?.campaign?.ownerId || null,
+                ownerUid: payload?.campaign?.ownerUid || null,
+                bundleId: payload?.campaign?.bundleId || null,
+                userInfo: {
+                  uid: payload?.campaign?.ownerUid || null,
+                  name: payload?.campaign?.ownerName || '',
+                },
+                surveyClosed: Boolean(payload?.campaign?.surveyClosed),
+              });
+            }
+            loaded = true;
           }
-          return;
+        } catch (introError) {
+          console.warn('Team intro API check failed:', introError);
         }
 
-        let loaded = false;
+        if (loaded || !isMounted) return;
+
         try {
           const docRef = doc(db, 'campaigns', id);
           const docSnap = await getDoc(docRef);
           if (isMounted && docSnap.exists()) {
             const payload = docSnap.data() || {};
             setSurveyClosed(Boolean(payload?.surveyClosed));
-            setCampaignPassword(String(payload?.password || ''));
             setCampaignData({
               ...payload,
               password: undefined,
@@ -131,7 +146,8 @@ function NewCampaignIntro() {
       return;
     }
     const existingTeamAccess = localStorage.getItem(`teamCampaignAccess_${id}`);
-    if (!isSelfCampaign && existingTeamAccess && hasUsableCampaign) {
+    const cachedCampaign = parseJson(localStorage.getItem(`campaign_${id}`), {});
+    if (!isSelfCampaign && existingTeamAccess && isCampaignReady(cachedCampaign?.campaign)) {
       setIsNavigating(true);
       navigate(`/campaign/${id}/survey`, { replace: true });
       setTimeout(() => setIsNavigating(false), 100);
@@ -143,18 +159,38 @@ function NewCampaignIntro() {
         const enteredPassword = prompt('Please enter the campaign password:');
         if (!enteredPassword) return;
 
-        if (!campaignPassword) {
+        const verifyResponse = await fetch('/api/verify-team-campaign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaignId: id,
+            password: enteredPassword,
+          }),
+        });
+        const verifyPayload = await verifyResponse.json().catch(() => ({}));
+        if (!verifyResponse.ok) {
+          if (verifyResponse.status === 401) {
+            alert('Incorrect password. Please try again.');
+            return;
+          }
+          if (verifyResponse.status === 409) {
+            setSurveyClosed(true);
+            alert('This survey has already been closed by the campaign owner.');
+            return;
+          }
+          if (verifyResponse.status === 404) {
+            alert('Campaign not found.');
+            return;
+          }
           alert('This campaign could not be verified right now. Please refresh and try again.');
           return;
         }
 
-        if (String(enteredPassword) !== String(campaignPassword)) {
-          alert('Incorrect password. Please try again.');
-          return;
-        }
         const normalizedCampaign = {
-          ...(campaignData || {}),
-          campaign: normalizeCampaignItems(campaignData?.campaign),
+          ...(verifyPayload?.campaign || {}),
+          campaign: normalizeCampaignItems(verifyPayload?.campaign?.campaign),
+          surveyClosed: Boolean(verifyPayload?.campaign?.surveyClosed),
+          accessToken: String(verifyPayload?.accessToken || '').trim(),
         };
         if (!isCampaignReady(normalizedCampaign.campaign)) {
           alert('Campaign is not ready yet. Please try again shortly.');
@@ -162,6 +198,7 @@ function NewCampaignIntro() {
         }
         localStorage.setItem(`campaign_${id}`, JSON.stringify(normalizedCampaign));
         localStorage.setItem(`teamCampaignAccess_${id}`, 'granted');
+        setCampaignData(normalizedCampaign);
       } else {
         if (!hasUsableCampaign) {
           alert('Campaign is not ready yet. Please try again shortly.');
@@ -188,22 +225,71 @@ function NewCampaignIntro() {
       return;
     }
 
-    addDoc(collection(db, 'surveyResponses'), {
-      campaignId: id,
-      campaignType: 'team',
-      ownerId: campaignData?.ownerId || null,
-      ownerUid: campaignData?.ownerUid || campaignData?.userInfo?.uid || null,
-      bundleId: campaignData?.bundleId || null,
-      optedOut: true,
-      accessMode: 'anonymous-opt-out',
-      submittedAt: new Date(),
-    })
-      .catch((error) => {
+    const submitOptOut = async () => {
+      let accessToken = String(parseJson(localStorage.getItem(`campaign_${id}`), {})?.accessToken || '').trim();
+
+      if (!accessToken) {
+        const enteredPassword = prompt('Please enter the campaign password to continue:');
+        if (!enteredPassword) return;
+        const verifyResponse = await fetch('/api/verify-team-campaign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaignId: id,
+            password: enteredPassword,
+          }),
+        });
+        const verifyPayload = await verifyResponse.json().catch(() => ({}));
+        if (!verifyResponse.ok) {
+          if (verifyResponse.status === 401) {
+            alert('Incorrect password. Please try again.');
+            return;
+          }
+          if (verifyResponse.status === 409) {
+            setSurveyClosed(true);
+            alert('This survey has already been closed by the campaign owner.');
+            return;
+          }
+          alert('Campaign could not be verified. Please try again.');
+          return;
+        }
+        accessToken = String(verifyPayload?.accessToken || '').trim();
+        if (accessToken) {
+          const verifiedCampaign = {
+            ...(verifyPayload?.campaign || {}),
+            campaign: normalizeCampaignItems(verifyPayload?.campaign?.campaign),
+            surveyClosed: Boolean(verifyPayload?.campaign?.surveyClosed),
+            accessToken,
+          };
+          localStorage.setItem(`campaign_${id}`, JSON.stringify(verifiedCampaign));
+          localStorage.setItem(`teamCampaignAccess_${id}`, 'granted');
+        }
+      }
+
+      if (!accessToken) {
+        alert('Unable to validate campaign access right now.');
+        return;
+      }
+
+      await fetch('/api/submit-team-response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignId: id,
+          accessToken,
+          optedOut: true,
+        }),
+      }).catch((error) => {
         console.warn('Unable to record anonymous opt-out:', error);
-      })
-      .finally(() => {
-        navigate(`/campaign/${id}/complete`);
       });
+
+      navigate(`/campaign/${id}/complete`);
+    };
+
+    submitOptOut().catch((error) => {
+      console.warn('Opt-out flow failed:', error);
+      navigate(`/campaign/${id}/complete`);
+    });
   };
 
 

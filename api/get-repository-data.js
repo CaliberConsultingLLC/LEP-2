@@ -2,7 +2,7 @@ import { db } from './firebase.js';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 function getRepositorySessionToken() {
-  return process.env.REPOSITORY_SESSION_TOKEN || 'compass-repository-session-v1';
+  return String(process.env.REPOSITORY_SESSION_TOKEN || '').trim();
 }
 
 function normalizeEmail(value) {
@@ -86,6 +86,9 @@ export default async function handler(req, res) {
 
   try {
     if (!ensureJsonObjectBody(req, res)) return;
+    if (!getRepositorySessionToken()) {
+      return res.status(503).json({ error: 'Repository auth is not configured' });
+    }
     const sessionToken = String(req.headers['x-repository-session'] || '').trim();
     if (!sessionToken || sessionToken !== getRepositorySessionToken()) {
       return res.status(401).json({ error: 'Unauthorized' });

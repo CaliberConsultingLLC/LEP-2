@@ -1,15 +1,15 @@
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 function getRepositoryUsername() {
-  return process.env.REPOSITORY_ADMIN_USERNAME || 'compass-admin';
+  return String(process.env.REPOSITORY_ADMIN_USERNAME || '').trim();
 }
 
 function getRepositoryPassword() {
-  return process.env.REPOSITORY_ADMIN_PASSWORD || 'CompassAdmin!2026';
+  return String(process.env.REPOSITORY_ADMIN_PASSWORD || '');
 }
 
 function getRepositorySessionToken() {
-  return process.env.REPOSITORY_SESSION_TOKEN || 'compass-repository-session-v1';
+  return String(process.env.REPOSITORY_SESSION_TOKEN || '').trim();
 }
 
 export default async function handler(req, res) {
@@ -29,6 +29,10 @@ export default async function handler(req, res) {
 
   try {
     if (!ensureJsonObjectBody(req, res)) return;
+
+    if (!getRepositoryUsername() || !getRepositoryPassword() || !getRepositorySessionToken()) {
+      return res.status(503).json({ error: 'Repository auth is not configured' });
+    }
 
     const username = String(req.body?.username || '').trim();
     const password = String(req.body?.password || '');

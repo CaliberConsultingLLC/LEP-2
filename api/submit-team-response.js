@@ -26,8 +26,10 @@ export default async function handler(req, res) {
 
     const campaignId = String(req.body?.campaignId || '').trim();
     const accessToken = String(req.body?.accessToken || '').trim();
+    const optedOut = Boolean(req.body?.optedOut);
     const ratings = req.body?.ratings;
-    if (!campaignId || !accessToken || !isObject(ratings)) {
+    const hasValidRatings = isObject(ratings);
+    if (!campaignId || !accessToken || (!optedOut && !hasValidRatings)) {
       return res.status(400).json({ error: 'Invalid request' });
     }
 
@@ -44,6 +46,9 @@ export default async function handler(req, res) {
     if (String(data?.campaignType || '') !== 'team') {
       return res.status(403).json({ error: 'Forbidden' });
     }
+    if (Boolean(data?.surveyClosed)) {
+      return res.status(409).json({ error: 'Survey closed' });
+    }
 
     await db.collection('surveyResponses').add({
       id: campaignId,
@@ -53,8 +58,9 @@ export default async function handler(req, res) {
       ownerUid: data?.ownerUid || data?.userInfo?.uid || null,
       bundleId: data?.bundleId || null,
       submittedAt: new Date(),
-      accessMode: 'anonymous-link',
-      ratings,
+      accessMode: optedOut ? 'anonymous-opt-out' : 'anonymous-link',
+      optedOut,
+      ...(optedOut ? {} : { ratings }),
     });
 
     return res.status(200).json({ ok: true });

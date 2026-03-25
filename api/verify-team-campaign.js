@@ -35,6 +35,9 @@ export default async function handler(req, res) {
     if (String(data?.campaignType || '') !== 'team') {
       return res.status(403).json({ error: 'Forbidden' });
     }
+    if (Boolean(data?.surveyClosed)) {
+      return res.status(409).json({ error: 'Survey closed' });
+    }
 
     if (String(data?.password || '') !== password) {
       return res.status(401).json({ error: 'Invalid password' });
@@ -46,6 +49,7 @@ export default async function handler(req, res) {
       ownerId: data?.ownerId || null,
       ownerUid: data?.ownerUid || data?.userInfo?.uid || null,
       bundleId: data?.bundleId || null,
+      surveyClosed: Boolean(data?.surveyClosed),
       userInfo: {
         uid: data?.userInfo?.uid || data?.ownerUid || null,
         name: data?.userInfo?.name || '',

@@ -13,6 +13,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/get-ai-summary", "destination": "/api/get-ai-summary.js" },
     { "source": "/get-ai-reflection", "destination": "/api/get-ai-reflection.js" },
     { "source": "/(.*)", "destination": "/index.html" }

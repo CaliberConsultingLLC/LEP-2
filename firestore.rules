@@ -10,7 +10,7 @@ service cloud.firestore {
     }
 
     match /responses/{docId} {
-      allow create, get, update: if isSignedIn();
+      allow create, get, update: if isOwnerUid(docId);
       allow list, delete: if false;
     }
 
@@ -21,12 +21,12 @@ service cloud.firestore {
 
     match /campaigns/{docId} {
       allow create, update: if isSignedIn();
-      allow get: if isSignedIn() || resource.data.campaignType == 'team';
+      allow get: if isSignedIn();
       allow list, delete: if false;
     }
 
     match /surveyResponses/{docId} {
-      allow create: if isSignedIn() || request.resource.data.campaignType == 'team';
+      allow create: if isSignedIn();
       allow get, update: if isSignedIn();
       allow list: if isSignedIn();
       allow delete: if false;
