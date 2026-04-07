@@ -8,9 +8,14 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 }
 
 if (!admin.apps.length) {
+  const resolvedProjectId =
+    process.env.GCLOUD_PROJECT
+    || process.env.VITE_FIREBASE_PROJECT_ID
+    || 'leadership-evolution-project';
+
   admin.initializeApp({
     credential,
-    projectId: process.env.GCLOUD_PROJECT || process.env.VITE_FIREBASE_PROJECT_ID,
+    projectId: resolvedProjectId,
   });
 }
 
