@@ -11,11 +11,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from '@mui/material';
 import { Launch, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { collection, deleteField, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useFakeDashboardData } from '../../config/runtimeFlags';
 
@@ -35,6 +36,9 @@ function GrowthCampaignTab() {
   const [summarySavedAt, setSummarySavedAt] = useState(() => String(localStorage.getItem('summarySavedAt') || '').trim());
   const [showCloseNotice, setShowCloseNotice] = useState(false);
   const [teamCampaignMeta, setTeamCampaignMeta] = useState({});
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [closeConfirmText, setCloseConfirmText] = useState('');
+  const [isClosingSurvey, setIsClosingSurvey] = useState(false);
   const now = new Date();
   const [campaignRecords, setCampaignRecords] = useState(() => parseJson(localStorage.getItem('campaignRecords'), {}));
   const activeTeamCampaignId = String(campaignRecords?.teamCampaignId || '').trim();
@@ -272,10 +276,17 @@ function GrowthCampaignTab() {
   };
 
   const handleCloseSurvey = async () => {
+    setCloseConfirmText('');
+    setCloseConfirmOpen(true);
+  };
+
+  const confirmCloseSurvey = async () => {
     const ownerUid = String(auth?.currentUser?.uid || '').trim();
     if (!ownerUid || !activeTeamCampaignId) return;
-    const confirmed = window.confirm('Close this survey and unlock results for review?');
-    if (!confirmed) return;
+    if (isClosingSurvey) return;
+    if (closeConfirmText.trim() !== 'Confirm Close') return;
+
+    setIsClosingSurvey(true);
 
     const closedAt = new Date().toISOString();
     const nextCampaignRecords = {
@@ -313,6 +324,53 @@ function GrowthCampaignTab() {
       );
     } catch (err) {
       console.warn('Unable to persist close-survey state:', err);
+    } finally {
+      setIsClosingSurvey(false);
+      setCloseConfirmOpen(false);
+    }
+  };
+
+  const handleReopenSurvey = async () => {
+    const ownerUid = String(auth?.currentUser?.uid || '').trim();
+    if (!ownerUid || !activeTeamCampaignId) return;
+    const confirmed = window.confirm(
+      'Reopen this team survey? Team members will be able to submit responses again until you close it.'
+    );
+    if (!confirmed) return;
+
+    const reopenedAt = new Date().toISOString();
+    const nextCampaignRecords = { ...campaignRecords, teamCampaignClosed: false };
+    delete nextCampaignRecords.teamCampaignClosedAt;
+    setCampaignRecords(nextCampaignRecords);
+    localStorage.setItem('campaignRecords', JSON.stringify(nextCampaignRecords));
+    localStorage.setItem('teamCampaignCompleted', 'false');
+
+    try {
+      await setDoc(
+        doc(db, 'responses', ownerUid),
+        {
+          ownerUid,
+          campaignBundle: {
+            campaignRecords: {
+              teamCampaignId: activeTeamCampaignId,
+              teamCampaignClosed: false,
+              teamCampaignClosedAt: deleteField(),
+            },
+            savedAt: reopenedAt,
+          },
+        },
+        { merge: true }
+      );
+      await setDoc(
+        doc(db, 'campaigns', activeTeamCampaignId),
+        {
+          surveyClosed: false,
+          surveyClosedAt: deleteField(),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('Unable to persist reopen-survey state:', err);
     }
   };
 
@@ -636,11 +694,11 @@ function GrowthCampaignTab() {
                     >
                       {copiedKey === `${row.id}-password` ? 'Copied Password' : 'Password'}
                     </Button>
-                    {!useFakeDashboardData && (
+                    {!useFakeDashboardData && !teamCampaignClosed && (
                       <Button
                         variant="outlined"
                         size="small"
-                        disabled={!selfCampaignCompleted || teamCampaignClosed}
+                        disabled={!selfCampaignCompleted}
                         onClick={handleCloseSurvey}
                         sx={{
                           fontFamily: 'Gemunu Libre, sans-serif',
@@ -658,7 +716,32 @@ function GrowthCampaignTab() {
                           },
                         }}
                       >
-                        {teamCampaignClosed ? 'Survey Closed' : 'Close Survey'}
+                        Close Survey
+                      </Button>
+                    )}
+                    {!useFakeDashboardData && teamCampaignClosed && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        disabled={!selfCampaignCompleted}
+                        onClick={handleReopenSurvey}
+                        sx={{
+                          fontFamily: 'Gemunu Libre, sans-serif',
+                          textTransform: 'none',
+                          minWidth: 124,
+                          borderColor: 'rgba(47,133,90,0.55)',
+                          color: '#276749',
+                          '&:hover': {
+                            borderColor: '#276749',
+                            bgcolor: 'rgba(47,133,90,0.08)',
+                          },
+                          '&.Mui-disabled': {
+                            borderColor: 'rgba(69,112,137,0.22)',
+                            color: 'rgba(69,112,137,0.42)',
+                          },
+                        }}
+                      >
+                        Reopen survey
                       </Button>
                     )}
                   </Stack>
@@ -669,6 +752,50 @@ function GrowthCampaignTab() {
         </CardContent>
       </Card>
       </Stack>
+
+      <Dialog
+        open={closeConfirmOpen}
+        onClose={() => (isClosingSurvey ? null : setCloseConfirmOpen(false))}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 800 }}>
+          Confirm close survey
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', lineHeight: 1.6 }}>
+            Closing locks the team link immediately. No new feedback can be submitted until you reopen it. Close only when you’re satisfied with the response count. To proceed, type <b>Confirm Close</b> below.
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            margin="normal"
+            label='Type "Confirm Close"'
+            value={closeConfirmText}
+            onChange={(e) => setCloseConfirmText(e.target.value)}
+            disabled={isClosingSurvey}
+            inputProps={{ spellCheck: 'false' }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 2.2, pb: 1.8 }}>
+          <Button
+            onClick={() => setCloseConfirmOpen(false)}
+            disabled={isClosingSurvey}
+            variant="outlined"
+            sx={{ textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmCloseSurvey}
+            disabled={isClosingSurvey || closeConfirmText.trim() !== 'Confirm Close'}
+            variant="contained"
+            sx={{ textTransform: 'none' }}
+          >
+            {isClosingSurvey ? 'Closing…' : 'Close survey'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={showCloseNotice} onClose={() => setShowCloseNotice(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontWeight: 800 }}>
