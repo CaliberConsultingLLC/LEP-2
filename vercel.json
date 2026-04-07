@@ -24,6 +24,8 @@
     "api/get-agent-insight.js": { "maxDuration": 30 },
     "api/send-welcome-email.js": { "maxDuration": 30 },
     "api/get-campaign.js": { "maxDuration": 30 },
+    "api/repository-login.js": { "maxDuration": 30 },
+    "api/get-repository-data.js": { "maxDuration": 30 },
     "api/dismiss-statement.js": { "maxDuration": 30 }
   }
 }

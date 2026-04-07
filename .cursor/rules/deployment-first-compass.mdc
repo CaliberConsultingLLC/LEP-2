@@ -1,0 +1,13 @@
+---
+description: Compass is deploy-first; avoid local-only guidance
+alwaysApply: true
+---
+
+# Deploy-first Compass workflow
+
+- Treat Compass as a **public, deployed tool**. Optimize for **production/preview deployments**, not local-only fixes.
+- Prefer changes that work on the deployed platform (Vercel/serverless) with proper env vars, routing, and security.
+- Do not rely on `localhost`, manual dev-server restarts, or machine-specific steps as the primary solution.
+- When diagnosing issues, identify **which runtime is serving** the request (Vercel Function `api/*.js` vs local `server.js`) and fix the deployed path first.
+- Never introduce dev-only backdoors in production. If a feature needs admin access, implement explicit auth (env-backed secrets, role checks) and keep it production-safe.
+

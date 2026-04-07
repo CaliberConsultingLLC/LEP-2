@@ -5,6 +5,12 @@ function getRepositorySessionToken() {
   return String(process.env.REPOSITORY_SESSION_TOKEN || '').trim();
 }
 
+function getEffectiveRepositorySessionToken() {
+  const token = getRepositorySessionToken();
+  if (token) return { token, mode: 'env' };
+  return { token: '', mode: 'missing' };
+}
+
 function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -86,11 +92,12 @@ export default async function handler(req, res) {
 
   try {
     if (!ensureJsonObjectBody(req, res)) return;
-    if (!getRepositorySessionToken()) {
+    const session = getEffectiveRepositorySessionToken();
+    if (!session.token) {
       return res.status(503).json({ error: 'Repository auth is not configured' });
     }
     const sessionToken = String(req.headers['x-repository-session'] || '').trim();
-    if (!sessionToken || sessionToken !== getRepositorySessionToken()) {
+    if (!sessionToken || sessionToken !== session.token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 

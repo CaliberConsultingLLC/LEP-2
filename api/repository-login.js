@@ -12,6 +12,14 @@ function getRepositorySessionToken() {
   return String(process.env.REPOSITORY_SESSION_TOKEN || '').trim();
 }
 
+function getEffectiveRepositoryAuth() {
+  const username = getRepositoryUsername();
+  const password = getRepositoryPassword();
+  const token = getRepositorySessionToken();
+  if (username && password && token) return { username, password, token, mode: 'env' };
+  return { username: '', password: '', token: '', mode: 'missing' };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   if (req.method !== 'POST') {
@@ -30,21 +38,22 @@ export default async function handler(req, res) {
   try {
     if (!ensureJsonObjectBody(req, res)) return;
 
-    if (!getRepositoryUsername() || !getRepositoryPassword() || !getRepositorySessionToken()) {
+    const auth = getEffectiveRepositoryAuth();
+    if (!auth.username || !auth.password || !auth.token) {
       return res.status(503).json({ error: 'Repository auth is not configured' });
     }
 
     const username = String(req.body?.username || '').trim();
     const password = String(req.body?.password || '');
 
-    if (username !== getRepositoryUsername() || password !== getRepositoryPassword()) {
+    if (username !== auth.username || password !== auth.password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     return res.status(200).json({
       ok: true,
-      token: getRepositorySessionToken(),
-      username: getRepositoryUsername(),
+      token: auth.token,
+      username: auth.username,
     });
   } catch (error) {
     return safeServerError(res, 'repository-login error:', error);
