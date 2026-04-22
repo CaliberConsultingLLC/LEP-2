@@ -4,6 +4,27 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import App from './App.jsx';
 import './index.css';
+import { useCairnTheme } from './config/runtimeFlags';
+import cairnMuiTheme from './theme/cairnMuiTheme';
+import './styles/cairn-theme.css';
+
+// Apply the Cairn visual skin only on staging (or when explicitly requested
+// via `?theme=cairn`). Production leaves <html> without the attribute, so
+// every rule in cairn-theme.css stays inert there.
+if (useCairnTheme && typeof document !== 'undefined') {
+  document.documentElement.dataset.theme = 'cairn';
+
+  // Load Cairn fonts only when the skin is active — prod never requests these.
+  const alreadyLoaded = document.querySelector('link[data-cairn-fonts]');
+  if (!alreadyLoaded) {
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.dataset.cairnFonts = 'true';
+    fontLink.href =
+      'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
+    document.head.appendChild(fontLink);
+  }
+}
 
 const theme = createTheme({
   palette: {
@@ -130,10 +151,12 @@ const theme = createTheme({
   },
 });
 
+const activeTheme = useCairnTheme ? cairnMuiTheme : theme;
+
 const root = createRoot(document.getElementById('root'));
 
 root.render(
-  <ThemeProvider theme={theme}>
+  <ThemeProvider theme={activeTheme}>
     <CssBaseline />
     <App />
   </ThemeProvider>

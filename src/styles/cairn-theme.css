@@ -1,0 +1,375 @@
+/* ==========================================================================
+   Cairn (Compass Redesign) visual skin
+   Tokens + global style overrides. Every rule in this file is scoped under
+   `html[data-theme="cairn"]` so the file is inert on production.
+   The attribute is applied at runtime by main.jsx only when
+   `useCairnTheme` from runtimeFlags.js is true (staging host or
+   `?theme=cairn` override).
+   ========================================================================== */
+
+html[data-theme='cairn'] {
+  /* --- Brand anchors (navy) --- */
+  --navy-950: #09101f;
+  --navy-900: #10223c;
+  --navy-800: #162a44;
+  --navy-700: #1e3a5c;
+  --navy-600: #2b4a6f;
+  --navy-500: #3f647b;
+  --navy-400: #5e91b0;
+  --navy-300: #8fb3cd;
+
+  /* --- Accents --- */
+  --amber: #ecc94b;
+  --amber-soft: #f4cea1;
+  --orange: #e07a3f;
+  --orange-deep: #c0612a;
+  --green: #2f855a;
+  --green-soft: #6f9a83;
+
+  /* --- Paper / cream scale --- */
+  --sand-50: #fbf7f0;
+  --sand-100: #f4ecdd;
+  --sand-200: #e8dbc3;
+  --sand-300: #d1bc93;
+
+  /* --- Ink --- */
+  --ink: #0f1c2e;
+  --ink-soft: #44566c;
+
+  /* --- Radii / motion --- */
+  --cairn-radius-sm: 10px;
+  --cairn-radius-md: 14px;
+  --cairn-radius-lg: 20px;
+  --cairn-radius-xl: 24px;
+  --cairn-radius-pill: 999px;
+  --cairn-motion: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* --- Override base tokens declared in index.css --- */
+  --surface-1: #ffffff;
+  --surface-2: var(--sand-50);
+  --surface-3: var(--sand-100);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-soft);
+  --border-soft: var(--sand-200);
+  --ring-focus: rgba(224, 122, 63, 0.32);
+  --motion-standard: var(--cairn-motion);
+  --radius-sm: var(--cairn-radius-sm);
+  --radius-md: var(--cairn-radius-md);
+}
+
+/* --- Body / baseline typography --- */
+html[data-theme='cairn'],
+html[data-theme='cairn'] body {
+  background: var(--sand-50);
+  color: var(--ink);
+  font-family: 'Manrope', 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html[data-theme='cairn'] :focus-visible {
+  outline: 3px solid var(--ring-focus);
+  outline-offset: 2px;
+}
+
+/* --- Display type: Fraunces for headings --- */
+html[data-theme='cairn'] h1,
+html[data-theme='cairn'] h2,
+html[data-theme='cairn'] h3,
+html[data-theme='cairn'] h4,
+html[data-theme='cairn'] .MuiTypography-h1,
+html[data-theme='cairn'] .MuiTypography-h2,
+html[data-theme='cairn'] .MuiTypography-h3,
+html[data-theme='cairn'] .MuiTypography-h4 {
+  font-family: 'Fraunces', 'Georgia', serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--navy-900);
+}
+
+html[data-theme='cairn'] h1,
+html[data-theme='cairn'] .MuiTypography-h1 {
+  letter-spacing: -0.03em;
+}
+
+/* --- Eyebrow / overline: JetBrains Mono --- */
+html[data-theme='cairn'] .MuiTypography-overline,
+html[data-theme='cairn'] [data-role='eyebrow'] {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--orange-deep);
+}
+
+/* --- MUI Paper / Card surfaces --- */
+html[data-theme='cairn'] .MuiPaper-root,
+html[data-theme='cairn'] .MuiCard-root {
+  background-color: #ffffff;
+  color: var(--ink);
+  border: 1px solid var(--sand-200);
+  border-radius: var(--cairn-radius-lg);
+  box-shadow: 0 18px 40px rgba(15, 28, 46, 0.06);
+}
+
+html[data-theme='cairn'] .MuiPaper-outlined {
+  box-shadow: none;
+}
+
+html[data-theme='cairn'] .MuiAppBar-root {
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  border: none;
+  box-shadow: 0 10px 32px rgba(9, 16, 31, 0.18);
+}
+
+/* --- Buttons --- */
+html[data-theme='cairn'] .MuiButton-root {
+  border-radius: var(--cairn-radius-pill);
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  padding: 12px 22px;
+  min-height: 42px;
+  transition: var(--cairn-motion);
+}
+
+html[data-theme='cairn'] .MuiButton-containedPrimary {
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  box-shadow: 0 8px 20px rgba(15, 28, 46, 0.18);
+}
+html[data-theme='cairn'] .MuiButton-containedPrimary:hover {
+  background-color: var(--navy-800);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(15, 28, 46, 0.22);
+}
+
+html[data-theme='cairn'] .MuiButton-containedSecondary {
+  background-color: var(--orange);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(224, 122, 63, 0.22);
+}
+html[data-theme='cairn'] .MuiButton-containedSecondary:hover {
+  background-color: var(--orange-deep);
+}
+
+html[data-theme='cairn'] .MuiButton-outlinedPrimary {
+  border-color: var(--navy-500);
+  color: var(--navy-900);
+  background-color: transparent;
+}
+html[data-theme='cairn'] .MuiButton-outlinedPrimary:hover {
+  background-color: var(--sand-100);
+  border-color: var(--navy-700);
+}
+
+html[data-theme='cairn'] .MuiButton-textPrimary {
+  color: var(--navy-900);
+}
+
+/* IconButton keeps its own radius (circular) but picks up the ring color */
+html[data-theme='cairn'] .MuiIconButton-root {
+  color: var(--navy-700);
+}
+html[data-theme='cairn'] .MuiIconButton-root:hover {
+  background-color: rgba(30, 58, 92, 0.08);
+}
+
+/* --- Chips --- */
+html[data-theme='cairn'] .MuiChip-root {
+  border-radius: var(--cairn-radius-pill);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--sand-200);
+  background-color: var(--sand-50);
+  color: var(--ink-soft);
+  height: 28px;
+}
+html[data-theme='cairn'] .MuiChip-colorPrimary,
+html[data-theme='cairn'] .MuiChip-filledPrimary {
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  border-color: var(--navy-900);
+}
+html[data-theme='cairn'] .MuiChip-colorSecondary,
+html[data-theme='cairn'] .MuiChip-filledSecondary {
+  background-color: var(--orange);
+  color: #fff;
+  border-color: var(--orange);
+}
+html[data-theme='cairn'] .MuiChip-colorSuccess,
+html[data-theme='cairn'] .MuiChip-filledSuccess {
+  background-color: rgba(47, 133, 90, 0.14);
+  color: var(--green);
+  border-color: rgba(47, 133, 90, 0.3);
+}
+
+/* --- Inputs --- */
+html[data-theme='cairn'] .MuiOutlinedInput-root {
+  border-radius: var(--cairn-radius-md);
+  background-color: #ffffff;
+  font-family: 'Manrope', 'Inter', sans-serif;
+}
+html[data-theme='cairn'] .MuiOutlinedInput-notchedOutline {
+  border-color: var(--sand-200);
+}
+html[data-theme='cairn'] .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--navy-500);
+}
+html[data-theme='cairn'] .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--orange);
+  border-width: 2px;
+}
+html[data-theme='cairn'] .MuiInputLabel-root {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  color: var(--ink-soft);
+}
+html[data-theme='cairn'] .MuiInputLabel-root.Mui-focused {
+  color: var(--orange-deep);
+}
+
+/* --- Tabs --- */
+html[data-theme='cairn'] .MuiTabs-root {
+  min-height: 42px;
+}
+html[data-theme='cairn'] .MuiTab-root {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--ink-soft);
+  min-height: 42px;
+}
+html[data-theme='cairn'] .MuiTab-root.Mui-selected {
+  color: var(--navy-900);
+}
+html[data-theme='cairn'] .MuiTabs-indicator {
+  background-color: var(--orange);
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* --- Dividers --- */
+html[data-theme='cairn'] .MuiDivider-root {
+  border-color: var(--sand-200);
+}
+
+/* --- Tables --- */
+html[data-theme='cairn'] .MuiTableHead-root .MuiTableCell-root {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background-color: var(--sand-50);
+  border-bottom: 1px solid var(--sand-200);
+}
+html[data-theme='cairn'] .MuiTableCell-root {
+  border-bottom: 1px solid var(--sand-200);
+  font-family: 'Manrope', 'Inter', sans-serif;
+  color: var(--ink);
+}
+
+/* --- Alerts --- */
+html[data-theme='cairn'] .MuiAlert-root {
+  border-radius: var(--cairn-radius-md);
+  font-family: 'Manrope', 'Inter', sans-serif;
+  border: 1px solid transparent;
+}
+html[data-theme='cairn'] .MuiAlert-standardInfo {
+  background-color: var(--sand-100);
+  color: var(--navy-900);
+  border-color: var(--sand-200);
+}
+html[data-theme='cairn'] .MuiAlert-standardSuccess {
+  background-color: rgba(47, 133, 90, 0.1);
+  color: var(--green);
+  border-color: rgba(47, 133, 90, 0.3);
+}
+html[data-theme='cairn'] .MuiAlert-standardWarning {
+  background-color: rgba(236, 201, 75, 0.15);
+  color: var(--orange-deep);
+  border-color: var(--amber-soft);
+}
+html[data-theme='cairn'] .MuiAlert-standardError {
+  background-color: rgba(192, 97, 42, 0.1);
+  color: var(--orange-deep);
+  border-color: rgba(192, 97, 42, 0.3);
+}
+
+/* --- Tooltip --- */
+html[data-theme='cairn'] .MuiTooltip-tooltip {
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 600;
+  border-radius: 8px;
+}
+html[data-theme='cairn'] .MuiTooltip-arrow {
+  color: var(--navy-900);
+}
+
+/* --- Links --- */
+html[data-theme='cairn'] a {
+  color: var(--orange-deep);
+  text-underline-offset: 3px;
+}
+html[data-theme='cairn'] a:hover {
+  color: var(--orange);
+}
+
+/* --- Scrollbars (webkit) --- */
+html[data-theme='cairn'] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html[data-theme='cairn'] ::-webkit-scrollbar-thumb {
+  background: var(--sand-300);
+  border-radius: var(--cairn-radius-pill);
+}
+html[data-theme='cairn'] ::-webkit-scrollbar-thumb:hover {
+  background: var(--navy-500);
+}
+html[data-theme='cairn'] ::-webkit-scrollbar-track {
+  background: var(--sand-50);
+}
+
+/* --- Selection --- */
+html[data-theme='cairn'] ::selection {
+  background: var(--amber-soft);
+  color: var(--navy-900);
+}
+
+/* --- Surfaces using existing data-attributes in index.css --- */
+html[data-theme='cairn'] [data-surface='glass'] {
+  background: linear-gradient(180deg, #ffffff 0%, var(--sand-50) 100%);
+  border: 1px solid var(--sand-200);
+  box-shadow: 0 18px 40px rgba(15, 28, 46, 0.06);
+  border-radius: var(--cairn-radius-lg);
+}
+
+/* --- Staging marker pill (tiny, top-right, so it's obvious you're on staging) --- */
+html[data-theme='cairn']::after {
+  content: 'STAGING · CAIRN';
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 9999;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--amber-soft);
+  background: var(--navy-900);
+  padding: 5px 9px;
+  border-radius: var(--cairn-radius-pill);
+  pointer-events: none;
+  opacity: 0.82;
+}
