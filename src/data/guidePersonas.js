@@ -26,7 +26,7 @@ export const GUIDE_PERSONAS = [
       lantern: '/hero/MentorLantern.png',
       page: '/hero/MentorPage.png',
     },
-    accent: '#2F855A', // green — grounding
+    accent: '#2F4A5C', // deep teal-blue — sampled from Mentor's pendant
   },
   {
     id: 'catalyst',
@@ -42,7 +42,7 @@ export const GUIDE_PERSONAS = [
       page: '/hero/CatalystPage.png',
       plain: '/hero/Catalyst.png',
     },
-    accent: '#E07A3F', // orange — momentum
+    accent: '#B8532C', // burnt orange / rust — sampled from Catalyst's pendant
   },
   {
     id: 'challenger',
@@ -57,7 +57,7 @@ export const GUIDE_PERSONAS = [
       sign: '/hero/ChallengerSign.png',
       mad: '/hero/ChallengerMad.png',
     },
-    accent: '#C0612A', // orange-deep — push
+    accent: '#5A3C66', // deep plum / purple — sampled from Challenger's pendant
   },
 ];
 
