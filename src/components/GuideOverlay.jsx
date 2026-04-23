@@ -81,16 +81,17 @@ function GuideOverlay() {
         right: 0,
         bottom: 0,
         zIndex: 1200,
-        width: { xs: 'min(320px, 90vw)', sm: 360, md: 420 },
+        width: { xs: 'min(340px, 94vw)', sm: 400, md: 460 },
         pointerEvents: 'none', // inner elements re-enable pointer events
         filter: 'drop-shadow(0 18px 40px rgba(15,28,46,0.18))',
       }}
     >
-      {/* Speech bubble — white card with a tail pointing to the character */}
+      {/* Speech bubble — white card with a tail pointing to the character.
+          Flush to the right edge so the tail sits directly above the owl. */}
       <Box
         sx={{
           position: 'relative',
-          margin: { xs: '0 12px 8px 12px', md: '0 24px 10px 24px' },
+          margin: { xs: '0 8px 10px 8px', md: '0 16px 12px 16px' },
           padding: '14px 16px 14px 16px',
           background: '#FFFFFF',
           border: '1px solid var(--sand-200, #E8DBC3)',
@@ -103,12 +104,12 @@ function GuideOverlay() {
           },
         }}
       >
-        {/* Tail */}
+        {/* Tail — positioned over the character's upper body */}
         <Box
           aria-hidden
           sx={{
             position: 'absolute',
-            right: 42,
+            right: { xs: 60, md: 90 },
             bottom: -9,
             width: 16,
             height: 16,
@@ -210,16 +211,18 @@ function GuideOverlay() {
         </Box>
       </Box>
 
-      {/* Character image — always visible; clicking also hides the bubble. */}
+      {/* Character image — flush to the bottom-right corner so the branch
+          appears to emerge from outside the viewport. Bumped ~45% larger. */}
       <Box
         sx={{
           position: 'relative',
-          height: { xs: 160, sm: 180, md: 210 },
+          height: { xs: 232, sm: 265, md: 305 },
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'flex-end',
-          paddingRight: { xs: 12, md: 28 },
+          paddingRight: 0,
           pointerEvents: 'none',
+          overflow: 'visible',
         }}
       >
         <Box
@@ -230,13 +233,16 @@ function GuideOverlay() {
             height: '100%',
             width: 'auto',
             objectFit: 'contain',
+            objectPosition: 'bottom right',
+            display: 'block',
+            marginRight: { xs: '-4px', md: '-8px' },
             pointerEvents: 'auto',
             cursor: 'pointer',
             animation: 'cairn-owl-bob 4.2s ease-in-out infinite',
-            transformOrigin: 'bottom center',
+            transformOrigin: 'bottom right',
             '@keyframes cairn-owl-bob': {
               '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-              '50%': { transform: 'translateY(-3px) rotate(-0.4deg)' },
+              '50%': { transform: 'translateY(-3px) rotate(-0.3deg)' },
             },
             '@media (prefers-reduced-motion: reduce)': {
               animation: 'none',
