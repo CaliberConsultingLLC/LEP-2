@@ -5,10 +5,10 @@ import { useGuide } from '../context/GuideContext';
 import { getGuideMessage, resolveRouteKey } from '../data/guideContent';
 
 // A persistent, Clippy-style guide overlay.
-// Sits bottom-right, shows the selected persona's character with a speech
-// bubble carrying placeholder copy for the current route. The user can
-// collapse it (just the character + a "nudge me" handle remain) or hide it
-// entirely — both states persist via GuideContext -> localStorage.
+// Sits flush in the bottom-right corner of the viewport so the branch reads
+// as coming in from off-canvas. The speech bubble carries route-specific
+// placeholder copy in the active persona's voice. The user can tuck the
+// guide away with the close button; a small "Guide" tab takes its place.
 function GuideOverlay() {
   const { persona, hidden, toggleHidden, setHidden } = useGuide();
   const location = useLocation();
@@ -19,7 +19,6 @@ function GuideOverlay() {
   }, [location.pathname, location.search, persona.id]);
 
   if (hidden) {
-    // Collapsed state — a small tab on the right edge that brings the guide back.
     return (
       <Box
         component="button"
@@ -81,35 +80,37 @@ function GuideOverlay() {
         right: 0,
         bottom: 0,
         zIndex: 1200,
-        width: { xs: 'min(340px, 94vw)', sm: 400, md: 460 },
-        pointerEvents: 'none', // inner elements re-enable pointer events
+        width: { xs: 'min(360px, 96vw)', sm: 440, md: 520 },
+        pointerEvents: 'none',
         filter: 'drop-shadow(0 18px 40px rgba(15,28,46,0.18))',
       }}
     >
-      {/* Speech bubble — white card with a tail pointing to the character.
-          Flush to the right edge so the tail sits directly above the owl. */}
+      {/* Speech bubble — white card with a tail on the LEFT side.
+          Strips all chrome (name, page title, tagline) so the message is
+          the only content; a small × in the corner lets the user tuck it. */}
       <Box
         sx={{
           position: 'relative',
-          margin: { xs: '0 8px 10px 8px', md: '0 16px 12px 16px' },
-          padding: '14px 16px 14px 16px',
+          margin: { xs: '0 8px 12px 8px', md: '0 16px 14px 16px' },
+          padding: '22px 26px',
+          minHeight: { xs: 110, md: 130 },
           background: '#FFFFFF',
           border: '1px solid var(--sand-200, #E8DBC3)',
           borderRadius: 18,
           pointerEvents: 'auto',
-          animation: 'cairn-bubble-in 320ms cubic-bezier(.2,.8,.2,1) both',
-          '@keyframes cairn-bubble-in': {
-            from: { opacity: 0, transform: 'translate(6px, 4px) scale(0.98)' },
-            to: { opacity: 1, transform: 'translate(0, 0) scale(1)' },
-          },
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
         }}
       >
-        {/* Tail — positioned over the character's upper body */}
+        {/* Tail — now on the LEFT side at the same inset we previously used
+            on the right */}
         <Box
           aria-hidden
           sx={{
             position: 'absolute',
-            right: { xs: 60, md: 90 },
+            left: { xs: 60, md: 90 },
             bottom: -9,
             width: 16,
             height: 16,
@@ -121,102 +122,65 @@ function GuideOverlay() {
           }}
         />
 
-        {/* Header: persona name + close */}
+        {/* Close button — small and unobtrusive in the corner so it doesn't
+            visually compete with the single centered message */}
         <Box
+          component="button"
+          type="button"
+          onClick={toggleHidden}
+          aria-label="Hide guide"
           sx={{
+            all: 'unset',
+            cursor: 'pointer',
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 22,
+            height: 22,
+            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 1,
-            marginBottom: 0.75,
+            justifyContent: 'center',
+            color: 'var(--ink-soft, #44566C)',
+            fontFamily: '"Manrope", sans-serif',
+            fontSize: 14,
+            lineHeight: 1,
+            fontWeight: 600,
+            transition: 'background 140ms',
+            '&:hover': {
+              background: 'var(--sand-50, #FBF7F0)',
+              color: 'var(--navy-900, #10223C)',
+            },
+            '&:focus-visible': {
+              outline: '3px solid rgba(224,122,63,0.32)',
+              outlineOffset: 2,
+            },
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-            }}
-          >
-            <Box sx={{ color: 'var(--navy-900, #10223C)' }}>{persona.name}</Box>
-            <Box sx={{ opacity: 0.4 }}>·</Box>
-            <Box sx={{ color: 'var(--ink-soft, #44566C)' }}>{message.title}</Box>
-          </Box>
-          <Box
-            component="button"
-            type="button"
-            onClick={toggleHidden}
-            aria-label="Hide guide"
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid var(--sand-200, #E8DBC3)',
-              color: 'var(--ink-soft, #44566C)',
-              fontFamily: '"Manrope", sans-serif',
-              fontSize: 14,
-              lineHeight: 1,
-              fontWeight: 600,
-              transition: 'background 140ms',
-              '&:hover': {
-                background: 'var(--sand-50, #FBF7F0)',
-                color: 'var(--navy-900, #10223C)',
-              },
-              '&:focus-visible': {
-                outline: '3px solid rgba(224,122,63,0.32)',
-                outlineOffset: 2,
-              },
-            }}
-          >
-            ×
-          </Box>
+          ×
         </Box>
 
-        {/* Body message */}
+        {/* The only content — the advice itself, centered both axes */}
         <Box
           sx={{
             fontFamily: '"Fraunces", Georgia, serif',
             fontStyle: 'italic',
-            fontSize: 14.5,
-            lineHeight: 1.45,
+            fontSize: { xs: 15, md: 16 },
+            lineHeight: 1.5,
             color: 'var(--navy-900, #10223C)',
-            margin: 0,
+            maxWidth: '100%',
           }}
         >
           {message.text}
         </Box>
-
-        {/* Footer: persona tagline (kept muted so it doesn't compete with message) */}
-        <Box
-          sx={{
-            marginTop: 1,
-            paddingTop: 0.75,
-            borderTop: '1px dashed var(--sand-200, #E8DBC3)',
-            fontFamily: '"Manrope", sans-serif',
-            fontSize: 11,
-            color: 'var(--ink-soft, #44566C)',
-          }}
-        >
-          {persona.tagline}
-        </Box>
       </Box>
 
-      {/* Character image — flush to the bottom-right corner so the branch
-          appears to emerge from outside the viewport. Bumped ~45% larger. */}
+      {/* Character image — flush to the bottom-right corner, static (no
+          animation), ~25% larger than the previous size. */}
       <Box
         sx={{
           position: 'relative',
-          height: { xs: 232, sm: 265, md: 305 },
+          height: { xs: 290, sm: 331, md: 381 },
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'flex-end',
@@ -238,15 +202,6 @@ function GuideOverlay() {
             marginRight: { xs: '-4px', md: '-8px' },
             pointerEvents: 'auto',
             cursor: 'pointer',
-            animation: 'cairn-owl-bob 4.2s ease-in-out infinite',
-            transformOrigin: 'bottom right',
-            '@keyframes cairn-owl-bob': {
-              '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
-              '50%': { transform: 'translateY(-3px) rotate(-0.3deg)' },
-            },
-            '@media (prefers-reduced-motion: reduce)': {
-              animation: 'none',
-            },
           }}
           onClick={toggleHidden}
           draggable={false}
