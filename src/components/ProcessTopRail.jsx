@@ -12,6 +12,8 @@ import {
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
+import { useCairnTheme } from '../config/runtimeFlags';
+import GuideSelector from './GuideSelector';
 
 const PHASES = [
   { id: 'profile', title: 'Profile Creation', icon: AccountCircle, fallbackPath: '/user-info' },
@@ -31,7 +33,7 @@ const parseJson = (raw, fallback) => {
   }
 };
 
-function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, titleOverride = '' }) {
+function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = true, titleOverride = '' }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname || '';
@@ -275,6 +277,16 @@ function ProcessTopRail({ sticky = true, embedded = false, showBrand = true, tit
       </Box>
     </Box>
   );
+}
+
+// On the Cairn (staging) skin the progress phase rail is replaced by the
+// guide selector. All 15 pages that import ProcessTopRail keep doing so —
+// we just swap what it renders when the theme flag is on.
+function ProcessTopRail(props) {
+  if (useCairnTheme) {
+    return <GuideSelector embedded={props.embedded} sticky={props.sticky} />;
+  }
+  return <ProcessTopRailLegacy {...props} />;
 }
 
 export default ProcessTopRail;

@@ -22,37 +22,56 @@ import RepositoryConsole from './pages/RepositoryConsole';
 import RepositoryLogin from './pages/RepositoryLogin';
 import SignIn from './pages/SignIn';
 import ProtectedRoute from './components/ProtectedRoute';
-import { showDevTools } from './config/runtimeFlags';
+import { showDevTools, useCairnTheme } from './config/runtimeFlags';
+import { GuideProvider } from './context/GuideContext';
+import GuideOverlay from './components/GuideOverlay';
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/landing" element={<Home />} />
+      <Route path="/user-info" element={<UserInfo />} />
+      <Route path="/form" element={<IntakeForm />} />
+      <Route path="/summary" element={<Summary />} />
+      <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />
+      <Route path="/trait-selection" element={<TraitSelection />} />
+      <Route path="/campaign-intro" element={<CampaignIntro />} />
+      <Route path="/campaign-builder" element={<CampaignBuilder />} />
+      <Route path="/campaign-verify" element={<CampaignVerify />} />
+      <Route path="/campaign/:id" element={<NewCampaignIntro />} />
+      <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
+      <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
+      <Route path="/sign-in" element={<SignIn />} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/faq" element={<Faq />} />
+      {showDevTools && <Route path="/dev-skip-1" element={<DevSkipOne />} />}
+      {showDevTools && <Route path="/dev-skip-two" element={<DevSkipTwo />} />}
+      {showDevTools && <Route path="/dev-assessments" element={<DevSkipAssessments />} />}
+      {showDevTools && <Route path="/dev-repository-login" element={<RepositoryLogin />} />}
+      {showDevTools && <Route path="/dev-repository" element={<RepositoryConsole />} />}
+      <Route path="*" element={<Typography sx={{ fontFamily: 'Montserrat, sans-serif' }}>No match found</Typography>} />
+    </Routes>
+  );
+}
 
 function App() {
+  // GuideProvider + GuideOverlay are mounted only when the Cairn (staging)
+  // skin is active. On production the tree is identical to what shipped
+  // before — no provider, no overlay, no behavior change.
+  if (useCairnTheme) {
+    return (
+      <GuideProvider>
+        <Router>
+          <AppRoutes />
+          <GuideOverlay />
+        </Router>
+      </GuideProvider>
+    );
+  }
   return (
     <Router>
-      <Routes>
-  <Route path="/" element={<Home />} />
-  <Route path="/landing" element={<Home />} />
-  <Route path="/user-info" element={<UserInfo />} />
-  <Route path="/form" element={<IntakeForm />} />
-  <Route path="/summary" element={<Summary />} />
-  <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />
-  <Route path="/trait-selection" element={<TraitSelection />} />
-  <Route path="/campaign-intro" element={<CampaignIntro />} />
-  <Route path="/campaign-builder" element={<CampaignBuilder />} />
-  <Route path="/campaign-verify" element={<CampaignVerify />} />
-  <Route path="/campaign/:id" element={<NewCampaignIntro />} />
-  <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
-  <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
-  <Route path="/sign-in" element={<SignIn />} />
-  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-  <Route path="/faq" element={<Faq />} />
-  {showDevTools && <Route path="/dev-skip-1" element={<DevSkipOne />} />}
-  {showDevTools && <Route path="/dev-skip-two" element={<DevSkipTwo />} />}
-  {showDevTools && <Route path="/dev-assessments" element={<DevSkipAssessments />} />}
-  {showDevTools && <Route path="/dev-repository-login" element={<RepositoryLogin />} />}
-  {showDevTools && <Route path="/dev-repository" element={<RepositoryConsole />} />}
- 
-
-  <Route path="*" element={<Typography sx={{ fontFamily: 'Montserrat, sans-serif' }}>No match found</Typography>} />
-</Routes>
+      <AppRoutes />
     </Router>
   );
 }
