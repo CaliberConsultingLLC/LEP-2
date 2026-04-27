@@ -1348,7 +1348,7 @@ function IntakeForm() {
             {postSignupNotice.message}
           </Alert>
         )}
-        {resumeNotice && (
+        {resumeNotice && !useCairnTheme && (
           <Alert
             severity={resumeNotice.source === 'missing' ? 'warning' : 'success'}
             sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}
@@ -1358,18 +1358,20 @@ function IntakeForm() {
               : `Draft restored. You are back at step ${Math.min((resumeNotice.currentStep || 0) + 1, resumeNotice.totalSteps || totalSteps)} of ${resumeNotice.totalSteps || totalSteps}${resumeNotice.updatedAt ? `, last saved ${formatAutosaveTime(resumeNotice.updatedAt)}` : ''}.`}
           </Alert>
         )}
-        <Alert
-          severity={autosaveStatus.state === 'error' ? 'warning' : 'info'}
-          sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}
-        >
-          {autosaveStatus.state === 'saving'
-            ? 'Saving your progress...'
-            : autosaveStatus.state === 'saved'
-              ? `Progress saved automatically${autosaveStatus.updatedAt ? ` at ${formatAutosaveTime(autosaveStatus.updatedAt)}` : ''}.`
-              : autosaveStatus.state === 'error'
-                ? 'Autosave hit a problem. Your local draft is still retained in this browser.'
-                : 'Your intake progress saves automatically as you move through the experience.'}
-        </Alert>
+        {!useCairnTheme && (
+          <Alert
+            severity={autosaveStatus.state === 'error' ? 'warning' : 'info'}
+            sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}
+          >
+            {autosaveStatus.state === 'saving'
+              ? 'Saving your progress...'
+              : autosaveStatus.state === 'saved'
+                ? `Progress saved automatically${autosaveStatus.updatedAt ? ` at ${formatAutosaveTime(autosaveStatus.updatedAt)}` : ''}.`
+                : autosaveStatus.state === 'error'
+                  ? 'Autosave hit a problem. Your local draft is still retained in this browser.'
+                  : 'Your intake progress saves automatically as you move through the experience.'}
+          </Alert>
+        )}
         {/* Profile Page (Step 1) - Combined */}
         {currentStep === 1 && (
           <SectionCard narrow={true}>
