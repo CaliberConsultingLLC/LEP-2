@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { allowDevBypass } from '../config/runtimeFlags';
+import { allowDevBypass, useCairnTheme } from '../config/runtimeFlags';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -20,7 +20,7 @@ function ProtectedRoute({ children }) {
     return () => unsubscribe();
   }, []);
 
-  if (isDevBypass) {
+  if (isDevBypass || useCairnTheme) {
     return children;
   }
 

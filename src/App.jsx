@@ -25,6 +25,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { showDevTools, useCairnTheme } from './config/runtimeFlags';
 import { GuideProvider } from './context/GuideContext';
 import GuideOverlay from './components/GuideOverlay';
+import StagingDevPanel from './components/StagingDevPanel';
+import { autoSeedIfNeeded } from './utils/stagingSeed';
 
 function AppRoutes() {
   return (
@@ -60,11 +62,13 @@ function App() {
   // skin is active. On production the tree is identical to what shipped
   // before — no provider, no overlay, no behavior change.
   if (useCairnTheme) {
+    autoSeedIfNeeded();
     return (
       <GuideProvider>
         <Router>
           <AppRoutes />
           <GuideOverlay />
+          <StagingDevPanel />
         </Router>
       </GuideProvider>
     );
