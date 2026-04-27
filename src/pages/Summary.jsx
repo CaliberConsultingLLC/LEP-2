@@ -711,6 +711,184 @@ function Summary() {
     );
   }
 
+  // ── Cairn theme render ──────────────────────────────────────────────────────
+  if (useCairnTheme) {
+    const ROMAN = ['I', 'II', 'III', 'IV'];
+    const activeStage = journeyStages[activeJourneyStep] || journeyStages[0];
+
+    // Read guide persona for sidebar footer
+    let guideName = 'Mentor';
+    try {
+      const g = JSON.parse(localStorage.getItem('cairnGuide') || '{}');
+      if (g?.personaId) guideName = g.personaId.charAt(0).toUpperCase() + g.personaId.slice(1);
+    } catch { /* ignore */ }
+
+    const NavSidebar = (
+      <Box sx={{
+        bgcolor: 'white',
+        borderRadius: '16px',
+        border: '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+        position: 'sticky',
+        top: 88,
+      }}>
+        {journeyStages.map((stage, idx) => {
+          const active = idx === activeJourneyStep;
+          return (
+            <Box
+              key={stage.id}
+              component="button"
+              type="button"
+              onClick={() => setActiveJourneyStep(idx)}
+              sx={{
+                all: 'unset', cursor: 'pointer',
+                display: 'flex', alignItems: 'flex-start', gap: 1.5,
+                px: 2, py: 1.5, width: '100%', boxSizing: 'border-box',
+                bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
+                transition: '140ms',
+                '&:hover': { bgcolor: active ? 'var(--navy-800, #162A44)' : 'var(--sand-50, #FBF7F0)' },
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: -3 },
+              }}
+            >
+              <Box sx={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0, mt: '2px',
+                bgcolor: active ? 'rgba(255,255,255,0.15)' : 'var(--sand-100, #F3EAD8)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                  {ROMAN[idx]}
+                </Typography>
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                  {stage.label}
+                </Typography>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                  {stage.title}
+                </Typography>
+              </Box>
+            </Box>
+          );
+        })}
+        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', flexShrink: 0 }} />
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>
+            Guide: <strong>{guideName}</strong>
+          </Typography>
+        </Box>
+      </Box>
+    );
+
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+        <ProcessTopRail titleOverride="Leadership Reflection" />
+        <CompassLayout progress={43} sidebar={NavSidebar}>
+          {error ? (
+            <Box sx={{ py: 4 }}>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Stage header */}
+              <Box>
+                <Typography sx={{
+                  fontFamily: '"Manrope", sans-serif', fontWeight: 700,
+                  fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: 'var(--orange, #E07A3F)', mb: 0.75,
+                }}>
+                  {activeStage.label}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
+                  fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1,
+                  color: 'var(--navy-900, #10223C)', mb: 0.5,
+                }}>
+                  {activeStage.title}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem',
+                  color: 'var(--ink-soft, #44566C)', lineHeight: 1.6,
+                }}>
+                  {activeStage.subtitle}
+                </Typography>
+              </Box>
+
+              {/* Content card */}
+              <Box sx={{
+                bgcolor: 'white', borderRadius: '16px',
+                border: '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                p: { xs: 2.5, md: 3.5 },
+                minHeight: 260,
+              }}>
+                {activeStage.text ? (
+                  <Typography sx={{
+                    fontFamily: 'Georgia, serif',
+                    fontSize: { xs: '1rem', md: '1.08rem' },
+                    lineHeight: 1.78,
+                    color: 'var(--navy-900, #10223C)',
+                    fontStyle: 'italic',
+                  }}>
+                    {renderParagraphWithTooltips(activeStage.text)}
+                  </Typography>
+                ) : (
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
+                    Generating your summary…
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Stage nav dots + CTA */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {journeyStages.map((_, idx) => (
+                    <Box
+                      key={idx}
+                      component="button"
+                      type="button"
+                      onClick={() => setActiveJourneyStep(idx)}
+                      sx={{
+                        all: 'unset', cursor: 'pointer',
+                        width: idx === activeJourneyStep ? 28 : 8,
+                        height: 8, borderRadius: 999,
+                        bgcolor: idx === activeJourneyStep ? 'var(--orange, #E07A3F)' : idx < activeJourneyStep ? 'var(--navy-900, #10223C)' : 'var(--sand-200, #E8DBC3)',
+                        transition: 'all 300ms cubic-bezier(.2,.8,.2,1)',
+                        '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 2 },
+                      }}
+                    />
+                  ))}
+                </Box>
+
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => navigate('/trait-selection')}
+                  sx={{
+                    all: 'unset', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    px: '24px', py: '12px', borderRadius: 999,
+                    bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
+                    fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.9rem',
+                    boxShadow: '0 6px 20px rgba(16,34,60,0.22)',
+                    transition: '180ms ease',
+                    '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-1px)' },
+                    '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                  }}
+                >
+                  Choose My Trail
+                  <Box component="span" sx={{ fontSize: '1rem' }}>→</Box>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </CompassLayout>
+      </Box>
+    );
+  }
+  // ── End cairn theme render ──────────────────────────────────────────────────
+
   return (
     <Box sx={{
       position: 'relative',

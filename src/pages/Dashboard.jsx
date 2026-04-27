@@ -132,56 +132,53 @@ function Dashboard() {
   );
 
   if (useCairnTheme) {
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+    const DashNavSidebar = (
+      <Box sx={{ position: 'sticky', top: 88 }}>
+        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)', mb: 1.5, px: 0.5 }}>
+          Dashboard
+        </Typography>
+        {navItems.map((item, idx) => {
+          const isActive = currentTab === idx;
+          return (
+            <Box
+              key={item.label}
+              component="button"
+              type="button"
+              onClick={() => setCurrentTab(idx)}
+              sx={{
+                all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 1.2,
+                width: '100%', px: 1.5, py: 1.2, borderRadius: '10px', mb: 0.5, boxSizing: 'border-box',
+                bgcolor: isActive ? 'var(--navy-900, #10223C)' : 'transparent', transition: '120ms',
+                '&:hover': isActive ? {} : { bgcolor: 'rgba(16,34,60,0.05)' },
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+              }}
+            >
+              <Box sx={{ width: 26, height: 26, borderRadius: '50%', border: `1.5px solid ${isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--sand-300, #C9B99A)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.15 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.6rem', fontWeight: 800, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)', lineHeight: 1 }}>
+                  {ROMAN[idx]}
+                </Typography>
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                  {item.label}
+                </Typography>
+              </Box>
+            </Box>
+          );
+        })}
+        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid var(--sand-200, #E8DBC3)', px: 1.5 }}>
+          <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.5 }}>
+            {navItems[currentTab]?.label}
+          </Typography>
+        </Box>
+      </Box>
+    );
+
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={100}>
-          {/* Horizontal dash tab strip */}
-          <Box
-            sx={{
-              display: 'flex',
-              gap: '6px',
-              flexWrap: 'wrap',
-              mb: 2,
-              pb: 1.5,
-              borderBottom: '1px solid var(--sand-200, #E8DBC3)',
-            }}
-          >
-            {navItems.map((item, idx) => {
-              const Icon = item.icon;
-              const active = currentTab === idx;
-              return (
-                <Box
-                  key={item.label}
-                  component="button"
-                  type="button"
-                  onClick={() => setCurrentTab(idx)}
-                  sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    px: '12px',
-                    py: '7px',
-                    borderRadius: '8px',
-                    fontFamily: '"Manrope", "Inter", sans-serif',
-                    fontWeight: active ? 700 : 600,
-                    fontSize: 13,
-                    bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
-                    color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
-                    border: `1px solid ${active ? 'transparent' : 'var(--sand-200, #E8DBC3)'}`,
-                    transition: '140ms',
-                    '&:hover': active ? {} : { bgcolor: 'var(--sand-50, #FBF7F0)', borderColor: 'var(--navy-500, #3F647B)' },
-                    '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
-                  }}
-                >
-                  <Icon sx={{ fontSize: 15 }} />
-                  {item.label}
-                </Box>
-              );
-            })}
-          </Box>
+        <CompassLayout progress={100} sidebar={DashNavSidebar}>
           {dashTabContent}
         </CompassLayout>
       </Box>

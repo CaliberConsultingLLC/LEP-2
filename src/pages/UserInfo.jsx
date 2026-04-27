@@ -250,7 +250,7 @@ function UserInfo() {
         }
       }
 
-      navigate('/form');
+      navigate(useCairnTheme ? '/guide-select' : '/form');
     } catch (err) {
       const errorMessage = mapFirebaseAuthError(err?.code);
       setError(errorMessage);

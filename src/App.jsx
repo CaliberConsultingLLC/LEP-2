@@ -21,6 +21,7 @@ import DevSkipAssessments from './pages/DevSkipAssessments';
 import RepositoryConsole from './pages/RepositoryConsole';
 import RepositoryLogin from './pages/RepositoryLogin';
 import SignIn from './pages/SignIn';
+import GuideSelect from './pages/GuideSelect';
 import ProtectedRoute from './components/ProtectedRoute';
 import { showDevTools, useCairnTheme } from './config/runtimeFlags';
 import { GuideProvider } from './context/GuideContext';
@@ -34,6 +35,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/landing" element={<Home />} />
       <Route path="/user-info" element={<UserInfo />} />
+      <Route path="/guide-select" element={<GuideSelect />} />
       <Route path="/form" element={<IntakeForm />} />
       <Route path="/summary" element={<Summary />} />
       <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />

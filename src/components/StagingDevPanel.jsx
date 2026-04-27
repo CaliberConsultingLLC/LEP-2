@@ -5,6 +5,7 @@ import { seedStagingData, clearStagingData, STAGING_SELF_ID, STAGING_TEAM_ID } f
 
 const PAGES = [
   { label: 'I — Profile',         path: '/user-info' },
+  { label: 'I — Guide Select',    path: '/guide-select' },
   { label: 'II — Intake Form',    path: '/form' },
   { label: 'III — Summary',       path: '/summary' },
   { label: 'IV — Trait Select',   path: '/trait-selection' },

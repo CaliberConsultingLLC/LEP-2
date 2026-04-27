@@ -353,6 +353,219 @@ function CampaignBuilder() {
     );
   }
 
+  // ── Cairn theme render ──────────────────────────────────────────────────────
+  if (useCairnTheme) {
+    const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+    const activeTrait = campaign ? campaign[expandedTrait] : null;
+    const activeTraitInfo = selectedTraitInfo[expandedTrait] || {};
+    const activeStatements = activeTrait
+      ? (Array.isArray(activeTrait.statements) ? activeTrait.statements : []).map((s) => String(s || '').trim()).filter(Boolean).slice(0, 5)
+      : [];
+
+    const NavSidebar = (
+      <Box sx={{
+        bgcolor: 'white', borderRadius: '16px',
+        border: '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        overflow: 'hidden', position: 'sticky', top: 88,
+      }}>
+        {(campaign || []).map((traitItem, idx) => {
+          const info = selectedTraitInfo[idx] || {};
+          const label = info.subTraitName || info.coreTraitName || traitItem.trait || `Trait ${idx + 1}`;
+          const sub = info.subTraitName ? info.coreTraitName : null;
+          const active = idx === expandedTrait;
+          return (
+            <Box
+              key={`nav-${idx}`}
+              component="button"
+              type="button"
+              onClick={() => setExpandedTrait(idx)}
+              sx={{
+                all: 'unset', cursor: 'pointer',
+                display: 'flex', alignItems: 'flex-start', gap: 1.5,
+                px: 2, py: 1.5, width: '100%', boxSizing: 'border-box',
+                bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
+                transition: '140ms',
+                '&:hover': { bgcolor: active ? 'var(--navy-800, #162A44)' : 'var(--sand-50, #FBF7F0)' },
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: -3 },
+              }}
+            >
+              <Box sx={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0, mt: '2px',
+                bgcolor: active ? 'rgba(255,255,255,0.15)' : 'var(--sand-100, #F3EAD8)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                  {ROMAN[idx]}
+                </Typography>
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                  {label}
+                </Typography>
+                {sub && (
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                    {sub}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          );
+        })}
+        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.5, fontStyle: 'italic' }}>
+            Review each trait, then verify or rebuild.
+          </Typography>
+        </Box>
+      </Box>
+    );
+
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+        <ProcessTopRail />
+        <CompassLayout progress={71} sidebar={campaign ? NavSidebar : null}>
+          {error ? (
+            <Box>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
+              <Box component="button" type="button" onClick={() => navigate('/summary')}
+                sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, color: 'var(--orange, #E07A3F)', textDecoration: 'underline' }}>
+                ← Return to Summary
+              </Box>
+            </Box>
+          ) : campaign && activeTrait ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Trait header */}
+              <Box>
+                {activeTraitInfo.subTraitName && (
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.75 }}>
+                    {activeTraitInfo.coreTraitName}
+                  </Typography>
+                )}
+                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.5 }}>
+                  {activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
+                </Typography>
+              </Box>
+
+              {/* Statements card */}
+              <Box sx={{
+                bgcolor: 'white', borderRadius: '16px',
+                border: '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                overflow: 'hidden',
+              }}>
+                <Box sx={{ px: 3, py: 2, borderBottom: '1px solid var(--sand-200, #E8DBC3)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)' }}>
+                    Team-Facing Statements — Check to Dismiss
+                  </Typography>
+                </Box>
+                <Stack>
+                  {activeStatements.map((stmt, sIdx) => {
+                    const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
+                    return (
+                      <Box
+                        key={`stmt-${sIdx}`}
+                        sx={{
+                          display: 'flex', alignItems: 'center', gap: 1.5,
+                          px: 3, py: 1.75,
+                          borderBottom: sIdx < activeStatements.length - 1 ? '1px solid var(--sand-100, #F3EAD8)' : 'none',
+                          transition: 'background 140ms',
+                          bgcolor: isDismissed ? 'rgba(0,0,0,0.02)' : 'transparent',
+                          '&:hover': { bgcolor: 'var(--sand-50, #FBF7F0)' },
+                        }}
+                      >
+                        <Checkbox
+                          checked={isDismissed}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setDismissedStatements((prev) => [...prev, { trait: activeTrait.trait, index: sIdx }]);
+                            } else {
+                              setDismissedStatements((prev) => prev.filter((ds) => !(ds.trait === activeTrait.trait && ds.index === sIdx)));
+                            }
+                          }}
+                          size="small"
+                          sx={{
+                            p: 0.25, flexShrink: 0,
+                            color: 'var(--sand-200, #E8DBC3)',
+                            '&.Mui-checked': { color: 'var(--orange, #E07A3F)' },
+                          }}
+                        />
+                        <Typography sx={{
+                          fontFamily: '"Manrope", sans-serif',
+                          fontSize: '0.95rem', lineHeight: 1.55,
+                          color: isDismissed ? 'var(--ink-soft, #44566C)' : 'var(--navy-900, #10223C)',
+                          textDecoration: isDismissed ? 'line-through' : 'none',
+                          opacity: isDismissed ? 0.5 : 1,
+                          transition: 'all 200ms ease',
+                        }}>
+                          {sIdx + 1}. {stmt}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              </Box>
+
+              {/* Bottom nav */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, pt: 0.5 }}>
+                <Box
+                  component="button" type="button"
+                  onClick={() => navigate('/trait-selection')}
+                  sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: 'var(--ink-soft, #44566C)', display: 'inline-flex', alignItems: 'center', gap: '6px', '&:hover': { color: 'var(--navy-900, #10223C)' } }}
+                >
+                  ← Back to Traits
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                  <Box
+                    component="button" type="button"
+                    onClick={handleRebuildCampaign}
+                    sx={{
+                      all: 'unset', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center',
+                      px: '20px', py: '10px', borderRadius: 999,
+                      bgcolor: 'var(--orange, #E07A3F)', color: '#fff',
+                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
+                      boxShadow: '0 4px 14px rgba(224,122,63,0.32)',
+                      transition: '180ms ease',
+                      '&:hover': { transform: 'translateY(-1px)' },
+                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.48)', outlineOffset: 3 },
+                    }}
+                  >
+                    Rebuild Campaign
+                  </Box>
+                  <Box
+                    component="button" type="button"
+                    onClick={() => {
+                      localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
+                      navigate('/campaign-verify');
+                    }}
+                    sx={{
+                      all: 'unset', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      px: '20px', py: '10px', borderRadius: 999,
+                      bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
+                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
+                      boxShadow: '0 6px 20px rgba(16,34,60,0.22)',
+                      transition: '180ms ease',
+                      '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-1px)' },
+                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                    }}
+                  >
+                    Verify Campaign
+                    <Box component="span">✓</Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          ) : (
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'var(--ink-soft, #44566C)' }}>No campaign data available.</Typography>
+          )}
+        </CompassLayout>
+      </Box>
+    );
+  }
+  // ── End cairn theme render ──────────────────────────────────────────────────
+
   return (
     <>
       <Dialog

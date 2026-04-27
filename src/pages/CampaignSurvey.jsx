@@ -426,6 +426,177 @@ function CampaignSurvey() {
     );
   }
 
+  if (useCairnTheme) {
+    const ROMAN = ['I', 'II', 'III'];
+    const NavSidebar = (
+      <Box sx={{ position: 'sticky', top: 88 }}>
+        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)', mb: 1.5, px: 0.5 }}>
+          Assessment
+        </Typography>
+        {campaign.slice(0, 3).map((traitObj, idx) => {
+          const isActive = traitIndex === idx;
+          const traitStart = idx * TRAIT_QUESTION_COUNT;
+          const answered = Object.keys(ratings).filter((k) => Number(k) >= traitStart && Number(k) < traitStart + TRAIT_QUESTION_COUNT).length;
+          return (
+            <Box
+              key={traitObj.trait || idx}
+              sx={{
+                display: 'flex', alignItems: 'flex-start', gap: 1.2,
+                px: 1.5, py: 1.2, borderRadius: '10px', mb: 0.5,
+                bgcolor: isActive ? 'var(--navy-900, #10223C)' : 'transparent',
+                transition: '120ms',
+              }}
+            >
+              <Box sx={{ width: 26, height: 26, borderRadius: '50%', border: `1.5px solid ${isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--sand-300, #C9B99A)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.1 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.6rem', fontWeight: 800, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)', lineHeight: 1 }}>
+                  {ROMAN[idx]}
+                </Typography>
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography noWrap sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1.2, mb: 0.2 }}>
+                  {traitObj.subTrait || traitObj.trait}
+                </Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.68rem', color: isActive ? 'rgba(244,206,161,0.7)' : 'var(--ink-soft, #44566C)', lineHeight: 1.2 }}>
+                  {answered}/{TRAIT_QUESTION_COUNT} answered
+                </Typography>
+              </Box>
+            </Box>
+          );
+        })}
+        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid var(--sand-200, #E8DBC3)', px: 1.5 }}>
+          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
+            Question {currentQuestion + 1} of {questions.length || 15}
+          </Typography>
+        </Box>
+      </Box>
+    );
+
+    return (
+      <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+        <ProcessTopRail />
+        <CompassLayout progress={71} sidebar={NavSidebar}>
+          <Box sx={{ mb: 1.5 }}>
+            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--orange-600, #E07A3F)', mb: 0.8 }}>
+              {currentTrait}{currentSubTrait !== currentTrait ? ` — ${currentSubTrait}` : ''} &nbsp;·&nbsp; Q{(currentQuestion % TRAIT_QUESTION_COUNT) + 1} of {TRAIT_QUESTION_COUNT}
+            </Typography>
+          </Box>
+
+          <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid var(--sand-200, #E8DBC3)', p: { xs: 2.5, md: 3 }, mb: 2.5, boxShadow: '0 2px 12px rgba(16,34,60,0.06)' }}>
+            <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.6, textAlign: 'center' }}>
+              {questions[currentQuestion]}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
+            <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid rgba(224,122,63,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: 'rgba(224,122,63,0.12)', border: '1.5px solid rgba(224,122,63,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#E07A3F', lineHeight: 1 }}>E</Typography>
+                </Box>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>Effort</Typography>
+              </Box>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-soft, #44566C)', mb: 1.5, lineHeight: 1.4 }}>
+                {isSelfCampaign ? 'How intentional and attentive I am in this area' : `How intentional and attentive ${leaderName} is in this area`}
+              </Typography>
+              <Box sx={{ px: 0.5, position: 'relative' }}>
+                <Box sx={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 2, height: 16, bgcolor: 'rgba(22,35,54,0.2)', borderRadius: 10, zIndex: 1, pointerEvents: 'none' }} />
+                <Slider value={currentRating.effort} onChange={(e, value) => handleSliderChange('effort', value)} min={0} max={10} step={1} marks={sliderMarks} valueLabelDisplay="off" sx={sliderSx(EFFORT_PRIMARY)} />
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.4 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>Low</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', fontWeight: 800, color: '#E07A3F' }}>{currentRating.effort}</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>High</Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid rgba(99,147,170,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: 'rgba(99,147,170,0.12)', border: '1.5px solid rgba(99,147,170,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#6393AA', lineHeight: 1 }}>E</Typography>
+                </Box>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>Efficacy</Typography>
+              </Box>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-soft, #44566C)', mb: 1.5, lineHeight: 1.4 }}>
+                {isSelfCampaign ? 'How effectively I meet the demands of this area' : `How effectively ${leaderName} meets the needs of this area`}
+              </Typography>
+              <Box sx={{ px: 0.5, position: 'relative' }}>
+                <Box sx={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 2, height: 16, bgcolor: 'rgba(22,35,54,0.2)', borderRadius: 10, zIndex: 1, pointerEvents: 'none' }} />
+                <Slider value={currentRating.efficacy} onChange={(e, value) => handleSliderChange('efficacy', value)} min={0} max={10} step={1} marks={sliderMarks} valueLabelDisplay="off" sx={sliderSx(EFFICACY_PRIMARY)} />
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.4 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>Low</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.92rem', fontWeight: 800, color: '#6393AA' }}>{currentRating.efficacy}</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>High</Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={{ bgcolor: 'rgba(244,206,161,0.18)', border: '1px solid rgba(224,122,63,0.22)', borderRadius: '12px', p: 2, mb: 3 }}>
+            <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.5, textAlign: 'center' }}>
+              {sentiment}
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={prevQuestion}
+              disabled={currentQuestion === 0}
+              sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.85rem', borderRadius: '10px', borderColor: 'var(--sand-300, #C9B99A)', color: 'var(--navy-900, #10223C)', textTransform: 'none', py: 1.2, '&:hover': { borderColor: 'var(--navy-500, #3F647B)', bgcolor: 'rgba(16,34,60,0.04)' }, '&.Mui-disabled': { opacity: 0.35 } }}
+            >
+              ← Previous
+            </Button>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', color: 'var(--ink-soft, #44566C)', mb: 0.6 }}>
+                {currentQuestion + 1} / {questions.length || 15}
+              </Typography>
+              <LinearProgress variant="determinate" value={progressValue} sx={{ height: 6, borderRadius: 10, bgcolor: 'var(--sand-200, #E8DBC3)', '& .MuiLinearProgress-bar': { bgcolor: 'var(--orange-600, #E07A3F)' } }} />
+            </Box>
+            <Button
+              variant="contained"
+              onClick={nextQuestion}
+              disabled={ratings[`${currentQuestion}`]?.effort == null || ratings[`${currentQuestion}`]?.efficacy == null}
+              sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.85rem', borderRadius: '10px', bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)', textTransform: 'none', boxShadow: 'none', py: 1.2, '&:hover': { bgcolor: 'var(--navy-700, #1C3558)', boxShadow: 'none' }, '&.Mui-disabled': { bgcolor: 'rgba(16,34,60,0.18)', color: 'rgba(244,206,161,0.4)' } }}
+            >
+              {nextCtaLabel} →
+            </Button>
+          </Box>
+        </CompassLayout>
+
+        <Dialog open={traitRecapOpen} onClose={handleMakeAdjustments} maxWidth="xs" fullWidth>
+          <DialogTitle sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', textAlign: 'center' }}>
+            {currentSubTrait} Checkpoint
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+              <Box sx={{ bgcolor: 'rgba(224,122,63,0.08)', border: '1px solid rgba(224,122,63,0.25)', borderRadius: '10px', p: 2, textAlign: 'center' }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#E07A3F', mb: 0.5 }}>Effort</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: 'var(--navy-900, #10223C)', lineHeight: 1 }}>{traitRecap.effortAvg.toFixed(1)}</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', color: 'var(--ink-soft, #44566C)', mt: 0.3 }}>out of 10</Typography>
+              </Box>
+              <Box sx={{ bgcolor: 'rgba(99,147,170,0.08)', border: '1px solid rgba(99,147,170,0.25)', borderRadius: '10px', p: 2, textAlign: 'center' }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6393AA', mb: 0.5 }}>Efficacy</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: 'var(--navy-900, #10223C)', lineHeight: 1 }}>{traitRecap.efficacyAvg.toFixed(1)}</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', color: 'var(--ink-soft, #44566C)', mt: 0.3 }}>out of 10</Typography>
+              </Box>
+            </Box>
+            <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.55, textAlign: 'center' }}>
+              {traitRecapSentiment}
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1 }}>
+            <Button variant="outlined" onClick={handleMakeAdjustments} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', borderColor: 'var(--sand-300, #C9B99A)', color: 'var(--navy-900, #10223C)', borderRadius: '10px' }}>
+              Make Adjustments
+            </Button>
+            <Button variant="contained" onClick={handleProceedNextTrait} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)', borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: 'var(--navy-700, #1C3558)', boxShadow: 'none' } }}>
+              {currentQuestion < (questions.length - 1) ? 'Proceed to Next Trait' : 'Complete Survey'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{

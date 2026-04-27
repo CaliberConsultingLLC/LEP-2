@@ -2127,6 +2127,11 @@ function IntakeForm() {
               onClick={() => {
                 if (!lastQuestion) {
                   setSocietalQuestionIndex((i) => i + 1);
+                } else if (useCairnTheme) {
+                  // In cairn mode the guide was already chosen on /guide-select — submit directly.
+                  if (!formData.selectedAgent) handleChange('selectedAgent', 'balancedMentor');
+                  setIsSubmitting(true);
+                  handleSubmit();
                 } else {
                   setCurrentStep(agentStep);
                 }
@@ -2141,8 +2146,8 @@ function IntakeForm() {
   </SectionCard>
 )}
 
-{/* Agent Select (Step 26) */}
-{currentStep === agentStep && (
+{/* Agent Select — production only; cairn mode submits directly from societal norms */}
+{currentStep === agentStep && !useCairnTheme && (
   <SectionCard narrow={false}>
     <Stack spacing={3} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
       <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35 }}>

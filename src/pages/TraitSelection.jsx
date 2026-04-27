@@ -16,6 +16,8 @@ import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import traitSystem from '../data/traitSystem';
 
+const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+
 function TraitSelection() {
   const navigate = useNavigate();
   const [selectedTraits, setSelectedTraits] = useState([]);
@@ -112,6 +114,8 @@ function TraitSelection() {
     });
   };
 
+  const [activeIndex, setActiveIndex] = useState(0);
+
   const handleContinue = () => {
     if (selectedTraits.length !== 3) {
       return;
@@ -120,6 +124,228 @@ function TraitSelection() {
     localStorage.setItem('selectedTraits', JSON.stringify(selectedTraits));
     navigate('/campaign-builder');
   };
+
+  // ── Cairn theme render ──────────────────────────────────────────────────────
+  if (useCairnTheme && focusAreas.length > 0) {
+    const activeFocus = focusAreas[activeIndex];
+    const isActiveSelected = selectedTraits.includes(activeFocus?.id);
+    const canSelectMore = selectedTraits.length < 3;
+    const trailMarker = activeFocus ? buildTrailMarker(activeFocus) : '';
+    const hazard = activeFocus ? buildHazard(activeFocus) : '';
+    const impact = activeFocus ? buildImpactPreview(activeFocus) : '';
+
+    const handleToggleActive = () => {
+      if (!activeFocus) return;
+      if (isActiveSelected) {
+        setSelectedTraits((prev) => prev.filter((id) => id !== activeFocus.id));
+      } else if (canSelectMore) {
+        setSelectedTraits((prev) => [...prev, activeFocus.id]);
+      }
+    };
+
+    const NavSidebar = (
+      <Box sx={{
+        bgcolor: 'white', borderRadius: '16px',
+        border: '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        overflow: 'hidden', position: 'sticky', top: 88,
+      }}>
+        {focusAreas.map((fa, idx) => {
+          const active = idx === activeIndex;
+          const selected = selectedTraits.includes(fa.id);
+          return (
+            <Box
+              key={fa.id}
+              component="button"
+              type="button"
+              onClick={() => setActiveIndex(idx)}
+              sx={{
+                all: 'unset', cursor: 'pointer',
+                display: 'flex', alignItems: 'flex-start', gap: 1.5,
+                px: 2, py: 1.5, width: '100%', boxSizing: 'border-box',
+                bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
+                transition: '140ms',
+                '&:hover': { bgcolor: active ? 'var(--navy-800, #162A44)' : 'var(--sand-50, #FBF7F0)' },
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: -3 },
+              }}
+            >
+              <Box sx={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0, mt: '2px',
+                bgcolor: selected ? 'var(--orange, #E07A3F)' : active ? 'rgba(255,255,255,0.15)' : 'var(--sand-100, #F3EAD8)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: selected || active ? '#fff' : 'var(--navy-900, #10223C)' }}>
+                  {selected ? '✓' : ROMAN[idx]}
+                </Typography>
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                  {fa.subTraitName}
+                </Typography>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                  {fa.traitName}
+                </Typography>
+              </Box>
+            </Box>
+          );
+        })}
+        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 600, color: selectedTraits.length === 3 ? 'var(--orange, #E07A3F)' : 'var(--ink-soft, #44566C)' }}>
+            {selectedTraits.length} of 3 selected
+          </Typography>
+        </Box>
+      </Box>
+    );
+
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+        <ProcessTopRail />
+        <CompassLayout progress={57} sidebar={NavSidebar}>
+          {loadError ? (
+            <Alert severity="warning" sx={{ fontFamily: '"Manrope", sans-serif' }}>{loadError}</Alert>
+          ) : activeFocus ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Trait header */}
+              <Box>
+                <Typography sx={{
+                  fontFamily: '"Manrope", sans-serif', fontWeight: 700,
+                  fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase',
+                  color: 'var(--orange, #E07A3F)', mb: 0.75,
+                }}>
+                  {activeFocus.traitName}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
+                  fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1,
+                  color: 'var(--navy-900, #10223C)', mb: 0.5,
+                }}>
+                  {activeFocus.subTraitName}
+                </Typography>
+                {activeFocus.subTraitDefinition && (
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.6 }}>
+                    {activeFocus.subTraitDefinition}
+                  </Typography>
+                )}
+              </Box>
+
+              {/* What's at stake / What changes */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <Box sx={{
+                  bgcolor: 'white', borderRadius: '12px',
+                  border: '1px solid var(--sand-200, #E8DBC3)',
+                  p: 2.5,
+                }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 1 }}>
+                    What's At Stake
+                  </Typography>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--navy-900, #10223C)' }}>
+                    {hazard}
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  bgcolor: 'white', borderRadius: '12px',
+                  border: '1px solid var(--sand-200, #E8DBC3)',
+                  p: 2.5,
+                }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--navy-500, #3F647B)', mb: 1 }}>
+                    What Changes
+                  </Typography>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--navy-900, #10223C)' }}>
+                    {impact}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Trail marker quote */}
+              {trailMarker && (
+                <Box sx={{
+                  bgcolor: 'white', borderRadius: '12px',
+                  border: '1px solid var(--sand-200, #E8DBC3)',
+                  p: 2.5,
+                }}>
+                  <Typography sx={{
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '1.05rem',
+                    lineHeight: 1.7,
+                    color: 'var(--navy-900, #10223C)',
+                    fontStyle: 'italic',
+                  }}>
+                    "{trailMarker}"
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Action row */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 0.5, flexWrap: 'wrap', gap: 2 }}>
+                {/* Choose / unchoose this trail */}
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={handleToggleActive}
+                  disabled={!isActiveSelected && !canSelectMore}
+                  sx={{
+                    all: 'unset',
+                    cursor: (!isActiveSelected && !canSelectMore) ? 'default' : 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    px: '24px', py: '12px', borderRadius: 999,
+                    bgcolor: isActiveSelected ? 'var(--navy-900, #10223C)' : 'var(--orange, #E07A3F)',
+                    color: '#fff',
+                    fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.9rem',
+                    opacity: (!isActiveSelected && !canSelectMore) ? 0.4 : 1,
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.14)',
+                    transition: '180ms ease',
+                    '&:hover': (!isActiveSelected && !canSelectMore) ? {} : { transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' },
+                    '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.48)', outlineOffset: 3 },
+                  }}
+                >
+                  {isActiveSelected ? '✓ Selected' : 'Choose This Trail'}
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => navigate('/summary')}
+                    sx={{
+                      all: 'unset', cursor: 'pointer',
+                      fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem',
+                      color: 'var(--ink-soft, #44566C)',
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      '&:hover': { color: 'var(--navy-900, #10223C)' },
+                    }}
+                  >
+                    ← Summary
+                  </Box>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={handleContinue}
+                    disabled={selectedTraits.length !== 3}
+                    sx={{
+                      all: 'unset',
+                      cursor: selectedTraits.length === 3 ? 'pointer' : 'default',
+                      display: 'inline-flex', alignItems: 'center', gap: '8px',
+                      px: '20px', py: '10px', borderRadius: 999,
+                      bgcolor: selectedTraits.length === 3 ? 'var(--navy-900, #10223C)' : 'var(--sand-200, #E8DBC3)',
+                      color: selectedTraits.length === 3 ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
+                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
+                      transition: '180ms ease',
+                      '&:hover': selectedTraits.length === 3 ? { transform: 'translateY(-1px)' } : {},
+                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                    }}
+                  >
+                    Build Campaign →
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          ) : null}
+        </CompassLayout>
+      </Box>
+    );
+  }
+  // ── End cairn theme render ──────────────────────────────────────────────────
 
   return (
     <Box

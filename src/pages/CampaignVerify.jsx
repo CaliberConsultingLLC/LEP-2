@@ -331,6 +331,173 @@ function CampaignVerify() {
     );
   }
 
+  // ── Cairn theme render ──────────────────────────────────────────────────────
+  if (useCairnTheme) {
+    const CopyButton = ({ text, type, label }) => (
+      <Box
+        component="button" type="button"
+        onClick={() => copyToClipboard(text, type)}
+        sx={{
+          all: 'unset', cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          px: '14px', py: '8px', borderRadius: 999,
+          border: '1px solid var(--sand-200, #E8DBC3)',
+          bgcolor: copied[type] ? 'var(--navy-900, #10223C)' : 'white',
+          color: copied[type] ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
+          fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.8rem',
+          transition: '200ms ease',
+          '&:hover': { bgcolor: 'var(--sand-50, #FBF7F0)' },
+          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 2 },
+        }}
+      >
+        {copied[type] ? '✓ Copied' : label}
+      </Box>
+    );
+
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+        <ProcessTopRail />
+        <CompassLayout progress={86}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Heading */}
+            <Box>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.75 }}>
+                Your Next Move
+              </Typography>
+              <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.5 }}>
+                Campaign is Ready
+              </Typography>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.6 }}>
+                Complete your personal benchmark first, then share the team campaign link with your team.
+              </Typography>
+            </Box>
+
+            {error && <Alert severity="error" sx={{ fontFamily: '"Manrope", sans-serif' }}>{error}</Alert>}
+
+            {/* Self campaign card */}
+            <Box sx={{ bgcolor: 'white', borderRadius: '16px', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', p: { xs: 2.5, md: 3 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>1</Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                    Your Personal Benchmark
+                  </Typography>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--ink-soft, #44566C)' }}>
+                    Rate yourself on the same statements your team will see.
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                component="button" type="button"
+                onClick={() => navigate(`/campaign/${selfCampaignId}`)}
+                sx={{
+                  all: 'unset', cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  px: '24px', py: '13px', borderRadius: 999, mb: 2.5,
+                  bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
+                  fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.95rem',
+                  boxShadow: '0 6px 20px rgba(16,34,60,0.22)',
+                  transition: '180ms ease',
+                  '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-1px)' },
+                  '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                }}
+              >
+                <TrendingUp sx={{ fontSize: 18 }} />
+                Start My Growth Campaign
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>
+                    Self-Assessment Link
+                  </Typography>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selfCampaignLink || 'Generating…'}
+                  </Typography>
+                </Box>
+                <CopyButton text={selfCampaignLink} type="selfLink" label="Copy Link" />
+              </Box>
+
+              {selfCompleted && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Box
+                    component="button" type="button"
+                    onClick={() => navigate('/dashboard')}
+                    sx={{
+                      all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: 'var(--orange, #E07A3F)', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
+                    Continue to Dashboard →
+                  </Box>
+                </Box>
+              )}
+            </Box>
+
+            {/* Team campaign card */}
+            <Box sx={{
+              bgcolor: 'white', borderRadius: '16px',
+              border: `1px solid ${selfCompleted ? 'var(--sand-200, #E8DBC3)' : 'var(--sand-100, #F3EAD8)'}`,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+              p: { xs: 2.5, md: 3 },
+              opacity: selfCompleted ? 1 : 0.65,
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: selfCompleted ? 'var(--navy-500, #3F647B)' : 'var(--sand-200, #E8DBC3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ color: selfCompleted ? '#fff' : 'var(--ink-soft, #44566C)', fontWeight: 700, fontSize: '1rem' }}>2</Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                    Team Campaign {selfCompleted ? '(Unlocked)' : '(Complete benchmark first)'}
+                  </Typography>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--ink-soft, #44566C)' }}>
+                    Share this link with your team once your benchmark is done.
+                  </Typography>
+                </Box>
+              </Box>
+
+              {selfCompleted ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Link</Typography>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamCampaignLink}</Typography>
+                    </Box>
+                    <CopyButton text={teamCampaignLink} type="teamLink" label="Copy Link" />
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Password</Typography>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--navy-900, #10223C)' }}>{teamCampaignPassword}</Typography>
+                    </Box>
+                    <CopyButton text={teamCampaignPassword} type="teamPassword" label="Copy" />
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ p: 2, borderRadius: '10px', bgcolor: 'var(--sand-100, #F3EAD8)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.88rem', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
+                    Complete your personal benchmark to unlock the team campaign link.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* Dashboard credentials */}
+            <Box sx={{ px: 1 }}>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--ink-soft, #44566C)' }}>
+                Dashboard sign-in: <strong>{userEmail || '—'}</strong> · Use your account password.
+              </Typography>
+            </Box>
+          </Box>
+        </CompassLayout>
+      </Box>
+    );
+  }
+  // ── End cairn theme render ──────────────────────────────────────────────────
+
   return (
     <Box
       sx={{
