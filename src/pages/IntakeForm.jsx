@@ -1341,7 +1341,7 @@ function IntakeForm() {
         />
       )}
 
-      <CompassLayout sidebar={<CompassJourneySidebar />} progress={intakePct}>
+      <CompassLayout progress={intakePct}>
       <PageContainer>
         {postSignupNotice && (
           <Alert severity={postSignupNotice.severity} sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}>

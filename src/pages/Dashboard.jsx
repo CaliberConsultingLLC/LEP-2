@@ -135,7 +135,7 @@ function Dashboard() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout sidebar={<CompassJourneySidebar />} progress={100}>
+        <CompassLayout progress={100}>
           {/* Horizontal dash tab strip */}
           <Box
             sx={{

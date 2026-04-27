@@ -48,7 +48,7 @@ function CampaignIntro() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout sidebar={<CompassJourneySidebar />} progress={57}>
+      <CompassLayout progress={57}>
       <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 3, sm: 4 } }}>
         <Box
           sx={{

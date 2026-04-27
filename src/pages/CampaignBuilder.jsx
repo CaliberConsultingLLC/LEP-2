@@ -437,7 +437,7 @@ function CampaignBuilder() {
         }}
       >
         <ProcessTopRail />
-        <CompassLayout sidebar={<CompassJourneySidebar />} progress={57}>
+        <CompassLayout progress={57}>
         <Container
           maxWidth={false}
           sx={{

@@ -742,7 +742,7 @@ function Summary() {
           }),
     }}>
       <ProcessTopRail titleOverride="Leadership Reflection" />
-      <CompassLayout sidebar={<CompassJourneySidebar />} progress={43}>
+      <CompassLayout progress={43}>
       <Container
         maxWidth={false}
         sx={{

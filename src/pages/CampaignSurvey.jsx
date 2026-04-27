@@ -458,7 +458,7 @@ function CampaignSurvey() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout sidebar={<CompassJourneySidebar />} progress={71}>
+      <CompassLayout progress={71}>
       <Container
         maxWidth={useCairnTheme ? false : 'lg'}
         sx={{

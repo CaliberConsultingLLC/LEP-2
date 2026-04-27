@@ -5,13 +5,48 @@ import { useGuide } from '../context/GuideContext';
 import { auth } from '../firebase';
 
 const PHASE_MAP = [
-  { id: 'profile',   chapterNum: 'I',   title: 'Identity' },
-  { id: 'behaviors', chapterNum: 'II',  title: 'Behaviors' },
-  { id: 'insights',  chapterNum: 'III', title: 'Leadership Reflection' },
-  { id: 'campaign',  chapterNum: 'IV',  title: 'Campaign Creation' },
-  { id: 'self',      chapterNum: 'V',   title: 'Inner Bearing' },
-  { id: 'team',      chapterNum: 'VI',  title: 'Outer Signal' },
-  { id: 'review',    chapterNum: 'VII', title: 'Review & Act' },
+  {
+    id: 'profile',
+    chapterNum: 'I',
+    title: 'Identity',
+    description: 'Build your leader profile — the context that makes your results personal.',
+  },
+  {
+    id: 'behaviors',
+    chapterNum: 'II',
+    title: 'Behaviors',
+    description: 'Explore your natural instincts and behavioral patterns as a leader.',
+  },
+  {
+    id: 'insights',
+    chapterNum: 'III',
+    title: 'Leadership Reflection',
+    description: 'Review your AI-generated summary and choose your three focus areas.',
+  },
+  {
+    id: 'campaign',
+    chapterNum: 'IV',
+    title: 'Campaign Creation',
+    description: 'Design the campaign — three traits your team will assess you on.',
+  },
+  {
+    id: 'self',
+    chapterNum: 'V',
+    title: 'Inner Bearing',
+    description: 'Rate yourself honestly before seeing what your team says.',
+  },
+  {
+    id: 'team',
+    chapterNum: 'VI',
+    title: 'Outer Signal',
+    description: 'Your team is rating you. Their feedback becomes your growth plan.',
+  },
+  {
+    id: 'review',
+    chapterNum: 'VII',
+    title: 'Review & Act',
+    description: 'Interpret your results and commit to specific leadership actions.',
+  },
 ];
 
 const getPhaseFromPath = (pathname) => {
@@ -29,7 +64,37 @@ const parseJson = (raw, fallback) => {
   try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
 };
 
-// ---- Inline guide-switcher pill ----
+// ---- SVG progress ring ----
+function ProgressRing({ pct }) {
+  const radius = 14;
+  const circ = 2 * Math.PI * radius;
+  const offset = circ - (pct / 100) * circ;
+  return (
+    <svg
+      width={40}
+      height={40}
+      aria-hidden
+      style={{ position: 'absolute', top: -6, left: -6, pointerEvents: 'none' }}
+    >
+      {/* track */}
+      <circle cx={20} cy={20} r={radius} fill="none" stroke="rgba(224,122,63,0.15)" strokeWidth={2.5} />
+      {/* fill */}
+      <circle
+        cx={20} cy={20} r={radius}
+        fill="none"
+        stroke="var(--orange, #E07A3F)"
+        strokeWidth={2.5}
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform={`rotate(-90 20 20)`}
+        style={{ transition: 'stroke-dashoffset 500ms cubic-bezier(.2,.8,.2,1)' }}
+      />
+    </svg>
+  );
+}
+
+// ---- Guide-switcher pill (unchanged) ----
 function GuidePill() {
   const { personas, personaId, persona, setPersona } = useGuide();
   const anchorRef = useRef(null);
@@ -87,9 +152,7 @@ function GuidePill() {
         slotProps={{
           paper: {
             sx: {
-              mt: 0.75,
-              p: 0.5,
-              minWidth: 210,
+              mt: 0.75, p: 0.5, minWidth: 210,
               borderRadius: '14px',
               border: '1px solid var(--sand-200, #E8DBC3)',
               boxShadow: '0 18px 40px rgba(15,28,46,0.18)',
@@ -146,20 +209,126 @@ function GuidePill() {
   );
 }
 
+// ---- Chapter progress popover ----
+function ChapterPopover({ phase, phaseIndex, anchorEl, open, onClose }) {
+  return (
+    <Popover
+      open={open}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+      slotProps={{
+        paper: {
+          sx: {
+            mt: 1,
+            p: '20px 22px 18px',
+            width: 280,
+            borderRadius: '16px',
+            border: '1px solid var(--sand-200, #E8DBC3)',
+            boxShadow: '0 18px 48px rgba(15,28,46,0.14)',
+            bgcolor: '#fff',
+          },
+        },
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: 'var(--orange-deep, #C0612A)',
+          mb: '6px',
+        }}
+      >
+        Chapter {phase.chapterNum}
+      </Box>
+      <Box
+        sx={{
+          fontFamily: '"Fraunces", Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: 17,
+          fontWeight: 600,
+          color: 'var(--navy-900, #10223C)',
+          mb: '8px',
+          lineHeight: 1.2,
+        }}
+      >
+        {phase.title}
+      </Box>
+      <Box
+        sx={{
+          fontFamily: '"Manrope", "Inter", sans-serif',
+          fontSize: 13,
+          color: 'var(--ink-soft, #44566C)',
+          lineHeight: 1.55,
+          mb: '18px',
+        }}
+      >
+        {phase.description}
+      </Box>
+
+      {/* 7-step progress dots */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {PHASE_MAP.map((p, idx) => {
+          const isCurrent  = idx === phaseIndex;
+          const isComplete = idx < phaseIndex;
+          return (
+            <Box
+              key={p.id}
+              sx={{
+                flex: isCurrent ? '0 0 28px' : '0 0 8px',
+                height: 8,
+                borderRadius: 999,
+                bgcolor: isComplete
+                  ? 'var(--green, #2F855A)'
+                  : isCurrent
+                  ? 'var(--orange, #E07A3F)'
+                  : 'var(--sand-200, #E8DBC3)',
+                transition: 'flex 300ms cubic-bezier(.2,.8,.2,1)',
+              }}
+            />
+          );
+        })}
+      </Box>
+
+      {/* Step count */}
+      <Box
+        sx={{
+          fontFamily: '"Manrope", sans-serif',
+          fontSize: 11,
+          color: 'var(--ink-soft, #44566C)',
+          opacity: 0.65,
+          mt: '8px',
+        }}
+      >
+        Step {phaseIndex + 1} of {PHASE_MAP.length}
+      </Box>
+    </Popover>
+  );
+}
+
 // ---- Main topbar ----
 function CompassTopbar() {
   const location = useLocation();
   const pathname = location.pathname || '';
+  const pillRef = useRef(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const { phase, initials } = useMemo(() => {
-    const phaseId = getPhaseFromPath(pathname);
-    const phase = PHASE_MAP.find((p) => p.id === phaseId) || PHASE_MAP[1];
-    const userInfo = parseJson(localStorage.getItem('userInfo'), {});
-    const name = String(userInfo?.name || auth?.currentUser?.displayName || '').trim();
-    const initials = name
+  const { phase, phaseIndex, progressPct, initials } = useMemo(() => {
+    const phaseId   = getPhaseFromPath(pathname);
+    const phaseIndex = PHASE_MAP.findIndex((p) => p.id === phaseId);
+    const phase      = phaseIndex >= 0 ? PHASE_MAP[phaseIndex] : PHASE_MAP[1];
+    const progressPct = Math.round(((phaseIndex >= 0 ? phaseIndex : 1) + 1) / PHASE_MAP.length * 100);
+    const userInfo  = parseJson(localStorage.getItem('userInfo'), {});
+    const name      = String(userInfo?.name || auth?.currentUser?.displayName || '').trim();
+    const initials  = name
       ? name.split(' ').filter(Boolean).map((n) => n[0]).join('').slice(0, 2).toUpperCase()
       : '?';
-    return { phase, initials };
+    return { phase, phaseIndex: phaseIndex >= 0 ? phaseIndex : 1, progressPct, initials };
   }, [pathname]);
 
   return (
@@ -181,7 +350,7 @@ function CompassTopbar() {
         flexShrink: 0,
       }}
     >
-      {/* ---- LEFT: brand + cropped compass logo ---- */}
+      {/* LEFT: brand */}
       <Stack direction="row" alignItems="center" gap={1.25} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
         <Box
           component="img"
@@ -210,20 +379,27 @@ function CompassTopbar() {
         </Box>
       </Stack>
 
-      {/* ---- CENTER: chapter pill ---- */}
+      {/* CENTER: chapter pill (clickable) */}
       <Box
         sx={{
           position: 'absolute',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 1,
-          display: 'flex',
-          alignItems: 'center',
         }}
       >
         <Box
+          component="button"
+          type="button"
+          ref={pillRef}
+          onClick={() => setPopoverOpen(true)}
+          aria-expanded={popoverOpen}
+          aria-haspopup="dialog"
+          aria-label={`Chapter ${phase.chapterNum} — ${phase.title}. Click for progress overview.`}
           sx={{
-            display: 'flex',
+            all: 'unset',
+            cursor: 'pointer',
+            display: 'inline-flex',
             alignItems: 'center',
             gap: '12px',
             pl: '6px',
@@ -233,21 +409,35 @@ function CompassTopbar() {
             border: '1px solid var(--sand-200, #E8DBC3)',
             bgcolor: '#fff',
             boxShadow: '0 1px 4px rgba(15,28,46,0.04)',
+            transition: 'box-shadow 160ms, border-color 160ms',
+            '&:hover': {
+              borderColor: 'var(--orange, #E07A3F)',
+              boxShadow: '0 2px 10px rgba(224,122,63,0.15)',
+            },
+            '&:focus-visible': {
+              outline: '3px solid rgba(224,122,63,0.32)',
+              outlineOffset: 2,
+            },
           }}
         >
-          <Box
-            sx={{
-              width: 28, height: 28, borderRadius: '50%',
-              bgcolor: 'var(--navy-900, #10223C)',
-              color: 'var(--amber-soft, #F4CEA1)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontStyle: 'italic', fontWeight: 700, fontSize: 12,
-              flexShrink: 0,
-            }}
-          >
-            {phase.chapterNum}
+          {/* Chapter circle with SVG progress ring */}
+          <Box sx={{ position: 'relative', width: 28, height: 28, flexShrink: 0 }}>
+            <ProgressRing pct={progressPct} />
+            <Box
+              sx={{
+                width: 28, height: 28, borderRadius: '50%',
+                bgcolor: 'var(--navy-900, #10223C)',
+                color: 'var(--amber-soft, #F4CEA1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: '"Fraunces", Georgia, serif',
+                fontStyle: 'italic', fontWeight: 700, fontSize: 12,
+                userSelect: 'none',
+              }}
+            >
+              {phase.chapterNum}
+            </Box>
           </Box>
+
           <Box>
             <Box
               sx={{
@@ -275,9 +465,17 @@ function CompassTopbar() {
             </Box>
           </Box>
         </Box>
+
+        <ChapterPopover
+          phase={phase}
+          phaseIndex={phaseIndex}
+          anchorEl={pillRef.current}
+          open={popoverOpen}
+          onClose={() => setPopoverOpen(false)}
+        />
       </Box>
 
-      {/* ---- RIGHT: guide pill + user avatar ---- */}
+      {/* RIGHT: guide pill + avatar */}
       <Stack direction="row" alignItems="center" gap={1.5} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
         <GuidePill />
         <Box

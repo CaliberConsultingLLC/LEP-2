@@ -2,16 +2,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import { useCairnTheme } from '../config/runtimeFlags';
 
-/**
- * 20/60/20 page layout for the Compass redesign (staging only).
- * In production (useCairnTheme === false) this is a transparent passthrough.
- *
- * Props:
- *   sidebar  – content rendered in the left 20% column
- *   progress – 0–100, drives the orange progress bar below the topbar
- *   children – rendered in the center 60% column
- */
-function CompassLayout({ children, sidebar, progress = 0 }) {
+function CompassLayout({ children, progress = 0 }) {
   if (!useCairnTheme) {
     return children;
   }
@@ -41,7 +32,7 @@ function CompassLayout({ children, sidebar, progress = 0 }) {
         />
       </Box>
 
-      {/* Compass logo watermark — top-left, very faint */}
+      {/* Compass logo watermark */}
       <Box
         component="img"
         src="/compasslogo2.png"
@@ -60,30 +51,22 @@ function CompassLayout({ children, sidebar, progress = 0 }) {
         }}
       />
 
-      {/* 20 / 60 / 20 grid */}
+      {/* Centered content column */}
       <Box
         sx={{
           flex: 1,
-          display: 'grid',
-          gridTemplateColumns: '20% 60% 20%',
+          display: 'flex',
+          justifyContent: 'center',
           pt: 3,
           pb: 12,
+          px: { xs: 2, md: 4 },
           position: 'relative',
           zIndex: 1,
         }}
       >
-        {/* Left 20% — journey sidebar */}
-        <Box sx={{ pl: '32px', pr: '14px' }}>
-          {sidebar}
-        </Box>
-
-        {/* Center 60% — page content */}
-        <Box sx={{ px: '14px', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ width: '100%', maxWidth: 780 }}>
           {children}
         </Box>
-
-        {/* Right 20% — intentionally empty; guide owl floats here via fixed overlay */}
-        <Box sx={{ pl: '14px', pr: '32px' }} />
       </Box>
     </Box>
   );
