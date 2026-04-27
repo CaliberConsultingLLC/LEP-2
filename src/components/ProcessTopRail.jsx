@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useCairnTheme } from '../config/runtimeFlags';
 import GuideSelector from './GuideSelector';
+import CompassTopbar from './CompassTopbar';
 
 const PHASES = [
   { id: 'profile', title: 'Profile Creation', icon: AccountCircle, fallbackPath: '/user-info' },
@@ -279,12 +280,13 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
   );
 }
 
-// On the Cairn (staging) skin the progress phase rail is replaced by the
-// guide selector. All 15 pages that import ProcessTopRail keep doing so —
-// we just swap what it renders when the theme flag is on.
+// On the Cairn (staging) skin the legacy phase rail is replaced by the
+// full Compass topbar (logo + chapter pill + guide selector + avatar).
+// All pages that import ProcessTopRail keep doing so — we just swap
+// what it renders when the theme flag is on.
 function ProcessTopRail(props) {
   if (useCairnTheme) {
-    return <GuideSelector embedded={props.embedded} sticky={props.sticky} />;
+    return <CompassTopbar />;
   }
   return <ProcessTopRailLegacy {...props} />;
 }

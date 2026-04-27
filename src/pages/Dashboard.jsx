@@ -24,6 +24,9 @@ import ActionTabStaging from './Dashboard/ActionTabStaging';
 import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
 import ProcessTopRail from '../components/ProcessTopRail';
+import CompassLayout from '../components/CompassLayout';
+import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import { useCairnTheme } from '../config/runtimeFlags';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -115,6 +118,75 @@ function Dashboard() {
       setCurrentTab(tabIndexByKey[tab]);
     }
   }, [location.search]);
+
+  const dashTabContent = (
+    <Box sx={{ mt: 1.8 }}>
+      {currentTab === 0 && <GrowthCampaignTab />}
+      {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
+      {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
+      {currentTab === 3 && (
+        <ActionTabStaging selectedAgent={selectedAgent} onOpenJourney={() => setCurrentTab(4)} />
+      )}
+      {currentTab === 4 && <JourneyTab />}
+    </Box>
+  );
+
+  if (useCairnTheme) {
+    return (
+      <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+        <ProcessTopRail />
+        <CompassLayout sidebar={<CompassJourneySidebar />} progress={100}>
+          {/* Horizontal dash tab strip */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: '6px',
+              flexWrap: 'wrap',
+              mb: 2,
+              pb: 1.5,
+              borderBottom: '1px solid var(--sand-200, #E8DBC3)',
+            }}
+          >
+            {navItems.map((item, idx) => {
+              const Icon = item.icon;
+              const active = currentTab === idx;
+              return (
+                <Box
+                  key={item.label}
+                  component="button"
+                  type="button"
+                  onClick={() => setCurrentTab(idx)}
+                  sx={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    px: '12px',
+                    py: '7px',
+                    borderRadius: '8px',
+                    fontFamily: '"Manrope", "Inter", sans-serif',
+                    fontWeight: active ? 700 : 600,
+                    fontSize: 13,
+                    bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
+                    color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
+                    border: `1px solid ${active ? 'transparent' : 'var(--sand-200, #E8DBC3)'}`,
+                    transition: '140ms',
+                    '&:hover': active ? {} : { bgcolor: 'var(--sand-50, #FBF7F0)', borderColor: 'var(--navy-500, #3F647B)' },
+                    '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+                  }}
+                >
+                  <Icon sx={{ fontSize: 15 }} />
+                  {item.label}
+                </Box>
+              );
+            })}
+          </Box>
+          {dashTabContent}
+        </CompassLayout>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -391,15 +463,7 @@ function Dashboard() {
                 </Box>
               )}
 
-              <Box sx={{ mt: 1.8 }}>
-                {currentTab === 0 && <GrowthCampaignTab />}
-                {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
-                {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
-                {currentTab === 3 && (
-            <ActionTabStaging selectedAgent={selectedAgent} onOpenJourney={() => setCurrentTab(4)} />
-                )}
-                {currentTab === 4 && <JourneyTab />}
-              </Box>
+              {dashTabContent}
             </Box>
           </Box>
         </Box>

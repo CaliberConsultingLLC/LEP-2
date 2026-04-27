@@ -17,6 +17,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
+import CompassLayout from '../components/CompassLayout';
+import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import { useCairnTheme } from '../config/runtimeFlags';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 
@@ -430,34 +433,37 @@ function CampaignSurvey() {
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
-        // full bleed bg
-        '&:before': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-        },
-        // dark overlay
-        '&:after': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(15,30,58,0.22), rgba(15,30,58,0.40))',
-        },
+        ...(useCairnTheme
+          ? { bgcolor: 'var(--sand-50, #FBF7F0)' }
+          : {
+              '&:before': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -2,
+                backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)), url(/LEP2.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundAttachment: 'fixed',
+              },
+              '&:after': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -1,
+                background: 'radial-gradient(1200px 800px at 20% 20%, rgba(15,30,58,0.22), rgba(15,30,58,0.40))',
+              },
+            }),
       }}
     >
       <ProcessTopRail />
+      <CompassLayout sidebar={<CompassJourneySidebar />} progress={71}>
       <Container
-        maxWidth="lg"
+        maxWidth={useCairnTheme ? false : 'lg'}
         sx={{
           py: { xs: 2, md: 3.2 },
-          px: { xs: 2, md: 4 },
+          px: useCairnTheme ? 0 : { xs: 2, md: 4 },
         }}
       >
         {currentQuestion === 0 && savedActionItems.length > 0 ? (
@@ -952,6 +958,7 @@ function CampaignSurvey() {
           </DialogActions>
         </Dialog>
       </Container>
+      </CompassLayout>
     </Box>
   );
 }

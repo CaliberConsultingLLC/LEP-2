@@ -11,6 +11,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
 import ProcessTopRail from '../components/ProcessTopRail';
+import CompassLayout from '../components/CompassLayout';
+import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import { useCairnTheme } from '../config/runtimeFlags';
 import traitSystem from '../data/traitSystem';
 
 function TraitSelection() {
@@ -125,35 +128,40 @@ function TraitSelection() {
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
-        '&:before': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          backgroundImage: 'url(/LEP2.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          transform: 'translateZ(0)',
-        },
-        '&:after': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-        },
+        ...(useCairnTheme
+          ? { bgcolor: 'var(--sand-50, #FBF7F0)' }
+          : {
+              '&:before': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -2,
+                backgroundImage: 'url(/LEP2.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                transform: 'translateZ(0)',
+              },
+              '&:after': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -1,
+                background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+              },
+            }),
       }}
     >
       <ProcessTopRail />
+      <CompassLayout sidebar={<CompassJourneySidebar />} progress={57}>
       <Container
         maxWidth={false}
         sx={{
           py: { xs: 3, sm: 4 },
-          px: { xs: 2, sm: 4 },
+          px: useCairnTheme ? 0 : { xs: 2, sm: 4 },
           display: 'flex',
           justifyContent: 'center',
-          width: '100vw',
+          width: useCairnTheme ? '100%' : '100vw',
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 1120 }}>
@@ -491,6 +499,7 @@ function TraitSelection() {
         </Stack>
         </Box>
       </Container>
+      </CompassLayout>
     </Box>
   );
 }

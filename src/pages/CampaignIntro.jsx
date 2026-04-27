@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Container, Box, Typography, Button, Stack, LinearProgress } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
+import CompassLayout from '../components/CompassLayout';
+import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import { useCairnTheme } from '../config/runtimeFlags';
 
 function CampaignIntro() {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,20 +30,26 @@ function CampaignIntro() {
   return (
     <Box
       sx={{
-        p: 5,
         minHeight: '100vh',
-        width: '100vw',
-        backgroundImage: 'url(/LEP2.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: '100%',
+        ...(useCairnTheme
+          ? { bgcolor: 'var(--sand-50, #FBF7F0)' }
+          : {
+              p: 5,
+              width: '100vw',
+              backgroundImage: 'url(/LEP2.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }),
       }}
     >
       <ProcessTopRail />
-      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+      <CompassLayout sidebar={<CompassJourneySidebar />} progress={57}>
+      <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 3, sm: 4 } }}>
         <Box
           sx={{
             p: 6,
@@ -80,6 +89,7 @@ function CampaignIntro() {
           </Stack>
         </Box>
       </Container>
+      </CompassLayout>
     </Box>
   );
 }

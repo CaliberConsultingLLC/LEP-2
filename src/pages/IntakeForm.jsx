@@ -10,6 +10,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { questionBank } from '../data/questionBank';
 import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 import ProcessTopRail from '../components/ProcessTopRail';
+import CompassLayout from '../components/CompassLayout';
+import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import { useCairnTheme } from '../config/runtimeFlags';
 import { auth, db } from '../firebase';
 
 // ---------- Memo wrappers ----------
@@ -40,19 +43,20 @@ const MessageDialog = ({ open, onClose, title, content }) => (
   </Dialog>
 );
 
-// A centered page container that keeps everything naturally sized
+// A centered page container — in cairn mode removes the vw-width and centering
+// since CompassLayout's 60% center column handles that.
 const PageContainer = ({ children }) => (
   <Container
     maxWidth={false}
     sx={{
-      py: { xs: 3, sm: 4 },
-      px: { xs: 2, sm: 4 },
+      py: { xs: 2, sm: 3 },
+      px: useCairnTheme ? 0 : { xs: 2, sm: 4 },
       display: 'flex',
       justifyContent: 'center',
-      width: '100vw',
+      width: useCairnTheme ? '100%' : '100vw',
     }}
   >
-    <Box sx={{ width: '100%', maxWidth: 880 }}>{children}</Box>
+    <Box sx={{ width: '100%', maxWidth: useCairnTheme ? 'none' : 880 }}>{children}</Box>
   </Container>
 );
 
@@ -1279,6 +1283,8 @@ function IntakeForm() {
   };
 
   // ---------- UI ----------
+  const intakePct = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
+
   return (
     <Box
       sx={{
@@ -1286,26 +1292,29 @@ function IntakeForm() {
         minHeight: '100svh',
         width: '100%',
         overflowX: 'hidden',
-        // full bleed bg
-        '&:before': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          backgroundImage: 'url(/LEP2.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          transform: 'translateZ(0)',
-        },
-        // dark overlay
-        '&:after': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-        },
+        // cairn: light sand background; production: dark photo bg
+        ...(useCairnTheme
+          ? { bgcolor: 'var(--sand-50, #FBF7F0)' }
+          : {
+              '&:before': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -2,
+                backgroundImage: 'url(/LEP2.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                transform: 'translateZ(0)',
+              },
+              '&:after': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -1,
+                background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+              },
+            }),
       }}
     >
       <ProcessTopRail titleOverride={currentStep === 1 ? 'Leader Profile' : ''} />
@@ -1332,6 +1341,7 @@ function IntakeForm() {
         />
       )}
 
+      <CompassLayout sidebar={<CompassJourneySidebar />} progress={intakePct}>
       <PageContainer>
         {postSignupNotice && (
           <Alert severity={postSignupNotice.severity} sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}>
@@ -2188,7 +2198,6 @@ function IntakeForm() {
     </Stack>
   </SectionCard>
 )}
-</PageContainer>
 
       {/* Custom Answer Dialog for Team Puzzle */}
       <Dialog
@@ -2234,6 +2243,9 @@ function IntakeForm() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      </PageContainer>
+      </CompassLayout>
 
       {/* Role Model Elaboration Dialog */}
       <Dialog

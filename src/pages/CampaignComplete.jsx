@@ -3,6 +3,9 @@ import { Container, Box, Typography, Stack, Button } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
+import CompassLayout from '../components/CompassLayout';
+import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import { useCairnTheme } from '../config/runtimeFlags';
 import { auth, db } from '../firebase';
 
 function CampaignComplete() {
@@ -66,29 +69,32 @@ function CampaignComplete() {
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
-        // full bleed bg
-        '&:before': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          backgroundImage: 'url(/LEP.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          transform: 'translateZ(0)',
-        },
-        // dark overlay
-        '&:after': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-        },
+        ...(useCairnTheme
+          ? { bgcolor: 'var(--sand-50, #FBF7F0)' }
+          : {
+              '&:before': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -2,
+                backgroundImage: 'url(/LEP.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                transform: 'translateZ(0)',
+              },
+              '&:after': {
+                content: '""',
+                position: 'fixed',
+                inset: 0,
+                zIndex: -1,
+                background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
+              },
+            }),
       }}
     >
       <ProcessTopRail />
+      <CompassLayout sidebar={<CompassJourneySidebar />} progress={71}>
       <Container maxWidth="sm" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
         <Box
           sx={{
@@ -126,6 +132,7 @@ function CampaignComplete() {
           </Stack>
         </Box>
       </Container>
+      </CompassLayout>
     </Box>
   );
 }
