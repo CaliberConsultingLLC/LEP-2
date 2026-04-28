@@ -781,11 +781,12 @@ function Summary() {
               }}
             >
               <Box sx={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0, mt: '2px',
-                bgcolor: active ? 'rgba(255,255,255,0.15)' : 'var(--sand-100, #F3EAD8)',
+                width: 32, height: 32, borderRadius: '50%', flexShrink: 0, mt: '1px',
+                bgcolor: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'rgba(244,206,161,0.08)' : 'var(--sand-100, #F3EAD8)',
+                border: active ? 'none' : isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: active ? 'var(--navy-900, #10223C)' : isDark ? 'rgba(244,206,161,0.7)' : 'var(--navy-900, #10223C)' }}>
                   {ROMAN[idx]}
                 </Typography>
               </Box>
@@ -830,27 +831,44 @@ function Summary() {
                     : 'linear-gradient(135deg, #FFF8F2 0%, #FDF4E7 100%)',
                   border: isDark ? '1px solid rgba(224,122,63,0.22)' : '1px solid rgba(224,122,63,0.2)',
                   px: { xs: 2.5, md: 3 }, py: 2.5,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2,
+                  overflow: 'hidden',
                 }}>
-                  <Typography sx={{
-                    fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem',
-                    letterSpacing: '0.16em', textTransform: 'uppercase',
-                    color: 'var(--orange-deep, #C0612A)', mb: 1,
-                  }}>
-                    Your Leadership Portrait
-                  </Typography>
-                  <Typography sx={{
-                    fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
-                    fontSize: { xs: '1.35rem', md: '1.6rem' }, lineHeight: 1.2,
-                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1,
-                  }}>
-                    {firstName}, your data reveals something worth naming.
-                  </Typography>
-                  <Typography sx={{
-                    fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.65,
-                    color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
-                  }}>
-                    Work through each section below. Some of what follows may be uncomfortable — that's precisely where the growth is.
-                  </Typography>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{
+                      fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem',
+                      letterSpacing: '0.16em', textTransform: 'uppercase',
+                      color: 'var(--orange-deep, #C0612A)', mb: 1,
+                    }}>
+                      Your Leadership Portrait
+                    </Typography>
+                    <Typography sx={{
+                      fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
+                      fontSize: { xs: '1.35rem', md: '1.6rem' }, lineHeight: 1.2,
+                      color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1,
+                    }}>
+                      {firstName}, your data reveals something worth naming.
+                    </Typography>
+                    <Typography sx={{
+                      fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.65,
+                      color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
+                    }}>
+                      Work through each section below. Some of what follows may be uncomfortable — that's precisely where the growth is.
+                    </Typography>
+                  </Box>
+                  <Box
+                    component="img"
+                    src="/compasslogo2.png"
+                    alt=""
+                    sx={{
+                      width: { xs: 90, md: 130 },
+                      height: { xs: 90, md: 130 },
+                      objectFit: 'contain',
+                      flexShrink: 0,
+                      opacity: isDark ? 0.92 : 0.72,
+                      filter: isDark ? 'none' : 'saturate(0.85) brightness(1.05)',
+                    }}
+                  />
                 </Box>
               )}
 
@@ -865,7 +883,7 @@ function Summary() {
                 </Typography>
                 <Typography sx={{
                   fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
-                  fontSize: { xs: '1.65rem', md: '2rem' }, lineHeight: 1.1,
+                  fontSize: { xs: '1.9rem', md: '2.35rem' }, lineHeight: 1.08,
                   color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75,
                 }}>
                   {activeStage.title}
@@ -891,15 +909,33 @@ function Summary() {
                 minHeight: 220,
               }}>
                 {activeStage.text ? (
-                  <Typography sx={{
-                    fontFamily: 'Georgia, serif',
-                    fontSize: { xs: '1rem', md: '1.08rem' },
-                    lineHeight: 1.78,
-                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                    fontStyle: 'italic',
-                  }}>
-                    {renderParagraphWithTooltips(activeStage.text)}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 2, md: 3 } }}>
+                    <Box
+                      component="img"
+                      src="/compasslogo2.png"
+                      alt=""
+                      sx={{
+                        width: { xs: 44, md: 56 },
+                        height: { xs: 44, md: 56 },
+                        objectFit: 'contain',
+                        flexShrink: 0,
+                        opacity: isDark ? 0.72 : 0.52,
+                        borderRadius: '50%',
+                        border: isDark ? '1px solid rgba(244,206,161,0.18)' : '1px solid var(--sand-200, #E8DBC3)',
+                        p: '6px',
+                        mt: '2px',
+                      }}
+                    />
+                    <Typography sx={{
+                      fontFamily: 'Georgia, serif',
+                      fontSize: { xs: '1rem', md: '1.08rem' },
+                      lineHeight: 1.78,
+                      color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+                      fontStyle: 'italic',
+                    }}>
+                      {renderParagraphWithTooltips(activeStage.text)}
+                    </Typography>
+                  </Box>
                 ) : (
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
                     Generating your summary…
@@ -975,8 +1011,8 @@ function Summary() {
                       all: 'unset', cursor: 'pointer',
                       display: 'inline-flex', alignItems: 'center', gap: '6px',
                       px: '20px', py: '10px', borderRadius: 999,
-                      border: isDark ? '1px solid rgba(244,206,161,0.28)' : '1px solid var(--sand-300, #C8B89A)',
-                      color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
+                      border: isDark ? '1.5px solid rgba(224,122,63,0.55)' : '1.5px solid var(--orange, #E07A3F)',
+                      color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
                       fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
                       transition: '180ms ease',
                       '&:hover': { borderColor: 'var(--orange, #E07A3F)', color: 'var(--orange, #E07A3F)' },
