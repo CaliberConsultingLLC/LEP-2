@@ -419,8 +419,12 @@ function Summary() {
   };
 
   useEffect(() => {
-    if (useCairnTheme) {
-      const cachedSummary = localStorage.getItem('aiSummary');
+    // In cairn/staging, skip regeneration when navigating back to summary
+    // (no fresh formData from route). Always regenerate when arriving from
+    // IntakeForm (formDataFromRoute is populated).
+    const hasNewFormData = formDataFromRoute && Object.keys(formDataFromRoute).length > 0;
+    if (useCairnTheme && !hasNewFormData) {
+      const cachedSummary = (localStorage.getItem('aiSummary') || '').trim();
       let focusAreasValid = false;
       try {
         const parsed = JSON.parse(localStorage.getItem('focusAreas') || '[]');
