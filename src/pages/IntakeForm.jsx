@@ -49,12 +49,12 @@ const MessageDialog = ({ open, onClose, title, content }) => (
     }}
   >
     <DialogTitle sx={{
-      fontWeight: useCairnTheme ? 500 : 800,
+      fontWeight: useCairnTheme ? 700 : 800,
       textAlign: 'center',
-      fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
-      fontStyle: useCairnTheme ? 'italic' : 'normal',
+      fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+      fontStyle: 'normal',
       fontSize: useCairnTheme ? '1.4rem' : 'inherit',
-      color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+      color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
       pt: useCairnTheme ? 3 : 2,
     }}>{title}</DialogTitle>
     <DialogContent sx={{ textAlign: 'center', py: 2 }}>
@@ -495,7 +495,7 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
       bgcolor: selected
         ? 'rgba(224,122,63,0.09)'
         : useCairnTheme
-          ? 'rgba(251,247,240,0.55)'
+          ? 'var(--cairn-option-bg, #FFFFFF)'
           : 'background.paper',
       boxShadow: useCairnTheme ? 'none' : selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
       transform: useCairnTheme ? 'none' : 'perspective(600px) rotateY(0deg)',
@@ -514,10 +514,10 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
     )}
     <Box sx={{ flex: showWarningIcon ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: showWarningIcon ? 'flex-start' : 'center' }}>
       <Typography sx={{
-        fontSize: compact ? '0.9rem' : useCairnTheme ? '1rem' : '1.05rem',
+        fontSize: compact ? '0.9rem' : useCairnTheme ? '0.875rem' : '1.05rem',
         fontWeight: useCairnTheme ? 400 : 500,
         fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
-        color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+        color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
         letterSpacing: useCairnTheme ? '0.01em' : 'inherit',
       }}>{children}</Typography>
     </Box>
@@ -1471,14 +1471,14 @@ function IntakeForm() {
           <SectionCard narrow={true}>
             <Stack spacing={1.8} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               <Typography sx={{
-                fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
-                fontStyle: useCairnTheme ? 'italic' : 'normal',
-                fontWeight: useCairnTheme ? 500 : 800,
+                fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                fontStyle: 'normal',
+                fontWeight: useCairnTheme ? 800 : 800,
                 fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.5rem', md: '1.5rem' },
                 lineHeight: useCairnTheme ? 1.2 : 1.35,
                 mb: 0.2,
                 textAlign: 'center',
-                color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+                color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
               }}>
                 Leader Profile
               </Typography>
@@ -1674,10 +1674,10 @@ function IntakeForm() {
               return (
                 <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
                   <Typography sx={{
-                    fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
-                    fontStyle: useCairnTheme ? 'italic' : 'normal',
-                    fontSize: useCairnTheme ? 13 : 'inherit',
-                    fontWeight: useCairnTheme ? 400 : 700,
+                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                    fontStyle: 'normal',
+                    fontSize: useCairnTheme ? 16 : 'inherit',
+                    fontWeight: useCairnTheme ? 600 : 700,
                     letterSpacing: useCairnTheme ? '0.06em' : 1.2,
                     opacity: useCairnTheme ? 0.6 : 0.8,
                     textAlign: 'center',
@@ -1687,13 +1687,13 @@ function IntakeForm() {
                     {q.theme}
                   </Typography>
                   <Typography sx={{
-                    fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
-                    fontStyle: useCairnTheme ? 'italic' : 'normal',
-                    fontWeight: useCairnTheme ? 500 : 800,
+                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                    fontStyle: 'normal',
+                    fontWeight: useCairnTheme ? 700 : 800,
                     fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.25rem', md: '1.5rem' },
                     lineHeight: useCairnTheme ? 1.2 : 1.35,
                     textAlign: 'center',
-                    color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+                    color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
                   }}>
                     {q.id === 'proudMoment' ? (
                       <>
@@ -2124,10 +2124,10 @@ function IntakeForm() {
           )}
           {useCairnTheme && (
             <Typography sx={{
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontStyle: 'italic',
-              fontSize: 13,
-              fontWeight: 400,
+              fontFamily: '"Manrope", sans-serif',
+              fontStyle: 'normal',
+              fontSize: 16,
+              fontWeight: 600,
               letterSpacing: '0.06em',
               opacity: 0.6,
               textAlign: 'center',
@@ -2140,15 +2140,15 @@ function IntakeForm() {
           <Box sx={{ width: '100%', maxWidth: 760, mx: 'auto', textAlign: 'center' }}>
             <Typography
               sx={{
-                fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
-                fontStyle: useCairnTheme ? 'italic' : 'normal',
-                fontWeight: useCairnTheme ? 500 : 800,
+                fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                fontStyle: 'normal',
+                fontWeight: useCairnTheme ? 700 : 800,
                 lineHeight: useCairnTheme ? 1.2 : 1.35,
                 fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.42rem', md: '1.58rem' },
                 textAlign: 'center',
                 wordBreak: 'break-word',
                 overflowWrap: 'anywhere',
-                color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+                color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
               }}
             >
               {beforeBlank}

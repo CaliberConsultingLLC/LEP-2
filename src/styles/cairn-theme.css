@@ -55,6 +55,9 @@ html[data-theme='cairn'] {
   --motion-standard: var(--cairn-motion);
   --radius-sm: var(--cairn-radius-sm);
   --radius-md: var(--cairn-radius-md);
+
+  /* --- Answer / option card background --- */
+  --cairn-option-bg: #ffffff;
 }
 
 /* --- Body / baseline typography --- */
@@ -367,6 +370,9 @@ html[data-theme='cairn'][data-dark='true'] {
   --surface-1: #0a1422;
   --surface-2: #0f1c2e;
   --surface-3: #10223c;
+
+  /* Answer / option card background → subtle frosted panel in dark mode */
+  --cairn-option-bg: rgba(255, 255, 255, 0.06);
 
   /* Sand/cream scale → dark navy */
   --sand-50: #0a1422;

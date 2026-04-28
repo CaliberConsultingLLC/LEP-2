@@ -22,6 +22,8 @@ import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { useStepNav } from '../context/StepNavContext';
+import { useGuide } from '../context/GuideContext';
 
 function CampaignSurvey() {
   const { id } = useParams();
@@ -259,9 +261,33 @@ function CampaignSurvey() {
     });
   };
 
+  const { register: registerStepNav, unregister: unregisterStepNav } = useStepNav();
+  const { setSuppress } = useGuide();
+
   const questions = campaign.reduce((acc, trait) => [...acc, ...trait.statements], []).slice(0, 15);
   const isSelfCampaign = campaignMeta?.campaignType === 'self';
   const leaderName = getLeaderDisplayName(campaignMeta);
+
+  // Register topbar back/forward arrows to navigate questions.
+  useEffect(() => {
+    if (!useCairnTheme) return;
+    const canGoBack = currentQuestion > 0;
+    const canGoForward = ratings[`${currentQuestion}`]?.effort != null && ratings[`${currentQuestion}`]?.efficacy != null;
+    registerStepNav({
+      canGoBack,
+      canGoForward,
+      goBack: prevQuestion,
+      goForward: nextQuestion,
+    });
+    return () => unregisterStepNav();
+  }, [currentQuestion, ratings, registerStepNav, unregisterStepNav]);
+
+  // Suppress guide for team campaigns.
+  useEffect(() => {
+    if (!useCairnTheme) return;
+    if (!isSelfCampaign) setSuppress(true);
+    return () => setSuppress(false);
+  }, [isSelfCampaign, setSuppress]);
   const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
   const currentTrait = campaign[traitIndex]?.trait || '';
   const currentSubTrait = campaign[traitIndex]?.subTrait || campaign[traitIndex]?.title || currentTrait;
@@ -429,7 +455,7 @@ function CampaignSurvey() {
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III'];
     const NavSidebar = (
-      <Box sx={{ position: 'sticky', top: 88 }}>
+      <Box sx={{ position: 'sticky', top: 96 }}>
         <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)', mb: 1.5, px: 0.5 }}>
           Assessment
         </Typography>
@@ -481,18 +507,13 @@ function CampaignSurvey() {
             </Typography>
           </Box>
 
-          <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid var(--sand-200, #E8DBC3)', p: { xs: 2.5, md: 3 }, mb: 2.5, boxShadow: '0 2px 12px rgba(16,34,60,0.06)' }}>
-            <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.6, textAlign: 'center' }}>
-              {questions[currentQuestion]}
-            </Typography>
-          </Box>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontStyle: 'normal', fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.75rem' }, lineHeight: 1.25, color: 'var(--ink, #0f1c2e)', textAlign: 'center', mb: 3 }}>
+            {questions[currentQuestion]}
+          </Typography>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 2, mb: 2, maxWidth: '60%', mx: 'auto', width: '100%' }}>
             <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid rgba(224,122,63,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: 'rgba(224,122,63,0.12)', border: '1.5px solid rgba(224,122,63,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#E07A3F', lineHeight: 1 }}>E</Typography>
-                </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>Effort</Typography>
               </Box>
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-soft, #44566C)', mb: 1.5, lineHeight: 1.4 }}>
@@ -510,10 +531,7 @@ function CampaignSurvey() {
             </Box>
 
             <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid rgba(99,147,170,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: 'rgba(99,147,170,0.12)', border: '1.5px solid rgba(99,147,170,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#6393AA', lineHeight: 1 }}>E</Typography>
-                </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>Efficacy</Typography>
               </Box>
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-soft, #44566C)', mb: 1.5, lineHeight: 1.4 }}>

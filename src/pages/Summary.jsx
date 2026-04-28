@@ -731,7 +731,7 @@ function Summary() {
         boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
         overflow: 'hidden',
         position: 'sticky',
-        top: 88,
+        top: 96,
       }}>
         {journeyStages.map((stage, idx) => {
           const active = idx === activeJourneyStep;

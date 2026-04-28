@@ -8,7 +8,7 @@ import { getGuideMessages, resolveRouteKey } from '../data/guideContent';
 const PRE_GUIDE_PATHS = ['/user-info'];
 
 function GuideOverlay() {
-  const { persona, hidden, toggleHidden, setHidden } = useGuide();
+  const { persona, hidden, toggleHidden, setHidden, suppress } = useGuide();
   const location = useLocation();
 
   // All hooks must run unconditionally before any early return.
@@ -42,9 +42,9 @@ function GuideOverlay() {
   const message = messages[msgIdx] || messages[0];
   const owlPose = persona.poses[message?.pose] || persona.poses.idle;
 
-  // Suppress on pages before guide selection (after all hooks).
+  // Suppress on pages before guide selection (after all hooks), or when explicitly suppressed.
   const isPreGuide = PRE_GUIDE_PATHS.some((p) => location.pathname.startsWith(p));
-  if (isPreGuide) return null;
+  if (isPreGuide || suppress) return null;
 
   // ── Collapsed tab ────────────────────────────────────────────────────────
   if (hidden) {
@@ -108,7 +108,7 @@ function GuideOverlay() {
         right: 0,
         bottom: 0,
         zIndex: 1200,
-        width: 'clamp(200px, 20vw, 280px)',
+        width: 'clamp(250px, 25vw, 350px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'stretch',
@@ -119,9 +119,9 @@ function GuideOverlay() {
       <Box
         sx={{
           position: 'relative',
-          mx: '12px',
-          mb: '10px',
-          p: '16px 18px 16px 18px',
+          mx: '15px',
+          mb: '13px',
+          p: '20px 22px 20px 22px',
           background: 'var(--surface-1, #ffffff)',
           border: '1px solid var(--sand-200, #E8DBC3)',
           borderRadius: 'var(--cairn-radius-md, 14px)',
@@ -159,12 +159,12 @@ function GuideOverlay() {
         {/* Message text */}
         <Box
           sx={{
-            fontFamily: '"Fraunces", Georgia, serif',
-            fontStyle: 'italic',
-            fontSize: 14,
+            fontFamily: '"Manrope", sans-serif',
+            fontStyle: 'normal',
+            fontSize: 17,
             lineHeight: 1.55,
-            color: 'var(--navy-900, #10223C)',
-            pr: '18px',
+            color: 'var(--ink, #0f1c2e)',
+            pr: '22px',
           }}
         >
           {message.text}

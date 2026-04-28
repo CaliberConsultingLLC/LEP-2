@@ -31,6 +31,7 @@ const GuideContext = createContext(null);
 
 export function GuideProvider({ children }) {
   const [state, setState] = useState(readState);
+  const [suppress, setSuppress] = useState(false);
 
   useEffect(() => {
     writeState(state);
@@ -53,12 +54,14 @@ export function GuideProvider({ children }) {
       personaId: state.personaId,
       persona: getPersona(state.personaId),
       hidden: state.hidden,
+      suppress,
       setPersona,
       toggleHidden,
       setHidden,
+      setSuppress,
       personas: GUIDE_PERSONAS,
     }),
-    [state, setPersona, toggleHidden, setHidden],
+    [state, suppress, setPersona, toggleHidden, setHidden, setSuppress],
   );
 
   return <GuideContext.Provider value={value}>{children}</GuideContext.Provider>;
@@ -72,9 +75,11 @@ export function useGuide() {
       personaId: DEFAULT_GUIDE_ID,
       persona: getPersona(DEFAULT_GUIDE_ID),
       hidden: true,
+      suppress: false,
       setPersona: () => {},
       toggleHidden: () => {},
       setHidden: () => {},
+      setSuppress: () => {},
       personas: GUIDE_PERSONAS,
     };
   }

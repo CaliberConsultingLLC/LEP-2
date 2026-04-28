@@ -367,7 +367,7 @@ function CampaignBuilder() {
         bgcolor: 'white', borderRadius: '16px',
         border: '1px solid var(--sand-200, #E8DBC3)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-        overflow: 'hidden', position: 'sticky', top: 88,
+        overflow: 'hidden', position: 'sticky', top: 96,
       }}>
         {(campaign || []).map((traitItem, idx) => {
           const info = selectedTraitInfo[idx] || {};

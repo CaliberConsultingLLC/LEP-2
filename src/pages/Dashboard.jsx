@@ -133,11 +133,29 @@ function Dashboard() {
 
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+    const NAV_SUBTITLES = [
+      'Track rollout & participation',
+      'Trait-level scoring & trends',
+      'Statement-by-statement data',
+      'Translate insights into actions',
+      'Development path over time',
+    ];
     const DashNavSidebar = (
-      <Box sx={{ position: 'sticky', top: 88 }}>
-        <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)', mb: 1.5, px: 0.5 }}>
-          Dashboard
-        </Typography>
+      <Box sx={{
+        bgcolor: 'white', borderRadius: '16px',
+        border: '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        overflow: 'hidden', position: 'sticky', top: 96,
+      }}>
+        {/* Header */}
+        <Box sx={{ px: 2, py: 1.75, borderBottom: '1px solid var(--sand-200, #E8DBC3)', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.2 }}>
+            Dashboard
+          </Typography>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
+            Select a section to review
+          </Typography>
+        </Box>
         {navItems.map((item, idx) => {
           const isActive = currentTab === idx;
           return (
@@ -147,29 +165,37 @@ function Dashboard() {
               type="button"
               onClick={() => setCurrentTab(idx)}
               sx={{
-                all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 1.2,
-                width: '100%', px: 1.5, py: 1.2, borderRadius: '10px', mb: 0.5, boxSizing: 'border-box',
-                bgcolor: isActive ? 'var(--navy-900, #10223C)' : 'transparent', transition: '120ms',
-                '&:hover': isActive ? {} : { bgcolor: 'rgba(16,34,60,0.05)' },
-                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+                all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 1.5,
+                width: '100%', px: 2, py: 1.4, boxSizing: 'border-box',
+                bgcolor: isActive ? 'var(--navy-900, #10223C)' : 'transparent', transition: '140ms',
+                '&:hover': { bgcolor: isActive ? 'var(--navy-800, #162A44)' : 'var(--sand-50, #FBF7F0)' },
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: -3 },
               }}
             >
-              <Box sx={{ width: 26, height: 26, borderRadius: '50%', border: `1.5px solid ${isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--sand-300, #C9B99A)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.15 }}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.6rem', fontWeight: 800, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)', lineHeight: 1 }}>
+              <Box sx={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0, mt: '2px',
+                bgcolor: isActive ? 'rgba(255,255,255,0.15)' : 'var(--sand-100, #F3EAD8)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.62rem', color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1 }}>
                   {ROMAN[idx]}
                 </Typography>
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
                   {item.label}
+                </Typography>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: isActive ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                  {NAV_SUBTITLES[idx]}
                 </Typography>
               </Box>
             </Box>
           );
         })}
-        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid var(--sand-200, #E8DBC3)', px: 1.5 }}>
-          <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.5 }}>
-            {navItems[currentTab]?.label}
+        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', fontWeight: 600, color: 'var(--orange, #E07A3F)' }}>
+            {currentTab + 1} of {navItems.length}
           </Typography>
         </Box>
       </Box>

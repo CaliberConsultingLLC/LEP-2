@@ -636,7 +636,7 @@ function CompassTopbar() {
         top: 0,
         zIndex: 20,
         width: '100%',
-        height: 72,
+        height: 80,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -651,11 +651,11 @@ function CompassTopbar() {
       <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
         <Box
           sx={{
-            fontFamily: '"Fraunces", Georgia, serif',
-            fontStyle: 'italic',
-            fontWeight: 700,
+            fontFamily: '"Manrope", sans-serif',
+            fontStyle: 'normal',
+            fontWeight: 800,
             fontSize: 22,
-            letterSpacing: '-0.01em',
+            letterSpacing: '-0.02em',
             color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
             lineHeight: 1,
             userSelect: 'none',
