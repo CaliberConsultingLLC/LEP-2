@@ -1683,11 +1683,10 @@ function IntakeForm() {
                     fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
                     fontStyle: 'normal',
                     fontSize: useCairnTheme ? 16 : 'inherit',
-                    fontWeight: useCairnTheme ? 600 : 700,
+                    fontWeight: useCairnTheme ? 700 : 700,
                     letterSpacing: useCairnTheme ? '0.06em' : 1.2,
-                    opacity: useCairnTheme ? 0.6 : 0.8,
                     textAlign: 'center',
-                    color: useCairnTheme ? 'var(--ink-soft, #44566C)' : 'inherit',
+                    color: useCairnTheme ? 'var(--orange-deep, #C0612A)' : 'inherit',
                     textTransform: useCairnTheme ? 'none' : 'uppercase',
                   }}>
                     {q.theme}
@@ -2133,11 +2132,10 @@ function IntakeForm() {
               fontFamily: '"Inter", sans-serif',
               fontStyle: 'normal',
               fontSize: 16,
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: '0.06em',
-              opacity: 0.6,
               textAlign: 'center',
-              color: 'var(--ink-soft, #44566C)',
+              color: 'var(--orange-deep, #C0612A)',
             }}>
               Leader Instincts
             </Typography>

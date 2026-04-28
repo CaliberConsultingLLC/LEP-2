@@ -14,6 +14,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { useDarkMode } from '../hooks/useDarkMode';
 import traitSystem from '../data/traitSystem';
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
@@ -126,6 +127,7 @@ function TraitSelection() {
   };
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
+  const [isDark] = useDarkMode();
   if (useCairnTheme && focusAreas.length > 0) {
     const activeFocus = focusAreas[activeIndex];
     const isActiveSelected = selectedTraits.includes(activeFocus?.id);
@@ -145,9 +147,9 @@ function TraitSelection() {
 
     const NavSidebar = (
       <Box sx={{
-        bgcolor: 'white', borderRadius: '16px',
-        border: '1px solid var(--sand-200, #E8DBC3)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white', borderRadius: '16px',
+        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
         overflow: 'hidden', position: 'sticky', top: 96,
       }}>
         {focusAreas.map((fa, idx) => {
@@ -179,19 +181,19 @@ function TraitSelection() {
                 </Typography>
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                   {fa.subTraitName}
                 </Typography>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
                   {fa.traitName}
                 </Typography>
               </Box>
             </Box>
           );
         })}
-        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 600, color: selectedTraits.length === 3 ? 'var(--orange, #E07A3F)' : 'var(--ink-soft, #44566C)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 600, color: selectedTraits.length === 3 ? 'var(--orange, #E07A3F)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
             {selectedTraits.length} of 3 selected
           </Typography>
         </Box>
@@ -218,7 +220,7 @@ function TraitSelection() {
                 <Typography sx={{
                   fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
                   fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1,
-                  color: 'var(--navy-900, #10223C)', mb: 0.5,
+                  color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.5,
                 }}>
                   {activeFocus.subTraitName}
                 </Typography>
@@ -232,26 +234,26 @@ function TraitSelection() {
               {/* What's at stake / What changes */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <Box sx={{
-                  bgcolor: 'white', borderRadius: '12px',
-                  border: '1px solid var(--sand-200, #E8DBC3)',
+                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '12px',
+                  border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
                   p: 2.5,
                 }}>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 1 }}>
                     What's At Stake
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--navy-900, #10223C)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                     {hazard}
                   </Typography>
                 </Box>
                 <Box sx={{
-                  bgcolor: 'white', borderRadius: '12px',
-                  border: '1px solid var(--sand-200, #E8DBC3)',
+                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '12px',
+                  border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
                   p: 2.5,
                 }}>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--navy-500, #3F647B)', mb: 1 }}>
                     What Changes
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--navy-900, #10223C)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                     {impact}
                   </Typography>
                 </Box>
@@ -260,15 +262,15 @@ function TraitSelection() {
               {/* Trail marker quote */}
               {trailMarker && (
                 <Box sx={{
-                  bgcolor: 'white', borderRadius: '12px',
-                  border: '1px solid var(--sand-200, #E8DBC3)',
+                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '12px',
+                  border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
                   p: 2.5,
                 }}>
                   <Typography sx={{
                     fontFamily: 'Georgia, serif',
                     fontSize: '1.05rem',
                     lineHeight: 1.7,
-                    color: 'var(--navy-900, #10223C)',
+                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
                     fontStyle: 'italic',
                   }}>
                     "{trailMarker}"

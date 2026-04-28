@@ -20,6 +20,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { useDarkMode } from '../hooks/useDarkMode';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { useStepNav } from '../context/StepNavContext';
@@ -452,6 +453,7 @@ function CampaignSurvey() {
     );
   }
 
+  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III'];
     const NavSidebar = (
@@ -479,18 +481,18 @@ function CampaignSurvey() {
                 </Typography>
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography noWrap sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1.2, mb: 0.2 }}>
+                <Typography noWrap sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.78rem', fontWeight: 700, color: isActive ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.2, mb: 0.2 }}>
                   {traitObj.subTrait || traitObj.trait}
                 </Typography>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.68rem', color: isActive ? 'rgba(244,206,161,0.7)' : 'var(--ink-soft, #44566C)', lineHeight: 1.2 }}>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.68rem', color: isActive ? 'rgba(244,206,161,0.7)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', lineHeight: 1.2 }}>
                   {answered}/{TRAIT_QUESTION_COUNT} answered
                 </Typography>
               </Box>
             </Box>
           );
         })}
-        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid var(--sand-200, #E8DBC3)', px: 1.5 }}>
-          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
+        <Box sx={{ mt: 2, pt: 2, borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', px: 1.5 }}>
+          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
             Question {currentQuestion + 1} of {questions.length || 15}
           </Typography>
         </Box>
@@ -512,9 +514,9 @@ function CampaignSurvey() {
           </Typography>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 2, mb: 2, maxWidth: '60%', mx: 'auto', width: '100%' }}>
-            <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid rgba(224,122,63,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
+            <Box sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#fff', borderRadius: '14px', border: '1px solid rgba(224,122,63,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>Effort</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>Effort</Typography>
               </Box>
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-soft, #44566C)', mb: 1.5, lineHeight: 1.4 }}>
                 {isSelfCampaign ? 'How intentional and attentive I am in this area' : `How intentional and attentive ${leaderName} is in this area`}
@@ -530,9 +532,9 @@ function CampaignSurvey() {
               </Box>
             </Box>
 
-            <Box sx={{ bgcolor: '#fff', borderRadius: '14px', border: '1px solid rgba(99,147,170,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
+            <Box sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#fff', borderRadius: '14px', border: '1px solid rgba(99,147,170,0.28)', p: 2.5, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>Efficacy</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1rem', fontWeight: 700, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>Efficacy</Typography>
               </Box>
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--ink-soft, #44566C)', mb: 1.5, lineHeight: 1.4 }}>
                 {isSelfCampaign ? 'How effectively I meet the demands of this area' : `How effectively ${leaderName} meets the needs of this area`}
@@ -549,8 +551,8 @@ function CampaignSurvey() {
             </Box>
           </Box>
 
-          <Box sx={{ bgcolor: 'rgba(244,206,161,0.18)', border: '1px solid rgba(224,122,63,0.22)', borderRadius: '12px', p: 2, mb: 3 }}>
-            <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.95rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.5, textAlign: 'center' }}>
+          <Box sx={{ bgcolor: isDark ? 'rgba(244,206,161,0.08)' : 'rgba(244,206,161,0.18)', border: '1px solid rgba(224,122,63,0.22)', borderRadius: '12px', p: 2, mb: 3 }}>
+            <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.95rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.5, textAlign: 'center' }}>
               {sentiment}
             </Typography>
           </Box>
@@ -560,7 +562,7 @@ function CampaignSurvey() {
               variant="outlined"
               onClick={prevQuestion}
               disabled={currentQuestion === 0}
-              sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.85rem', borderRadius: '10px', borderColor: 'var(--sand-300, #C9B99A)', color: 'var(--navy-900, #10223C)', textTransform: 'none', py: 1.2, '&:hover': { borderColor: 'var(--navy-500, #3F647B)', bgcolor: 'rgba(16,34,60,0.04)' }, '&.Mui-disabled': { opacity: 0.35 } }}
+              sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '0.85rem', borderRadius: '10px', borderColor: isDark ? 'rgba(244,206,161,0.3)' : 'var(--sand-300, #C9B99A)', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', textTransform: 'none', py: 1.2, '&:hover': { borderColor: isDark ? 'rgba(244,206,161,0.5)' : 'var(--navy-500, #3F647B)', bgcolor: isDark ? 'rgba(244,206,161,0.06)' : 'rgba(16,34,60,0.04)' }, '&.Mui-disabled': { opacity: 0.35 } }}
             >
               ← Previous
             </Button>

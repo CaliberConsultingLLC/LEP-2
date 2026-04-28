@@ -23,6 +23,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { useDarkMode } from '../hooks/useDarkMode';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 
@@ -354,6 +355,7 @@ function CampaignBuilder() {
   }
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
+  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
     const activeTrait = campaign ? campaign[expandedTrait] : null;
@@ -364,9 +366,9 @@ function CampaignBuilder() {
 
     const NavSidebar = (
       <Box sx={{
-        bgcolor: 'white', borderRadius: '16px',
-        border: '1px solid var(--sand-200, #E8DBC3)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white', borderRadius: '16px',
+        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
         overflow: 'hidden', position: 'sticky', top: 96,
       }}>
         {(campaign || []).map((traitItem, idx) => {
@@ -400,11 +402,11 @@ function CampaignBuilder() {
                 </Typography>
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                   {label}
                 </Typography>
                 {sub && (
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
                     {sub}
                   </Typography>
                 )}
@@ -412,9 +414,9 @@ function CampaignBuilder() {
             </Box>
           );
         })}
-        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.5, fontStyle: 'italic' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', lineHeight: 1.5, fontStyle: 'italic' }}>
             Review each trait, then verify or rebuild.
           </Typography>
         </Box>
@@ -442,19 +444,19 @@ function CampaignBuilder() {
                     {activeTraitInfo.coreTraitName}
                   </Typography>
                 )}
-                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.5 }}>
+                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.5 }}>
                   {activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
                 </Typography>
               </Box>
 
               {/* Statements card */}
               <Box sx={{
-                bgcolor: 'white', borderRadius: '16px',
-                border: '1px solid var(--sand-200, #E8DBC3)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '16px',
+                border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
                 overflow: 'hidden',
               }}>
-                <Box sx={{ px: 3, py: 2, borderBottom: '1px solid var(--sand-200, #E8DBC3)' }}>
+                <Box sx={{ px: 3, py: 2, borderBottom: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }}>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)' }}>
                     Team-Facing Statements — Check to Dismiss
                   </Typography>
@@ -493,7 +495,7 @@ function CampaignBuilder() {
                         <Typography sx={{
                           fontFamily: '"Manrope", sans-serif',
                           fontSize: '0.95rem', lineHeight: 1.55,
-                          color: isDismissed ? 'var(--ink-soft, #44566C)' : 'var(--navy-900, #10223C)',
+                          color: isDismissed ? 'var(--ink-soft, #44566C)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
                           textDecoration: isDismissed ? 'line-through' : 'none',
                           opacity: isDismissed ? 0.5 : 1,
                           transition: 'all 200ms ease',
@@ -511,7 +513,7 @@ function CampaignBuilder() {
                 <Box
                   component="button" type="button"
                   onClick={() => navigate('/trait-selection')}
-                  sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: 'var(--ink-soft, #44566C)', display: 'inline-flex', alignItems: 'center', gap: '6px', '&:hover': { color: 'var(--navy-900, #10223C)' } }}
+                  sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', display: 'inline-flex', alignItems: 'center', gap: '6px', '&:hover': { color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' } }}
                 >
                   ← Back to Traits
                 </Box>

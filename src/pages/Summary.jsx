@@ -20,6 +20,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { useDarkMode } from '../hooks/useDarkMode';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
 import { auth, db } from '../firebase';
@@ -712,6 +713,7 @@ function Summary() {
   }
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
+  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV'];
     const activeStage = journeyStages[activeJourneyStep] || journeyStages[0];
@@ -725,10 +727,10 @@ function Summary() {
 
     const NavSidebar = (
       <Box sx={{
-        bgcolor: 'white',
+        bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white',
         borderRadius: '16px',
-        border: '1px solid var(--sand-200, #E8DBC3)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
         overflow: 'hidden',
         position: 'sticky',
         top: 96,
@@ -761,20 +763,20 @@ function Summary() {
                 </Typography>
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                   {stage.label}
                 </Typography>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
                   {stage.title}
                 </Typography>
               </Box>
             </Box>
           );
         })}
-        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
         <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', flexShrink: 0 }} />
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
             Guide: <strong>{guideName}</strong>
           </Typography>
         </Box>
@@ -803,7 +805,7 @@ function Summary() {
                 <Typography sx={{
                   fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
                   fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1,
-                  color: 'var(--navy-900, #10223C)', mb: 0.5,
+                  color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.5,
                 }}>
                   {activeStage.title}
                 </Typography>
@@ -817,9 +819,9 @@ function Summary() {
 
               {/* Content card */}
               <Box sx={{
-                bgcolor: 'white', borderRadius: '16px',
-                border: '1px solid var(--sand-200, #E8DBC3)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '16px',
+                border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
                 p: { xs: 2.5, md: 3.5 },
                 minHeight: 260,
               }}>
@@ -828,7 +830,7 @@ function Summary() {
                     fontFamily: 'Georgia, serif',
                     fontSize: { xs: '1rem', md: '1.08rem' },
                     lineHeight: 1.78,
-                    color: 'var(--navy-900, #10223C)',
+                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
                     fontStyle: 'italic',
                   }}>
                     {renderParagraphWithTooltips(activeStage.text)}

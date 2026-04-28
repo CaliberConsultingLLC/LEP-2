@@ -27,6 +27,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -131,6 +132,7 @@ function Dashboard() {
     </Box>
   );
 
+  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
     const NAV_SUBTITLES = [
@@ -142,17 +144,17 @@ function Dashboard() {
     ];
     const DashNavSidebar = (
       <Box sx={{
-        bgcolor: 'white', borderRadius: '16px',
-        border: '1px solid var(--sand-200, #E8DBC3)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+        bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white', borderRadius: '16px',
+        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
         overflow: 'hidden', position: 'sticky', top: 96,
       }}>
         {/* Header */}
-        <Box sx={{ px: 2, py: 1.75, borderBottom: '1px solid var(--sand-200, #E8DBC3)', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
+        <Box sx={{ px: 2, py: 1.75, borderBottom: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'var(--sand-50, #FBF7F0)' }}>
           <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.2 }}>
             Dashboard
           </Typography>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
             Select a section to review
           </Typography>
         </Box>
@@ -182,17 +184,17 @@ function Dashboard() {
                 </Typography>
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: isActive ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: isActive ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                   {item.label}
                 </Typography>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: isActive ? 'rgba(244,206,161,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: isActive ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
                   {NAV_SUBTITLES[idx]}
                 </Typography>
               </Box>
             </Box>
           );
         })}
-        <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
+        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', fontWeight: 600, color: 'var(--orange, #E07A3F)' }}>
             {currentTab + 1} of {navItems.length}
