@@ -1680,14 +1680,14 @@ function IntakeForm() {
               return (
                 <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
                   <Typography sx={{
-                    fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
+                    fontFamily: useCairnTheme ? '"JetBrains Mono", ui-monospace, monospace' : 'inherit',
                     fontStyle: 'normal',
-                    fontSize: useCairnTheme ? 16 : 'inherit',
+                    fontSize: useCairnTheme ? 11 : 'inherit',
                     fontWeight: useCairnTheme ? 700 : 700,
-                    letterSpacing: useCairnTheme ? '0.06em' : 1.2,
+                    letterSpacing: useCairnTheme ? '0.16em' : 1.2,
                     textAlign: 'center',
                     color: useCairnTheme ? 'var(--orange-deep, #C0612A)' : 'inherit',
-                    textTransform: useCairnTheme ? 'none' : 'uppercase',
+                    textTransform: useCairnTheme ? 'uppercase' : 'uppercase',
                   }}>
                     {q.theme}
                   </Typography>
@@ -2129,11 +2129,12 @@ function IntakeForm() {
           )}
           {useCairnTheme && (
             <Typography sx={{
-              fontFamily: '"Inter", sans-serif',
+              fontFamily: '"JetBrains Mono", ui-monospace, monospace',
               fontStyle: 'normal',
-              fontSize: 16,
+              fontSize: 11,
               fontWeight: 700,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
               textAlign: 'center',
               color: 'var(--orange-deep, #C0612A)',
             }}>
