@@ -355,6 +355,108 @@ html[data-theme='cairn'] [data-surface='glass'] {
   border-radius: var(--cairn-radius-lg);
 }
 
+/* ==========================================================================
+   Dark mode overrides
+   Applied when `data-dark="true"` is set on <html> (alongside data-theme="cairn").
+   Tokens remap the light cream/sand palette to a deep navy palette so every
+   component that already uses CSS vars picks up dark mode automatically.
+   ========================================================================== */
+
+html[data-theme='cairn'][data-dark='true'] {
+  /* Remapped surface scale (dark navy family) */
+  --surface-1: #0a1422;
+  --surface-2: #0f1c2e;
+  --surface-3: #10223c;
+
+  /* Sand/cream scale → dark navy */
+  --sand-50: #0a1422;
+  --sand-100: #0f1c2e;
+  --sand-200: rgba(244, 206, 161, 0.18);
+  --sand-300: rgba(244, 206, 161, 0.28);
+
+  /* Ink → warm off-white */
+  --ink: #f0e9de;
+  --ink-soft: #a89880;
+
+  /* Surface / text aliases */
+  --text-primary: #f0e9de;
+  --text-secondary: #a89880;
+  --border-soft: rgba(244, 206, 161, 0.18);
+}
+
+html[data-theme='cairn'][data-dark='true'],
+html[data-theme='cairn'][data-dark='true'] body {
+  background: #0a1422;
+  color: #f0e9de;
+}
+
+/* Headings */
+html[data-theme='cairn'][data-dark='true'] h1,
+html[data-theme='cairn'][data-dark='true'] h2,
+html[data-theme='cairn'][data-dark='true'] h3,
+html[data-theme='cairn'][data-dark='true'] h4,
+html[data-theme='cairn'][data-dark='true'] .MuiTypography-h1,
+html[data-theme='cairn'][data-dark='true'] .MuiTypography-h2,
+html[data-theme='cairn'][data-dark='true'] .MuiTypography-h3,
+html[data-theme='cairn'][data-dark='true'] .MuiTypography-h4 {
+  color: #f0e9de;
+}
+
+/* MUI Paper / Card */
+html[data-theme='cairn'][data-dark='true'] .MuiPaper-root,
+html[data-theme='cairn'][data-dark='true'] .MuiCard-root {
+  background-color: #10223c;
+  color: #f0e9de;
+  border-color: rgba(244, 206, 161, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Popovers */
+html[data-theme='cairn'][data-dark='true'] .MuiPopover-paper {
+  background-color: #162a44;
+  border-color: rgba(244, 206, 161, 0.2);
+  color: #f0e9de;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* Input fields */
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-root {
+  background-color: #0f1c2e;
+  color: #f0e9de;
+}
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(244, 206, 161, 0.2);
+}
+html[data-theme='cairn'][data-dark='true'] .MuiInputLabel-root {
+  color: #a89880;
+}
+
+/* Alerts */
+html[data-theme='cairn'][data-dark='true'] .MuiAlert-standardInfo {
+  background-color: #0f1c2e;
+  color: #f0e9de;
+  border-color: rgba(244, 206, 161, 0.18);
+}
+
+/* LinearProgress track */
+html[data-theme='cairn'][data-dark='true'] .MuiLinearProgress-root {
+  background-color: rgba(244, 206, 161, 0.1);
+}
+
+/* Scrollbar */
+html[data-theme='cairn'][data-dark='true'] ::-webkit-scrollbar-thumb {
+  background: rgba(244, 206, 161, 0.2);
+}
+html[data-theme='cairn'][data-dark='true'] ::-webkit-scrollbar-track {
+  background: #0a1422;
+}
+
+/* Selection */
+html[data-theme='cairn'][data-dark='true'] ::selection {
+  background: rgba(244, 206, 161, 0.25);
+  color: #f0e9de;
+}
+
 /* --- Staging marker pill (tiny, top-right, so it's obvious you're on staging) --- */
 html[data-theme='cairn']::after {
   content: 'STAGING · CAIRN';

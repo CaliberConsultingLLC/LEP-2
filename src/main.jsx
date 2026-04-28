@@ -14,6 +14,11 @@ import './styles/cairn-theme.css';
 if (useCairnTheme && typeof document !== 'undefined') {
   document.documentElement.dataset.theme = 'cairn';
 
+  // Restore dark mode before first paint to avoid flash
+  if (localStorage.getItem('cairn_dark_mode') === 'true') {
+    document.documentElement.setAttribute('data-dark', 'true');
+  }
+
   // Load Cairn fonts only when the skin is active — prod never requests these.
   const alreadyLoaded = document.querySelector('link[data-cairn-fonts]');
   if (!alreadyLoaded) {
