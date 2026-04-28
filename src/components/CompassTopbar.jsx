@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { auth } from '../firebase';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { useStepNav } from '../context/StepNavContext';
 
 const PHASE_MAP = [
   {
@@ -558,6 +559,7 @@ function CompassTopbar() {
   const [profileOpen,  setProfileOpen]  = useState(false);
   const [isDark, toggleDark] = useDarkMode();
   const isPreGuide = pathname.startsWith('/user-info');
+  const { nav: stepNav } = useStepNav();
 
   const { phase, phaseIndex, progressPct, initials, userName, userEmail, joinedDate } = useMemo(() => {
     const phaseId    = getPhaseFromPath(pathname);
@@ -613,8 +615,18 @@ function CompassTopbar() {
     return { prevPath: prev, nextPath: next, canGoForward: canFwd };
   }, [pathname]);
 
-  const goBack    = () => { if (prevPath) navigate(prevPath); else navigate(-1); };
-  const goForward = () => { if (nextPath && canGoForward) navigate(nextPath); };
+  // If a page has registered step-level navigation, the arrows drive steps.
+  // Otherwise they do page-level navigation using the PAGE_SEQUENCE.
+  const goBack = () => {
+    if (stepNav) { stepNav.goBack(); return; }
+    if (prevPath) navigate(prevPath); else navigate(-1);
+  };
+  const goForward = () => {
+    if (stepNav) { if (stepNav.canGoForward) stepNav.goForward(); return; }
+    if (nextPath && canGoForward) navigate(nextPath);
+  };
+  const backDisabled    = stepNav ? !stepNav.canGoBack    : !prevPath;
+  const forwardDisabled = stepNav ? !stepNav.canGoForward : !canGoForward;
 
   return (
     <Box
@@ -664,7 +676,7 @@ function CompassTopbar() {
       >
         <Stack direction="row" alignItems="center" gap={1.25}>
           {/* Back */}
-          <NavArrow dir="back" onClick={goBack} disabled={!prevPath} isDark={isDark} />
+          <NavArrow dir="back" onClick={goBack} disabled={backDisabled} isDark={isDark} />
 
           {/* Chapter pill — 20% larger than original */}
           <Box
@@ -746,7 +758,7 @@ function CompassTopbar() {
           </Box>
 
           {/* Forward */}
-          <NavArrow dir="forward" onClick={goForward} disabled={!canGoForward} isDark={isDark} />
+          <NavArrow dir="forward" onClick={goForward} disabled={forwardDisabled} isDark={isDark} />
         </Stack>
 
         <ChapterPopover

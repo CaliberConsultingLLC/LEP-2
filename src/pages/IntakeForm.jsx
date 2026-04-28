@@ -13,6 +13,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { useStepNav } from '../context/StepNavContext';
 import { auth, db } from '../firebase';
 
 // ---------- Memo wrappers ----------
@@ -498,6 +499,7 @@ function IntakeForm() {
   const [postSignupNotice, setPostSignupNotice] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { register: registerStepNav, unregister: unregisterStepNav } = useStepNav();
   const autosaveTimeoutRef = useRef(null);
   const autosaveReadyRef = useRef(false);
   const authUidRef = useRef('');
@@ -1233,9 +1235,42 @@ function IntakeForm() {
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
   const handleStartOver = () => {
-  // keep profile answers, just restart behaviors
-  setCurrentStep(behaviorStart);
-};
+    setCurrentStep(behaviorStart);
+  };
+
+  // Register step-level back/forward with the topbar arrows.
+  useEffect(() => {
+    const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep) ||
+      (currentStep === reflectionStep && reflectionNumber === 1);
+
+    let canFwd = true;
+    if (!isMessageStep) {
+      if (currentStep === 1) {
+        canFwd = isProfileValid();
+      } else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
+        const q = behaviorSet[currentStep - behaviorStart];
+        const v = formData[q?.id];
+        canFwd = !(
+          (q?.type === 'text' && !v) ||
+          (q?.type === 'multi-select' && (!v || v.length === 0)) ||
+          (q?.type === 'ranking' && v != null && v.length !== q.options.length) ||
+          (q?.type === 'radio' && !v) ||
+          (q?.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v))
+        );
+      } else if (currentStep === agentStep) {
+        canFwd = !!formData.selectedAgent;
+      }
+    }
+
+    registerStepNav({
+      canGoBack: currentStep > 0,
+      canGoForward: canFwd,
+      goBack: () => setCurrentStep((s) => Math.max(0, s - 1)),
+      goForward: handleNext,
+    });
+    return unregisterStepNav;
+  }, [currentStep, formData, reflectionNumber, mindsetIntroStep, reflectionStep,
+      behaviorStart, behaviorEnd, behaviorSet, agentStep]);
 
   const formatAutosaveTime = (value) => {
     if (!value) return '';

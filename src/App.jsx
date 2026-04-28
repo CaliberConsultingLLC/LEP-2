@@ -25,6 +25,7 @@ import GuideSelect from './pages/GuideSelect';
 import ProtectedRoute from './components/ProtectedRoute';
 import { showDevTools, useCairnTheme } from './config/runtimeFlags';
 import { GuideProvider } from './context/GuideContext';
+import { StepNavProvider } from './context/StepNavContext';
 import GuideOverlay from './components/GuideOverlay';
 import StagingDevPanel from './components/StagingDevPanel';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
@@ -67,11 +68,13 @@ function App() {
     autoSeedIfNeeded();
     return (
       <GuideProvider>
-        <Router>
-          <AppRoutes />
-          <GuideOverlay />
-          <StagingDevPanel />
-        </Router>
+        <StepNavProvider>
+          <Router>
+            <AppRoutes />
+            <GuideOverlay />
+            <StagingDevPanel />
+          </Router>
+        </StepNavProvider>
       </GuideProvider>
     );
   }
