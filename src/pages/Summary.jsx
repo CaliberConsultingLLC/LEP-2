@@ -42,6 +42,8 @@ function Summary() {
   const [focusAreas, setFocusAreas] = useState([]);
   const showInlineTraitSelection = false;
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
+  const [selectedAgent, setSelectedAgent] = useState('');
+  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
 
@@ -290,8 +292,6 @@ function Summary() {
     { id: 'pragmaticProblemSolver', name: 'Pragmatic Problem Solver' },
     { id: 'highSchoolCoach', name: 'High School Coach' },
   ];
-  const [selectedAgent, setSelectedAgent] = useState('');
-  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
 
   const fetchWithTimeout = async (url, options = {}, timeoutMs = 35000) => {
     const controller = new AbortController();

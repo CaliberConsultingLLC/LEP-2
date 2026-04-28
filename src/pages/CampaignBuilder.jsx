@@ -36,6 +36,7 @@ function CampaignBuilder() {
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
   const [expandedTrait, setExpandedTrait] = useState(0);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [isDark] = useDarkMode();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -356,7 +357,6 @@ function CampaignBuilder() {
   }
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
-  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
     const activeTrait = campaign ? campaign[expandedTrait] : null;
