@@ -33,12 +33,39 @@ const parseJson = (raw, fallback = null) => {
 
 // ---------- Message Dialog (reusable for pop-ups) ----------
 const MessageDialog = ({ open, onClose, title, content }) => (
-  <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-    <DialogTitle sx={{ fontWeight: 800, textAlign: 'center' }}>{title}</DialogTitle>
+  <Dialog
+    open={open}
+    onClose={onClose}
+    maxWidth="sm"
+    fullWidth
+    PaperProps={{
+      sx: useCairnTheme
+        ? {
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            boxShadow: '0 20px 60px rgba(15,28,46,0.18)',
+          }
+        : {},
+    }}
+  >
+    <DialogTitle sx={{
+      fontWeight: useCairnTheme ? 500 : 800,
+      textAlign: 'center',
+      fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
+      fontStyle: useCairnTheme ? 'italic' : 'normal',
+      fontSize: useCairnTheme ? '1.4rem' : 'inherit',
+      color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+      pt: useCairnTheme ? 3 : 2,
+    }}>{title}</DialogTitle>
     <DialogContent sx={{ textAlign: 'center', py: 2 }}>
-      <Typography sx={{ lineHeight: 1.6, opacity: 0.9 }}>{content}</Typography>
+      <Typography sx={{
+        lineHeight: 1.6,
+        opacity: 0.9,
+        fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+        color: useCairnTheme ? 'var(--ink-soft, #44566C)' : 'inherit',
+      }}>{content}</Typography>
     </DialogContent>
-    <DialogActions sx={{ justifyContent: 'center' }}>
+    <DialogActions sx={{ justifyContent: 'center', pb: useCairnTheme ? 3 : 1 }}>
       <MemoButton variant="contained" onClick={onClose}>Continue</MemoButton>
     </DialogActions>
   </Dialog>
@@ -61,25 +88,37 @@ const PageContainer = ({ children }) => (
   </Container>
 );
 
-// Centered card with natural width (never full-bleed)
-const SectionCard = ({ children, narrow = false }) => (
-  <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-    <MemoCard
-      elevation={0}
-      sx={{
-        width: '100%',
-        maxWidth: narrow ? 748 : 880,
-        borderRadius: 3,
-        border: '1px solid rgba(255,255,255,0.14)',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
-        overflow: 'hidden',
-      }}
-    >
-      <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
-    </MemoCard>
-  </MemoBox>
-);
+// Centered card with natural width (never full-bleed).
+// In cairn mode renders without card chrome so content floats on the background.
+const SectionCard = ({ children, narrow = false }) => {
+  if (useCairnTheme) {
+    return (
+      <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <Box sx={{ width: '100%', maxWidth: narrow ? 748 : 880, py: 4 }}>
+          {children}
+        </Box>
+      </MemoBox>
+    );
+  }
+  return (
+    <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <MemoCard
+        elevation={0}
+        sx={{
+          width: '100%',
+          maxWidth: narrow ? 748 : 880,
+          borderRadius: 3,
+          border: '1px solid rgba(255,255,255,0.14)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+          overflow: 'hidden',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>{children}</CardContent>
+      </MemoCard>
+    </MemoBox>
+  );
+};
 
 // Warning label icon component - Standardized American road signs
 const WarningLabelIcon = ({ type }) => {
@@ -444,21 +483,28 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
       alignItems: 'center',
       justifyContent: showWarningIcon ? 'flex-start' : 'center',
       width: '100%',
-      minHeight: compact ? 48 : 68,
+      minHeight: compact ? 48 : useCairnTheme ? 54 : 68,
       userSelect: 'none',
-      p: compact ? 1 : 1.6,
-      borderRadius: 2,
-      border: selected ? '2px solid #E07A3F' : '1px solid rgba(0,0,0,0.12)',
-      bgcolor: selected ? 'rgba(224, 122, 63, 0.09)' : 'background.paper',
-      boxShadow: selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
-      transform: 'perspective(600px) rotateY(0deg)',
-      transition: 'box-shadow .25s ease, transform .25s ease, border-color .2s ease, background-color .2s ease',
+      p: compact ? 1 : useCairnTheme ? '12px 20px' : 1.6,
+      borderRadius: useCairnTheme ? '10px' : 2,
+      border: selected
+        ? '2px solid #E07A3F'
+        : useCairnTheme
+          ? '1.5px solid var(--sand-300, #C8B89A)'
+          : '1px solid rgba(0,0,0,0.12)',
+      bgcolor: selected
+        ? 'rgba(224,122,63,0.09)'
+        : useCairnTheme
+          ? 'rgba(251,247,240,0.55)'
+          : 'background.paper',
+      boxShadow: useCairnTheme ? 'none' : selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
+      transform: useCairnTheme ? 'none' : 'perspective(600px) rotateY(0deg)',
+      transition: 'border-color .2s ease, background-color .2s ease, box-shadow .2s ease',
       cursor: disabled ? 'default' : 'pointer',
       textAlign: showWarningIcon ? 'left' : 'center',
-      '&:hover': {
-        boxShadow: '0 10px 28px rgba(0,0,0,0.16)',
-        transform: 'translateY(-2px)',
-      },
+      '&:hover': useCairnTheme
+        ? { borderColor: 'var(--amber, #E07A3F)', bgcolor: 'rgba(224,122,63,0.06)' }
+        : { boxShadow: '0 10px 28px rgba(0,0,0,0.16)', transform: 'translateY(-2px)' },
     }}
   >
     {showWarningIcon && (
@@ -467,7 +513,13 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
       </Box>
     )}
     <Box sx={{ flex: showWarningIcon ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: showWarningIcon ? 'flex-start' : 'center' }}>
-      <Typography sx={{ fontSize: compact ? '0.9rem' : '1.05rem', fontWeight: 500 }}>{children}</Typography>
+      <Typography sx={{
+        fontSize: compact ? '0.9rem' : useCairnTheme ? '1rem' : '1.05rem',
+        fontWeight: useCairnTheme ? 400 : 500,
+        fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+        color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+        letterSpacing: useCairnTheme ? '0.01em' : 'inherit',
+      }}>{children}</Typography>
     </Box>
   </Box>
 );
@@ -1418,7 +1470,16 @@ function IntakeForm() {
         {currentStep === 1 && (
           <SectionCard narrow={true}>
             <Stack spacing={1.8} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.2 }}>
+              <Typography sx={{
+                fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
+                fontStyle: useCairnTheme ? 'italic' : 'normal',
+                fontWeight: useCairnTheme ? 500 : 800,
+                fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.5rem', md: '1.5rem' },
+                lineHeight: useCairnTheme ? 1.2 : 1.35,
+                mb: 0.2,
+                textAlign: 'center',
+                color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+              }}>
                 Leader Profile
               </Typography>
 
@@ -1426,8 +1487,8 @@ function IntakeForm() {
                 sx={{
                   p: { xs: 1.1, md: 1.3 },
                   borderRadius: 2,
-                  border: '1px solid rgba(0,0,0,0.14)',
-                  bgcolor: 'rgba(0,0,0,0.03)',
+                  border: useCairnTheme ? 'none' : '1px solid rgba(0,0,0,0.14)',
+                  bgcolor: useCairnTheme ? 'transparent' : 'rgba(0,0,0,0.03)',
                 }}
               >
                 <Grid container spacing={1.3} alignItems="stretch">
@@ -1516,8 +1577,8 @@ function IntakeForm() {
                 sx={{
                   p: { xs: 1.1, md: 1.3 },
                   borderRadius: 2,
-                  border: '1px solid rgba(0,0,0,0.14)',
-                  bgcolor: 'rgba(0,0,0,0.03)',
+                  border: useCairnTheme ? 'none' : '1px solid rgba(0,0,0,0.14)',
+                  bgcolor: useCairnTheme ? 'transparent' : 'rgba(0,0,0,0.03)',
                 }}
               >
                 <Grid container spacing={1.3} alignItems="stretch">
@@ -1611,11 +1672,29 @@ function IntakeForm() {
               const q = behaviorSet[qIndex];
 
               return (
-                <Stack spacing={3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
-                  <Typography variant="overline" sx={{ letterSpacing: 1.2, opacity: 0.8, textAlign: 'center' }}>
-                    {q.theme.toUpperCase()}
+                <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
+                  <Typography sx={{
+                    fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
+                    fontStyle: useCairnTheme ? 'italic' : 'normal',
+                    fontSize: useCairnTheme ? 13 : 'inherit',
+                    fontWeight: useCairnTheme ? 400 : 700,
+                    letterSpacing: useCairnTheme ? '0.06em' : 1.2,
+                    opacity: useCairnTheme ? 0.6 : 0.8,
+                    textAlign: 'center',
+                    color: useCairnTheme ? 'var(--ink-soft, #44566C)' : 'inherit',
+                    textTransform: useCairnTheme ? 'none' : 'uppercase',
+                  }}>
+                    {q.theme}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.35, textAlign: 'center' }}>
+                  <Typography sx={{
+                    fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
+                    fontStyle: useCairnTheme ? 'italic' : 'normal',
+                    fontWeight: useCairnTheme ? 500 : 800,
+                    fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.25rem', md: '1.5rem' },
+                    lineHeight: useCairnTheme ? 1.2 : 1.35,
+                    textAlign: 'center',
+                    color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
+                  }}>
                     {q.id === 'proudMoment' ? (
                       <>
                         Consider a significant team accomplishment and <u>describe</u> how your contribution made it possible.
@@ -2035,22 +2114,41 @@ function IntakeForm() {
 
       return (
         <Stack spacing={2.4} alignItems="center" textAlign="center">
-          <Typography
-            variant="overline"
-            sx={{ letterSpacing: 1.2, opacity: 0.75, textAlign: 'center', fontWeight: 700 }}
-          >
-            Question {activeIdx + 1} of {societalNormsQuestions.length}
-          </Typography>
+          {!useCairnTheme && (
+            <Typography
+              variant="overline"
+              sx={{ letterSpacing: 1.2, opacity: 0.75, textAlign: 'center', fontWeight: 700 }}
+            >
+              Question {activeIdx + 1} of {societalNormsQuestions.length}
+            </Typography>
+          )}
+          {useCairnTheme && (
+            <Typography sx={{
+              fontFamily: '"Fraunces", Georgia, serif',
+              fontStyle: 'italic',
+              fontSize: 13,
+              fontWeight: 400,
+              letterSpacing: '0.06em',
+              opacity: 0.6,
+              textAlign: 'center',
+              color: 'var(--ink-soft, #44566C)',
+            }}>
+              Leader Instincts
+            </Typography>
+          )}
 
           <Box sx={{ width: '100%', maxWidth: 760, mx: 'auto', textAlign: 'center' }}>
             <Typography
               sx={{
-                fontWeight: 800,
-                lineHeight: 1.35,
-                fontSize: { xs: '1.42rem', md: '1.58rem' },
+                fontFamily: useCairnTheme ? '"Fraunces", Georgia, serif' : 'inherit',
+                fontStyle: useCairnTheme ? 'italic' : 'normal',
+                fontWeight: useCairnTheme ? 500 : 800,
+                lineHeight: useCairnTheme ? 1.2 : 1.35,
+                fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.42rem', md: '1.58rem' },
                 textAlign: 'center',
                 wordBreak: 'break-word',
                 overflowWrap: 'anywhere',
+                color: useCairnTheme ? 'var(--navy-900, #10223C)' : 'inherit',
               }}
             >
               {beforeBlank}
