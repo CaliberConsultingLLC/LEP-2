@@ -161,7 +161,7 @@ function GuideOverlay() {
           sx={{
             fontFamily: '"Manrope", sans-serif',
             fontStyle: 'normal',
-            fontSize: 17,
+            fontSize: '0.875rem',
             lineHeight: 1.55,
             color: 'var(--ink, #0f1c2e)',
             pr: '22px',

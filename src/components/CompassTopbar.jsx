@@ -651,11 +651,11 @@ function CompassTopbar() {
       <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
         <Box
           sx={{
-            fontFamily: '"Manrope", sans-serif',
+            fontFamily: '"Playfair Display", Georgia, serif',
             fontStyle: 'normal',
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: 22,
-            letterSpacing: '-0.02em',
+            letterSpacing: '-0.01em',
             color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
             lineHeight: 1,
             userSelect: 'none',

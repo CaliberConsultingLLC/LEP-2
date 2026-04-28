@@ -507,7 +507,7 @@ function CampaignSurvey() {
             </Typography>
           </Box>
 
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontStyle: 'normal', fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.75rem' }, lineHeight: 1.25, color: 'var(--ink, #0f1c2e)', textAlign: 'center', mb: 3 }}>
+          <Typography sx={{ fontFamily: '"Inter", sans-serif', fontStyle: 'normal', fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.75rem' }, lineHeight: 1.25, color: 'var(--ink, #0f1c2e)', textAlign: 'center', mb: 3 }}>
             {questions[currentQuestion]}
           </Typography>
 

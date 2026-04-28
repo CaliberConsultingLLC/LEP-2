@@ -51,7 +51,7 @@ const MessageDialog = ({ open, onClose, title, content }) => (
     <DialogTitle sx={{
       fontWeight: useCairnTheme ? 700 : 800,
       textAlign: 'center',
-      fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+      fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
       fontStyle: 'normal',
       fontSize: useCairnTheme ? '1.4rem' : 'inherit',
       color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
@@ -61,7 +61,7 @@ const MessageDialog = ({ open, onClose, title, content }) => (
       <Typography sx={{
         lineHeight: 1.6,
         opacity: 0.9,
-        fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+        fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
         color: useCairnTheme ? 'var(--ink-soft, #44566C)' : 'inherit',
       }}>{content}</Typography>
     </DialogContent>
@@ -488,22 +488,27 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
       p: compact ? 1 : useCairnTheme ? '12px 20px' : 1.6,
       borderRadius: useCairnTheme ? '10px' : 2,
       border: selected
-        ? '2px solid #E07A3F'
+        ? useCairnTheme ? '2px solid var(--orange-deep, #C0612A)' : '2px solid #E07A3F'
         : useCairnTheme
           ? '1.5px solid var(--sand-300, #C8B89A)'
           : '1px solid rgba(0,0,0,0.12)',
       bgcolor: selected
-        ? 'rgba(224,122,63,0.09)'
+        ? useCairnTheme ? 'var(--orange, #E07A3F)' : 'rgba(224,122,63,0.09)'
         : useCairnTheme
           ? 'var(--cairn-option-bg, #FFFFFF)'
           : 'background.paper',
-      boxShadow: useCairnTheme ? 'none' : selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
-      transform: useCairnTheme ? 'none' : 'perspective(600px) rotateY(0deg)',
-      transition: 'border-color .2s ease, background-color .2s ease, box-shadow .2s ease',
+      boxShadow: useCairnTheme
+        ? selected ? '0 0 0 3px rgba(224,122,63,0.28), 0 8px 28px rgba(196,87,30,0.28)' : 'none'
+        : selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
+      transform: useCairnTheme && selected ? 'scale(1.016)' : undefined,
+      animation: selected && useCairnTheme ? 'cairnOptionSelect 320ms cubic-bezier(0.2,0.8,0.2,1) forwards' : undefined,
+      transition: 'border-color 200ms ease, background-color 200ms ease, box-shadow 200ms ease, transform 200ms cubic-bezier(0.2,0.8,0.2,1)',
       cursor: disabled ? 'default' : 'pointer',
       textAlign: showWarningIcon ? 'left' : 'center',
       '&:hover': useCairnTheme
-        ? { borderColor: 'var(--amber, #E07A3F)', bgcolor: 'rgba(224,122,63,0.06)' }
+        ? selected
+          ? {}
+          : { borderColor: 'var(--orange, #E07A3F)', bgcolor: 'rgba(224,122,63,0.05)' }
         : { boxShadow: '0 10px 28px rgba(0,0,0,0.16)', transform: 'translateY(-2px)' },
     }}
   >
@@ -515,10 +520,11 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
     <Box sx={{ flex: showWarningIcon ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: showWarningIcon ? 'flex-start' : 'center' }}>
       <Typography sx={{
         fontSize: compact ? '0.9rem' : useCairnTheme ? '0.875rem' : '1.05rem',
-        fontWeight: useCairnTheme ? 400 : 500,
-        fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
-        color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
+        fontWeight: useCairnTheme ? (selected ? 600 : 400) : 500,
+        fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
+        color: useCairnTheme ? (selected ? '#ffffff' : 'var(--ink, #0f1c2e)') : 'inherit',
         letterSpacing: useCairnTheme ? '0.01em' : 'inherit',
+        transition: 'color 200ms ease, font-weight 200ms ease',
       }}>{children}</Typography>
     </Box>
   </Box>
@@ -1471,7 +1477,7 @@ function IntakeForm() {
           <SectionCard narrow={true}>
             <Stack spacing={1.8} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
               <Typography sx={{
-                fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
                 fontStyle: 'normal',
                 fontWeight: useCairnTheme ? 800 : 800,
                 fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.5rem', md: '1.5rem' },
@@ -1674,7 +1680,7 @@ function IntakeForm() {
               return (
                 <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
                   <Typography sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                    fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
                     fontStyle: 'normal',
                     fontSize: useCairnTheme ? 16 : 'inherit',
                     fontWeight: useCairnTheme ? 600 : 700,
@@ -1687,7 +1693,7 @@ function IntakeForm() {
                     {q.theme}
                   </Typography>
                   <Typography sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                    fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
                     fontStyle: 'normal',
                     fontWeight: useCairnTheme ? 700 : 800,
                     fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.25rem', md: '1.5rem' },
@@ -2124,7 +2130,7 @@ function IntakeForm() {
           )}
           {useCairnTheme && (
             <Typography sx={{
-              fontFamily: '"Manrope", sans-serif',
+              fontFamily: '"Inter", sans-serif',
               fontStyle: 'normal',
               fontSize: 16,
               fontWeight: 600,
@@ -2140,7 +2146,7 @@ function IntakeForm() {
           <Box sx={{ width: '100%', maxWidth: 760, mx: 'auto', textAlign: 'center' }}>
             <Typography
               sx={{
-                fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
                 fontStyle: 'normal',
                 fontWeight: useCairnTheme ? 700 : 800,
                 lineHeight: useCairnTheme ? 1.2 : 1.35,
