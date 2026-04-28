@@ -184,9 +184,22 @@ function TraitSelection() {
                 <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
                   {fa.subTraitName}
                 </Typography>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
-                  {fa.traitName}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.35, flexWrap: 'wrap' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
+                    {fa.traitName}
+                  </Typography>
+                  {idx < 3 && (
+                    <Typography sx={{
+                      fontFamily: '"JetBrains Mono", monospace', fontSize: '0.55rem',
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      color: active ? 'rgba(244,206,161,0.7)' : 'var(--orange-deep, #C0612A)',
+                      bgcolor: active ? 'rgba(224,122,63,0.18)' : 'rgba(224,122,63,0.09)',
+                      px: 0.75, py: '2px', borderRadius: '4px',
+                    }}>
+                      Suggested
+                    </Typography>
+                  )}
+                </Box>
               </Box>
             </Box>
           );
@@ -208,6 +221,30 @@ function TraitSelection() {
             <Alert severity="warning" sx={{ fontFamily: '"Manrope", sans-serif' }}>{loadError}</Alert>
           ) : activeFocus ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Context banner */}
+              <Box sx={{
+                borderRadius: '12px',
+                bgcolor: isDark ? 'rgba(224,122,63,0.08)' : 'rgba(224,122,63,0.06)',
+                border: '1px solid rgba(224,122,63,0.18)',
+                px: 2.5, py: 1.75,
+                display: 'flex', alignItems: 'flex-start', gap: 1.5,
+              }}>
+                <Box sx={{
+                  width: 22, height: 22, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)',
+                  flexShrink: 0, mt: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Typography sx={{ color: '#fff', fontSize: '0.65rem', fontWeight: 800, fontFamily: '"Manrope", sans-serif' }}>5</Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.3 }}>
+                    5 growth areas emerged from your profile
+                  </Typography>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.81rem', color: 'var(--ink-soft, #44566C)', mt: 0.3, lineHeight: 1.5 }}>
+                    Review each focus area, then choose the 3 that matter most to your leadership right now.
+                  </Typography>
+                </Box>
+              </Box>
+
               {/* Trait header */}
               <Box>
                 <Typography sx={{
@@ -319,30 +356,72 @@ function TraitSelection() {
                   >
                     ← Summary
                   </Box>
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={handleContinue}
-                    disabled={selectedTraits.length !== 3}
-                    sx={{
-                      all: 'unset',
-                      cursor: selectedTraits.length === 3 ? 'pointer' : 'default',
-                      display: 'inline-flex', alignItems: 'center', gap: '8px',
-                      px: '20px', py: '10px', borderRadius: 999,
-                      bgcolor: selectedTraits.length === 3 ? 'var(--navy-900, #10223C)' : 'var(--sand-200, #E8DBC3)',
-                      color: selectedTraits.length === 3 ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
-                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
-                      transition: '180ms ease',
-                      '&:hover': selectedTraits.length === 3 ? { transform: 'translateY(-1px)' } : {},
-                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
-                    }}
-                  >
-                    Build Campaign →
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
+                    {selectedTraits.length === 3 && (
+                      <Typography sx={{
+                        fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.82rem',
+                        color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
+                        textAlign: 'right',
+                      }}>
+                        Your trail is set. Time to build.
+                      </Typography>
+                    )}
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={handleContinue}
+                      disabled={selectedTraits.length !== 3}
+                      sx={{
+                        all: 'unset',
+                        cursor: selectedTraits.length === 3 ? 'pointer' : 'default',
+                        display: 'inline-flex', alignItems: 'center', gap: '8px',
+                        px: '20px', py: '10px', borderRadius: 999,
+                        bgcolor: selectedTraits.length === 3 ? 'var(--navy-900, #10223C)' : 'var(--sand-200, #E8DBC3)',
+                        color: selectedTraits.length === 3 ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
+                        fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
+                        boxShadow: selectedTraits.length === 3 ? '0 6px 22px rgba(16,34,60,0.25)' : 'none',
+                        transition: '180ms ease',
+                        animation: selectedTraits.length === 3 ? 'cairnOptionSelect 400ms cubic-bezier(0.2,0.8,0.2,1) forwards' : 'none',
+                        '&:hover': selectedTraits.length === 3 ? { transform: 'translateY(-2px)', boxShadow: '0 10px 30px rgba(16,34,60,0.32)' } : {},
+                        '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                      }}
+                    >
+                      {selectedTraits.length === 3 ? 'Launch Campaign →' : 'Build Campaign →'}
+                    </Box>
                   </Box>
                 </Box>
               </Box>
             </Box>
-          ) : null}
+          ) : (
+            <Box sx={{
+              borderRadius: '16px',
+              bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white',
+              border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
+              boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
+              p: { xs: 3, md: 5 }, textAlign: 'center',
+            }}>
+              <Typography sx={{
+                fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem',
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: 'var(--orange-deep, #C0612A)', mb: 1.5,
+              }}>
+                Choose a Focus Area
+              </Typography>
+              <Typography sx={{
+                fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
+                fontSize: { xs: '1.3rem', md: '1.55rem' }, lineHeight: 1.2,
+                color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1.25,
+              }}>
+                Select an area from the left to begin
+              </Typography>
+              <Typography sx={{
+                fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem',
+                color: 'var(--ink-soft, #44566C)', lineHeight: 1.65, maxWidth: 380, mx: 'auto',
+              }}>
+                Each area represents a pattern uncovered in your responses. Choose 3 that feel most relevant to where you lead right now.
+              </Typography>
+            </Box>
+          )}
         </CompassLayout>
       </Box>
     );

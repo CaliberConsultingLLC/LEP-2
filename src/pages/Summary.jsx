@@ -725,6 +725,15 @@ function Summary() {
       if (g?.personaId) guideName = g.personaId.charAt(0).toUpperCase() + g.personaId.slice(1);
     } catch { /* ignore */ }
 
+    const firstName = userName ? userName.split(' ')[0] : '';
+
+    const stageFraming = [
+      "These are the instincts that have driven your leadership — for better and for worse. Read without judgment.",
+      "Patterns don't lie. These behavioral signatures show up in how others experience you, often before you see them yourself.",
+      "Growth edges aren't failures. They're the specific places where, left unaddressed, your impact quietly shrinks.",
+      "This is the pivot point. What you choose to build next will define the leader others encounter going forward.",
+    ];
+
     const NavSidebar = (
       <Box sx={{
         bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white',
@@ -792,30 +801,68 @@ function Summary() {
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+
+              {/* Personalized hero — stage 0 only */}
+              {activeJourneyStep === 0 && firstName && (
+                <Box sx={{
+                  borderRadius: '14px',
+                  background: isDark
+                    ? 'linear-gradient(135deg, rgba(224,122,63,0.13) 0%, rgba(16,34,60,0.55) 100%)'
+                    : 'linear-gradient(135deg, #FFF8F2 0%, #FDF4E7 100%)',
+                  border: isDark ? '1px solid rgba(224,122,63,0.22)' : '1px solid rgba(224,122,63,0.2)',
+                  px: { xs: 2.5, md: 3 }, py: 2.5,
+                }}>
+                  <Typography sx={{
+                    fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem',
+                    letterSpacing: '0.16em', textTransform: 'uppercase',
+                    color: 'var(--orange-deep, #C0612A)', mb: 1,
+                  }}>
+                    Your Leadership Portrait
+                  </Typography>
+                  <Typography sx={{
+                    fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
+                    fontSize: { xs: '1.35rem', md: '1.6rem' }, lineHeight: 1.2,
+                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1,
+                  }}>
+                    {firstName}, your data reveals something worth naming.
+                  </Typography>
+                  <Typography sx={{
+                    fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.65,
+                    color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
+                  }}>
+                    Work through each section below. Some of what follows may be uncomfortable — that's precisely where the growth is.
+                  </Typography>
+                </Box>
+              )}
+
               {/* Stage header */}
               <Box>
                 <Typography sx={{
-                  fontFamily: '"Manrope", sans-serif', fontWeight: 700,
-                  fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: 'var(--orange, #E07A3F)', mb: 0.75,
+                  fontFamily: '"JetBrains Mono", monospace', fontWeight: 700,
+                  fontSize: '0.68rem', letterSpacing: '0.16em', textTransform: 'uppercase',
+                  color: 'var(--orange-deep, #C0612A)', mb: 0.75,
                 }}>
                   {activeStage.label}
                 </Typography>
                 <Typography sx={{
                   fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
-                  fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1,
-                  color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.5,
+                  fontSize: { xs: '1.65rem', md: '2rem' }, lineHeight: 1.1,
+                  color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75,
                 }}>
                   {activeStage.title}
                 </Typography>
-                <Typography sx={{
-                  fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem',
-                  color: 'var(--ink-soft, #44566C)', lineHeight: 1.6,
-                }}>
-                  {activeStage.subtitle}
-                </Typography>
               </Box>
+
+              {/* Emotional stage framing */}
+              <Typography sx={{
+                fontFamily: 'Georgia, serif', fontStyle: 'italic',
+                fontSize: '0.95rem', lineHeight: 1.65,
+                color: isDark ? 'rgba(240,233,222,0.58)' : 'var(--ink-soft, #44566C)',
+                mt: -1,
+              }}>
+                {stageFraming[activeJourneyStep]}
+              </Typography>
 
               {/* Content card */}
               <Box sx={{
@@ -823,7 +870,7 @@ function Summary() {
                 border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
                 boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
                 p: { xs: 2.5, md: 3.5 },
-                minHeight: 260,
+                minHeight: 220,
               }}>
                 {activeStage.text ? (
                   <Typography sx={{
@@ -842,8 +889,46 @@ function Summary() {
                 )}
               </Box>
 
+              {/* Focus area bridge — stage 3 (A New Trail) */}
+              {activeJourneyStep === 3 && focusAreas.length > 0 && (
+                <Box sx={{
+                  borderRadius: '14px',
+                  bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'var(--sand-100, #F3EAD8)',
+                  border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+                  px: { xs: 2, md: 2.5 }, py: 2,
+                }}>
+                  <Typography sx={{
+                    fontFamily: '"JetBrains Mono", monospace', fontSize: '0.65rem',
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: 'var(--orange-deep, #C0612A)', mb: 1.25,
+                  }}>
+                    Your 5 Growth Pathways
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                    {focusAreas.map((fa, idx) => (
+                      <Box key={fa.id || idx} sx={{
+                        px: 1.5, py: 0.6, borderRadius: 999,
+                        bgcolor: isDark ? 'rgba(224,122,63,0.12)' : 'rgba(224,122,63,0.1)',
+                        border: '1px solid rgba(224,122,63,0.22)',
+                        fontFamily: '"Manrope", sans-serif', fontWeight: 600,
+                        fontSize: '0.82rem',
+                        color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
+                      }}>
+                        {fa.subTraitName}
+                      </Box>
+                    ))}
+                  </Box>
+                  <Typography sx={{
+                    fontFamily: '"Manrope", sans-serif', fontSize: '0.83rem', lineHeight: 1.55,
+                    color: isDark ? 'rgba(240,233,222,0.6)' : 'var(--ink-soft, #44566C)',
+                  }}>
+                    You'll choose 3 to shape your leadership campaign — the ones that matter most right now.
+                  </Typography>
+                </Box>
+              )}
+
               {/* Stage nav dots + CTA */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 0.5 }}>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   {journeyStages.map((_, idx) => (
                     <Box
@@ -863,25 +948,47 @@ function Summary() {
                   ))}
                 </Box>
 
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={() => navigate('/trait-selection')}
-                  sx={{
-                    all: 'unset', cursor: 'pointer',
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    px: '24px', py: '12px', borderRadius: 999,
-                    bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
-                    fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.9rem',
-                    boxShadow: '0 6px 20px rgba(16,34,60,0.22)',
-                    transition: '180ms ease',
-                    '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-1px)' },
-                    '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
-                  }}
-                >
-                  Choose My Trail
-                  <Box component="span" sx={{ fontSize: '1rem' }}>→</Box>
-                </Box>
+                {activeJourneyStep < journeyStages.length - 1 ? (
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => setActiveJourneyStep((s) => s + 1)}
+                    sx={{
+                      all: 'unset', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      px: '20px', py: '10px', borderRadius: 999,
+                      border: isDark ? '1px solid rgba(244,206,161,0.28)' : '1px solid var(--sand-300, #C8B89A)',
+                      color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
+                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
+                      transition: '180ms ease',
+                      '&:hover': { borderColor: 'var(--orange, #E07A3F)', color: 'var(--orange, #E07A3F)' },
+                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                    }}
+                  >
+                    Continue
+                    <Box component="span">→</Box>
+                  </Box>
+                ) : (
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => navigate('/trait-selection')}
+                    sx={{
+                      all: 'unset', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', gap: '8px',
+                      px: '24px', py: '13px', borderRadius: 999,
+                      bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
+                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.95rem',
+                      boxShadow: '0 6px 24px rgba(16,34,60,0.28)',
+                      transition: '180ms ease',
+                      '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-2px)', boxShadow: '0 10px 32px rgba(16,34,60,0.35)' },
+                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                    }}
+                  >
+                    Choose Your Focus Areas
+                    <Box component="span" sx={{ fontSize: '1.05rem' }}>→</Box>
+                  </Box>
+                )}
               </Box>
             </Box>
           )}

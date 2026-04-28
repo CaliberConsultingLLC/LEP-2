@@ -35,6 +35,7 @@ function CampaignBuilder() {
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
   const [expandedTrait, setExpandedTrait] = useState(0);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -437,15 +438,54 @@ function CampaignBuilder() {
             </Box>
           ) : campaign && activeTrait ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Onboarding banner */}
+              {!bannerDismissed && (
+                <Box sx={{
+                  borderRadius: '12px',
+                  bgcolor: isDark ? 'rgba(224,122,63,0.08)' : 'rgba(224,122,63,0.06)',
+                  border: '1px solid rgba(224,122,63,0.18)',
+                  px: 2.5, py: 2,
+                  display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2,
+                }}>
+                  <Box>
+                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.35 }}>
+                      What are these statements?
+                    </Typography>
+                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.83rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.55 }}>
+                      These reflect how your team likely experiences your leadership today. Review each set — dismiss ones that don't apply. What remains becomes the foundation of your campaign.
+                    </Typography>
+                  </Box>
+                  <Box
+                    component="button" type="button"
+                    onClick={() => setBannerDismissed(true)}
+                    sx={{
+                      all: 'unset', cursor: 'pointer', flexShrink: 0, mt: '2px',
+                      color: 'var(--ink-soft, #44566C)', fontSize: '1rem', lineHeight: 1,
+                      '&:hover': { color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' },
+                    }}
+                  >
+                    ✕
+                  </Box>
+                </Box>
+              )}
+
               {/* Trait header */}
               <Box>
                 {activeTraitInfo.subTraitName && (
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.75 }}>
+                  <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontWeight: 700, fontSize: '0.68rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.75 }}>
                     {activeTraitInfo.coreTraitName}
                   </Typography>
                 )}
-                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.5 }}>
+                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75 }}>
                   {activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.92rem',
+                  color: isDark ? 'rgba(240,233,222,0.58)' : 'var(--ink-soft, #44566C)', lineHeight: 1.6,
+                }}>
+                  {activeTraitInfo.subTraitName
+                    ? `How your team currently experiences your ${activeTraitInfo.subTraitName.toLowerCase()} — and what shifts when it grows.`
+                    : 'These statements reflect how your team currently encounters this aspect of your leadership.'}
                 </Typography>
               </Box>
 
@@ -510,12 +550,21 @@ function CampaignBuilder() {
 
               {/* Bottom nav */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, pt: 0.5 }}>
-                <Box
-                  component="button" type="button"
-                  onClick={() => navigate('/trait-selection')}
-                  sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', display: 'inline-flex', alignItems: 'center', gap: '6px', '&:hover': { color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' } }}
-                >
-                  ← Back to Traits
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box
+                    component="button" type="button"
+                    onClick={() => navigate('/trait-selection')}
+                    sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', display: 'inline-flex', alignItems: 'center', gap: '6px', '&:hover': { color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' } }}
+                  >
+                    ← Back to Traits
+                  </Box>
+                  <Typography sx={{
+                    fontFamily: '"JetBrains Mono", monospace', fontSize: '0.65rem',
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    color: 'var(--ink-soft, #44566C)',
+                  }}>
+                    Trait {expandedTrait + 1} of {(campaign || []).length}
+                  </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1.5 }}>
                   <Box
