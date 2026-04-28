@@ -43,6 +43,7 @@ function Summary() {
   const showInlineTraitSelection = false;
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
   const activeRunIdRef = useRef(0);
+  const [isDark] = useDarkMode();
 
   const persistSummaryCache = async ({ data, agentId, text, areas }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
@@ -731,7 +732,6 @@ function Summary() {
   }
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
-  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV'];
     const activeStage = journeyStages[activeJourneyStep] || journeyStages[0];
