@@ -1182,7 +1182,14 @@ function IntakeForm() {
         const v = formData[q.id];
         if (q.type === 'text' && !v) return;
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
-        if (q.type === 'ranking' && (!v || v.length !== q.options.length)) return;
+        if (q.type === 'ranking') {
+          // null means user hasn't dragged yet — treat as default order and persist it
+          if (!v) {
+            handleChange(q.id, q.options);
+          } else if (v.length !== q.options.length) {
+            return;
+          }
+        }
         if (q.type === 'radio' && !v) return;
         // For Role Model question, also require elaboration (unless custom answer was used)
         if (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v)) return;
@@ -1861,7 +1868,7 @@ function IntakeForm() {
                       disabled={
                         (q.type === 'text' && !formData[q.id]) ||
                         (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
-                        (q.type === 'ranking' && (!formData[q.id] || formData[q.id].length !== q.options.length)) ||
+                        (q.type === 'ranking' && (formData[q.id] != null && formData[q.id].length !== q.options.length)) ||
                         (q.type === 'radio' && !formData[q.id]) ||
                         (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(formData[q.id]))
                       }

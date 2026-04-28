@@ -1,7 +1,6 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { useCairnTheme } from '../config/runtimeFlags';
-import { getPersona } from '../data/guidePersonas';
 
 // Layout wrapper for the Cairn (staging) theme.
 //
@@ -9,18 +8,13 @@ import { getPersona } from '../data/guidePersonas';
 // With sidebar:      true full-page 20% | 60% | 20% grid.
 //                    Left  20% = navigation sidebar passed via `sidebar` prop.
 //                    Center 60% = children (main page content).
-//                    Right  20% = guide persona (owl + name + tagline).
+//                    Right  20% = reserved empty column.
 //
 // Production (useCairnTheme === false): renders children directly, no wrapper.
 function CompassLayout({ children, progress = 0, sidebar = null }) {
   if (!useCairnTheme) {
     return children;
   }
-
-  const guideName = (() => {
-    try { return localStorage.getItem('cairnGuide') || 'mentor'; } catch { return 'mentor'; }
-  })();
-  const persona = getPersona(guideName);
 
   return (
     <Box sx={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -69,39 +63,8 @@ function CompassLayout({ children, progress = 0, sidebar = null }) {
             {children}
           </Box>
 
-          {/* Right 20% — guide persona */}
-          <Box sx={{
-            pt: 4, pb: 6, px: 2,
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: 1.5,
-          }}>
-            <Box
-              component="img"
-              src={persona.poses.idle}
-              alt={persona.name}
-              sx={{
-                height: 200, width: 'auto', objectFit: 'contain',
-                filter: 'drop-shadow(0 4px 16px rgba(16,34,60,0.10))',
-              }}
-            />
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{
-                fontFamily: 'Montserrat, sans-serif',
-                fontSize: '0.82rem', fontWeight: 800,
-                color: persona.accent || 'var(--navy-900, #10223C)',
-                letterSpacing: '0.04em',
-              }}>
-                {persona.name}
-              </Typography>
-              <Typography sx={{
-                fontFamily: 'Georgia, serif', fontStyle: 'italic',
-                fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)',
-                lineHeight: 1.4, mt: 0.3,
-              }}>
-                {persona.tagline}
-              </Typography>
-            </Box>
-          </Box>
+          {/* Right 20% — reserved empty column */}
+          <Box />
         </Box>
       ) : (
         // Centered single column — intake form, verify, and other non-nav pages
