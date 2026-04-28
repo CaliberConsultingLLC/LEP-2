@@ -557,6 +557,7 @@ function CompassTopbar() {
   const [popoverOpen,  setPopoverOpen]  = useState(false);
   const [profileOpen,  setProfileOpen]  = useState(false);
   const [isDark, toggleDark] = useDarkMode();
+  const isPreGuide = pathname.startsWith('/user-info');
 
   const { phase, phaseIndex, progressPct, initials, userName, userEmail, joinedDate } = useMemo(() => {
     const phaseId    = getPhaseFromPath(pathname);
@@ -758,9 +759,9 @@ function CompassTopbar() {
         />
       </Box>
 
-      {/* RIGHT: guide pill + dark mode toggle + avatar */}
+      {/* RIGHT: guide pill (hidden before guide selection) + dark mode toggle + avatar */}
       <Stack direction="row" alignItems="center" gap={1.5} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
-        <GuidePill isDark={isDark} />
+        {!isPreGuide && <GuidePill isDark={isDark} />}
 
         {/* Dark mode toggle */}
         <Box

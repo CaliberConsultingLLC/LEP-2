@@ -1,23 +1,52 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
-import { getGuideMessage, resolveRouteKey } from '../data/guideContent';
+import { getGuideMessages, resolveRouteKey } from '../data/guideContent';
 
-// A persistent, Clippy-style guide overlay.
-// Sits flush in the bottom-right corner of the viewport so the branch reads
-// as coming in from off-canvas. The speech bubble carries route-specific
-// placeholder copy in the active persona's voice. The user can tuck the
-// guide away with the close button; a small "Guide" tab takes its place.
+// Pages where the guide has not yet been chosen — overlay is suppressed entirely.
+const PRE_GUIDE_PATHS = ['/user-info'];
+
 function GuideOverlay() {
   const { persona, hidden, toggleHidden, setHidden } = useGuide();
   const location = useLocation();
 
-  const message = useMemo(() => {
-    const key = resolveRouteKey(location.pathname, location.search);
-    return getGuideMessage(key, persona.id);
-  }, [location.pathname, location.search, persona.id]);
+  // All hooks must run unconditionally before any early return.
+  const routeKey = useMemo(
+    () => resolveRouteKey(location.pathname, location.search),
+    [location.pathname, location.search],
+  );
 
+  const messages = useMemo(
+    () => getGuideMessages(routeKey, persona.id),
+    [routeKey, persona.id],
+  );
+
+  const [msgIdx, setMsgIdx] = useState(0);
+  const prevKeyRef = useRef(routeKey);
+  useEffect(() => {
+    if (routeKey !== prevKeyRef.current) {
+      prevKeyRef.current = routeKey;
+      if (messages.length > 1) {
+        setMsgIdx((prev) => {
+          let next = Math.floor(Math.random() * messages.length);
+          if (next === prev) next = (prev + 1) % messages.length;
+          return next;
+        });
+      } else {
+        setMsgIdx(0);
+      }
+    }
+  }, [routeKey, messages.length]);
+
+  const message = messages[msgIdx] || messages[0];
+  const owlPose = persona.poses[message?.pose] || persona.poses.idle;
+
+  // Suppress on pages before guide selection (after all hooks).
+  const isPreGuide = PRE_GUIDE_PATHS.some((p) => location.pathname.startsWith(p));
+  if (isPreGuide) return null;
+
+  // ── Collapsed tab ────────────────────────────────────────────────────────
   if (hidden) {
     return (
       <Box
@@ -47,10 +76,7 @@ function GuideOverlay() {
           textTransform: 'uppercase',
           transition: 'transform 180ms cubic-bezier(.2,.8,.2,1)',
           '&:hover': { transform: 'translateX(-3px)' },
-          '&:focus-visible': {
-            outline: '3px solid rgba(224,122,63,0.32)',
-            outlineOffset: 2,
-          },
+          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
         }}
       >
         <Box
@@ -59,8 +85,7 @@ function GuideOverlay() {
           alt=""
           aria-hidden
           sx={{
-            width: 28,
-            height: 28,
+            width: 28, height: 28,
             borderRadius: '50%',
             objectFit: 'cover',
             objectPosition: 'top center',
@@ -73,6 +98,9 @@ function GuideOverlay() {
     );
   }
 
+  // ── Expanded overlay ─────────────────────────────────────────────────────
+  // Width is constrained to the right 20% column so the guide never bleeds
+  // into the main content area. Height can grow upward freely.
   return (
     <Box
       sx={{
@@ -80,50 +108,28 @@ function GuideOverlay() {
         right: 0,
         bottom: 0,
         zIndex: 1200,
-        width: { xs: 'min(360px, 96vw)', sm: 440, md: 520 },
+        width: 'clamp(200px, 20vw, 280px)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'stretch',
         pointerEvents: 'none',
-        filter: 'drop-shadow(0 18px 40px rgba(15,28,46,0.18))',
       }}
     >
-      {/* Speech bubble — white card with a tail on the LEFT side.
-          Strips all chrome (name, page title, tagline) so the message is
-          the only content; a small × in the corner lets the user tuck it. */}
+      {/* ── Speech bubble ── */}
       <Box
         sx={{
           position: 'relative',
-          margin: { xs: '0 8px 12px 8px', md: '0 16px 14px 16px' },
-          padding: '22px 26px',
-          minHeight: { xs: 110, md: 130 },
-          background: '#FFFFFF',
+          mx: '12px',
+          mb: '10px',
+          p: '16px 18px 16px 18px',
+          background: 'var(--surface-1, #ffffff)',
           border: '1px solid var(--sand-200, #E8DBC3)',
-          borderRadius: 18,
+          borderRadius: 'var(--cairn-radius-md, 14px)',
+          boxShadow: '0 8px 24px rgba(15,28,46,0.10)',
           pointerEvents: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
         }}
       >
-        {/* Tail — now on the LEFT side at the same inset we previously used
-            on the right */}
-        <Box
-          aria-hidden
-          sx={{
-            position: 'absolute',
-            left: { xs: 60, md: 90 },
-            bottom: -9,
-            width: 16,
-            height: 16,
-            background: '#FFFFFF',
-            borderRight: '1px solid var(--sand-200, #E8DBC3)',
-            borderBottom: '1px solid var(--sand-200, #E8DBC3)',
-            transform: 'rotate(45deg)',
-            borderBottomRightRadius: 4,
-          }}
-        />
-
-        {/* Close button — small and unobtrusive in the corner so it doesn't
-            visually compete with the single centered message */}
+        {/* Close button */}
         <Box
           component="button"
           type="button"
@@ -133,80 +139,55 @@ function GuideOverlay() {
             all: 'unset',
             cursor: 'pointer',
             position: 'absolute',
-            top: 8,
-            right: 8,
-            width: 22,
-            height: 22,
+            top: 8, right: 8,
+            width: 20, height: 20,
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--ink-soft, #44566C)',
             fontFamily: '"Manrope", sans-serif',
-            fontSize: 14,
-            lineHeight: 1,
-            fontWeight: 600,
+            fontSize: 14, lineHeight: 1, fontWeight: 600,
             transition: 'background 140ms',
-            '&:hover': {
-              background: 'var(--sand-50, #FBF7F0)',
-              color: 'var(--navy-900, #10223C)',
-            },
-            '&:focus-visible': {
-              outline: '3px solid rgba(224,122,63,0.32)',
-              outlineOffset: 2,
-            },
+            '&:hover': { background: 'var(--sand-100, #F4ECDD)', color: 'var(--navy-900, #10223C)' },
+            '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
           }}
         >
           ×
         </Box>
 
-        {/* The only content — the advice itself, centered both axes */}
+        {/* Message text */}
         <Box
           sx={{
             fontFamily: '"Fraunces", Georgia, serif',
             fontStyle: 'italic',
-            fontSize: { xs: 15, md: 16 },
-            lineHeight: 1.5,
+            fontSize: 14,
+            lineHeight: 1.55,
             color: 'var(--navy-900, #10223C)',
-            maxWidth: '100%',
+            pr: '18px',
           }}
         >
           {message.text}
         </Box>
       </Box>
 
-      {/* Character image — flush to the bottom-right corner, static (no
-          animation), ~25% larger than the previous size. */}
+      {/* ── Owl image ── scales to column width, flush to bottom-right */}
       <Box
+        component="img"
+        src={owlPose}
+        alt={`${persona.name} guide`}
         sx={{
-          position: 'relative',
-          height: { xs: 290, sm: 331, md: 381 },
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'flex-end',
-          paddingRight: 0,
-          pointerEvents: 'none',
-          overflow: 'visible',
+          width: '100%',
+          height: 'auto',
+          display: 'block',
+          objectFit: 'contain',
+          objectPosition: 'bottom right',
+          pointerEvents: 'auto',
+          cursor: 'pointer',
         }}
-      >
-        <Box
-          component="img"
-          src={persona.poses.idle}
-          alt={`${persona.name} guide`}
-          sx={{
-            height: '100%',
-            width: 'auto',
-            objectFit: 'contain',
-            objectPosition: 'bottom right',
-            display: 'block',
-            marginRight: { xs: '-4px', md: '-8px' },
-            pointerEvents: 'auto',
-            cursor: 'pointer',
-          }}
-          onClick={toggleHidden}
-          draggable={false}
-        />
-      </Box>
+        onClick={toggleHidden}
+        draggable={false}
+      />
     </Box>
   );
 }
