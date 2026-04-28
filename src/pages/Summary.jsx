@@ -419,6 +419,20 @@ function Summary() {
   };
 
   useEffect(() => {
+    if (useCairnTheme) {
+      const cachedSummary = localStorage.getItem('aiSummary');
+      let focusAreasValid = false;
+      try {
+        const parsed = JSON.parse(localStorage.getItem('focusAreas') || '[]');
+        focusAreasValid = Array.isArray(parsed) && parsed.length === 5;
+      } catch { /* ignore */ }
+
+      if (cachedSummary && focusAreasValid) {
+        setAiSummary(cachedSummary);
+        setIsLoading(false);
+        return;
+      }
+    }
     runSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
