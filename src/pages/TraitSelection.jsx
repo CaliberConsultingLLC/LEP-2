@@ -13,8 +13,11 @@ import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import CairnGuidePanel from '../components/CairnGuidePanel';
+import CairnFlowButtons from '../components/CairnFlowButtons';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
@@ -24,6 +27,13 @@ function TraitSelection() {
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [focusAreas, setFocusAreas] = useState([]);
   const [loadError, setLoadError] = useState('');
+  const { persona, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    setSuppress(true);
+    return () => setSuppress(false);
+  }, [setSuppress, useCairnTheme]);
 
   const getTraitLibraryEntry = (focusArea) => {
     const [traitId, subTraitId] = String(focusArea?.id || '').split('-');
@@ -37,6 +47,12 @@ function TraitSelection() {
     const text = String(value || '').replace(/\s+/g, ' ').trim();
     if (!text) return '';
     return /[.!?]$/.test(text) ? text : `${text}.`;
+  };
+
+  const compactText = (value, maxLength = 120) => {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength).replace(/\s+\S*$/, '')}...`;
   };
 
   const buildTrailMarker = (focusArea) => {
@@ -88,6 +104,27 @@ function TraitSelection() {
       || sentenceCase(`Strengthening ${String(focusArea?.subTraitName || 'this subtrait').toLowerCase()} increases trust, alignment, and execution quality`);
   };
 
+  const buildPositiveIntent = (focusArea) => {
+    const name = String(focusArea?.subTraitName || 'this pattern').toLowerCase();
+    const trait = String(focusArea?.traitName || '').toLowerCase();
+    if (/delegat|ownership|empower/.test(name)) {
+      return 'This often begins as a useful instinct to protect quality, pace, and accountability when the stakes are high.';
+    }
+    if (/clarity|communicat|framing/.test(name) || /communication/.test(trait)) {
+      return 'This often begins as a useful instinct to keep people aligned and reduce confusion before work accelerates.';
+    }
+    if (/decision|judgment|pace/.test(name) || /decision/.test(trait)) {
+      return 'This often begins as a useful instinct to make the right call without creating unnecessary risk.';
+    }
+    if (/safety|trust|emotional|relationship/.test(name) || /emotional/.test(trait)) {
+      return 'This often begins as a useful instinct to protect relationships and keep the team steady under pressure.';
+    }
+    if (/strategic|vision|priority/.test(name) || /strategic/.test(trait)) {
+      return 'This often begins as a useful instinct to keep the bigger picture visible while daily work keeps moving.';
+    }
+    return `This is not a flaw to fix. It is a leadership pattern with a useful purpose that can become stronger when ${name} is practiced with intention.`;
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem('focusAreas');
     if (stored) {
@@ -121,7 +158,6 @@ function TraitSelection() {
     if (selectedTraits.length !== 3) {
       return;
     }
-    // Store selected traits and navigate to campaign builder
     localStorage.setItem('selectedTraits', JSON.stringify(selectedTraits));
     navigate('/campaign-builder');
   };
@@ -135,7 +171,26 @@ function TraitSelection() {
     const trailMarker = activeFocus ? buildTrailMarker(activeFocus) : '';
     const hazard = activeFocus ? buildHazard(activeFocus) : '';
     const impact = activeFocus ? buildImpactPreview(activeFocus) : '';
-
+    const positiveIntent = activeFocus ? buildPositiveIntent(activeFocus) : '';
+    const activeDefinition = compactText(
+      [activeFocus?.subTraitDefinition, positiveIntent].filter(Boolean).join(' '),
+      255
+    );
+    const signalText = compactText(trailMarker.replace(/^Likely team signal:\s*/i, ''), 118);
+    const hazardText = compactText(hazard, 118);
+    const impactText = compactText(impact, 118);
+    const contextBullets = [
+      compactText(signalText, 82),
+      `Look for this in ${String(activeFocus?.traitName || 'team behavior').toLowerCase()} moments.`,
+    ];
+    const riskBullets = [
+      compactText(hazardText, 82),
+      'This can quietly become a repeat pattern if it is not named.',
+    ];
+    const payoffBullets = [
+      compactText(impactText, 82),
+      'The team should feel more clarity, trust, or momentum quickly.',
+    ];
     const handleToggleActive = () => {
       if (!activeFocus) return;
       if (isActiveSelected) {
@@ -144,6 +199,224 @@ function TraitSelection() {
         setSelectedTraits((prev) => [...prev, activeFocus.id]);
       }
     };
+
+    const RightRail = hidden ? (
+      <Box
+        component="button"
+        type="button"
+        onClick={() => setHidden(false)}
+        aria-label={`Show ${persona.name} guide`}
+        sx={{
+          all: 'unset',
+          cursor: 'pointer',
+          position: 'fixed',
+          right: 0,
+          bottom: 32,
+          zIndex: 1200,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          padding: '10px 14px 10px 16px',
+          borderRadius: '14px 0 0 14px',
+          background: 'var(--navy-900, #10223C)',
+          color: 'var(--amber-soft, #F4CEA1)',
+          boxShadow: '0 12px 28px rgba(15,28,46,0.28)',
+          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          transition: 'transform 180ms cubic-bezier(.2,.8,.2,1)',
+          '&:hover': { transform: 'translateX(-3px)' },
+          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+        }}
+      >
+        <Box
+          component="img"
+          src={persona.poses.idle}
+          alt=""
+          aria-hidden
+          sx={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            objectFit: 'cover',
+            objectPosition: 'top center',
+            border: '2px solid var(--amber-soft, #F4CEA1)',
+            background: 'var(--navy-800, #162A44)',
+          }}
+        />
+        Guide
+      </Box>
+    ) : (
+      <Stack
+        spacing={1.5}
+        sx={{
+          position: 'fixed',
+          right: { md: 16, lg: 24 },
+          bottom: 0,
+          zIndex: 1100,
+          width: 'clamp(250px, 25vw, 350px)',
+          alignItems: 'stretch',
+          pointerEvents: 'none',
+        }}
+      >
+        <Box sx={{
+          position: 'relative',
+          bgcolor: isDark ? 'rgba(8,16,28,0.68)' : 'rgba(255,255,255,0.76)',
+          borderRadius: '18px',
+          border: isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
+          boxShadow: isDark ? '0 16px 42px rgba(0,0,0,0.34)' : '0 14px 32px rgba(15,28,46,0.08)',
+          p: 2.25,
+          pointerEvents: 'auto',
+          '&:after': {
+            content: '""',
+            position: 'absolute',
+            right: 78,
+            bottom: -10,
+            width: 18,
+            height: 18,
+            bgcolor: isDark ? 'rgba(8,16,28,0.68)' : 'rgba(255,255,255,0.76)',
+            borderRight: isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
+            borderBottom: isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
+            transform: 'rotate(45deg)',
+          },
+        }}>
+          <Box
+            component="button"
+            type="button"
+            onClick={toggleHidden}
+            aria-label="Hide guide"
+            sx={{
+              all: 'unset',
+              cursor: 'pointer',
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
+              fontFamily: '"Manrope", sans-serif',
+              fontSize: 14,
+              lineHeight: 1,
+              fontWeight: 600,
+              transition: 'background 140ms',
+              '&:hover': { background: isDark ? 'rgba(244,206,161,0.1)' : 'var(--sand-100, #F4ECDD)' },
+              '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+            }}
+          >
+            ×
+          </Box>
+          <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.64rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1.6 }}>
+            Guide notes
+          </Typography>
+          <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.95rem', lineHeight: 1.6, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1.8 }}>
+            "If you're drawn to all of them, start with the one that's been on your mind the longest."
+          </Typography>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', mb: 1 }}>
+            How to choose
+          </Typography>
+          {[
+            'Pick one area that feels immediately true.',
+            'Pick one your team would probably notice.',
+            'Pick one that would make the next 90 days easier.',
+          ].map((item, idx) => (
+            <Box key={item} sx={{ display: 'flex', gap: 1.1, mb: 1.35 }}>
+              <Box sx={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                bgcolor: idx < selectedTraits.length ? 'var(--orange, #E07A3F)' : isDark ? 'rgba(244,206,161,0.08)' : 'var(--sand-100, #F3EAD8)',
+                color: idx < selectedTraits.length ? '#fff' : isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                fontFamily: 'Georgia, serif',
+                fontWeight: 700,
+                fontSize: '0.72rem',
+              }}>
+                {idx + 1}
+              </Box>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', lineHeight: 1.5, color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' }}>
+                {item}
+              </Typography>
+            </Box>
+          ))}
+          <Box sx={{ mt: 1.6, pt: 1.5, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }}>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.85rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1 }}>
+            Your control point
+            </Typography>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', lineHeight: 1.55, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
+              You are choosing where to focus first. The campaign only moves forward after you confirm these three areas.
+            </Typography>
+          </Box>
+        </Box>
+        <Box
+          component="img"
+          src={persona.poses.think || persona.poses.idle}
+          alt={`${persona.name} guide`}
+          sx={{ width: '100%', height: 'auto', alignSelf: 'center', objectFit: 'contain', objectPosition: 'bottom right', pointerEvents: 'auto', cursor: 'pointer' }}
+          onClick={toggleHidden}
+          draggable={false}
+        />
+      </Stack>
+    );
+
+    const GuideRail = (
+      <CairnGuidePanel
+        persona={persona}
+        hidden={hidden}
+        setHidden={setHidden}
+        toggleHidden={toggleHidden}
+        isDark={isDark}
+        commentary="If you're drawn to all of them, start with the one that's been on your mind the longest."
+        owlPose={persona.poses.think || persona.poses.idle}
+      >
+        <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', mb: 1 }}>
+          How to choose
+        </Typography>
+        {[
+          'Pick one area that feels immediately true.',
+          'Pick one your team would probably notice.',
+          'Pick one that would make the next 90 days easier.',
+        ].map((item, idx) => (
+          <Box key={item} sx={{ display: 'flex', gap: 1.1, mb: 1.1 }}>
+            <Box sx={{
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              bgcolor: idx < selectedTraits.length ? 'var(--orange, #E07A3F)' : isDark ? 'rgba(244,206,161,0.08)' : 'var(--sand-100, #F3EAD8)',
+              color: idx < selectedTraits.length ? '#fff' : isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              fontFamily: 'Georgia, serif',
+              fontWeight: 700,
+              fontSize: '0.68rem',
+            }}>
+              {idx + 1}
+            </Box>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.45, color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' }}>
+              {item}
+            </Typography>
+          </Box>
+        ))}
+        <Box sx={{ mt: 1.4, pt: 1.35, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75 }}>
+            Your control point
+          </Typography>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.5, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
+            You are choosing where to focus first. The campaign only moves forward after you confirm these three areas.
+          </Typography>
+        </Box>
+      </CairnGuidePanel>
+    );
 
     const NavSidebar = (
       <Box sx={{
@@ -216,181 +489,211 @@ function TraitSelection() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={57} sidebar={NavSidebar}>
+        <CompassLayout progress={57} rightRail={GuideRail}>
           {loadError ? (
             <Alert severity="warning" sx={{ fontFamily: '"Manrope", sans-serif' }}>{loadError}</Alert>
           ) : activeFocus ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Context banner */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25 }}>
+              <Box sx={{ width: '100%', textAlign: 'center', maxWidth: 800, mx: 'auto', pb: 0.55 }}>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.85 }}>
+                  Chapter IV
+                </Typography>
+                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 900, fontSize: { xs: '1.52rem', md: '2rem' }, lineHeight: 1.05, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
+                  Leverage Points
+                </Typography>
+              </Box>
+
               <Box sx={{
-                borderRadius: '12px',
-                bgcolor: isDark ? 'rgba(224,122,63,0.08)' : 'rgba(224,122,63,0.06)',
-                border: '1px solid rgba(224,122,63,0.18)',
-                px: 2.5, py: 1.75,
-                display: 'flex', alignItems: 'flex-start', gap: 1.5,
+                bgcolor: isDark ? 'rgba(255,255,255,0.045)' : 'white',
+                borderRadius: '18px',
+                border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: isDark ? '0 8px 26px rgba(0,0,0,0.35)' : '0 8px 24px rgba(15,28,46,0.07)',
+                p: { xs: 1.6, md: 2 },
               }}>
-                <Box sx={{
-                  width: 22, height: 22, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)',
-                  flexShrink: 0, mt: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Typography sx={{ color: '#fff', fontSize: '0.65rem', fontWeight: 800, fontFamily: '"Manrope", sans-serif' }}>5</Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.3 }}>
-                    5 growth areas emerged from your profile
-                  </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.81rem', color: 'var(--ink-soft, #44566C)', mt: 0.3, lineHeight: 1.5 }}>
-                    Review each focus area, then choose the 3 that matter most to your leadership right now.
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Trait header */}
-              <Box>
-                <Typography sx={{
-                  fontFamily: '"Manrope", sans-serif', fontWeight: 700,
-                  fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: 'var(--orange, #E07A3F)', mb: 0.75,
-                }}>
-                  {activeFocus.traitName}
-                </Typography>
-                <Typography sx={{
-                  fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
-                  fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1,
-                  color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.5,
-                }}>
-                  {activeFocus.subTraitName}
-                </Typography>
-                {activeFocus.subTraitDefinition && (
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.6 }}>
-                    {activeFocus.subTraitDefinition}
-                  </Typography>
-                )}
-              </Box>
-
-              {/* What's at stake / What changes */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                <Box sx={{
-                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '12px',
-                  border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
-                  p: 2.5,
-                }}>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 1 }}>
-                    What's At Stake
-                  </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                    {hazard}
-                  </Typography>
-                </Box>
-                <Box sx={{
-                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '12px',
-                  border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
-                  p: 2.5,
-                }}>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--navy-500, #3F647B)', mb: 1 }}>
-                    What Changes
-                  </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.6, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                    {impact}
-                  </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: { xs: 0.9, md: 1.35 } }}>
+                  {focusAreas.map((area, idx) => {
+                    const active = idx === activeIndex;
+                    const selected = selectedTraits.includes(area.id);
+                    return (
+                      <Box
+                        key={area.id}
+                        component="button"
+                        type="button"
+                        onClick={() => setActiveIndex(idx)}
+                        sx={{
+                          all: 'unset',
+                          cursor: 'pointer',
+                          minWidth: 0,
+                          borderRadius: '15px',
+                          px: { xs: 0.65, md: 1 },
+                          py: { xs: 1.25, md: 1.55 },
+                          minHeight: { xs: 72, md: 84 },
+                          textAlign: 'center',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: selected
+                            ? 'var(--green, #2F855A)'
+                            : active ? isDark ? 'rgba(244,206,161,0.1)' : 'rgba(244,206,161,0.36)' : 'transparent',
+                          border: selected
+                            ? '1px solid rgba(47,133,90,0.72)'
+                            : active ? '1px solid rgba(224,122,63,0.38)' : '1px solid transparent',
+                          boxShadow: selected
+                            ? '0 8px 22px rgba(47,133,90,0.24)'
+                            : active ? '0 7px 18px rgba(224,122,63,0.12)' : 'none',
+                          transition: '160ms ease',
+                          '&:hover': {
+                            bgcolor: selected ? 'var(--green, #2F855A)' : isDark ? 'rgba(244,206,161,0.055)' : 'rgba(251,247,240,0.85)',
+                            transform: 'translateY(-1px)',
+                          },
+                          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+                        }}
+                      >
+                        <Typography sx={{
+                          fontFamily: '"Montserrat", sans-serif',
+                          fontWeight: active ? 900 : 800,
+                          fontSize: { xs: '0.76rem', md: '0.96rem' },
+                          lineHeight: 1.16,
+                          color: selected
+                            ? '#fff'
+                            : active ? isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' : isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}>
+                          {area.subTraitName}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
                 </Box>
               </Box>
 
-              {/* Trail marker quote */}
-              {trailMarker && (
-                <Box sx={{
-                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '12px',
-                  border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
-                  p: 2.5,
-                }}>
-                  <Typography sx={{
-                    fontFamily: 'Georgia, serif',
-                    fontSize: '1.05rem',
-                    lineHeight: 1.7,
-                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                    fontStyle: 'italic',
-                  }}>
-                    "{trailMarker}"
-                  </Typography>
-                </Box>
-              )}
-
-              {/* Action row */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 0.5, flexWrap: 'wrap', gap: 2 }}>
-                {/* Choose / unchoose this trail */}
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={handleToggleActive}
-                  disabled={!isActiveSelected && !canSelectMore}
-                  sx={{
-                    all: 'unset',
-                    cursor: (!isActiveSelected && !canSelectMore) ? 'default' : 'pointer',
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    px: '24px', py: '12px', borderRadius: 999,
-                    bgcolor: isActiveSelected ? 'var(--navy-900, #10223C)' : 'var(--orange, #E07A3F)',
-                    color: '#fff',
-                    fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.9rem',
-                    opacity: (!isActiveSelected && !canSelectMore) ? 0.4 : 1,
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.14)',
-                    transition: '180ms ease',
-                    '&:hover': (!isActiveSelected && !canSelectMore) ? {} : { transform: 'translateY(-1px)', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' },
-                    '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.48)', outlineOffset: 3 },
-                  }}
-                >
-                  {isActiveSelected ? '✓ Selected' : 'Choose This Trail'}
+              <Box sx={{
+                bgcolor: isDark ? 'rgba(255,255,255,0.045)' : 'white',
+                borderRadius: '18px',
+                border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.34)' : '0 10px 30px rgba(15,28,46,0.08)',
+                p: { xs: 2.25, md: 3 },
+              }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 2.1, alignItems: 'center', justifyItems: 'center', mb: 2.25 }}>
+                  <Box sx={{ minWidth: 0, maxWidth: 760, textAlign: 'center' }}>
+                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.74rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.8 }}>
+                      {activeFocus.traitName}
+                    </Typography>
+                    <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 900, fontSize: { xs: '1.48rem', md: '1.9rem' }, lineHeight: 1.08, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1.05 }}>
+                      {activeFocus.subTraitName}
+                    </Typography>
+                    <Typography sx={{
+                      fontFamily: '"Manrope", sans-serif',
+                      fontSize: { xs: '0.93rem', md: '1rem' },
+                      lineHeight: 1.6,
+                      color: isDark ? 'rgba(240,233,222,0.7)' : 'var(--ink-soft, #44566C)',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}>
+                      {activeDefinition}
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: { xs: 1.15, md: 1.6 } }}>
+                  {[
+                    { icon: Lightbulb, label: 'Context', bullets: contextBullets, accent: 'var(--orange, #E07A3F)' },
+                    { icon: Warning, label: 'Risks', bullets: riskBullets, accent: '#C0612A' },
+                    { icon: TrendingUp, label: 'Payoff', bullets: payoffBullets, accent: 'var(--navy-500, #3F647B)' },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Box key={item.label} sx={{
+                        borderRadius: '15px',
+                        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+                        bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(251,247,240,0.68)',
+                        p: { xs: 1.45, md: 1.8 },
+                        minHeight: { xs: 150, md: 168 },
+                        textAlign: 'center',
+                      }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.85, mb: 1.1 }}>
+                          <Icon sx={{ fontSize: 20, color: item.accent, flexShrink: 0 }} />
+                          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 900, fontSize: { xs: '0.68rem', md: '0.78rem' }, letterSpacing: '0.08em', textTransform: 'uppercase', color: item.accent }}>
+                            {item.label}
+                          </Typography>
+                        </Box>
+                        <Box sx={{
+                          m: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'stretch',
+                        }}>
+                          {item.bullets.map((bullet, bulletIdx) => (
+                            <Box key={bullet} sx={{
+                              pt: bulletIdx === 0 ? 0 : 0.9,
+                              mt: bulletIdx === 0 ? 0 : 0.9,
+                              borderTop: bulletIdx === 0 ? 'none' : isDark ? '1px solid rgba(244,206,161,0.1)' : '1px solid rgba(200,184,154,0.58)',
+                            }}>
+                              <Typography sx={{
+                                fontFamily: '"Manrope", sans-serif',
+                                fontSize: { xs: '0.76rem', md: '0.86rem' },
+                                lineHeight: 1.46,
+                                color: isDark ? 'rgba(240,233,222,0.8)' : 'var(--navy-900, #10223C)',
+                                textAlign: 'center',
+                              }}>
+                                {bullet}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75, mt: 2.2 }}>
                   <Box
                     component="button"
                     type="button"
-                    onClick={() => navigate('/summary')}
+                    onClick={handleToggleActive}
+                    disabled={!isActiveSelected && !canSelectMore}
                     sx={{
-                      all: 'unset', cursor: 'pointer',
-                      fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem',
-                      color: 'var(--ink-soft, #44566C)',
-                      display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      '&:hover': { color: 'var(--navy-900, #10223C)' },
+                      all: 'unset',
+                      cursor: (!isActiveSelected && !canSelectMore) ? 'default' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: 220,
+                      px: '28px',
+                      py: '12px',
+                      borderRadius: 999,
+                      bgcolor: isActiveSelected ? 'var(--green, #2F855A)' : 'var(--orange, #E07A3F)',
+                      color: '#fff',
+                      fontFamily: '"Montserrat", sans-serif',
+                      fontWeight: 900,
+                      fontSize: '0.88rem',
+                      opacity: (!isActiveSelected && !canSelectMore) ? 0.42 : 1,
+                      boxShadow: isActiveSelected ? '0 8px 24px rgba(47,133,90,0.26)' : '0 8px 24px rgba(224,122,63,0.24)',
+                      transition: '180ms ease',
+                      '&:hover': (!isActiveSelected && !canSelectMore) ? {} : { transform: 'translateY(-1px)' },
+                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.48)', outlineOffset: 3 },
                     }}
                   >
-                    ← Summary
+                    {isActiveSelected ? 'Trait Selected' : 'Choose This Trait'}
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
-                    {selectedTraits.length === 3 && (
-                      <Typography sx={{
-                        fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.82rem',
-                        color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
-                        textAlign: 'right',
-                      }}>
-                        Your trail is set. Time to build.
-                      </Typography>
-                    )}
-                    <Box
-                      component="button"
-                      type="button"
-                      onClick={handleContinue}
-                      disabled={selectedTraits.length !== 3}
-                      sx={{
-                        all: 'unset',
-                        cursor: selectedTraits.length === 3 ? 'pointer' : 'default',
-                        display: 'inline-flex', alignItems: 'center', gap: '8px',
-                        px: '20px', py: '10px', borderRadius: 999,
-                        bgcolor: selectedTraits.length === 3 ? 'var(--navy-900, #10223C)' : 'var(--sand-200, #E8DBC3)',
-                        color: selectedTraits.length === 3 ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
-                        fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
-                        boxShadow: selectedTraits.length === 3 ? '0 6px 22px rgba(16,34,60,0.25)' : 'none',
-                        transition: '180ms ease',
-                        animation: selectedTraits.length === 3 ? 'cairnOptionSelect 400ms cubic-bezier(0.2,0.8,0.2,1) forwards' : 'none',
-                        '&:hover': selectedTraits.length === 3 ? { transform: 'translateY(-2px)', boxShadow: '0 10px 30px rgba(16,34,60,0.32)' } : {},
-                        '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
-                      }}
-                    >
-                      {selectedTraits.length === 3 ? 'Launch Campaign →' : 'Build Campaign →'}
-                    </Box>
-                  </Box>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', fontWeight: 900, color: selectedTraits.length === 3 ? 'var(--orange, #E07A3F)' : isDark ? 'rgba(240,233,222,0.58)' : 'var(--ink-soft, #44566C)', textAlign: 'center' }}>
+                    {selectedTraits.length}/3 selected
+                  </Typography>
                 </Box>
               </Box>
+
+              <CairnFlowButtons
+                isDark={isDark}
+                backLabel="Summary"
+                nextLabel="Campaign Builder"
+                onBack={() => navigate('/summary')}
+                onNext={handleContinue}
+                nextDisabled={selectedTraits.length !== 3}
+              />
             </Box>
           ) : (
             <Box sx={{

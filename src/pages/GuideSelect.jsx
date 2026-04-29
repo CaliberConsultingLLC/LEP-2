@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { GUIDE_PERSONAS } from '../data/guidePersonas';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 const ROMAN = ['I', 'II', 'III'];
 
@@ -11,13 +12,14 @@ function GuideSelect() {
   const navigate = useNavigate();
   const { personaId, setPersona } = useGuide();
   const [hovered, setHovered] = useState(null);
+  const [isDark] = useDarkMode();
 
   const handleSelect = (id) => setPersona(id);
 
   const handleBegin = () => navigate('/form');
 
   return (
-    <Box sx={{ minHeight: '100svh', bgcolor: 'var(--sand-50, #FBF7F0)', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
+    <Box sx={{ minHeight: '100svh', maxHeight: '100svh', bgcolor: 'var(--sand-50, #FBF7F0)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <ProcessTopRail />
 
       {/* Hero section */}
@@ -27,19 +29,19 @@ function GuideSelect() {
         flexDirection: 'column',
         alignItems: 'center',
         px: { xs: 2, md: 4 },
-        pt: { xs: 5, md: 7 },
-        pb: 6,
+        pt: { xs: 2.5, md: 3 },
+        pb: { xs: 2, md: 2.5 },
       }}>
 
         {/* Overline */}
         <Typography sx={{
           fontFamily: '"Manrope", sans-serif',
           fontWeight: 700,
-          fontSize: '0.72rem',
+          fontSize: '0.68rem',
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           color: 'var(--orange, #E07A3F)',
-          mb: 1.5,
+          mb: 0.75,
         }}>
           Your Guide
         </Typography>
@@ -48,23 +50,23 @@ function GuideSelect() {
         <Typography sx={{
           fontFamily: '"Montserrat", sans-serif',
           fontWeight: 800,
-          fontSize: { xs: '2.2rem', md: '3rem' },
+          fontSize: { xs: '1.75rem', md: '2.2rem' },
           lineHeight: 1.1,
-          color: 'var(--navy-900, #10223C)',
+          color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
           textAlign: 'center',
-          mb: 1.5,
+          mb: 0.75,
         }}>
           Who walks with you matters.
         </Typography>
 
         <Typography sx={{
           fontFamily: '"Manrope", sans-serif',
-          fontSize: { xs: '1rem', md: '1.1rem' },
-          color: 'var(--ink-soft, #44566C)',
+          fontSize: { xs: '0.88rem', md: '0.95rem' },
+          color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)',
           textAlign: 'center',
-          maxWidth: 520,
-          lineHeight: 1.7,
-          mb: { xs: 4, md: 5.5 },
+          maxWidth: 560,
+          lineHeight: 1.55,
+          mb: { xs: 2, md: 2.4 },
         }}>
           Your guide shapes how your insights are delivered and the tone of your
           entire leadership journey. Choose the voice that fits you.
@@ -74,10 +76,10 @@ function GuideSelect() {
         <Box sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-          gap: { xs: 2.5, md: 3 },
+          gap: { xs: 1.5, md: 2 },
           width: '100%',
-          maxWidth: 980,
-          mb: { xs: 4, md: 5.5 },
+          maxWidth: 920,
+          mb: { xs: 2, md: 2.4 },
         }}>
           {GUIDE_PERSONAS.map((persona, idx) => {
             const isSelected = personaId === persona.id;
@@ -97,14 +99,14 @@ function GuideSelect() {
                   display: 'flex',
                   flexDirection: 'column',
                   borderRadius: '20px',
-                  border: `2px solid ${isSelected ? persona.accent : 'var(--sand-200, #E8DBC3)'}`,
-                  bgcolor: isSelected ? '#fff' : 'rgba(255,255,255,0.7)',
+                  border: `2px solid ${isSelected ? persona.accent : isDark ? 'rgba(244,206,161,0.14)' : 'var(--sand-200, #E8DBC3)'}`,
+                  bgcolor: isSelected ? isDark ? 'rgba(255,255,255,0.06)' : '#fff' : isDark ? 'rgba(255,255,255,0.035)' : 'rgba(255,255,255,0.7)',
                   boxShadow: isSelected
                     ? `0 20px 56px ${persona.accent}38`
                     : isHovered
-                    ? '0 12px 32px rgba(0,0,0,0.10)'
-                    : '0 4px 16px rgba(0,0,0,0.05)',
-                  transform: isSelected ? 'translateY(-8px)' : isHovered ? 'translateY(-4px)' : 'none',
+                    ? '0 12px 32px rgba(0,0,0,0.18)'
+                    : isDark ? '0 4px 18px rgba(0,0,0,0.22)' : '0 4px 16px rgba(0,0,0,0.05)',
+                  transform: isSelected ? 'translateY(-5px)' : isHovered ? 'translateY(-2px)' : 'none',
                   transition: 'all 300ms cubic-bezier(.2,.8,.2,1)',
                   overflow: 'hidden',
                   textAlign: 'left',
@@ -119,7 +121,7 @@ function GuideSelect() {
 
                 {/* Image area */}
                 <Box sx={{
-                  height: 230,
+                  height: { xs: 150, md: 176 },
                   display: 'flex',
                   alignItems: 'flex-end',
                   justifyContent: 'center',
@@ -155,18 +157,19 @@ function GuideSelect() {
                     component="img"
                     src={persona.poses.greet || persona.poses.idle}
                     alt={persona.name}
-                    sx={{ height: 205, objectFit: 'contain', objectPosition: 'bottom', display: 'block' }}
+                    sx={{ height: { xs: 138, md: 162 }, objectFit: 'contain', objectPosition: 'bottom', display: 'block' }}
                   />
                 </Box>
 
                 {/* Text content */}
-                <Box sx={{ p: '20px 24px 16px', flex: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                <Box sx={{ p: { xs: '14px 16px 10px', md: '16px 18px 10px' }, flex: 1, display: 'flex', flexDirection: 'column', gap: 0.45 }}>
                   <Typography sx={{
                     fontFamily: '"Montserrat", sans-serif',
                     fontWeight: 800,
-                    fontSize: '1.45rem',
+                    fontSize: { xs: '1.12rem', md: '1.28rem' },
                     lineHeight: 1.1,
-                    color: 'var(--navy-900, #10223C)',
+                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+                    textAlign: 'center',
                   }}>
                     {persona.name}
                   </Typography>
@@ -174,29 +177,31 @@ function GuideSelect() {
                   <Typography sx={{
                     fontFamily: '"Manrope", sans-serif',
                     fontWeight: 600,
-                    fontSize: '0.85rem',
+                    fontSize: '0.76rem',
                     color: persona.accent,
                     fontStyle: 'italic',
-                    lineHeight: 1.4,
+                    lineHeight: 1.35,
+                    textAlign: 'center',
                   }}>
                     {persona.tagline}
                   </Typography>
 
                   <Typography sx={{
                     fontFamily: '"Manrope", sans-serif',
-                    fontSize: '0.875rem',
-                    color: 'var(--ink-soft, #44566C)',
-                    lineHeight: 1.65,
-                    mt: 0.5,
+                    fontSize: '0.76rem',
+                    color: isDark ? 'rgba(240,233,222,0.58)' : 'var(--ink-soft, #44566C)',
+                    lineHeight: 1.45,
+                    mt: 0.2,
+                    textAlign: 'center',
                   }}>
                     {persona.voice}
                   </Typography>
                 </Box>
 
                 {/* Selection pill */}
-                <Box sx={{ px: 3, pb: 3, pt: 1 }}>
+                <Box sx={{ px: 2, pb: 1.6, pt: 0.6 }}>
                   <Box sx={{
-                    height: 40,
+                    height: 34,
                     borderRadius: 999,
                     display: 'flex',
                     alignItems: 'center',
@@ -238,14 +243,14 @@ function GuideSelect() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '10px',
-              px: '48px',
-              py: '18px',
+              px: '36px',
+              py: '12px',
               borderRadius: 999,
               bgcolor: 'var(--navy-900, #10223C)',
               color: 'var(--amber-soft, #F4CEA1)',
               fontFamily: '"Montserrat", sans-serif',
               fontWeight: 800,
-              fontSize: '1.05rem',
+              fontSize: '0.94rem',
               letterSpacing: '0.02em',
               boxShadow: '0 10px 32px rgba(16,34,60,0.28)',
               transition: 'all 220ms ease',
@@ -266,8 +271,8 @@ function GuideSelect() {
 
           <Typography sx={{
             fontFamily: '"Manrope", sans-serif',
-            fontSize: '0.8rem',
-            color: 'var(--ink-soft, #44566C)',
+            fontSize: '0.74rem',
+            color: isDark ? 'rgba(240,233,222,0.5)' : 'var(--ink-soft, #44566C)',
             opacity: 0.7,
           }}>
             You can change your guide at any time during the process.

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const LS_KEY = 'cairn_dark_mode';
+const DARK_MODE_EVENT = 'cairn-dark-mode-change';
 
 export function useDarkMode() {
   const [isDark, setIsDark] = useState(() => localStorage.getItem(LS_KEY) === 'true');
@@ -13,10 +14,21 @@ export function useDarkMode() {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    const sync = () => setIsDark(localStorage.getItem(LS_KEY) === 'true');
+    window.addEventListener('storage', sync);
+    window.addEventListener(DARK_MODE_EVENT, sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener(DARK_MODE_EVENT, sync);
+    };
+  }, []);
+
   const toggle = useCallback(() => {
     setIsDark((prev) => {
       const next = !prev;
       localStorage.setItem(LS_KEY, String(next));
+      window.dispatchEvent(new Event(DARK_MODE_EVENT));
       return next;
     });
   }, []);

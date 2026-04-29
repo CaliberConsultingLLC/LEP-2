@@ -566,6 +566,7 @@ function IntakeForm() {
   const isStagingRuntime =
     stagingHost.includes('staging.northstarpartners.org') ||
     stagingHost.includes('compass-staging');
+  const allowStagingPersistenceBypass = useCairnTheme || isStagingRuntime;
 
   const handleCustomAnswerSubmit = () => {
     if (customAnswerText.trim()) {
@@ -1145,7 +1146,7 @@ function IntakeForm() {
         const code = String(persistErr?.code || '').toLowerCase();
         const message = String(persistErr?.message || '').toLowerCase();
         const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
-        if (isStagingRuntime && isPermissionErr) {
+        if (allowStagingPersistenceBypass && isPermissionErr) {
           console.warn('[IntakeForm] Draft autosave bypassed Firestore permission error.');
           setAutosaveStatus({
             state: 'saved',
@@ -1174,7 +1175,7 @@ function IntakeForm() {
     reflectionText,
     societalQuestionIndex,
     totalSteps,
-    isStagingRuntime,
+    allowStagingPersistenceBypass,
   ]);
 
 
@@ -1365,7 +1366,7 @@ function IntakeForm() {
         const code = String(persistErr?.code || '').toLowerCase();
         const message = String(persistErr?.message || '').toLowerCase();
         const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
-        if (!(isStagingRuntime && isPermissionErr)) {
+        if (!(allowStagingPersistenceBypass && isPermissionErr)) {
           throw persistErr;
         }
         console.warn('[IntakeForm] Staging submit bypassed Firestore permission error.');
@@ -1826,7 +1827,7 @@ function IntakeForm() {
                                         textAlign: 'center',
                                       }}
                                     >
-                                    {q.id !== 'crisisResponse' && (
+                                    {!['crisisResponse', 'leaderFuel'].includes(q.id) && (
                                       <Box
                                         sx={{
                                           mr: 1.5,

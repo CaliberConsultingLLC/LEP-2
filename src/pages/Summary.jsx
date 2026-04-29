@@ -12,6 +12,7 @@ import {
   Paper,
   Divider,
   Menu,
+  Tooltip,
 } from '@mui/material';
 import { Warning, Lightbulb, CheckCircle, TrendingUp, AltRoute, OutlinedFlag, WrongLocationOutlined, ReportProblemOutlined } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -19,8 +20,12 @@ import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import CairnGuidePanel from '../components/CairnGuidePanel';
+import CairnProcessStepper from '../components/CairnProcessStepper';
+import CairnFlowButtons from '../components/CairnFlowButtons';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
 import { auth, db } from '../firebase';
@@ -46,6 +51,13 @@ function Summary() {
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
+  const { persona, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    setSuppress(true);
+    return () => setSuppress(false);
+  }, [setSuppress, useCairnTheme]);
 
   const persistSummaryCache = async ({ data, agentId, text, areas }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
@@ -734,7 +746,28 @@ function Summary() {
   // ── Cairn theme render ──────────────────────────────────────────────────────
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV'];
-    const activeStage = journeyStages[activeJourneyStep] || journeyStages[0];
+    const cairnJourneyStages = journeyStages.map((stage) => {
+      if (stage.id === 'trailhead') {
+        return { ...stage, label: 'Trailhead', title: 'Reflecting on Current Reality', subtitle: 'Mirror The Current Signal', icon: OutlinedFlag };
+      }
+      if (stage.id === 'markers') {
+        return { ...stage, label: 'Trail Markers', title: 'Noticing Patterns', subtitle: 'Notice The Recurring Moments', icon: AltRoute };
+      }
+      if (stage.id === 'hazards') {
+        return {
+          ...stage,
+          label: 'Future Hazards',
+          title: 'Understanding the Cost',
+          subtitle: 'What This May Cost If Left Unmanaged',
+          icon: ReportProblemOutlined,
+        };
+      }
+      if (stage.id === 'new-trail') {
+        return { ...stage, label: 'A New Trail', title: 'Pivoting Towards Growth', subtitle: 'Choose Where To Build Forward', icon: TrendingUp };
+      }
+      return stage;
+    });
+    const activeStage = cairnJourneyStages[activeJourneyStep] || cairnJourneyStages[0];
 
     // Read guide persona for sidebar footer
     let guideName = 'Mentor';
@@ -745,12 +778,63 @@ function Summary() {
 
     const firstName = userName ? userName.split(' ')[0] : '';
 
-    const stageFraming = [
-      "These are the instincts that have driven your leadership — for better and for worse. Read without judgment.",
-      "Patterns don't lie. These behavioral signatures show up in how others experience you, often before you see them yourself.",
-      "Growth edges aren't failures. They're the specific places where, left unaddressed, your impact quietly shrinks.",
-      "This is the pivot point. What you choose to build next will define the leader others encounter going forward.",
+    const stageDefinitions = [
+      ['Reflecting on Current Reality', 'A current-state mirror of what may be shaping your leadership right now.'],
+      ['Noticing Patterns', 'Recurring signals that may become visible to others when pressure rises.'],
+      ['Understanding the Cost', 'Possible consequences to watch for, not fixed outcomes or labels.'],
+      ['Pivoting Towards Growth', 'Leverage points you can choose from, not flaws you need to fix all at once.'],
     ];
+    const sectionGuidance = {
+      trailhead: 'Read this reflection slowly as a current-state mirror. Notice what feels true, what feels incomplete, and where your first reaction may be pointing toward the most important leadership work.',
+      markers: 'Use these markers as practical examples to watch for in normal leadership moments. Look for repeated signals in meetings, decisions, communication patterns, and moments when pressure rises.',
+      hazards: 'Treat these hazards as preventable future costs, not fixed predictions. They are meant to help you see what may happen if the underlying pattern keeps repeating.',
+      'new-trail': 'Review these leverage points as possible places to build forward. Choose the shifts that would create the clearest benefit for your team right now.',
+    };
+    const buildMarkerBullets = () => {
+      const source = focusAreas.length ? focusAreas : [];
+      return source.slice(0, 5).map((area) => (
+        `${area.subTraitName}: watch for moments when ${String(area.example || area.subTraitDefinition || 'this pattern shows up in team communication').replace(/\.$/, '').toLowerCase()}.`
+      ));
+    };
+    const buildHazardBullets = () => {
+      const source = focusAreas.length ? focusAreas : [];
+      return source.slice(0, 5).map((area) => (
+        `${area.subTraitName}: if this remains unaddressed, ${String(area.risk || 'lower clarity, weaker trust, or slower execution').replace(/\.$/, '').toLowerCase()}.`
+      ));
+    };
+    const getBackTarget = () => {
+      if (activeJourneyStep === 0) return { label: 'Assessment', action: () => navigate('/intake') };
+      return { label: cairnJourneyStages[activeJourneyStep - 1]?.label || 'Back', action: () => setActiveJourneyStep((s) => Math.max(0, s - 1)) };
+    };
+    const getNextTarget = () => {
+      if (activeJourneyStep === cairnJourneyStages.length - 1) return { label: 'Leverage Points', action: () => navigate('/trait-selection') };
+      return { label: cairnJourneyStages[activeJourneyStep + 1]?.label || 'Next', action: () => setActiveJourneyStep((s) => Math.min(cairnJourneyStages.length - 1, s + 1)) };
+    };
+    const backTarget = getBackTarget();
+    const nextTarget = getNextTarget();
+
+    const RightRail = (
+      <CairnGuidePanel
+        persona={persona}
+        hidden={hidden}
+        setHidden={setHidden}
+        toggleHidden={toggleHidden}
+        isDark={isDark}
+        commentary={`${firstName || 'Alex'}, read your following summary slowly. Notice what resonates and what chafes - both are meaningful. Remember, this is not a label, score, or diagnosis. It's a reflection that will prove valuable.`}
+        owlPose={persona.poses.idle}
+      >
+        {stageDefinitions.map(([title, body]) => (
+          <Box key={title} sx={{ mb: 1.15 }}>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.76rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1.3 }}>
+              {title}
+            </Typography>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', lineHeight: 1.45, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
+              {body}
+            </Typography>
+          </Box>
+        ))}
+      </CairnGuidePanel>
+    );
 
     const NavSidebar = (
       <Box sx={{
@@ -762,7 +846,7 @@ function Summary() {
         position: 'sticky',
         top: 96,
       }}>
-        {journeyStages.map((stage, idx) => {
+        {cairnJourneyStages.map((stage, idx) => {
           const active = idx === activeJourneyStep;
           return (
             <Box
@@ -814,7 +898,7 @@ function Summary() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail titleOverride="Leadership Reflection" />
-        <CompassLayout progress={43} sidebar={NavSidebar}>
+        <CompassLayout progress={43} rightRail={RightRail}>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -822,83 +906,25 @@ function Summary() {
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
 
-              {/* Personalized hero — stage 0 only */}
-              {activeJourneyStep === 0 && firstName && (
-                <Box sx={{
-                  borderRadius: '14px',
-                  background: isDark
-                    ? 'linear-gradient(135deg, rgba(224,122,63,0.13) 0%, rgba(16,34,60,0.55) 100%)'
-                    : 'linear-gradient(135deg, #FFF8F2 0%, #FDF4E7 100%)',
-                  border: isDark ? '1px solid rgba(224,122,63,0.22)' : '1px solid rgba(224,122,63,0.2)',
-                  px: { xs: 2.5, md: 3 }, py: 2.5,
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2,
-                  overflow: 'hidden',
-                }}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{
-                      fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem',
-                      letterSpacing: '0.16em', textTransform: 'uppercase',
-                      color: 'var(--orange-deep, #C0612A)', mb: 1,
-                    }}>
-                      Your Leadership Portrait
-                    </Typography>
-                    <Typography sx={{
-                      fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
-                      fontSize: { xs: '1.35rem', md: '1.6rem' }, lineHeight: 1.2,
-                      color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1,
-                    }}>
-                      {firstName}, your data reveals something worth naming.
-                    </Typography>
-                    <Typography sx={{
-                      fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.65,
-                      color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
-                    }}>
-                      Work through each section below. Some of what follows may be uncomfortable — that's precisely where the growth is.
-                    </Typography>
-                  </Box>
-                  <Box
-                    component="img"
-                    src="/compasslogo2.png"
-                    alt=""
-                    sx={{
-                      width: { xs: 90, md: 130 },
-                      height: { xs: 90, md: 130 },
-                      objectFit: 'contain',
-                      flexShrink: 0,
-                      opacity: isDark ? 0.92 : 0.72,
-                      filter: isDark ? 'none' : 'saturate(0.85) brightness(1.05)',
-                    }}
-                  />
-                </Box>
-              )}
-
               {/* Stage header */}
-              <Box>
-                <Typography sx={{
-                  fontFamily: '"JetBrains Mono", monospace', fontWeight: 700,
-                  fontSize: '0.68rem', letterSpacing: '0.16em', textTransform: 'uppercase',
-                  color: 'var(--orange-deep, #C0612A)', mb: 0.75,
-                }}>
-                  {activeStage.label}
-                </Typography>
+              <Box sx={{ textAlign: 'center', maxWidth: 760, mx: 'auto' }}>
                 <Typography sx={{
                   fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
                   fontSize: { xs: '1.9rem', md: '2.35rem' }, lineHeight: 1.08,
                   color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75,
                 }}>
+                  {activeStage.label}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: '"Manrope", sans-serif',
+                  fontWeight: 700,
+                  fontSize: '0.92rem',
+                  color: isDark ? 'rgba(244,206,161,0.72)' : 'var(--orange-deep, #C0612A)',
+                  lineHeight: 1.45,
+                }}>
                   {activeStage.title}
                 </Typography>
               </Box>
-
-              {/* Emotional stage framing */}
-              <Typography sx={{
-                fontFamily: 'Georgia, serif', fontStyle: 'italic',
-                fontSize: '0.95rem', lineHeight: 1.65,
-                color: isDark ? 'rgba(240,233,222,0.58)' : 'var(--ink-soft, #44566C)',
-                mt: -1,
-              }}>
-                {stageFraming[activeJourneyStep]}
-              </Typography>
 
               {/* Content card */}
               <Box sx={{
@@ -908,34 +934,131 @@ function Summary() {
                 p: { xs: 2.5, md: 3.5 },
                 minHeight: 220,
               }}>
-                {activeStage.text ? (
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 2, md: 3 } }}>
-                    <Box
-                      component="img"
-                      src="/compasslogo2.png"
-                      alt=""
-                      sx={{
-                        width: { xs: 44, md: 56 },
-                        height: { xs: 44, md: 56 },
-                        objectFit: 'contain',
-                        flexShrink: 0,
-                        opacity: isDark ? 0.72 : 0.52,
-                        borderRadius: '50%',
-                        border: isDark ? '1px solid rgba(244,206,161,0.18)' : '1px solid var(--sand-200, #E8DBC3)',
-                        p: '6px',
-                        mt: '2px',
-                      }}
-                    />
+                <CairnProcessStepper
+                  steps={cairnJourneyStages.map((stage) => ({
+                    id: stage.id,
+                    label: stage.label,
+                    icon: stage.icon,
+                  }))}
+                  activeIndex={activeJourneyStep}
+                  onStepChange={setActiveJourneyStep}
+                  isDark={isDark}
+                  fixedCircleSize
+                  connectorVariant="journey"
+                />
+                <Box sx={{
+                  borderRadius: '14px',
+                  bgcolor: isDark ? 'rgba(224,122,63,0.08)' : 'rgba(224,122,63,0.07)',
+                  border: '1px solid rgba(224,122,63,0.18)',
+                  px: { xs: 1.75, md: 2.25 },
+                  py: { xs: 1.45, md: 1.65 },
+                  mx: 'auto',
+                  mt: { xs: 2.25, md: 2.75 },
+                  width: '100%',
+                  maxWidth: 760,
+                }}>
+                  <Typography sx={{
+                    fontFamily: '"Manrope", sans-serif',
+                    fontSize: '0.88rem',
+                    lineHeight: 1.6,
+                    textAlign: 'center',
+                    color: isDark ? 'rgba(240,233,222,0.76)' : 'var(--ink-soft, #44566C)',
+                  }}>
+                    {sectionGuidance[activeStage.id]}
+                  </Typography>
+                </Box>
+                <Box sx={{ my: { xs: 2.25, md: 3 }, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }} />
+                {activeStage.id === 'new-trail' && focusAreas.length > 0 ? (
+                  <Stack spacing={2.2}>
+                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.92rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', textAlign: 'center' }}>
+                      Five leverage points emerged from your reflection:
+                    </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(5, minmax(0, 1fr))' }, gap: 1.25 }}>
+                      {focusAreas.map((fa, idx) => (
+                        <Tooltip key={fa.id || idx} title={fa.subTraitDefinition || fa.traitDefinition || ''} arrow placement="top">
+                          <Box sx={{
+                            borderRadius: '14px',
+                            border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+                            bgcolor: isDark ? 'rgba(244,206,161,0.05)' : 'rgba(251,247,240,0.78)',
+                            p: 1.6,
+                            minHeight: 108,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                          }}>
+                          <Box>
+                            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.9rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.25, textAlign: 'center' }}>
+                              {fa.subTraitName}
+                            </Typography>
+                            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.74rem', color: isDark ? 'rgba(240,233,222,0.6)' : 'var(--ink-soft, #44566C)', lineHeight: 1.4, mt: 0.35, textAlign: 'center' }}>
+                              {fa.traitName}
+                            </Typography>
+                          </Box>
+                          </Box>
+                        </Tooltip>
+                      ))}
+                    </Box>
+                  </Stack>
+                ) : activeStage.id === 'markers' ? (
+                  <Box component="ul" sx={{
+                    m: 0,
+                    pl: { xs: 2.4, md: 3 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.15,
+                    maxWidth: 760,
+                    mx: 'auto',
+                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+                    '& li::marker': { color: 'var(--orange, #E07A3F)' },
+                  }}>
+                    {buildMarkerBullets().map((item) => (
+                      <Typography key={item} component="li" sx={{
+                        fontFamily: '"Manrope", sans-serif',
+                        fontSize: '0.92rem',
+                        lineHeight: 1.68,
+                        color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+                        textAlign: 'left',
+                      }}>
+                        {item}
+                      </Typography>
+                    ))}
+                  </Box>
+                ) : activeStage.id === 'hazards' ? (
+                  <Box component="ul" sx={{
+                    m: 0,
+                    pl: { xs: 2.4, md: 3 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.15,
+                    maxWidth: 760,
+                    mx: 'auto',
+                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+                    '& li::marker': { color: 'var(--orange, #E07A3F)' },
+                  }}>
+                    {buildHazardBullets().map((item) => (
+                      <Typography key={item} component="li" sx={{
+                        fontFamily: '"Manrope", sans-serif',
+                        fontSize: '0.92rem',
+                        lineHeight: 1.68,
+                        color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+                        textAlign: 'left',
+                      }}>
+                        {item}
+                      </Typography>
+                    ))}
+                  </Box>
+                ) : activeStage.text ? (
                     <Typography sx={{
-                      fontFamily: 'Georgia, serif',
-                      fontSize: { xs: '1rem', md: '1.08rem' },
-                      lineHeight: 1.78,
+                      fontFamily: '"Manrope", sans-serif',
+                      fontSize: { xs: '1rem', md: '1.04rem' },
+                      lineHeight: 1.75,
                       color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                      fontStyle: 'italic',
+                      fontStyle: 'normal',
+                      textAlign: 'center',
                     }}>
                       {renderParagraphWithTooltips(activeStage.text)}
                     </Typography>
-                  </Box>
                 ) : (
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
                     Generating your summary…
@@ -943,107 +1066,14 @@ function Summary() {
                 )}
               </Box>
 
-              {/* Focus area bridge — stage 3 (A New Trail) */}
-              {activeJourneyStep === 3 && focusAreas.length > 0 && (
-                <Box sx={{
-                  borderRadius: '14px',
-                  bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'var(--sand-100, #F3EAD8)',
-                  border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-                  px: { xs: 2, md: 2.5 }, py: 2,
-                }}>
-                  <Typography sx={{
-                    fontFamily: '"JetBrains Mono", monospace', fontSize: '0.65rem',
-                    letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: 'var(--orange-deep, #C0612A)', mb: 1.25,
-                  }}>
-                    Your 5 Growth Pathways
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
-                    {focusAreas.map((fa, idx) => (
-                      <Box key={fa.id || idx} sx={{
-                        px: 1.5, py: 0.6, borderRadius: 999,
-                        bgcolor: isDark ? 'rgba(224,122,63,0.12)' : 'rgba(224,122,63,0.1)',
-                        border: '1px solid rgba(224,122,63,0.22)',
-                        fontFamily: '"Manrope", sans-serif', fontWeight: 600,
-                        fontSize: '0.82rem',
-                        color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
-                      }}>
-                        {fa.subTraitName}
-                      </Box>
-                    ))}
-                  </Box>
-                  <Typography sx={{
-                    fontFamily: '"Manrope", sans-serif', fontSize: '0.83rem', lineHeight: 1.55,
-                    color: isDark ? 'rgba(240,233,222,0.6)' : 'var(--ink-soft, #44566C)',
-                  }}>
-                    You'll choose 3 to shape your leadership campaign — the ones that matter most right now.
-                  </Typography>
-                </Box>
-              )}
+              <CairnFlowButtons
+                isDark={isDark}
+                backLabel={backTarget.label}
+                nextLabel={nextTarget.label}
+                onBack={backTarget.action}
+                onNext={nextTarget.action}
+              />
 
-              {/* Stage nav dots + CTA */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 0.5 }}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  {journeyStages.map((_, idx) => (
-                    <Box
-                      key={idx}
-                      component="button"
-                      type="button"
-                      onClick={() => setActiveJourneyStep(idx)}
-                      sx={{
-                        all: 'unset', cursor: 'pointer',
-                        width: idx === activeJourneyStep ? 28 : 8,
-                        height: 8, borderRadius: 999,
-                        bgcolor: idx === activeJourneyStep ? 'var(--orange, #E07A3F)' : idx < activeJourneyStep ? 'var(--navy-900, #10223C)' : 'var(--sand-200, #E8DBC3)',
-                        transition: 'all 300ms cubic-bezier(.2,.8,.2,1)',
-                        '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 2 },
-                      }}
-                    />
-                  ))}
-                </Box>
-
-                {activeJourneyStep < journeyStages.length - 1 ? (
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={() => setActiveJourneyStep((s) => s + 1)}
-                    sx={{
-                      all: 'unset', cursor: 'pointer',
-                      display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      px: '20px', py: '10px', borderRadius: 999,
-                      border: isDark ? '1.5px solid rgba(224,122,63,0.55)' : '1.5px solid var(--orange, #E07A3F)',
-                      color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
-                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
-                      transition: '180ms ease',
-                      '&:hover': { borderColor: 'var(--orange, #E07A3F)', color: 'var(--orange, #E07A3F)' },
-                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
-                    }}
-                  >
-                    Continue
-                    <Box component="span">→</Box>
-                  </Box>
-                ) : (
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={() => navigate('/trait-selection')}
-                    sx={{
-                      all: 'unset', cursor: 'pointer',
-                      display: 'inline-flex', alignItems: 'center', gap: '8px',
-                      px: '24px', py: '13px', borderRadius: 999,
-                      bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
-                      fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.95rem',
-                      boxShadow: '0 6px 24px rgba(16,34,60,0.28)',
-                      transition: '180ms ease',
-                      '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-2px)', boxShadow: '0 10px 32px rgba(16,34,60,0.35)' },
-                      '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
-                    }}
-                  >
-                    Choose Your Focus Areas
-                    <Box component="span" sx={{ fontSize: '1.05rem' }}>→</Box>
-                  </Box>
-                )}
-              </Box>
             </Box>
           )}
         </CompassLayout>

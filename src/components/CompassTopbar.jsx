@@ -651,14 +651,16 @@ function CompassTopbar() {
       <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
         <Box
           sx={{
-            fontFamily: '"Sora", sans-serif',
+            fontFamily: '"Cinzel", "Times New Roman", Georgia, serif',
             fontStyle: 'normal',
-            fontWeight: 700,
-            fontSize: 22,
-            letterSpacing: '-0.02em',
+            fontWeight: 600,
+            fontSize: { xs: 22, sm: 25 },
+            letterSpacing: '-0.045em',
+            fontVariant: 'small-caps',
             color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
-            lineHeight: 1,
+            lineHeight: 0.95,
             userSelect: 'none',
+            whiteSpace: 'nowrap',
           }}
         >
           The Compass
@@ -746,10 +748,14 @@ function CompassTopbar() {
               </Box>
               <Box
                 sx={{
-                  fontFamily: '"Fraunces", Georgia, serif',
-                  fontStyle: 'italic', fontSize: 16,
+                  fontFamily: '"Cinzel", "Times New Roman", Georgia, serif',
+                  fontStyle: 'normal',
+                  fontSize: 16,
+                  letterSpacing: '-0.035em',
+                  fontVariant: 'small-caps',
                   color: isDark ? '#F0E9DE' : 'var(--navy-900, #10223C)',
-                  fontWeight: 500, lineHeight: 1,
+                  fontWeight: 600,
+                  lineHeight: 1,
                 }}
               >
                 {phase.title}
