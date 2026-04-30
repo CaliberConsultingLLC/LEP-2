@@ -701,7 +701,7 @@ function CampaignBuilder() {
                   Chapter IV
                 </Typography>
                 <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 900, fontSize: { xs: '1.52rem', md: '2rem' }, lineHeight: 1.05, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                  Growth Campaign
+                  Growth Campaign Creation
                 </Typography>
               </Box>
 
