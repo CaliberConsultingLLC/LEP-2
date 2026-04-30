@@ -432,11 +432,9 @@ function Summary() {
   };
 
   useEffect(() => {
-    // In cairn/staging, skip regeneration when navigating back to summary
-    // (no fresh formData from route). Always regenerate when arriving from
-    // IntakeForm (formDataFromRoute is populated).
-    const hasNewFormData = formDataFromRoute && Object.keys(formDataFromRoute).length > 0;
-    if (useCairnTheme && !hasNewFormData) {
+    // Cairn/staging is a static review path: never regenerate the summary or
+    // prefetch a live campaign unless this page is running outside Cairn.
+    if (useCairnTheme) {
       const cachedSummary = (localStorage.getItem('aiSummary') || '').trim();
       let focusAreasValid = false;
       try {
@@ -449,6 +447,9 @@ function Summary() {
         setIsLoading(false);
         return;
       }
+      setError('Static staging summary data is missing. Use the Stage Navigator reset to reseed the review flow.');
+      setIsLoading(false);
+      return;
     }
     runSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps

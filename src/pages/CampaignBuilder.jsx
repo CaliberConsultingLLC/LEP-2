@@ -29,6 +29,7 @@ import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { seedStagingData } from '../utils/stagingSeed';
 
 const parseJson = (raw, fallback) => {
   try {
@@ -196,6 +197,9 @@ function CampaignBuilder() {
         setIsLoading(false);
         return;
       }
+      setError('Static staging campaign data is missing. Use the Stage Navigator reset to reseed the review flow.');
+      setIsLoading(false);
+      return;
     }
 
     // Proceed with campaign generation using selected traits
@@ -288,6 +292,16 @@ function CampaignBuilder() {
 
   const handleRebuildCampaign = () => {
     try {
+      if (useCairnTheme) {
+        seedStagingData();
+        const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
+        setCampaign(cachedCampaign);
+        setDismissedStatements([]);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+
       const storedSummary = localStorage.getItem('aiSummary');
       if (!storedSummary || storedSummary.trim() === '') {
         setError('No summary found. Please complete the assessment first.');

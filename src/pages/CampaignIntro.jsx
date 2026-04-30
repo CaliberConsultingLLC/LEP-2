@@ -11,19 +11,20 @@ function CampaignIntro() {
   const navigate = useNavigate();
   const location = useLocation();
   const { aiSummary } = location.state || {};
+  const effectiveSummary = aiSummary || (useCairnTheme ? localStorage.getItem('aiSummary') : '');
 
   useEffect(() => {
-    console.log('CampaignIntro: aiSummary from state:', aiSummary);
-    if (!aiSummary || aiSummary.trim() === '') {
+    console.log('CampaignIntro: aiSummary from state:', effectiveSummary);
+    if (!effectiveSummary || effectiveSummary.trim() === '') {
       console.error('No leadership summary available, redirecting to summary');
       navigate('/summary');
     }
-  }, [aiSummary, navigate]);
+  }, [effectiveSummary, navigate]);
 
   const handleProceed = () => {
     setIsLoading(true);
     setTimeout(() => {
-      navigate('/campaign-builder', { state: { aiSummary } });
+      navigate('/campaign-builder', { state: { aiSummary: effectiveSummary } });
     }, 1000);
   };
 

@@ -3,19 +3,54 @@ import { Box, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { seedStagingData, clearStagingData, STAGING_SELF_ID, STAGING_TEAM_ID } from '../utils/stagingSeed';
 
-const PAGES = [
-  { label: 'I — Profile',         path: '/user-info' },
-  { label: 'I — Guide Select',    path: '/guide-select' },
-  { label: 'II — Intake Form',    path: '/form' },
-  { label: 'III — Summary',       path: '/summary' },
-  { label: 'IV — Trait Select',   path: '/trait-selection' },
-  { label: 'IV — Campaign Intro', path: '/campaign-intro' },
-  { label: 'IV — Campaign Build', path: '/campaign-builder' },
-  { label: 'V — Verify / Launch', path: '/campaign-verify' },
-  { label: 'V — Self Survey',     path: `/campaign/${STAGING_SELF_ID}/survey` },
-  { label: 'V — Self Complete',   path: `/campaign/${STAGING_SELF_ID}/complete` },
-  { label: 'VI — Team Survey',    path: `/campaign/${STAGING_TEAM_ID}/survey` },
-  { label: 'VII — Dashboard',     path: '/dashboard' },
+const PAGE_GROUPS = [
+  {
+    label: 'Start',
+    pages: [
+      { label: 'Landing', path: '/' },
+      { label: 'Sign In', path: '/sign-in' },
+      { label: 'I - Profile', path: '/user-info' },
+      { label: 'I - Guide Select', path: '/guide-select' },
+    ],
+  },
+  {
+    label: 'Assessment',
+    pages: [
+      { label: 'II - Intake Form', path: '/form' },
+      { label: 'III - Summary', path: '/summary' },
+      { label: 'III - Summary Snapshot', path: '/summary-static' },
+    ],
+  },
+  {
+    label: 'Campaign Build',
+    pages: [
+      { label: 'IV - Trait Selection', path: '/trait-selection' },
+      { label: 'IV - Campaign Intro', path: '/campaign-intro' },
+      { label: 'IV - Campaign Builder', path: '/campaign-builder' },
+      { label: 'V - Verify / Launch', path: '/campaign-verify' },
+    ],
+  },
+  {
+    label: 'Assessments',
+    pages: [
+      { label: 'V - Self Intro', path: `/campaign/${STAGING_SELF_ID}` },
+      { label: 'V - Self Survey', path: `/campaign/${STAGING_SELF_ID}/survey` },
+      { label: 'V - Self Complete', path: `/campaign/${STAGING_SELF_ID}/complete` },
+      { label: 'VI - Team Intro', path: `/campaign/${STAGING_TEAM_ID}` },
+      { label: 'VI - Team Survey', path: `/campaign/${STAGING_TEAM_ID}/survey` },
+      { label: 'VI - Team Complete', path: `/campaign/${STAGING_TEAM_ID}/complete` },
+    ],
+  },
+  {
+    label: 'Dashboard',
+    pages: [
+      { label: 'Campaign Details', path: '/dashboard?tab=campaign-details' },
+      { label: 'Campaign Results', path: '/dashboard?tab=campaign-results' },
+      { label: 'Detailed Results', path: '/dashboard?tab=detailed-results' },
+      { label: 'Growth Plan', path: '/dashboard?tab=growth-plan' },
+      { label: 'My Journey', path: '/dashboard?tab=my-journey' },
+    ],
+  },
 ];
 
 function StagingDevPanel() {
@@ -71,7 +106,9 @@ function StagingDevPanel() {
             borderRadius: '14px',
             boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
             p: '14px 10px 10px',
-            width: 220,
+            width: 252,
+            maxHeight: 'min(72vh, 680px)',
+            overflowY: 'auto',
             mb: '2px',
           }}
         >
@@ -91,34 +128,55 @@ function StagingDevPanel() {
           </Box>
 
           {/* Page links */}
-          <Stack spacing={0.25} sx={{ mb: 1 }}>
-            {PAGES.map((p) => (
-              <Box
-                key={p.path}
-                component="button"
-                type="button"
-                onClick={() => go(p.path)}
-                sx={{
-                  all: 'unset',
-                  cursor: 'pointer',
-                  display: 'block',
-                  width: '100%',
-                  px: '10px',
-                  py: '6px',
-                  borderRadius: '8px',
-                  fontFamily: '"Manrope", "Inter", sans-serif',
-                  fontWeight: 600,
-                  fontSize: 12,
-                  color: 'rgba(255,255,255,0.88)',
-                  transition: '120ms',
-                  '&:hover': {
-                    bgcolor: 'rgba(244,206,161,0.12)',
-                    color: 'var(--amber-soft, #F4CEA1)',
-                  },
-                  '&:focus-visible': { outline: '2px solid rgba(244,206,161,0.5)', outlineOffset: 1 },
-                }}
-              >
-                {p.label}
+          <Stack spacing={0.7} sx={{ mb: 1 }}>
+            {PAGE_GROUPS.map((group) => (
+              <Box key={group.label}>
+                <Box
+                  sx={{
+                    fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                    fontSize: 8.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(244,206,161,0.58)',
+                    px: '6px',
+                    py: '4px',
+                  }}
+                >
+                  {group.label}
+                </Box>
+                <Stack spacing={0.2}>
+                  {group.pages.map((p) => (
+                    <Box
+                      key={p.path}
+                      component="button"
+                      type="button"
+                      onClick={() => go(p.path)}
+                      sx={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        display: 'block',
+                        width: '100%',
+                        px: '10px',
+                        py: '5.5px',
+                        borderRadius: '8px',
+                        boxSizing: 'border-box',
+                        fontFamily: '"Manrope", "Inter", sans-serif',
+                        fontWeight: 650,
+                        fontSize: 11.5,
+                        color: 'rgba(255,255,255,0.88)',
+                        transition: '120ms',
+                        '&:hover': {
+                          bgcolor: 'rgba(244,206,161,0.12)',
+                          color: 'var(--amber-soft, #F4CEA1)',
+                        },
+                        '&:focus-visible': { outline: '2px solid rgba(244,206,161,0.5)', outlineOffset: 1 },
+                      }}
+                    >
+                      {p.label}
+                    </Box>
+                  ))}
+                </Stack>
               </Box>
             ))}
           </Stack>

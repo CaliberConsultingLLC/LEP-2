@@ -11,6 +11,7 @@ export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
+export const STAGING_SEED_VERSION = '2026-04-30-static-review-v2';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
@@ -25,11 +26,15 @@ const SEED_KEYS = [
   'campaignRecords',
   `campaign_${STAGING_SELF_ID}`,
   `campaign_${STAGING_TEAM_ID}`,
+  `teamCampaignAccess_${STAGING_TEAM_ID}`,
+  `latestSurveyRatings_${STAGING_SELF_ID}`,
+  `latestSurveyRatings_${STAGING_TEAM_ID}`,
   `selfCampaignCompleted_${STAGING_SELF_ID}`,
   'selfCampaignCompleted',
   'teamCampaignCompleted',
   'actionPlansByCampaign',
   '__cairn_seeded__',
+  '__cairn_seed_version__',
 ];
 
 const CAMPAIGN_TRAITS = [
@@ -79,6 +84,13 @@ const CAMPAIGN_TRAITS = [
 
 export function seedStagingData() {
   const now = new Date().toISOString();
+  const seededRatings = Array.from({ length: 15 }, (_, idx) => [
+    idx,
+    {
+      effort: 5 + (idx % 3),
+      efficacy: 6 + (idx % 2),
+    },
+  ]).reduce((acc, [idx, value]) => ({ ...acc, [idx]: value }), {});
 
   localStorage.setItem('userInfo', JSON.stringify({
     name: 'Alex Rivera',
@@ -234,8 +246,9 @@ export function seedStagingData() {
     teamCampaignLink: `${window.location.origin}/campaign/${STAGING_TEAM_ID}`,
     teamCampaignPassword: 'STAGE002',
     selfCompleted: false,
-    selfCompleted: false,
+    teamCampaignClosed: false,
     createdAt: now,
+    savedAt: now,
   };
   localStorage.setItem('campaignRecords', JSON.stringify(campaignRecords));
 
@@ -247,6 +260,7 @@ export function seedStagingData() {
     bundleId: STAGING_BUNDLE_ID,
     selfCampaignId: STAGING_SELF_ID,
     teamCampaignId: STAGING_TEAM_ID,
+    accessToken: 'stage-self-token',
     surveyClosed: false,
     createdAt: now,
   };
@@ -260,54 +274,70 @@ export function seedStagingData() {
     bundleId: STAGING_BUNDLE_ID,
     selfCampaignId: STAGING_SELF_ID,
     teamCampaignId: STAGING_TEAM_ID,
+    accessToken: 'stage-team-token',
     surveyClosed: false,
     createdAt: now,
   };
   localStorage.setItem(`campaign_${STAGING_TEAM_ID}`, JSON.stringify(teamCampaign));
+  localStorage.setItem(`teamCampaignAccess_${STAGING_TEAM_ID}`, 'granted');
+  localStorage.setItem('teamCampaignCompleted', 'false');
+  localStorage.setItem('selfCampaignCompleted', 'false');
+  localStorage.setItem(`selfCampaignCompleted_${STAGING_SELF_ID}`, 'false');
+
+  localStorage.setItem(`latestSurveyRatings_${STAGING_SELF_ID}`, JSON.stringify(seededRatings));
+  localStorage.setItem(`latestSurveyRatings_${STAGING_TEAM_ID}`, JSON.stringify(seededRatings));
+
+  const actionPlansForUser = {
+    plans: {
+      'Communication': {
+        'Clarity': {
+          commitment: 'I will open every team briefing with a single sentence that defines the expected outcome.',
+          guidedAnswers: { behaviorCommitment: 'Start with the destination before the details.' },
+          items: [
+            { text: 'Use the "one sentence test" before each briefing', checked: false },
+            { text: 'Follow up written messages with a verbal check-in for critical items', checked: false },
+            { text: 'Ask "What questions do you have?" instead of "Do you understand?"', checked: false },
+          ],
+        },
+      },
+      'Execution & Follow-Through': {
+        'Deadline Management': {
+          commitment: 'I will flag timeline risks at least 48 hours before a deadline, not after.',
+          guidedAnswers: { behaviorCommitment: 'Proactive transparency over reactive explanation.' },
+          items: [
+            { text: 'Build a 10% buffer into all team estimates', checked: false },
+            { text: 'Set a mid-point check-in for every deliverable over 5 days', checked: false },
+            { text: 'Send a weekly "on track / at risk" status update to stakeholders', checked: false },
+          ],
+        },
+      },
+      'Strategic Thinking': {
+        'Vision': {
+          commitment: 'I will connect every major team initiative to our 6-month direction in the kickoff.',
+          guidedAnswers: { behaviorCommitment: 'Context before content, every time.' },
+          items: [
+            { text: 'Open each sprint planning with a 2-minute "why this matters" framing', checked: false },
+            { text: 'Post the team\'s top 3 priorities visibly in our shared workspace', checked: false },
+            { text: 'Ask "How does this connect to where we\'re headed?" in 1:1s monthly', checked: false },
+          ],
+        },
+      },
+    },
+  };
 
   localStorage.setItem('actionPlansByCampaign', JSON.stringify({
     [STAGING_BUNDLE_ID]: {
       [STAGING_EMAIL]: {
-        plans: {
-          'Communication': {
-            'Clarity': {
-              commitment: 'I will open every team briefing with a single sentence that defines the expected outcome.',
-              guidedAnswers: { behaviorCommitment: 'Start with the destination before the details.' },
-              items: [
-                { text: 'Use the "one sentence test" before each briefing', checked: false },
-                { text: 'Follow up written messages with a verbal check-in for critical items', checked: false },
-                { text: 'Ask "What questions do you have?" instead of "Do you understand?"', checked: false },
-              ],
-            },
-          },
-          'Execution & Follow-Through': {
-            'Deadline Management': {
-              commitment: 'I will flag timeline risks at least 48 hours before a deadline, not after.',
-              guidedAnswers: { behaviorCommitment: 'Proactive transparency over reactive explanation.' },
-              items: [
-                { text: 'Build a 10% buffer into all team estimates', checked: false },
-                { text: 'Set a mid-point check-in for every deliverable over 5 days', checked: false },
-                { text: 'Send a weekly "on track / at risk" status update to stakeholders', checked: false },
-              ],
-            },
-          },
-          'Strategic Thinking': {
-            'Vision': {
-              commitment: 'I will connect every major team initiative to our 6-month direction in the kickoff.',
-              guidedAnswers: { behaviorCommitment: 'Context before content, every time.' },
-              items: [
-                { text: 'Open each sprint planning with a 2-minute "why this matters" framing', checked: false },
-                { text: 'Post the team\'s top 3 priorities visibly in our shared workspace', checked: false },
-                { text: 'Ask "How does this connect to where we\'re headed?" in 1:1s monthly', checked: false },
-              ],
-            },
-          },
-        },
+        ...actionPlansForUser,
       },
     },
+    [STAGING_SELF_ID]: { [STAGING_EMAIL]: actionPlansForUser },
+    [STAGING_TEAM_ID]: { [STAGING_EMAIL]: actionPlansForUser },
+    123: { [STAGING_EMAIL]: actionPlansForUser },
   }));
 
   localStorage.setItem('__cairn_seeded__', 'true');
+  localStorage.setItem('__cairn_seed_version__', STAGING_SEED_VERSION);
 }
 
 export function clearStagingData() {
@@ -315,7 +345,10 @@ export function clearStagingData() {
 }
 
 export function autoSeedIfNeeded() {
-  if (!localStorage.getItem('__cairn_seeded__')) {
+  if (
+    !localStorage.getItem('__cairn_seeded__')
+    || localStorage.getItem('__cairn_seed_version__') !== STAGING_SEED_VERSION
+  ) {
     seedStagingData();
   }
 }

@@ -55,6 +55,9 @@ function CampaignSurvey() {
         ...campaignData,
         campaign: normalizedCampaign,
       });
+      if (useCairnTheme) {
+        setRatings(parseJson(localStorage.getItem(`latestSurveyRatings_${id}`), {}));
+      }
     } else {
       navigate('/');
     }
@@ -85,7 +88,7 @@ function CampaignSurvey() {
       }
     };
 
-    checkIfSurveyClosed();
+    if (!useCairnTheme) checkIfSurveyClosed();
 
     try {
       const userInfo = parseJson(localStorage.getItem('userInfo'), {});
@@ -121,6 +124,11 @@ function CampaignSurvey() {
       submittedAt: new Date(),
       ratings,
     };
+    if (useCairnTheme) {
+      localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
+      localStorage.setItem(`stagingSurveyResponse_${id}`, JSON.stringify(ratingsData));
+      return;
+    }
     try {
       if (campaignType === 'team') {
         const accessToken = String(campaignMeta?.accessToken || '').trim();
