@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -12,8 +12,14 @@ import SelfImprovementRoundedIcon from '@mui/icons-material/SelfImprovementRound
 import Diversity3RoundedIcon from '@mui/icons-material/Diversity3Rounded';
 import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded';
+import HubRoundedIcon from '@mui/icons-material/HubRounded';
+import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import { useNavigate } from 'react-router-dom';
 import { allowDevBypass, showDevTools, useCairnTheme } from '../config/runtimeFlags';
+import CompassDial from '../components/CompassDial';
 
 const sections = [
   { key: 'process', label: 'How It Works' },
@@ -26,6 +32,17 @@ function Home() {
   const [activeSection, setActiveSection] = useState(0); // 0=How It Works, 1=Methodology, 2=Deliverables
   const [transitionDir, setTransitionDir] = useState('left');
   const [flippedCards, setFlippedCards] = useState({});
+  const [heroPassed, setHeroPassed] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const threshold = Math.max(window.innerHeight * 0.55, 360);
+      setHeroPassed(window.scrollY > threshold);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -237,24 +254,40 @@ function Home() {
     ];
 
     const principles = [
-      { eyebrow: 'AI-powered. Human-led.', body: 'A live agent translates your responses into perspective, but you remain the leader of every decision.' },
-      { eyebrow: 'No HR scaffolding.', body: 'Designed for individual leaders. No vendor onboarding, no rollout cycles, no org politics required.' },
-      { eyebrow: 'A year, not a workshop.', body: 'Compass replaces one-off training with a year-long campaign your team can actually feel.' },
+      {
+        icon: <BoltRoundedIcon sx={{ fontSize: 22 }} />,
+        eyebrow: 'AI-powered. Human-led.',
+        body: 'A live agent translates your responses into perspective. You remain the leader of every decision.',
+      },
+      {
+        icon: <HubRoundedIcon sx={{ fontSize: 22 }} />,
+        eyebrow: 'No HR scaffolding.',
+        body: 'Built for individual leaders. No vendor onboarding, no rollout cycles, no org politics required.',
+      },
+      {
+        icon: <TimelineRoundedIcon sx={{ fontSize: 22 }} />,
+        eyebrow: 'A year, not a workshop.',
+        body: 'Compass replaces one-off training with a year-long campaign your team can actually feel.',
+      },
     ];
 
-    const scrollToJourney = () => {
-      const el = document.getElementById('journey');
+    const scrollToTarget = (id) => {
+      const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
+    const scrollToJourney = () => scrollToTarget('journey');
 
     const navLinks = [
       { label: 'How It Works', target: 'journey' },
+      { label: 'Inside Compass', target: 'inside' },
       { label: 'Why Compass', target: 'principles' },
     ];
 
     const navySerif = '"Fraunces", Georgia, "Times New Roman", serif';
     const sansBody = '"Manrope", "Inter", system-ui, sans-serif';
     const monoEyebrow = '"JetBrains Mono", ui-monospace, monospace';
+
+    const headerOnDark = !heroPassed;
 
     return (
       <Box
@@ -269,22 +302,28 @@ function Home() {
           fontFamily: sansBody,
         }}
       >
-        {/* HEADER */}
+        {/* SCROLL-AWARE HEADER */}
         <Box
           component="header"
           sx={{
-            position: 'sticky',
+            position: 'fixed',
             top: 0,
-            zIndex: 30,
-            bgcolor: 'rgba(251,247,240,0.86)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(15,28,46,0.06)',
+            left: 0,
+            right: 0,
+            zIndex: 50,
             px: { xs: 2.5, md: 5 },
-            py: { xs: 1.4, md: 1.6 },
+            py: { xs: 1.4, md: 1.7 },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 2,
+            transition: 'background-color 320ms ease, color 320ms ease, border-color 320ms ease, backdrop-filter 320ms ease',
+            bgcolor: headerOnDark ? 'rgba(10,24,48,0.35)' : 'rgba(251,247,240,0.90)',
+            backdropFilter: 'blur(14px)',
+            borderBottom: headerOnDark
+              ? '1px solid rgba(244,206,161,0.10)'
+              : '1px solid rgba(15,28,46,0.08)',
+            color: headerOnDark ? '#FFF8F0' : '#10223C',
           }}
         >
           <Stack direction="row" spacing={1.2} alignItems="center">
@@ -293,7 +332,13 @@ function Home() {
               src="/CompassLogo.png"
               alt=""
               aria-hidden
-              sx={{ width: 30, height: 30, objectFit: 'contain' }}
+              sx={{
+                width: 30,
+                height: 30,
+                objectFit: 'contain',
+                filter: headerOnDark ? 'brightness(1.15)' : 'none',
+                transition: 'filter 320ms ease',
+              }}
             />
             <Typography
               sx={{
@@ -302,6 +347,7 @@ function Home() {
                 fontSize: { xs: '1rem', md: '1.12rem' },
                 letterSpacing: '0.04em',
                 fontVariant: 'small-caps',
+                color: 'inherit',
               }}
             >
               The Compass
@@ -314,10 +360,7 @@ function Home() {
                 key={link.target}
                 component="button"
                 type="button"
-                onClick={() => {
-                  const el = document.getElementById(link.target);
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
+                onClick={() => scrollToTarget(link.target)}
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',
@@ -326,8 +369,13 @@ function Home() {
                   borderRadius: 999,
                   fontWeight: 700,
                   fontSize: '0.84rem',
-                  color: '#10223C',
-                  '&:hover': { color: '#C0612A' },
+                  color: 'inherit',
+                  opacity: headerOnDark ? 0.85 : 1,
+                  transition: 'color 200ms ease, opacity 200ms ease',
+                  '&:hover': {
+                    color: headerOnDark ? '#F4CEA1' : '#C0612A',
+                    opacity: 1,
+                  },
                 }}
               >
                 {link.label}
@@ -345,9 +393,13 @@ function Home() {
                 borderRadius: 999,
                 fontWeight: 700,
                 fontSize: '0.84rem',
-                color: '#10223C',
+                color: 'inherit',
+                opacity: headerOnDark ? 0.85 : 1,
                 ml: 0.5,
-                '&:hover': { color: '#C0612A' },
+                '&:hover': {
+                  color: headerOnDark ? '#F4CEA1' : '#C0612A',
+                  opacity: 1,
+                },
               }}
             >
               Sign In
@@ -370,7 +422,9 @@ function Home() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 0.6,
-                boxShadow: '0 8px 22px rgba(224,122,63,0.28)',
+                boxShadow: headerOnDark
+                  ? '0 10px 26px rgba(224,122,63,0.42)'
+                  : '0 8px 22px rgba(224,122,63,0.28)',
                 transition: '160ms ease',
                 '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
               }}
@@ -381,44 +435,89 @@ function Home() {
           </Stack>
         </Box>
 
-        {/* HERO */}
+        {/* HERO + FADE TRANSITION (single tall band) */}
         <Box
           sx={{
             position: 'relative',
-            pt: { xs: 6, md: 11 },
-            pb: { xs: 7, md: 12 },
+            minHeight: { xs: '92vh', md: '108vh' },
+            pt: { xs: 13, md: 17 },
+            pb: { xs: 10, md: 16 },
+            color: '#FFF8F0',
             background:
-              'radial-gradient(900px 480px at 88% 0%, rgba(244,206,161,0.45), transparent 65%), radial-gradient(700px 480px at -10% 100%, rgba(224,122,63,0.10), transparent 60%)',
+              'linear-gradient(180deg, #060F22 0%, #0A1830 28%, #10223C 56%, rgba(34,52,80,0.72) 78%, #FBF7F0 100%)',
+            overflow: 'hidden',
           }}
         >
+          {/* Starfield (top half only, fades down) */}
+          <Box
+            aria-hidden
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: [
+                'radial-gradient(1.4px 1.4px at 12% 14%, rgba(255,255,255,0.55), transparent 60%)',
+                'radial-gradient(1px 1px at 22% 32%, rgba(255,255,255,0.35), transparent 60%)',
+                'radial-gradient(1.6px 1.6px at 38% 8%, rgba(244,206,161,0.55), transparent 60%)',
+                'radial-gradient(1px 1px at 51% 26%, rgba(255,255,255,0.35), transparent 60%)',
+                'radial-gradient(1.4px 1.4px at 62% 12%, rgba(255,255,255,0.5), transparent 60%)',
+                'radial-gradient(1px 1px at 70% 30%, rgba(244,206,161,0.4), transparent 60%)',
+                'radial-gradient(1.2px 1.2px at 82% 18%, rgba(255,255,255,0.45), transparent 60%)',
+                'radial-gradient(1px 1px at 90% 36%, rgba(255,255,255,0.32), transparent 60%)',
+                'radial-gradient(1px 1px at 16% 44%, rgba(255,255,255,0.28), transparent 60%)',
+                'radial-gradient(1px 1px at 76% 50%, rgba(255,255,255,0.22), transparent 60%)',
+              ].join(', '),
+              maskImage: 'linear-gradient(180deg, #000 0%, #000 38%, transparent 70%)',
+              WebkitMaskImage: 'linear-gradient(180deg, #000 0%, #000 38%, transparent 70%)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+          {/* Subtle aurora glow behind the dial */}
+          <Box
+            aria-hidden
+            sx={{
+              position: 'absolute',
+              top: { xs: '6%', md: '4%' },
+              right: { xs: '-15%', md: '-6%' },
+              width: { xs: 540, md: 760 },
+              height: { xs: 540, md: 760 },
+              borderRadius: '50%',
+              background:
+                'radial-gradient(circle at 50% 50%, rgba(244,206,161,0.18) 0%, rgba(224,122,63,0.06) 35%, rgba(15,28,46,0) 65%)',
+              filter: 'blur(8px)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+
           <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
             <Grid container spacing={{ xs: 5, md: 6 }} alignItems="center">
               <Grid item xs={12} md={7}>
-                <Stack spacing={3} alignItems="flex-start">
+                <Stack spacing={3.2} alignItems="flex-start">
                   <Box
                     sx={{
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 1,
-                      px: 1.4,
-                      py: 0.55,
+                      px: 1.5,
+                      py: 0.6,
                       borderRadius: 999,
-                      bgcolor: 'rgba(224,122,63,0.10)',
-                      border: '1px solid rgba(224,122,63,0.22)',
+                      bgcolor: 'rgba(244,206,161,0.10)',
+                      border: '1px solid rgba(244,206,161,0.28)',
                     }}
                   >
-                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#E07A3F' }} />
+                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#F4CEA1', boxShadow: '0 0 10px rgba(244,206,161,0.7)' }} />
                     <Typography
                       sx={{
                         fontFamily: monoEyebrow,
                         fontWeight: 700,
                         fontSize: '0.7rem',
-                        letterSpacing: '0.18em',
+                        letterSpacing: '0.22em',
                         textTransform: 'uppercase',
-                        color: '#C0612A',
+                        color: '#F4CEA1',
                       }}
                     >
-                      AI-powered. Human-led.
+                      The Leadership Compass
                     </Typography>
                   </Box>
 
@@ -426,32 +525,36 @@ function Home() {
                     component="h1"
                     sx={{
                       fontFamily: navySerif,
-                      fontWeight: 600,
-                      fontSize: { xs: '2.85rem', sm: '3.6rem', md: '4.6rem' },
-                      lineHeight: 1.0,
-                      letterSpacing: '-0.035em',
-                      color: '#10223C',
+                      fontWeight: 500,
+                      fontSize: { xs: '3rem', sm: '3.9rem', md: '5.2rem' },
+                      lineHeight: 0.96,
+                      letterSpacing: '-0.04em',
+                      color: '#FFF8F0',
+                      textShadow: '0 2px 30px rgba(0,0,0,0.35)',
                     }}
                   >
-                    Know where you stand.
-                    <Box component="span" sx={{ display: 'block', color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}>
-                      Choose where to go.
+                    You can't lead
+                    <Box component="span" sx={{ display: 'block' }}>
+                      what you can't{' '}
+                      <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
+                        see.
+                      </Box>
                     </Box>
                   </Typography>
 
                   <Typography
                     sx={{
                       fontWeight: 500,
-                      fontSize: { xs: '1.05rem', md: '1.18rem' },
-                      lineHeight: 1.6,
-                      color: '#44566C',
-                      maxWidth: 560,
+                      fontSize: { xs: '1.05rem', md: '1.2rem' },
+                      lineHeight: 1.55,
+                      color: 'rgba(255,248,240,0.82)',
+                      maxWidth: 540,
                     }}
                   >
-                    Compass turns a single leadership assessment into a year-long campaign of clarity, feedback, and action — guided by an agent, owned by you.
+                    Compass turns one focused assessment into a year-long campaign of clarity, feedback, and action — guided by an agent, owned by you.
                   </Typography>
 
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ pt: 1 }}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ pt: 1.2 }}>
                     <Box
                       component="button"
                       type="button"
@@ -459,17 +562,17 @@ function Home() {
                       sx={{
                         all: 'unset',
                         cursor: 'pointer',
-                        px: 3.2,
-                        py: 1.35,
+                        px: 3.4,
+                        py: 1.45,
                         borderRadius: 999,
                         bgcolor: '#E07A3F',
                         color: '#FFF8F0',
                         fontWeight: 800,
-                        fontSize: '0.98rem',
+                        fontSize: '1rem',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 0.8,
-                        boxShadow: '0 14px 32px rgba(224,122,63,0.30)',
+                        gap: 0.9,
+                        boxShadow: '0 18px 40px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
                         transition: '180ms ease',
                         '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
                       }}
@@ -485,14 +588,17 @@ function Home() {
                         all: 'unset',
                         cursor: 'pointer',
                         px: 3,
-                        py: 1.3,
+                        py: 1.4,
                         borderRadius: 999,
-                        border: '1.5px solid rgba(15,28,46,0.18)',
-                        color: '#10223C',
+                        border: '1.5px solid rgba(244,206,161,0.45)',
+                        color: '#FFF8F0',
                         fontWeight: 800,
-                        fontSize: '0.98rem',
+                        fontSize: '1rem',
                         transition: '180ms ease',
-                        '&:hover': { borderColor: '#10223C', bgcolor: 'rgba(15,28,46,0.04)' },
+                        '&:hover': {
+                          borderColor: '#F4CEA1',
+                          bgcolor: 'rgba(244,206,161,0.06)',
+                        },
                       }}
                     >
                       How It Works
@@ -502,58 +608,64 @@ function Home() {
               </Grid>
 
               <Grid item xs={12} md={5}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    width: '100%',
-                    aspectRatio: '1 / 1',
-                    maxWidth: 460,
-                    mx: 'auto',
-                  }}
-                >
-                  {/* Soft halo */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      inset: '-10%',
-                      borderRadius: '50%',
-                      background:
-                        'radial-gradient(circle at 50% 50%, rgba(244,206,161,0.55), rgba(244,206,161,0) 60%)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                  {/* Medallion */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      borderRadius: '50%',
-                      background:
-                        'radial-gradient(circle at 38% 32%, #213B5C 0%, #10223C 55%, #0A1830 100%)',
-                      border: '1px solid rgba(244,206,161,0.35)',
-                      boxShadow:
-                        '0 30px 70px rgba(15,28,46,0.25), inset 0 0 60px rgba(244,206,161,0.10)',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src="/CompassLogo.png"
-                      alt=""
-                      aria-hidden
-                      sx={{
-                        position: 'absolute',
-                        inset: '14%',
-                        width: '72%',
-                        height: '72%',
-                        objectFit: 'contain',
-                        filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.45))',
-                      }}
-                    />
-                  </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 2, md: 0 } }}>
+                  <CompassDial size={460} tone="dark" />
                 </Box>
               </Grid>
             </Grid>
+          </Container>
+
+          {/* TENSION HOOK — sits in the gradient fade zone */}
+          <Container
+            maxWidth="md"
+            sx={{
+              position: 'relative',
+              zIndex: 1,
+              mt: { xs: 9, md: 14 },
+              textAlign: 'center',
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: monoEyebrow,
+                fontWeight: 700,
+                fontSize: '0.7rem',
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,248,240,0.62)',
+                mb: 2,
+              }}
+            >
+              The Problem
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: navySerif,
+                fontWeight: 500,
+                fontSize: { xs: '1.65rem', md: '2.4rem' },
+                lineHeight: 1.18,
+                letterSpacing: '-0.02em',
+                color: '#FFF8F0',
+              }}
+            >
+              Most leadership feedback arrives too late.
+              <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
+                Or never at all.
+              </Box>
+            </Typography>
+            <Typography
+              sx={{
+                mt: 2.4,
+                fontWeight: 500,
+                fontSize: { xs: '1rem', md: '1.08rem' },
+                lineHeight: 1.6,
+                color: 'rgba(255,248,240,0.74)',
+                maxWidth: 580,
+                mx: 'auto',
+              }}
+            >
+              Compass closes that gap in thirty minutes — and keeps it closed for a year.
+            </Typography>
           </Container>
         </Box>
 
@@ -565,17 +677,17 @@ function Home() {
             bgcolor: '#FFFFFF',
             borderTop: '1px solid rgba(15,28,46,0.06)',
             borderBottom: '1px solid rgba(15,28,46,0.06)',
-            py: { xs: 7, md: 10 },
+            py: { xs: 8, md: 11 },
           }}
         >
           <Container maxWidth="lg">
-            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 6.5 } }}>
+            <Stack spacing={1.6} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5.5, md: 7 } }}>
               <Typography
                 sx={{
                   fontFamily: monoEyebrow,
                   fontWeight: 700,
                   fontSize: '0.7rem',
-                  letterSpacing: '0.22em',
+                  letterSpacing: '0.24em',
                   textTransform: 'uppercase',
                   color: '#C0612A',
                 }}
@@ -587,8 +699,8 @@ function Home() {
                 sx={{
                   fontFamily: navySerif,
                   fontWeight: 600,
-                  fontSize: { xs: '2rem', md: '2.85rem' },
-                  lineHeight: 1.1,
+                  fontSize: { xs: '2.05rem', md: '2.95rem' },
+                  lineHeight: 1.08,
                   letterSpacing: '-0.025em',
                   color: '#10223C',
                   maxWidth: 760,
@@ -609,9 +721,18 @@ function Home() {
               </Typography>
             </Stack>
 
-            {/* Step rail with connector */}
-            <Box sx={{ position: 'relative' }}>
-              {/* Connector line behind the numbers */}
+            <Box
+              sx={{
+                position: 'relative',
+                '@keyframes journeyHaloPulse': {
+                  '0%, 100%': { boxShadow: '0 12px 28px rgba(224,122,63,0.30), 0 0 0 0 rgba(224,122,63,0.45)' },
+                  '50%': { boxShadow: '0 12px 28px rgba(224,122,63,0.30), 0 0 0 14px rgba(224,122,63,0)' },
+                },
+                '@media (prefers-reduced-motion: reduce)': {
+                  '& [data-active-step]': { animation: 'none' },
+                },
+              }}
+            >
               <Box
                 sx={{
                   position: 'absolute',
@@ -619,7 +740,7 @@ function Home() {
                   left: '8%',
                   right: '8%',
                   height: 2,
-                  borderTop: '2px dashed rgba(224,122,63,0.35)',
+                  borderTop: '2px dashed rgba(224,122,63,0.45)',
                   display: { xs: 'none', md: 'block' },
                   zIndex: 0,
                 }}
@@ -629,6 +750,7 @@ function Home() {
                   <Grid key={step.num} item xs={12} sm={6} md={3}>
                     <Stack spacing={2} alignItems="center" sx={{ textAlign: 'center', px: { md: 1 } }}>
                       <Box
+                        data-active-step={idx === 0 ? true : undefined}
                         sx={{
                           width: 64,
                           height: 64,
@@ -642,6 +764,7 @@ function Home() {
                           boxShadow: idx === 0
                             ? '0 12px 28px rgba(224,122,63,0.30)'
                             : '0 6px 18px rgba(15,28,46,0.08)',
+                          animation: idx === 0 ? 'journeyHaloPulse 3.4s ease-in-out infinite' : 'none',
                         }}
                       >
                         {step.icon}
@@ -688,36 +811,361 @@ function Home() {
           </Container>
         </Box>
 
-        {/* PRINCIPLES */}
-        <Box id="principles" sx={{ py: { xs: 6, md: 9 } }}>
+        {/* INSIDE COMPASS — show, don't tell */}
+        <Box
+          id="inside"
+          sx={{
+            py: { xs: 8, md: 11 },
+            background:
+              'radial-gradient(900px 460px at 80% 0%, rgba(244,206,161,0.32), transparent 65%), radial-gradient(700px 460px at -10% 100%, rgba(224,122,63,0.10), transparent 60%), #FBF7F0',
+          }}
+        >
           <Container maxWidth="lg">
-            <Grid container spacing={{ xs: 3, md: 5 }}>
-              {principles.map((p) => (
-                <Grid key={p.eyebrow} item xs={12} md={4}>
-                  <Stack
-                    spacing={1.4}
+            <Stack spacing={1.6} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 6.5 } }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: '#C0612A',
+                }}
+              >
+                Inside Compass
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 600,
+                  fontSize: { xs: '2rem', md: '2.85rem' },
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.025em',
+                  color: '#10223C',
+                  maxWidth: 760,
+                }}
+              >
+                Three artifacts.
+                <Box component="span" sx={{ color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}> One leader.</Box>
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: '0.98rem', md: '1.05rem' },
+                  color: '#44566C',
+                  maxWidth: 620,
+                  lineHeight: 1.6,
+                }}
+              >
+                A reflection that reads like it was written for you. A focus you actually choose. A campaign your team can feel.
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={{ xs: 3, md: 3.5 }}>
+              {/* CARD 1: Reflection */}
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    borderRadius: '20px',
+                    bgcolor: '#FFFFFF',
+                    border: '1px solid rgba(15,28,46,0.08)',
+                    boxShadow: '0 18px 44px rgba(15,28,46,0.08)',
+                    p: { xs: 2.6, md: 3 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(224,122,63,0.10)',
+                        color: '#C0612A',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <FormatQuoteRoundedIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.66rem',
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: '#C0612A',
+                      }}
+                    >
+                      Your Reflection
+                    </Typography>
+                  </Stack>
+                  <Typography
                     sx={{
-                      borderLeft: '2px solid #E07A3F',
-                      pl: 2.2,
+                      fontFamily: navySerif,
+                      fontStyle: 'italic',
+                      fontWeight: 500,
+                      fontSize: { xs: '1.02rem', md: '1.1rem' },
+                      lineHeight: 1.55,
+                      color: '#10223C',
                     }}
                   >
+                    "You move fastest under pressure, but your team often reads that as urgency, not direction. The signal you intend to send is rarely the one they receive."
+                  </Typography>
+                  <Box sx={{ mt: 'auto', pt: 1.4, borderTop: '1px solid rgba(15,28,46,0.08)' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.78rem', color: '#44566C' }}>
+                      From your Trailhead summary
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* CARD 2: Focus */}
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    borderRadius: '20px',
+                    bgcolor: '#FFFFFF',
+                    border: '1.5px solid rgba(46,128,84,0.42)',
+                    boxShadow: '0 18px 44px rgba(15,28,46,0.08)',
+                    p: { xs: 2.6, md: 3 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    position: 'relative',
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(46,128,84,0.12)',
+                        color: '#2E8054',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <CheckRoundedIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.66rem',
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: '#2E8054',
+                      }}
+                    >
+                      Your Focus
+                    </Typography>
+                  </Stack>
+                  <Stack spacing={0.6} sx={{ mt: 0.4 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.62rem',
+                        letterSpacing: '0.20em',
+                        textTransform: 'uppercase',
+                        color: '#44566C',
+                      }}
+                    >
+                      Sub-trait
+                    </Typography>
                     <Typography
                       sx={{
                         fontFamily: navySerif,
                         fontWeight: 600,
-                        fontSize: '1.25rem',
+                        fontSize: { xs: '1.55rem', md: '1.75rem' },
+                        letterSpacing: '-0.02em',
                         color: '#10223C',
-                        letterSpacing: '-0.015em',
+                        lineHeight: 1.05,
+                      }}
+                    >
+                      Decisive Listening
+                    </Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', color: '#44566C' }}>
+                      under <Box component="span" sx={{ color: '#10223C', fontWeight: 700 }}>Coachable Communicator</Box>
+                    </Typography>
+                  </Stack>
+                  <Box sx={{ mt: 'auto', pt: 1.4, borderTop: '1px solid rgba(15,28,46,0.08)' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.78rem', color: '#44566C' }}>
+                      One of three campaign focuses
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* CARD 3: Campaign */}
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    borderRadius: '20px',
+                    bgcolor: '#FFFFFF',
+                    border: '1px solid rgba(15,28,46,0.08)',
+                    boxShadow: '0 18px 44px rgba(15,28,46,0.08)',
+                    p: { xs: 2.6, md: 3 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(63,100,123,0.12)',
+                        color: '#3F647B',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Diversity3RoundedIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.66rem',
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: '#3F647B',
+                      }}
+                    >
+                      Your Campaign
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    sx={{
+                      fontFamily: navySerif,
+                      fontWeight: 500,
+                      fontSize: { xs: '1.02rem', md: '1.08rem' },
+                      lineHeight: 1.5,
+                      color: '#10223C',
+                    }}
+                  >
+                    "Their leader consistently invites pushback before making the final call."
+                  </Typography>
+                  <Stack direction="row" spacing={0.6} alignItems="center" sx={{ mt: 0.5 }}>
+                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                      <Box
+                        key={n}
+                        sx={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          border: '1.5px solid',
+                          borderColor: n === 6 ? '#E07A3F' : 'rgba(15,28,46,0.18)',
+                          bgcolor: n === 6 ? '#E07A3F' : 'transparent',
+                          color: n === 6 ? '#FFF8F0' : '#44566C',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.66rem',
+                          fontWeight: 800,
+                          boxShadow: n === 6 ? '0 8px 18px rgba(224,122,63,0.30)' : 'none',
+                        }}
+                      >
+                        {n}
+                      </Box>
+                    ))}
+                  </Stack>
+                  <Box sx={{ mt: 'auto', pt: 1.4, borderTop: '1px solid rgba(15,28,46,0.08)' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.78rem', color: '#44566C' }}>
+                      Sample team-survey statement
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* PRINCIPLES */}
+        <Box id="principles" sx={{ py: { xs: 7, md: 10 }, bgcolor: '#FFFFFF', borderTop: '1px solid rgba(15,28,46,0.06)' }}>
+          <Container maxWidth="lg">
+            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 4.5, md: 6 } }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: '#C0612A',
+                }}
+              >
+                Why Compass
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 600,
+                  fontSize: { xs: '1.85rem', md: '2.45rem' },
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.025em',
+                  color: '#10223C',
+                  maxWidth: 700,
+                }}
+              >
+                Built different. On purpose.
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={{ xs: 3, md: 5 }}>
+              {principles.map((p) => (
+                <Grid key={p.eyebrow} item xs={12} md={4}>
+                  <Stack spacing={1.6} alignItems="flex-start">
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '12px',
+                        bgcolor: 'rgba(224,122,63,0.10)',
+                        color: '#C0612A',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {p.icon}
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.7rem',
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: '#C0612A',
                       }}
                     >
                       {p.eyebrow}
                     </Typography>
                     <Typography
                       sx={{
+                        fontFamily: navySerif,
                         fontWeight: 500,
-                        fontSize: '0.98rem',
-                        lineHeight: 1.6,
-                        color: '#44566C',
+                        fontSize: { xs: '1.05rem', md: '1.12rem' },
+                        lineHeight: 1.55,
+                        color: '#10223C',
+                        letterSpacing: '-0.01em',
                       }}
                     >
                       {p.body}
@@ -729,25 +1177,42 @@ function Home() {
           </Container>
         </Box>
 
-        {/* CLOSING CTA */}
+        {/* CLOSING CTA — bookend back to dark */}
         <Box
           sx={{
             position: 'relative',
-            py: { xs: 7, md: 9 },
-            bgcolor: '#10223C',
+            py: { xs: 8, md: 11 },
             color: '#FFF8F0',
             background:
-              'radial-gradient(800px 360px at 50% 0%, rgba(224,122,63,0.18), transparent 60%), linear-gradient(180deg, #10223C 0%, #0A1830 100%)',
+              'radial-gradient(900px 380px at 50% 0%, rgba(224,122,63,0.22), transparent 60%), linear-gradient(180deg, #10223C 0%, #0A1830 100%)',
+            overflow: 'hidden',
           }}
         >
-          <Container maxWidth="md">
+          <Box
+            aria-hidden
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: [
+                'radial-gradient(1px 1px at 18% 28%, rgba(255,255,255,0.30), transparent 60%)',
+                'radial-gradient(1.4px 1.4px at 76% 22%, rgba(244,206,161,0.40), transparent 60%)',
+                'radial-gradient(1px 1px at 50% 60%, rgba(255,255,255,0.20), transparent 60%)',
+                'radial-gradient(1.2px 1.2px at 86% 70%, rgba(255,255,255,0.22), transparent 60%)',
+              ].join(', '),
+              maskImage: 'linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%)',
+              pointerEvents: 'none',
+              opacity: 0.85,
+            }}
+          />
+          <Container maxWidth="md" sx={{ position: 'relative' }}>
             <Stack spacing={3} alignItems="center" sx={{ textAlign: 'center' }}>
               <Typography
                 sx={{
                   fontFamily: monoEyebrow,
                   fontWeight: 700,
                   fontSize: '0.7rem',
-                  letterSpacing: '0.22em',
+                  letterSpacing: '0.24em',
                   textTransform: 'uppercase',
                   color: '#F4CEA1',
                 }}
@@ -759,25 +1224,25 @@ function Home() {
                 sx={{
                   fontFamily: navySerif,
                   fontWeight: 500,
-                  fontSize: { xs: '2.1rem', md: '3rem' },
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.025em',
+                  fontSize: { xs: '2.2rem', md: '3.2rem' },
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.03em',
                   color: '#FFF8F0',
                   maxWidth: 720,
                 }}
               >
                 Find your direction.
-                <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic' }}>
+                <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
                   Then move with intent.
                 </Box>
               </Typography>
               <Typography
                 sx={{
                   fontWeight: 500,
-                  fontSize: { xs: '0.98rem', md: '1.05rem' },
+                  fontSize: { xs: '1rem', md: '1.08rem' },
                   lineHeight: 1.6,
                   color: 'rgba(255,248,240,0.78)',
-                  maxWidth: 540,
+                  maxWidth: 560,
                 }}
               >
                 Begin a single, focused assessment. Walk out with a year-long growth campaign your team can actually feel.
@@ -790,17 +1255,17 @@ function Home() {
                   all: 'unset',
                   cursor: 'pointer',
                   mt: 0.8,
-                  px: 3.6,
-                  py: 1.45,
+                  px: 3.8,
+                  py: 1.5,
                   borderRadius: 999,
                   bgcolor: '#E07A3F',
                   color: '#FFF8F0',
                   fontWeight: 800,
-                  fontSize: '1rem',
+                  fontSize: '1.02rem',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 0.8,
-                  boxShadow: '0 16px 38px rgba(224,122,63,0.40)',
+                  gap: 0.9,
+                  boxShadow: '0 18px 42px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
                   transition: '180ms ease',
                   '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
                 }}
