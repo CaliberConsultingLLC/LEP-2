@@ -32,7 +32,7 @@ import traitSystem from '../../data/traitSystem.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { useFakeDashboardData } from '../../config/runtimeFlags';
+import { useCairnTheme, useFakeDashboardData } from '../../config/runtimeFlags';
 import { getDashboardCampaignRows, normalizeDashboardScore } from '../../utils/dashboardData.js';
 const { CORE_TRAITS } = traitSystem;
 const JOURNEY_MAP_SRC = '/map.jpg';
@@ -456,6 +456,27 @@ function JourneyTab() {
 
   return (
     <Stack spacing={4}>
+      {useCairnTheme && (
+        <Paper
+          sx={{
+            p: { xs: 2, md: 2.4 },
+            borderRadius: 2.6,
+            border: '1px solid var(--sand-200, #E8DBC3)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(251,247,240,0.9))',
+            boxShadow: '0 10px 24px rgba(15,28,46,0.08)',
+          }}
+        >
+          <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.66rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.8 }}>
+            Journey · Uncovering to Embarking
+          </Typography>
+          <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '1.65rem', md: '2rem' }, lineHeight: 1.12, color: 'var(--navy-900, #10223C)', mb: 1 }}>
+            This is the record of your becoming.
+          </Typography>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', lineHeight: 1.65, color: 'var(--ink-soft, #44566C)', maxWidth: 820 }}>
+            Each point marks a cycle of uncovering patterns, embracing what is true, understanding the signal, and embarking on a practice your team can experience.
+          </Typography>
+        </Paper>
+      )}
       <Card
         sx={{
           background: 'transparent',
@@ -681,7 +702,7 @@ function JourneyTab() {
                       },
                     }}
                   >
-                    Action Plan
+                    {useCairnTheme ? 'Practice Plan' : 'Action Plan'}
                   </Button>
                 </Stack>
               </Stack>
@@ -749,7 +770,7 @@ function JourneyTab() {
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.9 }}>
                   <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#20140B' }}>
-                    Action Plan
+                    {useCairnTheme ? 'Practice Plan' : 'Action Plan'}
                   </Typography>
                   <Chip
                     size="small"

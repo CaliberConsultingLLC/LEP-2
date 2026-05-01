@@ -32,7 +32,7 @@ import fakeData from '../../data/fakeData.js';
 import traitSystem from '../../data/traitSystem.js';
 import { auth, db } from '../../firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { useFakeDashboardData } from '../../config/runtimeFlags';
+import { useCairnTheme, useFakeDashboardData } from '../../config/runtimeFlags';
 import {
   calculateCampaignTraitMetrics,
   getDashboardCampaignRows,
@@ -1323,14 +1323,39 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
         }}
       >
         <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.35rem', fontWeight: 700, mb: 0.9, color: 'text.primary' }}>
-          Results unlock after you close the survey
+          {useCairnTheme ? 'Signals unlock after you close the survey' : 'Results unlock after you close the survey'}
         </Typography>
         <Typography sx={{ fontFamily: 'Montserrat, sans-serif', color: 'text.secondary', lineHeight: 1.65, maxWidth: 760, mx: 'auto' }}>
-          Keep collecting responses from your team. The Growth Campaign dashboard will show submitted responses and anonymous opt outs while the survey is open. Once you close the survey, Compass will unlock the analytics and interpretation views.
+          {useCairnTheme
+            ? 'Keep collecting responses from your team. When the listening window closes, Compass will help you understand what the signal means before asking you to act on it.'
+            : 'Keep collecting responses from your team. The Growth Campaign dashboard will show submitted responses and anonymous opt outs while the survey is open. Once you close the survey, Compass will unlock the analytics and interpretation views.'}
         </Typography>
       </Paper>
     ) : (
     <Stack spacing={4}>
+          {useCairnTheme && (
+            <Paper
+              sx={{
+                p: { xs: 2, md: 2.4 },
+                borderRadius: 2.6,
+                border: '1px solid var(--sand-200, #E8DBC3)',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(251,247,240,0.9))',
+                boxShadow: '0 10px 24px rgba(15,28,46,0.08)',
+              }}
+            >
+              <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.66rem', fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.8 }}>
+                {view === 'detailed' ? 'Evidence · What shaped the signal' : 'Signals · What your team is reflecting back'}
+              </Typography>
+              <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '1.65rem', md: '2rem' }, lineHeight: 1.12, color: 'var(--navy-900, #10223C)', mb: 1 }}>
+                {view === 'detailed' ? 'Inspect the source, then return to the practice.' : 'Start with meaning. Let the data support the story.'}
+              </Typography>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', lineHeight: 1.65, color: 'var(--ink-soft, #44566C)', maxWidth: 820 }}>
+                {view === 'detailed'
+                  ? 'This view is here for clarity, not self-judgment. Use the statement-level evidence to understand what your team may be experiencing in specific moments.'
+                  : 'These patterns are not a grade. They are a mirror for where your intent, effort, and visible impact are lining up, and where your next growth commitment can do real work.'}
+              </Typography>
+            </Paper>
+          )}
           {/* Combined Trait Circular Graph */}
           {view === 'compass' && Object.keys(traitData).length > 0 && (
             <Card sx={{ 
@@ -1655,9 +1680,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         }}
                       >
                         {[
-                          { key: 'overall', label: 'Overall Score', value: activeMetrics?.lepScore || 0, color: '#1F3347' },
-                          { key: 'efficacy', label: 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
-                          { key: 'effort', label: 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F' },
+                          { key: 'overall', label: useCairnTheme ? 'Signal Strength' : 'Overall Score', value: activeMetrics?.lepScore || 0, color: '#1F3347' },
+                          { key: 'efficacy', label: useCairnTheme ? 'Visible Impact' : 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
+                          { key: 'effort', label: useCairnTheme ? 'Perceived Effort' : 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F' },
                           { key: 'gap-efficacy', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true },
                           { key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true },
                         ].map((item, idx) => (
@@ -1788,7 +1813,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       textAlign: 'center',
                     }}
                   >
-                    Detailed Results
+                    {useCairnTheme ? 'Evidence' : 'Detailed Results'}
                   </Typography>
                   <Divider sx={{ my: 1.05, borderColor: 'rgba(69,112,137,0.25)' }} />
                   <Typography
@@ -1800,7 +1825,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       mb: 1.1,
                     }}
                   >
-                    Inspect statement-level scoring with five-ring breakdowns and question-specific efficacy and effort patterns. Use this page to drill into the precise items shaping each trait outcome.
+                    {useCairnTheme
+                      ? 'Use the details to understand the moments behind the signal. The goal is clarity, not more data for its own sake.'
+                      : 'Inspect statement-level scoring with five-ring breakdowns and question-specific efficacy and effort patterns. Use this page to drill into the precise items shaping each trait outcome.'}
                   </Typography>
                   <Tabs
                     value={selectedDetailTraitKey || false}

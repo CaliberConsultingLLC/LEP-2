@@ -7,6 +7,11 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import SelfImprovementRoundedIcon from '@mui/icons-material/SelfImprovementRounded';
+import Diversity3RoundedIcon from '@mui/icons-material/Diversity3Rounded';
+import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import { useNavigate } from 'react-router-dom';
 import { allowDevBypass, showDevTools, useCairnTheme } from '../config/runtimeFlags';
 
@@ -204,32 +209,52 @@ function Home() {
     : deliverablesCards;
 
   if (useCairnTheme) {
-    const cairnProcessCards = [
+    const journeySteps = [
       {
+        num: '01',
         title: 'Uncover',
-        hero: '/herothink.png',
-        text: 'Surface hidden truths about how your leadership shows up in real situations.',
+        icon: <SearchRoundedIcon sx={{ fontSize: 26 }} />,
+        body: 'Surface the hidden truths about how your leadership shows up under real pressure.',
       },
       {
+        num: '02',
         title: 'Embrace',
-        hero: '/heroreflect.png',
-        text: 'Name the gaps without shame, then choose the traits most worth building.',
+        icon: <SelfImprovementRoundedIcon sx={{ fontSize: 26 }} />,
+        body: 'Name the gaps without shame and choose the traits most worth building right now.',
       },
       {
+        num: '03',
         title: 'Understand',
-        hero: '/herocalibrate.png',
-        text: 'Use the growth campaign to learn how your team experiences your leadership.',
+        icon: <Diversity3RoundedIcon sx={{ fontSize: 26 }} />,
+        body: 'Hear how your team actually experiences your leadership, not how you assume they do.',
       },
       {
+        num: '04',
         title: 'Embark',
-        hero: '/heroembark.png',
-        text: 'Turn insight into a year-long rhythm of action, feedback, and development.',
+        icon: <ExploreRoundedIcon sx={{ fontSize: 26 }} />,
+        body: 'Turn insight into a year-long rhythm of action, feedback, and steady development.',
       },
     ];
-    const cairnCards =
-      activeSection === 0 ? cairnProcessCards
-      : activeSection === 1 ? methodologyCards
-      : deliverablesCards;
+
+    const principles = [
+      { eyebrow: 'AI-powered. Human-led.', body: 'A live agent translates your responses into perspective, but you remain the leader of every decision.' },
+      { eyebrow: 'No HR scaffolding.', body: 'Designed for individual leaders. No vendor onboarding, no rollout cycles, no org politics required.' },
+      { eyebrow: 'A year, not a workshop.', body: 'Compass replaces one-off training with a year-long campaign your team can actually feel.' },
+    ];
+
+    const scrollToJourney = () => {
+      const el = document.getElementById('journey');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const navLinks = [
+      { label: 'How It Works', target: 'journey' },
+      { label: 'Why Compass', target: 'principles' },
+    ];
+
+    const navySerif = '"Fraunces", Georgia, "Times New Roman", serif';
+    const sansBody = '"Manrope", "Inter", system-ui, sans-serif';
+    const monoEyebrow = '"JetBrains Mono", ui-monospace, monospace';
 
     return (
       <Box
@@ -238,18 +263,24 @@ function Home() {
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: 'var(--sand-50, #FBF7F0)',
-          color: 'var(--navy-900, #10223C)',
+          bgcolor: '#FBF7F0',
+          color: '#10223C',
           overflowX: 'hidden',
+          fontFamily: sansBody,
         }}
       >
+        {/* HEADER */}
         <Box
           component="header"
           sx={{
-            position: 'relative',
-            zIndex: 2,
-            px: { xs: 2, md: 4 },
-            py: { xs: 1.5, md: 2 },
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            bgcolor: 'rgba(251,247,240,0.86)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid rgba(15,28,46,0.06)',
+            px: { xs: 2.5, md: 5 },
+            py: { xs: 1.4, md: 1.6 },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -262,37 +293,44 @@ function Home() {
               src="/CompassLogo.png"
               alt=""
               aria-hidden
-              sx={{ width: 34, height: 34, objectFit: 'contain' }}
+              sx={{ width: 30, height: 30, objectFit: 'contain' }}
             />
-            <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, fontSize: { xs: '1rem', md: '1.1rem' }, letterSpacing: '-0.035em', fontVariant: 'small-caps' }}>
+            <Typography
+              sx={{
+                fontFamily: '"Cinzel", Georgia, serif',
+                fontWeight: 700,
+                fontSize: { xs: '1rem', md: '1.12rem' },
+                letterSpacing: '0.04em',
+                fontVariant: 'small-caps',
+              }}
+            >
               The Compass
             </Typography>
           </Stack>
 
-          <Stack direction="row" spacing={1.1} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
-            {sections.map((section, idx) => (
+          <Stack direction="row" spacing={0.6} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
+            {navLinks.map((link) => (
               <Box
-                key={section.key}
+                key={link.target}
                 component="button"
                 type="button"
-                onClick={() => handleHeroSectionSelect(idx)}
+                onClick={() => {
+                  const el = document.getElementById(link.target);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',
                   px: 1.4,
-                  py: 0.75,
+                  py: 0.7,
                   borderRadius: 999,
-                  fontFamily: '"Manrope", sans-serif',
-                  fontWeight: activeSection === idx ? 900 : 750,
-                  fontSize: '0.82rem',
-                  color: activeSection === idx ? 'var(--orange-deep, #C0612A)' : 'var(--navy-900, #10223C)',
-                  bgcolor: activeSection === idx ? 'rgba(224,122,63,0.08)' : 'transparent',
-                  transition: '160ms ease',
-                  '&:hover': { color: 'var(--orange-deep, #C0612A)', bgcolor: 'rgba(224,122,63,0.07)' },
-                  '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+                  fontWeight: 700,
+                  fontSize: '0.84rem',
+                  color: '#10223C',
+                  '&:hover': { color: '#C0612A' },
                 }}
               >
-                {section.label}
+                {link.label}
               </Box>
             ))}
             <Box
@@ -302,17 +340,14 @@ function Home() {
               sx={{
                 all: 'unset',
                 cursor: 'pointer',
-                px: 2,
-                py: 0.85,
+                px: 1.6,
+                py: 0.7,
                 borderRadius: 999,
-                border: '1px solid var(--sand-200, #E8DBC3)',
-                bgcolor: 'rgba(255,255,255,0.7)',
-                fontFamily: '"Manrope", sans-serif',
-                fontWeight: 850,
-                fontSize: '0.82rem',
-                color: 'var(--navy-900, #10223C)',
-                boxShadow: '0 2px 8px rgba(15,28,46,0.05)',
-                '&:hover': { borderColor: 'var(--orange, #E07A3F)' },
+                fontWeight: 700,
+                fontSize: '0.84rem',
+                color: '#10223C',
+                ml: 0.5,
+                '&:hover': { color: '#C0612A' },
               }}
             >
               Sign In
@@ -324,127 +359,180 @@ function Home() {
               sx={{
                 all: 'unset',
                 cursor: 'pointer',
-                px: 2.3,
+                ml: 1,
+                px: 2.2,
                 py: 0.95,
                 borderRadius: 999,
-                bgcolor: 'var(--orange, #E07A3F)',
-                color: '#fff',
-                fontFamily: '"Manrope", sans-serif',
-                fontWeight: 900,
-                fontSize: '0.82rem',
-                boxShadow: '0 10px 24px rgba(224,122,63,0.26)',
-                '&:hover': { bgcolor: 'var(--orange-deep, #C0612A)', transform: 'translateY(-1px)' },
+                bgcolor: '#E07A3F',
+                color: '#FFF8F0',
+                fontWeight: 800,
+                fontSize: '0.84rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.6,
+                boxShadow: '0 8px 22px rgba(224,122,63,0.28)',
+                transition: '160ms ease',
+                '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
               }}
             >
-              Begin Your Journey →
+              Begin Your Journey
+              <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
             </Box>
           </Stack>
         </Box>
 
+        {/* HERO */}
         <Box
           sx={{
             position: 'relative',
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
+            pt: { xs: 6, md: 11 },
+            pb: { xs: 7, md: 12 },
             background:
-              'radial-gradient(760px 420px at 82% 18%, rgba(244,206,161,0.38), transparent 68%), radial-gradient(720px 420px at 10% 0%, rgba(255,255,255,0.95), transparent 68%), linear-gradient(115deg, rgba(255,255,255,0.78) 0%, rgba(251,247,240,0.96) 46%, rgba(244,236,221,0.74) 100%)',
-            '&:before': {
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: 'url(/CompassLogo.png)',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: { xs: '520px auto', md: '760px auto' },
-              backgroundPosition: { xs: '110% 18%', md: '88% 16%' },
-              opacity: 0.055,
-              pointerEvents: 'none',
-            },
+              'radial-gradient(900px 480px at 88% 0%, rgba(244,206,161,0.45), transparent 65%), radial-gradient(700px 480px at -10% 100%, rgba(224,122,63,0.10), transparent 60%)',
           }}
         >
-          <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1, py: { xs: 3, md: 4.2 } }}>
-            <Grid container spacing={{ xs: 3, md: 5 }} alignItems="center">
-              <Grid item xs={12} md={6.4}>
-                <Stack spacing={2.2} alignItems="flex-start">
-                  <Typography
+          <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+            <Grid container spacing={{ xs: 5, md: 6 }} alignItems="center">
+              <Grid item xs={12} md={7}>
+                <Stack spacing={3} alignItems="flex-start">
+                  <Box
                     sx={{
-                      fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-                      fontWeight: 800,
-                      fontSize: '0.68rem',
-                      letterSpacing: '0.16em',
-                      textTransform: 'uppercase',
-                      color: 'var(--orange-deep, #C0612A)',
-                      px: 1.2,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 1.4,
                       py: 0.55,
                       borderRadius: 999,
-                      bgcolor: 'rgba(224,122,63,0.08)',
-                      border: '1px solid rgba(224,122,63,0.14)',
+                      bgcolor: 'rgba(224,122,63,0.10)',
+                      border: '1px solid rgba(224,122,63,0.22)',
                     }}
                   >
-                    AI-powered. Human-led.
-                  </Typography>
+                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#E07A3F' }} />
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.7rem',
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: '#C0612A',
+                      }}
+                    >
+                      AI-powered. Human-led.
+                    </Typography>
+                  </Box>
+
                   <Typography
                     component="h1"
                     sx={{
-                      fontFamily: '"Fraunces", Georgia, serif',
-                      fontWeight: 700,
-                      fontSize: { xs: '2.75rem', md: '4.35rem' },
-                      lineHeight: 0.98,
-                      letterSpacing: '-0.045em',
-                      color: 'var(--navy-900, #10223C)',
-                      maxWidth: 760,
+                      fontFamily: navySerif,
+                      fontWeight: 600,
+                      fontSize: { xs: '2.85rem', sm: '3.6rem', md: '4.6rem' },
+                      lineHeight: 1.0,
+                      letterSpacing: '-0.035em',
+                      color: '#10223C',
                     }}
                   >
                     Know where you stand.
-                    <Box component="span" sx={{ display: 'block' }}>
-                      Choose <Box component="span" sx={{ color: 'var(--orange-deep, #C0612A)' }}>where to go.</Box>
+                    <Box component="span" sx={{ display: 'block', color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}>
+                      Choose where to go.
                     </Box>
                   </Typography>
+
                   <Typography
                     sx={{
-                      fontFamily: '"Manrope", sans-serif',
-                      fontWeight: 650,
-                      fontSize: { xs: '0.98rem', md: '1.08rem' },
-                      lineHeight: 1.65,
-                      color: 'var(--ink-soft, #44566C)',
+                      fontWeight: 500,
+                      fontSize: { xs: '1.05rem', md: '1.18rem' },
+                      lineHeight: 1.6,
+                      color: '#44566C',
                       maxWidth: 560,
                     }}
                   >
-                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities so your growth stays grounded in real leadership context.
+                    Compass turns a single leadership assessment into a year-long campaign of clarity, feedback, and action — guided by an agent, owned by you.
                   </Typography>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ pt: 0.5 }}>
-                    <Button
-                      variant="contained"
-                      color="secondary"
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ pt: 1 }}>
+                    <Box
+                      component="button"
+                      type="button"
                       onClick={handleBeginJourney}
-                      sx={{ px: 3.5, py: 1.25, fontWeight: 900, boxShadow: '0 12px 28px rgba(224,122,63,0.28)' }}
+                      sx={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        px: 3.2,
+                        py: 1.35,
+                        borderRadius: 999,
+                        bgcolor: '#E07A3F',
+                        color: '#FFF8F0',
+                        fontWeight: 800,
+                        fontSize: '0.98rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.8,
+                        boxShadow: '0 14px 32px rgba(224,122,63,0.30)',
+                        transition: '180ms ease',
+                        '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                      }}
                     >
-                      Start Your Assessment →
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => handleHeroSectionSelect(0)}
-                      sx={{ px: 3, py: 1.2, bgcolor: 'rgba(255,255,255,0.72)', borderColor: 'var(--sand-200, #E8DBC3)', color: 'var(--navy-900, #10223C)', fontWeight: 900 }}
+                      Begin Your Journey
+                      <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={scrollToJourney}
+                      sx={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        px: 3,
+                        py: 1.3,
+                        borderRadius: 999,
+                        border: '1.5px solid rgba(15,28,46,0.18)',
+                        color: '#10223C',
+                        fontWeight: 800,
+                        fontSize: '0.98rem',
+                        transition: '180ms ease',
+                        '&:hover': { borderColor: '#10223C', bgcolor: 'rgba(15,28,46,0.04)' },
+                      }}
                     >
-                      See How It Works
-                    </Button>
+                      How It Works
+                    </Box>
                   </Stack>
                 </Stack>
               </Grid>
 
-              <Grid item xs={12} md={5.6}>
-                <Box sx={{ position: 'relative', minHeight: { xs: 330, md: 455 } }}>
+              <Grid item xs={12} md={5}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    aspectRatio: '1 / 1',
+                    maxWidth: 460,
+                    mx: 'auto',
+                  }}
+                >
+                  {/* Soft halo */}
                   <Box
                     sx={{
                       position: 'absolute',
-                      right: { xs: '8%', md: '8%' },
-                      top: { xs: 10, md: 0 },
-                      width: { xs: 250, md: 390 },
-                      height: { xs: 250, md: 390 },
+                      inset: '-10%',
                       borderRadius: '50%',
-                      background: 'radial-gradient(circle at 42% 38%, rgba(244,206,161,0.9), rgba(16,34,60,0.88) 62%, rgba(15,28,46,0.96))',
-                      border: '9px solid rgba(244,206,161,0.62)',
-                      boxShadow: '0 24px 60px rgba(15,28,46,0.18)',
+                      background:
+                        'radial-gradient(circle at 50% 50%, rgba(244,206,161,0.55), rgba(244,206,161,0) 60%)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  {/* Medallion */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: '50%',
+                      background:
+                        'radial-gradient(circle at 38% 32%, #213B5C 0%, #10223C 55%, #0A1830 100%)',
+                      border: '1px solid rgba(244,206,161,0.35)',
+                      boxShadow:
+                        '0 30px 70px rgba(15,28,46,0.25), inset 0 0 60px rgba(244,206,161,0.10)',
                       overflow: 'hidden',
                     }}
                   >
@@ -455,60 +543,13 @@ function Home() {
                       aria-hidden
                       sx={{
                         position: 'absolute',
-                        inset: '9%',
-                        width: '82%',
-                        height: '82%',
+                        inset: '14%',
+                        width: '72%',
+                        height: '72%',
                         objectFit: 'contain',
-                        filter: 'drop-shadow(0 18px 24px rgba(0,0,0,0.32))',
+                        filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.45))',
                       }}
                     />
-                  </Box>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: { xs: 0, md: 10 },
-                      top: { xs: 180, md: 185 },
-                      width: { xs: 250, md: 300 },
-                      borderRadius: '18px',
-                      bgcolor: 'rgba(255,255,255,0.86)',
-                      border: '1px solid rgba(232,219,195,0.92)',
-                      boxShadow: '0 18px 44px rgba(15,28,46,0.12)',
-                      backdropFilter: 'blur(8px)',
-                      p: 2.1,
-                    }}
-                  >
-                    <Typography sx={{ color: 'var(--orange, #E07A3F)', letterSpacing: '0.12em', fontSize: '0.8rem', mb: 1 }}>
-                      ★★★★★
-                    </Typography>
-                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.92rem', lineHeight: 1.45, color: 'var(--navy-900, #10223C)' }}>
-                      “The Compass helped me see clearly what mattered most and what to do next.”
-                    </Typography>
-                    <Box sx={{ mt: 1.3, pt: 1.2, borderTop: '1px solid var(--sand-200, #E8DBC3)' }}>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 900, fontSize: '0.78rem', color: 'var(--navy-900, #10223C)' }}>Alex Rivera</Typography>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 650, fontSize: '0.72rem', color: 'var(--ink-soft, #44566C)' }}>Director of Technology</Typography>
-                    </Box>
-                  </Box>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      right: { xs: 8, md: 24 },
-                      bottom: { xs: 0, md: 16 },
-                      width: { xs: 210, md: 235 },
-                      borderRadius: '18px',
-                      bgcolor: 'rgba(255,255,255,0.68)',
-                      border: '1px solid rgba(232,219,195,0.86)',
-                      boxShadow: '0 14px 34px rgba(15,28,46,0.09)',
-                      p: 2,
-                    }}
-                  >
-                    <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontWeight: 800, fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1.2 }}>
-                      What you gain
-                    </Typography>
-                    {['Clear leadership signal', 'Prioritized growth focus', 'Team-experienced feedback', 'Actionable next steps'].map((item) => (
-                      <Typography key={item} sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.65 }}>
-                        ✓ {item}
-                      </Typography>
-                    ))}
                   </Box>
                 </Box>
               </Grid>
@@ -516,87 +557,297 @@ function Home() {
           </Container>
         </Box>
 
-        <Box sx={{ position: 'relative', zIndex: 1, pb: { xs: 4, md: 4.8 }, pt: { xs: 1.5, md: 0 } }}>
-          <Container maxWidth="xl">
-            <Box
-              key={activeSection}
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(4, minmax(0, 1fr))' },
-                gap: { xs: 1.5, md: 2 },
-                animation: `${transitionDir === 'left' ? 'cardsSwipeLeft' : 'cardsSwipeRight'} 260ms cubic-bezier(.2,.8,.2,1)`,
-                '@keyframes cardsSwipeLeft': {
-                  from: { opacity: 0.35, transform: 'translateX(16px)' },
-                  to: { opacity: 1, transform: 'translateX(0)' },
-                },
-                '@keyframes cardsSwipeRight': {
-                  from: { opacity: 0.35, transform: 'translateX(-16px)' },
-                  to: { opacity: 1, transform: 'translateX(0)' },
-                },
-              }}
-            >
-              {cairnCards.map((card, idx) => (
-                <Box
-                  key={`${sections[activeSection].key}-${card.title}`}
-                  sx={{
-                    minHeight: { xs: 176, md: 202 },
-                    borderRadius: '22px',
-                    bgcolor: 'rgba(255,255,255,0.82)',
-                    border: '1px solid var(--sand-200, #E8DBC3)',
-                    boxShadow: '0 14px 34px rgba(15,28,46,0.075)',
-                    p: { xs: 2.2, md: 2.45 },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Stack direction="row" spacing={1.3} alignItems="center" sx={{ mb: 1.7 }}>
-                    <Box
-                      sx={{
-                        width: 54,
-                        height: 54,
-                        borderRadius: '18px',
-                        bgcolor: idx % 2 === 0 ? 'rgba(224,122,63,0.1)' : 'rgba(63,100,123,0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Box component="img" src={card.hero || '/compassicon.png'} alt="" aria-hidden sx={{ width: 38, height: 38, objectFit: 'contain' }} />
-                    </Box>
-                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 950, fontSize: '0.9rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--navy-900, #10223C)' }}>
-                      {card.title}
-                    </Typography>
-                  </Stack>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 650, fontSize: '0.88rem', lineHeight: 1.58, color: 'var(--ink-soft, #44566C)' }}>
-                    {card.text}
-                  </Typography>
-                  <Typography sx={{ mt: 1.6, fontFamily: '"Manrope", sans-serif', fontWeight: 900, fontSize: '0.76rem', color: idx % 2 === 0 ? 'var(--orange-deep, #C0612A)' : 'var(--navy-500, #3F647B)' }}>
-                    Learn more →
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
+        {/* JOURNEY */}
+        <Box
+          id="journey"
+          sx={{
+            position: 'relative',
+            bgcolor: '#FFFFFF',
+            borderTop: '1px solid rgba(15,28,46,0.06)',
+            borderBottom: '1px solid rgba(15,28,46,0.06)',
+            py: { xs: 7, md: 10 },
+          }}
+        >
+          <Container maxWidth="lg">
+            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 6.5 } }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: '#C0612A',
+                }}
+              >
+                The Journey
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 600,
+                  fontSize: { xs: '2rem', md: '2.85rem' },
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.025em',
+                  color: '#10223C',
+                  maxWidth: 760,
+                }}
+              >
+                Four steps. One year. Real movement.
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: '0.98rem', md: '1.05rem' },
+                  color: '#44566C',
+                  maxWidth: 620,
+                  lineHeight: 1.6,
+                }}
+              >
+                Compass replaces one-day workshops and static assessments with a guided, agent-supported rhythm built for leaders who want to move forward, not just learn about themselves.
+              </Typography>
+            </Stack>
 
-            {showDevTools && (
-              <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap" justifyContent="flex-end" sx={{ mt: 2 }}>
-                <Button variant="outlined" size="small" onClick={handleDevSummary}>Dev Summary</Button>
-                <Button variant="outlined" size="small" onClick={() => navigate(allowDevBypass ? '/dashboard?dev=1' : '/dashboard')}>Dev Dashboard</Button>
-                <Button variant="outlined" size="small" onClick={() => navigate('/dev-skip-1')}>Dev Skip</Button>
-                <Button variant="outlined" size="small" onClick={() => navigate('/dev-assessments')}>Dev Assessments</Button>
-                <Button variant="outlined" size="small" onClick={() => navigate('/dev-repository')}>Dev Repository</Button>
-              </Stack>
-            )}
+            {/* Step rail with connector */}
+            <Box sx={{ position: 'relative' }}>
+              {/* Connector line behind the numbers */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 32,
+                  left: '8%',
+                  right: '8%',
+                  height: 2,
+                  borderTop: '2px dashed rgba(224,122,63,0.35)',
+                  display: { xs: 'none', md: 'block' },
+                  zIndex: 0,
+                }}
+              />
+              <Grid container spacing={{ xs: 3, md: 3 }} sx={{ position: 'relative', zIndex: 1 }}>
+                {journeySteps.map((step, idx) => (
+                  <Grid key={step.num} item xs={12} sm={6} md={3}>
+                    <Stack spacing={2} alignItems="center" sx={{ textAlign: 'center', px: { md: 1 } }}>
+                      <Box
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          bgcolor: idx === 0 ? '#E07A3F' : '#FFFFFF',
+                          color: idx === 0 ? '#FFF8F0' : '#10223C',
+                          border: idx === 0 ? '1px solid #E07A3F' : '1.5px solid rgba(15,28,46,0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: idx === 0
+                            ? '0 12px 28px rgba(224,122,63,0.30)'
+                            : '0 6px 18px rgba(15,28,46,0.08)',
+                        }}
+                      >
+                        {step.icon}
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontFamily: monoEyebrow,
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          letterSpacing: '0.22em',
+                          color: '#C0612A',
+                        }}
+                      >
+                        Step {step.num}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: navySerif,
+                          fontWeight: 600,
+                          fontSize: '1.5rem',
+                          letterSpacing: '-0.02em',
+                          color: '#10223C',
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {step.title}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '0.95rem',
+                          lineHeight: 1.55,
+                          color: '#44566C',
+                          maxWidth: 240,
+                        }}
+                      >
+                        {step.body}
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           </Container>
         </Box>
 
-        <Box component="footer" sx={{ mt: 'auto', px: { xs: 2, md: 4 }, py: 2, display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', borderTop: '1px solid rgba(232,219,195,0.86)' }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 650, fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>
-            © {new Date().getFullYear()} North Star Partners. All rights reserved.
-          </Typography>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 650, fontSize: '0.75rem', color: 'var(--ink-soft, #44566C)' }}>
-            Privacy Policy &nbsp; | &nbsp; Terms of Use &nbsp; | &nbsp; Contact
+        {/* PRINCIPLES */}
+        <Box id="principles" sx={{ py: { xs: 6, md: 9 } }}>
+          <Container maxWidth="lg">
+            <Grid container spacing={{ xs: 3, md: 5 }}>
+              {principles.map((p) => (
+                <Grid key={p.eyebrow} item xs={12} md={4}>
+                  <Stack
+                    spacing={1.4}
+                    sx={{
+                      borderLeft: '2px solid #E07A3F',
+                      pl: 2.2,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: navySerif,
+                        fontWeight: 600,
+                        fontSize: '1.25rem',
+                        color: '#10223C',
+                        letterSpacing: '-0.015em',
+                      }}
+                    >
+                      {p.eyebrow}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '0.98rem',
+                        lineHeight: 1.6,
+                        color: '#44566C',
+                      }}
+                    >
+                      {p.body}
+                    </Typography>
+                  </Stack>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* CLOSING CTA */}
+        <Box
+          sx={{
+            position: 'relative',
+            py: { xs: 7, md: 9 },
+            bgcolor: '#10223C',
+            color: '#FFF8F0',
+            background:
+              'radial-gradient(800px 360px at 50% 0%, rgba(224,122,63,0.18), transparent 60%), linear-gradient(180deg, #10223C 0%, #0A1830 100%)',
+          }}
+        >
+          <Container maxWidth="md">
+            <Stack spacing={3} alignItems="center" sx={{ textAlign: 'center' }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: '#F4CEA1',
+                }}
+              >
+                Ready to begin?
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 500,
+                  fontSize: { xs: '2.1rem', md: '3rem' },
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.025em',
+                  color: '#FFF8F0',
+                  maxWidth: 720,
+                }}
+              >
+                Find your direction.
+                <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic' }}>
+                  Then move with intent.
+                </Box>
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: '0.98rem', md: '1.05rem' },
+                  lineHeight: 1.6,
+                  color: 'rgba(255,248,240,0.78)',
+                  maxWidth: 540,
+                }}
+              >
+                Begin a single, focused assessment. Walk out with a year-long growth campaign your team can actually feel.
+              </Typography>
+              <Box
+                component="button"
+                type="button"
+                onClick={handleBeginJourney}
+                sx={{
+                  all: 'unset',
+                  cursor: 'pointer',
+                  mt: 0.8,
+                  px: 3.6,
+                  py: 1.45,
+                  borderRadius: 999,
+                  bgcolor: '#E07A3F',
+                  color: '#FFF8F0',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.8,
+                  boxShadow: '0 16px 38px rgba(224,122,63,0.40)',
+                  transition: '180ms ease',
+                  '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                }}
+              >
+                Begin Your Journey
+                <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+              </Box>
+            </Stack>
+          </Container>
+        </Box>
+
+        {showDevTools && (
+          <Box sx={{ px: { xs: 2, md: 4 }, py: 2, borderTop: '1px solid rgba(15,28,46,0.06)' }}>
+            <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap" justifyContent="flex-end">
+              <Button variant="outlined" size="small" onClick={handleDevSummary}>Dev Summary</Button>
+              <Button variant="outlined" size="small" onClick={() => navigate(allowDevBypass ? '/dashboard?dev=1' : '/dashboard')}>Dev Dashboard</Button>
+              <Button variant="outlined" size="small" onClick={() => navigate('/dev-skip-1')}>Dev Skip</Button>
+              <Button variant="outlined" size="small" onClick={() => navigate('/dev-assessments')}>Dev Assessments</Button>
+              <Button variant="outlined" size="small" onClick={() => navigate('/dev-repository')}>Dev Repository</Button>
+            </Stack>
+          </Box>
+        )}
+
+        {/* FOOTER */}
+        <Box
+          component="footer"
+          sx={{
+            mt: 'auto',
+            px: { xs: 2.5, md: 5 },
+            py: 2.4,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2,
+            flexWrap: 'wrap',
+            borderTop: '1px solid rgba(15,28,46,0.06)',
+            bgcolor: '#FBF7F0',
+          }}
+        >
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box component="img" src="/CompassLogo.png" alt="" aria-hidden sx={{ width: 18, height: 18, opacity: 0.7 }} />
+            <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#44566C' }}>
+              © {new Date().getFullYear()} North Star Partners
+            </Typography>
+          </Stack>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#44566C' }}>
+            Privacy &nbsp;·&nbsp; Terms &nbsp;·&nbsp; Contact
           </Typography>
         </Box>
       </Box>

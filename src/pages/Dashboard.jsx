@@ -29,6 +29,201 @@ import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 
+const readJson = (key, fallback = null) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const JOURNEY_SEASONS = [
+  { label: 'Uncovering', helper: 'Profile and leadership patterns' },
+  { label: 'Embracing', helper: 'Strengths, tensions, and honest edges' },
+  { label: 'Understanding', helper: 'Team signal and self-read' },
+  { label: 'Embarking', helper: 'Practice, reflection, and next cycle' },
+];
+
+function CurrentBearing({ onNavigate }) {
+  const userInfo = readJson('userInfo', {});
+  const focusAreas = readJson('focusAreas', []);
+  const selectedTraits = readJson('selectedTraits', []);
+  const campaignRecords = readJson('campaignRecords', {});
+  const actionPlansByCampaign = readJson('actionPlansByCampaign', {});
+  const teamCampaignClosed = String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
+  const userKey = userInfo?.email || userInfo?.name || 'anonymous';
+  const campaignKey = campaignRecords?.bundleId || campaignRecords?.teamCampaignId || campaignRecords?.selfCampaignId || '123';
+  const plans = actionPlansByCampaign?.[campaignKey]?.[userKey]?.plans || {};
+  const planEntries = Object.entries(plans || {}).flatMap(([trait, subtraits]) => (
+    Object.entries(subtraits || {}).map(([subTrait, plan]) => ({ trait, subTrait, plan }))
+  ));
+  const firstPlan = planEntries.find(({ plan }) => String(plan?.commitment || plan?.guidedAnswers?.behaviorCommitment || '').trim()) || planEntries[0];
+  const primaryFocus = focusAreas.find((area) => selectedTraits.includes(area.id)) || focusAreas[0] || {};
+  const activeCommitment = String(firstPlan?.plan?.commitment || firstPlan?.plan?.guidedAnswers?.behaviorCommitment || '').trim();
+  const responseStatus = teamCampaignClosed ? 'Signal ready' : 'Listening window open';
+  const currentSeason = teamCampaignClosed ? 'Embarking' : 'Understanding';
+  const currentChapter = teamCampaignClosed ? 'VII' : 'VI';
+
+  const commandCards = [
+    {
+      label: 'Signal',
+      title: primaryFocus?.subTraitName || primaryFocus?.traitName || 'Team feedback is forming',
+      body: teamCampaignClosed
+        ? 'Your team signal is ready to be interpreted with care. Start with meaning before you inspect the numbers.'
+        : 'The campaign is still collecting responses. Stay attentive, but let the signal mature before drawing conclusions.',
+      action: 'Open Signals',
+      tab: 1,
+    },
+    {
+      label: 'Growth Focus',
+      title: activeCommitment ? 'One commitment is carrying the work' : 'Choose the behavior to practice next',
+      body: activeCommitment || 'A calm command center should narrow the field. Pick one observable behavior your team can feel this week.',
+      action: 'Open Practice',
+      tab: 3,
+    },
+    {
+      label: 'Next Step',
+      title: teamCampaignClosed ? 'Practice, reflect, then verify' : 'Protect the response window',
+      body: teamCampaignClosed
+        ? 'Move from interpretation into a small, repeatable leadership practice. The journey advances through repetition.'
+        : 'Invite the last voices in, then close the campaign when the signal is strong enough to act on.',
+      action: teamCampaignClosed ? 'View Journey' : 'Review Campaign',
+      tab: teamCampaignClosed ? 4 : 0,
+    },
+  ];
+
+  return (
+    <Stack spacing={2.4}>
+      <Box
+        sx={{
+          p: { xs: 2.2, md: 3 },
+          borderRadius: '22px',
+          border: '1px solid var(--sand-200, #E8DBC3)',
+          bgcolor: 'rgba(255,255,255,0.92)',
+          boxShadow: '0 14px 34px rgba(15,28,46,0.08)',
+        }}
+      >
+        <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1 }}>
+          Chapter {currentChapter} · {currentSeason}
+        </Typography>
+        <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '2rem', md: '2.6rem' }, lineHeight: 1.06, letterSpacing: '-0.03em', color: 'var(--navy-900, #10223C)', mb: 1.4 }}>
+          Your current bearing.
+        </Typography>
+        <Typography sx={{ fontFamily: '"Fraunces", serif', fontStyle: 'italic', fontSize: { xs: '1.05rem', md: '1.22rem' }, lineHeight: 1.6, color: 'var(--ink, #0F1C2E)', maxWidth: 820 }}>
+          The Compass is not asking you to admire a dashboard. It is asking you to notice the signal, choose the next honest practice, and keep moving with steadiness.
+        </Typography>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} sx={{ mt: 2.4 }}>
+          {[
+            { label: responseStatus, value: teamCampaignClosed ? 'Ready for practice' : 'Still gathering' },
+            { label: 'Primary focus', value: primaryFocus?.subTraitName || 'Leadership clarity' },
+            { label: 'Active commitments', value: `${planEntries.length || 0} saved` },
+          ].map((item) => (
+            <Box key={item.label} sx={{ flex: 1, p: 1.5, borderRadius: '14px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+              <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.13em', textTransform: 'uppercase', color: 'var(--ink-soft, #44566C)', mb: 0.6 }}>
+                {item.label}
+              </Typography>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', fontWeight: 800, color: 'var(--navy-900, #10223C)' }}>
+                {item.value}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      </Box>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'repeat(3, minmax(0, 1fr))' }, gap: 1.6 }}>
+        {commandCards.map((card) => (
+          <Box key={card.label} sx={{ p: 2, borderRadius: '18px', bgcolor: '#fff', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 8px 22px rgba(15,28,46,0.055)' }}>
+            <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.9 }}>
+              {card.label}
+            </Typography>
+            <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: '1.35rem', lineHeight: 1.15, color: 'var(--navy-900, #10223C)', mb: 1 }}>
+              {card.title}
+            </Typography>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.88rem', lineHeight: 1.55, color: 'var(--ink-soft, #44566C)', mb: 1.4 }}>
+              {card.body}
+            </Typography>
+            <Button onClick={() => onNavigate(card.tab)} sx={{ textTransform: 'none', fontWeight: 800, color: 'var(--navy-900, #10223C)', px: 0 }}>
+              {card.action}
+            </Button>
+          </Box>
+        ))}
+      </Box>
+
+      <Box sx={{ p: 2, borderRadius: '18px', bgcolor: 'rgba(255,255,255,0.82)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+        <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.64rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1.4 }}>
+          The Leadership Arc
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, minmax(0, 1fr))' }, gap: 1 }}>
+          {JOURNEY_SEASONS.map((season) => {
+            const active = season.label === currentSeason;
+            return (
+              <Box key={season.label} sx={{ p: 1.45, borderRadius: '14px', border: active ? '1px solid var(--orange, #E07A3F)' : '1px solid var(--sand-200, #E8DBC3)', bgcolor: active ? 'rgba(224,122,63,0.07)' : 'rgba(251,247,240,0.75)' }}>
+                <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: '1.05rem', fontWeight: 700, color: 'var(--navy-900, #10223C)' }}>
+                  {season.label}
+                </Typography>
+                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', lineHeight: 1.35, color: 'var(--ink-soft, #44566C)', mt: 0.5 }}>
+                  {season.helper}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+    </Stack>
+  );
+}
+
+function DashboardGuideRail({ currentTab, onNavigate }) {
+  const guideNotes = [
+    {
+      k: 'A note from your guide',
+      t: 'Start here. Let the signal become a practice before it becomes another thing to manage.',
+      cta: 'Choose one next step',
+      tab: 3,
+    },
+    {
+      k: 'Leadership Signals',
+      t: 'The number is only the doorway. Look for what your team is trying to help you understand.',
+      cta: 'Move to practice',
+      tab: 3,
+    },
+    {
+      k: 'Evidence',
+      t: 'Inspect the details when you need clarity, then come back to the behavior you can actually change.',
+      cta: 'Return to Signals',
+      tab: 1,
+    },
+    {
+      k: 'Practice',
+      t: 'One behavior, held honestly for a week, will teach you more than five vague intentions.',
+      cta: 'See the journey',
+      tab: 4,
+    },
+    {
+      k: 'Journey',
+      t: 'This is not a finish line. It is a record of how your leadership keeps becoming more visible.',
+      cta: 'Current bearing',
+      tab: 0,
+    },
+  ];
+  const note = guideNotes[currentTab] || guideNotes[0];
+
+  return (
+    <Box sx={{ position: 'sticky', top: 96, p: 2, borderRadius: '18px', bgcolor: '#fff', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 8px 22px rgba(15,28,46,0.06)' }}>
+      <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1 }}>
+        {note.k}
+      </Typography>
+      <Typography sx={{ fontFamily: '"Fraunces", serif', fontStyle: 'italic', fontSize: '1rem', lineHeight: 1.55, color: 'var(--navy-900, #10223C)', mb: 1.5 }}>
+        {note.t}
+      </Typography>
+      <Button onClick={() => onNavigate(note.tab)} sx={{ textTransform: 'none', fontWeight: 800, color: 'var(--orange-deep, #C0612A)', px: 0 }}>
+        {note.cta}
+      </Button>
+    </Box>
+  );
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,7 +265,7 @@ function Dashboard() {
     }
   };
 
-  const navItems = [
+  const legacyNavItems = [
     {
       label: 'Campaign Details',
       subtitle: 'Use this page to monitor your campaign rollout, track participation, and stay on pace with response goals. You can open each campaign round, confirm timing windows, and quickly see where follow-up is needed.',
@@ -98,19 +293,54 @@ function Dashboard() {
     },
   ];
 
+  const commandNavItems = [
+    {
+      label: 'Current Bearing',
+      subtitle: 'Orient to the leadership season you are in, the signal asking for attention, and the next honest step.',
+      icon: Campaign,
+    },
+    {
+      label: 'Signals',
+      subtitle: 'Understand what your team is reflecting back before turning the numbers into conclusions.',
+      icon: Assessment,
+    },
+    {
+      label: 'Evidence',
+      subtitle: 'Inspect the statement-level detail only when it helps clarify the signal and sharpen the practice.',
+      icon: Insights,
+    },
+    {
+      label: 'Practice',
+      subtitle: 'Choose one growth commitment, track the behavior, and return to it through weekly reflection.',
+      icon: Lightbulb,
+    },
+    {
+      label: 'Journey',
+      subtitle: 'See how uncovering, embracing, understanding, and embarking build into long-term growth.',
+      icon: Map,
+    },
+  ];
+  const navItems = useCairnTheme ? commandNavItems : legacyNavItems;
+
   useEffect(() => {
     const tab = String(new URLSearchParams(location.search || '').get('tab') || '').trim().toLowerCase();
     if (!tab) return;
 
     const tabIndexByKey = {
+      'current-bearing': 0,
+      bearing: 0,
+      command: 0,
       'campaign-details': 0,
       campaign: 0,
       'campaign-results': 1,
       results: 1,
+      signals: 1,
       'detailed-results': 2,
       detailed: 2,
+      evidence: 2,
       'growth-plan': 3,
       plan: 3,
+      practice: 3,
       'my-journey': 4,
       journey: 4,
     };
@@ -122,7 +352,7 @@ function Dashboard() {
 
   const dashTabContent = (
     <Box sx={{ mt: 1.8 }}>
-      {currentTab === 0 && <GrowthCampaignTab />}
+      {currentTab === 0 && (useCairnTheme ? <CurrentBearing onNavigate={setCurrentTab} /> : <GrowthCampaignTab />)}
       {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
       {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
       {currentTab === 3 && (
@@ -136,11 +366,11 @@ function Dashboard() {
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
     const NAV_SUBTITLES = [
-      'Track rollout & participation',
-      'Trait-level scoring & trends',
-      'Statement-by-statement data',
-      'Translate insights into actions',
-      'Development path over time',
+      'Orient & choose next step',
+      'Interpret team feedback',
+      'Inspect what shaped it',
+      'Practice one behavior',
+      'Track growth over time',
     ];
     const DashNavSidebar = (
       <Box sx={{
@@ -152,10 +382,10 @@ function Dashboard() {
         {/* Header */}
         <Box sx={{ px: 2, py: 1.75, borderBottom: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'var(--sand-50, #FBF7F0)' }}>
           <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.2 }}>
-            Dashboard
+            Command Center
           </Typography>
           <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', lineHeight: 1.4 }}>
-            Select a section to review
+            Return to the journey, then choose the next step
           </Typography>
         </Box>
         {navItems.map((item, idx) => {
@@ -206,7 +436,7 @@ function Dashboard() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={100} sidebar={DashNavSidebar}>
+        <CompassLayout progress={100} sidebar={DashNavSidebar} rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
           {dashTabContent}
         </CompassLayout>
       </Box>

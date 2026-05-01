@@ -43,13 +43,13 @@ const PAGE_GROUPS = [
     ],
   },
   {
-    label: 'Dashboard',
+    label: 'Command Center',
     pages: [
-      { label: 'Campaign Details', path: '/dashboard?tab=campaign-details' },
-      { label: 'Campaign Results', path: '/dashboard?tab=campaign-results' },
-      { label: 'Detailed Results', path: '/dashboard?tab=detailed-results' },
-      { label: 'Growth Plan', path: '/dashboard?tab=growth-plan' },
-      { label: 'My Journey', path: '/dashboard?tab=my-journey' },
+      { label: 'Current Bearing', path: '/dashboard?tab=current-bearing' },
+      { label: 'Signals', path: '/dashboard?tab=signals' },
+      { label: 'Evidence', path: '/dashboard?tab=evidence' },
+      { label: 'Practice', path: '/dashboard?tab=practice' },
+      { label: 'Journey', path: '/dashboard?tab=journey' },
     ],
   },
 ];

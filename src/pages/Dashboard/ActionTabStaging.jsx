@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Divider,
   IconButton,
   Paper,
@@ -377,7 +378,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
     });
     localStorage.setItem('actionPlans', JSON.stringify(legacyMirror));
 
-    setSaveMessage(openJourney ? 'Plan saved and carried into My Journey.' : 'Plan saved for this user and campaign.');
+    setSaveMessage(openJourney ? 'Plan saved and carried into Journey.' : 'Plan saved for this user and campaign.');
     window.setTimeout(() => setSaveMessage(''), 1800);
     if (openJourney && typeof onOpenJourney === 'function') onOpenJourney();
   };
@@ -444,12 +445,28 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 textAlign: 'center',
               }}
             >
-              Building Your Growth Plan
+              Practice
             </Typography>
             <Divider sx={{ my: 0.2, borderColor: 'rgba(69,112,137,0.25)' }} />
             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', color: '#20384F', lineHeight: 1.58 }}>
-              Translate your insight data into concrete leadership moves your team will actually feel. Use this page to convert campaign data into one focused growth plan, verify progress commitments, and keep execution anchored to measurable behavior change.
+              Choose one leadership behavior your team can actually feel. The goal is not a perfect plan; it is a clear commitment you can practice, reflect on, and verify over time.
             </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={0.8} justifyContent="center">
+              {['Chosen', 'Practiced', 'Reflected', 'Verified'].map((state, idx) => (
+                <Chip
+                  key={state}
+                  label={state}
+                  size="small"
+                  sx={{
+                    fontFamily: '"Manrope", sans-serif',
+                    fontWeight: 800,
+                    bgcolor: idx === 0 ? 'rgba(224,122,63,0.14)' : 'rgba(69,112,137,0.08)',
+                    color: idx === 0 ? '#C0612A' : '#364E64',
+                    border: idx === 0 ? '1px solid rgba(224,122,63,0.35)' : '1px solid rgba(69,112,137,0.18)',
+                  }}
+                />
+              ))}
+            </Stack>
             <Tabs
               value={selectedTraitKey || false}
               onChange={(_, value) => setSelectedTraitKey(value)}
@@ -514,9 +531,9 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
               }}
             >
               {[
-                { label: 'Overall Score', value: currentOverallScore, color: '#243A53' },
-                { label: 'Efficacy Score', value: currentEfficacyScore, color: '#5B8FA8' },
-                { label: 'Effort Score', value: currentEffortScore, color: '#DE763A' },
+                { label: 'Current Signal', value: currentOverallScore, color: '#243A53' },
+                { label: 'Visible Impact', value: currentEfficacyScore, color: '#5B8FA8' },
+                { label: 'Perceived Effort', value: currentEffortScore, color: '#DE763A' },
               ].map((card) => (
                 <Paper
                   key={card.label}
@@ -554,7 +571,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           <CardContent sx={{ p: { xs: 2, md: 2.4 } }}>
             <Stack spacing={1.65}>
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.16rem', md: '1.3rem' }, fontWeight: 800, color: '#13263A' }}>
-                Action Planning Process
+                Growth Commitment Process
               </Typography>
 
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'stretch', md: 'center' }}>
@@ -650,7 +667,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 <Paper sx={{ p: 1.5, borderRadius: 1, border: '1px solid rgba(15,23,42,0.1)', bgcolor: 'rgba(255,255,255,0.88)', width: '100%' }}>
                   <Stack spacing={1.1}>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: '#20384F', lineHeight: 1.55 }}>
-                      Set your efficacy and effort targets, and your overall trait goal will update automatically.
+                      Set a realistic growth target. The numbers give the commitment a direction, but the weekly behavior is what makes it real.
                     </Typography>
 
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent={{ xs: 'stretch', md: 'center' }} alignItems={{ xs: 'stretch', md: 'stretch' }} sx={{ pt: 0.25 }}>
@@ -726,6 +743,37 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
 
         <Paper
           sx={{
+            p: { xs: 1.7, md: 2.1 },
+            width: '100%',
+            borderRadius: 1,
+            border: '1px solid rgba(15,23,42,0.12)',
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(251,247,240,0.94))',
+            boxShadow: '0 8px 22px rgba(15,23,42,0.08)',
+          }}
+        >
+          <Stack spacing={1}>
+            <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#C0612A' }}>
+              Weekly Reflection
+            </Typography>
+            <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '1.25rem', md: '1.45rem' }, color: '#13263A', lineHeight: 1.2 }}>
+              Where did this show up this week?
+            </Typography>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.92rem', color: '#20384F', lineHeight: 1.58 }}>
+              Capture one real moment where you practiced this commitment, noticed resistance, or saw your team respond differently.
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              minRows={3}
+              placeholder="Name the moment, what you tried, and what you noticed..."
+              value={guidedAnswers.weeklyReflection ?? ''}
+              onChange={(e) => setGuidedAnswer('weeklyReflection', e.target.value)}
+            />
+          </Stack>
+        </Paper>
+
+        <Paper
+          sx={{
             p: { xs: 1.5, md: 1.7 },
             width: '100%',
             borderRadius: 1,
@@ -748,7 +796,7 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
                 onClick={() => savePlans(true)}
                 sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 1, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
               >
-                Save plan and open My Journey
+                Save plan and open Journey
               </Button>
             </Stack>
           </Stack>
