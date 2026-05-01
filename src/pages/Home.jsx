@@ -301,7 +301,7 @@ function Home() {
           fontFamily: sansBody,
         }}
       >
-        {/* SCROLL-AWARE HEADER */}
+        {/* HEADER — matches in-app CompassTopbar styling */}
         <Box
           component="header"
           sx={{
@@ -310,50 +310,42 @@ function Home() {
             left: 0,
             right: 0,
             zIndex: 50,
-            px: { xs: 2.5, md: 5 },
-            py: { xs: 1.4, md: 1.7 },
+            height: 80,
+            px: '28px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 2,
-            transition: 'background-color 320ms ease, color 320ms ease, border-color 320ms ease, backdrop-filter 320ms ease',
-            bgcolor: headerOnDark ? 'rgba(10,24,48,0.35)' : 'rgba(251,247,240,0.90)',
-            backdropFilter: 'blur(14px)',
+            transition: 'background-color 280ms ease, border-color 280ms ease',
+            bgcolor: headerOnDark ? '#0F1C2E' : '#FFFFFF',
             borderBottom: headerOnDark
               ? '1px solid rgba(244,206,161,0.10)'
-              : '1px solid rgba(15,28,46,0.08)',
-            color: headerOnDark ? '#FFF8F0' : '#10223C',
+              : '1px solid var(--sand-200, #E8DBC3)',
           }}
         >
-          <Stack direction="row" spacing={1.2} alignItems="center">
+          {/* LEFT: brand wordmark — matches in-app exactly */}
+          <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
             <Box
-              component="img"
-              src="/CompassLogo.png"
-              alt=""
-              aria-hidden
               sx={{
-                width: 30,
-                height: 30,
-                objectFit: 'contain',
-                filter: headerOnDark ? 'brightness(1.15)' : 'none',
-                transition: 'filter 320ms ease',
-              }}
-            />
-            <Typography
-              sx={{
-                fontFamily: '"Cinzel", Georgia, serif',
-                fontWeight: 700,
-                fontSize: { xs: '1rem', md: '1.12rem' },
-                letterSpacing: '0.04em',
+                fontFamily: '"Cinzel", "Times New Roman", Georgia, serif',
+                fontStyle: 'normal',
+                fontWeight: 600,
+                fontSize: { xs: 22, sm: 25 },
+                letterSpacing: '-0.045em',
                 fontVariant: 'small-caps',
-                color: 'inherit',
+                color: headerOnDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
+                lineHeight: 0.95,
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'color 280ms ease',
               }}
             >
               The Compass
-            </Typography>
-          </Stack>
+            </Box>
+          </Box>
 
-          <Stack direction="row" spacing={0.6} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
+          {/* RIGHT: nav links + Sign In + CTA */}
+          <Stack direction="row" spacing={0.4} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
             {navLinks.map((link) => (
               <Box
                 key={link.target}
@@ -363,17 +355,20 @@ function Home() {
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',
-                  px: 1.4,
-                  py: 0.7,
+                  px: 1.6,
+                  py: 0.85,
                   borderRadius: 999,
+                  fontFamily: '"Manrope", "Inter", sans-serif',
                   fontWeight: 700,
-                  fontSize: '0.84rem',
-                  color: 'inherit',
-                  opacity: headerOnDark ? 0.85 : 1,
-                  transition: 'color 200ms ease, opacity 200ms ease',
+                  fontSize: '0.88rem',
+                  color: headerOnDark ? 'rgba(244,206,161,0.78)' : 'var(--navy-900, #10223C)',
+                  transition: 'color 200ms ease',
                   '&:hover': {
-                    color: headerOnDark ? '#F4CEA1' : '#C0612A',
-                    opacity: 1,
+                    color: headerOnDark ? '#F4CEA1' : 'var(--orange-deep, #C0612A)',
+                  },
+                  '&:focus-visible': {
+                    outline: '3px solid rgba(224,122,63,0.32)',
+                    outlineOffset: 2,
                   },
                 }}
               >
@@ -387,17 +382,16 @@ function Home() {
               sx={{
                 all: 'unset',
                 cursor: 'pointer',
-                px: 1.6,
-                py: 0.7,
-                borderRadius: 999,
-                fontWeight: 700,
-                fontSize: '0.84rem',
-                color: 'inherit',
-                opacity: headerOnDark ? 0.85 : 1,
                 ml: 0.5,
+                px: 1.6,
+                py: 0.85,
+                borderRadius: 999,
+                fontFamily: '"Manrope", "Inter", sans-serif',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                color: headerOnDark ? 'rgba(244,206,161,0.78)' : 'var(--navy-900, #10223C)',
                 '&:hover': {
-                  color: headerOnDark ? '#F4CEA1' : '#C0612A',
-                  opacity: 1,
+                  color: headerOnDark ? '#F4CEA1' : 'var(--orange-deep, #C0612A)',
                 },
               }}
             >
@@ -410,22 +404,21 @@ function Home() {
               sx={{
                 all: 'unset',
                 cursor: 'pointer',
-                ml: 1,
+                ml: 1.2,
                 px: 2.2,
-                py: 0.95,
+                py: 1,
                 borderRadius: 999,
-                bgcolor: '#E07A3F',
+                bgcolor: 'var(--orange, #E07A3F)',
                 color: '#FFF8F0',
+                fontFamily: '"Manrope", "Inter", sans-serif',
                 fontWeight: 800,
-                fontSize: '0.84rem',
+                fontSize: '0.88rem',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 0.6,
-                boxShadow: headerOnDark
-                  ? '0 10px 26px rgba(224,122,63,0.42)'
-                  : '0 8px 22px rgba(224,122,63,0.28)',
+                boxShadow: '0 10px 24px rgba(224,122,63,0.32)',
                 transition: '160ms ease',
-                '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                '&:hover': { bgcolor: 'var(--orange-deep, #C0612A)', transform: 'translateY(-1px)' },
               }}
             >
               Begin Your Journey
@@ -447,61 +440,78 @@ function Home() {
             overflow: 'hidden',
           }}
         >
-          {/* Starfield (top half only, fades down) */}
+          {/* Cosmos — primary atmospheric layer */}
           <Box
             aria-hidden
             sx={{
               position: 'absolute',
               inset: 0,
               backgroundImage: [
-                'radial-gradient(1.4px 1.4px at 12% 14%, rgba(255,255,255,0.55), transparent 60%)',
-                'radial-gradient(1px 1px at 22% 32%, rgba(255,255,255,0.35), transparent 60%)',
-                'radial-gradient(1.6px 1.6px at 38% 8%, rgba(244,206,161,0.55), transparent 60%)',
-                'radial-gradient(1px 1px at 51% 26%, rgba(255,255,255,0.35), transparent 60%)',
-                'radial-gradient(1.4px 1.4px at 62% 12%, rgba(255,255,255,0.5), transparent 60%)',
-                'radial-gradient(1px 1px at 70% 30%, rgba(244,206,161,0.4), transparent 60%)',
-                'radial-gradient(1.2px 1.2px at 82% 18%, rgba(255,255,255,0.45), transparent 60%)',
-                'radial-gradient(1px 1px at 90% 36%, rgba(255,255,255,0.32), transparent 60%)',
-                'radial-gradient(1px 1px at 16% 44%, rgba(255,255,255,0.28), transparent 60%)',
-                'radial-gradient(1px 1px at 76% 50%, rgba(255,255,255,0.22), transparent 60%)',
+                // Bright white stars
+                'radial-gradient(2.4px 2.4px at 7% 18%, rgba(255,255,255,0.95), transparent 55%)',
+                'radial-gradient(1.8px 1.8px at 19% 8%, rgba(255,255,255,0.85), transparent 55%)',
+                'radial-gradient(2px 2px at 34% 22%, rgba(255,255,255,0.90), transparent 55%)',
+                'radial-gradient(1.6px 1.6px at 47% 12%, rgba(255,255,255,0.80), transparent 55%)',
+                'radial-gradient(2.2px 2.2px at 58% 26%, rgba(255,255,255,0.92), transparent 55%)',
+                'radial-gradient(1.8px 1.8px at 73% 8%, rgba(255,255,255,0.82), transparent 55%)',
+                'radial-gradient(2px 2px at 87% 20%, rgba(255,255,255,0.88), transparent 55%)',
+                'radial-gradient(2.6px 2.6px at 95% 6%, rgba(255,255,255,0.95), transparent 55%)',
+                // Mid white stars
+                'radial-gradient(1.2px 1.2px at 14% 32%, rgba(255,255,255,0.55), transparent 60%)',
+                'radial-gradient(1.4px 1.4px at 27% 14%, rgba(255,255,255,0.65), transparent 60%)',
+                'radial-gradient(1px 1px at 41% 36%, rgba(255,255,255,0.45), transparent 60%)',
+                'radial-gradient(1.3px 1.3px at 52% 4%, rgba(255,255,255,0.58), transparent 60%)',
+                'radial-gradient(1.1px 1.1px at 64% 18%, rgba(255,255,255,0.50), transparent 60%)',
+                'radial-gradient(1.5px 1.5px at 78% 30%, rgba(255,255,255,0.60), transparent 60%)',
+                'radial-gradient(1px 1px at 91% 14%, rgba(255,255,255,0.42), transparent 60%)',
+                // Dim faraway pinpricks
+                'radial-gradient(0.8px 0.8px at 22% 24%, rgba(255,255,255,0.30), transparent 60%)',
+                'radial-gradient(0.8px 0.8px at 39% 6%, rgba(255,255,255,0.28), transparent 60%)',
+                'radial-gradient(0.8px 0.8px at 67% 36%, rgba(255,255,255,0.30), transparent 60%)',
+                'radial-gradient(0.8px 0.8px at 82% 4%, rgba(255,255,255,0.28), transparent 60%)',
+                'radial-gradient(0.8px 0.8px at 12% 38%, rgba(255,255,255,0.26), transparent 60%)',
+                // Warm amber stars (sparingly)
+                'radial-gradient(2.2px 2.2px at 24% 16%, rgba(244,206,161,0.85), transparent 55%)',
+                'radial-gradient(1.8px 1.8px at 56% 30%, rgba(244,206,161,0.70), transparent 55%)',
+                'radial-gradient(1.5px 1.5px at 88% 32%, rgba(244,206,161,0.65), transparent 55%)',
+                'radial-gradient(1.2px 1.2px at 70% 14%, rgba(244,206,161,0.55), transparent 60%)',
               ].join(', '),
-              maskImage: 'linear-gradient(180deg, #000 0%, #000 38%, transparent 70%)',
-              WebkitMaskImage: 'linear-gradient(180deg, #000 0%, #000 38%, transparent 70%)',
+              maskImage: 'linear-gradient(180deg, #000 0%, #000 55%, transparent 88%)',
+              WebkitMaskImage: 'linear-gradient(180deg, #000 0%, #000 55%, transparent 88%)',
               pointerEvents: 'none',
               zIndex: 0,
             }}
           />
-          {/* Subtle aurora glow behind the dial */}
+          {/* Soft amber nebula — adds depth without showing a "thing" */}
           <Box
             aria-hidden
             sx={{
               position: 'absolute',
-              top: { xs: '6%', md: '4%' },
-              right: { xs: '-15%', md: '-6%' },
-              width: { xs: 540, md: 760 },
-              height: { xs: 540, md: 760 },
+              top: { xs: '12%', md: '8%' },
+              right: { xs: '-20%', md: '-10%' },
+              width: { xs: 540, md: 820 },
+              height: { xs: 540, md: 820 },
               borderRadius: '50%',
               background:
-                'radial-gradient(circle at 50% 50%, rgba(244,206,161,0.18) 0%, rgba(224,122,63,0.06) 35%, rgba(15,28,46,0) 65%)',
-              filter: 'blur(8px)',
+                'radial-gradient(circle at 45% 45%, rgba(244,206,161,0.18) 0%, rgba(224,122,63,0.08) 30%, rgba(15,28,46,0) 60%)',
+              filter: 'blur(20px)',
               pointerEvents: 'none',
               zIndex: 0,
             }}
           />
-
-          {/* Static compass watermark — atmospheric, not a feature */}
+          {/* Faint cool nebula on the lower left for asymmetry */}
           <Box
             aria-hidden
-            component="img"
-            src="/CompassLogo.png"
             sx={{
               position: 'absolute',
-              top: { xs: '5%', md: '8%' },
-              right: { xs: '-22%', md: '-8%' },
-              width: { xs: 460, md: 640 },
-              height: 'auto',
-              opacity: { xs: 0.10, md: 0.13 },
-              filter: 'drop-shadow(0 30px 50px rgba(0,0,0,0.35))',
+              bottom: { xs: '20%', md: '24%' },
+              left: { xs: '-30%', md: '-12%' },
+              width: { xs: 460, md: 720 },
+              height: { xs: 460, md: 720 },
+              borderRadius: '50%',
+              background:
+                'radial-gradient(circle at 50% 50%, rgba(63,100,123,0.20) 0%, rgba(15,28,46,0) 60%)',
+              filter: 'blur(28px)',
               pointerEvents: 'none',
               zIndex: 0,
             }}
@@ -1269,79 +1279,9 @@ function Home() {
                 ))}
               </Grid>
             </Box>
-          </Container>
-        </Box>
 
-        {/* CLOSING CTA — bookend back to dark */}
-        <Box
-          sx={{
-            position: 'relative',
-            py: { xs: 8, md: 11 },
-            color: '#FFF8F0',
-            background:
-              'radial-gradient(900px 380px at 50% 0%, rgba(224,122,63,0.22), transparent 60%), linear-gradient(180deg, #10223C 0%, #0A1830 100%)',
-            overflow: 'hidden',
-          }}
-        >
-          <Box
-            aria-hidden
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: [
-                'radial-gradient(1px 1px at 18% 28%, rgba(255,255,255,0.30), transparent 60%)',
-                'radial-gradient(1.4px 1.4px at 76% 22%, rgba(244,206,161,0.40), transparent 60%)',
-                'radial-gradient(1px 1px at 50% 60%, rgba(255,255,255,0.20), transparent 60%)',
-                'radial-gradient(1.2px 1.2px at 86% 70%, rgba(255,255,255,0.22), transparent 60%)',
-              ].join(', '),
-              maskImage: 'linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 30%, #000 70%, transparent 100%)',
-              pointerEvents: 'none',
-              opacity: 0.85,
-            }}
-          />
-          <Container maxWidth="md" sx={{ position: 'relative' }}>
-            <Stack spacing={3} alignItems="center" sx={{ textAlign: 'center' }}>
-              <Typography
-                sx={{
-                  fontFamily: monoEyebrow,
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  letterSpacing: '0.24em',
-                  textTransform: 'uppercase',
-                  color: '#F4CEA1',
-                }}
-              >
-                One last thing
-              </Typography>
-              <Typography
-                component="h2"
-                sx={{
-                  fontFamily: navySerif,
-                  fontWeight: 500,
-                  fontSize: { xs: '2rem', md: '2.95rem' },
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.03em',
-                  color: '#FFF8F0',
-                  maxWidth: 760,
-                }}
-              >
-                If you've read this far,
-                <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
-                  you're already this kind of leader.
-                </Box>
-              </Typography>
-              <Typography
-                sx={{
-                  fontWeight: 500,
-                  fontSize: { xs: '1rem', md: '1.08rem' },
-                  lineHeight: 1.6,
-                  color: 'rgba(255,248,240,0.78)',
-                  maxWidth: 560,
-                }}
-              >
-                Compass is built for the leader who'd rather know than guess. Thirty minutes in. A year of clarity out.
-              </Typography>
+            {/* CTA at the end of What Changes — moves the start button up */}
+            <Stack alignItems="center" sx={{ mt: { xs: 5, md: 6.5 } }}>
               <Box
                 component="button"
                 type="button"
@@ -1349,20 +1289,20 @@ function Home() {
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',
-                  mt: 0.8,
                   px: 3.8,
                   py: 1.5,
                   borderRadius: 999,
-                  bgcolor: '#E07A3F',
+                  bgcolor: 'var(--orange, #E07A3F)',
                   color: '#FFF8F0',
+                  fontFamily: '"Manrope", "Inter", sans-serif',
                   fontWeight: 800,
                   fontSize: '1.02rem',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 0.9,
-                  boxShadow: '0 18px 42px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
+                  boxShadow: '0 18px 42px rgba(224,122,63,0.32)',
                   transition: '180ms ease',
-                  '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                  '&:hover': { bgcolor: 'var(--orange-deep, #C0612A)', transform: 'translateY(-1px)' },
                 }}
               >
                 Begin Your Journey
