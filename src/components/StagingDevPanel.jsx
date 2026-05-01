@@ -10,13 +10,14 @@ const PAGE_GROUPS = [
       { label: 'Landing', path: '/' },
       { label: 'Sign In', path: '/sign-in' },
       { label: 'I - Profile', path: '/user-info' },
+      { label: 'I - Profile Details', path: '/form?stage=profile' },
       { label: 'I - Guide Select', path: '/guide-select' },
     ],
   },
   {
     label: 'Assessment',
     pages: [
-      { label: 'II - Intake Form', path: '/form' },
+      { label: 'II - Intake Form', path: '/form?stage=intake' },
       { label: 'III - Summary', path: '/summary' },
       { label: 'III - Summary Snapshot', path: '/summary-static' },
     ],

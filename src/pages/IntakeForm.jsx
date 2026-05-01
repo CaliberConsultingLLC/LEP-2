@@ -656,6 +656,7 @@ function IntakeForm() {
 
     const bootstrapDraft = async (user) => {
       let localDraft = null;
+      const stageTarget = new URLSearchParams(location.search || '').get('stage');
       try {
         const userInfo = parseJson(localStorage.getItem('userInfo'), {});
         if (active) {
@@ -680,13 +681,25 @@ function IntakeForm() {
           }
         }
 
+        if (useCairnTheme && stageTarget === 'profile') {
+          setCurrentStep(1);
+          setResumeNotice(null);
+        }
+
+        if (useCairnTheme && stageTarget === 'intake') {
+          setCurrentStep(2);
+          setResumeNotice(null);
+        }
+
         if (user?.uid) {
           authUidRef.current = user.uid;
           try {
             const docSnap = await getDoc(doc(db, 'responses', user.uid));
             if (active && docSnap.exists()) {
               const remote = docSnap.data() || {};
-              applyDraft(remote?.intakeDraft || null);
+              if (!(useCairnTheme && stageTarget)) {
+                applyDraft(remote?.intakeDraft || null);
+              }
               if (remote?.latestFormData && remote?.intakeStatus?.complete) {
                 localStorage.setItem('latestFormData', JSON.stringify(remote.latestFormData));
               }
@@ -1235,6 +1248,17 @@ function IntakeForm() {
       // Profile validation (step 1)
       if (currentStep === 1) {
         if (!isProfileValid()) return;
+        if (useCairnTheme && localStorage.getItem('cairn_profile_details_complete') !== 'true') {
+          const nextDraft = {
+            ...buildDraftPayload(),
+            formData,
+            currentStep: 2,
+          };
+          syncLocalIntakeState(nextDraft);
+          localStorage.setItem('cairn_profile_details_complete', 'true');
+          navigate('/guide-select');
+          return;
+        }
 
       // Behaviors validation (steps 5..16)
       } else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {

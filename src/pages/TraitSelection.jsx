@@ -573,9 +573,16 @@ function TraitSelection() {
               <Box sx={{
                 bgcolor: isDark ? 'rgba(255,255,255,0.045)' : 'white',
                 borderRadius: '18px',
-                border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-                boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.34)' : '0 10px 30px rgba(15,28,46,0.08)',
+                border: isActiveSelected
+                  ? '2.5px solid var(--green, #2F855A)'
+                  : isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
+                boxShadow: isActiveSelected
+                  ? isDark
+                    ? '0 0 0 5px rgba(47,133,90,0.16), 0 12px 34px rgba(0,0,0,0.36)'
+                    : '0 0 0 5px rgba(47,133,90,0.12), 0 12px 32px rgba(15,28,46,0.1)'
+                  : isDark ? '0 10px 30px rgba(0,0,0,0.34)' : '0 10px 30px rgba(15,28,46,0.08)',
                 p: { xs: 2.25, md: 3 },
+                transition: 'border-color 180ms ease, box-shadow 180ms ease',
               }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 2.1, alignItems: 'center', justifyItems: 'center', mb: 2.25 }}>
                   <Box sx={{ minWidth: 0, maxWidth: 760, textAlign: 'center' }}>

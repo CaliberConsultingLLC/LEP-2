@@ -36,6 +36,7 @@ function CampaignSurvey() {
   const [campaignMeta, setCampaignMeta] = useState({});
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
   const [surveyClosed, setSurveyClosed] = useState(false);
+  const [isDark] = useDarkMode();
 
   const TRAIT_QUESTION_COUNT = 5;
   const parseJson = (raw, fallback) => {
@@ -461,7 +462,6 @@ function CampaignSurvey() {
     );
   }
 
-  const [isDark] = useDarkMode();
   if (useCairnTheme) {
     const ROMAN = ['I', 'II', 'III'];
     const NavSidebar = (

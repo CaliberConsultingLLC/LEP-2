@@ -16,7 +16,7 @@ function GuideSelect() {
 
   const handleSelect = (id) => setPersona(id);
 
-  const handleBegin = () => navigate('/form');
+  const handleBegin = () => navigate('/form?stage=intake');
 
   return (
     <Box sx={{ minHeight: '100svh', maxHeight: '100svh', bgcolor: 'var(--sand-50, #FBF7F0)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

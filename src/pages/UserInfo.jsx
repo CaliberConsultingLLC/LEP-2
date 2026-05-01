@@ -251,7 +251,12 @@ function UserInfo() {
         }
       }
 
-      navigate(useCairnTheme ? '/guide-select' : '/form');
+      if (useCairnTheme) {
+        localStorage.removeItem('cairn_profile_details_complete');
+        navigate('/form?stage=profile');
+      } else {
+        navigate('/form');
+      }
     } catch (err) {
       const errorMessage = mapFirebaseAuthError(err?.code);
       setError(errorMessage);

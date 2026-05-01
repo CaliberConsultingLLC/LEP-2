@@ -58,8 +58,9 @@ const PHASE_MAP = [
 // Ordered linear page sequence for back/forward navigation
 const PAGE_SEQUENCE = [
   '/user-info',
+  '/form?stage=profile',
   '/guide-select',
-  '/form',
+  '/form?stage=intake',
   '/summary',
   '/trait-selection',
   '/campaign-intro',
@@ -585,7 +586,10 @@ function CompassTopbar() {
 
   // Back / forward page sequence navigation
   const { prevPath, nextPath, canGoForward } = useMemo(() => {
-    const idx  = PAGE_SEQUENCE.findIndex((p) => pathname.startsWith(p));
+    const currentFullPath = `${pathname}${location.search || ''}`;
+    const idx  = PAGE_SEQUENCE.findIndex((p) => (
+      p.includes('?') ? currentFullPath.startsWith(p) : pathname.startsWith(p)
+    ));
     const prev = idx > 0 ? PAGE_SEQUENCE[idx - 1] : null;
     const next = idx >= 0 && idx < PAGE_SEQUENCE.length - 1 ? PAGE_SEQUENCE[idx + 1] : null;
 

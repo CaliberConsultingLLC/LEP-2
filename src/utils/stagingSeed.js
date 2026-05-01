@@ -11,7 +11,7 @@ export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
-export const STAGING_SEED_VERSION = '2026-04-30-static-review-v2';
+export const STAGING_SEED_VERSION = '2026-05-01-profile-flow-v1';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
@@ -33,6 +33,7 @@ const SEED_KEYS = [
   'selfCampaignCompleted',
   'teamCampaignCompleted',
   'actionPlansByCampaign',
+  'cairn_profile_details_complete',
   '__cairn_seeded__',
   '__cairn_seed_version__',
 ];
