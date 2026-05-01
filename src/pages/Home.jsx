@@ -12,14 +12,10 @@ import SelfImprovementRoundedIcon from '@mui/icons-material/SelfImprovementRound
 import Diversity3RoundedIcon from '@mui/icons-material/Diversity3Rounded';
 import ExploreRoundedIcon from '@mui/icons-material/ExploreRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
-import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded';
-import HubRoundedIcon from '@mui/icons-material/HubRounded';
 import FormatQuoteRoundedIcon from '@mui/icons-material/FormatQuoteRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import { useNavigate } from 'react-router-dom';
 import { allowDevBypass, showDevTools, useCairnTheme } from '../config/runtimeFlags';
-import CompassDial from '../components/CompassDial';
 
 const sections = [
   { key: 'process', label: 'How It Works' },
@@ -253,21 +249,24 @@ function Home() {
       },
     ];
 
-    const principles = [
+    const frictionTells = [
+      'You finish the book and still don\u2019t know what to change on Monday.',
+      'You sit through the workshop and forget the framework by Friday.',
+      'You wait a year for the 360 \u2014 read it twice, then nothing changes.',
+    ];
+
+    const outcomes = [
       {
-        icon: <BoltRoundedIcon sx={{ fontSize: 22 }} />,
-        eyebrow: 'AI-powered. Human-led.',
-        body: 'A live agent translates your responses into perspective. You remain the leader of every decision.',
+        when: 'By next week',
+        body: 'A reflection that names what you have felt about your leadership but never quite found the words for.',
       },
       {
-        icon: <HubRoundedIcon sx={{ fontSize: 22 }} />,
-        eyebrow: 'No HR scaffolding.',
-        body: 'Built for individual leaders. No vendor onboarding, no rollout cycles, no org politics required.',
+        when: 'By next month',
+        body: 'Three growth focuses you have chosen yourself, on a survey your team can rate honestly.',
       },
       {
-        icon: <TimelineRoundedIcon sx={{ fontSize: 22 }} />,
-        eyebrow: 'A year, not a workshop.',
-        body: 'Compass replaces one-off training with a year-long campaign your team can actually feel.',
+        when: 'By next year',
+        body: 'A measurable shift in how your team experiences your leadership \u2014 not a story you tell, a difference they feel.',
       },
     ];
 
@@ -280,7 +279,7 @@ function Home() {
     const navLinks = [
       { label: 'How It Works', target: 'journey' },
       { label: 'Inside Compass', target: 'inside' },
-      { label: 'Why Compass', target: 'principles' },
+      { label: 'What Changes', target: 'outcomes' },
     ];
 
     const navySerif = '"Fraunces", Georgia, "Times New Roman", serif';
@@ -490,132 +489,141 @@ function Home() {
             }}
           />
 
+          {/* Static compass watermark — atmospheric, not a feature */}
+          <Box
+            aria-hidden
+            component="img"
+            src="/CompassLogo.png"
+            sx={{
+              position: 'absolute',
+              top: { xs: '5%', md: '8%' },
+              right: { xs: '-22%', md: '-8%' },
+              width: { xs: 460, md: 640 },
+              height: 'auto',
+              opacity: { xs: 0.10, md: 0.13 },
+              filter: 'drop-shadow(0 30px 50px rgba(0,0,0,0.35))',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+
           <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-            <Grid container spacing={{ xs: 5, md: 6 }} alignItems="center">
-              <Grid item xs={12} md={7}>
-                <Stack spacing={3.2} alignItems="flex-start">
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      px: 1.5,
-                      py: 0.6,
-                      borderRadius: 999,
-                      bgcolor: 'rgba(244,206,161,0.10)',
-                      border: '1px solid rgba(244,206,161,0.28)',
-                    }}
-                  >
-                    <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#F4CEA1', boxShadow: '0 0 10px rgba(244,206,161,0.7)' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: monoEyebrow,
-                        fontWeight: 700,
-                        fontSize: '0.7rem',
-                        letterSpacing: '0.22em',
-                        textTransform: 'uppercase',
-                        color: '#F4CEA1',
-                      }}
-                    >
-                      The Leadership Compass
-                    </Typography>
-                  </Box>
+            <Stack spacing={3.4} alignItems="flex-start" sx={{ maxWidth: 880 }}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 1.6,
+                  py: 0.65,
+                  borderRadius: 999,
+                  bgcolor: 'rgba(244,206,161,0.10)',
+                  border: '1px solid rgba(244,206,161,0.28)',
+                }}
+              >
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#F4CEA1', boxShadow: '0 0 10px rgba(244,206,161,0.7)' }} />
+                <Typography
+                  sx={{
+                    fontFamily: monoEyebrow,
+                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    color: '#F4CEA1',
+                  }}
+                >
+                  For leaders who refuse to ride along
+                </Typography>
+              </Box>
 
-                  <Typography
-                    component="h1"
-                    sx={{
-                      fontFamily: navySerif,
-                      fontWeight: 500,
-                      fontSize: { xs: '3rem', sm: '3.9rem', md: '5.2rem' },
-                      lineHeight: 0.96,
-                      letterSpacing: '-0.04em',
-                      color: '#FFF8F0',
-                      textShadow: '0 2px 30px rgba(0,0,0,0.35)',
-                    }}
-                  >
-                    You can't lead
-                    <Box component="span" sx={{ display: 'block' }}>
-                      what you can't{' '}
-                      <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
-                        see.
-                      </Box>
-                    </Box>
-                  </Typography>
-
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: { xs: '1.05rem', md: '1.2rem' },
-                      lineHeight: 1.55,
-                      color: 'rgba(255,248,240,0.82)',
-                      maxWidth: 540,
-                    }}
-                  >
-                    Compass turns one focused assessment into a year-long campaign of clarity, feedback, and action — guided by an agent, owned by you.
-                  </Typography>
-
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ pt: 1.2 }}>
-                    <Box
-                      component="button"
-                      type="button"
-                      onClick={handleBeginJourney}
-                      sx={{
-                        all: 'unset',
-                        cursor: 'pointer',
-                        px: 3.4,
-                        py: 1.45,
-                        borderRadius: 999,
-                        bgcolor: '#E07A3F',
-                        color: '#FFF8F0',
-                        fontWeight: 800,
-                        fontSize: '1rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.9,
-                        boxShadow: '0 18px 40px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
-                        transition: '180ms ease',
-                        '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
-                      }}
-                    >
-                      Begin Your Journey
-                      <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
-                    </Box>
-                    <Box
-                      component="button"
-                      type="button"
-                      onClick={scrollToJourney}
-                      sx={{
-                        all: 'unset',
-                        cursor: 'pointer',
-                        px: 3,
-                        py: 1.4,
-                        borderRadius: 999,
-                        border: '1.5px solid rgba(244,206,161,0.45)',
-                        color: '#FFF8F0',
-                        fontWeight: 800,
-                        fontSize: '1rem',
-                        transition: '180ms ease',
-                        '&:hover': {
-                          borderColor: '#F4CEA1',
-                          bgcolor: 'rgba(244,206,161,0.06)',
-                        },
-                      }}
-                    >
-                      How It Works
-                    </Box>
-                  </Stack>
-                </Stack>
-              </Grid>
-
-              <Grid item xs={12} md={5}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 2, md: 0 } }}>
-                  <CompassDial size={460} tone="dark" />
+              <Typography
+                component="h1"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 500,
+                  fontSize: { xs: '3rem', sm: '4rem', md: '5.4rem' },
+                  lineHeight: 0.96,
+                  letterSpacing: '-0.04em',
+                  color: '#FFF8F0',
+                  textShadow: '0 2px 30px rgba(0,0,0,0.35)',
+                }}
+              >
+                You don't follow paths.
+                <Box component="span" sx={{ display: 'block' }}>
+                  You{' '}
+                  <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
+                    set
+                  </Box>{' '}
+                  them.
                 </Box>
-              </Grid>
-            </Grid>
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: '1.05rem', md: '1.22rem' },
+                  lineHeight: 1.55,
+                  color: 'rgba(255,248,240,0.84)',
+                  maxWidth: 620,
+                }}
+              >
+                Compass is the leadership tool for people who'd rather drive their own growth than follow someone else's framework. Curious. Hungry. Already trying. Just missing the signal.
+              </Typography>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ pt: 1.2 }}>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={handleBeginJourney}
+                  sx={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    px: 3.4,
+                    py: 1.45,
+                    borderRadius: 999,
+                    bgcolor: '#E07A3F',
+                    color: '#FFF8F0',
+                    fontWeight: 800,
+                    fontSize: '1rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.9,
+                    boxShadow: '0 18px 40px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
+                    transition: '180ms ease',
+                    '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                  }}
+                >
+                  Begin Your Journey
+                  <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+                </Box>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={scrollToJourney}
+                  sx={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    px: 3,
+                    py: 1.4,
+                    borderRadius: 999,
+                    border: '1.5px solid rgba(244,206,161,0.45)',
+                    color: '#FFF8F0',
+                    fontWeight: 800,
+                    fontSize: '1rem',
+                    transition: '180ms ease',
+                    '&:hover': {
+                      borderColor: '#F4CEA1',
+                      bgcolor: 'rgba(244,206,161,0.06)',
+                    },
+                  }}
+                >
+                  How It Works
+                </Box>
+              </Stack>
+            </Stack>
           </Container>
 
-          {/* TENSION HOOK — sits in the gradient fade zone */}
+          {/* TENSION HOOK — single quiet line in the gradient fade */}
           <Container
             maxWidth="md"
             sx={{
@@ -627,45 +635,107 @@ function Home() {
           >
             <Typography
               sx={{
-                fontFamily: monoEyebrow,
-                fontWeight: 700,
-                fontSize: '0.7rem',
-                letterSpacing: '0.24em',
-                textTransform: 'uppercase',
-                color: 'rgba(255,248,240,0.62)',
-                mb: 2,
-              }}
-            >
-              The Problem
-            </Typography>
-            <Typography
-              sx={{
                 fontFamily: navySerif,
                 fontWeight: 500,
-                fontSize: { xs: '1.65rem', md: '2.4rem' },
-                lineHeight: 1.18,
+                fontSize: { xs: '1.55rem', md: '2.25rem' },
+                lineHeight: 1.2,
                 letterSpacing: '-0.02em',
-                color: '#FFF8F0',
-              }}
-            >
-              Most leadership feedback arrives too late.
-              <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
-                Or never at all.
-              </Box>
-            </Typography>
-            <Typography
-              sx={{
-                mt: 2.4,
-                fontWeight: 500,
-                fontSize: { xs: '1rem', md: '1.08rem' },
-                lineHeight: 1.6,
-                color: 'rgba(255,248,240,0.74)',
-                maxWidth: 580,
+                color: 'rgba(255,248,240,0.92)',
+                maxWidth: 760,
                 mx: 'auto',
               }}
             >
-              Compass closes that gap in thirty minutes — and keeps it closed for a year.
+              Most leadership content was written
+              <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
+                for someone else's leader.
+              </Box>
             </Typography>
+          </Container>
+        </Box>
+
+        {/* FRICTION — name what isn't landing */}
+        <Box
+          id="friction"
+          sx={{
+            position: 'relative',
+            py: { xs: 8, md: 11 },
+            bgcolor: '#FBF7F0',
+          }}
+        >
+          <Container maxWidth="lg">
+            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 7 }, maxWidth: 720, mx: 'auto' }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: '#C0612A',
+                }}
+              >
+                Sound familiar?
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 600,
+                  fontSize: { xs: '1.95rem', md: '2.65rem' },
+                  lineHeight: 1.12,
+                  letterSpacing: '-0.025em',
+                  color: '#10223C',
+                }}
+              >
+                You've done the reading.
+                <Box component="span" sx={{ display: 'block', color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}>
+                  None of it told you what your Monday actually felt like.
+                </Box>
+              </Typography>
+            </Stack>
+
+            <Stack spacing={{ xs: 1.6, md: 2 }} sx={{ maxWidth: 760, mx: 'auto' }}>
+              {frictionTells.map((tell, idx) => (
+                <Stack
+                  key={idx}
+                  direction="row"
+                  spacing={2}
+                  alignItems="flex-start"
+                  sx={{
+                    py: { xs: 1.6, md: 2 },
+                    borderTop: '1px solid rgba(15,28,46,0.10)',
+                    ...(idx === frictionTells.length - 1 && { borderBottom: '1px solid rgba(15,28,46,0.10)' }),
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: monoEyebrow,
+                      fontWeight: 700,
+                      fontSize: '0.74rem',
+                      letterSpacing: '0.24em',
+                      color: '#C0612A',
+                      pt: 0.5,
+                      flexShrink: 0,
+                      width: { xs: 32, md: 44 },
+                    }}
+                  >
+                    {String(idx + 1).padStart(2, '0')}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: navySerif,
+                      fontWeight: 500,
+                      fontSize: { xs: '1.1rem', md: '1.35rem' },
+                      lineHeight: 1.4,
+                      color: '#10223C',
+                      letterSpacing: '-0.015em',
+                    }}
+                  >
+                    {tell}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
           </Container>
         </Box>
 
@@ -692,7 +762,7 @@ function Home() {
                   color: '#C0612A',
                 }}
               >
-                The Journey
+                The Path Forward
               </Typography>
               <Typography
                 component="h2"
@@ -706,18 +776,19 @@ function Home() {
                   maxWidth: 760,
                 }}
               >
-                Four steps. One year. Real movement.
+                Compass starts where
+                <Box component="span" sx={{ color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}> you actually are.</Box>
               </Typography>
               <Typography
                 sx={{
                   fontWeight: 500,
-                  fontSize: { xs: '0.98rem', md: '1.05rem' },
+                  fontSize: { xs: '0.98rem', md: '1.08rem' },
                   color: '#44566C',
-                  maxWidth: 620,
+                  maxWidth: 640,
                   lineHeight: 1.6,
                 }}
               >
-                Compass replaces one-day workshops and static assessments with a guided, agent-supported rhythm built for leaders who want to move forward, not just learn about themselves.
+                Four steps. One year. The rhythm leaders take when they would rather drive their own growth than wait for someone to schedule it.
               </Typography>
             </Stack>
 
@@ -1096,10 +1167,10 @@ function Home() {
           </Container>
         </Box>
 
-        {/* PRINCIPLES */}
-        <Box id="principles" sx={{ py: { xs: 7, md: 10 }, bgcolor: '#FFFFFF', borderTop: '1px solid rgba(15,28,46,0.06)' }}>
+        {/* WHAT CHANGES — outcomes by next week / month / year */}
+        <Box id="outcomes" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#FFFFFF', borderTop: '1px solid rgba(15,28,46,0.06)' }}>
           <Container maxWidth="lg">
-            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 4.5, md: 6 } }}>
+            <Stack spacing={1.6} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
               <Typography
                 sx={{
                   fontFamily: monoEyebrow,
@@ -1110,70 +1181,94 @@ function Home() {
                   color: '#C0612A',
                 }}
               >
-                Why Compass
+                What changes
               </Typography>
               <Typography
                 component="h2"
                 sx={{
                   fontFamily: navySerif,
                   fontWeight: 600,
-                  fontSize: { xs: '1.85rem', md: '2.45rem' },
-                  lineHeight: 1.1,
+                  fontSize: { xs: '2rem', md: '2.85rem' },
+                  lineHeight: 1.08,
                   letterSpacing: '-0.025em',
                   color: '#10223C',
-                  maxWidth: 700,
+                  maxWidth: 760,
                 }}
               >
-                Built different. On purpose.
+                Not a story you tell.
+                <Box component="span" sx={{ display: 'block', color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}>
+                  A difference your team feels.
+                </Box>
               </Typography>
             </Stack>
 
-            <Grid container spacing={{ xs: 3, md: 5 }}>
-              {principles.map((p) => (
-                <Grid key={p.eyebrow} item xs={12} md={4}>
-                  <Stack spacing={1.6} alignItems="flex-start">
-                    <Box
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: '12px',
-                        bgcolor: 'rgba(224,122,63,0.10)',
-                        color: '#C0612A',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {p.icon}
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: monoEyebrow,
-                        fontWeight: 700,
-                        fontSize: '0.7rem',
-                        letterSpacing: '0.22em',
-                        textTransform: 'uppercase',
-                        color: '#C0612A',
-                      }}
-                    >
-                      {p.eyebrow}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: navySerif,
-                        fontWeight: 500,
-                        fontSize: { xs: '1.05rem', md: '1.12rem' },
-                        lineHeight: 1.55,
-                        color: '#10223C',
-                        letterSpacing: '-0.01em',
-                      }}
-                    >
-                      {p.body}
-                    </Typography>
-                  </Stack>
-                </Grid>
-              ))}
-            </Grid>
+            <Box sx={{ position: 'relative' }}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 24,
+                  left: '8%',
+                  right: '8%',
+                  height: 2,
+                  borderTop: '2px dashed rgba(224,122,63,0.30)',
+                  display: { xs: 'none', md: 'block' },
+                  zIndex: 0,
+                }}
+              />
+              <Grid container spacing={{ xs: 3.5, md: 4 }} sx={{ position: 'relative', zIndex: 1 }}>
+                {outcomes.map((o, idx) => (
+                  <Grid key={o.when} item xs={12} md={4}>
+                    <Stack spacing={1.8} alignItems="center" sx={{ textAlign: 'center', px: { md: 1 } }}>
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: '50%',
+                          bgcolor: '#FFFFFF',
+                          color: '#C0612A',
+                          border: '1.5px solid rgba(224,122,63,0.45)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontFamily: monoEyebrow,
+                          fontWeight: 800,
+                          fontSize: '0.78rem',
+                          letterSpacing: '0.06em',
+                          boxShadow: '0 6px 18px rgba(15,28,46,0.06)',
+                        }}
+                      >
+                        {String(idx + 1).padStart(2, '0')}
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontFamily: monoEyebrow,
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          letterSpacing: '0.24em',
+                          textTransform: 'uppercase',
+                          color: '#C0612A',
+                        }}
+                      >
+                        {o.when}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: navySerif,
+                          fontWeight: 500,
+                          fontSize: { xs: '1.1rem', md: '1.2rem' },
+                          lineHeight: 1.45,
+                          letterSpacing: '-0.015em',
+                          color: '#10223C',
+                          maxWidth: 280,
+                        }}
+                      >
+                        {o.body}
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           </Container>
         </Box>
 
@@ -1217,23 +1312,23 @@ function Home() {
                   color: '#F4CEA1',
                 }}
               >
-                Ready to begin?
+                One last thing
               </Typography>
               <Typography
                 component="h2"
                 sx={{
                   fontFamily: navySerif,
                   fontWeight: 500,
-                  fontSize: { xs: '2.2rem', md: '3.2rem' },
-                  lineHeight: 1.08,
+                  fontSize: { xs: '2rem', md: '2.95rem' },
+                  lineHeight: 1.1,
                   letterSpacing: '-0.03em',
                   color: '#FFF8F0',
-                  maxWidth: 720,
+                  maxWidth: 760,
                 }}
               >
-                Find your direction.
+                If you've read this far,
                 <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
-                  Then move with intent.
+                  you're already this kind of leader.
                 </Box>
               </Typography>
               <Typography
@@ -1245,7 +1340,7 @@ function Home() {
                   maxWidth: 560,
                 }}
               >
-                Begin a single, focused assessment. Walk out with a year-long growth campaign your team can actually feel.
+                Compass is built for the leader who'd rather know than guess. Thirty minutes in. A year of clarity out.
               </Typography>
               <Box
                 component="button"
