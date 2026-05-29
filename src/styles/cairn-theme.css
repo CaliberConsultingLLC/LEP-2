@@ -489,6 +489,14 @@ html[data-theme='cairn']::after {
   opacity: 0.82;
 }
 
+/* ── Landing page: section scroll-snap ───────────────────────────────────────
+   The class is added/removed by a useEffect in Home.jsx so this only applies
+   to the landing page, not the dashboard or other routes.                     */
+html.cairn-landing-page {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+
 /* ── Landing page: immune to global heading-colour overrides ─────────────────
    The landing has its own light/dark visual arc managed per section. Each
    section wrapper carries an explicit `color` via sx; headings inherit that

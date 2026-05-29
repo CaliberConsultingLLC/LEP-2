@@ -39,6 +39,14 @@ function Home() {
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Attach / detach scroll-snap class so only the landing page snaps
+  useEffect(() => {
+    if (!useCairnTheme) return;
+    document.documentElement.classList.add('cairn-landing-page');
+    return () => document.documentElement.classList.remove('cairn-landing-page');
+  }, []);
+
   const boldVisionaryPreset = {
     industry: 'Media',
     role: 'Innovation Lead',
@@ -266,30 +274,42 @@ function Home() {
     const headerOnDark = !heroPassed;
 
     const starsBg = [
+      /* ── Bright white anchors (large) ── */
       'radial-gradient(2.4px 2.4px at 7% 18%, rgba(255,255,255,0.95), transparent 55%)',
-      'radial-gradient(1.8px 1.8px at 19% 8%, rgba(255,255,255,0.85), transparent 55%)',
-      'radial-gradient(2px 2px at 34% 22%, rgba(255,255,255,0.90), transparent 55%)',
-      'radial-gradient(1.6px 1.6px at 47% 12%, rgba(255,255,255,0.80), transparent 55%)',
-      'radial-gradient(2.2px 2.2px at 58% 26%, rgba(255,255,255,0.92), transparent 55%)',
-      'radial-gradient(1.8px 1.8px at 73% 8%, rgba(255,255,255,0.82), transparent 55%)',
-      'radial-gradient(2px 2px at 87% 20%, rgba(255,255,255,0.88), transparent 55%)',
+      'radial-gradient(1.8px 1.8px at 19% 8%, rgba(255,255,255,0.95), transparent 55%)',
+      'radial-gradient(2px 2px at 34% 22%, rgba(255,255,255,0.95), transparent 55%)',
+      'radial-gradient(1.6px 1.6px at 47% 12%, rgba(255,255,255,0.95), transparent 55%)',
+      'radial-gradient(2.2px 2.2px at 58% 26%, rgba(255,255,255,0.95), transparent 55%)',
+      'radial-gradient(1.8px 1.8px at 73% 8%, rgba(255,255,255,0.95), transparent 55%)',
+      'radial-gradient(2px 2px at 87% 20%, rgba(255,255,255,0.95), transparent 55%)',
       'radial-gradient(2.6px 2.6px at 95% 6%, rgba(255,255,255,0.95), transparent 55%)',
-      'radial-gradient(1.2px 1.2px at 14% 32%, rgba(255,255,255,0.55), transparent 60%)',
-      'radial-gradient(1.4px 1.4px at 27% 14%, rgba(255,255,255,0.65), transparent 60%)',
-      'radial-gradient(1px 1px at 41% 36%, rgba(255,255,255,0.45), transparent 60%)',
-      'radial-gradient(1.3px 1.3px at 52% 4%, rgba(255,255,255,0.58), transparent 60%)',
-      'radial-gradient(1.1px 1.1px at 64% 18%, rgba(255,255,255,0.50), transparent 60%)',
-      'radial-gradient(1.5px 1.5px at 78% 30%, rgba(255,255,255,0.60), transparent 60%)',
-      'radial-gradient(1px 1px at 91% 14%, rgba(255,255,255,0.42), transparent 60%)',
-      'radial-gradient(0.8px 0.8px at 22% 24%, rgba(255,255,255,0.30), transparent 60%)',
-      'radial-gradient(0.8px 0.8px at 39% 6%, rgba(255,255,255,0.28), transparent 60%)',
-      'radial-gradient(0.8px 0.8px at 67% 36%, rgba(255,255,255,0.30), transparent 60%)',
-      'radial-gradient(0.8px 0.8px at 82% 4%, rgba(255,255,255,0.28), transparent 60%)',
-      'radial-gradient(0.8px 0.8px at 12% 38%, rgba(255,255,255,0.26), transparent 60%)',
-      'radial-gradient(2.2px 2.2px at 24% 16%, rgba(244,206,161,0.85), transparent 55%)',
-      'radial-gradient(1.8px 1.8px at 56% 30%, rgba(244,206,161,0.70), transparent 55%)',
-      'radial-gradient(1.5px 1.5px at 88% 32%, rgba(244,206,161,0.65), transparent 55%)',
-      'radial-gradient(1.2px 1.2px at 70% 14%, rgba(244,206,161,0.55), transparent 60%)',
+      /* ── New bright anchors ── */
+      'radial-gradient(2px 2px at 30% 10%, rgba(255,255,255,0.95), transparent 55%)',
+      'radial-gradient(2.2px 2.2px at 79% 16%, rgba(255,255,255,0.95), transparent 55%)',
+      /* ── Medium white ── */
+      'radial-gradient(1.2px 1.2px at 14% 32%, rgba(255,255,255,0.80), transparent 60%)',
+      'radial-gradient(1.4px 1.4px at 27% 14%, rgba(255,255,255,0.94), transparent 60%)',
+      'radial-gradient(1px 1px at 41% 36%, rgba(255,255,255,0.65), transparent 60%)',
+      'radial-gradient(1.3px 1.3px at 52% 4%, rgba(255,255,255,0.84), transparent 60%)',
+      'radial-gradient(1.1px 1.1px at 64% 18%, rgba(255,255,255,0.73), transparent 60%)',
+      'radial-gradient(1.5px 1.5px at 78% 30%, rgba(255,255,255,0.87), transparent 60%)',
+      'radial-gradient(1px 1px at 91% 14%, rgba(255,255,255,0.61), transparent 60%)',
+      'radial-gradient(1.6px 1.6px at 45% 28%, rgba(255,255,255,0.75), transparent 60%)',
+      'radial-gradient(1.4px 1.4px at 62% 5%, rgba(255,255,255,0.86), transparent 55%)',
+      'radial-gradient(1px 1px at 6% 26%, rgba(255,255,255,0.68), transparent 60%)',
+      /* ── Dim white (depth) ── */
+      'radial-gradient(0.8px 0.8px at 22% 24%, rgba(255,255,255,0.44), transparent 60%)',
+      'radial-gradient(0.8px 0.8px at 39% 6%, rgba(255,255,255,0.41), transparent 60%)',
+      'radial-gradient(0.8px 0.8px at 67% 36%, rgba(255,255,255,0.44), transparent 60%)',
+      'radial-gradient(0.8px 0.8px at 82% 4%, rgba(255,255,255,0.41), transparent 60%)',
+      'radial-gradient(0.8px 0.8px at 12% 38%, rgba(255,255,255,0.38), transparent 60%)',
+      /* ── Amber warm stars ── */
+      'radial-gradient(2.2px 2.2px at 24% 16%, rgba(244,206,161,0.95), transparent 55%)',
+      'radial-gradient(1.8px 1.8px at 56% 30%, rgba(244,206,161,0.95), transparent 55%)',
+      'radial-gradient(1.5px 1.5px at 88% 32%, rgba(244,206,161,0.94), transparent 55%)',
+      'radial-gradient(1.2px 1.2px at 70% 14%, rgba(244,206,161,0.80), transparent 60%)',
+      'radial-gradient(2px 2px at 92% 30%, rgba(244,206,161,0.92), transparent 55%)',
+      'radial-gradient(1.4px 1.4px at 15% 10%, rgba(244,206,161,0.78), transparent 60%)',
     ].join(', ');
 
     return (
@@ -425,9 +445,16 @@ function Home() {
             justifyContent: 'center',
             pt: { xs: 13, md: 0 },
             pb: { xs: 8, md: 0 },
-            background: 'linear-gradient(180deg, #060F22 0%, #060F22 40%, #0D1B30 70%, #10223C 100%)',
+            background: [
+              'linear-gradient(180deg, rgba(6,15,34,0.82) 0%, rgba(6,15,34,0.72) 30%, rgba(13,27,48,0.86) 65%, rgba(16,34,60,0.97) 100%)',
+              'url(/LEP3.jpg)',
+            ].join(', '),
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
+            backgroundRepeat: 'no-repeat',
             overflow: 'hidden',
             color: '#FFF8F0',
+            scrollSnapAlign: 'start',
           }}
         >
           {/* Stars */}
@@ -453,6 +480,26 @@ function Home() {
               background: 'radial-gradient(circle at 45% 45%, rgba(244,206,161,0.14) 0%, rgba(224,122,63,0.05) 35%, transparent 60%)',
               filter: 'blur(24px)',
               pointerEvents: 'none', zIndex: 0,
+            }}
+          />
+
+          {/* Background Compass logo — large faint watermark, right half */}
+          <Box
+            aria-hidden
+            component="img"
+            src="/compassicon.png"
+            alt=""
+            sx={{
+              position: 'absolute',
+              right: { xs: '-12%', md: '2%' },
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: { xs: '70vw', md: '36vw' },
+              opacity: 0.07,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              zIndex: 0,
+              filter: 'brightness(0) invert(1)',
             }}
           />
 
@@ -497,7 +544,13 @@ function Home() {
                   color: '#FFF8F0',
                 }}
               >
-                Leaders don&apos;t follow paths,
+                <Box component="span" sx={{ display: 'block', whiteSpace: 'nowrap' }}>
+                  Leaders don&apos;t{' '}
+                  <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
+                    follow
+                  </Box>{' '}
+                  paths,
+                </Box>
                 <Box component="span" sx={{ display: 'block' }}>
                   Leaders{' '}
                   <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
@@ -617,6 +670,7 @@ function Home() {
             py: { xs: 10, md: 15 },
             overflow: 'hidden',
             color: '#FFF8F0',
+            scrollSnapAlign: 'start',
           }}
         >
           {/* Amber glow rising */}
@@ -745,6 +799,7 @@ function Home() {
             py: { xs: 11, md: 15 },
             overflow: 'hidden',
             color: '#10223C',
+            scrollSnapAlign: 'start',
           }}
         >
           {/* Horizon glow */}
@@ -873,6 +928,7 @@ function Home() {
             textAlign: 'center',
             overflow: 'hidden',
             color: '#FFF8F0',
+            scrollSnapAlign: 'start',
           }}
         >
           {/* Faint stars echo */}
