@@ -294,6 +294,7 @@ function Home() {
 
     return (
       <Box
+        data-cairn-landing
         sx={{
           minHeight: '100vh',
           width: '100%',
@@ -426,6 +427,7 @@ function Home() {
             pb: { xs: 8, md: 0 },
             background: 'linear-gradient(180deg, #060F22 0%, #060F22 40%, #0D1B30 70%, #10223C 100%)',
             overflow: 'hidden',
+            color: '#FFF8F0',
           }}
         >
           {/* Stars */}
@@ -495,9 +497,9 @@ function Home() {
                   color: '#FFF8F0',
                 }}
               >
-                You don&apos;t follow paths.
+                Leaders don&apos;t follow paths,
                 <Box component="span" sx={{ display: 'block' }}>
-                  You{' '}
+                  Leaders{' '}
                   <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
                     set
                   </Box>{' '}
@@ -614,6 +616,7 @@ function Home() {
             bgcolor: '#10223C',
             py: { xs: 10, md: 15 },
             overflow: 'hidden',
+            color: '#FFF8F0',
           }}
         >
           {/* Amber glow rising */}
@@ -741,6 +744,7 @@ function Home() {
             bgcolor: '#FBF7F0',
             py: { xs: 11, md: 15 },
             overflow: 'hidden',
+            color: '#10223C',
           }}
         >
           {/* Horizon glow */}
@@ -868,6 +872,7 @@ function Home() {
             py: { xs: 13, md: 18 },
             textAlign: 'center',
             overflow: 'hidden',
+            color: '#FFF8F0',
           }}
         >
           {/* Faint stars echo */}
@@ -978,6 +983,7 @@ function Home() {
           sx={{
             bgcolor: '#060F22',
             borderTop: '1px solid rgba(244,206,161,0.08)',
+            color: 'rgba(255,248,240,0.4)',
           }}
         >
           <Container maxWidth="xl" sx={{ py: { xs: 1.5, md: 1.8 } }}>

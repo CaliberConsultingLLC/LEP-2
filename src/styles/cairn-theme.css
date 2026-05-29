@@ -488,3 +488,19 @@ html[data-theme='cairn']::after {
   pointer-events: none;
   opacity: 0.82;
 }
+
+/* ── Landing page: immune to global heading-colour overrides ─────────────────
+   The landing has its own light/dark visual arc managed per section. Each
+   section wrapper carries an explicit `color` via sx; headings inherit that
+   value rather than the global theme override, keeping the page static
+   regardless of the dark-mode toggle.                                         */
+html[data-theme='cairn'] [data-cairn-landing] h1,
+html[data-theme='cairn'] [data-cairn-landing] h2,
+html[data-theme='cairn'] [data-cairn-landing] h3,
+html[data-theme='cairn'] [data-cairn-landing] h4,
+html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h1,
+html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h2,
+html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h3,
+html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h4 {
+  color: inherit !important;
+}
