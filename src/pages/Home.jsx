@@ -487,7 +487,7 @@ function Home() {
           <Box
             aria-hidden
             component="img"
-            src="/compassicon.png"
+            src="/CompassLogo.png"
             alt=""
             sx={{
               position: 'absolute',
@@ -858,7 +858,7 @@ function Home() {
                         fontSize: '3.6rem',
                         lineHeight: 1,
                         letterSpacing: '-0.05em',
-                        color: 'rgba(16,34,60,0.07)',
+                        color: 'rgba(16,34,60,0.10)',
                         userSelect: 'none',
                       }}
                     >
@@ -883,7 +883,7 @@ function Home() {
                         fontWeight: 400,
                         fontSize: '0.95rem',
                         lineHeight: 1.68,
-                        color: '#44566C',
+                        color: '#2C3E52',
                       }}
                     >
                       {step.body}
@@ -894,7 +894,7 @@ function Home() {
                         alignSelf: 'flex-start',
                         px: 1.3, py: 0.45,
                         borderRadius: 999,
-                        border: '1px solid rgba(15,28,46,0.14)',
+                        border: '1px solid rgba(15,28,46,0.28)',
                       }}
                     >
                       <Typography
@@ -904,7 +904,7 @@ function Home() {
                           fontSize: '0.6rem',
                           letterSpacing: '0.18em',
                           textTransform: 'uppercase',
-                          color: 'rgba(16,34,60,0.44)',
+                          color: 'rgba(16,34,60,0.68)',
                         }}
                       >
                         {step.tag}
