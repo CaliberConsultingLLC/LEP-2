@@ -359,10 +359,10 @@ function Home() {
           <Box
             ref={parallaxLep3Ref}
             sx={{
-              position: 'absolute', top: '-15%', left: 0,
-              width: '100%', height: '130%',
+              position: 'absolute', top: '-20%', left: 0,
+              width: '100%', height: '140%',
               backgroundImage: 'url(/LEP3.jpg)',
-              backgroundSize: 'cover', backgroundPosition: 'center top',
+              backgroundSize: 'cover', backgroundPosition: 'center center',
               willChange: 'transform, opacity',
             }}
           />
@@ -370,10 +370,10 @@ function Home() {
           <Box
             ref={parallaxJourneyRef}
             sx={{
-              position: 'absolute', top: 0, left: 0,
-              width: '100%', height: '130%',
+              position: 'absolute', top: '-10%', left: 0,
+              width: '100%', height: '140%',
               backgroundImage: 'url(/journey-base.png)',
-              backgroundSize: 'cover', backgroundPosition: 'center bottom',
+              backgroundSize: 'cover', backgroundPosition: 'center center',
               opacity: 0, willChange: 'transform, opacity',
             }}
           />
@@ -522,7 +522,7 @@ function Home() {
             aria-hidden
             sx={{
               position: 'absolute', inset: 0, zIndex: 0,
-              background: 'linear-gradient(180deg, rgba(6,15,34,0.80) 0%, rgba(6,15,34,0.70) 30%, rgba(13,27,48,0.84) 65%, rgba(16,34,60,0.97) 100%)',
+              background: 'linear-gradient(180deg, rgba(6,15,34,0.52) 0%, rgba(6,15,34,0.44) 30%, rgba(13,27,48,0.60) 65%, rgba(16,34,60,0.82) 100%)',
               pointerEvents: 'none',
             }}
           />
@@ -537,34 +537,20 @@ function Home() {
               pointerEvents: 'none', zIndex: 0,
             }}
           />
-          {/* Amber nebula */}
-          <Box
-            aria-hidden
-            sx={{
-              position: 'absolute',
-              top: '6%', right: '-8%',
-              width: { xs: 500, md: 820 },
-              height: { xs: 500, md: 820 },
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 45% 45%, rgba(244,206,161,0.14) 0%, rgba(224,122,63,0.05) 35%, transparent 60%)',
-              filter: 'blur(24px)',
-              pointerEvents: 'none', zIndex: 0,
-            }}
-          />
 
-          {/* CompassLogo.png — right-side hero anchor, independently positioned */}
+          {/* CompassLogo.png — independently positioned right of headline */}
           <Box
             component="img"
             src="/CompassLogo.png"
             alt="The Compass"
             sx={{
               position: 'absolute',
-              right: { xs: '-6%', md: '4%' },
+              right: { xs: '-4%', md: '3%' },
               top: '50%',
-              transform: 'translateY(-52%)',
-              width: { xs: '60vw', md: '40vw' },
-              maxWidth: 680,
-              opacity: 0.22,
+              transform: 'translateY(-50%)',
+              width: { xs: '62vw', md: '42vw' },
+              maxWidth: 720,
+              opacity: 0.45,
               filter: 'brightness(0) invert(1)',
               pointerEvents: 'none',
               userSelect: 'none',
@@ -864,7 +850,7 @@ function Home() {
           id="journey"
           sx={{
             position: 'relative',
-            background: 'rgba(251,247,240,0.86)',
+            background: 'rgba(251,247,240,0.72)',
             py: { xs: 11, md: 15 },
             overflow: 'hidden',
             color: '#10223C',
