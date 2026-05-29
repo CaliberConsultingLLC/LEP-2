@@ -550,8 +550,6 @@ function Home() {
               transform: 'translateY(-50%)',
               width: { xs: '62vw', md: '42vw' },
               maxWidth: 720,
-              opacity: 0.14,
-              filter: 'brightness(0) invert(1)',
               pointerEvents: 'none',
               userSelect: 'none',
               zIndex: 1,
@@ -721,7 +719,7 @@ function Home() {
         <Box
           sx={{
             position: 'relative',
-            background: 'rgba(10,20,44,0.82)',
+            background: 'transparent',
             py: { xs: 10, md: 15 },
             overflow: 'hidden',
             color: '#FFF8F0',
@@ -978,7 +976,7 @@ function Home() {
         <Box
           sx={{
             position: 'relative',
-            background: 'rgba(10,20,44,0.82)',
+            background: 'transparent',
             py: { xs: 13, md: 18 },
             textAlign: 'center',
             overflow: 'hidden',
