@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -29,6 +29,8 @@ function Home() {
   const [transitionDir, setTransitionDir] = useState('left');
   const [flippedCards, setFlippedCards] = useState({});
   const [heroPassed, setHeroPassed] = useState(false);
+  const parallaxLep3Ref    = useRef(null);
+  const parallaxJourneyRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -45,6 +47,36 @@ function Home() {
     if (!useCairnTheme) return;
     document.documentElement.classList.add('cairn-landing-page');
     return () => document.documentElement.classList.remove('cairn-landing-page');
+  }, []);
+
+  // Parallax: night-sky fades out, mountains fade in as user scrolls
+  useEffect(() => {
+    if (!useCairnTheme) return;
+    let rafId;
+    const onParallax = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const sy = window.scrollY;
+        const vh = window.innerHeight;
+        // Night-sky layer: slow upward drift + fade out over 1.7 viewports
+        if (parallaxLep3Ref.current) {
+          parallaxLep3Ref.current.style.transform = `translateY(${sy * 0.38}px)`;
+          parallaxLep3Ref.current.style.opacity   = String(Math.max(0, 1 - sy / (vh * 1.7)));
+        }
+        // Mountain layer: starts appearing after 45% of first viewport, drifts at 26%
+        if (parallaxJourneyRef.current) {
+          const progress = Math.max(0, Math.min(1, (sy - vh * 0.45) / (vh * 1.3)));
+          parallaxJourneyRef.current.style.opacity   = String(progress);
+          parallaxJourneyRef.current.style.transform = `translateY(${Math.max(-50, (sy - vh * 0.5) * 0.26)}px)`;
+        }
+      });
+    };
+    window.addEventListener('scroll', onParallax, { passive: true });
+    onParallax();
+    return () => {
+      window.removeEventListener('scroll', onParallax);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const boldVisionaryPreset = {
@@ -313,19 +345,54 @@ function Home() {
     ].join(', ');
 
     return (
-      <Box
-        data-cairn-landing
-        sx={{
-          minHeight: '100vh',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: '#FBF7F0',
-          color: '#10223C',
-          overflowX: 'hidden',
-          fontFamily: sansBody,
-        }}
-      >
+      <>
+        {/* ── PARALLAX BACKGROUND STAGE (fixed, behind all sections) ── */}
+        <Box
+          aria-hidden
+          sx={{
+            position: 'fixed', top: 0, left: 0,
+            width: '100%', height: '100%',
+            zIndex: 0, overflow: 'hidden', pointerEvents: 'none',
+          }}
+        >
+          {/* Night-sky layer — LEP3.jpg, drifts up slowly, fades out */}
+          <Box
+            ref={parallaxLep3Ref}
+            sx={{
+              position: 'absolute', top: '-15%', left: 0,
+              width: '100%', height: '130%',
+              backgroundImage: 'url(/LEP3.jpg)',
+              backgroundSize: 'cover', backgroundPosition: 'center top',
+              willChange: 'transform, opacity',
+            }}
+          />
+          {/* Mountain layer — journey-base.png, fades in and drifts up slowly */}
+          <Box
+            ref={parallaxJourneyRef}
+            sx={{
+              position: 'absolute', top: 0, left: 0,
+              width: '100%', height: '130%',
+              backgroundImage: 'url(/journey-base.png)',
+              backgroundSize: 'cover', backgroundPosition: 'center bottom',
+              opacity: 0, willChange: 'transform, opacity',
+            }}
+          />
+        </Box>
+
+        <Box
+          data-cairn-landing
+          sx={{
+            minHeight: '100vh',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            zIndex: 1,
+            color: '#10223C',
+            overflowX: 'hidden',
+            fontFamily: sansBody,
+          }}
+        >
         {/* ── HEADER ── */}
         <Box
           component="header"
@@ -445,18 +512,20 @@ function Home() {
             justifyContent: 'center',
             pt: { xs: 13, md: 0 },
             pb: { xs: 8, md: 0 },
-            background: [
-              'linear-gradient(180deg, rgba(6,15,34,0.82) 0%, rgba(6,15,34,0.72) 30%, rgba(13,27,48,0.86) 65%, rgba(16,34,60,0.97) 100%)',
-              'url(/LEP3.jpg)',
-            ].join(', '),
-            backgroundSize: 'cover',
-            backgroundPosition: 'center top',
-            backgroundRepeat: 'no-repeat',
             overflow: 'hidden',
             color: '#FFF8F0',
             scrollSnapAlign: 'start',
           }}
         >
+          {/* Dark atmospheric gradient overlay over parallax bg */}
+          <Box
+            aria-hidden
+            sx={{
+              position: 'absolute', inset: 0, zIndex: 0,
+              background: 'linear-gradient(180deg, rgba(6,15,34,0.80) 0%, rgba(6,15,34,0.70) 30%, rgba(13,27,48,0.84) 65%, rgba(16,34,60,0.97) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
           {/* Stars */}
           <Box
             aria-hidden
@@ -483,23 +552,23 @@ function Home() {
             }}
           />
 
-          {/* Background Compass logo — large faint watermark, right half */}
+          {/* CompassLogo.png — right-side hero anchor, independently positioned */}
           <Box
-            aria-hidden
             component="img"
             src="/CompassLogo.png"
-            alt=""
+            alt="The Compass"
             sx={{
               position: 'absolute',
-              right: { xs: '-12%', md: '2%' },
+              right: { xs: '-6%', md: '4%' },
               top: '50%',
-              transform: 'translateY(-50%)',
-              width: { xs: '70vw', md: '36vw' },
-              opacity: 0.07,
+              transform: 'translateY(-52%)',
+              width: { xs: '60vw', md: '40vw' },
+              maxWidth: 680,
+              opacity: 0.22,
+              filter: 'brightness(0) invert(1)',
               pointerEvents: 'none',
               userSelect: 'none',
-              zIndex: 0,
-              filter: 'brightness(0) invert(1)',
+              zIndex: 1,
             }}
           />
 
@@ -795,7 +864,7 @@ function Home() {
           id="journey"
           sx={{
             position: 'relative',
-            bgcolor: '#FBF7F0',
+            background: 'rgba(251,247,240,0.86)',
             py: { xs: 11, md: 15 },
             overflow: 'hidden',
             color: '#10223C',
@@ -1071,6 +1140,7 @@ function Home() {
           </Container>
         </Box>
       </Box>
+      </>
     );
   }
 
