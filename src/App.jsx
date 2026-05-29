@@ -14,6 +14,7 @@ import NewCampaignIntro from './pages/NewCampaignIntro';
 import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
+import DesignSystem from './pages/DesignSystem';
 import Faq from './pages/Faq';
 import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
@@ -21,6 +22,7 @@ import DevSkipAssessments from './pages/DevSkipAssessments';
 import RepositoryConsole from './pages/RepositoryConsole';
 import RepositoryLogin from './pages/RepositoryLogin';
 import SignIn from './pages/SignIn';
+import Pricing from './pages/Pricing';
 import GuideSelect from './pages/GuideSelect';
 import ProtectedRoute from './components/ProtectedRoute';
 import { showDevTools, useCairnTheme } from './config/runtimeFlags';
@@ -49,7 +51,9 @@ function AppRoutes() {
       <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      {useCairnTheme && <Route path="/design" element={<DesignSystem />} />}
       <Route path="/faq" element={<Faq />} />
+      <Route path="/pricing" element={<Pricing />} />
       {showDevTools && <Route path="/dev-skip-1" element={<DevSkipOne />} />}
       {showDevTools && <Route path="/dev-skip-two" element={<DevSkipTwo />} />}
       {showDevTools && <Route path="/dev-assessments" element={<DevSkipAssessments />} />}

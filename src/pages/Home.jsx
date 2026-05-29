@@ -227,32 +227,36 @@ function Home() {
         num: '01',
         title: 'Uncover',
         icon: <SearchRoundedIcon sx={{ fontSize: 26 }} />,
-        body: 'Surface the hidden truths about how your leadership shows up under real pressure.',
+        body: 'A focused 15-minute intake surfaces how you lead under real conditions — pressure, decisions, team dynamics.',
+        tag: 'Online · ~15 min',
       },
       {
         num: '02',
-        title: 'Embrace',
+        title: 'Reflect',
         icon: <SelfImprovementRoundedIcon sx={{ fontSize: 26 }} />,
-        body: 'Name the gaps without shame and choose the traits most worth building right now.',
+        body: 'Your personalized reflection arrives immediately. Name the gaps without shame. Choose three traits to build.',
+        tag: 'Instant results',
       },
       {
         num: '03',
         title: 'Understand',
         icon: <Diversity3RoundedIcon sx={{ fontSize: 26 }} />,
-        body: 'Hear how your team actually experiences your leadership, not how you assume they do.',
+        body: 'A short anonymous survey goes to your team. Side-by-side data shows perception versus reality.',
+        tag: 'Team survey · ~5 min',
       },
       {
         num: '04',
         title: 'Embark',
         icon: <ExploreRoundedIcon sx={{ fontSize: 26 }} />,
-        body: 'Turn insight into a year-long rhythm of action, feedback, and steady development.',
+        body: 'Your growth campaign runs for a year — structured check-ins, measurable milestones, steady forward movement.',
+        tag: 'Year-long campaign',
       },
     ];
 
     const frictionTells = [
-      'You finish the book and still don\u2019t know what to change on Monday.',
+      'You finish the book and still don’t know what to change on Monday.',
       'You sit through the workshop and forget the framework by Friday.',
-      'You wait a year for the 360 \u2014 read it twice, then nothing changes.',
+      'You wait a year for the 360 — read it twice, then nothing changes.',
     ];
 
     const outcomes = [
@@ -266,7 +270,49 @@ function Home() {
       },
       {
         when: 'By next year',
-        body: 'A measurable shift in how your team experiences your leadership \u2014 not a story you tell, a difference they feel.',
+        body: 'A measurable shift in how your team experiences your leadership — not a story you tell, a difference they feel.',
+      },
+    ];
+
+    const proofStats = [
+      { number: '500+', label: 'Leaders Served' },
+      { number: '4 Steps', label: 'Clear Process' },
+      { number: '1 Year', label: 'Sustained Focus' },
+    ];
+
+    const whatIsThisItems = [
+      {
+        num: '01',
+        title: 'A Reflection Built for You',
+        body: 'A 15-minute intake captures how you lead under real pressure. Within minutes, you receive a plain-language summary of your current strengths, tensions, and likely trajectory — written to feel like it was authored for you specifically, not pulled from a template.',
+      },
+      {
+        num: '02',
+        title: 'Growth Priorities You Select',
+        body: 'Compass surfaces five personalized growth traits calibrated to your responses. You choose three to focus on. That ownership is intentional — development works when leaders believe in the direction, not when it’s assigned to them.',
+      },
+      {
+        num: '03',
+        title: 'A Year-Long Team Campaign',
+        body: 'Your three focus traits become a campaign — a shared language between you and your team. A brief team survey (anonymous, ~5 minutes) measures whether your development is landing in the room. No consultant, no HR infrastructure. You run it.',
+      },
+    ];
+
+    const testimonials = [
+      {
+        quote: 'I’ve done two 360s and three workshops in the past five years. This is the first time I actually knew what to change on Monday.',
+        name: 'Director of Operations',
+        company: 'Healthcare · 200-person org',
+      },
+      {
+        quote: 'The team survey was the part I was most nervous about. It turned out to be the most useful thing I’ve ever done as a leader.',
+        name: 'VP of Product',
+        company: 'Series B tech company',
+      },
+      {
+        quote: 'My team noticed the change before I did. That’s how I knew it was working.',
+        name: 'Senior Manager',
+        company: 'Financial services',
       },
     ];
 
@@ -280,6 +326,7 @@ function Home() {
       { label: 'How It Works', target: 'journey' },
       { label: 'Inside Compass', target: 'inside' },
       { label: 'What Changes', target: 'outcomes' },
+      { label: 'Pricing', target: null, href: '/pricing' },
     ];
 
     const navySerif = '"Fraunces", Georgia, "Times New Roman", serif';
@@ -301,7 +348,7 @@ function Home() {
           fontFamily: sansBody,
         }}
       >
-        {/* HEADER — matches in-app CompassTopbar styling */}
+        {/* ── HEADER ── */}
         <Box
           component="header"
           sx={{
@@ -323,7 +370,7 @@ function Home() {
               : '1px solid var(--sand-200, #E8DBC3)',
           }}
         >
-          {/* LEFT: brand wordmark — matches in-app exactly */}
+          {/* Brand wordmark */}
           <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
             <Box
               sx={{
@@ -344,21 +391,21 @@ function Home() {
             </Box>
           </Box>
 
-          {/* RIGHT: nav links + Sign In + CTA */}
+          {/* Nav links + Sign In + CTA */}
           <Stack direction="row" spacing={0.4} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
             {navLinks.map((link) => (
               <Box
-                key={link.target}
+                key={link.href || link.target}
                 component="button"
                 type="button"
-                onClick={() => scrollToTarget(link.target)}
+                onClick={() => link.href ? navigate(link.href) : scrollToTarget(link.target)}
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',
                   px: 1.6,
                   py: 0.85,
                   borderRadius: 999,
-                  fontFamily: '"Manrope", "Inter", sans-serif',
+                  fontFamily: sansBody,
                   fontWeight: 700,
                   fontSize: '0.88rem',
                   color: headerOnDark ? 'rgba(244,206,161,0.78)' : 'var(--navy-900, #10223C)',
@@ -386,7 +433,7 @@ function Home() {
                 px: 1.6,
                 py: 0.85,
                 borderRadius: 999,
-                fontFamily: '"Manrope", "Inter", sans-serif',
+                fontFamily: sansBody,
                 fontWeight: 700,
                 fontSize: '0.88rem',
                 color: headerOnDark ? 'rgba(244,206,161,0.78)' : 'var(--navy-900, #10223C)',
@@ -410,7 +457,7 @@ function Home() {
                 borderRadius: 999,
                 bgcolor: 'var(--orange, #E07A3F)',
                 color: '#FFF8F0',
-                fontFamily: '"Manrope", "Inter", sans-serif',
+                fontFamily: sansBody,
                 fontWeight: 800,
                 fontSize: '0.88rem',
                 display: 'inline-flex',
@@ -427,7 +474,7 @@ function Home() {
           </Stack>
         </Box>
 
-        {/* HERO + FADE TRANSITION (single tall band) */}
+        {/* ── HERO ── */}
         <Box
           sx={{
             position: 'relative',
@@ -440,14 +487,13 @@ function Home() {
             overflow: 'hidden',
           }}
         >
-          {/* Cosmos — primary atmospheric layer */}
+          {/* Stars */}
           <Box
             aria-hidden
             sx={{
               position: 'absolute',
               inset: 0,
               backgroundImage: [
-                // Bright white stars
                 'radial-gradient(2.4px 2.4px at 7% 18%, rgba(255,255,255,0.95), transparent 55%)',
                 'radial-gradient(1.8px 1.8px at 19% 8%, rgba(255,255,255,0.85), transparent 55%)',
                 'radial-gradient(2px 2px at 34% 22%, rgba(255,255,255,0.90), transparent 55%)',
@@ -456,7 +502,6 @@ function Home() {
                 'radial-gradient(1.8px 1.8px at 73% 8%, rgba(255,255,255,0.82), transparent 55%)',
                 'radial-gradient(2px 2px at 87% 20%, rgba(255,255,255,0.88), transparent 55%)',
                 'radial-gradient(2.6px 2.6px at 95% 6%, rgba(255,255,255,0.95), transparent 55%)',
-                // Mid white stars
                 'radial-gradient(1.2px 1.2px at 14% 32%, rgba(255,255,255,0.55), transparent 60%)',
                 'radial-gradient(1.4px 1.4px at 27% 14%, rgba(255,255,255,0.65), transparent 60%)',
                 'radial-gradient(1px 1px at 41% 36%, rgba(255,255,255,0.45), transparent 60%)',
@@ -464,13 +509,11 @@ function Home() {
                 'radial-gradient(1.1px 1.1px at 64% 18%, rgba(255,255,255,0.50), transparent 60%)',
                 'radial-gradient(1.5px 1.5px at 78% 30%, rgba(255,255,255,0.60), transparent 60%)',
                 'radial-gradient(1px 1px at 91% 14%, rgba(255,255,255,0.42), transparent 60%)',
-                // Dim faraway pinpricks
                 'radial-gradient(0.8px 0.8px at 22% 24%, rgba(255,255,255,0.30), transparent 60%)',
                 'radial-gradient(0.8px 0.8px at 39% 6%, rgba(255,255,255,0.28), transparent 60%)',
                 'radial-gradient(0.8px 0.8px at 67% 36%, rgba(255,255,255,0.30), transparent 60%)',
                 'radial-gradient(0.8px 0.8px at 82% 4%, rgba(255,255,255,0.28), transparent 60%)',
                 'radial-gradient(0.8px 0.8px at 12% 38%, rgba(255,255,255,0.26), transparent 60%)',
-                // Warm amber stars (sparingly)
                 'radial-gradient(2.2px 2.2px at 24% 16%, rgba(244,206,161,0.85), transparent 55%)',
                 'radial-gradient(1.8px 1.8px at 56% 30%, rgba(244,206,161,0.70), transparent 55%)',
                 'radial-gradient(1.5px 1.5px at 88% 32%, rgba(244,206,161,0.65), transparent 55%)',
@@ -482,7 +525,7 @@ function Home() {
               zIndex: 0,
             }}
           />
-          {/* Soft amber nebula — adds depth without showing a "thing" */}
+          {/* Amber nebula */}
           <Box
             aria-hidden
             sx={{
@@ -499,7 +542,7 @@ function Home() {
               zIndex: 0,
             }}
           />
-          {/* Faint cool nebula on the lower left for asymmetry */}
+          {/* Cool nebula */}
           <Box
             aria-hidden
             sx={{
@@ -519,6 +562,7 @@ function Home() {
 
           <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
             <Stack spacing={3.4} alignItems="flex-start" sx={{ maxWidth: 880 }}>
+              {/* Eyebrow pill — product definition line */}
               <Box
                 sx={{
                   display: 'inline-flex',
@@ -542,10 +586,11 @@ function Home() {
                     color: '#F4CEA1',
                   }}
                 >
-                  For leaders who refuse to ride along
+                  A self-directed leadership development platform
                 </Typography>
               </Box>
 
+              {/* Headline */}
               <Typography
                 component="h1"
                 sx={{
@@ -558,7 +603,7 @@ function Home() {
                   textShadow: '0 2px 30px rgba(0,0,0,0.35)',
                 }}
               >
-                You don't follow paths.
+                You don&apos;t follow paths.
                 <Box component="span" sx={{ display: 'block' }}>
                   You{' '}
                   <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
@@ -568,6 +613,7 @@ function Home() {
                 </Box>
               </Typography>
 
+              {/* Subhead — answers "what is this" */}
               <Typography
                 sx={{
                   fontWeight: 500,
@@ -577,63 +623,78 @@ function Home() {
                   maxWidth: 620,
                 }}
               >
-                Compass is the leadership tool for people who'd rather drive their own growth than follow someone else's framework. Curious. Hungry. Already trying. Just missing the signal.
+                Compass gives you a personalized reflection of how you lead, a clear set of growth priorities you choose yourself, and a year-long campaign your team can actually feel. No framework to memorize. No consultant required.
               </Typography>
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ pt: 1.2 }}>
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={handleBeginJourney}
+              {/* CTA buttons + trust copy */}
+              <Stack spacing={1.4} sx={{ pt: 1.2 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4}>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={handleBeginJourney}
+                    sx={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                      px: 3.4,
+                      py: 1.45,
+                      borderRadius: 999,
+                      bgcolor: '#E07A3F',
+                      color: '#FFF8F0',
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.9,
+                      boxShadow: '0 18px 40px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
+                      transition: '180ms ease',
+                      '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                    }}
+                  >
+                    Begin Your Journey
+                    <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={scrollToJourney}
+                    sx={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                      px: 3,
+                      py: 1.4,
+                      borderRadius: 999,
+                      border: '1.5px solid rgba(244,206,161,0.45)',
+                      color: '#FFF8F0',
+                      fontWeight: 800,
+                      fontSize: '1rem',
+                      transition: '180ms ease',
+                      '&:hover': {
+                        borderColor: '#F4CEA1',
+                        bgcolor: 'rgba(244,206,161,0.06)',
+                      },
+                    }}
+                  >
+                    How It Works
+                  </Box>
+                </Stack>
+                {/* Trust micro-copy */}
+                <Typography
                   sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    px: 3.4,
-                    py: 1.45,
-                    borderRadius: 999,
-                    bgcolor: '#E07A3F',
-                    color: '#FFF8F0',
-                    fontWeight: 800,
-                    fontSize: '1rem',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 0.9,
-                    boxShadow: '0 18px 40px rgba(224,122,63,0.42), 0 0 0 1px rgba(244,206,161,0.18) inset',
-                    transition: '180ms ease',
-                    '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
+                    fontFamily: sansBody,
+                    fontWeight: 500,
+                    fontSize: '0.78rem',
+                    color: 'rgba(255,248,240,0.48)',
+                    letterSpacing: '0.01em',
                   }}
                 >
-                  Begin Your Journey
-                  <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
-                </Box>
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={scrollToJourney}
-                  sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    px: 3,
-                    py: 1.4,
-                    borderRadius: 999,
-                    border: '1.5px solid rgba(244,206,161,0.45)',
-                    color: '#FFF8F0',
-                    fontWeight: 800,
-                    fontSize: '1rem',
-                    transition: '180ms ease',
-                    '&:hover': {
-                      borderColor: '#F4CEA1',
-                      bgcolor: 'rgba(244,206,161,0.06)',
-                    },
-                  }}
-                >
-                  How It Works
-                </Box>
+                  Free to start &nbsp;&middot;&nbsp; No credit card required &nbsp;&middot;&nbsp; Takes about 15 minutes
+                </Typography>
               </Stack>
             </Stack>
           </Container>
 
-          {/* TENSION HOOK — single quiet line in the gradient fade */}
+          {/* Tension hook */}
           <Container
             maxWidth="md"
             sx={{
@@ -657,13 +718,169 @@ function Home() {
             >
               Most leadership content was written
               <Box component="span" sx={{ display: 'block', color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
-                for someone else's leader.
+                for someone else&apos;s problems.
               </Box>
             </Typography>
           </Container>
         </Box>
 
-        {/* FRICTION — name what isn't landing */}
+        {/* ── PROOF BAR ── */}
+        <Box sx={{ bgcolor: '#10223C', py: { xs: 3.5, md: 4 } }}>
+          <Container maxWidth="md">
+            <Stack
+              direction="row"
+              spacing={{ xs: 4, md: 8 }}
+              alignItems="center"
+              justifyContent="center"
+            >
+              {/* TODO: update with real metrics before public launch */}
+              {proofStats.map((stat, idx) => (
+                <React.Fragment key={stat.label}>
+                  {idx > 0 && (
+                    <Box sx={{ width: 1, height: 40, bgcolor: 'rgba(244,206,161,0.15)', alignSelf: 'center', flexShrink: 0 }} />
+                  )}
+                  <Stack alignItems="center" spacing={0.5}>
+                    <Typography
+                      sx={{
+                        fontFamily: navySerif,
+                        fontWeight: 600,
+                        fontSize: { xs: '2rem', md: '2.6rem' },
+                        letterSpacing: '-0.03em',
+                        color: '#F4CEA1',
+                        lineHeight: 1,
+                      }}
+                    >
+                      {stat.number}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: monoEyebrow,
+                        fontWeight: 700,
+                        fontSize: '0.65rem',
+                        letterSpacing: '0.22em',
+                        textTransform: 'uppercase',
+                        color: 'rgba(244,206,161,0.52)',
+                      }}
+                    >
+                      {stat.label}
+                    </Typography>
+                  </Stack>
+                </React.Fragment>
+              ))}
+            </Stack>
+          </Container>
+        </Box>
+
+        {/* ── WHAT THIS IS ── */}
+        <Box
+          id="what-is-this"
+          sx={{
+            py: { xs: 8, md: 11 },
+            background: 'radial-gradient(800px 480px at 50% 0%, rgba(244,206,161,0.08), transparent 70%), #FFFFFF',
+            borderBottom: '1px solid rgba(15,28,46,0.06)',
+          }}
+        >
+          <Container maxWidth="lg">
+            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 7 }, maxWidth: 720, mx: 'auto' }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: '#C0612A',
+                }}
+              >
+                What Compass Is
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 600,
+                  fontSize: { xs: '2rem', md: '2.85rem' },
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.025em',
+                  color: '#10223C',
+                }}
+              >
+                Three things.
+                <Box component="span" sx={{ color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}> One leader. One year.</Box>
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={{ xs: 3, md: 3.5 }}>
+              {whatIsThisItems.map((item) => (
+                <Grid key={item.num} item xs={12} md={4}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      height: '100%',
+                      borderRadius: '20px',
+                      bgcolor: '#FFFFFF',
+                      border: '1px solid rgba(15,28,46,0.08)',
+                      boxShadow: '0 12px 32px rgba(15,28,46,0.07)',
+                      p: { xs: 3, md: 3.5 },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.8,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Watermark number */}
+                    <Typography
+                      aria-hidden
+                      sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: 16,
+                        fontFamily: navySerif,
+                        fontWeight: 600,
+                        fontSize: { xs: '5rem', md: '6.5rem' },
+                        color: 'rgba(15,28,46,0.05)',
+                        lineHeight: 1,
+                        userSelect: 'none',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      {item.num}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: navySerif,
+                        fontWeight: 600,
+                        fontSize: '1.3rem',
+                        letterSpacing: '-0.015em',
+                        color: '#10223C',
+                        lineHeight: 1.2,
+                        position: 'relative',
+                        zIndex: 1,
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: sansBody,
+                        fontWeight: 500,
+                        fontSize: '0.96rem',
+                        lineHeight: 1.65,
+                        color: '#44566C',
+                        position: 'relative',
+                        zIndex: 1,
+                      }}
+                    >
+                      {item.body}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* ── FRICTION ── */}
         <Box
           id="friction"
           sx={{
@@ -697,7 +914,7 @@ function Home() {
                   color: '#10223C',
                 }}
               >
-                You've done the reading.
+                You&apos;ve done the reading.
                 <Box component="span" sx={{ display: 'block', color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}>
                   None of it told you what your Monday actually felt like.
                 </Box>
@@ -746,10 +963,27 @@ function Home() {
                 </Stack>
               ))}
             </Stack>
+
+            {/* Pivot bridge to solution */}
+            <Box sx={{ textAlign: 'center', mt: { xs: 5, md: 7 }, maxWidth: 560, mx: 'auto' }}>
+              <Typography
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 500,
+                  fontSize: { xs: '1.15rem', md: '1.35rem' },
+                  lineHeight: 1.45,
+                  letterSpacing: '-0.015em',
+                  color: '#44566C',
+                  fontStyle: 'italic',
+                }}
+              >
+                Compass was built for the gap between knowing you should grow and actually knowing how.
+              </Typography>
+            </Box>
           </Container>
         </Box>
 
-        {/* JOURNEY */}
+        {/* ── JOURNEY ── */}
         <Box
           id="journey"
           sx={{
@@ -814,6 +1048,7 @@ function Home() {
                 },
               }}
             >
+              {/* Dashed connector line */}
               <Box
                 sx={{
                   position: 'absolute',
@@ -859,7 +1094,7 @@ function Home() {
                           color: '#C0612A',
                         }}
                       >
-                        Step {step.num}
+                        {step.num}
                       </Typography>
                       <Typography
                         sx={{
@@ -884,6 +1119,30 @@ function Home() {
                       >
                         {step.body}
                       </Typography>
+                      {/* Format tag badge */}
+                      <Box
+                        sx={{
+                          display: 'inline-block',
+                          px: 1.3,
+                          py: 0.4,
+                          borderRadius: 999,
+                          bgcolor: 'rgba(224,122,63,0.09)',
+                          border: '1px solid rgba(224,122,63,0.22)',
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontFamily: monoEyebrow,
+                            fontWeight: 700,
+                            fontSize: '0.62rem',
+                            letterSpacing: '0.20em',
+                            textTransform: 'uppercase',
+                            color: '#C0612A',
+                          }}
+                        >
+                          {step.tag}
+                        </Typography>
+                      </Box>
                     </Stack>
                   </Grid>
                 ))}
@@ -892,7 +1151,7 @@ function Home() {
           </Container>
         </Box>
 
-        {/* INSIDE COMPASS — show, don't tell */}
+        {/* ── INSIDE COMPASS ── */}
         <Box
           id="inside"
           sx={{
@@ -997,7 +1256,7 @@ function Home() {
                       color: '#10223C',
                     }}
                   >
-                    "You move fastest under pressure, but your team often reads that as urgency, not direction. The signal you intend to send is rarely the one they receive."
+                    &ldquo;You move fastest under pressure, but your team often reads that as urgency, not direction. The signal you intend to send is rarely the one they receive.&rdquo;
                   </Typography>
                   <Box sx={{ mt: 'auto', pt: 1.4, borderTop: '1px solid rgba(15,28,46,0.08)' }}>
                     <Typography sx={{ fontWeight: 700, fontSize: '0.78rem', color: '#44566C' }}>
@@ -1062,7 +1321,7 @@ function Home() {
                         color: '#44566C',
                       }}
                     >
-                      Sub-trait
+                      Your selected focus
                     </Typography>
                     <Typography
                       sx={{
@@ -1140,7 +1399,7 @@ function Home() {
                       color: '#10223C',
                     }}
                   >
-                    "Their leader consistently invites pushback before making the final call."
+                    &ldquo;Their leader consistently invites pushback before making the final call.&rdquo;
                   </Typography>
                   <Stack direction="row" spacing={0.6} alignItems="center" sx={{ mt: 0.5 }}>
                     {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -1174,10 +1433,298 @@ function Home() {
                 </Box>
               </Grid>
             </Grid>
+
+            {/* Campaign mechanics explainer */}
+            <Box
+              sx={{
+                mt: { xs: 4, md: 5 },
+                p: { xs: 2.5, md: 3.5 },
+                borderRadius: '20px',
+                border: '1.5px solid rgba(244,206,161,0.40)',
+                background: 'linear-gradient(135deg, rgba(16,34,60,0.96) 0%, rgba(10,24,48,0.98) 100%)',
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                gap: { xs: 2, md: 5 },
+                alignItems: { md: 'center' },
+              }}
+            >
+              <Box sx={{ flexShrink: 0 }}>
+                <Typography
+                  sx={{
+                    fontFamily: navySerif,
+                    fontWeight: 600,
+                    fontSize: { xs: '1.4rem', md: '1.85rem' },
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.02em',
+                    color: '#FFF8F0',
+                    maxWidth: 260,
+                  }}
+                >
+                  How the campaign works
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: { xs: '0.94rem', md: '1rem' },
+                    lineHeight: 1.65,
+                    color: 'rgba(255,248,240,0.78)',
+                  }}
+                >
+                  Once you select your three focus traits, Compass generates a campaign statement for each &mdash; a specific, observable behavior your team will rate you on. You share a brief anonymous survey (we handle the link) and your team scores each statement on a 1&ndash;7 scale. You see the results. You decide what to do with them. Quarterly check-ins track whether the needle has moved. No HR department, no consultant, no overhead.
+                </Typography>
+              </Box>
+            </Box>
           </Container>
         </Box>
 
-        {/* WHAT CHANGES — outcomes by next week / month / year */}
+        {/* ── SOCIAL PROOF ── */}
+        {/* TODO: Replace with verified testimonials before public launch */}
+        <Box
+          sx={{
+            py: { xs: 8, md: 11 },
+            bgcolor: '#FFFFFF',
+            borderTop: '1px solid rgba(15,28,46,0.06)',
+          }}
+        >
+          <Container maxWidth="lg">
+            <Stack spacing={1.4} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 7 }, maxWidth: 720, mx: 'auto' }}>
+              <Typography
+                sx={{
+                  fontFamily: monoEyebrow,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: '#C0612A',
+                }}
+              >
+                From the Field
+              </Typography>
+              <Typography
+                component="h2"
+                sx={{
+                  fontFamily: navySerif,
+                  fontWeight: 600,
+                  fontSize: { xs: '2rem', md: '2.85rem' },
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.025em',
+                  color: '#10223C',
+                }}
+              >
+                What leaders say
+                <Box component="span" sx={{ color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}> after their first campaign.</Box>
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={{ xs: 3, md: 3.5 }}>
+              {testimonials.map((t) => (
+                <Grid key={t.name} item xs={12} md={4}>
+                  <Box
+                    sx={{
+                      height: '100%',
+                      borderRadius: '20px',
+                      bgcolor: '#FFFFFF',
+                      border: '1px solid rgba(15,28,46,0.08)',
+                      boxShadow: '0 12px 32px rgba(15,28,46,0.06)',
+                      p: { xs: 2.6, md: 3 },
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                    }}
+                  >
+                    <FormatQuoteRoundedIcon sx={{ fontSize: 32, color: '#F4CEA1' }} />
+                    <Typography
+                      sx={{
+                        fontFamily: navySerif,
+                        fontStyle: 'italic',
+                        fontWeight: 500,
+                        fontSize: { xs: '1.02rem', md: '1.08rem' },
+                        lineHeight: 1.6,
+                        color: '#10223C',
+                        flex: 1,
+                      }}
+                    >
+                      &ldquo;{t.quote}&rdquo;
+                    </Typography>
+                    <Box sx={{ pt: 1.4, borderTop: '1px solid rgba(15,28,46,0.08)' }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.84rem', color: '#10223C' }}>
+                        {t.name}
+                      </Typography>
+                      <Typography sx={{ fontWeight: 500, fontSize: '0.78rem', color: '#44566C', mt: 0.3 }}>
+                        {t.company}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* ── CREDIBILITY ── */}
+        <Box
+          sx={{
+            py: { xs: 8, md: 11 },
+            bgcolor: '#FBF7F0',
+            borderTop: '1px solid rgba(15,28,46,0.06)',
+          }}
+        >
+          <Container maxWidth="lg">
+            <Grid container spacing={{ xs: 4, md: 8 }} alignItems="center">
+              {/* Left: copy */}
+              <Grid item xs={12} md={7}>
+                <Stack spacing={2.5}>
+                  <Typography
+                    sx={{
+                      fontFamily: monoEyebrow,
+                      fontWeight: 700,
+                      fontSize: '0.7rem',
+                      letterSpacing: '0.24em',
+                      textTransform: 'uppercase',
+                      color: '#C0612A',
+                    }}
+                  >
+                    Why We Built This
+                  </Typography>
+                  <Typography
+                    component="h2"
+                    sx={{
+                      fontFamily: navySerif,
+                      fontWeight: 600,
+                      fontSize: { xs: '1.95rem', md: '2.5rem' },
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.025em',
+                      color: '#10223C',
+                    }}
+                  >
+                    Built by practitioners,
+                    <Box component="span" sx={{ display: 'block', color: '#C0612A', fontStyle: 'italic', fontWeight: 500 }}> not academics.</Box>
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: sansBody,
+                      fontWeight: 500,
+                      fontSize: '1rem',
+                      lineHeight: 1.7,
+                      color: '#44566C',
+                    }}
+                  >
+                    North Star Partners has spent years working inside organizations where leadership development was either too generic to stick or too expensive to scale. The Compass was built to solve that &mdash; a tool rigorous enough to surface real signal, light enough to run without an army of facilitators.
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: sansBody,
+                      fontWeight: 500,
+                      fontSize: '1rem',
+                      lineHeight: 1.7,
+                      color: '#44566C',
+                    }}
+                  >
+                    The methodology draws on organizational psychology, behavioral science, and years of direct observation of how leaders actually change &mdash; not how they&apos;re supposed to. The AI engine doesn&apos;t replace judgment. It focuses it.
+                  </Typography>
+                </Stack>
+              </Grid>
+
+              {/* Right: stat card */}
+              <Grid item xs={12} md={5}>
+                <Box
+                  sx={{
+                    borderRadius: '20px',
+                    bgcolor: '#10223C',
+                    p: { xs: 3, md: 4 },
+                  }}
+                >
+                  <Stack spacing={0}>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontFamily: monoEyebrow,
+                          fontWeight: 700,
+                          fontSize: '0.65rem',
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(244,206,161,0.52)',
+                          mb: 0.75,
+                        }}
+                      >
+                        Rooted in
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: navySerif,
+                          fontWeight: 500,
+                          fontSize: '1.05rem',
+                          lineHeight: 1.4,
+                          color: '#FFF8F0',
+                        }}
+                      >
+                        Organizational Psychology + Behavioral Science
+                      </Typography>
+                    </Box>
+                    <Box sx={{ borderTop: '1px solid rgba(244,206,161,0.15)', my: 2.5 }} />
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontFamily: monoEyebrow,
+                          fontWeight: 700,
+                          fontSize: '0.65rem',
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(244,206,161,0.52)',
+                          mb: 0.75,
+                        }}
+                      >
+                        Designed for
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: navySerif,
+                          fontWeight: 500,
+                          fontSize: '1.05rem',
+                          lineHeight: 1.4,
+                          color: '#FFF8F0',
+                        }}
+                      >
+                        Leaders without a coach, an HR team, or unlimited time
+                      </Typography>
+                    </Box>
+                    <Box sx={{ borderTop: '1px solid rgba(244,206,161,0.15)', my: 2.5 }} />
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontFamily: monoEyebrow,
+                          fontWeight: 700,
+                          fontSize: '0.65rem',
+                          letterSpacing: '0.22em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(244,206,161,0.52)',
+                          mb: 0.75,
+                        }}
+                      >
+                        Powered by
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: navySerif,
+                          fontWeight: 500,
+                          fontSize: '1.05rem',
+                          lineHeight: 1.4,
+                          color: '#FFF8F0',
+                        }}
+                      >
+                        AI-assisted analysis, human-led outcomes
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Grid>
+            </Grid>
+          </Container>
+        </Box>
+
+        {/* ── WHAT CHANGES ── */}
         <Box id="outcomes" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#FFFFFF', borderTop: '1px solid rgba(15,28,46,0.06)' }}>
           <Container maxWidth="lg">
             <Stack spacing={1.6} alignItems="center" sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
@@ -1280,7 +1827,7 @@ function Home() {
               </Grid>
             </Box>
 
-            {/* CTA at the end of What Changes — moves the start button up */}
+            {/* Terminal CTA */}
             <Stack alignItems="center" sx={{ mt: { xs: 5, md: 6.5 } }}>
               <Box
                 component="button"
@@ -1292,9 +1839,9 @@ function Home() {
                   px: 3.8,
                   py: 1.5,
                   borderRadius: 999,
-                  bgcolor: 'var(--orange, #E07A3F)',
+                  bgcolor: '#E07A3F',
                   color: '#FFF8F0',
-                  fontFamily: '"Manrope", "Inter", sans-serif',
+                  fontFamily: sansBody,
                   fontWeight: 800,
                   fontSize: '1.02rem',
                   display: 'inline-flex',
@@ -1302,12 +1849,23 @@ function Home() {
                   gap: 0.9,
                   boxShadow: '0 18px 42px rgba(224,122,63,0.32)',
                   transition: '180ms ease',
-                  '&:hover': { bgcolor: 'var(--orange-deep, #C0612A)', transform: 'translateY(-1px)' },
+                  '&:hover': { bgcolor: '#C0612A', transform: 'translateY(-1px)' },
                 }}
               >
-                Begin Your Journey
+                Start Your Compass
                 <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
               </Box>
+              <Typography
+                sx={{
+                  fontFamily: sansBody,
+                  fontWeight: 500,
+                  fontSize: '0.78rem',
+                  color: '#44566C',
+                  mt: 1.2,
+                }}
+              >
+                Free to start &nbsp;&middot;&nbsp; No credit card required &nbsp;&middot;&nbsp; 15 minutes to your first reflection
+              </Typography>
             </Stack>
           </Container>
         </Box>
@@ -1324,7 +1882,7 @@ function Home() {
           </Box>
         )}
 
-        {/* FOOTER */}
+        {/* ── FOOTER ── */}
         <Box
           component="footer"
           sx={{
@@ -1343,12 +1901,39 @@ function Home() {
           <Stack direction="row" spacing={1} alignItems="center">
             <Box component="img" src="/CompassLogo.png" alt="" aria-hidden sx={{ width: 18, height: 18, opacity: 0.7 }} />
             <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#44566C' }}>
-              © {new Date().getFullYear()} North Star Partners
+              &copy; {new Date().getFullYear()} North Star Partners
             </Typography>
           </Stack>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: '#44566C' }}>
-            Privacy &nbsp;·&nbsp; Terms &nbsp;·&nbsp; Contact
-          </Typography>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            {[
+              { label: 'Privacy', onClick: () => {} },
+              { label: 'Terms', onClick: () => {} },
+              { label: 'FAQ', onClick: () => navigate('/faq') },
+              { label: 'Contact', onClick: () => {} },
+            ].map((link, idx, arr) => (
+              <React.Fragment key={link.label}>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={link.onClick}
+                  sx={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    color: '#44566C',
+                    transition: 'color 160ms ease',
+                    '&:hover': { color: '#C0612A' },
+                  }}
+                >
+                  {link.label}
+                </Box>
+                {idx < arr.length - 1 && (
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.78rem', color: 'rgba(15,28,46,0.25)' }}>&nbsp;&middot;&nbsp;</Typography>
+                )}
+              </React.Fragment>
+            ))}
+          </Stack>
         </Box>
       </Box>
     );
@@ -1874,7 +2459,7 @@ function Home() {
                 letterSpacing: '0.015em',
               }}
             >
-              Privacy Policy  |  Terms of Use  |  Contact
+              Privacy Policy &nbsp;|&nbsp; Terms of Use &nbsp;|&nbsp; Contact
             </Typography>
           </Stack>
         </Container>
