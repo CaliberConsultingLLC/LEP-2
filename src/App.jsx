@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import Home from './pages/Home';
 import UserInfo from './pages/UserInfo';
@@ -31,6 +31,14 @@ import { StepNavProvider } from './context/StepNavContext';
 import GuideOverlay from './components/GuideOverlay';
 import StagingDevPanel from './components/StagingDevPanel';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
+
+const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info'];
+
+function RouteAwareGuide() {
+  const { pathname } = useLocation();
+  if (GUIDE_HIDDEN_ROUTES.includes(pathname)) return null;
+  return <GuideOverlay />;
+}
 
 function AppRoutes() {
   return (
@@ -75,7 +83,7 @@ function App() {
         <StepNavProvider>
           <Router>
             <AppRoutes />
-            <GuideOverlay />
+            <RouteAwareGuide />
             <StagingDevPanel />
           </Router>
         </StepNavProvider>

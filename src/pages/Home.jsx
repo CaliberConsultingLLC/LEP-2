@@ -273,25 +273,25 @@ function Home() {
 
     const journeySteps = [
       {
-        num: '01',
+        num: 'I',
         title: 'Uncover',
         body: 'A 15-minute intake reveals how you lead under real conditions — pressure, decisions, team dynamics.',
         tag: '~15 min',
       },
       {
-        num: '02',
+        num: 'II',
         title: 'Reflect',
         body: 'Your personalized summary arrives instantly. Plain language. No labels. Just signal.',
         tag: 'Instant',
       },
       {
-        num: '03',
+        num: 'III',
         title: 'Calibrate',
         body: 'An anonymous team survey shows how your leadership lands in the room versus how you perceive it.',
         tag: '~5 min survey',
       },
       {
-        num: '04',
+        num: 'IV',
         title: 'Embark',
         body: 'A year-long growth campaign turns insight into measurable change your team can feel.',
         tag: 'Year-long',
@@ -522,7 +522,7 @@ function Home() {
             aria-hidden
             sx={{
               position: 'absolute', inset: 0, zIndex: 0,
-              background: 'linear-gradient(180deg, rgba(6,15,34,0.52) 0%, rgba(6,15,34,0.44) 30%, rgba(13,27,48,0.60) 65%, rgba(16,34,60,0.82) 100%)',
+              background: 'linear-gradient(180deg, rgba(6,15,34,0.52) 0%, rgba(6,15,34,0.44) 30%, rgba(13,27,48,0.40) 70%, transparent 100%)',
               pointerEvents: 'none',
             }}
           />
@@ -545,11 +545,12 @@ function Home() {
             alt="The Compass"
             sx={{
               position: 'absolute',
-              right: { xs: '-4%', md: '3%' },
+              right: { xs: '-4%', md: '4%' },
               top: '50%',
               transform: 'translateY(-50%)',
-              width: { xs: '62vw', md: '42vw' },
-              maxWidth: 720,
+              width: { xs: '34vw', md: '21vw' },
+              maxWidth: 360,
+              opacity: 0.82,
               pointerEvents: 'none',
               userSelect: 'none',
               zIndex: 1,
@@ -752,7 +753,7 @@ function Home() {
                       fontSize: '0.66rem',
                       letterSpacing: '0.24em',
                       textTransform: 'uppercase',
-                      color: 'rgba(244,206,161,0.48)',
+                      color: '#C0612A',
                     }}
                   >
                     What Compass is
@@ -765,11 +766,11 @@ function Home() {
                       fontSize: { xs: '2rem', md: '2.9rem' },
                       lineHeight: 1.08,
                       letterSpacing: '-0.03em',
-                      color: '#FFF8F0',
+                      color: '#10223C',
                     }}
                   >
                     Most leadership development was built for someone{' '}
-                    <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
+                    <Box component="span" sx={{ color: '#C0612A', fontStyle: 'italic', fontWeight: 400 }}>
                       else&apos;s
                     </Box>{' '}
                     problems.
@@ -780,7 +781,7 @@ function Home() {
                       fontWeight: 400,
                       fontSize: { xs: '1rem', md: '1.08rem' },
                       lineHeight: 1.72,
-                      color: 'rgba(255,248,240,0.64)',
+                      color: '#44566C',
                       maxWidth: 460,
                     }}
                   >
@@ -793,7 +794,7 @@ function Home() {
               <Grid item xs={12} md={6}>
                 <Stack
                   spacing={0}
-                  divider={<Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.10)' }} />}
+                  divider={<Box sx={{ height: '1px', bgcolor: 'rgba(16,34,60,0.12)' }} />}
                 >
                   {[
                     {
@@ -817,7 +818,7 @@ function Home() {
                           fontSize: '0.66rem',
                           letterSpacing: '0.22em',
                           textTransform: 'uppercase',
-                          color: '#F4CEA1',
+                          color: '#C0612A',
                         }}
                       >
                         {item.label}
@@ -828,7 +829,7 @@ function Home() {
                           fontWeight: 400,
                           fontSize: { xs: '0.96rem', md: '1rem' },
                           lineHeight: 1.68,
-                          color: 'rgba(255,248,240,0.68)',
+                          color: '#2C3E52',
                         }}
                       >
                         {item.body}
@@ -848,7 +849,7 @@ function Home() {
           id="journey"
           sx={{
             position: 'relative',
-            background: 'rgba(251,247,240,0.72)',
+            background: 'transparent',
             py: { xs: 11, md: 15 },
             overflow: 'hidden',
             color: '#10223C',
@@ -879,7 +880,7 @@ function Home() {
                   color: '#C0612A',
                 }}
               >
-                The Experience
+                The Compass Experience
               </Typography>
               <Typography
                 component="h2"
@@ -911,7 +912,7 @@ function Home() {
                         fontSize: '3.6rem',
                         lineHeight: 1,
                         letterSpacing: '-0.05em',
-                        color: 'rgba(16,34,60,0.10)',
+                        color: '#C0612A',
                         userSelect: 'none',
                       }}
                     >
@@ -1011,39 +1012,6 @@ function Home() {
 
           <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
             <Stack spacing={4} alignItems="center">
-              <Typography
-                component="h2"
-                sx={{
-                  fontFamily: navySerif,
-                  fontWeight: 500,
-                  fontSize: { xs: '2.2rem', md: '3.5rem' },
-                  lineHeight: 1.08,
-                  letterSpacing: '-0.03em',
-                  color: '#FFF8F0',
-                  maxWidth: 680,
-                  mx: 'auto',
-                }}
-              >
-                The leader you&apos;re capable of is already visible &mdash;{' '}
-                <Box component="span" sx={{ color: '#F4CEA1', fontStyle: 'italic', fontWeight: 400 }}>
-                  just not to you.
-                </Box>
-              </Typography>
-
-              <Typography
-                sx={{
-                  fontFamily: sansBody,
-                  fontWeight: 400,
-                  fontSize: { xs: '1rem', md: '1.1rem' },
-                  lineHeight: 1.68,
-                  color: 'rgba(255,248,240,0.58)',
-                  maxWidth: 460,
-                  mx: 'auto',
-                }}
-              >
-                Compass shows you what your team already sees. You decide what to do with it.
-              </Typography>
-
               <Stack spacing={1.4} alignItems="center" sx={{ pt: 1 }}>
                 <Box
                   component="button"
