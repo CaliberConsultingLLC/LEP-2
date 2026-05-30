@@ -271,6 +271,92 @@ export const GUIDE_CONTENT = {
     ],
   },
 
+  // ── Command Center · Today (landing tab) ─────────────────────────────────
+  dashboardToday: {
+    title: 'Today',
+    mentor: [
+      { text: 'Begin where you actually are. The season name is honest. Let it land before you decide anything.', pose: 'idle', cta: 'Okay' },
+      { text: 'Three tiles below tell you what changed. Look at them slowly — they are the day’s only headline.', pose: 'lantern', cta: 'Got it' },
+    ],
+    catalyst: [
+      { text: 'Welcome back. Pick the tile that felt heaviest this week and start there.', pose: 'point', cta: 'Going' },
+      { text: 'Don’t scroll past the season — that’s the through-line. Then go act on one thing.', pose: 'pointUp', cta: 'On it' },
+    ],
+    challenger: [
+      { text: 'Before you click anything: which of those three tiles are you avoiding? That’s the one.', pose: 'armsCross', cta: 'Fine' },
+      { text: 'Reading is not a leadership move. Pick a tile and act.', pose: 'sign', cta: 'Got it' },
+    ],
+  },
+
+  // ── Command Center · Signal ──────────────────────────────────────────────
+  dashboardSignal: {
+    title: 'Signal',
+    mentor: [
+      { text: 'The signal is what your team is reflecting back. Hold it lightly — patterns matter more than any one number.', pose: 'map', cta: 'Okay' },
+      { text: 'Click a trait pill or a dot on the quadrant. I’ll meet you there with a steadier read.', pose: 'think', cta: 'Got it' },
+      { text: 'The toggle compares your eyes to theirs. Where the dots split, the conversation lives.', pose: 'lantern', cta: 'Looking' },
+    ],
+    catalyst: [
+      { text: 'Pick a trait. We’ll move on the loudest one — strain or strength, both are useful.', pose: 'point', cta: 'Picking' },
+      { text: 'Toggle Self vs Team. The widest gap is your fastest move.', pose: 'pointUp', cta: 'Toggling' },
+    ],
+    challenger: [
+      { text: 'The trait you don’t want to click is the one your team is asking you to look at.', pose: 'armsCross', cta: 'Alright' },
+      { text: 'A dot in the strain zone with effort high and impact low — that’s a leadership pattern, not bad luck.', pose: 'sign', cta: 'Noted' },
+    ],
+  },
+
+  // ── Command Center · Evidence ────────────────────────────────────────────
+  dashboardEvidence: {
+    title: 'Evidence',
+    mentor: [
+      { text: 'Evidence is sourced, not stylized. Read each statement in the team’s words before drawing a conclusion.', pose: 'read', cta: 'Reading' },
+      { text: 'Walk one statement at a time. Self and team aren’t opposites — they’re two angles of the same room.', pose: 'page', cta: 'Okay' },
+    ],
+    catalyst: [
+      { text: 'Step through the five statements. The one with the biggest gap is your fastest signal.', pose: 'point', cta: 'Going' },
+      { text: 'You don’t need every statement. Find the one that lands and act on it.', pose: 'pointUp', cta: 'On it' },
+    ],
+    challenger: [
+      { text: 'Don’t look only at the statements you agree with. The disagreement is the data.', pose: 'sign', cta: 'Fine' },
+      { text: 'Where team minus self is biggest, that’s the gap you’ve been rationalizing.', pose: 'armsCross', cta: 'Got it' },
+    ],
+  },
+
+  // ── Command Center · Practice ────────────────────────────────────────────
+  dashboardPractice: {
+    title: 'Practice',
+    mentor: [
+      { text: 'Practice is small, named, repeatable. Four cards, one bearing — you can finish this in fifteen minutes.', pose: 'page', cta: 'Okay' },
+      { text: 'Begin in their shoes. The plan is sturdier when it starts with their experience, not your intent.', pose: 'lantern', cta: 'Starting' },
+    ],
+    catalyst: [
+      { text: 'Four cards, no scrolling. Move. Save the editing for later.', pose: 'pointUp', cta: 'Going' },
+      { text: 'Don’t over-author. First answer is usually the most honest.', pose: 'point', cta: 'Got it' },
+    ],
+    challenger: [
+      { text: 'Pick the behavior you’ve already promised yourself you’d do — and haven’t. Start there.', pose: 'sign', cta: 'Alright' },
+      { text: 'A goal of +20 is a fantasy. A goal of +6 is a leader. Choose accordingly.', pose: 'armsCross', cta: 'Fine' },
+    ],
+  },
+
+  // ── Command Center · Journey ─────────────────────────────────────────────
+  dashboardJourney: {
+    title: 'Journey',
+    mentor: [
+      { text: 'The journey holds your kept promises. Read it like a quiet ledger — proof that the work is real.', pose: 'lantern', cta: 'Okay' },
+      { text: 'Strung together, small commitments become a bearing. That bearing is your leadership identity.', pose: 'map', cta: 'Got it' },
+    ],
+    catalyst: [
+      { text: 'Look at what you finished, not what slipped. Pace beats perfection here.', pose: 'pointUp', cta: 'On it' },
+      { text: 'Five completed practices in a season is a different leader than four.', pose: 'plain', cta: 'Moving' },
+    ],
+    challenger: [
+      { text: 'Streaks are seductive. Mean what you committed to — even when no one is watching.', pose: 'armsCross', cta: 'Got it' },
+      { text: 'Don’t admire the journey. Add to it.', pose: 'sign', cta: 'Fine' },
+    ],
+  },
+
   // ── Landing / home ───────────────────────────────────────────────────────
   landing: {
     title: 'Welcome',
@@ -345,6 +431,13 @@ export function resolveRouteKey(pathname = '', search = '') {
   if (p.startsWith('/campaign/'))            return 'campaignRun';
   if (p.startsWith('/faq'))                  return 'faq';
   if (p.startsWith('/dashboard')) {
+    // New command-center dock tabs
+    if (tab === 'today')    return 'dashboardToday';
+    if (tab === 'signal')   return 'dashboardSignal';
+    if (tab === 'evidence') return 'dashboardEvidence';
+    if (tab === 'practice') return 'dashboardPractice';
+    if (tab === 'journey')  return 'dashboardJourney';
+    // Legacy tabs preserved for the non-Cairn path
     if (tab.includes('growth'))   return 'dashboardGrowth';
     if (tab.includes('campaign')) return 'dashboardCampaign';
     if (tab.includes('result'))   return 'dashboardResults';

@@ -23,6 +23,7 @@ import ResultsTab from './Dashboard/ResultsTab';
 import ActionTabStaging from './Dashboard/ActionTabStaging';
 import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
+import CommandCenter from './Dashboard/CommandCenter';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
@@ -225,6 +226,11 @@ function DashboardGuideRail({ currentTab, onNavigate }) {
 }
 
 function Dashboard() {
+  if (useCairnTheme) return <CommandCenter />;
+  return <DashboardLegacy />;
+}
+
+function DashboardLegacy() {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState(0);

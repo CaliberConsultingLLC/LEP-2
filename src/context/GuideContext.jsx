@@ -32,6 +32,9 @@ const GuideContext = createContext(null);
 export function GuideProvider({ children }) {
   const [state, setState] = useState(readState);
   const [suppress, setSuppress] = useState(false);
+  // Pages can push a contextual message that overrides the rotating route bank.
+  // Shape: { text: string, pose?: string, eyebrow?: string } | null
+  const [pageMessage, setPageMessageState] = useState(null);
 
   useEffect(() => {
     writeState(state);
@@ -49,19 +52,28 @@ export function GuideProvider({ children }) {
     setState((prev) => ({ ...prev, hidden: Boolean(hidden) }));
   }, []);
 
+  const setPageMessage = useCallback((msg) => {
+    setPageMessageState(msg && msg.text ? msg : null);
+  }, []);
+
+  const clearPageMessage = useCallback(() => setPageMessageState(null), []);
+
   const value = useMemo(
     () => ({
       personaId: state.personaId,
       persona: getPersona(state.personaId),
       hidden: state.hidden,
       suppress,
+      pageMessage,
       setPersona,
       toggleHidden,
       setHidden,
       setSuppress,
+      setPageMessage,
+      clearPageMessage,
       personas: GUIDE_PERSONAS,
     }),
-    [state, suppress, setPersona, toggleHidden, setHidden, setSuppress],
+    [state, suppress, pageMessage, setPersona, toggleHidden, setHidden, setSuppress, setPageMessage, clearPageMessage],
   );
 
   return <GuideContext.Provider value={value}>{children}</GuideContext.Provider>;
@@ -76,10 +88,13 @@ export function useGuide() {
       persona: getPersona(DEFAULT_GUIDE_ID),
       hidden: true,
       suppress: false,
+      pageMessage: null,
       setPersona: () => {},
       toggleHidden: () => {},
       setHidden: () => {},
       setSuppress: () => {},
+      setPageMessage: () => {},
+      clearPageMessage: () => {},
       personas: GUIDE_PERSONAS,
     };
   }

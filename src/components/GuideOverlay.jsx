@@ -7,8 +7,44 @@ import { getGuideMessages, resolveRouteKey } from '../data/guideContent';
 // Pages where the guide has not yet been chosen — overlay is suppressed entirely.
 const PRE_GUIDE_PATHS = ['/user-info'];
 
+function GuideFaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)' }}>
+      <Box
+        component="button"
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        sx={{
+          all: 'unset',
+          cursor: 'pointer',
+          display: 'flex',
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1,
+          py: '9px',
+          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+        }}
+      >
+        <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-900, #10223C)', lineHeight: 1.35 }}>
+          {q}
+        </Box>
+        <Box aria-hidden sx={{ flexShrink: 0, fontSize: 16, lineHeight: 1, fontWeight: 700, color: 'var(--orange-deep, #C0612A)' }}>
+          {open ? '−' : '+'}
+        </Box>
+      </Box>
+      {open && (
+        <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', lineHeight: 1.55, color: 'var(--ink-soft, #44566C)', pb: '10px' }}>
+          {a}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 function GuideOverlay() {
-  const { persona, hidden, toggleHidden, setHidden, suppress } = useGuide();
+  const { persona, hidden, toggleHidden, setHidden, suppress, pageMessage } = useGuide();
   const location = useLocation();
 
   // All hooks must run unconditionally before any early return.
@@ -39,8 +75,20 @@ function GuideOverlay() {
     }
   }, [routeKey, messages.length]);
 
-  const message = messages[msgIdx] || messages[0];
+  // A page-level pageMessage takes precedence over the rotating route bucket
+  // so the overlay can carry trait/step-aware talking points.
+  const fallbackMessage = messages[msgIdx] || messages[0];
+  const message = pageMessage && pageMessage.text
+    ? { text: pageMessage.text, pose: pageMessage.pose || fallbackMessage?.pose || 'idle', cta: pageMessage.cta || fallbackMessage?.cta, faq: pageMessage.faq || null }
+    : fallbackMessage;
   const owlPose = persona.poses[message?.pose] || persona.poses.idle;
+  const faqItems = Array.isArray(message?.faq) ? message.faq.filter((f) => f && f.q && f.a) : [];
+
+  // Collapse the FAQ whenever the underlying message changes.
+  const [faqOpen, setFaqOpen] = useState(false);
+  useEffect(() => {
+    setFaqOpen(false);
+  }, [message?.text]);
 
   // Suppress on pages before guide selection (after all hooks), or when explicitly suppressed.
   const isPreGuide = PRE_GUIDE_PATHS.some((p) => location.pathname.startsWith(p));
@@ -169,6 +217,42 @@ function GuideOverlay() {
         >
           {message.text}
         </Box>
+
+        {/* ── Expandable FAQ for the detailed read ── */}
+        {faqItems.length > 0 && (
+          <Box sx={{ mt: '14px' }}>
+            <Box
+              component="button"
+              type="button"
+              onClick={() => setFaqOpen((v) => !v)}
+              aria-expanded={faqOpen}
+              sx={{
+                all: 'unset',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.7,
+                fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: 'var(--orange-deep, #C0612A)',
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+              }}
+            >
+              {faqOpen ? 'Hide details' : 'Learn more'}
+              <Box component="span" aria-hidden sx={{ fontSize: 12 }}>{faqOpen ? '▴' : '▾'}</Box>
+            </Box>
+            {faqOpen && (
+              <Box sx={{ mt: '8px' }}>
+                {faqItems.map((f, i) => (
+                  <GuideFaqItem key={i} q={f.q} a={f.a} />
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* ── Owl image ── scales to column width, flush to bottom-right */}
