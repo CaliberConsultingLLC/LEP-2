@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
-import { ArrowForward } from '@mui/icons-material';
+import { ArrowForward, LockOutlined } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../../components/ProcessTopRail';
 import { useFakeDashboardData } from '../../config/runtimeFlags';
@@ -11,6 +11,8 @@ import SignalView from './cc/SignalView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
+import { useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
+import GatePage from './cc/GatePage.jsx';
 
 // ============================================================================
 // Tokens — thin page aliases over the canonical Cairn system.
@@ -142,7 +144,7 @@ const formatDaysAgo = (timestamp) => {
 // Persistent Dock
 // ============================================================================
 
-function Dock({ activeTab, onSelect, t }) {
+function Dock({ activeTab, onSelect, t, status = {} }) {
   return (
     <Box
       role="navigation"
@@ -171,6 +173,7 @@ function Dock({ activeTab, onSelect, t }) {
       >
         {TABS.map((tab) => {
           const isActive = tab.id === activeTab;
+          const tabStatus = status[tab.id]; // 'done' | 'locked' | undefined
           return (
             <Box
               key={tab.id}
@@ -184,8 +187,10 @@ function Dock({ activeTab, onSelect, t }) {
                 position: 'relative',
                 display: 'inline-flex',
                 alignItems: 'center',
+                gap: 0.6,
                 px: { xs: 1.2, md: 1.6 },
                 py: 1.1,
+                opacity: tabStatus === 'locked' ? 0.45 : 1,
                 color: isActive ? t.ink : t.inkSoft,
                 transition: 'color 160ms ease',
                 '&:hover': { color: t.ink },
@@ -220,6 +225,18 @@ function Dock({ activeTab, onSelect, t }) {
               >
                 {tab.label}
               </Typography>
+              {tabStatus === 'done' && (
+                <Typography
+                  component="span"
+                  aria-label="Complete"
+                  sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: colors.green, lineHeight: 1 }}
+                >
+                  ✓
+                </Typography>
+              )}
+              {tabStatus === 'locked' && (
+                <LockOutlined aria-label="Locked" sx={{ fontSize: 12, color: t.inkSoft }} />
+              )}
             </Box>
           );
         })}
@@ -796,7 +813,20 @@ export default function CommandCenter() {
     }
   };
 
+  // Signal → Evidence → Practice journey state (gating, snapshots, dock badges)
+  const phases = useDebriefPhases();
+
+  // Marks the phase complete and carries the user through the door to the
+  // next phase's first chapter.
+  const advancePhase = (phase) => {
+    const nextPhase = phases.completePhase(phase);
+    if (nextPhase) goToTab(nextPhase);
+  };
+
   const renderActive = () => {
+    if (PHASE_ORDER.includes(activeTab) && phases.isGated(activeTab)) {
+      return <GatePage phase={activeTab} onGoTab={goToTab} />;
+    }
     switch (activeTab) {
       case 'signal':
         return (
@@ -804,12 +834,28 @@ export default function CommandCenter() {
             t={t}
             selectedAgent={selectedAgent}
             onOpenPractice={() => goToTab('practice')}
+            phases={phases}
+            onAdvancePhase={() => advancePhase('signal')}
           />
         );
       case 'evidence':
-        return <EvidenceView t={t} selectedAgent={selectedAgent} />;
+        return (
+          <EvidenceView
+            t={t}
+            selectedAgent={selectedAgent}
+            phases={phases}
+            onAdvancePhase={() => advancePhase('evidence')}
+          />
+        );
       case 'practice':
-        return <PracticeStudio t={t} onOpenJourney={() => goToTab('journey')} />;
+        return (
+          <PracticeStudio
+            t={t}
+            onOpenJourney={() => goToTab('journey')}
+            phases={phases}
+            onAdvancePhase={() => advancePhase('practice')}
+          />
+        );
       case 'journey':
         return <JourneyTab t={t} />;
       case 'today':
@@ -830,7 +876,7 @@ export default function CommandCenter() {
       }}
     >
       <ProcessTopRail />
-      <Dock activeTab={activeTab} onSelect={goToTab} t={t} />
+      <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={phases.dockStatus} />
       <Box sx={{ position: 'relative', zIndex: 1 }}>{renderActive()}</Box>
     </Box>
   );
