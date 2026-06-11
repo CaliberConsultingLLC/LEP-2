@@ -82,7 +82,7 @@ function EvIntroPage({ rows, respondents }) {
                 fontSize: 54,
                 lineHeight: 1,
                 letterSpacing: '-0.04em',
-                color: colors.navy900,
+                color: colors.textPrimary,
               }}
             >
               {s.n}
@@ -182,7 +182,7 @@ export function EvTraitExplorer({ row, aboveList = null }) {
                 fontStyle: 'italic',
                 fontSize: 17,
                 lineHeight: 1.45,
-                color: colors.navy900,
+                color: colors.textPrimary,
                 mb: 1.2,
                 textWrap: 'pretty',
               }}
@@ -319,7 +319,7 @@ export function EvTraitExplorer({ row, aboveList = null }) {
                 fontFamily: fonts.mono,
                 fontSize: 9,
                 fontWeight: 700,
-                letterSpacing: '0.16em',
+                letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 transition: motion.standard,
                 '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
@@ -356,7 +356,7 @@ function EvTraitPage({ row, index, description }) {
               letterSpacing: '-0.03em',
               fontSize: { xs: 24, md: 32 },
               lineHeight: 1.05,
-              color: colors.navy900,
+              color: colors.textPrimary,
               m: 0,
             }}
           >
@@ -428,7 +428,7 @@ function EvRecapCard({ number, numberLabel, numberColor, stats, trait, quote }) 
       </Stack>
       <Box sx={{ width: '1px', alignSelf: 'stretch', bgcolor: colors.sand200, flexShrink: 0 }} />
       <Box sx={{ flex: 1 }}>
-        <Typography sx={{ fontFamily: fonts.serif, fontSize: 19, fontWeight: 600, color: colors.navy900, mb: 0.6 }}>
+        <Typography sx={{ fontFamily: fonts.serif, fontSize: 19, fontWeight: 600, color: colors.textPrimary, mb: 0.6 }}>
           {trait}
         </Typography>
         <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16.5, lineHeight: 1.45, color: colors.textPrimary, textWrap: 'pretty' }}>
@@ -527,7 +527,7 @@ function EvGapsPage({ rows, chapterIndex }) {
             numberColor={g.gap > 0 ? colors.orange : colors.green}
             stats={[
               { label: 'You felt', value: g.selfScore, color: colors.orangeDeep },
-              { label: 'They felt', value: g.teamScore, color: colors.navy900 },
+              { label: 'They felt', value: g.teamScore, color: colors.textPrimary },
             ]}
             trait={g.trait}
             quote={g.text}
@@ -572,7 +572,7 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
           }}
         >
           <Typography sx={{ ...type.eyebrow, mb: 1 }}>Now unlocked</Typography>
-          <Typography sx={{ fontFamily: fonts.serif, fontSize: 23, fontWeight: 600, color: colors.navy900, mb: 0.7 }}>
+          <Typography sx={{ fontFamily: fonts.serif, fontSize: 23, fontWeight: 600, color: colors.textPrimary, mb: 0.7 }}>
             Begin practice →
           </Typography>
           <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.5, color: colors.textSecondary }}>

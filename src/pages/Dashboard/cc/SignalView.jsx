@@ -204,7 +204,7 @@ function CheckinPage({ reaction, onReact }) {
                 '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
               }}
             >
-              <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, fontWeight: 600, color: colors.navy900, mb: 0.4 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, fontWeight: 600, color: colors.textPrimary, mb: 0.4 }}>
                 {r.label}
               </Typography>
               <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, color: colors.textSecondary }}>{r.sub}</Typography>
@@ -274,7 +274,7 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
           }}
         >
           <Typography sx={{ ...type.eyebrow, mb: 1 }}>Next · Go deeper</Typography>
-          <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, color: colors.navy900, mb: 0.7 }}>
+          <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, color: colors.textPrimary, mb: 0.7 }}>
             Review the evidence →
           </Typography>
           <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.5, color: colors.textSecondary }}>
@@ -348,7 +348,7 @@ function SignalSnapshot({ rows, traitStories, respondents, invited, onReplay, on
             <Box key={story.row.trait} sx={{ ...surfaces.cardFlat, px: 2.5, py: 2 }}>
               <Typography sx={{ ...type.eyebrow, mb: 0.7 }}>{story.eyebrow}</Typography>
               <Typography
-                sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, color: colors.navy900, mb: 0.7, textWrap: 'pretty' }}
+                sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, color: colors.textPrimary, mb: 0.7, textWrap: 'pretty' }}
               >
                 {story.headline}
               </Typography>

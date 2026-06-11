@@ -64,7 +64,7 @@ export default function GatePage({ phase, onGoTab }) {
             letterSpacing: '-0.03em',
             fontSize: { xs: 28, md: 36 },
             lineHeight: 1.1,
-            color: colors.navy900,
+            color: colors.textPrimary,
             mb: 1.6,
           }}
         >

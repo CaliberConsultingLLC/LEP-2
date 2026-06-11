@@ -270,7 +270,7 @@ function PrTraitPlanPage({ row, plan, onPatch }) {
             letterSpacing: '-0.03em',
             fontSize: { xs: 26, md: 36 },
             lineHeight: 1.05,
-            color: colors.navy900,
+            color: colors.textPrimary,
             m: 0,
           }}
         >
@@ -444,7 +444,7 @@ function PrTraitPlanPage({ row, plan, onPatch }) {
           >
             ← Back
           </Box>
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.textSecondary }}>
+          <Typography sx={{ ...type.monoLabel }}>
             {promptIdx + 1} of {PR_FLOW.length}
           </Typography>
           <Box
@@ -532,7 +532,7 @@ function PrCommitAllPage({ orderedRows, plans, chapterIndex, onAdvancePhase }) {
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Stack direction="row" alignItems="baseline" spacing={1.2} sx={{ flexWrap: 'wrap' }}>
-                  <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, color: colors.navy900 }}>
+                  <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, color: colors.textPrimary }}>
                     {row.subTrait || row.trait}
                   </Typography>
                   {goal != null && (
@@ -618,7 +618,7 @@ function PracticeSnapshot({ orderedRows, plans, onReplay }) {
                 sx={{ flexWrap: 'wrap', rowGap: 1.5, mb: 2 }}
               >
                 <Box>
-                  <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, color: colors.navy900, mb: 0.5 }}>
+                  <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, color: colors.textPrimary, mb: 0.5 }}>
                     {row.subTrait || row.trait}
                   </Typography>
                   <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', color: colors.textSecondary }}>
@@ -651,7 +651,7 @@ function PracticeSnapshot({ orderedRows, plans, onReplay }) {
                         fontSize: 36,
                         lineHeight: 0.95,
                         letterSpacing: '-0.04em',
-                        color: colors.navy900,
+                        color: colors.textPrimary,
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
@@ -675,13 +675,13 @@ function PracticeSnapshot({ orderedRows, plans, onReplay }) {
               >
                 <Box sx={{ borderLeft: `2px solid ${colors.orange}`, pl: 2 }}>
                   <Typography sx={{ ...type.monoLabel, mb: 0.6 }}>The visible behavior</Typography>
-                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: colors.navy900, textWrap: 'pretty' }}>
+                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: colors.textPrimary, textWrap: 'pretty' }}>
                     {String(plan.branchBehavior || '').trim() ? `“${plan.branchBehavior}”` : 'No behavior recorded.'}
                   </Typography>
                 </Box>
                 <Box sx={{ borderLeft: `2px solid ${colors.sand200}`, pl: 2 }}>
                   <Typography sx={{ ...type.monoLabel, mb: 0.6 }}>The ground</Typography>
-                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: colors.navy900, textWrap: 'pretty' }}>
+                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: colors.textPrimary, textWrap: 'pretty' }}>
                     {ground || 'No ground chosen yet.'}
                   </Typography>
                 </Box>

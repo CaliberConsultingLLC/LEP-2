@@ -238,7 +238,8 @@ export default function EvidenceQuadrant({
 
       const calloutRect = (box, label, value, color) => (
         <g>
-          <rect x={box.x} y={box.y} width={box.w} height={box.h} rx="13" fill={colors.surface1} stroke={color} strokeWidth="1.5" />
+          {/* pill: rx is half the callout height */}
+          <rect x={box.x} y={box.y} width={box.w} height={box.h} rx={box.h / 2} fill={colors.surface1} stroke={color} strokeWidth="1.5" />
           <text
             x={box.x + 12}
             y={box.y + 17.5}
@@ -321,7 +322,7 @@ export default function EvidenceQuadrant({
           cx={dotX}
           cy={dotY}
           r={sel ? 12 : 8}
-          fill={sel ? colors.navy900 : colors.navy600}
+          fill={sel ? colors.textPrimary : colors.navy600}
           opacity={sel ? 1 : 0.8}
           stroke={sel ? colors.orange : colors.surface1}
           strokeWidth={sel ? 2.5 : 2}
@@ -357,8 +358,9 @@ export default function EvidenceQuadrant({
           <stop offset="100%" stopColor="var(--green-soft)" stopOpacity="0.06" />
         </linearGradient>
         <linearGradient id={`${uid}-strain`} x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stopColor="var(--amber-soft)" stopOpacity="0.34" />
-          <stop offset="100%" stopColor="var(--amber-soft)" stopOpacity="0.05" />
+          {/* saturated amber keeps the wash warm on dark surfaces (amber-soft greys out) */}
+          <stop offset="0%" stopColor="var(--amber)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--amber)" stopOpacity="0.04" />
         </linearGradient>
       </defs>
 

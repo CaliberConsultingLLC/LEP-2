@@ -79,7 +79,7 @@ export function Headline({ children, size = 'lg', sx }) {
         letterSpacing: '-0.03em',
         lineHeight: 1.08,
         fontSize: size === 'xl' ? { xs: 34, md: 52 } : { xs: 28, md: 40 },
-        color: colors.navy900,
+        color: colors.textPrimary,
         mb: 2.2,
         textWrap: 'pretty',
         ...sx,
@@ -363,7 +363,7 @@ export function TraitScoresPanel({ rows, highlightKey = null, onSelect = null })
             }}
           >
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={1.5} sx={{ mb: 1.2 }}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 18, fontWeight: 600, color: colors.navy900 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 18, fontWeight: 600, color: colors.textPrimary }}>
                 {r.subTrait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={0.9}>
@@ -468,7 +468,7 @@ export function GapScoresPanel({ rows, highlightKey, onSelect }) {
             }}
           >
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={1.5} sx={{ mb: 1.2 }}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 18, fontWeight: 600, color: colors.navy900 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 18, fontWeight: 600, color: colors.textPrimary }}>
                 {row.subTrait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={0.9}>
@@ -542,7 +542,7 @@ export function SnapshotHeader({ phaseLabel, title, sub, onReplay, replayLabel =
             letterSpacing: '-0.03em',
             fontSize: { xs: 26, md: 34 },
             lineHeight: 1.1,
-            color: colors.navy900,
+            color: colors.textPrimary,
             mb: 1,
           }}
         >
