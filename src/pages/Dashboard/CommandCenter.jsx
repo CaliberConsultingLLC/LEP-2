@@ -833,7 +833,7 @@ export default function CommandCenter() {
           <SignalView
             t={t}
             selectedAgent={selectedAgent}
-            onOpenPractice={() => goToTab('practice')}
+            onOpenEvidence={() => goToTab('evidence')}
             phases={phases}
             onAdvancePhase={() => advancePhase('signal')}
           />
