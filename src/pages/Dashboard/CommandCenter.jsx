@@ -845,6 +845,7 @@ export default function CommandCenter() {
             selectedAgent={selectedAgent}
             phases={phases}
             onAdvancePhase={() => advancePhase('evidence')}
+            onOpenPractice={() => goToTab('practice')}
           />
         );
       case 'practice':
