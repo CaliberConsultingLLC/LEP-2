@@ -265,13 +265,13 @@ function MapWalk({ cameraRef, camera, pathD, pathRef, visualIndex, traveler, foo
     <Box
       onClick={(event) => event.stopPropagation()}
       sx={{
-        bgcolor: colors.sand50,
-        borderRadius: radii.xl,
-        p: '12px',
+        bgcolor: 'transparent',
+        borderRadius: radii.lg,
+        p: 0,
         boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
       }}
     >
-      <Box sx={{ position: 'relative', width: 'min(calc(94vw - 24px), calc((94vh - 24px) * 1.5))', aspectRatio: '3 / 2', overflow: 'hidden', borderRadius: radii.lg }}>
+      <Box sx={{ position: 'relative', width: 'min(94vw, calc(94vh * 1.5))', aspectRatio: '3 / 2', overflow: 'hidden', borderRadius: radii.lg, bgcolor: colors.sand100 }}>
         <Box
           ref={cameraRef}
           sx={{
@@ -282,7 +282,7 @@ function MapWalk({ cameraRef, camera, pathD, pathRef, visualIndex, traveler, foo
             transition: camera.glide ? 'transform 1500ms cubic-bezier(0.3,0.7,0.2,1)' : 'none',
           }}
         >
-          <Box component="img" src={JOURNEY_BASE_SRC} alt="" draggable={false} sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', userSelect: 'none' }} />
+          <Box component="img" src={JOURNEY_BASE_SRC} alt="" draggable={false} sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'fill', userSelect: 'none' }} />
           <svg viewBox={`0 0 ${COMPASS_TRAIL.W} ${COMPASS_TRAIL.H}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
             <path ref={pathRef} d={pathD} fill="none" stroke="none" />
             {footsteps.map((step) => <circle key={step.id} cx={step.x} cy={step.y} r="4.5" fill="var(--orange-deep)" />)}

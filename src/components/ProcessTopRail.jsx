@@ -287,6 +287,9 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
 // what it renders when the theme flag is on.
 function ProcessTopRail(props) {
   if (useCairnTheme) {
+    if (props.hideChapterHeader) {
+      return <CompassTopbar />;
+    }
     if (props.embedded) {
       return <ProcessChapterHeader compact titleOverride={props.titleOverride} />;
     }

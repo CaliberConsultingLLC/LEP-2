@@ -3,10 +3,12 @@ import { Box, Stack, Typography } from '@mui/material';
 import { ArrowForward, LockOutlined } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../../components/ProcessTopRail';
+import ProcessChapterHeader from '../../components/ProcessChapterHeader';
 import { useFakeDashboardData } from '../../config/runtimeFlags';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useGuide } from '../../context/GuideContext';
 import JourneyTab from './JourneyTab';
+import { getCurrentJourneyIndexFromState } from './journey/journeyModel.js';
 import SignalView from './cc/SignalView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
@@ -125,19 +127,6 @@ const guideLine = (season, hasSignal) => {
   return hasSignal
     ? 'Do not rush to fix the signal before you have understood it. Let the pattern become clear, then choose the practice.'
     : 'This is still a listening season. Stay close to the questions and let the signal gather shape.';
-};
-
-const formatDaysAgo = (timestamp) => {
-  if (!timestamp) return null;
-  const ms = Number(timestamp);
-  if (!Number.isFinite(ms)) return null;
-  const days = Math.max(0, Math.round((Date.now() - ms) / (1000 * 60 * 60 * 24)));
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days} days ago`;
-  const weeks = Math.round(days / 7);
-  if (weeks === 1) return '1 week ago';
-  return `${weeks} weeks ago`;
 };
 
 // ============================================================================
@@ -553,11 +542,6 @@ function TodayLanding({ t, onNavigate }) {
     focusAreas?.find?.((area) => selectedTraits?.includes(area.id)) || focusAreas?.[0] || null;
   const focusLabel = primaryFocus?.subTraitName || primaryFocus?.traitName || primaryFocus?.name || '';
 
-  // Most recent reflection time across plans
-  const reflectionTimes = planEntries
-    .map(({ plan }) => Number(plan?.reflection?.updatedAt || plan?.updatedAt || 0))
-    .filter((t) => Number.isFinite(t) && t > 0);
-  const lastReflection = reflectionTimes.length ? Math.max(...reflectionTimes) : null;
   const promptSeed = `${campaignKey}:${season}:${focusLabel}:${planCount}`;
   const sitPrompt = seasonPrompt(season, promptSeed);
   const nextBestStep = teamCampaignClosed
@@ -865,6 +849,20 @@ export default function CommandCenter() {
     }
   };
 
+  const chapterIndex = activeTab === 'practice'
+    ? 5
+    : activeTab === 'signal' || activeTab === 'evidence'
+      ? 4
+      : activeTab === 'journey'
+        ? getCurrentJourneyIndexFromState()
+        : getCurrentJourneyIndexFromState();
+
+  const headerMeta = activeTab === 'practice'
+    ? { label: 'Practice', value: phases.practice === 'done' ? 'Complete' : 'Active' }
+    : activeTab === 'journey'
+      ? { label: 'Chapters', value: '9' }
+      : { label: 'Signal', value: phases.signal === 'done' ? 'Ready' : 'Current' };
+
   return (
     <Box
       sx={{
@@ -876,8 +874,9 @@ export default function CommandCenter() {
         overflowX: 'hidden',
       }}
     >
-      <ProcessTopRail />
+      <ProcessTopRail hideChapterHeader />
       <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={phases.dockStatus} />
+      <ProcessChapterHeader chapterIndex={chapterIndex} metaOverride={headerMeta} />
       <Box sx={{ position: 'relative', zIndex: 1 }}>{renderActive()}</Box>
     </Box>
   );

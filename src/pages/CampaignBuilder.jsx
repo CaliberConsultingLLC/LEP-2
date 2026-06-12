@@ -710,15 +710,6 @@ function CampaignBuilder() {
             </Box>
           ) : campaign && activeTrait ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.05 }}>
-              <Box sx={{ width: '100%', textAlign: 'center', maxWidth: 780, mx: 'auto', pb: 0.45 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.85 }}>
-                  Chapter IV
-                </Typography>
-                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 900, fontSize: { xs: '1.52rem', md: '2rem' }, lineHeight: 1.05, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                  Growth Campaign Creation
-                </Typography>
-              </Box>
-
               <Box sx={{
                 bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white',
                 borderRadius: '16px',

@@ -25,10 +25,12 @@ import JourneyTab from './Dashboard/JourneyTab';
 import GrowthCampaignTab from './Dashboard/GrowthCampaignTab';
 import CommandCenter from './Dashboard/CommandCenter';
 import ProcessTopRail from '../components/ProcessTopRail';
+import ProcessChapterHeader from '../components/ProcessChapterHeader';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { getCurrentJourneyIndexFromState } from './Dashboard/journey/journeyModel.js';
 
 const readJson = (key, fallback = null) => {
   try {
@@ -64,7 +66,6 @@ function CurrentBearing({ onNavigate }) {
   const activeCommitment = String(firstPlan?.plan?.commitment || firstPlan?.plan?.guidedAnswers?.behaviorCommitment || '').trim();
   const responseStatus = teamCampaignClosed ? 'Signal ready' : 'Listening window open';
   const currentSeason = teamCampaignClosed ? 'Embarking' : 'Understanding';
-  const currentChapter = teamCampaignClosed ? 'VII' : 'VI';
 
   const commandCards = [
     {
@@ -105,16 +106,7 @@ function CurrentBearing({ onNavigate }) {
           boxShadow: '0 14px 34px rgba(15,28,46,0.08)',
         }}
       >
-        <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1 }}>
-          Chapter {currentChapter} · {currentSeason}
-        </Typography>
-        <Typography sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '2rem', md: '2.6rem' }, lineHeight: 1.06, letterSpacing: '-0.03em', color: 'var(--navy-900, #10223C)', mb: 1.4 }}>
-          Your current bearing.
-        </Typography>
-        <Typography sx={{ fontFamily: '"Fraunces", serif', fontStyle: 'italic', fontSize: { xs: '1.05rem', md: '1.22rem' }, lineHeight: 1.6, color: 'var(--ink, #0F1C2E)', maxWidth: 820 }}>
-          The Compass is not asking you to admire a dashboard. It is asking you to notice the signal, choose the next honest practice, and keep moving with steadiness.
-        </Typography>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} sx={{ mt: 2.4 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
           {[
             { label: responseStatus, value: teamCampaignClosed ? 'Ready for practice' : 'Still gathering' },
             { label: 'Primary focus', value: primaryFocus?.subTraitName || 'Leadership clarity' },
@@ -356,8 +348,12 @@ function DashboardLegacy() {
     }
   }, [location.search]);
 
+  const dashboardChapterIndex = useCairnTheme
+    ? (currentTab === 3 ? 5 : currentTab === 1 || currentTab === 2 ? 4 : currentTab === 4 ? getCurrentJourneyIndexFromState() : getCurrentJourneyIndexFromState())
+    : null;
+
   const dashTabContent = (
-    <Box sx={{ mt: 1.8 }}>
+    <Box>
       {currentTab === 0 && (useCairnTheme ? <CurrentBearing onNavigate={setCurrentTab} /> : <GrowthCampaignTab />)}
       {currentTab === 1 && <ResultsTab view="compass" selectedAgent={selectedAgent} />}
       {currentTab === 2 && <ResultsTab view="detailed" selectedAgent={selectedAgent} />}
@@ -383,7 +379,7 @@ function DashboardLegacy() {
         bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white', borderRadius: '16px',
         border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
         boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
-        overflow: 'hidden', position: 'sticky', top: 96,
+        overflow: 'hidden', position: { xs: 'relative', md: 'sticky' }, top: { md: 96 },
       }}>
         {/* Header */}
         <Box sx={{ px: 2, py: 1.75, borderBottom: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'var(--sand-50, #FBF7F0)' }}>
@@ -430,19 +426,20 @@ function DashboardLegacy() {
             </Box>
           );
         })}
-        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', fontWeight: 600, color: 'var(--orange, #E07A3F)' }}>
-            {currentTab + 1} of {navItems.length}
-          </Typography>
-        </Box>
       </Box>
     );
 
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
-        <ProcessTopRail />
-        <CompassLayout sidebar={DashNavSidebar} rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
+        <ProcessTopRail hideChapterHeader />
+        <Box sx={{ px: { xs: 2, md: 3, lg: 4 }, pt: { xs: 2, md: 2.5 } }}>
+          {DashNavSidebar}
+        </Box>
+        <CompassLayout rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
+          <ProcessChapterHeader
+            chapterIndex={dashboardChapterIndex}
+            metaOverride={currentTab === 3 ? { label: 'Practice', value: 'Active' } : currentTab === 4 ? { label: 'Chapters', value: '9' } : { label: 'Signal', value: 'Current' }}
+          />
           {dashTabContent}
         </CompassLayout>
       </Box>

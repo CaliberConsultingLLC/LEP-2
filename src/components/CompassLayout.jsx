@@ -47,17 +47,17 @@ function CompassLayout({ children, sidebar = null, rightRail = null }) {
           zIndex: 1,
         }}>
           {/* Left 20% — navigation sidebar */}
-          <Box sx={{ pt: 3, pb: 12, px: { xs: 2, md: 2.5, lg: 3 } }}>
+          <Box sx={{ order: { xs: 1, md: 0 }, pt: 3, pb: { xs: 1.5, md: 12 }, px: { xs: 2, md: 2.5, lg: 3 } }}>
             {sidebar}
           </Box>
 
           {/* Center — main content */}
-          <Box sx={{ pt: 3, pb: 12, px: { xs: 2, md: 3, lg: 3.5 } }}>
+          <Box sx={{ order: { xs: 2, md: 0 }, pt: { xs: 1.5, md: 3 }, pb: 12, px: { xs: 2, md: 3, lg: 3.5 } }}>
             {children}
           </Box>
 
           {/* Right — context rail or reserved empty column */}
-          <Box sx={{ display: 'block', pt: { xs: 0, md: 3 }, pb: { xs: 0, md: 12 }, pr: { md: 2.5, lg: 3 }, pl: 0 }}>
+          <Box sx={{ order: { xs: 3, md: 0 }, display: 'block', pt: { xs: 0, md: 3 }, pb: { xs: 0, md: 12 }, pr: { md: 2.5, lg: 3 }, pl: 0 }}>
             {rightRail}
           </Box>
         </Box>

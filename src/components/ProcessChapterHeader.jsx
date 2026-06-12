@@ -10,16 +10,23 @@ import {
 } from '../pages/Dashboard/journey/journeyModel.js';
 import { colors, fonts, radii, type } from '../styles/tokens';
 
-export default function ProcessChapterHeader({ compact = false, titleOverride = '' }) {
+export default function ProcessChapterHeader({
+  compact = false,
+  titleOverride = '',
+  chapterIndex: chapterIndexOverride = null,
+  metaOverride = undefined,
+}) {
   const location = useLocation();
   const { chapterIndex, station, meta } = useMemo(() => {
-    const chapterIndex = getJourneyIndexForLocation(location.pathname, location.search);
+    const chapterIndex = Number.isInteger(chapterIndexOverride)
+      ? chapterIndexOverride
+      : getJourneyIndexForLocation(location.pathname, location.search);
     return {
       chapterIndex,
       station: JOURNEY_STATIONS[chapterIndex] || JOURNEY_STATIONS[0],
-      meta: getHeaderMetaForLocation(location.pathname, location.search),
+      meta: metaOverride !== undefined ? metaOverride : getHeaderMetaForLocation(location.pathname, location.search),
     };
-  }, [location.pathname, location.search]);
+  }, [chapterIndexOverride, location.pathname, location.search, metaOverride]);
 
   if (compact) {
     return (
@@ -29,9 +36,9 @@ export default function ProcessChapterHeader({ compact = false, titleOverride = 
           alignItems: 'flex-end',
           justifyContent: 'space-between',
           gap: 2.5,
-          borderBottom: '1px solid var(--sand-200)',
-          pb: 2,
-          mb: 3.5,
+          pb: 1.5,
+          mb: 2.5,
+          maxWidth: 880,
         }}
       >
         <Box sx={{ minWidth: 0 }}>
@@ -62,25 +69,25 @@ export default function ProcessChapterHeader({ compact = false, titleOverride = 
   return (
     <Box
       sx={{
-        bgcolor: colors.surface2,
-        borderBottom: '1px solid var(--sand-200)',
+        bgcolor: 'transparent',
       }}
     >
       <Box
         sx={{
-          maxWidth: 1180,
+          maxWidth: 920,
           mx: 'auto',
-          px: { xs: 2.4, md: 5 },
-          pt: { xs: 3, md: 3.5 },
-          pb: { xs: 2.5, md: 3 },
+          px: { xs: 2.4, md: 3 },
+          pt: { xs: 2.2, md: 2.8 },
+          pb: { xs: 1.6, md: 2.1 },
         }}
       >
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: { xs: 2.2, md: '28px' },
-            mb: '30px',
+            gap: { xs: 2, md: '24px' },
+            pb: 2.2,
+            borderBottom: '1px solid var(--sand-200)',
           }}
         >
           <JourneyPorthole chapterIndex={chapterIndex} />

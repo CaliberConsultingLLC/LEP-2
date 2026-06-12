@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Divider,
   IconButton,
   Paper,
@@ -436,37 +435,6 @@ function ActionTabStaging({ selectedAgent = 'balancedMentor', onOpenJourney }) {
           }}
         >
           <Stack spacing={1.3}>
-            <Typography
-              sx={{
-                fontFamily: 'Montserrat, sans-serif',
-                fontSize: { xs: '1.28rem', md: '1.44rem' },
-                fontWeight: 800,
-                color: '#13263A',
-                textAlign: 'center',
-              }}
-            >
-              Practice
-            </Typography>
-            <Divider sx={{ my: 0.2, borderColor: 'rgba(69,112,137,0.25)' }} />
-            <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.95rem', color: '#20384F', lineHeight: 1.58 }}>
-              Choose one leadership behavior your team can actually feel. The goal is not a perfect plan; it is a clear commitment you can practice, reflect on, and verify over time.
-            </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={0.8} justifyContent="center">
-              {['Chosen', 'Practiced', 'Reflected', 'Verified'].map((state, idx) => (
-                <Chip
-                  key={state}
-                  label={state}
-                  size="small"
-                  sx={{
-                    fontFamily: '"Manrope", sans-serif',
-                    fontWeight: 800,
-                    bgcolor: idx === 0 ? 'rgba(224,122,63,0.14)' : 'rgba(69,112,137,0.08)',
-                    color: idx === 0 ? '#C0612A' : '#364E64',
-                    border: idx === 0 ? '1px solid rgba(224,122,63,0.35)' : '1px solid rgba(69,112,137,0.18)',
-                  }}
-                />
-              ))}
-            </Stack>
             <Tabs
               value={selectedTraitKey || false}
               onChange={(_, value) => setSelectedTraitKey(value)}

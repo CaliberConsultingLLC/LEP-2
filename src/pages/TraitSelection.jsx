@@ -494,15 +494,6 @@ function TraitSelection() {
             <Alert severity="warning" sx={{ fontFamily: '"Manrope", sans-serif' }}>{loadError}</Alert>
           ) : activeFocus ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25 }}>
-              <Box sx={{ width: '100%', textAlign: 'center', maxWidth: 800, mx: 'auto', pb: 0.55 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.85 }}>
-                  Chapter IV
-                </Typography>
-                <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 900, fontSize: { xs: '1.52rem', md: '2rem' }, lineHeight: 1.05, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                  Growth Campaign - Trait Selection
-                </Typography>
-              </Box>
-
               <Box sx={{
                 bgcolor: isDark ? 'rgba(255,255,255,0.045)' : 'white',
                 borderRadius: '18px',
