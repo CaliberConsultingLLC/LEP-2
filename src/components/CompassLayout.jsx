@@ -53,9 +53,10 @@ function CompassLayout({ children, sidebar = null, rightRail = null }) {
         <Box sx={{
           flex: 1, display: 'flex', justifyContent: 'center',
           pt: 0, pb: 12, px: { xs: 2, md: 4 },
+          overflowX: 'auto',
           position: 'relative', zIndex: 1,
         }}>
-          <Box sx={{ width: '100%', maxWidth: rightRail ? 920 : 880 }}>
+          <Box sx={{ width: rightRail ? '100%' : 880, minWidth: rightRail ? 0 : 880, maxWidth: rightRail ? 920 : 880 }}>
             {children}
           </Box>
           {rightRail}
