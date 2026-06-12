@@ -71,12 +71,12 @@ export default function ProcessChapterHeader({
     <Box
       sx={{
         bgcolor: 'transparent',
+        pt: { xs: 2, md: 2.5 },
       }}
     >
       <Box
         sx={{
           maxWidth: 880,
-          minWidth: 880,
           mx: 'auto',
           px: 0,
           pt: 0,
@@ -88,12 +88,12 @@ export default function ProcessChapterHeader({
             display: 'flex',
             alignItems: 'center',
             position: 'relative',
-            gap: '28px',
+            gap: { xs: 2, md: '28px' },
             mb: '30px',
           }}
         >
           <JourneyPorthole chapterIndex={chapterIndex} />
-          <Box sx={{ minWidth: 0, flex: 1, pr: meta ? '150px' : 0 }}>
+          <Box sx={{ minWidth: 0, flex: 1, pr: meta ? { xs: 0, md: '150px' } : 0 }}>
             <Typography sx={{ ...type.eyebrow, mb: 0.9 }}>
               {renderEyebrow(chapterIndex, station)}
             </Typography>
@@ -126,7 +126,7 @@ export default function ProcessChapterHeader({
             </Typography>
           </Box>
           {meta && (
-            <Box sx={{ position: 'absolute', top: '26px', right: 0 }}>
+            <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', top: '26px', right: 0 }}>
               <HeaderMeta label={meta.label} value={meta.value} />
             </Box>
           )}

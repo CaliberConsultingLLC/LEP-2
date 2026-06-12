@@ -100,8 +100,8 @@ const SectionCard = ({ children, narrow = false }) => {
             border: '1px solid var(--sand-200)',
             borderRadius: 'var(--cairn-radius-lg)',
             boxShadow: '0 18px 40px rgba(15, 28, 46, 0.06)',
-            px: '32px',
-            py: '28px',
+            px: { xs: 2.4, md: 4 },
+            py: { xs: 2.4, md: 3.5 },
           }}
         >
           {children}
@@ -492,10 +492,10 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
       alignItems: 'center',
       justifyContent: showWarningIcon ? 'flex-start' : 'center',
       width: '100%',
-      minHeight: compact ? 38 : useCairnTheme ? 38 : 68,
+      minHeight: compact ? 48 : useCairnTheme ? 54 : 68,
       userSelect: 'none',
-      p: compact ? '9px 14px' : useCairnTheme ? '12px 18px' : 1.6,
-      borderRadius: useCairnTheme ? 'var(--radius-pill)' : 2,
+      p: compact ? 1 : useCairnTheme ? '12px 20px' : 1.6,
+      borderRadius: useCairnTheme ? '10px' : 2,
       border: selected
         ? useCairnTheme ? '1px solid var(--navy-900)' : '2px solid #E07A3F'
         : useCairnTheme
@@ -528,10 +528,10 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
     )}
     <Box sx={{ flex: showWarningIcon ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: showWarningIcon ? 'flex-start' : 'center' }}>
       <Typography sx={{
-        fontSize: compact ? 12 : useCairnTheme ? 12 : '1.05rem',
+        fontSize: compact ? '0.9rem' : useCairnTheme ? '0.875rem' : '1.05rem',
         fontWeight: useCairnTheme ? (selected ? 700 : 600) : 500,
         fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
-        color: useCairnTheme ? (selected ? 'var(--amber-soft)' : 'var(--ink-soft)') : 'inherit',
+        color: useCairnTheme ? (selected ? 'var(--orange-deep)' : 'var(--ink-soft)') : 'inherit',
         letterSpacing: useCairnTheme ? '0.01em' : 'inherit',
         transition: 'color 200ms ease, font-weight 200ms ease',
       }}>{children}</Typography>
@@ -1707,14 +1707,14 @@ function IntakeForm() {
               const q = behaviorSet[qIndex];
 
               return (
-                <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="stretch" textAlign={useCairnTheme ? 'left' : 'center'} sx={{ width: '100%' }}>
+                <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
                   <Typography sx={{
                     fontFamily: useCairnTheme ? '"JetBrains Mono", ui-monospace, monospace' : 'inherit',
                     fontStyle: 'normal',
                     fontSize: useCairnTheme ? 9 : 'inherit',
                     fontWeight: useCairnTheme ? 700 : 700,
                     letterSpacing: useCairnTheme ? '0.2em' : 1.2,
-                    textAlign: useCairnTheme ? 'left' : 'center',
+                    textAlign: 'center',
                     color: useCairnTheme ? 'var(--ink-soft)' : 'inherit',
                     textTransform: useCairnTheme ? 'uppercase' : 'uppercase',
                   }}>
@@ -1727,7 +1727,7 @@ function IntakeForm() {
                     fontSize: useCairnTheme ? 20 : { xs: '1.25rem', md: '1.5rem' },
                     lineHeight: useCairnTheme ? 1.4 : 1.35,
                     letterSpacing: useCairnTheme ? '-0.01em' : undefined,
-                    textAlign: useCairnTheme ? 'left' : 'center',
+                    textAlign: 'center',
                     maxWidth: useCairnTheme ? '56ch' : undefined,
                     color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
                   }}>
@@ -1751,10 +1751,9 @@ function IntakeForm() {
                   {(q.type === 'radio' || q.type === 'multi-select') && (
                     <Grid
                       container
-                      spacing={useCairnTheme ? 1.25 : q.id === 'pushbackFeeling' ? 1.5 : 2}
+                      spacing={q.id === 'pushbackFeeling' ? 1.5 : 2}
                       alignItems="stretch"
-                      justifyContent={useCairnTheme ? 'flex-start' : 'center'}
-                      sx={{ mt: useCairnTheme ? 0.5 : 0 }}
+                      justifyContent="center"
                     >
                       {q.options.map((opt) => {
                         const optValue = typeof opt === 'object' && opt.primary ? opt.primary : opt;
@@ -1764,15 +1763,11 @@ function IntakeForm() {
                         return (
                           <Grid
                             item
-                            xs={useCairnTheme ? 'auto' : 12}
-                            sm={useCairnTheme ? 'auto' : q.id === 'pushbackFeeling' ? 4 : 6}
-                            md={useCairnTheme ? 'auto' : q.id === 'pushbackFeeling' ? 3 : 6}
+                            xs={12}
+                            sm={q.id === 'pushbackFeeling' ? 4 : 6}
+                            md={q.id === 'pushbackFeeling' ? 3 : 6}
                             key={optKey}
-                            sx={{
-                              display: 'flex',
-                              flex: useCairnTheme && q.options.length <= 5 ? '1 1 0' : undefined,
-                              minWidth: useCairnTheme && q.options.length <= 5 ? 0 : useCairnTheme ? 170 : undefined,
-                            }}
+                            sx={{ display: 'flex' }}
                           >
                             <OptionCard
                               selected={!!selected}
