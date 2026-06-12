@@ -291,12 +291,16 @@ function ProcessTopRail(props) {
       return <CompassTopbar />;
     }
     if (props.embedded) {
-      return <ProcessChapterHeader compact titleOverride={props.titleOverride} />;
+      return <ProcessChapterHeader compact titleOverride={props.titleOverride} subtitleOverride={props.subtitleOverride} metaOverride={props.metaOverride} />;
     }
     return (
       <>
         <CompassTopbar />
-        <ProcessChapterHeader titleOverride={props.titleOverride} />
+        <ProcessChapterHeader
+          titleOverride={props.titleOverride}
+          subtitleOverride={props.subtitleOverride}
+          metaOverride={props.metaOverride}
+        />
       </>
     );
   }

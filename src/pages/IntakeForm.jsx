@@ -7,7 +7,6 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { questionBank } from '../data/questionBank';
 import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
@@ -77,14 +76,14 @@ const PageContainer = ({ children }) => (
   <Container
     maxWidth={false}
     sx={{
-      py: { xs: 2, sm: 3 },
+      py: useCairnTheme ? 0 : { xs: 2, sm: 3 },
       px: useCairnTheme ? 0 : { xs: 2, sm: 4 },
       display: 'flex',
-      justifyContent: 'center',
+      justifyContent: useCairnTheme ? 'flex-start' : 'center',
       width: useCairnTheme ? '100%' : '100vw',
     }}
   >
-    <Box sx={{ width: '100%', maxWidth: useCairnTheme ? 'none' : 880 }}>{children}</Box>
+    <Box sx={{ width: '100%', maxWidth: useCairnTheme ? 880 : 880 }}>{children}</Box>
   </Container>
 );
 
@@ -93,8 +92,18 @@ const PageContainer = ({ children }) => (
 const SectionCard = ({ children, narrow = false }) => {
   if (useCairnTheme) {
     return (
-      <MemoBox sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        <Box sx={{ width: '100%', maxWidth: narrow ? 748 : 880, py: 4 }}>
+      <MemoBox sx={{ width: '100%', maxWidth: narrow ? 748 : 880 }}>
+        <Box
+          sx={{
+            width: '100%',
+            bgcolor: 'var(--surface-1)',
+            border: '1px solid var(--sand-200)',
+            borderRadius: 'var(--cairn-radius-lg)',
+            boxShadow: '0 18px 40px rgba(15, 28, 46, 0.06)',
+            px: { xs: 2.4, md: 4 },
+            py: { xs: 2.4, md: 3.5 },
+          }}
+        >
           {children}
         </Box>
       </MemoBox>
@@ -486,29 +495,29 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
       minHeight: compact ? 48 : useCairnTheme ? 54 : 68,
       userSelect: 'none',
       p: compact ? 1 : useCairnTheme ? '12px 20px' : 1.6,
-      borderRadius: useCairnTheme ? '10px' : 2,
+      borderRadius: useCairnTheme ? 'var(--radius-pill)' : 2,
       border: selected
-        ? useCairnTheme ? '2px solid var(--orange-deep, #C0612A)' : '2px solid #E07A3F'
+        ? useCairnTheme ? '1px solid var(--navy-900)' : '2px solid #E07A3F'
         : useCairnTheme
-          ? '1.5px solid var(--sand-300, #C8B89A)'
+          ? '1px solid var(--sand-200)'
           : '1px solid rgba(0,0,0,0.12)',
       bgcolor: selected
-        ? useCairnTheme ? 'var(--orange, #E07A3F)' : 'rgba(224,122,63,0.09)'
+        ? useCairnTheme ? 'var(--navy-900)' : 'rgba(224,122,63,0.09)'
         : useCairnTheme
-          ? 'var(--cairn-option-bg, #FFFFFF)'
+          ? '#fff'
           : 'background.paper',
       boxShadow: useCairnTheme
-        ? selected ? '0 0 0 3px rgba(224,122,63,0.28), 0 8px 28px rgba(196,87,30,0.28)' : 'none'
+        ? 'none'
         : selected ? '0 6px 22px rgba(224,122,63,0.28)' : '0 2px 10px rgba(0,0,0,0.06)',
-      transform: useCairnTheme && selected ? 'scale(1.016)' : undefined,
-      animation: selected && useCairnTheme ? 'cairnOptionSelect 320ms cubic-bezier(0.2,0.8,0.2,1) forwards' : undefined,
+      transform: undefined,
+      animation: undefined,
       transition: 'border-color 200ms ease, background-color 200ms ease, box-shadow 200ms ease, transform 200ms cubic-bezier(0.2,0.8,0.2,1)',
       cursor: disabled ? 'default' : 'pointer',
       textAlign: showWarningIcon ? 'left' : 'center',
       '&:hover': useCairnTheme
         ? selected
           ? {}
-          : { borderColor: 'var(--orange, #E07A3F)', bgcolor: 'rgba(224,122,63,0.05)' }
+          : { borderColor: 'var(--navy-500)', bgcolor: 'var(--sand-50)' }
         : { boxShadow: '0 10px 28px rgba(0,0,0,0.16)', transform: 'translateY(-2px)' },
     }}
   >
@@ -520,9 +529,9 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
     <Box sx={{ flex: showWarningIcon ? 2 : 1, display: 'flex', alignItems: 'center', justifyContent: showWarningIcon ? 'flex-start' : 'center' }}>
       <Typography sx={{
         fontSize: compact ? '0.9rem' : useCairnTheme ? '0.875rem' : '1.05rem',
-        fontWeight: useCairnTheme ? (selected ? 600 : 400) : 500,
-        fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
-        color: useCairnTheme ? (selected ? '#ffffff' : 'var(--ink, #0f1c2e)') : 'inherit',
+        fontWeight: useCairnTheme ? (selected ? 700 : 600) : 500,
+        fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+        color: useCairnTheme ? (selected ? 'var(--amber-soft)' : 'var(--ink-soft)') : 'inherit',
         letterSpacing: useCairnTheme ? '0.01em' : 'inherit',
         transition: 'color 200ms ease, font-weight 200ms ease',
       }}>{children}</Typography>
@@ -936,14 +945,6 @@ function IntakeForm() {
     },
   ];
 
-  const behaviorClusters = {
-    emotional_regulation: ['pushbackFeeling', 'energyDrains'],
-    decision_cadence: ['decisionPace', 'crisisResponse', 'projectApproach'],
-    team_awareness: ['teamPerception', 'visibilityComfort', 'roleModelTrait'],
-    motivational_drive: ['leaderFuel', 'resourcePick'],
-    self_reflection: ['warningLabel', 'proudMoment', 'behaviorDichotomies'],
-  };
-
   // 10 societal norms (now the "Insights" section, 5 per page)
   const societalNormsQuestions = SOCIETAL_NORM_DISPLAY_TEMPLATES;
 
@@ -1317,10 +1318,6 @@ function IntakeForm() {
 
   const handleSingleSelect = (questionId, option) => handleChange(questionId, option);
 
-  const handleStartOver = () => {
-    setCurrentStep(behaviorStart);
-  };
-
   // Register step-level back/forward with the topbar arrows.
   useEffect(() => {
     const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep) ||
@@ -1407,6 +1404,15 @@ function IntakeForm() {
     }
   };
 
+  const intakeQuestionNumber = (() => {
+    if (currentStep >= behaviorStart && currentStep <= behaviorEnd) return currentStep;
+    if (currentStep >= societalStart && currentStep <= societalEnd) return behaviorEnd + 1 + societalQuestionIndex;
+    if (currentStep === reflectionStep) return behaviorEnd + 1;
+    if (currentStep === agentStep) return 28;
+    return Math.max(1, currentStep);
+  })();
+  const intakeHeaderMeta = { label: 'Question', value: `${intakeQuestionNumber} / 28` };
+
   // ---------- UI ----------
   return (
     <Box
@@ -1440,7 +1446,7 @@ function IntakeForm() {
             }),
       }}
     >
-      <ProcessTopRail titleOverride={currentStep === 1 ? 'Leader Profile' : ''} />
+      <ProcessTopRail metaOverride={intakeHeaderMeta} />
 
       {/* Message Pop-ups */}
       {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
@@ -1701,26 +1707,28 @@ function IntakeForm() {
               const q = behaviorSet[qIndex];
 
               return (
-                <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
+                <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="stretch" textAlign={useCairnTheme ? 'left' : 'center'} sx={{ width: '100%' }}>
                   <Typography sx={{
                     fontFamily: useCairnTheme ? '"JetBrains Mono", ui-monospace, monospace' : 'inherit',
                     fontStyle: 'normal',
-                    fontSize: useCairnTheme ? 11 : 'inherit',
+                    fontSize: useCairnTheme ? 9 : 'inherit',
                     fontWeight: useCairnTheme ? 700 : 700,
-                    letterSpacing: useCairnTheme ? '0.16em' : 1.2,
-                    textAlign: 'center',
-                    color: useCairnTheme ? 'var(--orange-deep, #C0612A)' : 'inherit',
+                    letterSpacing: useCairnTheme ? '0.2em' : 1.2,
+                    textAlign: useCairnTheme ? 'left' : 'center',
+                    color: useCairnTheme ? 'var(--ink-soft)' : 'inherit',
                     textTransform: useCairnTheme ? 'uppercase' : 'uppercase',
                   }}>
                     {q.theme}
                   </Typography>
                   <Typography sx={{
-                    fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
+                    fontFamily: useCairnTheme ? '"Fraunces", serif' : 'inherit',
                     fontStyle: 'normal',
-                    fontWeight: useCairnTheme ? 700 : 800,
-                    fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.25rem', md: '1.5rem' },
-                    lineHeight: useCairnTheme ? 1.2 : 1.35,
-                    textAlign: 'center',
+                    fontWeight: useCairnTheme ? 500 : 800,
+                    fontSize: useCairnTheme ? 20 : { xs: '1.25rem', md: '1.5rem' },
+                    lineHeight: useCairnTheme ? 1.4 : 1.35,
+                    letterSpacing: useCairnTheme ? '-0.01em' : undefined,
+                    textAlign: useCairnTheme ? 'left' : 'center',
+                    maxWidth: useCairnTheme ? '56ch' : undefined,
                     color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
                   }}>
                     {q.id === 'proudMoment' ? (
@@ -1731,7 +1739,7 @@ function IntakeForm() {
                       <>
                         {q.prompt}
                         <br />
-                        <Typography component="span" sx={{ fontWeight: 400, fontSize: '1rem', fontStyle: 'italic', mt: 1, display: 'block', opacity: 0.85 }}>
+                      <Typography component="span" sx={{ fontWeight: 400, fontSize: '1rem', fontStyle: 'italic', mt: 1, display: 'block', opacity: 0.85 }}>
                           I wish how they <span style={{ textDecoration: 'underline' }}>{hoveredRoleModelOption || '__________'}</span> came more naturally to me.
                         </Typography>
                       </>
@@ -2141,7 +2149,7 @@ function IntakeForm() {
       const lastQuestion = activeIdx === societalNormsQuestions.length - 1;
 
       return (
-        <Stack spacing={2.4} alignItems="center" textAlign="center">
+        <Stack spacing={2.4} alignItems={useCairnTheme ? 'stretch' : 'center'} textAlign={useCairnTheme ? 'left' : 'center'}>
           {!useCairnTheme && (
             <Typography
               variant="overline"
@@ -2154,26 +2162,27 @@ function IntakeForm() {
             <Typography sx={{
               fontFamily: '"JetBrains Mono", ui-monospace, monospace',
               fontStyle: 'normal',
-              fontSize: 11,
+              fontSize: 9,
               fontWeight: 700,
-              letterSpacing: '0.16em',
+              letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              textAlign: 'center',
-              color: 'var(--orange-deep, #C0612A)',
+              textAlign: 'left',
+              color: 'var(--ink-soft)',
             }}>
               Leader Instincts
             </Typography>
           )}
 
-          <Box sx={{ width: '100%', maxWidth: 760, mx: 'auto', textAlign: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: useCairnTheme ? '56ch' : 760, mx: useCairnTheme ? 0 : 'auto', textAlign: useCairnTheme ? 'left' : 'center' }}>
             <Typography
               sx={{
-                fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
+                fontFamily: useCairnTheme ? '"Fraunces", serif' : 'inherit',
                 fontStyle: 'normal',
-                fontWeight: useCairnTheme ? 700 : 800,
-                lineHeight: useCairnTheme ? 1.2 : 1.35,
-                fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.42rem', md: '1.58rem' },
-                textAlign: 'center',
+                fontWeight: useCairnTheme ? 500 : 800,
+                lineHeight: useCairnTheme ? 1.4 : 1.35,
+                fontSize: useCairnTheme ? 20 : { xs: '1.42rem', md: '1.58rem' },
+                letterSpacing: useCairnTheme ? '-0.01em' : undefined,
+                textAlign: useCairnTheme ? 'left' : 'center',
                 wordBreak: 'break-word',
                 overflowWrap: 'anywhere',
                 color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',

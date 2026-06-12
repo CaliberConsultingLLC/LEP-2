@@ -19,19 +19,6 @@ function CompassLayout({ children, sidebar = null, rightRail = null }) {
   return (
     <Box sx={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
 
-      {/* Compass logo watermark */}
-      <Box
-        component="img"
-        src="/compasslogo2.png"
-        alt=""
-        aria-hidden
-        sx={{
-          position: 'fixed', left: '-14vw', top: '-10vw',
-          width: '55vw', height: 'auto',
-          opacity: 0.035, pointerEvents: 'none', zIndex: 0, userSelect: 'none',
-        }}
-      />
-
       {sidebar ? (
         // Full-width stage layout inspired by the Compass review screens:
         // compact chapter rail, generous reading column, optional context rail.
@@ -65,10 +52,10 @@ function CompassLayout({ children, sidebar = null, rightRail = null }) {
         // Centered single column — intake form, verify, and other non-nav pages
         <Box sx={{
           flex: 1, display: 'flex', justifyContent: 'center',
-          pt: 3, pb: 12, px: { xs: 2, md: 4 },
+          pt: 0, pb: 12, px: { xs: 2, md: 4 },
           position: 'relative', zIndex: 1,
         }}>
-          <Box sx={{ width: '100%', maxWidth: rightRail ? 920 : 780 }}>
+          <Box sx={{ width: '100%', maxWidth: rightRail ? 920 : 880 }}>
             {children}
           </Box>
           {rightRail}

@@ -3,16 +3,17 @@ import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import JourneyPorthole from './JourneyPorthole';
 import {
-  chapterEyebrow,
+  chapterText,
   getHeaderMetaForLocation,
   getJourneyIndexForLocation,
   JOURNEY_STATIONS,
 } from '../pages/Dashboard/journey/journeyModel.js';
-import { colors, fonts, radii, type } from '../styles/tokens';
+import { colors, fonts, type } from '../styles/tokens';
 
 export default function ProcessChapterHeader({
   compact = false,
   titleOverride = '',
+  subtitleOverride = '',
   chapterIndex: chapterIndexOverride = null,
   metaOverride = undefined,
 }) {
@@ -43,7 +44,7 @@ export default function ProcessChapterHeader({
       >
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ ...type.eyebrow, mb: 0.7 }}>
-            {chapterEyebrow(chapterIndex)}
+            {renderEyebrow(chapterIndex, station)}
           </Typography>
           <Typography
             component="h1"
@@ -56,7 +57,7 @@ export default function ProcessChapterHeader({
               color: colors.ink,
             }}
           >
-            {titleOverride || station.label}
+            {titleOverride || station.title || station.label}
           </Typography>
         </Box>
         {meta && (
@@ -74,26 +75,26 @@ export default function ProcessChapterHeader({
     >
       <Box
         sx={{
-          maxWidth: 920,
+          maxWidth: 880,
           mx: 'auto',
-          px: { xs: 2.4, md: 3 },
-          pt: { xs: 2.2, md: 2.8 },
-          pb: { xs: 1.6, md: 2.1 },
+          px: { xs: 2, md: 0 },
+          pt: 0,
+          pb: 0,
         }}
       >
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: { xs: 2, md: '24px' },
-            pb: 2.2,
-            borderBottom: '1px solid var(--sand-200)',
+            position: 'relative',
+            gap: { xs: 2, md: '28px' },
+            mb: '30px',
           }}
         >
           <JourneyPorthole chapterIndex={chapterIndex} />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ ...type.eyebrow, mb: 0.9 }}>
-              {chapterEyebrow(chapterIndex)}
+              {renderEyebrow(chapterIndex, station)}
             </Typography>
             <Typography
               component="h1"
@@ -107,7 +108,7 @@ export default function ProcessChapterHeader({
                 mb: 0.9,
               }}
             >
-              {titleOverride || station.label}
+              {titleOverride || station.title || station.label}
             </Typography>
             <Typography
               sx={{
@@ -120,11 +121,16 @@ export default function ProcessChapterHeader({
                 maxWidth: '52ch',
               }}
             >
-              {station.blurb}
+              {subtitleOverride || station.subtitle || station.blurb}
             </Typography>
+            {meta && (
+              <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 1.2 }}>
+                <HeaderMeta label={meta.label} value={meta.value} />
+              </Box>
+            )}
           </Box>
           {meta && (
-            <Box sx={{ display: { xs: 'none', md: 'block' }, alignSelf: 'center' }}>
+            <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', top: '26px', right: 0 }}>
               <HeaderMeta label={meta.label} value={meta.value} />
             </Box>
           )}
@@ -134,14 +140,25 @@ export default function ProcessChapterHeader({
   );
 }
 
+function renderEyebrow(chapterIndex, station) {
+  return (
+    <>
+      {chapterText(chapterIndex)}
+      <Box component="span" sx={{ color: 'var(--sand-300)', mx: 0.5 }}>
+        ·
+      </Box>
+      {station.label}
+    </>
+  );
+}
+
 function HeaderMeta({ label, value }) {
+  const valueText = String(value || '');
+  const match = valueText.match(/^(\d+)(.*)$/);
+
   return (
     <Box
       sx={{
-        borderRadius: radii.pill,
-        border: '1px solid var(--sand-200)',
-        px: 1.5,
-        py: 0.85,
         whiteSpace: 'nowrap',
         fontFamily: fonts.mono,
         fontSize: 10,
@@ -153,8 +170,9 @@ function HeaderMeta({ label, value }) {
     >
       {label}{' '}
       <Box component="span" sx={{ color: colors.orangeDeep }}>
-        {value}
+        {match ? match[1] : valueText}
       </Box>
+      {match ? match[2] : ''}
     </Box>
   );
 }
