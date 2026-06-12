@@ -6,7 +6,6 @@ import {
   Button,
   Stack,
   Slider,
-  LinearProgress,
   Tooltip,
   Dialog,
   DialogTitle,
@@ -305,7 +304,6 @@ function CampaignSurvey() {
   const currentRating = (r && typeof r.effort === 'number' && typeof r.efficacy === 'number') ? r : { effort: 5, efficacy: 5 };
   const traitRecap = getTraitRecapMetrics(currentQuestion);
   const sentiment = getSentiment(currentRating.effort, currentRating.efficacy, isSelfCampaign);
-  const progressValue = ((currentQuestion + 1) / (questions.length || 15)) * 100;
   const nextCtaLabel = currentQuestion < (questions.length - 1) ? 'Next Question' : 'Complete Survey';
   const EFFICACY_PRIMARY = '#6393AA';
   const EFFICACY_ACCENT = '#457089';
@@ -510,7 +508,7 @@ function CampaignSurvey() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={71} sidebar={NavSidebar}>
+        <CompassLayout sidebar={NavSidebar}>
           <Box sx={{ mb: 1.5 }}>
             <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--orange-600, #E07A3F)', mb: 0.8 }}>
               {currentTrait}{currentSubTrait !== currentTrait ? ` — ${currentSubTrait}` : ''} &nbsp;·&nbsp; Q{(currentQuestion % TRAIT_QUESTION_COUNT) + 1} of {TRAIT_QUESTION_COUNT}
@@ -578,7 +576,6 @@ function CampaignSurvey() {
               <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', color: 'var(--ink-soft, #44566C)', mb: 0.6 }}>
                 {currentQuestion + 1} / {questions.length || 15}
               </Typography>
-              <LinearProgress variant="determinate" value={progressValue} sx={{ height: 6, borderRadius: 10, bgcolor: 'var(--sand-200, #E8DBC3)', '& .MuiLinearProgress-bar': { bgcolor: 'var(--orange-600, #E07A3F)' } }} />
             </Box>
             <Button
               variant="contained"
@@ -657,7 +654,7 @@ function CampaignSurvey() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout progress={71}>
+      <CompassLayout>
       <Container
         maxWidth={useCairnTheme ? false : 'lg'}
         sx={{
@@ -1063,16 +1060,6 @@ function CampaignSurvey() {
             >
               {currentQuestion + 1} / {questions.length || 15}
             </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={progressValue}
-              sx={{
-                height: 8,
-                borderRadius: 10,
-                bgcolor: 'rgba(15,30,58,0.14)',
-                '& .MuiLinearProgress-bar': { bgcolor: '#3F647B' },
-              }}
-            />
           </Box>
           <Button
             variant="contained"

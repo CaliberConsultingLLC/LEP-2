@@ -1408,8 +1408,6 @@ function IntakeForm() {
   };
 
   // ---------- UI ----------
-  const intakePct = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0;
-
   return (
     <Box
       sx={{
@@ -1466,7 +1464,7 @@ function IntakeForm() {
         />
       )}
 
-      <CompassLayout progress={intakePct}>
+      <CompassLayout>
       <PageContainer>
         {postSignupNotice && (
           <Alert severity={postSignupNotice.severity} sx={{ mb: 2, fontFamily: 'Montserrat, sans-serif' }}>

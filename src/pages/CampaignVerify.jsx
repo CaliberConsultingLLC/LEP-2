@@ -388,7 +388,7 @@ function CampaignVerify() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={86}>
+        <CompassLayout>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             {/* Heading */}
             <Box>
@@ -561,7 +561,7 @@ function CampaignVerify() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout progress={71}>
+      <CompassLayout>
       <Container
         maxWidth={false}
         sx={{

@@ -899,7 +899,7 @@ function Summary() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail titleOverride="Leadership Reflection" />
-        <CompassLayout progress={43} rightRail={RightRail}>
+        <CompassLayout rightRail={RightRail}>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -1114,7 +1114,7 @@ function Summary() {
           }),
     }}>
       <ProcessTopRail titleOverride="Leadership Reflection" />
-      <CompassLayout progress={43}>
+      <CompassLayout>
       <Container
         maxWidth={false}
         sx={{

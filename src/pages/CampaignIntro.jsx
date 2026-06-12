@@ -49,7 +49,7 @@ function CampaignIntro() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout progress={57}>
+      <CompassLayout>
       <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 3, sm: 4 } }}>
         <Box
           sx={{

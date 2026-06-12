@@ -94,7 +94,7 @@ function CampaignComplete() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout progress={71}>
+      <CompassLayout>
       <Container maxWidth="sm" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
         <Box
           sx={{

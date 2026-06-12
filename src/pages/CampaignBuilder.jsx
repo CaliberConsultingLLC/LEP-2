@@ -699,7 +699,7 @@ function CampaignBuilder() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={71} rightRail={campaign ? GuideRail : null}>
+        <CompassLayout rightRail={campaign ? GuideRail : null}>
           {error ? (
             <Box>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -1022,7 +1022,7 @@ function CampaignBuilder() {
         }}
       >
         <ProcessTopRail />
-        <CompassLayout progress={57}>
+        <CompassLayout>
         <Container
           maxWidth={false}
           sx={{

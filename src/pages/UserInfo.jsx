@@ -298,7 +298,7 @@ function UserInfo() {
       }}
     >
       <ProcessTopRail />
-      <CompassLayout progress={14}>
+      <CompassLayout>
       <Container
         maxWidth={false}
         sx={{

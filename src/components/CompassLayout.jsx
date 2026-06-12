@@ -11,24 +11,13 @@ import { useCairnTheme } from '../config/runtimeFlags';
 //                    Right  20% = optional context rail, or reserved breathing room.
 //
 // Production (useCairnTheme === false): renders children directly, no wrapper.
-function CompassLayout({ children, progress = 0, sidebar = null, rightRail = null }) {
+function CompassLayout({ children, sidebar = null, rightRail = null }) {
   if (!useCairnTheme) {
     return children;
   }
 
   return (
     <Box sx={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
-
-      {/* 3px orange progress bar */}
-      <Box sx={{ height: 3, bgcolor: 'var(--sand-200, #E8DBC3)', position: 'relative', flexShrink: 0, zIndex: 2 }}>
-        <Box sx={{
-          position: 'absolute', left: 0, top: 0, bottom: 0,
-          bgcolor: 'var(--orange, #E07A3F)',
-          borderRadius: '0 2px 2px 0',
-          width: `${Math.min(100, Math.max(0, progress))}%`,
-          transition: 'width 400ms cubic-bezier(.2,.8,.2,1)',
-        }} />
-      </Box>
 
       {/* Compass logo watermark */}
       <Box

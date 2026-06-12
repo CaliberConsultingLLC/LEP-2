@@ -442,7 +442,7 @@ function DashboardLegacy() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
-        <CompassLayout progress={100} sidebar={DashNavSidebar} rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
+        <CompassLayout sidebar={DashNavSidebar} rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
           {dashTabContent}
         </CompassLayout>
       </Box>
