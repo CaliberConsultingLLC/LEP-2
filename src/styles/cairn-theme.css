@@ -44,6 +44,12 @@ html[data-theme='cairn'] {
   --cairn-radius-pill: 999px;
   --cairn-motion: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
+  /* --- Typography families --- */
+  --font-brand: 'Cinzel', 'Times New Roman', Georgia, serif;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Manrope', 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
   /* --- Override base tokens declared in index.css --- */
   --surface-1: #ffffff;
   --surface-2: var(--sand-50);
@@ -65,7 +71,7 @@ html[data-theme='cairn'],
 html[data-theme='cairn'] body {
   background: var(--sand-50);
   color: var(--ink);
-  font-family: 'Manrope', 'Inter', 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -130,12 +136,14 @@ html[data-theme='cairn'] .MuiAppBar-root {
 /* --- Buttons --- */
 html[data-theme='cairn'] .MuiButton-root {
   border-radius: var(--cairn-radius-pill);
-  font-family: 'Manrope', 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 700;
+  font-size: 13px;
   letter-spacing: 0.04em;
   text-transform: none;
   padding: 12px 22px;
   min-height: 42px;
+  white-space: nowrap;
   transition: var(--cairn-motion);
 }
 
@@ -151,12 +159,13 @@ html[data-theme='cairn'] .MuiButton-containedPrimary:hover {
 }
 
 html[data-theme='cairn'] .MuiButton-containedSecondary {
-  background-color: var(--orange);
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(224, 122, 63, 0.22);
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  box-shadow: 0 8px 20px rgba(15, 28, 46, 0.18);
 }
 html[data-theme='cairn'] .MuiButton-containedSecondary:hover {
-  background-color: var(--orange-deep);
+  background-color: var(--navy-800);
+  transform: translateY(-1px);
 }
 
 html[data-theme='cairn'] .MuiButton-outlinedPrimary {
@@ -184,13 +193,13 @@ html[data-theme='cairn'] .MuiIconButton-root:hover {
 /* --- Chips --- */
 html[data-theme='cairn'] .MuiChip-root {
   border-radius: var(--cairn-radius-pill);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 1px solid var(--sand-200);
-  background-color: var(--sand-50);
+  background-color: #ffffff;
   color: var(--ink-soft);
   height: 28px;
 }
@@ -202,9 +211,9 @@ html[data-theme='cairn'] .MuiChip-filledPrimary {
 }
 html[data-theme='cairn'] .MuiChip-colorSecondary,
 html[data-theme='cairn'] .MuiChip-filledSecondary {
-  background-color: var(--orange);
-  color: #fff;
-  border-color: var(--orange);
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  border-color: var(--navy-900);
 }
 html[data-theme='cairn'] .MuiChip-colorSuccess,
 html[data-theme='cairn'] .MuiChip-filledSuccess {
@@ -242,20 +251,35 @@ html[data-theme='cairn'] .MuiTabs-root {
   min-height: 42px;
 }
 html[data-theme='cairn'] .MuiTab-root {
-  font-family: 'Manrope', 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-transform: none;
   color: var(--ink-soft);
   min-height: 42px;
+  border-radius: var(--cairn-radius-pill);
+  border: 1px solid var(--sand-200);
+  background-color: #ffffff;
+  margin-right: 8px;
+  padding: 10px 18px;
 }
 html[data-theme='cairn'] .MuiTab-root.Mui-selected {
-  color: var(--navy-900);
+  color: var(--amber-soft);
+  background-color: var(--navy-900);
+  border-color: var(--navy-900);
+  font-weight: 700;
 }
 html[data-theme='cairn'] .MuiTabs-indicator {
-  background-color: var(--orange);
-  height: 3px;
-  border-radius: 2px;
+  display: none;
+}
+
+html[data-theme='cairn'] [aria-pressed='true'],
+html[data-theme='cairn'] [aria-selected='true']:not(.MuiTab-root):not(.MuiMenuItem-root),
+html[data-theme='cairn'] [data-selected='true'] {
+  background-color: var(--navy-900);
+  color: var(--amber-soft);
+  border-color: var(--navy-900);
+  font-weight: 700;
 }
 
 /* --- Dividers --- */

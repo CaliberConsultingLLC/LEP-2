@@ -26,7 +26,7 @@ if (useCairnTheme && typeof document !== 'undefined') {
     fontLink.rel = 'stylesheet';
     fontLink.dataset.cairnFonts = 'true';
     fontLink.href =
-      'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
+      'https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap';
     document.head.appendChild(fontLink);
   }
 }

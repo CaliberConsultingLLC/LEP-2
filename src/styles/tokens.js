@@ -108,8 +108,10 @@ export const hairlines = {
 const FONT_SERIF = '"Fraunces", Georgia, serif';
 const FONT_SANS = '"Manrope", "Inter", "Segoe UI", sans-serif';
 const FONT_MONO = '"JetBrains Mono", ui-monospace, monospace';
+const FONT_BRAND = '"Cinzel", "Times New Roman", Georgia, serif';
 
 export const fonts = {
+  brand: FONT_BRAND,
   serif: FONT_SERIF,
   sans: FONT_SANS,
   mono: FONT_MONO,
@@ -124,6 +126,50 @@ export const type = {
     letterSpacing: '0.22em',
     textTransform: 'uppercase',
     color: colors.orangeDeep,
+  },
+
+  brand: {
+    fontFamily: FONT_BRAND,
+    fontWeight: 600,
+    fontVariant: 'small-caps',
+    letterSpacing: '-0.045em',
+    color: colors.navy900,
+  },
+
+  pageTitle: {
+    fontFamily: FONT_SERIF,
+    fontSize: { xs: 26, md: 30 },
+    fontWeight: 500,
+    letterSpacing: '-0.02em',
+    lineHeight: 1.12,
+    color: colors.ink,
+  },
+
+  pageTitleCompact: {
+    fontFamily: FONT_SERIF,
+    fontSize: 26,
+    fontWeight: 500,
+    letterSpacing: '-0.02em',
+    lineHeight: 1.12,
+    color: colors.ink,
+  },
+
+  subtitle: {
+    fontFamily: FONT_SERIF,
+    fontStyle: 'italic',
+    fontSize: 15.5,
+    fontWeight: 500,
+    lineHeight: 1.45,
+    color: colors.inkSoft,
+    maxWidth: '52ch',
+  },
+
+  question: {
+    fontFamily: FONT_SERIF,
+    fontSize: 20,
+    fontWeight: 500,
+    lineHeight: 1.4,
+    color: colors.ink,
   },
 
   // Page lead — Fraunces serif
@@ -237,6 +283,7 @@ export const buttons = {
     px: '22px',
     py: '12px',
     minHeight: 42,
+    whiteSpace: 'nowrap',
     borderRadius: radii.pill,
     bgcolor: colors.navy900,
     color: colors.amberSoft,
@@ -305,16 +352,15 @@ export const buttons = {
 // ----------------------------------------------------------------------------
 export const chips = {
   base: {
-    fontFamily: FONT_MONO,
+    fontFamily: FONT_SANS,
     fontWeight: 600,
-    fontSize: 11,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-    height: 28,
-    px: 1.4,
+    fontSize: 13,
+    letterSpacing: '0.04em',
+    height: 36,
+    px: 1.6,
     borderRadius: radii.pill,
     border: hairlines.default,
-    bgcolor: colors.sand50,
+    bgcolor: colors.surface1,
     color: colors.inkSoft,
     transition: motion.standard,
     cursor: 'pointer',

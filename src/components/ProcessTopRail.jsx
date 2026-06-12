@@ -15,6 +15,7 @@ import { auth } from '../firebase';
 import { useCairnTheme } from '../config/runtimeFlags';
 import GuideSelector from './GuideSelector';
 import CompassTopbar from './CompassTopbar';
+import ProcessChapterHeader from './ProcessChapterHeader';
 
 const PHASES = [
   { id: 'profile', title: 'Profile Creation', icon: AccountCircle, fallbackPath: '/user-info' },
@@ -286,7 +287,15 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
 // what it renders when the theme flag is on.
 function ProcessTopRail(props) {
   if (useCairnTheme) {
-    return <CompassTopbar />;
+    if (props.embedded) {
+      return <ProcessChapterHeader compact titleOverride={props.titleOverride} />;
+    }
+    return (
+      <>
+        <CompassTopbar />
+        <ProcessChapterHeader titleOverride={props.titleOverride} />
+      </>
+    );
   }
   return <ProcessTopRailLegacy {...props} />;
 }
