@@ -853,14 +853,14 @@ export default function CommandCenter() {
     ? 5
     : activeTab === 'signal' || activeTab === 'evidence'
       ? 4
-      : activeTab === 'journey'
-        ? getCurrentJourneyIndexFromState()
-        : getCurrentJourneyIndexFromState();
+      : getCurrentJourneyIndexFromState();
+
+  const showJourneyHeader = ['signal', 'evidence', 'practice'].includes(activeTab);
 
   const headerMeta = activeTab === 'practice'
     ? { label: 'Practice', value: phases.practice === 'done' ? 'Complete' : 'Active' }
-    : activeTab === 'journey'
-      ? { label: 'Chapters', value: '9' }
+    : activeTab === 'evidence'
+      ? { label: 'Evidence', value: phases.evidence === 'done' ? 'Complete' : 'Active' }
       : { label: 'Signal', value: phases.signal === 'done' ? 'Ready' : 'Current' };
 
   return (
@@ -876,7 +876,9 @@ export default function CommandCenter() {
     >
       <ProcessTopRail hideChapterHeader />
       <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={phases.dockStatus} />
-      <ProcessChapterHeader chapterIndex={chapterIndex} metaOverride={headerMeta} />
+      {showJourneyHeader && (
+        <ProcessChapterHeader chapterIndex={chapterIndex} metaOverride={headerMeta} />
+      )}
       <Box sx={{ position: 'relative', zIndex: 1 }}>{renderActive()}</Box>
     </Box>
   );

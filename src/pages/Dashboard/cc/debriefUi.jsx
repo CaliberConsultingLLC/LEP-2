@@ -331,7 +331,7 @@ function ScoreBar({ label, value, fillColor }) {
   );
 }
 
-export function TraitScoresPanel({ rows, highlightKey = null, onSelect = null }) {
+export function TraitScoresPanel({ rows, highlightKey = null, onSelect = null, cardMinHeight = 0 }) {
   return (
     <Stack spacing={1.5}>
       {rows.map((r) => {
@@ -349,6 +349,7 @@ export function TraitScoresPanel({ rows, highlightKey = null, onSelect = null })
               boxSizing: 'border-box',
               display: 'block',
               width: '100%',
+              minHeight: cardMinHeight || undefined,
               px: 2.5,
               pt: 2,
               pb: 1.5,

@@ -10,7 +10,6 @@ import {
   Headline,
   PageFade,
   Prose,
-  SnapshotHeader,
   SnapshotShell,
   TraitScoresPanel,
   TwoCol,
@@ -313,28 +312,21 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Signal snapshot — the whole debrief in one view
 // ---------------------------------------------------------------------------
-function SignalSnapshot({ rows, traitStories, respondents, invited, onReplay, onOpenEvidence }) {
+function SignalSnapshot({ traitStories, onReplay, onOpenEvidence }) {
   const [highlight, setHighlight] = useState(null);
-  const answered =
-    Number.isFinite(invited) && invited >= respondents && respondents > 0
-      ? `${respondents} of ${invited} teammates answered.`
-      : respondents > 0
-      ? `${respondents} ${respondents === 1 ? 'teammate' : 'teammates'} answered.`
-      : '';
 
   return (
     <SnapshotShell>
-      <SnapshotHeader
-        phaseLabel="The Signal"
-        title="What your team reflected back"
-        sub={`${answered} ${rows.length === 3 ? 'Three traits, three different stories' : 'Each trait tells its own story'} — strongest ground first.`}
-        onReplay={onReplay}
-      />
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.2 }}>
+        <Box component="button" type="button" onClick={onReplay} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
+          ↻ Walk through again
+        </Box>
+      </Stack>
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 420px)' },
-          gap: 3,
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+          gap: 2,
           alignItems: 'start',
         }}
       >
@@ -342,10 +334,11 @@ function SignalSnapshot({ rows, traitStories, respondents, invited, onReplay, on
           rows={traitStories.map((s) => s.row)}
           highlightKey={highlight}
           onSelect={(traitKey) => setHighlight(highlight === traitKey ? null : traitKey)}
+          cardMinHeight={178}
         />
         <Stack spacing={1.75}>
           {traitStories.map((story) => (
-            <Box key={story.row.trait} sx={{ ...surfaces.cardFlat, px: 2.5, py: 2 }}>
+            <Box key={story.row.trait} sx={{ ...surfaces.cardFlat, px: 2.5, py: 2, minHeight: 178, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <Typography sx={{ ...type.eyebrow, mb: 0.7 }}>{story.eyebrow}</Typography>
               <Typography
                 sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, color: colors.textPrimary, mb: 0.7, textWrap: 'pretty' }}
@@ -460,10 +453,7 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
   if (mode === 'snapshot') {
     return (
       <SignalSnapshot
-        rows={rows}
         traitStories={traitStories}
-        respondents={respondents}
-        invited={invited}
         onReplay={() => phases.startReplay('signal')}
         onOpenEvidence={onOpenEvidence}
       />

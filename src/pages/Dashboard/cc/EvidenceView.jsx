@@ -10,7 +10,6 @@ import {
   Headline,
   PageFade,
   Prose,
-  SnapshotHeader,
   SnapshotShell,
   WalkthroughStage,
 } from './debriefUi.jsx';
@@ -594,12 +593,11 @@ function EvidenceSnapshot({ orderedRows, onReplay, onOpenPractice }) {
 
   return (
     <SnapshotShell>
-      <SnapshotHeader
-        phaseLabel="The Evidence"
-        title="The statements behind the signal"
-        sub="Every claim in the debrief traces back to here — sourced, not stylized."
-        onReplay={onReplay}
-      />
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.2 }}>
+        <Box component="button" type="button" onClick={onReplay} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
+          ↻ Walk through again
+        </Box>
+      </Stack>
       <EvTraitExplorer
         row={row}
         aboveList={

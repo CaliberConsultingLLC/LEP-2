@@ -9,7 +9,6 @@ import {
   Headline,
   PageFade,
   Prose,
-  SnapshotHeader,
   SnapshotShell,
   WalkthroughStage,
 } from './debriefUi.jsx';
@@ -591,13 +590,11 @@ function PrCommitAllPage({ orderedRows, plans, chapterIndex, onAdvancePhase }) {
 function PracticeSnapshot({ orderedRows, plans, onReplay }) {
   return (
     <SnapshotShell>
-      <SnapshotHeader
-        phaseLabel="Practice"
-        title="Your standing commitments"
-        sub="One plan per trait — held until the next check-in assessment reads the signal again."
-        onReplay={onReplay}
-        replayLabel="Revise the plans"
-      />
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.2 }}>
+        <Box component="button" type="button" onClick={onReplay} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
+          ↻ Revise the plans
+        </Box>
+      </Stack>
 
       <Stack spacing={1.75} sx={{ mb: 2.2 }}>
         {orderedRows.map((row) => {
