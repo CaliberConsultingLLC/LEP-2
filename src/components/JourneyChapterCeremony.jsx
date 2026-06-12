@@ -12,7 +12,7 @@ import {
 } from '../pages/Dashboard/journey/journeyModel.js';
 import { buttons, colors, fonts, radii } from '../styles/tokens';
 
-const WALK_SCALE = 1.9;
+const WALK_SCALE = 1;
 
 function segmentPathD(points, k = 0.85) {
   if (!points.length) return '';
@@ -25,14 +25,6 @@ function segmentPathD(points, k = 0.85) {
     d += ` C ${(p1[0] + ((p2[0] - p0[0]) / 6) * k).toFixed(1)} ${(p1[1] + ((p2[1] - p0[1]) / 6) * k).toFixed(1)}, ${(p2[0] - ((p3[0] - p1[0]) / 6) * k).toFixed(1)} ${(p2[1] - ((p3[1] - p1[1]) / 6) * k).toFixed(1)}, ${p2[0]} ${p2[1]}`;
   }
   return d;
-}
-
-function cameraTransform(mx, my, scale, width, height) {
-  const limX = width * (scale - 1) / 2;
-  const limY = height * (scale - 1) / 2;
-  const tx = Math.max(-limX, Math.min(limX, (0.5 - mx) * width * scale));
-  const ty = Math.max(-limY, Math.min(limY, (0.5 - my) * height * scale));
-  return `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${scale})`;
 }
 
 function easeInOutCubic(t) {
@@ -110,20 +102,13 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
       return;
     }
     setPhase('walk');
-    after(550, () => {
-      const rect = cameraRef.current?.getBoundingClientRect();
-      setCamera({
-        glide: true,
-        transform: cameraTransform(from.x, from.y, WALK_SCALE, rect?.width || 900, rect?.height || 600),
-      });
-    });
+    setCamera({ transform: 'none', glide: false });
     after(2150, playWalk);
   };
 
   const playWalk = () => {
     const path = pathRef.current;
-    const rect = cameraRef.current?.getBoundingClientRect();
-    if (!path || !rect) {
+    if (!path) {
       setPhase('begin');
       setVisualIndex(toIndex);
       return;
@@ -131,17 +116,13 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
     const total = path.getTotalLength();
     const started = performance.now() + 150;
     let lastStep = 0;
-    setCamera((prev) => ({ ...prev, glide: false }));
+    setCamera({ transform: 'none', glide: false });
 
     const tick = (now) => {
       const t = Math.max(0, Math.min(1, (now - started) / 3000));
       const len = total * easeInOutCubic(t);
       const p = path.getPointAtLength(len);
       setTraveler({ x: p.x, y: p.y });
-      setCamera({
-        glide: false,
-        transform: cameraTransform(p.x / COMPASS_TRAIL.W, p.y / COMPASS_TRAIL.H, WALK_SCALE, rect.width, rect.height),
-      });
       while (len - lastStep > 26) {
         lastStep += 26;
         const fp = path.getPointAtLength(lastStep);
@@ -153,7 +134,7 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
         setTraveler(null);
         setVisualIndex(toIndex);
         setArrived(true);
-        after(1000, () => setCamera({ transform: 'none', glide: true }));
+        setCamera({ transform: 'none', glide: false });
         after(2700, () => setPhase('begin'));
       }
     };

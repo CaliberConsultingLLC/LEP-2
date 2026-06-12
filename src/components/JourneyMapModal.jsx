@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Modal, Typography } from '@mui/material';
+import { Box, IconButton, Modal, Typography } from '@mui/material';
+import CloseRounded from '@mui/icons-material/CloseRounded';
 import {
   chapterText,
   JOURNEY_BASE_SRC,
@@ -102,9 +103,9 @@ export default function JourneyMapModal({
                 id="journey-map-title"
                 sx={{
                   position: 'absolute',
-                  top: '4.5%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
+                  top: '6%',
+                  left: { xs: '9%', md: '8%' },
+                  transform: 'none',
                   fontFamily: fonts.brand,
                   fontVariant: 'small-caps',
                   fontWeight: 600,
@@ -112,8 +113,9 @@ export default function JourneyMapModal({
                   letterSpacing: '-0.035em',
                   color: colors.navy900,
                   lineHeight: 1,
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
+                  textAlign: 'left',
+                  maxWidth: '42%',
+                  whiteSpace: 'normal',
                   textShadow: '0 1px 0 rgba(251,247,240,0.8), 0 0 18px rgba(251,247,240,0.9)',
                   pointerEvents: 'none',
                   zIndex: 5,
@@ -121,6 +123,23 @@ export default function JourneyMapModal({
               >
                 {displayName === 'Your' ? 'Your Development Journey' : `${displayName}'s Development Journey`}
               </Typography>
+
+              <IconButton
+                aria-label="Close map"
+                onClick={onClose}
+                sx={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  zIndex: 7,
+                  bgcolor: 'rgba(255,255,255,0.86)',
+                  border: '1px solid var(--sand-200)',
+                  color: colors.navy900,
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.96)' },
+                }}
+              >
+                <CloseRounded fontSize="small" />
+              </IconButton>
 
               {mode === 'reference' && (
                 <ChapterPanel station={selected} index={selectedIndex} status={selectedStatus} />
@@ -157,11 +176,11 @@ function ChapterPanel({ station, index, status }) {
     <Box
       sx={{
         position: 'absolute',
-        top: '13%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: 'min(84%, 380px)',
-        textAlign: 'center',
+        top: '20%',
+        left: { xs: '8%', md: '8%' },
+        transform: 'none',
+        width: 'min(42%, 380px)',
+        textAlign: 'left',
         bgcolor: 'rgba(255,255,255,0.88)',
         backdropFilter: 'blur(10px)',
         border: '1px solid var(--sand-200)',
@@ -172,7 +191,7 @@ function ChapterPanel({ station, index, status }) {
         zIndex: 4,
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 0.8, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 1, mb: 0.8, flexWrap: 'wrap' }}>
         <Typography sx={{ ...type.eyebrow, fontSize: 8.5, letterSpacing: '0.2em', color: colors.orangeDeep }}>
           {chapterText(index)}
         </Typography>

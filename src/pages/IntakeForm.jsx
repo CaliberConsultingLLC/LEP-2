@@ -531,7 +531,7 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
         fontSize: compact ? '0.9rem' : useCairnTheme ? '0.875rem' : '1.05rem',
         fontWeight: useCairnTheme ? (selected ? 700 : 600) : 500,
         fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
-        color: useCairnTheme ? (selected ? 'var(--orange-deep)' : 'var(--ink-soft)') : 'inherit',
+        color: useCairnTheme ? (selected ? 'var(--amber-soft)' : 'var(--ink-soft)') : 'inherit',
         letterSpacing: useCairnTheme ? '0.01em' : 'inherit',
         transition: 'color 200ms ease, font-weight 200ms ease',
       }}>{children}</Typography>
