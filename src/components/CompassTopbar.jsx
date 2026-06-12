@@ -287,7 +287,9 @@ export default function CompassTopbar() {
     try {
       const raw = userInfo?.consent?.acceptedAt || auth?.currentUser?.metadata?.creationTime;
       if (raw) joinedDate = new Date(raw).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    } catch {}
+    } catch {
+      // Keep the profile popover resilient when auth metadata is unavailable.
+    }
     return {
       chapterIndex,
       station,

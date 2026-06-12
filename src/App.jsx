@@ -30,6 +30,7 @@ import { GuideProvider } from './context/GuideContext';
 import { StepNavProvider } from './context/StepNavContext';
 import GuideOverlay from './components/GuideOverlay';
 import StagingDevPanel from './components/StagingDevPanel';
+import JourneyCeremonyGate from './components/JourneyCeremonyGate';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
 
 const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info'];
@@ -83,6 +84,7 @@ function App() {
         <StepNavProvider>
           <Router>
             <AppRoutes />
+            <JourneyCeremonyGate />
             <RouteAwareGuide />
             <StagingDevPanel />
           </Router>
