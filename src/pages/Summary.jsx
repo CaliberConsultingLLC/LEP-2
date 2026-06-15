@@ -1125,7 +1125,7 @@ function Summary() {
           width: useCairnTheme ? '100%' : '100vw',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 1400 }}>
+        <Box sx={{ width: '100%', maxWidth: 1180 }}>
         {error ? (
           <Alert severity="error" sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', mt: 4 }}>
             {error}

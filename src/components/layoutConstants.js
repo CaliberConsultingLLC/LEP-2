@@ -1,4 +1,4 @@
-export const CONTENT_MAX_WIDTH_DEFAULT = 880;
+export const CONTENT_MAX_WIDTH_DEFAULT = 1180;
 export const CONTENT_MAX_WIDTH_WIDE = 1180;
 
 // Shared horizontal padding for both headers and page bodies so their

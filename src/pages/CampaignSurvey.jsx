@@ -696,7 +696,7 @@ function CampaignSurvey() {
             boxShadow: '0 18px 36px rgba(18, 31, 56, 0.22)',
             backdropFilter: 'blur(1px)',
             width: '100%',
-            maxWidth: 1120,
+            maxWidth: 1180,
             mx: 'auto',
             minHeight: { xs: 420, md: 440 },
             display: 'flex',
@@ -1014,7 +1014,7 @@ function CampaignSurvey() {
           sx={{
             mt: 1.1,
             width: '100%',
-            maxWidth: 1120,
+            maxWidth: 1180,
             mx: 'auto',
             borderRadius: 10,
             border: '1px solid rgba(15,30,58,0.12)',

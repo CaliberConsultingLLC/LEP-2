@@ -772,7 +772,7 @@ function TraitSelection() {
           width: useCairnTheme ? '100%' : '100vw',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 1120 }}>
+        <Box sx={{ width: '100%', maxWidth: 1180 }}>
         <Stack spacing={4} sx={{ width: '100%' }}>
           <Paper
             sx={{

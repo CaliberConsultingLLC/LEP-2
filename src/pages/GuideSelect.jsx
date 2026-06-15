@@ -78,7 +78,7 @@ function GuideSelect() {
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
           gap: { xs: 1.5, md: 2 },
           width: '100%',
-          maxWidth: 920,
+          maxWidth: 1180,
           mb: { xs: 2, md: 2.4 },
         }}>
           {GUIDE_PERSONAS.map((persona, idx) => {

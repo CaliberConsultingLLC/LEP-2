@@ -572,7 +572,7 @@ function CampaignVerify() {
           width: useCairnTheme ? '100%' : '100vw',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: 880 }}>
+        <Box sx={{ width: '100%', maxWidth: 1180 }}>
           <Box sx={{ textAlign: 'center', mb: 3.2 }}>
             <Typography
               sx={{

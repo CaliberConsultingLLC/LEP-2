@@ -83,7 +83,7 @@ const PageContainer = ({ children }) => (
       width: useCairnTheme ? '100%' : '100vw',
     }}
   >
-    <Box sx={{ width: useCairnTheme ? 880 : '100%', minWidth: useCairnTheme ? 880 : 0, maxWidth: 880 }}>{children}</Box>
+    <Box sx={{ width: useCairnTheme ? 1180 : '100%', minWidth: useCairnTheme ? 1180 : 0, maxWidth: 1180 }}>{children}</Box>
   </Container>
 );
 
@@ -92,7 +92,7 @@ const PageContainer = ({ children }) => (
 const SectionCard = ({ children, narrow = false }) => {
   if (useCairnTheme) {
     return (
-      <MemoBox sx={{ width: '100%', maxWidth: narrow ? 748 : 880 }}>
+      <MemoBox sx={{ width: '100%', maxWidth: narrow ? 748 : 1180 }}>
         <Box
           sx={{
             width: '100%',
@@ -115,7 +115,7 @@ const SectionCard = ({ children, narrow = false }) => {
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: narrow ? 748 : 880,
+          maxWidth: narrow ? 748 : 1180,
           borderRadius: 3,
           border: '1px solid rgba(255,255,255,0.14)',
           background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
