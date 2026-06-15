@@ -136,7 +136,7 @@ function MetricBlock({ label, team, self }) {
   );
 }
 
-function StageStatementRow({ statement, selected, isLowest, onSelect, flexGrow = 1 }) {
+function StageStatementRow({ statement, selected, isLowest, onSelect }) {
   return (
     <Box
       component="button"
@@ -153,9 +153,11 @@ function StageStatementRow({ statement, selected, isLowest, onSelect, flexGrow =
         color: selected ? colors.amberSoft : colors.textPrimary,
         px: 1.15,
         py: selected ? 1.2 : 0.95,
-        flex: `${flexGrow} 1 0%`,
-        minHeight: selected ? 116 : 74,
-        flexGrow,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        overflow: 'hidden',
         transition: motion.standard,
         '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
       }}
@@ -203,7 +205,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect, flexGrow =
 
       {selected && (
         <Box sx={{ mt: 1.1 }}>
-          <Box sx={{ height: 1, bgcolor: 'rgba(244,206,161,0.22)', mb: 1.1 }} />
+          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 1.1 }} />
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.95 }}>
             <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
             <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
@@ -216,6 +218,10 @@ function StageStatementRow({ statement, selected, isLowest, onSelect, flexGrow =
 
 function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
   const statements = useMemo(() => mapRowStatements(row), [row]);
+  const rowTemplate = useMemo(
+    () => statements.map((_, idx) => (idx === selected ? '1.65fr' : '1fr')).join(' '),
+    [selected, statements]
+  );
   const lowestIdx = useMemo(() => {
     if (!statements.length) return 0;
     let minIdx = 0;
@@ -248,7 +254,15 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
         }}
       >
         {headerSlot && <Box sx={{ mb: 1.1 }}>{headerSlot}</Box>}
-        <Stack spacing={0.85} sx={{ flex: 1, minHeight: 0 }}>
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            display: 'grid',
+            gridTemplateRows: rowTemplate,
+            gap: 0.85,
+          }}
+        >
           {statements.map((statement, idx) => (
             <StageStatementRow
               key={`${row.trait}-${idx}`}
@@ -256,10 +270,9 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
               selected={idx === selected}
               isLowest={idx === lowestIdx}
               onSelect={() => onSelect(idx)}
-              flexGrow={idx === selected ? 1.35 : 1}
             />
           ))}
-        </Stack>
+        </Box>
       </Box>
 
       <Box
@@ -325,7 +338,7 @@ function EvTraitPage({ row, index, description }) {
             {row.subTrait}
           </Typography>
         </Stack>
-        <Box sx={{ width: { xs: '100%', md: '56%' }, height: 1, bgcolor: colors.sand200, mb: 1.2 }} />
+        <Box sx={{ width: { xs: '100%', md: '56%' }, height: '1px', bgcolor: colors.sand200, mb: 1.2 }} />
         {description && (
           <Typography
             sx={{
@@ -643,7 +656,7 @@ function EvidenceSnapshot({ orderedRows, onOpenPractice }) {
                 mt: 1.05,
                 width: '68%',
                 mx: 'auto',
-                height: 1,
+                height: '1px',
                 bgcolor: colors.sand200,
               }}
             />
