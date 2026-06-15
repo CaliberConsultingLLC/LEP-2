@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
-import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
+import { colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
 import EvidenceQuadrant from './EvidenceQuadrant.jsx';
@@ -96,19 +96,19 @@ function MetricBlock({ label, team, self }) {
   const gap = Math.round(self - team);
   const gapAlert = Math.abs(gap) >= 15;
   return (
-    <Box sx={{ border: `1px solid rgba(244,206,161,0.2)`, borderRadius: radii.md, p: 1.1 }}>
-      <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em', color: 'rgba(244,206,161,0.86)', mb: 0.8 }}>
+    <Box sx={{ border: `1px solid rgba(244,206,161,0.18)`, borderRadius: radii.md, p: 0.8 }}>
+      <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, letterSpacing: '0.12em', color: 'rgba(244,206,161,0.86)', mb: 0.55 }}>
         {label}
       </Typography>
-      <Stack spacing={0.65}>
+      <Stack spacing={0.52}>
         <Box>
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>TEAM</Typography>
+          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.25, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>TEAM</Typography>
           <Box sx={{ height: 5, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
             <Box sx={{ width: `${Math.max(0, Math.min(100, team))}%`, height: '100%', bgcolor: colors.navy300 }} />
           </Box>
         </Box>
         <Box>
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>SELF</Typography>
+          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.25, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>SELF</Typography>
           <Box sx={{ height: 5, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
             <Box sx={{ width: `${Math.max(0, Math.min(100, self))}%`, height: '100%', bgcolor: colors.orange }} />
           </Box>
@@ -116,16 +116,16 @@ function MetricBlock({ label, team, self }) {
       </Stack>
       <Box
         sx={{
-          mt: 0.9,
+          mt: 0.65,
           display: 'inline-flex',
           alignItems: 'center',
-          px: 0.75,
-          py: 0.15,
+          px: 0.68,
+          py: 0.12,
           borderRadius: radii.pill,
           border: `1px solid ${gapAlert ? colors.orange : 'rgba(244,206,161,0.35)'}`,
           color: gapAlert ? colors.orange : 'rgba(244,206,161,0.78)',
           fontFamily: fonts.mono,
-          fontSize: 9.5,
+          fontSize: 9,
           fontWeight: 700,
           fontVariantNumeric: 'tabular-nums',
         }}
@@ -151,61 +151,62 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         border: `1px solid ${selected ? colors.navy900 : colors.sand200}`,
         bgcolor: selected ? colors.navy900 : colors.sand50,
         color: selected ? colors.amberSoft : colors.textPrimary,
-        px: 1.15,
-        py: selected ? 1.2 : 0.95,
+        px: 1,
+        py: selected ? 0.78 : 0.48,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
+        justifyContent: selected ? 'flex-start' : 'center',
         overflow: 'hidden',
         transition: motion.standard,
         '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
       }}
     >
-      <Box sx={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 1, alignItems: 'start' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '38px 1fr', gap: 0.85, alignItems: 'start' }}>
         <Typography
           sx={{
             fontFamily: fonts.mono,
-            fontSize: 17,
+            fontSize: 16.5,
             fontWeight: 700,
             lineHeight: 1.05,
             color: selected ? colors.amber : colors.orangeDeep,
             fontVariantNumeric: 'tabular-nums',
-            pt: 0.15,
+            pt: 0.1,
           }}
         >
           {statement.compass}
         </Typography>
-        <Box>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.45, color: selected ? colors.amberSoft : colors.textPrimary }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: selected ? 1.36 : 1.24, color: selected ? colors.amberSoft : colors.textPrimary }}>
             {statement.text}
+            {isLowest && (
+              <Box
+                component="span"
+                sx={{
+                  ml: 0.78,
+                  display: 'inline-flex',
+                  px: 0.56,
+                  py: 0.1,
+                  borderRadius: radii.pill,
+                  bgcolor: colors.orange,
+                  color: colors.surface1,
+                  fontFamily: fonts.mono,
+                  fontSize: 8,
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  verticalAlign: 'middle',
+                }}
+              >
+                LOWEST
+              </Box>
+            )}
           </Typography>
-          {isLowest && (
-            <Box
-              component="span"
-              sx={{
-                mt: 0.55,
-                display: 'inline-flex',
-                px: 0.7,
-                py: 0.1,
-                borderRadius: radii.pill,
-                bgcolor: colors.orange,
-                color: colors.surface1,
-                fontFamily: fonts.mono,
-                fontSize: 8,
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-              }}
-            >
-              LOWEST
-            </Box>
-          )}
         </Box>
       </Box>
 
       {selected && (
-        <Box sx={{ mt: 1.1 }}>
-          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 1.1 }} />
+        <Box sx={{ mt: 0.72 }}>
+          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 0.78 }} />
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.95 }}>
             <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
             <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
@@ -219,7 +220,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
 function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
   const statements = useMemo(() => mapRowStatements(row), [row]);
   const rowTemplate = useMemo(
-    () => statements.map((_, idx) => (idx === selected ? '3fr' : '0.5fr')).join(' '),
+    () => statements.map((_, idx) => (idx === selected ? '2.55fr' : '0.56fr')).join(' '),
     [selected, statements]
   );
   const lowestIdx = useMemo(() => {
@@ -564,7 +565,7 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows, onOpenPractice }) {
+function EvidenceSnapshot({ orderedRows }) {
   const [traitIdx, setTraitIdx] = useState(0);
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
   const statements = useMemo(() => mapRowStatements(row), [row]);
@@ -665,16 +666,6 @@ function EvidenceSnapshot({ orderedRows, onOpenPractice }) {
           </>
         )}
       />
-      <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
-        <Box
-          component="button"
-          type="button"
-          onClick={onOpenPractice}
-          sx={{ all: 'unset', cursor: 'pointer', ...buttons.primary }}
-        >
-          Continue to practice →
-        </Box>
-      </Stack>
     </SnapshotShell>
   );
 }
@@ -711,7 +702,7 @@ const EVIDENCE_GUIDE = {
   snapshot: 'The receipts keep. Come back any time a claim needs checking — or walk the room again.',
 };
 
-export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice }) {
+export default function EvidenceView({ t, phases, onAdvancePhase }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const { setPageMessage, clearPageMessage } = useGuide();
 
@@ -787,7 +778,6 @@ export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice
     return (
       <EvidenceSnapshot
         orderedRows={orderedRows}
-        onOpenPractice={onOpenPractice}
       />
     );
   }

@@ -829,7 +829,6 @@ export default function CommandCenter() {
             selectedAgent={selectedAgent}
             phases={phases}
             onAdvancePhase={() => advancePhase('evidence')}
-            onOpenPractice={() => goToTab('practice')}
           />
         );
       case 'practice':
@@ -860,6 +859,17 @@ export default function CommandCenter() {
   const headerSubtitleOverride = activeTab === 'evidence'
     ? 'Read the statements behind the signal before deciding what to practice.'
     : '';
+  const compactHeaderActionSx = {
+    all: 'unset',
+    cursor: 'pointer',
+    ...buttons.outlinedPrimary,
+    minHeight: 22,
+    px: 1.05,
+    py: 0.38,
+    fontSize: 8.2,
+    letterSpacing: '0.06em',
+    borderRadius: '999px',
+  };
 
   const headerMeta = activeTab === 'practice'
     ? (
@@ -874,14 +884,24 @@ export default function CommandCenter() {
     )
     : activeTab === 'evidence'
       ? (
-        <Box
-          component="button"
-          type="button"
-          onClick={() => phases.startReplay('evidence')}
-          sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}
-        >
-          ↻ Walk through again
-        </Box>
+        <Stack direction="row" spacing={0.6} alignItems="center">
+          <Box
+            component="button"
+            type="button"
+            onClick={() => phases.startReplay('evidence')}
+            sx={compactHeaderActionSx}
+          >
+            ↻ Walk through again
+          </Box>
+          <Box
+            component="button"
+            type="button"
+            onClick={() => goToTab('practice')}
+            sx={compactHeaderActionSx}
+          >
+            Continue to practice →
+          </Box>
+        </Stack>
       )
       : (
         <Box
