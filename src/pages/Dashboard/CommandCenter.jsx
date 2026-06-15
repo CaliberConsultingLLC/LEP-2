@@ -775,6 +775,7 @@ export default function CommandCenter() {
   }, []);
 
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [evidenceTraitMeta, setEvidenceTraitMeta] = useState({ label: 'Trait', value: '1 / 3' });
 
   // Keep state in sync if the URL changes (back/forward, dev panel deep-links)
   useEffect(() => {
@@ -830,6 +831,7 @@ export default function CommandCenter() {
             phases={phases}
             onAdvancePhase={() => advancePhase('evidence')}
             onOpenPractice={() => goToTab('practice')}
+            onTraitMetaChange={setEvidenceTraitMeta}
           />
         );
       case 'practice':
@@ -860,7 +862,7 @@ export default function CommandCenter() {
   const headerMeta = activeTab === 'practice'
     ? { label: 'Practice', value: phases.practice === 'done' ? 'Complete' : 'Active' }
     : activeTab === 'evidence'
-      ? { label: 'Evidence', value: phases.evidence === 'done' ? 'Complete' : 'Active' }
+      ? evidenceTraitMeta
       : { label: 'Signal', value: phases.signal === 'done' ? 'Ready' : 'Current' };
 
   return (

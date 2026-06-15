@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Stack, Tooltip, Typography } from '@mui/material';
-import { buttons, chips as chipTokens, colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
+import { Box, Stack, Typography } from '@mui/material';
+import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
-import { getQuadrant } from './quadrants.js';
 import { useGuide } from '../../../context/GuideContext';
 import EvidenceQuadrant from './EvidenceQuadrant.jsx';
 import {
@@ -14,44 +13,6 @@ import {
   WalkthroughStage,
 } from './debriefUi.jsx';
 import { deriveTraitRoles } from './debriefContent.js';
-
-// ---------------------------------------------------------------------------
-// Quadrant-zone chip (same treatment as the Signal walkthrough)
-// ---------------------------------------------------------------------------
-function QuadrantChip({ zone }) {
-  return (
-    <Tooltip
-      arrow
-      placement="top"
-      title={
-        <Box sx={{ p: 0.4 }}>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700, mb: 0.5 }}>{zone.label}</Typography>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 12, lineHeight: 1.5, mb: 0.6 }}>{zone.meaning}</Typography>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 12, lineHeight: 1.5, fontStyle: 'italic', opacity: 0.92 }}>{zone.stance}</Typography>
-        </Box>
-      }
-      slotProps={{ tooltip: { sx: { maxWidth: 280, p: 1.2 } } }}
-    >
-      <Box
-        sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 0.6,
-          px: 1.2,
-          py: 0.5,
-          borderRadius: radii.pill,
-          border: `1px solid ${zone.color}`,
-          cursor: 'help',
-        }}
-      >
-        <Box sx={{ width: 7, height: 7, borderRadius: radii.circle, bgcolor: zone.color, flexShrink: 0 }} />
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: zone.color }}>
-          {zone.label}
-        </Typography>
-      </Box>
-    </Tooltip>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // 01 · Opening the room
@@ -94,244 +55,205 @@ function EvIntroPage({ rows, respondents }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Trait explorer — the shared Evidence composition.
-//   Left: spotlight card + slim statement table (lowest Compass first).
-//   Right: the hero quadrant with axis projections + self comparison.
-// Shared between the walkthrough exhibits and the snapshot.
-// ---------------------------------------------------------------------------
-export function EvTraitExplorer({ row, aboveList = null }) {
+function mapRowStatements(row) {
+  const teamStatements = row?.team?.statements || [];
+  const selfStatements = row?.self?.statements || [];
+  return teamStatements.map((s, i) => {
+    const self = selfStatements[i] || {};
+    return {
+      text: s.text,
+      effort: Math.round(Number(s.effort) || 0),
+      efficacy: Math.round(Number(s.efficacy) || 0),
+      effortSelf: Math.round(Number(self.effort) || Number(s.effort) || 0),
+      efficacySelf: Math.round(Number(self.efficacy) || Number(s.efficacy) || 0),
+      compass: Math.round(Number(s.lepScore) || 0),
+    };
+  });
+}
+
+function MetricBlock({ label, team, self }) {
+  const gap = Math.round(self - team);
+  const gapAlert = Math.abs(gap) >= 15;
+  return (
+    <Box sx={{ border: `1px solid rgba(244,206,161,0.2)`, borderRadius: radii.md, p: 1.1 }}>
+      <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em', color: 'rgba(244,206,161,0.86)', mb: 0.8 }}>
+        {label}
+      </Typography>
+      <Stack spacing={0.65}>
+        <Box>
+          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>TEAM</Typography>
+          <Box sx={{ height: 5, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
+            <Box sx={{ width: `${Math.max(0, Math.min(100, team))}%`, height: '100%', bgcolor: colors.navy300 }} />
+          </Box>
+        </Box>
+        <Box>
+          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>SELF</Typography>
+          <Box sx={{ height: 5, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
+            <Box sx={{ width: `${Math.max(0, Math.min(100, self))}%`, height: '100%', bgcolor: colors.orange }} />
+          </Box>
+        </Box>
+      </Stack>
+      <Box
+        sx={{
+          mt: 0.9,
+          display: 'inline-flex',
+          alignItems: 'center',
+          px: 0.75,
+          py: 0.15,
+          borderRadius: radii.pill,
+          border: `1px solid ${gapAlert ? colors.orange : 'rgba(244,206,161,0.35)'}`,
+          color: gapAlert ? colors.orange : 'rgba(244,206,161,0.78)',
+          fontFamily: fonts.mono,
+          fontSize: 9.5,
+          fontWeight: 700,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        Gap {gap > 0 ? `+${gap}` : gap}
+      </Box>
+    </Box>
+  );
+}
+
+function StageStatementRow({ statement, selected, isLowest, onSelect }) {
+  return (
+    <Box
+      component="button"
+      type="button"
+      onClick={onSelect}
+      sx={{
+        all: 'unset',
+        cursor: 'pointer',
+        boxSizing: 'border-box',
+        width: '100%',
+        borderRadius: radii.md,
+        border: `1px solid ${selected ? colors.navy900 : colors.sand200}`,
+        bgcolor: selected ? colors.navy900 : colors.sand50,
+        color: selected ? colors.amberSoft : colors.textPrimary,
+        px: 1.15,
+        py: selected ? 1.2 : 0.95,
+        transition: motion.standard,
+        '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
+      }}
+    >
+      <Box sx={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 1, alignItems: 'start' }}>
+        <Typography
+          sx={{
+            fontFamily: fonts.mono,
+            fontSize: 17,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            color: selected ? colors.amber : colors.orangeDeep,
+            fontVariantNumeric: 'tabular-nums',
+            pt: 0.15,
+          }}
+        >
+          {statement.compass}
+        </Typography>
+        <Box>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.45, color: selected ? colors.amberSoft : colors.textPrimary }}>
+            {statement.text}
+          </Typography>
+          {isLowest && (
+            <Box
+              component="span"
+              sx={{
+                mt: 0.55,
+                display: 'inline-flex',
+                px: 0.7,
+                py: 0.1,
+                borderRadius: radii.pill,
+                bgcolor: colors.orange,
+                color: colors.surface1,
+                fontFamily: fonts.mono,
+                fontSize: 8,
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+              }}
+            >
+              LOWEST
+            </Box>
+          )}
+        </Box>
+      </Box>
+
+      {selected && (
+        <Box sx={{ mt: 1.1 }}>
+          <Box sx={{ height: 1, bgcolor: 'rgba(244,206,161,0.22)', mb: 1.1 }} />
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.95 }}>
+            <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
+            <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
+  const statements = useMemo(() => mapRowStatements(row), [row]);
   const lowestIdx = useMemo(() => {
-    const sts = row.team?.statements || [];
-    let li = 0;
-    sts.forEach((s, i) => {
-      if (s.lepScore < sts[li].lepScore) li = i;
+    if (!statements.length) return 0;
+    let minIdx = 0;
+    statements.forEach((s, i) => {
+      if (s.compass < statements[minIdx].compass) minIdx = i;
     });
-    return li;
-  }, [row]);
-
-  const [selected, setSelected] = useState(lowestIdx);
-  const [selfOn, setSelfOn] = useState(true);
-
-  // Re-anchor on the lowest read whenever the trait changes.
-  useEffect(() => {
-    setSelected(lowestIdx);
-  }, [row, lowestIdx]);
-
-  const statements = useMemo(() => row.team?.statements || [], [row]);
-  const spot = selected != null ? statements[selected] : null;
-  const spotSelf = selected != null && row.self ? row.self.statements[selected] : null;
-  const spotIsLowest = selected === lowestIdx;
-
-  // Statements ordered lowest Compass first; flag the 1–2 lowest.
-  const ordered = useMemo(() => {
-    const items = statements.map((s, i) => ({ s, i }));
-    return items.sort((a, b) => a.s.lepScore - b.s.lepScore);
+    return minIdx;
   }, [statements]);
-  const lowSet = new Set(ordered.length ? [ordered[0].i] : []);
-  if (ordered[1] && ordered[1].s.lepScore < 50) lowSet.add(ordered[1].i);
 
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1.1fr)' },
-        gap: 4,
-        alignItems: 'start',
+        gridTemplateColumns: '1fr',
+        '@media (min-width:820px)': {
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+        },
+        gap: 2.2,
+        alignItems: 'stretch',
       }}
     >
-      {/* Left — the words: spotlight + statement table */}
-      <Stack spacing={1.75}>
-        {aboveList}
-
-        {spot && (
-          <Box
-            sx={{
-              ...surfaces.card,
-              px: 2.75,
-              py: 2.25,
-              border: `1.5px solid ${colors.orange}`,
-              background: 'linear-gradient(150deg, color-mix(in srgb, var(--amber-soft) 22%, transparent), var(--surface-1))',
-            }}
-          >
-            <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={1.75} sx={{ mb: 1 }}>
-              <Typography sx={{ ...type.eyebrow }}>
-                {spotIsLowest ? 'Start here · the lowest read' : 'In their words'}
-              </Typography>
-              <Stack direction="row" alignItems="baseline" spacing={0.9} sx={{ flexShrink: 0 }}>
-                <Typography
-                  sx={{
-                    fontFamily: fonts.serif,
-                    fontWeight: 600,
-                    fontSize: 30,
-                    lineHeight: 0.95,
-                    letterSpacing: '-0.04em',
-                    color: colors.orange,
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  {Math.round(spot.lepScore)}
-                </Typography>
-                <Typography sx={{ ...type.monoLabel }}>Compass</Typography>
-              </Stack>
-            </Stack>
-            <Typography
-              sx={{
-                fontFamily: fonts.serif,
-                fontStyle: 'italic',
-                fontSize: 17,
-                lineHeight: 1.45,
-                color: colors.textPrimary,
-                mb: 1.2,
-                textWrap: 'pretty',
-              }}
-            >
-              “{spot.text}”
-            </Typography>
-            <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', color: colors.textSecondary }}>
-              Efficacy {Math.round(spot.efficacy)} · Effort {Math.round(spot.effort)}
-              {selfOn && spotSelf ? ` · You rated it ${Math.round(spotSelf.lepScore)}` : ''}
-            </Typography>
-          </Box>
-        )}
-
-        {/* Statement table — lowest Compass first */}
-        <Box sx={{ ...surfaces.card, px: 2.75, pt: 0.5, pb: 0.75 }}>
-          <Box component="table" sx={{ borderCollapse: 'collapse', width: '100%' }}>
-            <Box component="thead">
-              <Box component="tr">
-                <Box component="th" sx={{ ...type.monoLabel, textAlign: 'left', pt: 1.6, pb: 1.1, pr: 2 }}>
-                  Statement
-                </Box>
-                <Box component="th" sx={{ ...type.monoLabel, textAlign: 'right', pt: 1.6, pb: 1.1, pl: 2, color: colors.orangeDeep }}>
-                  Compass
-                </Box>
-              </Box>
-            </Box>
-            <Box component="tbody">
-              {ordered.map(({ s, i }) => {
-                const sel = selected === i;
-                const low = lowSet.has(i);
-                return (
-                  <Box
-                    component="tr"
-                    key={i}
-                    onClick={() => setSelected(sel ? null : i)}
-                    sx={{
-                      borderTop: `1px solid ${colors.sand200}`,
-                      cursor: 'pointer',
-                      bgcolor: sel
-                        ? 'color-mix(in srgb, var(--orange) 8%, transparent)'
-                        : low
-                        ? 'color-mix(in srgb, var(--amber-soft) 22%, transparent)'
-                        : 'transparent',
-                      outline: sel ? `1.5px solid ${colors.orange}` : 'none',
-                      outlineOffset: '-1.5px',
-                      transition: motion.standard,
-                    }}
-                  >
-                    <Box component="td" sx={{ py: 1.5, pr: 2, fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.45, color: colors.textPrimary }}>
-                      {s.text}
-                      {low && (
-                        <Box
-                          component="span"
-                          sx={{
-                            display: 'inline-block',
-                            ml: 1,
-                            px: 1,
-                            py: '1px',
-                            borderRadius: radii.pill,
-                            bgcolor: colors.orange,
-                            color: colors.surface1,
-                            fontFamily: fonts.mono,
-                            fontSize: 8,
-                            fontWeight: 700,
-                            letterSpacing: '0.14em',
-                            textTransform: 'uppercase',
-                            verticalAlign: 'middle',
-                          }}
-                        >
-                          Needs focus
-                        </Box>
-                      )}
-                    </Box>
-                    <Box
-                      component="td"
-                      sx={{
-                        py: 1.5,
-                        pl: 2,
-                        textAlign: 'right',
-                        fontFamily: fonts.mono,
-                        fontSize: 14.5,
-                        fontWeight: 700,
-                        fontVariantNumeric: 'tabular-nums',
-                        color: colors.orangeDeep,
-                        whiteSpace: 'nowrap',
-                        verticalAlign: 'top',
-                      }}
-                    >
-                      {Math.round(s.lepScore)}
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
-          </Box>
-        </Box>
-      </Stack>
-
-      {/* Right — the map */}
-      <Box>
-        <Box sx={{ maxWidth: 'min(560px, calc(100vh - 330px))', mx: 'auto' }}>
-          <EvidenceQuadrant
-            row={row}
-            selectedIdx={selected}
-            onStatementClick={setSelected}
-            showSelf={selfOn && Boolean(row.self)}
-            size={560}
-          />
-        </Box>
-        <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.75} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 1 }}>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 11.5, color: colors.textSecondary }}>
-            {selected != null
-              ? 'Click the dot — or a statement — to see all five.'
-              : 'All five statements. Click any dot to isolate it.'}
-          </Typography>
-          {row.self && (
-            <Box
-              component="button"
-              type="button"
-              onClick={() => setSelfOn(!selfOn)}
-              aria-pressed={selfOn}
-              sx={{
-                all: 'unset',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.7,
-                px: 1.5,
-                py: 0.6,
-                borderRadius: radii.pill,
-                border: `1px solid ${selfOn ? colors.orange : colors.sand200}`,
-                bgcolor: selfOn ? colors.orange : colors.surface1,
-                color: selfOn ? colors.surface1 : colors.textSecondary,
-                fontFamily: fonts.mono,
-                fontSize: 9,
-                fontWeight: 700,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                transition: motion.standard,
-                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-              }}
-            >
-              <Box
-                component="span"
-                sx={{ width: 8, height: 8, borderRadius: radii.circle, bgcolor: selfOn ? colors.surface1 : colors.orange, flexShrink: 0 }}
-              />
-              Self Assess
-            </Box>
-          )}
+      <Box
+        sx={{
+          ...surfaces.card,
+          p: '22px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+          height: '100%',
+        }}
+      >
+        {headerSlot && <Box sx={{ mb: 1.1 }}>{headerSlot}</Box>}
+        <Stack spacing={0.85}>
+          {statements.map((statement, idx) => (
+            <StageStatementRow
+              key={`${row.trait}-${idx}`}
+              statement={statement}
+              selected={idx === selected}
+              isLowest={idx === lowestIdx}
+              onSelect={() => onSelect(idx)}
+            />
+          ))}
         </Stack>
+      </Box>
+
+      <Box
+        sx={{
+          ...surfaces.card,
+          p: '22px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          height: '100%',
+        }}
+      >
+        <EvidenceQuadrant
+          statements={statements}
+          selectedIdx={selected}
+          onSelect={onSelect}
+          mode={mode}
+          onModeChange={onModeChange}
+        />
       </Box>
     </Box>
   );
@@ -341,7 +263,23 @@ export function EvTraitExplorer({ row, aboveList = null }) {
 // Trait exhibit chapter — header with description + the shared explorer
 // ---------------------------------------------------------------------------
 function EvTraitPage({ row, index, description }) {
-  const zone = getQuadrant(row.team.effort, row.team.efficacy);
+  const statements = useMemo(() => mapRowStatements(row), [row]);
+  const lowestIdx = useMemo(() => {
+    if (!statements.length) return 0;
+    let minIdx = 0;
+    statements.forEach((s, i) => {
+      if (s.compass < statements[minIdx].compass) minIdx = i;
+    });
+    return minIdx;
+  }, [statements]);
+  const [selected, setSelected] = useState(lowestIdx);
+  const [mode, setMode] = useState('map');
+
+  useEffect(() => {
+    setSelected(lowestIdx);
+    setMode('map');
+  }, [lowestIdx, row]);
+
   return (
     <Box sx={{ maxWidth: 1140, mx: 'auto' }}>
       <Box sx={{ mb: 2 }}>
@@ -361,7 +299,6 @@ function EvTraitPage({ row, index, description }) {
           >
             {row.subTrait}
           </Typography>
-          <QuadrantChip zone={zone} />
         </Stack>
         {description && (
           <Typography
@@ -379,7 +316,7 @@ function EvTraitPage({ row, index, description }) {
           </Typography>
         )}
       </Box>
-      <EvTraitExplorer row={row} />
+      <StagePanels row={row} selected={selected} onSelect={setSelected} mode={mode} onModeChange={setMode} />
     </Box>
   );
 }
@@ -586,10 +523,29 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows, onReplay, onOpenPractice }) {
+function EvidenceSnapshot({ orderedRows, onReplay, onOpenPractice, onTraitMetaChange }) {
   const [traitIdx, setTraitIdx] = useState(0);
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
-  const zone = getQuadrant(row.team.effort, row.team.efficacy);
+  const statements = useMemo(() => mapRowStatements(row), [row]);
+  const lowestIdx = useMemo(() => {
+    if (!statements.length) return 0;
+    let minIdx = 0;
+    statements.forEach((s, i) => {
+      if (s.compass < statements[minIdx].compass) minIdx = i;
+    });
+    return minIdx;
+  }, [statements]);
+  const [selected, setSelected] = useState(lowestIdx);
+  const [mode, setMode] = useState('map');
+
+  useEffect(() => {
+    setSelected(lowestIdx);
+    setMode('map');
+  }, [traitIdx, lowestIdx]);
+
+  useEffect(() => {
+    onTraitMetaChange?.({ label: 'Trait', value: `${traitIdx + 1} / ${orderedRows.length}` });
+  }, [traitIdx, orderedRows.length, onTraitMetaChange]);
 
   return (
     <SnapshotShell>
@@ -598,35 +554,73 @@ function EvidenceSnapshot({ orderedRows, onReplay, onOpenPractice }) {
           ↻ Walk through again
         </Box>
       </Stack>
-      <EvTraitExplorer
+      <StagePanels
         row={row}
-        aboveList={
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-            {orderedRows.map((r, i) => {
-              const active = i === traitIdx;
-              return (
-                <Box
-                  key={r.trait}
-                  component="button"
-                  type="button"
-                  onClick={() => setTraitIdx(i)}
-                  sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    ...chipTokens.base,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    ...(active ? chipTokens.active : chipTokens.hover),
-                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                  }}
-                >
-                  {r.subTrait || r.trait}
-                </Box>
-              );
-            })}
-            <QuadrantChip zone={zone} />
+        selected={selected}
+        onSelect={setSelected}
+        mode={mode}
+        onModeChange={setMode}
+        headerSlot={(
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Box
+              component="button"
+              type="button"
+              onClick={() => setTraitIdx((p) => (p - 1 + orderedRows.length) % orderedRows.length)}
+              sx={{
+                all: 'unset',
+                width: 38,
+                height: 38,
+                borderRadius: radii.circle,
+                border: `1px solid ${colors.sand300}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontFamily: fonts.mono,
+                fontSize: 19,
+                color: colors.inkSoft,
+                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+              }}
+            >
+              ‹
+            </Box>
+            <Typography
+              sx={{
+                flex: 1,
+                textAlign: 'center',
+                fontFamily: fonts.serif,
+                fontSize: 25,
+                fontWeight: 500,
+                lineHeight: 1.15,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {row.subTrait || row.trait}
+            </Typography>
+            <Box
+              component="button"
+              type="button"
+              onClick={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
+              sx={{
+                all: 'unset',
+                width: 38,
+                height: 38,
+                borderRadius: radii.circle,
+                border: `1px solid ${colors.sand300}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontFamily: fonts.mono,
+                fontSize: 19,
+                color: colors.inkSoft,
+                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+              }}
+            >
+              ›
+            </Box>
           </Stack>
-        }
+        )}
       />
       <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
         <Box
@@ -674,7 +668,7 @@ const EVIDENCE_GUIDE = {
   snapshot: 'The receipts keep. Come back any time a claim needs checking — or walk the room again.',
 };
 
-export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice }) {
+export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice, onTraitMetaChange }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const { setPageMessage, clearPageMessage } = useGuide();
 
@@ -724,6 +718,14 @@ export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 
+  useEffect(() => {
+    if (!orderedRows.length || mode === 'snapshot') return;
+    const chapterTraitIndex = chapter?.row
+      ? Math.max(0, orderedRows.findIndex((r) => r.trait === chapter.row.trait))
+      : 0;
+    onTraitMetaChange?.({ label: 'Trait', value: `${chapterTraitIndex + 1} / ${orderedRows.length}` });
+  }, [chapter, mode, onTraitMetaChange, orderedRows]);
+
   if (!loaded && !orderedRows.length) {
     return (
       <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, py: 3 }}>
@@ -752,6 +754,7 @@ export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice
         orderedRows={orderedRows}
         onReplay={() => phases.startReplay('evidence')}
         onOpenPractice={onOpenPractice}
+        onTraitMetaChange={onTraitMetaChange}
       />
     );
   }
