@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { colors, fonts } from '../../../styles/tokens';
 
 const VIEW = 560;
-const PAD = 48;
+const PAD = 40;
 const INNER = VIEW - PAD * 2;
 const MAP_BG = '#fbf8f2';
 const FOCUS_INK = '#161616';
@@ -34,7 +34,7 @@ function yForEfficacy(v) {
 
 function Node({ x, y, label, selected, dimmed, mode, onClick }) {
   const isFocusMode = mode !== 'map';
-  const r = selected ? 16.5 : 13;
+  const r = selected ? 17.5 : 13.5;
   const fill = selected ? (isFocusMode ? colors.surface1 : colors.navy900) : colors.navy300;
   const stroke = selected
     ? (isFocusMode ? FOCUS_INK : colors.navy900)
@@ -57,7 +57,7 @@ function Node({ x, y, label, selected, dimmed, mode, onClick }) {
         fill={selected ? (isFocusMode ? FOCUS_INK : colors.surface1) : colors.surface1}
         style={{
           fontFamily: fonts.mono,
-          fontSize: 11.5,
+          fontSize: 12,
           fontWeight: 700,
           fontVariantNumeric: 'tabular-nums',
           pointerEvents: 'none',
@@ -129,20 +129,20 @@ export default function EvidenceQuadrant({
             <rect x={PAD + INNER / 2} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.orange} opacity="0.07" />
             <line x1={PAD + INNER / 2} y1={PAD} x2={PAD + INNER / 2} y2={PAD + INNER} stroke={colors.sand300} strokeDasharray="5 5" />
             <line x1={PAD} y1={PAD + INNER / 2} x2={PAD + INNER} y2={PAD + INNER / 2} stroke={colors.sand300} strokeDasharray="5 5" />
-            <text x={PAD + 12} y={PAD + 16} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>NATURAL GIFT</text>
-            <text x={PAD + INNER - 12} y={PAD + 16} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>FULL STRENGTH</text>
-            <text x={PAD + 12} y={PAD + INNER - 10} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>UNTAPPED</text>
-            <text x={PAD + INNER - 12} y={PAD + INNER - 10} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>OFF-TARGET</text>
+            <text x={PAD + 12} y={PAD + 16} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>NATURAL GIFT</text>
+            <text x={PAD + INNER - 12} y={PAD + 16} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>FULL STRENGTH</text>
+            <text x={PAD + 12} y={PAD + INNER - 10} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>UNTAPPED</text>
+            <text x={PAD + INNER - 12} y={PAD + INNER - 10} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>OFF-TARGET</text>
             <text
               x={PAD - 18}
               y={PAD + INNER / 2}
               fill={colors.inkSoft}
-              style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.08em' }}
+              style={{ fontFamily: fonts.mono, fontSize: 11.25, letterSpacing: '0.09em', fontWeight: 700 }}
               transform={`rotate(-90 ${PAD - 18} ${PAD + INNER / 2})`}
             >
               EFFICACY
             </text>
-            <text x={PAD + INNER / 2} y={PAD + INNER + 20} textAnchor="middle" fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.08em' }}>EFFORT</text>
+            <text x={PAD + INNER / 2} y={PAD + INNER + 24} textAnchor="middle" fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 11.25, letterSpacing: '0.09em', fontWeight: 700 }}>EFFORT</text>
           </>
         )}
 
@@ -153,8 +153,25 @@ export default function EvidenceQuadrant({
               const y = PAD + (INNER / 4) * i;
               return <line key={i} x1={PAD} y1={y} x2={PAD + INNER} y2={y} stroke={colors.sand300} strokeDasharray="2 6" />;
             })}
-            <text x={PAD + 8} y={PAD + 14} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.1em' }}>HIGHLY EFFECTIVE</text>
-            <text x={PAD + 8} y={PAD + INNER - 8} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.1em' }}>NOT EFFECTIVE</text>
+            <text x={PAD + 8} y={PAD + 14} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }}>HIGHLY EFFECTIVE</text>
+            <text x={PAD + 8} y={PAD + INNER - 8} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }}>NOT EFFECTIVE</text>
+            {selected && (
+              <>
+                <line
+                  x1={PAD + 2}
+                  y1={selected.y}
+                  x2={selected.x - 10}
+                  y2={selected.y}
+                  stroke={FOCUS_INK}
+                  strokeDasharray="4 5"
+                  strokeWidth="1.7"
+                />
+                <polygon
+                  points={`${selected.x - 10},${selected.y} ${selected.x - 18},${selected.y - 4.5} ${selected.x - 18},${selected.y + 4.5}`}
+                  fill={FOCUS_INK}
+                />
+              </>
+            )}
           </>
         )}
 
@@ -165,8 +182,25 @@ export default function EvidenceQuadrant({
               const x = PAD + (INNER / 4) * i;
               return <line key={i} x1={x} y1={PAD} x2={x} y2={PAD + INNER} stroke={colors.sand300} strokeDasharray="2 6" />;
             })}
-            <text x={PAD + 10} y={PAD + INNER / 2} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.1em' }} transform={`rotate(-90 ${PAD + 10} ${PAD + INNER / 2})`}>LOW EFFORT</text>
-            <text x={PAD + INNER - 10} y={PAD + INNER / 2} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.1em' }} transform={`rotate(90 ${PAD + INNER - 10} ${PAD + INNER / 2})`}>HIGH EFFORT</text>
+            <text x={PAD + 10} y={PAD + INNER / 2} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }} transform={`rotate(-90 ${PAD + 10} ${PAD + INNER / 2})`}>LOW EFFORT</text>
+            <text x={PAD + INNER - 10} y={PAD + INNER / 2} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }} transform={`rotate(90 ${PAD + INNER - 10} ${PAD + INNER / 2})`}>HIGH EFFORT</text>
+            {selected && (
+              <>
+                <line
+                  x1={selected.x}
+                  y1={PAD + INNER - 2}
+                  x2={selected.x}
+                  y2={selected.y + 10}
+                  stroke={FOCUS_INK}
+                  strokeDasharray="4 5"
+                  strokeWidth="1.7"
+                />
+                <polygon
+                  points={`${selected.x},${selected.y + 10} ${selected.x - 4.5},${selected.y + 18} ${selected.x + 4.5},${selected.y + 18}`}
+                  fill={FOCUS_INK}
+                />
+              </>
+            )}
           </>
         )}
 
@@ -191,7 +225,7 @@ export default function EvidenceQuadrant({
         ))}
       </svg>
 
-      <div style={{ position: 'absolute', left: 4, top: '49%', transform: 'translateY(-50%)' }}>
+      <div style={{ position: 'absolute', left: -8, top: '49%', transform: 'translateY(-50%)' }}>
         <button
           type="button"
           aria-label="Focus efficacy"
@@ -202,7 +236,7 @@ export default function EvidenceQuadrant({
         </button>
       </div>
 
-      <div style={{ position: 'absolute', left: '50%', bottom: 6, transform: 'translateX(-50%)' }}>
+      <div style={{ position: 'absolute', left: '50%', bottom: -3, transform: 'translateX(52px)' }}>
         <button
           type="button"
           aria-label="Focus effort"

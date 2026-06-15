@@ -71,7 +71,7 @@ function mapRowStatements(row) {
       efficacySelf: Math.round(Number(self.efficacy) || Number(s.efficacy) || 0),
       compass: Math.round(Number(s.lepScore) || 0),
     };
-  });
+  }).sort((a, b) => a.compass - b.compass);
 }
 
 function fallbackStatementsForRow(row) {
@@ -219,7 +219,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
 function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
   const statements = useMemo(() => mapRowStatements(row), [row]);
   const rowTemplate = useMemo(
-    () => statements.map((_, idx) => (idx === selected ? '1.65fr' : '1fr')).join(' '),
+    () => statements.map((_, idx) => (idx === selected ? '3fr' : '0.5fr')).join(' '),
     [selected, statements]
   );
   const lowestIdx = useMemo(() => {
@@ -277,12 +277,14 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
 
       <Box
         sx={{
-          ...surfaces.card,
-          p: '22px',
+          p: 0,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           height: '100%',
+          bgcolor: 'transparent',
+          border: 'none',
+          boxShadow: 'none',
         }}
       >
         <EvidenceQuadrant
