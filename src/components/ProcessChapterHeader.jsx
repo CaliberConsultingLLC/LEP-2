@@ -125,7 +125,7 @@ export default function ProcessChapterHeader({
             </Typography>
           </Box>
           {meta && (
-            <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', top: '26px', right: 0 }}>
+            <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', top: '34px', right: '22px' }}>
               {renderMeta(meta)}
             </Box>
           )}

@@ -153,21 +153,21 @@ export default function EvidenceQuadrant({
               const y = PAD + (INNER / 4) * i;
               return <line key={i} x1={PAD} y1={y} x2={PAD + INNER} y2={y} stroke={colors.sand300} strokeDasharray="2 6" />;
             })}
-            <text x={PAD + 8} y={PAD + 14} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }}>HIGHLY EFFECTIVE</text>
-            <text x={PAD + 8} y={PAD + INNER - 8} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }}>NOT EFFECTIVE</text>
+            <text x={PAD + INNER / 2} y={PAD + 18} textAnchor="middle" fill={colors.amberSoft} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }}>HIGHLY EFFECTIVE</text>
+            <text x={PAD + INNER / 2} y={PAD + INNER - 10} textAnchor="middle" fill={colors.navy900} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }}>NOT EFFECTIVE</text>
             {selected && (
               <>
                 <line
-                  x1={PAD + 2}
-                  y1={selected.y}
-                  x2={selected.x - 10}
-                  y2={selected.y}
+                  x1={selected.x}
+                  y1={PAD + INNER - 2}
+                  x2={selected.x}
+                  y2={selected.y + 10}
                   stroke={FOCUS_INK}
                   strokeDasharray="4 5"
                   strokeWidth="1.7"
                 />
                 <polygon
-                  points={`${selected.x - 10},${selected.y} ${selected.x - 18},${selected.y - 4.5} ${selected.x - 18},${selected.y + 4.5}`}
+                  points={`${selected.x},${selected.y + 10} ${selected.x - 4.5},${selected.y + 18} ${selected.x + 4.5},${selected.y + 18}`}
                   fill={FOCUS_INK}
                 />
               </>
@@ -182,21 +182,21 @@ export default function EvidenceQuadrant({
               const x = PAD + (INNER / 4) * i;
               return <line key={i} x1={x} y1={PAD} x2={x} y2={PAD + INNER} stroke={colors.sand300} strokeDasharray="2 6" />;
             })}
-            <text x={PAD + 10} y={PAD + INNER / 2} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }} transform={`rotate(-90 ${PAD + 10} ${PAD + INNER / 2})`}>LOW EFFORT</text>
-            <text x={PAD + INNER - 10} y={PAD + INNER / 2} fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.1em', fontWeight: 700 }} transform={`rotate(90 ${PAD + INNER - 10} ${PAD + INNER / 2})`}>HIGH EFFORT</text>
+            <text x={PAD + 18} y={PAD + INNER / 2} textAnchor="middle" fill={colors.navy900} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }} transform={`rotate(-90 ${PAD + 18} ${PAD + INNER / 2})`}>LOW EFFORT</text>
+            <text x={PAD + INNER - 18} y={PAD + INNER / 2} textAnchor="middle" fill={colors.navy900} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }} transform={`rotate(-90 ${PAD + INNER - 18} ${PAD + INNER / 2})`}>HIGH EFFORT</text>
             {selected && (
               <>
                 <line
-                  x1={selected.x}
-                  y1={PAD + INNER - 2}
-                  x2={selected.x}
-                  y2={selected.y + 10}
+                  x1={PAD + 2}
+                  y1={selected.y}
+                  x2={selected.x - 10}
+                  y2={selected.y}
                   stroke={FOCUS_INK}
                   strokeDasharray="4 5"
                   strokeWidth="1.7"
                 />
                 <polygon
-                  points={`${selected.x},${selected.y + 10} ${selected.x - 4.5},${selected.y + 18} ${selected.x + 4.5},${selected.y + 18}`}
+                  points={`${selected.x - 10},${selected.y} ${selected.x - 18},${selected.y - 4.5} ${selected.x - 18},${selected.y + 4.5}`}
                   fill={FOCUS_INK}
                 />
               </>
@@ -225,7 +225,7 @@ export default function EvidenceQuadrant({
         ))}
       </svg>
 
-      <div style={{ position: 'absolute', left: -8, top: '49%', transform: 'translateY(-50%)' }}>
+      <div style={{ position: 'absolute', left: 6, top: '50%', transform: 'translateY(calc(-50% - 62px))' }}>
         <button
           type="button"
           aria-label="Focus efficacy"
@@ -236,7 +236,7 @@ export default function EvidenceQuadrant({
         </button>
       </div>
 
-      <div style={{ position: 'absolute', left: '50%', bottom: -3, transform: 'translateX(52px)' }}>
+      <div style={{ position: 'absolute', left: '50%', bottom: 7, transform: 'translateX(56px)' }}>
         <button
           type="button"
           aria-label="Focus effort"

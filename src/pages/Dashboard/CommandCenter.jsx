@@ -863,12 +863,16 @@ export default function CommandCenter() {
     all: 'unset',
     cursor: 'pointer',
     ...buttons.outlinedPrimary,
-    minHeight: 22,
-    px: 1.05,
-    py: 0.38,
-    fontSize: 8.2,
+    minHeight: 28,
+    px: 1.35,
+    py: 0.52,
+    fontSize: 10.2,
     letterSpacing: '0.06em',
     borderRadius: '999px',
+    bgcolor: colors.surface1,
+    borderColor: colors.sand300,
+    color: colors.navy900,
+    boxShadow: 'none',
   };
 
   const headerMeta = activeTab === 'practice'
@@ -884,7 +888,7 @@ export default function CommandCenter() {
     )
     : activeTab === 'evidence'
       ? (
-        <Stack direction="row" spacing={0.6} alignItems="center">
+        <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
           <Box
             component="button"
             type="button"
