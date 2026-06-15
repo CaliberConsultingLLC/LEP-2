@@ -761,7 +761,7 @@ function TraitSelection() {
       }}
     >
       <ProcessTopRail contentMaxWidth={1180} />
-      <CompassLayout>
+      <CompassLayout contentMaxWidth={1180}>
       <Container
         maxWidth={false}
         sx={{

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { useCairnTheme } from '../config/runtimeFlags';
+import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX } from './layoutConstants';
 
 // Layout wrapper for the Cairn (staging) theme.
 //
@@ -11,7 +12,12 @@ import { useCairnTheme } from '../config/runtimeFlags';
 //                    Right  20% = optional context rail, or reserved breathing room.
 //
 // Production (useCairnTheme === false): renders children directly, no wrapper.
-function CompassLayout({ children, sidebar = null, rightRail = null, contentMaxWidth = 880 }) {
+function CompassLayout({
+  children,
+  sidebar = null,
+  rightRail = null,
+  contentMaxWidth = CONTENT_MAX_WIDTH_DEFAULT,
+}) {
   if (!useCairnTheme) {
     return children;
   }
@@ -39,7 +45,7 @@ function CompassLayout({ children, sidebar = null, rightRail = null, contentMaxW
           </Box>
 
           {/* Center — main content */}
-          <Box sx={{ order: { xs: 2, md: 0 }, pt: { xs: 1.5, md: 3 }, pb: 12, px: { xs: 2, md: 3, lg: 3.5 } }}>
+          <Box sx={{ order: { xs: 2, md: 0 }, pt: { xs: 1.5, md: 3 }, pb: 12, px: CONTENT_PX }}>
             {children}
           </Box>
 
@@ -52,7 +58,7 @@ function CompassLayout({ children, sidebar = null, rightRail = null, contentMaxW
         // Centered single column — intake form, verify, and other non-nav pages
         <Box sx={{
           flex: 1, display: 'flex', justifyContent: 'center',
-          pt: 0, pb: 12, px: { xs: 2, md: 4 },
+          pt: 0, pb: 12, px: CONTENT_PX,
           overflowX: 'auto',
           position: 'relative', zIndex: 1,
         }}>

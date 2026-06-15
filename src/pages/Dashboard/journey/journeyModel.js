@@ -185,8 +185,13 @@ export function getHeaderMetaForLocation(pathname = '', search = '') {
   const currentCampaign = readJourneyJson('currentCampaign', []);
 
   if (pathname.startsWith('/form')) return { label: 'Questions', value: 'In progress' };
-  if (pathname.startsWith('/trait-selection')) return { label: 'Selected', value: `${selectedTraits.length || 0}/3` };
-  if (pathname.startsWith('/campaign-builder')) return { label: 'Traits', value: `${currentCampaign.length || selectedTraits.length || 0}/3` };
+  if (pathname.startsWith('/trait-selection')) {
+    return { label: 'Selected', current: selectedTraits.length || 0, total: 3, value: `${selectedTraits.length || 0}/3` };
+  }
+  if (pathname.startsWith('/campaign-builder')) {
+    const traitCount = currentCampaign.length || selectedTraits.length || 0;
+    return { label: 'Traits', current: traitCount, total: 3, value: `${traitCount}/3` };
+  }
   if (pathname.startsWith('/campaign-verify')) return { label: 'Invites', value: 'Ready' };
   if (pathname.startsWith('/campaign/')) return { label: 'Assessment', value: 'Live' };
   if (pathname.startsWith('/dashboard')) {

@@ -41,21 +41,35 @@ Manrope, and JetBrains Mono.
 
 ### Page Headers
 
-Every process page opens with the chapter header by default:
+Every process page opens with the Option C chapter header by default:
 
 ```text
-[porthole 116px]   CHAPTER II OF IX · BEHAVIORS & INSTINCTS
-                   Instincts Under Pressure
-                   Name the instincts that shape how you show up...
-                                                     Question 12/28
+[porthole 116px] │ CHAPTER II OF IX · BEHAVIORS & INSTINCTS
+                 │ Instincts Under Pressure
+                 │ Name the instincts that shape how you show up...
+                                                   [META PLATE]
 ```
 
-- Flex row, `align-items: center`, `gap: 28px`, `margin-bottom: 30px`.
+- Full tier row: porthole, vertical divider, text stack, right meta plate.
+- Container: `display:flex`, `align-items:center`, `justify-content:space-between`, `gap:28px`, `border-bottom:1px solid --sand-200`, `padding-bottom:22px`, `margin-bottom:34px`.
+- Left cluster: `display:flex`, `align-items:center`, `gap:26px`.
+- Divider: `1px` vertical rule in `--sand-200` (`my:4px`) between porthole and text stack.
+- Text stack gap is `9px`, title remains Fraunces 500 / 30px (Tier 1), subtitle uses `type.subtitle`.
 - Eyebrow format is always `Chapter {ROMAN} of IX · {Chapter Name}`. The separator dot uses `--sand-300`.
-- The right meta slot carries page state: question counts, selection counts, invite counts. Highlight numbers in `--orange-deep`.
+- Meta plate frame: `surface-1`, `1px --sand-200` border, `radius-md`, `px:18px`, `py:13px`, `shadows.card`.
+- Meta plate label: Mono 9.5px, 700, 0.18em tracking, uppercase, `--ink-soft`.
+- Meta plate state row: pip set + count when `{ current, total }` is available and `total <= 8`; otherwise render count/value only. Active pips use `--orange`, idle pips use `--sand-300`.
 - The meta slot replaces all per-page progress bars and step indicators.
 - The porthole map position updates only when the chapter changes and stays still while paging within a chapter.
-- The compact variant has no porthole, a hairline bottom border, and a 26px title. Use it only where vertical space is genuinely contested.
+- The compact tier uses the same hairline and meta plate but removes the porthole and vertical divider.
+
+### Header / Body Alignment Rule
+
+Header column width must always equal page content column width.
+
+- `ProcessTopRail contentMaxWidth` and `CompassLayout contentMaxWidth` must match on every page using both.
+- Header and body share the same horizontal content padding via shared constants (`CONTENT_PX`) so porthole/plate edges align with cards below.
+- No page should render a header that is visually narrower or wider than its body column.
 
 ### Journey Porthole
 
