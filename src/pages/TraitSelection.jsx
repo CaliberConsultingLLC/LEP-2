@@ -488,7 +488,7 @@ function TraitSelection() {
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
-        <ProcessTopRail />
+        <ProcessTopRail contentMaxWidth={1180} />
         <CompassLayout rightRail={GuideRail} contentMaxWidth={1180}>
           {loadError ? (
             <Alert severity="warning" sx={{ fontFamily: '"Manrope", sans-serif' }}>{loadError}</Alert>
@@ -760,7 +760,7 @@ function TraitSelection() {
             }),
       }}
     >
-      <ProcessTopRail />
+      <ProcessTopRail contentMaxWidth={1180} />
       <CompassLayout>
       <Container
         maxWidth={false}
