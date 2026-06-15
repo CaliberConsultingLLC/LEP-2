@@ -8,15 +8,18 @@ const MAP_BG = '#fbf8f2';
 const FOCUS_INK = '#161616';
 
 const MODE_BUTTON = {
-  width: 34,
+  minWidth: 96,
   height: 34,
+  padding: '0 12px',
   borderRadius: '999px',
   border: `1px solid ${colors.sand300}`,
   background: colors.surface1,
-  color: colors.inkSoft,
+  color: colors.navy900,
   fontFamily: fonts.mono,
-  fontSize: 14,
+  fontSize: 10.5,
   fontWeight: 700,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
   cursor: 'pointer',
 };
 
@@ -225,43 +228,45 @@ export default function EvidenceQuadrant({
         ))}
       </svg>
 
-      <div style={{ position: 'absolute', left: 6, top: '50%', transform: 'translateY(calc(-50% - 62px))' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 12 }}>
         <button
           type="button"
           aria-label="Focus efficacy"
           onClick={() => onModeChange?.('efficacy')}
-          style={{ ...MODE_BUTTON, color: mode === 'efficacy' ? colors.navy900 : colors.inkSoft, borderColor: mode === 'efficacy' ? colors.navy500 : colors.sand300 }}
+          style={{
+            ...MODE_BUTTON,
+            background: mode === 'efficacy' ? colors.navy900 : colors.surface1,
+            color: mode === 'efficacy' ? colors.amberSoft : colors.navy900,
+            borderColor: mode === 'efficacy' ? colors.navy900 : colors.sand300,
+          }}
         >
-          ↑
+          Efficacy
         </button>
-      </div>
-
-      <div style={{ position: 'absolute', left: '50%', bottom: 7, transform: 'translateX(56px)' }}>
+        <button
+          type="button"
+          aria-label="Map mode"
+          onClick={() => onModeChange?.('map')}
+          style={{
+            ...MODE_BUTTON,
+            background: mode === 'map' ? colors.navy900 : colors.surface1,
+            color: mode === 'map' ? colors.amberSoft : colors.navy900,
+            borderColor: mode === 'map' ? colors.navy900 : colors.sand300,
+          }}
+        >
+          Map
+        </button>
         <button
           type="button"
           aria-label="Focus effort"
           onClick={() => onModeChange?.('effort')}
-          style={{ ...MODE_BUTTON, color: mode === 'effort' ? colors.navy900 : colors.inkSoft, borderColor: mode === 'effort' ? colors.navy500 : colors.sand300 }}
-        >
-          →
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-        <button
-          type="button"
-          onClick={() => onModeChange?.('map')}
-          disabled={mode === 'map'}
           style={{
             ...MODE_BUTTON,
-            width: 'auto',
-            padding: '0 12px',
-            fontSize: 10,
-            letterSpacing: '0.1em',
-            opacity: mode === 'map' ? 0.45 : 1,
+            background: mode === 'effort' ? colors.navy900 : colors.surface1,
+            color: mode === 'effort' ? colors.amberSoft : colors.navy900,
+            borderColor: mode === 'effort' ? colors.navy900 : colors.sand300,
           }}
         >
-          BACK TO MAP
+          Effort
         </button>
       </div>
     </div>

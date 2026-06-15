@@ -682,13 +682,6 @@ function PracticeSnapshot({ orderedRows, plans }) {
         })}
       </Stack>
 
-      <Box sx={{ ...surfaces.cardFlat, px: 2.5, py: 2, maxWidth: 860 }}>
-        <Typography sx={{ ...type.monoLabel, mb: 0.7 }}>What happens next</Typography>
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.55, color: colors.textPrimary }}>
-          Hold the behaviors for the coming weeks. The <strong>check-in assessment</strong> will
-          re-read every trait and show whether your team can feel the shift.
-        </Typography>
-      </Box>
     </SnapshotShell>
   );
 }

@@ -877,14 +877,16 @@ export default function CommandCenter() {
 
   const headerMeta = activeTab === 'practice'
     ? (
-      <Box
-        component="button"
-        type="button"
-        onClick={() => phases.startReplay('practice')}
-        sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}
-      >
-        ↻ Revise the plans
-      </Box>
+      <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
+        <Box
+          component="button"
+          type="button"
+          onClick={() => phases.startReplay('practice')}
+          sx={compactHeaderActionSx}
+        >
+          ↻ Revise the plans
+        </Box>
+      </Stack>
     )
     : activeTab === 'evidence'
       ? (
@@ -907,16 +909,28 @@ export default function CommandCenter() {
           </Box>
         </Stack>
       )
-      : (
-        <Box
-          component="button"
-          type="button"
-          onClick={() => phases.startReplay('signal')}
-          sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}
-        >
-          ↻ Walk through again
-        </Box>
-      );
+      : activeTab === 'signal'
+      ? (
+        <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
+          <Box
+            component="button"
+            type="button"
+            onClick={() => phases.startReplay('signal')}
+            sx={compactHeaderActionSx}
+          >
+            ↻ Walk through again
+          </Box>
+          <Box
+            component="button"
+            type="button"
+            onClick={() => goToTab('evidence')}
+            sx={compactHeaderActionSx}
+          >
+            Review the evidence →
+          </Box>
+        </Stack>
+      )
+      : null;
 
   return (
     <Box
