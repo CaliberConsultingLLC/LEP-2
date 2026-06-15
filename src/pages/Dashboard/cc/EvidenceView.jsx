@@ -151,8 +151,8 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         border: `1px solid ${selected ? colors.navy900 : colors.sand200}`,
         bgcolor: selected ? colors.navy900 : colors.sand50,
         color: selected ? colors.amberSoft : colors.textPrimary,
-        px: 1.06,
-        py: selected ? 0.72 : 0.42,
+        px: selected ? 1.02 : 1.12,
+        py: selected ? 0.64 : 0.36,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -162,28 +162,28 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
       }}
     >
-      <Box sx={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 0.8, alignItems: selected ? 'start' : 'center' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '42px 1fr', gap: 0.78, alignItems: selected ? 'start' : 'center' }}>
         <Typography
           sx={{
             fontFamily: fonts.mono,
-            fontSize: 16.5,
+            fontSize: 32 / 2,
             fontWeight: 700,
             lineHeight: 1.05,
             color: selected ? colors.amber : colors.orangeDeep,
             fontVariantNumeric: 'tabular-nums',
-            pt: selected ? 0.08 : 0,
+            pt: selected ? 0.04 : 0,
           }}
         >
           {statement.compass}
         </Typography>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: selected ? 1.3 : 1.22, color: selected ? colors.amberSoft : colors.textPrimary }}>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: selected ? 1.28 : 1.2, color: selected ? colors.amberSoft : colors.textPrimary }}>
             {statement.text}
             {isLowest && (
               <Box
                 component="span"
                 sx={{
-                  ml: 0.68,
+                  ml: 0.6,
                   display: 'inline-flex',
                   px: 0.52,
                   py: 0.1,
@@ -205,9 +205,9 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
       </Box>
 
       {selected && (
-        <Box sx={{ mt: 0.56 }}>
-          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 0.62 }} />
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.72 }}>
+        <Box sx={{ mt: 0.48 }}>
+          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 0.52 }} />
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.6 }}>
             <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
             <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
           </Box>
@@ -220,7 +220,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
 function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
   const statements = useMemo(() => mapRowStatements(row), [row]);
   const rowTemplate = useMemo(
-    () => statements.map((_, idx) => (idx === selected ? '1.95fr' : '1fr')).join(' '),
+    () => statements.map((_, idx) => (idx === selected ? '1.68fr' : '1fr')).join(' '),
     [selected, statements]
   );
   const lowestIdx = useMemo(() => {
@@ -247,21 +247,21 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
       <Box
         sx={{
           ...surfaces.card,
-          p: '22px',
+          p: '16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1,
+          gap: 0.65,
           height: '100%',
         }}
       >
-        {headerSlot && <Box sx={{ mb: 1.1 }}>{headerSlot}</Box>}
+        {headerSlot && <Box sx={{ mb: 0.68 }}>{headerSlot}</Box>}
         <Box
           sx={{
             flex: 1,
             minHeight: 0,
             display: 'grid',
             gridTemplateRows: rowTemplate,
-            gap: 0.85,
+            gap: 0.62,
           }}
         >
           {statements.map((statement, idx) => (
