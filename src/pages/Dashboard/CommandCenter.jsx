@@ -775,7 +775,6 @@ export default function CommandCenter() {
   }, []);
 
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [evidenceTraitMeta, setEvidenceTraitMeta] = useState({ label: 'Trait', value: '1 / 3' });
 
   // Keep state in sync if the URL changes (back/forward, dev panel deep-links)
   useEffect(() => {
@@ -831,7 +830,6 @@ export default function CommandCenter() {
             phases={phases}
             onAdvancePhase={() => advancePhase('evidence')}
             onOpenPractice={() => goToTab('practice')}
-            onTraitMetaChange={setEvidenceTraitMeta}
           />
         );
       case 'practice':
@@ -860,10 +858,37 @@ export default function CommandCenter() {
   const showJourneyHeader = ['signal', 'evidence', 'practice'].includes(activeTab);
 
   const headerMeta = activeTab === 'practice'
-    ? { label: 'Practice', value: phases.practice === 'done' ? 'Complete' : 'Active' }
+    ? (
+      <Box
+        component="button"
+        type="button"
+        onClick={() => phases.startReplay('practice')}
+        sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}
+      >
+        ↻ Revise the plans
+      </Box>
+    )
     : activeTab === 'evidence'
-      ? evidenceTraitMeta
-      : { label: 'Signal', value: phases.signal === 'done' ? 'Ready' : 'Current' };
+      ? (
+        <Box
+          component="button"
+          type="button"
+          onClick={() => phases.startReplay('evidence')}
+          sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}
+        >
+          ↻ Walk through again
+        </Box>
+      )
+      : (
+        <Box
+          component="button"
+          type="button"
+          onClick={() => phases.startReplay('signal')}
+          sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}
+        >
+          ↻ Walk through again
+        </Box>
+      );
 
   return (
     <Box

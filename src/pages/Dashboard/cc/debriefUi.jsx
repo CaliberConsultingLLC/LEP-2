@@ -206,7 +206,7 @@ export function FooterNav({ chapters, idx, setIdx, isLast }) {
       alignItems="center"
       justifyContent="center"
       spacing={3.5}
-      sx={{ width: '100%', maxWidth: 880, mx: 'auto', px: 0, py: 1.2 }}
+      sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 0, py: 1.2 }}
     >
       <Box
         component="button"
@@ -275,7 +275,7 @@ export function WalkthroughStage({ chapters, idx, setIdx, children }) {
           pb: 0.6,
         }}
       >
-        <PageFade fadeKey={chapters[idx].id} sx={{ width: '100%', maxWidth: 880 }}>
+        <PageFade fadeKey={chapters[idx].id} sx={{ width: '100%', maxWidth: 1180 }}>
           {children}
         </PageFade>
       </Box>
@@ -515,7 +515,7 @@ export function GapScoresPanel({ rows, highlightKey, onSelect }) {
 // ---------------------------------------------------------------------------
 export function SnapshotShell({ children }) {
   return (
-    <Box component="main" sx={{ width: '100%', maxWidth: 880, mx: 'auto', px: 0, pt: 0.4, pb: 5.5 }}>
+    <Box component="main" sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 0, pt: 0.4, pb: 5.5 }}>
       {children}
     </Box>
   );

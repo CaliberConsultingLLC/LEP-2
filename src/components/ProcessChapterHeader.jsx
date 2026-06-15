@@ -60,9 +60,7 @@ export default function ProcessChapterHeader({
             {titleOverride || station.title || station.label}
           </Typography>
         </Box>
-        {meta && (
-          <HeaderMeta label={meta.label} value={meta.value} />
-        )}
+        {meta && renderMeta(meta)}
       </Box>
     );
   }
@@ -127,7 +125,7 @@ export default function ProcessChapterHeader({
           </Box>
           {meta && (
             <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', top: '26px', right: 0 }}>
-              <HeaderMeta label={meta.label} value={meta.value} />
+              {renderMeta(meta)}
             </Box>
           )}
         </Box>
@@ -171,4 +169,12 @@ function HeaderMeta({ label, value }) {
       {match ? match[2] : ''}
     </Box>
   );
+}
+
+function renderMeta(meta) {
+  if (React.isValidElement(meta)) return meta;
+  if (meta && typeof meta === 'object') {
+    return <HeaderMeta label={meta.label} value={meta.value} />;
+  }
+  return null;
 }
