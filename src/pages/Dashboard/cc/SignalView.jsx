@@ -312,16 +312,11 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Signal snapshot — the whole debrief in one view
 // ---------------------------------------------------------------------------
-function SignalSnapshot({ traitStories, onReplay, onOpenEvidence }) {
+function SignalSnapshot({ traitStories, onOpenEvidence }) {
   const [highlight, setHighlight] = useState(null);
 
   return (
     <SnapshotShell>
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.2 }}>
-        <Box component="button" type="button" onClick={onReplay} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
-          ↻ Walk through again
-        </Box>
-      </Stack>
       <Box
         sx={{
           display: 'grid',
@@ -454,7 +449,6 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
     return (
       <SignalSnapshot
         traitStories={traitStories}
-        onReplay={() => phases.startReplay('signal')}
         onOpenEvidence={onOpenEvidence}
       />
     );

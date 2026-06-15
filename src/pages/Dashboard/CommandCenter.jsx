@@ -856,6 +856,10 @@ export default function CommandCenter() {
       : getCurrentJourneyIndexFromState();
 
   const showJourneyHeader = ['signal', 'evidence', 'practice'].includes(activeTab);
+  const headerTitleOverride = activeTab === 'evidence' ? 'The Evidence' : '';
+  const headerSubtitleOverride = activeTab === 'evidence'
+    ? 'Read the statements behind the signal before deciding what to practice.'
+    : '';
 
   const headerMeta = activeTab === 'practice'
     ? (
@@ -904,7 +908,13 @@ export default function CommandCenter() {
       <ProcessTopRail hideChapterHeader />
       <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={phases.dockStatus} />
       {showJourneyHeader && (
-        <ProcessChapterHeader chapterIndex={chapterIndex} metaOverride={headerMeta} />
+        <ProcessChapterHeader
+          chapterIndex={chapterIndex}
+          metaOverride={headerMeta}
+          titleOverride={headerTitleOverride}
+          subtitleOverride={headerSubtitleOverride}
+          contentMaxWidth={1180}
+        />
       )}
       <Box sx={{ position: 'relative', zIndex: 1 }}>{renderActive()}</Box>
     </Box>

@@ -587,15 +587,9 @@ function PrCommitAllPage({ orderedRows, plans, chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Practice snapshot — standing commitments
 // ---------------------------------------------------------------------------
-function PracticeSnapshot({ orderedRows, plans, onReplay }) {
+function PracticeSnapshot({ orderedRows, plans }) {
   return (
     <SnapshotShell>
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.2 }}>
-        <Box component="button" type="button" onClick={onReplay} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
-          ↻ Revise the plans
-        </Box>
-      </Stack>
-
       <Stack spacing={1.75} sx={{ mb: 2.2 }}>
         {orderedRows.map((row) => {
           const plan = plans[row.trait] || {};
@@ -851,7 +845,6 @@ export default function PracticeStudio({ t, phases, onAdvancePhase }) {
       <PracticeSnapshot
         orderedRows={orderedRows}
         plans={plans}
-        onReplay={() => phases.startReplay('practice')}
       />
     );
   }

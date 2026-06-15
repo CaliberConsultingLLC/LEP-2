@@ -523,7 +523,7 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows, onReplay, onOpenPractice, onTraitMetaChange }) {
+function EvidenceSnapshot({ orderedRows, onOpenPractice }) {
   const [traitIdx, setTraitIdx] = useState(0);
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
   const statements = useMemo(() => mapRowStatements(row), [row]);
@@ -543,17 +543,8 @@ function EvidenceSnapshot({ orderedRows, onReplay, onOpenPractice, onTraitMetaCh
     setMode('map');
   }, [traitIdx, lowestIdx]);
 
-  useEffect(() => {
-    onTraitMetaChange?.({ label: 'Trait', value: `${traitIdx + 1} / ${orderedRows.length}` });
-  }, [traitIdx, orderedRows.length, onTraitMetaChange]);
-
   return (
     <SnapshotShell>
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.2 }}>
-        <Box component="button" type="button" onClick={onReplay} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
-          ↻ Walk through again
-        </Box>
-      </Stack>
       <StagePanels
         row={row}
         selected={selected}
@@ -668,7 +659,7 @@ const EVIDENCE_GUIDE = {
   snapshot: 'The receipts keep. Come back any time a claim needs checking — or walk the room again.',
 };
 
-export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice, onTraitMetaChange }) {
+export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const { setPageMessage, clearPageMessage } = useGuide();
 
@@ -718,14 +709,6 @@ export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 
-  useEffect(() => {
-    if (!orderedRows.length || mode === 'snapshot') return;
-    const chapterTraitIndex = chapter?.row
-      ? Math.max(0, orderedRows.findIndex((r) => r.trait === chapter.row.trait))
-      : 0;
-    onTraitMetaChange?.({ label: 'Trait', value: `${chapterTraitIndex + 1} / ${orderedRows.length}` });
-  }, [chapter, mode, onTraitMetaChange, orderedRows]);
-
   if (!loaded && !orderedRows.length) {
     return (
       <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, py: 3 }}>
@@ -752,9 +735,7 @@ export default function EvidenceView({ t, phases, onAdvancePhase, onOpenPractice
     return (
       <EvidenceSnapshot
         orderedRows={orderedRows}
-        onReplay={() => phases.startReplay('evidence')}
         onOpenPractice={onOpenPractice}
-        onTraitMetaChange={onTraitMetaChange}
       />
     );
   }
