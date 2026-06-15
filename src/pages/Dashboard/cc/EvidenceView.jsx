@@ -18,7 +18,7 @@ import { deriveTraitRoles } from './debriefContent.js';
 // 01 · Opening the room
 // ---------------------------------------------------------------------------
 function EvIntroPage({ rows, respondents }) {
-  const totalStatements = rows.reduce((s, r) => s + (r.team?.statements?.length || 0), 0);
+  const totalStatements = rows.length * 5;
   const stats = [
     ...(respondents > 0 ? [{ n: respondents, label: 'Teammates heard' }] : []),
     { n: totalStatements, label: 'Statements rated' },
@@ -58,10 +58,11 @@ function EvIntroPage({ rows, respondents }) {
 function mapRowStatements(row) {
   const teamStatements = row?.team?.statements || [];
   const selfStatements = row?.self?.statements || [];
-  return teamStatements.map((s, i) => {
+  return Array.from({ length: 5 }, (_, i) => {
+    const s = teamStatements[i] || {};
     const self = selfStatements[i] || {};
     return {
-      text: s.text,
+      text: String(s.text || '').trim() || `Statement ${i + 1} is not yet available from this response set.`,
       effort: Math.round(Number(s.effort) || 0),
       efficacy: Math.round(Number(s.efficacy) || 0),
       effortSelf: Math.round(Number(self.effort) || Number(s.effort) || 0),
@@ -115,7 +116,7 @@ function MetricBlock({ label, team, self }) {
   );
 }
 
-function StageStatementRow({ statement, selected, isLowest, onSelect }) {
+function StageStatementRow({ statement, selected, isLowest, onSelect, flexGrow = 1 }) {
   return (
     <Box
       component="button"
@@ -132,6 +133,11 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         color: selected ? colors.amberSoft : colors.textPrimary,
         px: 1.15,
         py: selected ? 1.2 : 0.95,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        flexGrow,
+        minHeight: 0,
         transition: motion.standard,
         '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
       }}
@@ -224,7 +230,7 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
         }}
       >
         {headerSlot && <Box sx={{ mb: 1.1 }}>{headerSlot}</Box>}
-        <Stack spacing={0.85}>
+        <Stack spacing={0.85} sx={{ flex: 1, minHeight: 0 }}>
           {statements.map((statement, idx) => (
             <StageStatementRow
               key={`${row.trait}-${idx}`}
@@ -232,6 +238,7 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
               selected={idx === selected}
               isLowest={idx === lowestIdx}
               onSelect={() => onSelect(idx)}
+              flexGrow={idx === selected ? 2.1 : 1}
             />
           ))}
         </Stack>
@@ -281,7 +288,7 @@ function EvTraitPage({ row, index, description }) {
   }, [lowestIdx, row]);
 
   return (
-    <Box sx={{ maxWidth: 1140, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 1180, mx: 'auto' }}>
       <Box sx={{ mb: 2 }}>
         <ChapterEyebrow index={index} label={`Exhibit ${index - 1} · ${row.trait}`} />
         <Stack direction="row" alignItems="center" spacing={1.75} sx={{ flexWrap: 'wrap', rowGap: 1, mb: 0.75 }}>
@@ -300,6 +307,7 @@ function EvTraitPage({ row, index, description }) {
             {row.subTrait}
           </Typography>
         </Stack>
+        <Box sx={{ width: { xs: '100%', md: '56%' }, height: 1, bgcolor: colors.sand200, mb: 1.2 }} />
         {description && (
           <Typography
             sx={{
@@ -552,65 +560,76 @@ function EvidenceSnapshot({ orderedRows, onOpenPractice }) {
         mode={mode}
         onModeChange={setMode}
         headerSlot={(
-          <Stack direction="row" alignItems="center" spacing={1}>
+          <>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setTraitIdx((p) => (p - 1 + orderedRows.length) % orderedRows.length)}
+                sx={{
+                  all: 'unset',
+                  width: 38,
+                  height: 38,
+                  borderRadius: radii.circle,
+                  border: `1px solid ${colors.sand300}`,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontFamily: fonts.mono,
+                  fontSize: 19,
+                  color: colors.inkSoft,
+                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                }}
+              >
+                ‹
+              </Box>
+              <Typography
+                sx={{
+                  flex: 1,
+                  textAlign: 'center',
+                  fontFamily: fonts.serif,
+                  fontSize: 25,
+                  fontWeight: 500,
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {row.subTrait || row.trait}
+              </Typography>
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
+                sx={{
+                  all: 'unset',
+                  width: 38,
+                  height: 38,
+                  borderRadius: radii.circle,
+                  border: `1px solid ${colors.sand300}`,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontFamily: fonts.mono,
+                  fontSize: 19,
+                  color: colors.inkSoft,
+                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                }}
+              >
+                ›
+              </Box>
+            </Stack>
             <Box
-              component="button"
-              type="button"
-              onClick={() => setTraitIdx((p) => (p - 1 + orderedRows.length) % orderedRows.length)}
               sx={{
-                all: 'unset',
-                width: 38,
-                height: 38,
-                borderRadius: radii.circle,
-                border: `1px solid ${colors.sand300}`,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontFamily: fonts.mono,
-                fontSize: 19,
-                color: colors.inkSoft,
-                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                mt: 1.05,
+                width: '68%',
+                mx: 'auto',
+                height: 1,
+                bgcolor: colors.sand200,
               }}
-            >
-              ‹
-            </Box>
-            <Typography
-              sx={{
-                flex: 1,
-                textAlign: 'center',
-                fontFamily: fonts.serif,
-                fontSize: 25,
-                fontWeight: 500,
-                lineHeight: 1.15,
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {row.subTrait || row.trait}
-            </Typography>
-            <Box
-              component="button"
-              type="button"
-              onClick={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
-              sx={{
-                all: 'unset',
-                width: 38,
-                height: 38,
-                borderRadius: radii.circle,
-                border: `1px solid ${colors.sand300}`,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontFamily: fonts.mono,
-                fontSize: 19,
-                color: colors.inkSoft,
-                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-              }}
-            >
-              ›
-            </Box>
-          </Stack>
+            />
+          </>
         )}
       />
       <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>

@@ -5,6 +5,7 @@ const VIEW = 560;
 const PAD = 48;
 const INNER = VIEW - PAD * 2;
 const MAP_BG = '#fbf8f2';
+const FOCUS_INK = '#161616';
 
 const MODE_BUTTON = {
   width: 34,
@@ -36,7 +37,7 @@ function Node({ x, y, label, selected, dimmed, mode, onClick }) {
   const r = selected ? 16.5 : 13;
   const fill = selected ? (isFocusMode ? colors.surface1 : colors.navy900) : colors.navy300;
   const stroke = selected
-    ? (isFocusMode ? colors.orange : colors.navy900)
+    ? (isFocusMode ? FOCUS_INK : colors.navy900)
     : colors.surface1;
 
   return (
@@ -53,7 +54,7 @@ function Node({ x, y, label, selected, dimmed, mode, onClick }) {
         x={x}
         y={y + 4.5}
         textAnchor="middle"
-        fill={selected ? (isFocusMode ? colors.orangeDeep : colors.surface1) : colors.surface1}
+        fill={selected ? (isFocusMode ? FOCUS_INK : colors.surface1) : colors.surface1}
         style={{
           fontFamily: fonts.mono,
           fontSize: 11.5,
@@ -105,7 +106,7 @@ export default function EvidenceQuadrant({
   const selected = plotted[selectedIdx] || null;
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{ width: '100%', position: 'relative' }}>
       <svg viewBox={`0 0 ${VIEW} ${VIEW}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
         <defs>
           <linearGradient id="efficacyGrad" x1="0" y1="0" x2="0" y2="1">
@@ -122,17 +123,25 @@ export default function EvidenceQuadrant({
 
         {mode === 'map' && (
           <>
-            <rect x={PAD} y={PAD} width={INNER / 2} height={INNER / 2} fill={colors.surface1} opacity="0.4" />
-            <rect x={PAD + INNER / 2} y={PAD} width={INNER / 2} height={INNER / 2} fill={colors.surface1} opacity="0.6" />
-            <rect x={PAD} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.surface1} opacity="0.2" />
-            <rect x={PAD + INNER / 2} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.surface1} opacity="0.34" />
+            <rect x={PAD} y={PAD} width={INNER / 2} height={INNER / 2} fill={colors.navy300} opacity="0.11" />
+            <rect x={PAD + INNER / 2} y={PAD} width={INNER / 2} height={INNER / 2} fill={colors.amberSoft} opacity="0.24" />
+            <rect x={PAD} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.navy500} opacity="0.07" />
+            <rect x={PAD + INNER / 2} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.orange} opacity="0.07" />
             <line x1={PAD + INNER / 2} y1={PAD} x2={PAD + INNER / 2} y2={PAD + INNER} stroke={colors.sand300} strokeDasharray="5 5" />
             <line x1={PAD} y1={PAD + INNER / 2} x2={PAD + INNER} y2={PAD + INNER / 2} stroke={colors.sand300} strokeDasharray="5 5" />
             <text x={PAD + 12} y={PAD + 16} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>NATURAL GIFT</text>
             <text x={PAD + INNER - 12} y={PAD + 16} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>FULL STRENGTH</text>
             <text x={PAD + 12} y={PAD + INNER - 10} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>UNTAPPED</text>
             <text x={PAD + INNER - 12} y={PAD + INNER - 10} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 9, letterSpacing: '0.12em' }}>OFF-TARGET</text>
-            <text x={PAD - 8} y={PAD + INNER / 2} textAnchor="end" fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.08em' }}>EFFICACY</text>
+            <text
+              x={PAD - 18}
+              y={PAD + INNER / 2}
+              fill={colors.inkSoft}
+              style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.08em' }}
+              transform={`rotate(-90 ${PAD - 18} ${PAD + INNER / 2})`}
+            >
+              EFFICACY
+            </text>
             <text x={PAD + INNER / 2} y={PAD + INNER + 20} textAnchor="middle" fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 10, letterSpacing: '0.08em' }}>EFFORT</text>
           </>
         )}
@@ -182,25 +191,29 @@ export default function EvidenceQuadrant({
         ))}
       </svg>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            type="button"
-            aria-label="Focus efficacy"
-            onClick={() => onModeChange?.('efficacy')}
-            style={{ ...MODE_BUTTON, color: mode === 'efficacy' ? colors.navy900 : colors.inkSoft, borderColor: mode === 'efficacy' ? colors.navy500 : colors.sand300 }}
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            aria-label="Focus effort"
-            onClick={() => onModeChange?.('effort')}
-            style={{ ...MODE_BUTTON, color: mode === 'effort' ? colors.navy900 : colors.inkSoft, borderColor: mode === 'effort' ? colors.navy500 : colors.sand300 }}
-          >
-            →
-          </button>
-        </div>
+      <div style={{ position: 'absolute', left: 4, top: '49%', transform: 'translateY(-50%)' }}>
+        <button
+          type="button"
+          aria-label="Focus efficacy"
+          onClick={() => onModeChange?.('efficacy')}
+          style={{ ...MODE_BUTTON, color: mode === 'efficacy' ? colors.navy900 : colors.inkSoft, borderColor: mode === 'efficacy' ? colors.navy500 : colors.sand300 }}
+        >
+          ↑
+        </button>
+      </div>
+
+      <div style={{ position: 'absolute', left: '50%', bottom: 6, transform: 'translateX(-50%)' }}>
+        <button
+          type="button"
+          aria-label="Focus effort"
+          onClick={() => onModeChange?.('effort')}
+          style={{ ...MODE_BUTTON, color: mode === 'effort' ? colors.navy900 : colors.inkSoft, borderColor: mode === 'effort' ? colors.navy500 : colors.sand300 }}
+        >
+          →
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
         <button
           type="button"
           onClick={() => onModeChange?.('map')}
