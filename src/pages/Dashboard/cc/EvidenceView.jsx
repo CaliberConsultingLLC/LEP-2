@@ -96,36 +96,36 @@ function MetricBlock({ label, team, self }) {
   const gap = Math.round(self - team);
   const gapAlert = Math.abs(gap) >= 15;
   return (
-    <Box sx={{ border: `1px solid rgba(244,206,161,0.18)`, borderRadius: radii.md, p: 0.8 }}>
-      <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, letterSpacing: '0.12em', color: 'rgba(244,206,161,0.86)', mb: 0.55 }}>
+    <Box sx={{ border: `1px solid rgba(244,206,161,0.18)`, borderRadius: radii.md, p: 0.66 }}>
+      <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.1, letterSpacing: '0.12em', color: 'rgba(244,206,161,0.86)', mb: 0.45 }}>
         {label}
       </Typography>
-      <Stack spacing={0.52}>
+      <Stack spacing={0.44}>
         <Box>
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.25, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>TEAM</Typography>
-          <Box sx={{ height: 5, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
+          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.1, color: 'rgba(244,206,161,0.72)', mb: 0.16 }}>TEAM</Typography>
+          <Box sx={{ height: 4, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
             <Box sx={{ width: `${Math.max(0, Math.min(100, team))}%`, height: '100%', bgcolor: colors.navy300 }} />
           </Box>
         </Box>
         <Box>
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.25, color: 'rgba(244,206,161,0.72)', mb: 0.2 }}>SELF</Typography>
-          <Box sx={{ height: 5, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
+          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.1, color: 'rgba(244,206,161,0.72)', mb: 0.16 }}>SELF</Typography>
+          <Box sx={{ height: 4, borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
             <Box sx={{ width: `${Math.max(0, Math.min(100, self))}%`, height: '100%', bgcolor: colors.orange }} />
           </Box>
         </Box>
       </Stack>
       <Box
         sx={{
-          mt: 0.65,
+          mt: 0.5,
           display: 'inline-flex',
           alignItems: 'center',
-          px: 0.68,
+          px: 0.58,
           py: 0.12,
           borderRadius: radii.pill,
           border: `1px solid ${gapAlert ? colors.orange : 'rgba(244,206,161,0.35)'}`,
           color: gapAlert ? colors.orange : 'rgba(244,206,161,0.78)',
           fontFamily: fonts.mono,
-          fontSize: 9,
+          fontSize: 8.6,
           fontWeight: 700,
           fontVariantNumeric: 'tabular-nums',
         }}
@@ -151,8 +151,8 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         border: `1px solid ${selected ? colors.navy900 : colors.sand200}`,
         bgcolor: selected ? colors.navy900 : colors.sand50,
         color: selected ? colors.amberSoft : colors.textPrimary,
-        px: 1,
-        py: selected ? 0.78 : 0.48,
+        px: 1.06,
+        py: selected ? 0.72 : 0.42,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -162,7 +162,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
       }}
     >
-      <Box sx={{ display: 'grid', gridTemplateColumns: '38px 1fr', gap: 0.85, alignItems: 'start' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 0.8, alignItems: selected ? 'start' : 'center' }}>
         <Typography
           sx={{
             fontFamily: fonts.mono,
@@ -171,21 +171,21 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
             lineHeight: 1.05,
             color: selected ? colors.amber : colors.orangeDeep,
             fontVariantNumeric: 'tabular-nums',
-            pt: 0.1,
+            pt: selected ? 0.08 : 0,
           }}
         >
           {statement.compass}
         </Typography>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: selected ? 1.36 : 1.24, color: selected ? colors.amberSoft : colors.textPrimary }}>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: selected ? 1.3 : 1.22, color: selected ? colors.amberSoft : colors.textPrimary }}>
             {statement.text}
             {isLowest && (
               <Box
                 component="span"
                 sx={{
-                  ml: 0.78,
+                  ml: 0.68,
                   display: 'inline-flex',
-                  px: 0.56,
+                  px: 0.52,
                   py: 0.1,
                   borderRadius: radii.pill,
                   bgcolor: colors.orange,
@@ -205,9 +205,9 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
       </Box>
 
       {selected && (
-        <Box sx={{ mt: 0.72 }}>
-          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 0.78 }} />
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.95 }}>
+        <Box sx={{ mt: 0.56 }}>
+          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)', mb: 0.62 }} />
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 0.72 }}>
             <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
             <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
           </Box>
@@ -220,7 +220,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
 function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
   const statements = useMemo(() => mapRowStatements(row), [row]);
   const rowTemplate = useMemo(
-    () => statements.map((_, idx) => (idx === selected ? '2.55fr' : '0.56fr')).join(' '),
+    () => statements.map((_, idx) => (idx === selected ? '1.95fr' : '1fr')).join(' '),
     [selected, statements]
   );
   const lowestIdx = useMemo(() => {
