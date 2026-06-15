@@ -11,7 +11,7 @@ import { useCairnTheme } from '../config/runtimeFlags';
 //                    Right  20% = optional context rail, or reserved breathing room.
 //
 // Production (useCairnTheme === false): renders children directly, no wrapper.
-function CompassLayout({ children, sidebar = null, rightRail = null }) {
+function CompassLayout({ children, sidebar = null, rightRail = null, contentMaxWidth = 880 }) {
   if (!useCairnTheme) {
     return children;
   }
@@ -56,7 +56,13 @@ function CompassLayout({ children, sidebar = null, rightRail = null }) {
           overflowX: 'auto',
           position: 'relative', zIndex: 1,
         }}>
-          <Box sx={{ width: rightRail ? '100%' : 880, minWidth: rightRail ? 0 : 880, maxWidth: rightRail ? 920 : 880 }}>
+          <Box
+            sx={{
+              width: rightRail ? '100%' : contentMaxWidth,
+              minWidth: rightRail ? 0 : contentMaxWidth,
+              maxWidth: contentMaxWidth,
+            }}
+          >
             {children}
           </Box>
           {rightRail}
