@@ -89,7 +89,8 @@ export function calculateCampaignTraitMetrics(campaignRows, responses) {
     const delta = Math.abs(avgEffort - avgEfficacy);
     const lepScore = (avgEfficacy * 2 + avgEffort) / 3;
 
-    const statements = (traitRow?.statements || []).map((statement, idx) => {
+    const statements = Array.from({ length: 5 }, (_, idx) => {
+      const statement = traitRow?.statements?.[idx] || '';
       const statementIndex = traitIndex * 5 + idx;
       const stmtEfficacy = safeResponses
         .map((response) => normalizeDashboardScore(

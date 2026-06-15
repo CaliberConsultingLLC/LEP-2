@@ -281,15 +281,6 @@ function CampaignBuilder() {
     }
   };
 
-  const getCuratedCampaign = () => normalizeCampaignItems(
-    (campaign || []).map((traitItem) => ({
-      ...traitItem,
-      statements: (traitItem.statements || []).filter((_, index) => (
-        !dismissedStatements.some((ds) => ds.trait === traitItem.trait && ds.index === index)
-      )),
-    }))
-  );
-
   const handleRebuildCampaign = () => {
     try {
       if (useCairnTheme) {
@@ -872,7 +863,7 @@ function CampaignBuilder() {
                   nextLabel="Verify Campaign"
                   onBack={() => navigate('/trait-selection')}
                   onNext={() => {
-                    localStorage.setItem('currentCampaign', JSON.stringify(getCuratedCampaign()));
+                    localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
                     navigate('/campaign-verify');
                   }}
                   middleAction={(

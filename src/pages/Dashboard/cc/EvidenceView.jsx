@@ -13,6 +13,7 @@ import {
   WalkthroughStage,
 } from './debriefUi.jsx';
 import { deriveTraitRoles } from './debriefContent.js';
+import traitSystem from '../../../data/traitSystem.js';
 
 // ---------------------------------------------------------------------------
 // 01 · Opening the room
@@ -56,13 +57,14 @@ function EvIntroPage({ rows, respondents }) {
 }
 
 function mapRowStatements(row) {
+  const fallbackText = fallbackStatementsForRow(row);
   const teamStatements = row?.team?.statements || [];
   const selfStatements = row?.self?.statements || [];
   return Array.from({ length: 5 }, (_, i) => {
     const s = teamStatements[i] || {};
     const self = selfStatements[i] || {};
     return {
-      text: String(s.text || '').trim() || `Statement ${i + 1} is not yet available from this response set.`,
+      text: String(s.text || '').trim() || fallbackText[i] || `Statement ${i + 1}`,
       effort: Math.round(Number(s.effort) || 0),
       efficacy: Math.round(Number(s.efficacy) || 0),
       effortSelf: Math.round(Number(self.effort) || Number(s.effort) || 0),
@@ -70,6 +72,24 @@ function mapRowStatements(row) {
       compass: Math.round(Number(s.lepScore) || 0),
     };
   });
+}
+
+function fallbackStatementsForRow(row) {
+  const traits = traitSystem?.CORE_TRAITS || [];
+  const norm = (v) => String(v || '').trim().toLowerCase();
+  const trait = traits.find((t) => t.id === row?.traitId || norm(t.name) === norm(row?.trait));
+  const subTrait = trait?.subTraits?.find((s) => s.id === row?.subTraitId || norm(s.name) === norm(row?.subTrait));
+  if (!subTrait) return [];
+  const risk = subTrait.riskSignals || {};
+  return [
+    ...(Array.isArray(subTrait.strengthSignals) ? subTrait.strengthSignals : []),
+    ...(Array.isArray(risk.underuse) ? risk.underuse : []),
+    ...(Array.isArray(risk.overuse) ? risk.overuse : []),
+    ...(Array.isArray(risk.imbalance) ? risk.imbalance : []),
+  ]
+    .map((s) => String(s || '').trim())
+    .filter(Boolean)
+    .slice(0, 5);
 }
 
 function MetricBlock({ label, team, self }) {
@@ -133,11 +153,9 @@ function StageStatementRow({ statement, selected, isLowest, onSelect, flexGrow =
         color: selected ? colors.amberSoft : colors.textPrimary,
         px: 1.15,
         py: selected ? 1.2 : 0.95,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
+        flex: `${flexGrow} 1 0%`,
+        minHeight: selected ? 116 : 74,
         flexGrow,
-        minHeight: 0,
         transition: motion.standard,
         '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
       }}
@@ -238,7 +256,7 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
               selected={idx === selected}
               isLowest={idx === lowestIdx}
               onSelect={() => onSelect(idx)}
-              flexGrow={idx === selected ? 2.1 : 1}
+              flexGrow={idx === selected ? 1.35 : 1}
             />
           ))}
         </Stack>
