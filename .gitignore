@@ -34,3 +34,11 @@ serviceAccountKey.json
 !api/
 .vercel
 .env*.local
+
+# Design handoffs / non-product dumps (keep out of review + git)
+*.zip
+design_handoff*/
+evidence-handoff/
+Journey Map Hero*
+public/the-compass-redesign/
+Reflection * - Cursor Handoff.md

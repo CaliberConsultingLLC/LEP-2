@@ -226,7 +226,6 @@ function DashboardLegacy() {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState(0);
-  const [navExpanded, setNavExpanded] = useState(false);
   const DASH_FONT = '"Montserrat", "Inter", "Segoe UI", sans-serif';
   const [selectedAgent, setSelectedAgent] = useState(() => {
     try {
@@ -432,16 +431,38 @@ function DashboardLegacy() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail hideChapterHeader />
-        <Box sx={{ px: { xs: 2, md: 3, lg: 4 }, pt: { xs: 2, md: 2.5 } }}>
-          {DashNavSidebar}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: 'flex-start',
+            gap: { xs: 1.25, md: 1.5 },
+            px: { xs: 1.5, md: 2, lg: 2.5 },
+            pt: { xs: 1.5, md: 2 },
+            pb: { xs: 2, md: 3 },
+          }}
+        >
+          <Box
+            sx={{
+              width: { xs: '100%', md: 228 },
+              flexShrink: 0,
+              position: { xs: 'relative', md: 'sticky' },
+              top: { md: 88 },
+              alignSelf: 'flex-start',
+            }}
+          >
+            {DashNavSidebar}
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+            <CompassLayout rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
+              <ProcessChapterHeader
+                chapterIndex={dashboardChapterIndex}
+                metaOverride={currentTab === 3 ? { label: 'Practice', value: 'Active' } : currentTab === 4 ? { label: 'Chapters', value: '9' } : { label: 'Signal', value: 'Current' }}
+              />
+              {dashTabContent}
+            </CompassLayout>
+          </Box>
         </Box>
-        <CompassLayout rightRail={<DashboardGuideRail currentTab={currentTab} onNavigate={setCurrentTab} />}>
-          <ProcessChapterHeader
-            chapterIndex={dashboardChapterIndex}
-            metaOverride={currentTab === 3 ? { label: 'Practice', value: 'Active' } : currentTab === 4 ? { label: 'Chapters', value: '9' } : { label: 'Signal', value: 'Current' }}
-          />
-          {dashTabContent}
-        </CompassLayout>
       </Box>
     );
   }
@@ -481,13 +502,10 @@ function DashboardLegacy() {
       }}
     >
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        {/* Left Ribbon Navigation */}
+        {/* Left Ribbon Navigation — fixed width so content never shifts */}
         <Box
-          onMouseEnter={() => setNavExpanded(true)}
-          onMouseLeave={() => setNavExpanded(false)}
           sx={{
-            width: navExpanded ? 258 : 86,
-            transition: 'width 180ms cubic-bezier(.2,.8,.2,1)',
+            width: 210,
             borderRight: '1px solid rgba(73,101,129,0.34)',
             bgcolor: 'rgba(58,82,108,0.72)',
             backdropFilter: 'blur(14px)',
@@ -513,9 +531,9 @@ function DashboardLegacy() {
                   onClick={() => setCurrentTab(idx)}
                   sx={{
                     minHeight: 54,
-                    justifyContent: navExpanded ? 'flex-start' : 'center',
-                    gap: navExpanded ? 1.2 : 0,
-                    px: navExpanded ? 1.25 : 0.8,
+                    justifyContent: 'flex-start',
+                    gap: 1.2,
+                    px: 1.25,
                     borderRadius: 2.1,
                     border: '1px solid',
                     borderColor: active ? 'rgba(224,122,63,0.78)' : 'rgba(230,240,250,0.26)',
@@ -530,15 +548,7 @@ function DashboardLegacy() {
                   }}
                 >
                   <Icon sx={{ fontSize: 22, minWidth: 22 }} />
-                  <Box
-                    sx={{
-                      opacity: navExpanded ? 1 : 0,
-                      width: navExpanded ? 'auto' : 0,
-                      transition: 'opacity 0.18s ease',
-                      textAlign: 'left',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
+                  <Box sx={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
                     <Typography
                       sx={{
                         fontFamily: 'Montserrat, sans-serif',
@@ -562,67 +572,47 @@ function DashboardLegacy() {
               borderColor: 'rgba(230,240,250,0.24)',
             }}
           />
-          <Box sx={{ px: navExpanded ? 0.2 : 0 }}>
-            {navExpanded ? (
-              <FormControl size="small" fullWidth>
-                <InputLabel
-                  id="agent-persona-select-label"
-                  sx={{ color: 'rgba(236,244,252,0.86)' }}
-                >
-                  Coach Persona
-                </InputLabel>
-                <Select
-                  labelId="agent-persona-select-label"
-                  label="Coach Persona"
-                  value={selectedAgent}
-                  onChange={handleAgentChange}
-                  sx={{
-                    color: 'rgba(248,252,255,0.96)',
-                    borderRadius: 2,
-                    bgcolor: 'rgba(255,255,255,0.12)',
-                    '.MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(230,240,250,0.28)',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(230,240,250,0.45)',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'secondary.main',
-                    },
-                    '.MuiSvgIcon-root': { color: 'rgba(235,245,253,0.82)' },
-                  }}
-                >
-                  {agentOptions.map((agent) => (
-                    <MenuItem key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
-              <Button
-                sx={{
-                  minHeight: 40,
-                  width: '100%',
-                  minWidth: 0,
-                  borderRadius: 2,
-                  border: '1px solid rgba(230,240,250,0.24)',
-                  bgcolor: 'rgba(255,255,255,0.1)',
-                  color: 'rgba(248,252,255,0.92)',
-                  textTransform: 'none',
-                  fontSize: '0.72rem',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' },
-                }}
-                onClick={() => setNavExpanded(true)}
+          <Box sx={{ px: 0.2 }}>
+            <FormControl size="small" fullWidth>
+              <InputLabel
+                id="agent-persona-select-label"
+                sx={{ color: 'rgba(236,244,252,0.86)' }}
               >
-                Coach
-              </Button>
-            )}
+                Coach Persona
+              </InputLabel>
+              <Select
+                labelId="agent-persona-select-label"
+                label="Coach Persona"
+                value={selectedAgent}
+                onChange={handleAgentChange}
+                sx={{
+                  color: 'rgba(248,252,255,0.96)',
+                  borderRadius: 2,
+                  bgcolor: 'rgba(255,255,255,0.12)',
+                  '.MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(230,240,250,0.28)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(230,240,250,0.45)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'secondary.main',
+                  },
+                  '.MuiSvgIcon-root': { color: 'rgba(235,245,253,0.82)' },
+                }}
+              >
+                {agentOptions.map((agent) => (
+                  <MenuItem key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Box>
 
         {/* Main Content Area */}
-        <Box sx={{ flex: 1, minWidth: 0, ml: navExpanded ? '258px' : '86px', transition: 'margin-left 180ms cubic-bezier(.2,.8,.2,1)', position: 'relative' }}>
+        <Box sx={{ flex: 1, minWidth: 0, ml: '210px', position: 'relative' }}>
           {/* Top Banner */}
           <Box
             sx={{

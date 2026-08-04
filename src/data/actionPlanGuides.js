@@ -113,6 +113,41 @@ export const ACTION_PLAN_GUIDES_BY_SUBTRAIT = {
       },
     ],
   },
+  'Decision Quality & Pace': {
+    friendlyNudge:
+      'Decision quality and pace is not only the call you make — it is how tradeoffs are surfaced, how reasoning becomes visible, and how the team keeps momentum without rushing into weak choices.',
+    pressureLens:
+      'Under pressure, decisions can tilt toward speed or safety alone. A strong plan acknowledges which bias shows up for you when the clock is loud.',
+    aimOfPlan:
+      'Your plan should make how you decide easier for others to follow than to second-guess in silence — at a pace that keeps work moving.',
+    guidedSteps: [
+      {
+        id: 'd1',
+        prompt: 'What kind of decision currently creates the most rework, hesitation, or hallway alignment on your team?',
+        placeholder: 'e.g. prioritization, resourcing, go/no-go…',
+      },
+      {
+        id: 'd2',
+        prompt: 'What information (or perspective) is usually missing or late when those decisions get made?',
+        placeholder: '',
+      },
+      {
+        id: 'd3',
+        prompt: 'What would “decided well and on time” look like for that type of decision — even if the outcome were imperfect?',
+        placeholder: '',
+      },
+      {
+        id: 'd4',
+        prompt: 'What lightweight practice could make the reasoning or criteria more visible without slowing everything down?',
+        placeholder: 'e.g. decision log, criteria stated up front, explicit dissent…',
+      },
+      {
+        id: 'commitment',
+        prompt: 'In one sentence, what are you committing to do differently for decision quality and pace?',
+        placeholder: 'I will…',
+      },
+    ],
+  },
   Prioritization: {
     friendlyNudge:
       'Prioritization is the courage to protect focus: what earns attention, what waits, and what gets a clear “not now” so the team is not carrying infinite top priorities.',

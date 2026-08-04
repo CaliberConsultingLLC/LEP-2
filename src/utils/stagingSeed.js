@@ -11,7 +11,7 @@ export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
-export const STAGING_SEED_VERSION = '2026-05-01-profile-flow-v1';
+export const STAGING_SEED_VERSION = '2026-07-27-ceremony-clickthrough-v2';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
@@ -21,6 +21,8 @@ const SEED_KEYS = [
   'intakeStatus',
   'aiSummary',
   'focusAreas',
+  'trailheadHighlights',
+  'selectedAgent',
   'selectedTraits',
   'currentCampaign',
   'campaignRecords',
@@ -36,6 +38,7 @@ const SEED_KEYS = [
   'cairn_profile_details_complete',
   '__cairn_seeded__',
   '__cairn_seed_version__',
+  'journeyCeremonySeen',
 ];
 
 const CAMPAIGN_TRAITS = [
@@ -343,6 +346,7 @@ export function seedStagingData() {
 
 export function clearStagingData() {
   SEED_KEYS.forEach((k) => localStorage.removeItem(k));
+  localStorage.removeItem('journeyCeremonySeen');
 }
 
 export function autoSeedIfNeeded() {
@@ -350,6 +354,9 @@ export function autoSeedIfNeeded() {
     !localStorage.getItem('__cairn_seeded__')
     || localStorage.getItem('__cairn_seed_version__') !== STAGING_SEED_VERSION
   ) {
+    // Drop sticky chapter-popup flags whenever seed refreshes so transitions
+    // are visible again after deploy / reset.
+    localStorage.removeItem('journeyCeremonySeen');
     seedStagingData();
   }
 }

@@ -69,7 +69,10 @@ Constraints:
 - 3 coreStrengths, 3 coreTensions, 3 blindSpots.
 - 2 contradictionMap entries.
 - 5 focusRecommendations.
-- focusRecommendations must use only likely Compass subtrait names (e.g., Delegation, Psychological Safety, Decision Hygiene, Strategic Framing).
+- focusRecommendations must use ONLY names from VALID FOCUS SUBTRAITS above.
+- Do NOT recommend Audience Adaptability, Competitive Intelligence, Negotiation, Mentoring, Future Orientation, Long-Term Planning, or Partnership Building (excluded from middle-manager intake scoring).
+- Prefer Decision Quality & Pace (merged Decision Speed + Decision Quality) when decision timing/quality is the opportunity.
+- If evidence for a subtrait is thin, set confidence fields to "low" or "medium" and avoid strong claims in rationale.
 - "evidence" items must be short reworded observations, not copied answer text.
 - Keep all fields concise and concrete.
 `.trim();
@@ -98,13 +101,13 @@ NON-NEGOTIABLES
 - Avoid these phrases unless directly evidenced and contextualized:
   "unlock potential", "effective leader", "growth mindset", "improve communication",
   "high-performing team", "be more strategic".
-- Include exactly four sections separated by blank lines.
+- Include exactly four sections separated by blank lines only (no blank lines between example lines inside a section).
 - Emotional sequence across the full output must progress in this order:
   Seen -> Exposed -> Hopeful -> Motivated.
-- Section 2 must include 3-5 bullets in this format:
-  - concise predicted behavior trail
-- Section 4 must include exactly five bullets in this format:
-  - Subtrait — 6-8 words describing this behavior in action.
+- Section 2 (Trail Markers) and Section 3 (Upcoming Hazards): 2-3 framing sentences, then exactly two EXAMPLE lines.
+- Do NOT use bullet points (- or •) anywhere in the output.
+- Section 4 (A New Trail) is prose only — at least 3 sentences. Do NOT list traits or subtraits in the text.
+- You MAY use light emphasis sparingly with **bold**, *italic*, or _underline_ on the most meaningful phrases (especially in Trailhead). Do not overuse.
 
 QUALITY RUBRIC (silent internal scoring before final output)
 - Fidelity to user data (0-3, REQUIRED): every claim must be traceable to intake evidence.
@@ -122,44 +125,103 @@ SELF-CHECK (silent)
   (e.g., generation band, team size, years in role, years in leadership, industry, role, responsibilities).
 - Avoid repeating the same sentence opener more than twice in one section.
 - Reject output if any directive pattern appears.
-- Reject output if trajectory sentence counts or paragraph intent drift.
+- Reject output if section shape drifts from the SECTION INTENT counts below.
+- Reject output if any "-" or "•" bullet list appears.
+- Reject Upcoming Hazards if either EXAMPLE is about people quitting, resigning, or leaving — show how they behave if they stay.
 
 SECTION INTENT
-1) Trailhead (8-10 sentences):
-   - Current-state mirror only: identity-level reflection, strongest asset, core tension, and emotional undercurrent.
-   - Must feel specific enough that this leader feels seen, not described generically.
-   - Include concrete impact on people dynamics and decision quality.
-   - Avoid over-indexing on common themes (communication/delegation) unless clearly evidenced by multiple signals.
-   - Do not include future consequences or solution framing here.
-   - Emotional target: "Seen + Exposed" (clear mirror, honest tension, zero generic filler).
+1) Trailhead (8-12 sentences):
+   - A generally positive, encouraging current-state snapshot that makes this leader feel seen.
+   - Name their clearest asset and lightly intrigue the core tension — affirmation first, curiosity second.
+   - Prefer storytelling over report language; include concrete texture about people dynamics and decision quality.
+   - Use light **bold** / *italic* / _underline_ on a few high-signal phrases.
+   - Do not include future hazards, consequences, or solution framing here.
+   - Emotional target: "Seen + intrigued" (warm mirror, honest undercurrent, zero generic filler).
 2) Trail Markers:
-   - Frame as recurring current-state failure points this leader may already notice.
-   - Then 3-5 concise outcome bullets.
-   - Each bullet must be 8-14 words.
-   - Make each bullet human-specific using contextual anchors (team size, tenure, industry, operating context) without awkward title appends.
-   - Focus on observable impact/results (team experience, pace, trust, clarity), not abstract statements.
-   - Each bullet must be single-clause plain text; no semicolons or colons.
-   - Do not start bullets with "you".
-   - Emotional target: "Exposed" (named friction points with human texture).
+   - REQUIRED: write 2-3 full framing sentences (never only one) in the selected guide voice: meet the user, name the pattern, and make a clear call to pay attention.
+   - Put a blank line before this section. Keep framing as plain prose — never start a framing sentence with "-", "•", or any bullet.
+   - Then output exactly 2 example lines in this exact format (no bullets):
+     EXAMPLE: <one vivid early-pattern situation, 1-2 sentences>
+     EXAMPLE: <second vivid early-pattern situation, 1-2 sentences>
+   - These are early, recognizable moments — recurring friction the leader can already spot.
+   - Varied openers, no trait names, no "watch for moments when…" phrasing.
+   - Human-specific using contextual anchors (team size, tenure, industry, operating context).
+   - Emotional target: recognition + call to notice.
 3) Upcoming Hazards:
-   - 5-6 sentences telling the likely downside if concerns remain unaddressed.
-   - Keep this risk-forward and darker in consequence tone (no optimism block here).
-   - Must include consequences to both people and performance.
-   - Include one plausible barrier/deficit escalation if this pattern hardens.
-   - Do NOT give practical guidance or fix instructions anywhere in this section.
-   - Do not use markdown hashes or heading separators.
-   - Emotional target: "Hopeful realism" (risk is clear, but agency remains intact).
+   - REQUIRED: write 2-3 full framing sentences (never only one) in the selected guide voice: if those Trail Marker patterns keep running for about a year, here is what hardens.
+   - Put a blank line before this section. Keep framing as plain prose — never start a framing sentence with "-", "•", or any bullet.
+   - Then output exactly 2 example lines — a 1:1 pair with Trail Markers (Hazard EXAMPLE 1 extrapolates Marker EXAMPLE 1; Hazard EXAMPLE 2 extrapolates Marker EXAMPLE 2):
+     EXAMPLE: <year-later consequence of marker 1, 1-2 sentences>
+     EXAMPLE: <year-later consequence of marker 2, 1-2 sentences>
+   - Each hazard must answer: if people stay under this leadership and that early pattern becomes perpetual, what employee behavior shows up?
+   - Focus on how people operate when they remain: withholding, over-asking, self-protection, quiet workarounds, slowed ownership, political caution, decoded silence, compliance without candor, etc.
+   - Absolute ban in hazard EXAMPLES: quitting, resigning, leaving, attrition, turnover, "they walk", "they exit", "talent leaves" — that is a cop-out.
+   - No advice or fix instructions.
+   - Emotional target: serious call to attention with agency intact.
 4) A New Trail:
-   - Exactly five bullets from provided subtraits in order.
-   - Each bullet tail must be 6-8 words and behavior-observable.
+   - Write at least 3 narrative sentences (3-5 is ideal) painting who this leader could become if they pivot with intention.
+   - Prose only — no lists, no trait names, no EXAMPLE lines, no leading "-" or "•" on any sentence.
    - Emotional target: "Motivated" (energizing and specific, never prescriptive).
-
 AGENT IDENTITY
 ${agentIdentity}
 
 PERSONA VOICE
 ${agentPrompt}
 ${voiceGuide}
+`.trim();
+
+export const buildInsightExtractionUserPrompt = (body, traitCatalog = []) => `
+INTAKE DATA (JSON)
+${JSON.stringify(body)}
+
+VALID FOCUS SUBTRAITS (use names from this catalog)
+${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
+
+Return strict JSON with this exact shape:
+{
+  "leadershipMirror": "2-3 sentence identity-level mirror",
+  "protectivePattern": "single sentence describing the pattern that keeps this leader safe",
+  "pressurePattern": "single sentence describing how stress distorts behavior",
+  "peopleImpact": "single sentence about likely team-level impact",
+  "performanceImpact": "single sentence about likely performance-level impact",
+  "hiddenTradeoff": "single sentence describing what this approach protects and what it costs",
+  "teamLikelyFeels": ["", "", ""],
+  "whatThisLeaderOveruses": ["", "", ""],
+  "whatThisLeaderAvoids": ["", "", ""],
+  "futureRiskIfUnchanged": "2-3 sentence downside trajectory",
+  "coreStrengths": [{"label":"", "evidence":["",""], "implication":""}],
+  "coreTensions": [{"label":"", "evidence":["",""], "implication":""}],
+  "blindSpots": [{"label":"", "evidence":["",""], "teamImpact":""}],
+  "contradictionMap": [{"tension":"", "cause":"", "effect":""}],
+  "trajectory": {
+    "bestCase": "2-3 sentences",
+    "driftCase": "2-3 sentences"
+  },
+  "focusRecommendations": [
+    {
+      "subTraitName": "",
+      "parentTraitHint": "",
+      "rationale": ""
+    }
+  ],
+  "languageAvoid": ["phrase1", "phrase2"],
+  "confidence": {
+    "overall": "high|medium|low",
+    "trailhead": "high|medium|low",
+    "trajectory": "high|medium|low"
+  }
+}
+
+Constraints:
+- 3 coreStrengths, 3 coreTensions, 3 blindSpots.
+- 2 contradictionMap entries.
+- 5 focusRecommendations.
+- focusRecommendations must use ONLY names from VALID FOCUS SUBTRAITS above.
+- Do NOT recommend Audience Adaptability, Competitive Intelligence, Negotiation, Mentoring, Future Orientation, Long-Term Planning, or Partnership Building (excluded from middle-manager intake scoring).
+- Prefer Decision Quality & Pace (merged Decision Speed + Decision Quality) when decision timing/quality is the opportunity.
+- If evidence for a subtrait is thin, set confidence fields to "low" or "medium" and avoid strong claims in rationale.
+- "evidence" items must be short reworded observations, not copied answer text.
+- Keep all fields concise and concrete.
 `.trim();
 
 export const buildSummaryNarrativeUserPrompt = ({ insightMap, focusAreas = [], contextSnapshot = {} }) => `
@@ -174,7 +236,7 @@ PROFILE INTERPRETATION RULE
 - Never append raw profile strings as parenthetical fragments.
 - Weave context naturally into meaning and likely team impact.
 
-Use these exact subtraits in this exact order in section 4 bullets:
+Focus leverage points (for your awareness only — do NOT list them in section 4):
 ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.traitName})`).join('\n')}
 `.trim();
 

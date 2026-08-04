@@ -24,13 +24,16 @@ import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import CairnFlowButtons from '../components/CairnFlowButtons';
+import CairnLeftRail from '../components/CairnLeftRail';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { seedStagingData } from '../utils/stagingSeed';
+import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
+const CAMPAIGN_ROMAN = ['I', 'II', 'III'];
 const parseJson = (raw, fallback) => {
   try {
     return raw ? JSON.parse(raw) : fallback;
@@ -689,7 +692,10 @@ function CampaignBuilder() {
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
-        <ProcessTopRail />
+        <ProcessTopRail
+          titleOverride="Growth Campaign Builder"
+          subtitleOverride="Review the statements for each selected trait. Keep what feels true; remove anything that misses the mark before you invite your team."
+        />
         <CompassLayout rightRail={campaign ? GuideRail : null}>
           {error ? (
             <Box>
@@ -701,160 +707,183 @@ function CampaignBuilder() {
             </Box>
           ) : campaign && activeTrait ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.05 }}>
-              <Box sx={{
-                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white',
-                borderRadius: '16px',
-                border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
-                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.35)' : '0 4px 20px rgba(0,0,0,0.06)',
-                p: { xs: 1.5, md: 1.8 },
-              }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max((campaign || []).length, 1)}, minmax(0, 1fr))`, gap: { xs: 0.8, md: 1.2 } }}>
-                  {(campaign || []).map((traitItem, idx) => {
-                    const info = selectedTraitInfo[idx] || {};
-                    const active = idx === expandedTrait;
-                    return (
-                      <Box
-                        key={`${traitItem.trait || 'trait'}-${idx}`}
-                        component="button"
-                        type="button"
-                        onClick={() => setExpandedTrait(idx)}
-                        sx={{
-                          all: 'unset',
-                          cursor: 'pointer',
-                          minWidth: 0,
-                          borderRadius: '14px',
-                          px: { xs: 0.9, md: 1.2 },
-                          py: { xs: 1.35, md: 1.65 },
-                          minHeight: { xs: 74, md: 88 },
-                          textAlign: 'center',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          bgcolor: active ? isDark ? 'rgba(244,206,161,0.08)' : 'rgba(224,122,63,0.07)' : 'transparent',
-                          border: active ? '1px solid rgba(224,122,63,0.32)' : '1px solid transparent',
-                          boxShadow: active ? '0 8px 22px rgba(224,122,63,0.12)' : 'none',
-                          transition: '160ms ease',
-                          '&:hover': {
-                            bgcolor: isDark ? 'rgba(244,206,161,0.055)' : 'rgba(251,247,240,0.85)',
-                            transform: 'translateY(-1px)',
-                          },
-                          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
-                        }}
-                      >
-                        <Typography sx={{
-                          fontFamily: '"Montserrat", sans-serif',
-                          fontWeight: active ? 900 : 800,
-                          fontSize: { xs: '0.76rem', md: '0.94rem' },
-                          lineHeight: 1.14,
-                          color: active ? isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' : isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}>
-                          {info.subTraitName || info.coreTraitName || traitItem.trait || `Focus ${idx + 1}`}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </Box>
-
-              <Box sx={{
-                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white',
-                borderRadius: '16px',
-                border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
-                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.32)' : '0 4px 20px rgba(0,0,0,0.05)',
-                p: { xs: 1.9, md: 2.35 },
-              }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.75, alignItems: 'center', justifyItems: 'center', mb: 1.75 }}>
-                  <Box sx={{ minWidth: 0, maxWidth: 760, textAlign: 'center' }}>
-                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 0.65 }}>
-                      {activeTraitInfo.coreTraitName || 'Feedback focus'}
+              <CairnLeftRail
+                isDark={isDark}
+                railLabel="Campaign traits"
+                tabs={(campaign || []).map((traitItem, idx) => {
+                  const info = selectedTraitInfo[idx] || {};
+                  return {
+                    id: `trait-${idx}`,
+                    label: info.subTraitName || info.coreTraitName || traitItem.trait || `Focus ${idx + 1}`,
+                    subtitle: info.coreTraitName || 'Growth focus',
+                    number: String(idx + 1),
+                    selected: true,
+                  };
+                })}
+                activeId={`trait-${expandedTrait}`}
+                onChange={(id) => {
+                  const idx = Number(String(id).replace('trait-', ''));
+                  if (Number.isFinite(idx)) setExpandedTrait(idx);
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    gap: 2,
+                    maxWidth: 760,
+                    mx: 'auto',
+                    width: '100%',
+                  }}
+                >
+                  <Box sx={{ width: '100%' }}>
+                    <Typography
+                      sx={{
+                        fontFamily: fonts.mono,
+                        fontWeight: 700,
+                        fontSize: '0.68rem',
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: colors.orangeDeep,
+                        mb: 1,
+                      }}
+                    >
+                      {`Trait ${expandedTrait + 1}`}
                     </Typography>
-                    <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 900, fontSize: { xs: '1.34rem', md: '1.72rem' }, lineHeight: 1.08, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.85 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: fonts.serif,
+                        fontWeight: 700,
+                        fontSize: { xs: '1.55rem', md: '1.9rem' },
+                        lineHeight: 1.12,
+                        color: isDark ? colors.ink : colors.navy900,
+                        mb: 0.65,
+                      }}
+                    >
                       {activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
                     </Typography>
-                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.9rem', lineHeight: 1.48, color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' }}>
-                      Review each statement as something your team may rate. Leave strong statements in place; use Remove only for wording that feels confusing, unfair, or outside the growth campaign.
+                    <Typography
+                      sx={{
+                        fontFamily: fonts.serif,
+                        fontStyle: 'italic',
+                        fontSize: { xs: '0.98rem', md: '1.05rem' },
+                        lineHeight: 1.4,
+                        color: isDark ? colors.ink : colors.navy700,
+                      }}
+                    >
+                      Review statements your team may rate
+                    </Typography>
+                    <Box
+                      aria-hidden
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1.15,
+                        my: '14px',
+                      }}
+                    >
+                      <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />
+                      <Box sx={{ color: colors.orange, fontSize: 8, lineHeight: 1, opacity: 0.9 }}>◆</Box>
+                      <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />
+                    </Box>
+                    <Typography
+                      sx={{
+                        fontFamily: fonts.sans,
+                        fontSize: '0.92rem',
+                        lineHeight: 1.55,
+                        color: colors.inkSoft,
+                      }}
+                    >
+                      Keep what feels fair and useful. Remove anything confusing, unfair, or outside this growth campaign.
+                      {' '}
+                      {keptCount}
+                      /
+                      {activeStatements.length}
+                      {' '}
+                      statements kept.
                     </Typography>
                   </Box>
-                </Box>
 
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 0.85 }}>
-                  {activeStatements.map((stmt, sIdx) => {
-                    const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
-                    return (
-                      <Box
-                        key={`stmt-${sIdx}`}
-                        sx={{
-                          display: 'grid',
-                          gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1fr) auto' },
-                          alignItems: 'center',
-                          gap: 1.25,
-                        }}
-                      >
-                        <Box sx={{
-                          borderRadius: '13px',
-                          border: isDismissed ? '1px solid rgba(192,97,42,0.34)' : isDark ? '1px solid rgba(244,206,161,0.1)' : '1px solid var(--sand-200, #E8DBC3)',
-                          bgcolor: isDismissed ? isDark ? 'rgba(192,97,42,0.1)' : 'rgba(192,97,42,0.06)' : isDark ? 'rgba(255,255,255,0.025)' : 'rgba(251,247,240,0.54)',
-                          px: { xs: 1.35, md: 1.55 },
-                          py: { xs: 1.05, md: 1.18 },
-                          textAlign: 'center',
-                        }}>
-                          <Typography sx={{
-                            fontFamily: '"Manrope", sans-serif',
-                            fontSize: { xs: '0.82rem', md: '0.94rem' },
-                            lineHeight: 1.42,
-                            fontWeight: 700,
-                            color: isDismissed ? isDark ? 'rgba(240,233,222,0.48)' : 'var(--ink-soft, #44566C)' : isDark ? 'rgba(240,233,222,0.86)' : 'var(--navy-900, #10223C)',
-                            textDecoration: isDismissed ? 'line-through' : 'none',
-                            opacity: isDismissed ? 0.72 : 1,
-                            textAlign: 'center',
-                          }}>
-                            {stmt}
-                          </Typography>
-                        </Box>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, width: '100%' }}>
+                    {activeStatements.map((stmt, sIdx) => {
+                      const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
+                      return (
                         <Box
-                          component="button"
-                          type="button"
-                          onClick={() => handleStatementDismiss(activeTrait.trait, sIdx, !isDismissed)}
+                          key={`stmt-${sIdx}`}
                           sx={{
-                            all: 'unset',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
+                            display: 'grid',
+                            gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1fr) auto' },
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            minWidth: 86,
-                            px: 1.6,
-                            py: 0.75,
-                            borderRadius: 999,
-                            bgcolor: isDismissed
-                              ? isDark ? 'rgba(47,133,90,0.86)' : 'var(--green, #2F855A)'
-                              : isDark ? 'rgba(224,122,63,0.18)' : 'rgba(224,122,63,0.14)',
-                            border: isDismissed ? '1px solid rgba(47,133,90,0.35)' : '1px solid rgba(224,122,63,0.32)',
-                            color: isDismissed ? '#fff' : isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
-                            fontFamily: '"Montserrat", sans-serif',
-                            fontWeight: 900,
-                            fontSize: '0.72rem',
-                            boxShadow: isDismissed ? '0 6px 18px rgba(47,133,90,0.18)' : 'none',
-                            transition: '180ms ease',
-                            '&:hover': {
-                              transform: 'translateY(-1px)',
-                              bgcolor: isDismissed
-                                ? isDark ? 'rgba(47,133,90,0.94)' : 'var(--green, #2F855A)'
-                                : isDark ? 'rgba(224,122,63,0.24)' : 'rgba(224,122,63,0.2)',
-                            },
-                            '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.38)', outlineOffset: 2 },
+                            gap: 1.15,
                           }}
                         >
-                          {isDismissed ? 'Restore' : 'Remove'}
+                          <Box
+                            sx={{
+                              ...surfaces.cardInner,
+                              bgcolor: isDismissed
+                                ? (isDark ? 'rgba(192,97,42,0.1)' : 'color-mix(in srgb, var(--orange-deep) 8%, var(--sand-50))')
+                                : (isDark ? 'rgba(255,255,255,0.03)' : colors.sand50),
+                              borderColor: isDismissed
+                                ? 'color-mix(in srgb, var(--orange-deep) 34%, transparent)'
+                                : undefined,
+                              px: { xs: 1.5, md: 1.75 },
+                              py: { xs: 1.2, md: 1.35 },
+                              textAlign: 'center',
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontFamily: fonts.sans,
+                                fontSize: { xs: '0.86rem', md: '0.95rem' },
+                                lineHeight: 1.45,
+                                fontWeight: 650,
+                                color: isDismissed ? colors.inkSoft : (isDark ? colors.ink : colors.navy900),
+                                textDecoration: isDismissed ? 'line-through' : 'none',
+                                opacity: isDismissed ? 0.72 : 1,
+                              }}
+                            >
+                              {stmt}
+                            </Typography>
+                          </Box>
+                          <Box
+                            component="button"
+                            type="button"
+                            onClick={() => handleStatementDismiss(activeTrait.trait, sIdx, !isDismissed)}
+                            sx={{
+                              all: 'unset',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minWidth: 92,
+                              px: 1.7,
+                              py: 0.85,
+                              borderRadius: radii.pill,
+                              bgcolor: isDismissed ? colors.green : 'color-mix(in srgb, var(--orange) 14%, transparent)',
+                              border: isDismissed
+                                ? `1px solid color-mix(in srgb, var(--green) 35%, transparent)`
+                                : `1px solid color-mix(in srgb, var(--orange) 32%, transparent)`,
+                              color: isDismissed ? colors.surface1 : colors.orangeDeep,
+                              fontFamily: fonts.sans,
+                              fontWeight: 800,
+                              fontSize: '0.74rem',
+                              boxShadow: isDismissed ? shadows.buttonSecondary : shadows.none,
+                              transition: '180ms ease',
+                              '&:hover': { transform: 'translateY(-1px)' },
+                              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                            }}
+                          >
+                            {isDismissed ? 'Restore' : 'Remove'}
+                          </Box>
                         </Box>
-                      </Box>
-                    );
-                  })}
+                      );
+                    })}
+                  </Box>
                 </Box>
-              </Box>
+              </CairnLeftRail>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 0.5 }}>
                 <CairnFlowButtons

@@ -5,7 +5,7 @@ import { useGuide } from '../context/GuideContext';
 import { getGuideMessages, resolveRouteKey } from '../data/guideContent';
 
 // Pages where the guide has not yet been chosen — overlay is suppressed entirely.
-const PRE_GUIDE_PATHS = ['/user-info'];
+const PRE_GUIDE_PATHS = ['/user-info', '/guide-select', '/sign-in', '/landing'];
 
 function GuideFaqItem({ q, a }) {
   const [open, setOpen] = useState(false);
@@ -44,7 +44,7 @@ function GuideFaqItem({ q, a }) {
 }
 
 function GuideOverlay() {
-  const { persona, hidden, toggleHidden, setHidden, suppress, pageMessage } = useGuide();
+  const { persona, hidden, toggleHidden, setHidden, suppress, pageMessage, hasSelectedGuide } = useGuide();
   const location = useLocation();
 
   // All hooks must run unconditionally before any early return.
@@ -90,8 +90,23 @@ function GuideOverlay() {
     setFaqOpen(false);
   }, [message?.text]);
 
-  // Suppress on pages before guide selection (after all hooks), or when explicitly suppressed.
-  const isPreGuide = PRE_GUIDE_PATHS.some((p) => location.pathname.startsWith(p));
+  // Suppress before a guide is chosen, on pre-guide routes, or when explicitly suppressed.
+  const stage = new URLSearchParams(location.search || '').get('stage');
+  const isProfileDetails = location.pathname.startsWith('/form') && stage === 'profile';
+  const isTeamSurvey = (() => {
+    try {
+      const m = location.pathname.match(/^\/campaign\/([^/]+)/);
+      if (!m) return false;
+      const data = JSON.parse(localStorage.getItem(`campaign_${m[1]}`) || '{}');
+      return String(data?.campaignType || '').toLowerCase() === 'team';
+    } catch {
+      return false;
+    }
+  })();
+  const isPreGuide = PRE_GUIDE_PATHS.some((p) => location.pathname.startsWith(p))
+    || isProfileDetails
+    || isTeamSurvey
+    || !hasSelectedGuide;
   if (isPreGuide || suppress) return null;
 
   // ── Collapsed tab ────────────────────────────────────────────────────────

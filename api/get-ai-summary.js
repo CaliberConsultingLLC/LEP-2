@@ -9,6 +9,7 @@ import {
   buildSummaryNarrativeUserPrompt,
 } from './promptBuilder.js';
 import traitSystem from '../src/data/traitSystem.js';
+import { isEligibleForFocusRecommendation } from '../src/data/intakeTraitCoverage.js';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -84,118 +85,45 @@ function toWordWindow(text, minWords = 6, maxWords = 8) {
   return clipped.join(' ');
 }
 
-function ensureFiveSubtraitBullets(text, focusAreas) {
-  if (!Array.isArray(focusAreas) || focusAreas.length < 5) return text;
-  const subtraits = focusAreas
-    .map((a) => a?.subTraitName)
-    .filter(Boolean)
-    .slice(0, 5);
-  if (!subtraits.length) return text;
+function stripListMarkers(text) {
+  return String(text || '')
+    .replace(/^\s*[-–—•●▪·‣*]\s+/gm, '')
+    .replace(/(^|[.!?]\s*)[-–—•●▪·‣*]\s+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
+function ensureNewTrailProseOnly(text) {
   const sections = String(text || '').split(/\n\s*\n/);
   while (sections.length < 4) sections.push('');
   const lastIdx = 3;
-  const last = sections[lastIdx] || '';
-  const lines = last.split('\n');
-  const bullets = lines.filter((line) => line.trim().startsWith('- '));
-
-  const bulletMap = new Map();
-  bullets.forEach((line) => {
-    const content = line.replace(/^\s*-\s*/, '');
-    const key = content.split('—')[0].replace(/\*\*/g, '').trim().toLowerCase();
-    if (key) bulletMap.set(key, line);
-  });
-
-  const shortSentence = (value) => {
-    if (!value) return '';
-    const match = String(value).match(/^[^.!?]+[.!?]?/);
-    return match ? match[0].trim() : String(value).trim();
-  };
-
-  const focusMap = new Map();
-  focusAreas.forEach((area) => {
-    if (area?.subTraitName) {
-      focusMap.set(area.subTraitName.toLowerCase(), area);
-    }
-  });
-
-  const fallbackBehavior = (name) => {
-    const area = focusMap.get(name.toLowerCase());
-    const source = shortSentence(area?.subTraitDefinition) || shortSentence(area?.impact) || shortSentence(area?.example) || shortSentence(area?.risk);
-    const guidance = toWordWindow(source, 6, 8);
-    return `- ${name} — ${guidance}`;
-  };
-  const finalBullets = subtraits.map((name) => {
-    const key = name.toLowerCase();
-    const existing = bulletMap.get(key);
-    if (!existing) return fallbackBehavior(name);
-    const content = existing.replace(/^\s*-\s*/, '');
-    const parts = content.split('—');
-    const head = (parts[0] || name).replace(/\*\*/g, '').trim() || name;
-    const tail = toWordWindow(parts.slice(1).join(' ').trim(), 6, 8);
-    return `- ${head} — ${tail}`;
-  });
-
-  const rebuilt = `${finalBullets.join('\n')}`.trim();
-  sections[lastIdx] = rebuilt;
+  const prose = stripListMarkers(
+    String(sections[lastIdx] || '')
+      .split('\n')
+      .map((line) => stripListMarkers(String(line || '').replace(/^\s*EXAMPLE\s*:/i, '')))
+      .filter(Boolean)
+      .join(' ')
+  );
+  const sentences = (prose.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [])
+    .map((s) => stripListMarkers(s))
+    .filter(Boolean);
+  const fillers = [
+    'A new trail opens when you put intention behind the shifts that already want to emerge.',
+    'The leader you could become is clearer, steadier, and easier for your team to follow under pressure.',
+    'That pivot is available now — not as a reinvention, but as a sharper version of how you already lead.',
+  ];
+  for (const next of fillers) {
+    if (sentences.length >= 3) break;
+    if (!sentences.includes(next)) sentences.push(next);
+  }
+  sections[lastIdx] = sentences.slice(0, 5).join(' ').trim();
   return sections.join('\n\n').trim();
 }
 
-function ensureTrailMarkers(text, insightMap) {
+function ensureTrailMarkers(text) {
+  // Markers/hazards shaping is handled in normalizeFourSections.
   const sections = String(text || '').split(/\n\s*\n/);
   while (sections.length < 4) sections.push('');
-  const markerIdx = 1;
-  const markerSection = sections[markerIdx] || '';
-  const markerLines = markerSection.split('\n').map((l) => l.trim()).filter(Boolean);
-  const bullets = markerLines.filter((line) => line.startsWith('- '));
-
-  const normalizeMarker = (line) => {
-    const cleaned = String(line || '')
-      .replace(/^\s*-\s*/, '')
-      .replace(/^this pattern can lead to\s*/i, '')
-      .replace(/^you (may|might)\s+/i, '')
-      .replace(/[.*_`#]/g, '')
-      .replace(/\([^)]*\)$/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    const source = cleaned || 'mixed priorities quietly erode team confidence over time';
-    const words = source.split(' ').filter(Boolean).slice(0, 12);
-    const extenders = ['in', 'daily', 'operations', 'over', 'time'];
-    let idx = 0;
-    while (words.length < 8 && idx < extenders.length) {
-      words.push(extenders[idx]);
-      idx += 1;
-    }
-    if (words.length < 8) {
-      words.push('steadily');
-    }
-    const marker = words.join(' ');
-    return `- ${marker}`;
-  };
-
-  if (bullets.length >= 3 && bullets.length <= 5) {
-    sections[markerIdx] = `${bullets.slice(0, 5).map(normalizeMarker).join('\n')}`;
-    return sections.join('\n\n').trim();
-  }
-
-  const candidates = [
-    ...(insightMap?.whatThisLeaderOveruses || []),
-    ...(insightMap?.whatThisLeaderAvoids || []),
-    ...(insightMap?.teamLikelyFeels || []),
-    ...(insightMap?.coreTensions || []).map((x) => x?.label).filter(Boolean),
-    ...(insightMap?.blindSpots || []).map((x) => x?.label).filter(Boolean),
-    ...(insightMap?.coreStrengths || []).map((x) => x?.label).filter(Boolean),
-  ];
-  const unique = Array.from(new Set(candidates.map((x) => String(x).trim()).filter(Boolean)));
-  const fallbackMarkers = unique.slice(0, 4).map((label) => normalizeMarker(label)).filter(Boolean);
-  if (!fallbackMarkers.length) {
-    fallbackMarkers.push(
-      '- Deadlines slip as innovation outruns execution discipline',
-      '- Team roles blur and accountability becomes inconsistent',
-      '- Momentum stalls when clarity and urgency diverge'
-    );
-  }
-  sections[markerIdx] = `${fallbackMarkers.slice(0, 4).join('\n')}`;
   return sections.join('\n\n').trim();
 }
 
@@ -290,95 +218,214 @@ function normalizeInsightMap(map) {
 }
 
 function normalizeFourSections(text, insightMap) {
-  const cleanedText = String(text || '').replace(/^\s*#+\s*/gm, '');
-  const parts = cleanedText
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .slice(0, 4);
-
   const stripHeading = (s) =>
     String(s || '')
       .replace(/^(trailhead|trail markers|trajectory|upcoming hazards|a new trail|snapshot|a new way forward)\s*[:\-]\s*/i, '')
       .trim();
 
-  const hasAdvice = (s) =>
-    /\b(you should|should|must|need to|have to|try to|focus on|start with|begin by|by\s+[a-z]+ing)\b/i.test(String(s || ''));
-
-  const keepNonAdvisory = (sentences = []) => sentences.filter((s) => !hasAdvice(s));
-  const stripDirectiveFraming = (s) =>
-    String(s || '')
-      .replace(/\bif addressed\b[:,]?\s*/gi, '')
-      .replace(/\bif fixed\b[:,]?\s*/gi, '')
-      .trim();
-  const polishHazardSentence = (s) => {
-    const raw = String(s || '')
-      .replace(/[.*_`#]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (!raw) return '';
-    const body = raw.replace(/[.!?]+$/, '').trim();
-    if (!body) return '';
-    const words = body.split(' ').filter(Boolean);
-    if (words.length < 6) return '';
-    const danglingEnd = /\b(to|by|of|for|with|into|onto|from|about|as|at|in|on|and|or|but|if|when|while)\b$/i;
-    if (danglingEnd.test(body)) return '';
-    return `${body}.`;
-  };
-
   const toSentences = (input) =>
     (String(input || '')
       .replace(/^\s*#+\s*/gm, '')
       .match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [])
-      .map((s) => s.trim())
+      .map((s) => stripListMarkers(stripHeading(String(s || '').trim())))
       .filter(Boolean);
-  const p1Raw = stripHeading(parts[0] || insightMap?.leadershipEssence || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.');
-  const p1Sentences = toSentences(p1Raw);
-  const trailheadTopUps = [
-    String(insightMap?.signaturePattern || '').trim(),
-    String(insightMap?.hiddenCost || '').trim(),
-    String(insightMap?.missingOutcome || '').trim(),
-    ...(Array.isArray(insightMap?.coreStrengths) ? insightMap.coreStrengths.map((x) => x?.implication).filter(Boolean) : []),
-    ...(Array.isArray(insightMap?.coreTensions) ? insightMap.coreTensions.map((x) => x?.implication).filter(Boolean) : []),
-  ]
-    .map((s) => String(s || '').replace(/\s+/g, ' ').trim())
-    .filter(Boolean)
-    .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
-  let p1List = [...p1Sentences];
-  for (let i = 0; i < trailheadTopUps.length && p1List.length < 8; i += 1) {
-    p1List.push(trailheadTopUps[i]);
-  }
-  if (p1List.length > 10) p1List = p1List.slice(0, 10);
-  const p1 = p1List.join(' ').trim();
-  const p2 = stripHeading(parts[1] || '');
 
-  const riskSentences = keepNonAdvisory(toSentences(parts[2] || insightMap?.trajectory?.driftCase || ''))
-    .filter((s) => !/\bimagine\b/i.test(s))
-    .map(stripDirectiveFraming)
-    .filter(Boolean);
-  const fallbackRisk = toSentences('If current patterns hold, role confusion can quietly spread across the team. Execution momentum may slow as people spend energy interpreting mixed signals. Trust can weaken when urgency repeatedly outpaces clarity. Over time, this friction can become the team’s default operating rhythm.');
-  const escalationCandidates = [
-    'Capability gaps can harden into cultural norms that are harder to reverse later.',
-    'High performers may disengage when uncertainty repeatedly overrides accountability.',
-    'Execution stalls can evolve into reputation drag with stakeholders and customers.',
-    'Morale can decline as teams absorb repeated friction without clear relief.',
+  const isExampleLine = (line) => {
+    const t = String(line || '').trim();
+    if (/^EXAMPLE\s*:/i.test(t)) return true;
+    if (!/^[-–—•●▪·‣*]\s+/.test(t)) return false;
+    // A leading bullet on multi-sentence prose is usually New Trail corruption, not an example.
+    const withoutBullet = t.replace(/^[-–—•●▪·‣*]\s+/, '');
+    const sentenceCount = (withoutBullet.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [])
+      .map((s) => s.trim())
+      .filter(Boolean).length;
+    return sentenceCount < 2;
+  };
+  const toExampleLine = (line) => {
+    const raw = stripListMarkers(
+      String(line || '').trim()
+        .replace(/^EXAMPLE\s*:/i, '')
+        .trim()
+    );
+    return raw ? `EXAMPLE: ${raw}` : '';
+  };
+
+  const padFraming = (framing, fallbackSentences) => {
+    const list = toSentences(framing);
+    for (const s of fallbackSentences) {
+      if (list.length >= 3) break;
+      if (!list.includes(s)) list.push(s);
+    }
+    while (list.length < 2) {
+      list.push(fallbackSentences[list.length % fallbackSentences.length]);
+    }
+    // Always keep 2-3 framing sentences — never ship a single-sentence open.
+    return list.slice(0, 3).join(' ').trim();
+  };
+
+  const rawLines = String(text || '')
+    .replace(/^\s*#+\s*/gm, '')
+    .split('\n')
+    .map((l) => l.trim());
+
+  // Linear parse: prose before first EXAMPLE = trailhead (+ maybe markers framing).
+  // Then EXAMPLE pairs, with prose between example groups = hazards framing, then new trail.
+  const examples = [];
+  const proseBeforeExamples = [];
+  const proseBetweenExampleGroups = []; // after 2 examples, before next examples
+  const proseAfterExamples = [];
+  let phase = 'before'; // before | markersExamples | hazardsFraming | hazardsExamples | newTrail
+
+  for (const line of rawLines) {
+    if (!line) continue;
+    if (isExampleLine(line)) {
+      const ex = toExampleLine(line);
+      if (!ex) continue;
+      if (phase === 'before' || phase === 'markersExamples') {
+        phase = 'markersExamples';
+        examples.push(ex);
+        if (examples.length >= 2) phase = 'hazardsFraming';
+      } else if (phase === 'hazardsFraming' || phase === 'hazardsExamples') {
+        phase = 'hazardsExamples';
+        examples.push(ex);
+        if (examples.length >= 4) phase = 'newTrail';
+      }
+      continue;
+    }
+    const cleaned = stripHeading(line);
+    if (!cleaned) continue;
+    if (phase === 'before' || phase === 'markersExamples') proseBeforeExamples.push(cleaned);
+    else if (phase === 'hazardsFraming') proseBetweenExampleGroups.push(cleaned);
+    else if (phase === 'hazardsExamples') proseBetweenExampleGroups.push(cleaned);
+    else proseAfterExamples.push(cleaned);
+  }
+
+  // Split the pre-example prose into trailhead (bulk) + markers framing (last 2-3 sentences).
+  const beforeSentences = toSentences(proseBeforeExamples.join(' '));
+  let markerFramingSentences = [];
+  let trailheadSentences = beforeSentences.slice();
+  if (beforeSentences.length >= 8) {
+    markerFramingSentences = beforeSentences.slice(-3);
+    // Prefer 2-3 framing sentences without starving trailhead below 6.
+    while (markerFramingSentences.length > 2 && beforeSentences.length - markerFramingSentences.length < 6) {
+      markerFramingSentences = markerFramingSentences.slice(1);
+    }
+    if (markerFramingSentences.length >= 2 && beforeSentences.length - markerFramingSentences.length >= 6) {
+      trailheadSentences = beforeSentences.slice(0, beforeSentences.length - markerFramingSentences.length);
+    } else {
+      markerFramingSentences = [];
+      trailheadSentences = beforeSentences;
+    }
+  }
+
+  // If model already separated framing with blank-line chunks historically, also accept short tails.
+  if (!markerFramingSentences.length && beforeSentences.length >= 3) {
+    const take = Math.min(3, Math.max(2, beforeSentences.length - 6));
+    if (take >= 2 && beforeSentences.length - take >= 6) {
+      markerFramingSentences = beforeSentences.slice(-take);
+      trailheadSentences = beforeSentences.slice(0, beforeSentences.length - take);
+    }
+  }
+
+  let p1List = trailheadSentences.slice();
+  if (p1List.length < 6) {
+    const topUps = [
+      String(insightMap?.leadershipMirror || '').trim(),
+      String(insightMap?.protectivePattern || '').trim(),
+      String(insightMap?.peopleImpact || '').trim(),
+      ...(Array.isArray(insightMap?.coreStrengths) ? insightMap.coreStrengths.map((x) => x?.implication).filter(Boolean) : []),
+      ...(Array.isArray(insightMap?.coreTensions) ? insightMap.coreTensions.map((x) => x?.implication).filter(Boolean) : []),
+    ]
+      .map((s) => String(s || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
+    for (let i = 0; i < topUps.length && p1List.length < 8; i += 1) {
+      if (!p1List.includes(topUps[i])) p1List.push(topUps[i]);
+    }
+  }
+  if (p1List.length > 12) p1List = p1List.slice(0, 12);
+  const p1 = p1List.join(' ').trim()
+    || 'Your leadership shows clear strengths and a meaningful tension that shapes team experience.';
+
+  const markerFallbackExamples = [
+    'EXAMPLE: In a high-stakes meeting, the room slows while people wait for your final read before they commit.',
+    'EXAMPLE: Under deadline pressure, clarity arrives late and the team spends energy decoding mixed signals.',
   ];
-  const riskPool = (riskSentences.length ? riskSentences : fallbackRisk)
-    .map((s) => polishHazardSentence(s))
-    .filter(Boolean);
-  const escalationPool = escalationCandidates
-    .map((s) => polishHazardSentence(s))
-    .filter(Boolean);
-  const selectedRisk = [...riskPool.slice(0, 4)];
-  for (let i = 0; i < escalationPool.length && selectedRisk.length < 6; i += 1) {
-    selectedRisk.push(escalationPool[i]);
+
+  const isLeaveCopout = (line) =>
+    /\b(quit|resign|leaving|leave the (team|company|org)|attrition|turnover|walk away|exit the|talent leaves|people leave|they leave)\b/i
+      .test(String(line || ''));
+
+  const extrapolateHazardFromMarker = (markerLine, index) => {
+    const marker = stripListMarkers(
+      String(markerLine || '').replace(/^EXAMPLE\s*:/i, '').trim()
+    ).replace(/\.$/, '');
+    const behaviors = [
+      'people who stay learn to withhold unfinished thinking, wait for your signal, and execute without real ownership.',
+      'people who stay build quiet workarounds, over-ask for permission, and protect themselves more than they escalate risk.',
+    ];
+    if (!marker) {
+      return `EXAMPLE: A year into that pattern, ${behaviors[index % 2]}`;
+    }
+    return `EXAMPLE: A year after that early pattern keeps repeating — ${marker} — ${behaviors[index % 2]}`;
+  };
+
+  const markerFraming = padFraming(
+    markerFramingSentences.join(' '),
+    [
+      'Pay attention here — a few recurring moments already show how this pattern lands with your team.',
+      'These are the places worth watching in real time as you lead.',
+      'Notice where the same friction shows up when pressure rises.',
+    ]
+  );
+  const markerExamples = [
+    ...(examples.slice(0, 2).length ? examples.slice(0, 2) : markerFallbackExamples),
+  ].slice(0, 2);
+  while (markerExamples.length < 2) {
+    markerExamples.push(markerFallbackExamples[markerExamples.length]);
   }
-  for (let i = 0; i < fallbackRisk.length && selectedRisk.length < 5; i += 1) {
-    const candidate = polishHazardSentence(fallbackRisk[i]);
-    if (candidate && !selectedRisk.includes(candidate)) selectedRisk.push(candidate);
+  const p2 = [markerFraming, ...markerExamples].join('\n');
+
+  // Hazards framing = prose between example groups; if empty, use insight map / pad.
+  const betweenSentences = toSentences(proseBetweenExampleGroups.join(' '));
+  const afterSentences = toSentences(proseAfterExamples.join(' '));
+  // If model put hazards framing after the 2nd example pair starts late, steal first 2-3 of after when between is empty.
+  let hazardFramingSource = betweenSentences.join(' ');
+  let newTrailSourceSentences = afterSentences.slice();
+  if (!betweenSentences.length && afterSentences.length >= 5) {
+    hazardFramingSource = afterSentences.slice(0, 3).join(' ');
+    newTrailSourceSentences = afterSentences.slice(3);
   }
-  const p3 = selectedRisk.slice(0, 6).join(' ');
-  const p4 = stripHeading(parts[3] || 'A new trail starts with a few high-leverage leadership shifts.');
+
+  const hazardFraming = padFraming(
+    hazardFramingSource || insightMap?.futureRiskIfUnchanged || insightMap?.trajectory?.driftCase || '',
+    [
+      'If those early markers keep running for a year, the cost shows up in how people behave while they stay.',
+      'This is not about who exits — it is about what the pattern trains in the people who remain.',
+      'Take that seriously before those habits become the team’s quiet operating system.',
+    ]
+  );
+
+  // Always exactly 2 hazard examples, paired 1:1 with marker examples; replace leave-copouts.
+  const rawHazardExamples = examples.slice(2, 4);
+  const hazardExamples = [0, 1].map((i) => {
+    const candidate = rawHazardExamples[i];
+    if (candidate && !isLeaveCopout(candidate)) return candidate;
+    return extrapolateHazardFromMarker(markerExamples[i], i);
+  });
+  const p3 = [hazardFraming, ...hazardExamples].join('\n');
+
+  let p4List = newTrailSourceSentences.map(stripListMarkers).filter(Boolean);
+  const newTrailFillers = [
+    'A new trail opens when you put intention behind the shifts that already want to emerge.',
+    'The leader you could become is clearer, steadier, and easier for your team to follow under pressure.',
+    'That pivot is available now — not as a reinvention, but as a sharper version of how you already lead.',
+  ];
+  for (const s of newTrailFillers) {
+    if (p4List.length >= 3) break;
+    if (!p4List.includes(s)) p4List.push(s);
+  }
+  const p4 = p4List.slice(0, 5).map(stripListMarkers).join(' ').trim();
   return [p1, p2, p3, p4].join('\n\n').trim();
 }
 
@@ -437,7 +484,6 @@ function sectionSentenceCount(text) {
 function evaluateNarrativeQuality(text, insightMap) {
   const sections = String(text || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
   const [trailhead = '', markers = '', trajectory = '', newTrail = ''] = sections;
-  const markerBullets = markers.split('\n').filter((l) => l.trim().startsWith('- '));
   const badPhrases = [
     /unlock potential/i,
     /effective leader/i,
@@ -447,17 +493,21 @@ function evaluateNarrativeQuality(text, insightMap) {
     /be more strategic/i,
   ];
   const advicePattern = /\b(you should|should|must|need to|have to|try to|focus on|start with|begin by|by\s+[a-z]+ing)\b/i;
-  const boldTrailhead = (trailhead.match(/\*\*([^*]+)\*\*/g) || []).length;
-  const boldTrajectory = (trajectory.match(/\*\*([^*]+)\*\*/g) || []).length;
   const danglingFragment = /(?:^|[.!?]\s+)[^.!?]*\b(to|by|of|for|with|into|onto|from|about|as|at|in|on|and|or|but|if|when|while)\.\s*(?:$|[A-Z])/i;
 
   let score = 0;
   if (sections.length >= 4) score += 1;
-  if (sectionSentenceCount(trailhead) >= 8) score += 1;
-  if (markerBullets.length >= 3 && markerBullets.length <= 5) score += 1;
-  if (sectionSentenceCount(trajectory) >= 5) score += 1;
-  if (sectionSentenceCount(newTrail) >= 5) score += 1;
-  if (String(newTrail).includes('- ')) score += 1;
+  if (sectionSentenceCount(trailhead) >= 7) score += 1;
+  const framingBeforeExamples = (section) => {
+    const idx = String(section || '').search(/(?:^|\n)\s*EXAMPLE\s*:/im);
+    const framing = idx >= 0 ? String(section).slice(0, idx) : String(section || '');
+    return sectionSentenceCount(framing);
+  };
+  if (framingBeforeExamples(markers) >= 2 && (/^EXAMPLE\s*:/im.test(markers) ? (markers.match(/^EXAMPLE\s*:/gim) || []).length : 0) >= 2) score += 1;
+  const hazardExampleCount = (trajectory.match(/^EXAMPLE\s*:/gim) || []).length;
+  if (framingBeforeExamples(trajectory) >= 2 && hazardExampleCount >= 2) score += 1;
+  if (hazardExampleCount >= 2 && !/\b(quit|resign|leaving|attrition|turnover|talent leaves|people leave)\b/i.test(trajectory)) score += 1;
+  if (sectionSentenceCount(newTrail) >= 3) score += 1;
   if (String(insightMap?.signaturePattern || '') && String(text).toLowerCase().includes(String(insightMap.signaturePattern).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (String(insightMap?.hiddenCost || '') && String(text).toLowerCase().includes(String(insightMap.hiddenCost).toLowerCase().split(' ').slice(0, 3).join(' '))) score += 1;
   if (!badPhrases.some((re) => re.test(text))) score += 1;
@@ -466,8 +516,7 @@ function evaluateNarrativeQuality(text, insightMap) {
   if (!danglingFragment.test(trajectory)) score += 1;
   if (!/^\s*#+/m.test(text)) score += 1;
   if (!advicePattern.test(`${trailhead} ${trajectory}`)) score += 1;
-  if (boldTrailhead === 0) score += 1;
-  if (boldTrajectory === 0) score += 1;
+  if (/\*\*[^*]+\*\*/.test(trailhead) || /\*[^*]+\*/.test(trailhead)) score += 1;
   return score;
 }
 
@@ -475,19 +524,44 @@ function buildNarrativeRepairPrompt() {
   return `
 Repair this draft to satisfy all requirements:
 - Keep four sections separated by blank lines.
-- Trailhead must be current-state only, 8-10 sentences.
-- Trail Markers must have 3-5 outcome bullets, each 8-14 words and context-specific.
-- Upcoming Hazards must be a dark risk-forward narrative of 5-6 sentences (no optimism paragraph).
-- A New Trail must include five bullets in required format.
-- Remove generic phrases and repeated sentence openers.
-- Weave profile context naturally (team size, tenure, industry, role scope) without awkward title append.
-- Avoid communication/delegation themes unless clearly grounded in multiple intake signals.
-- Preserve emotional sequence across sections: Seen -> Exposed -> Hopeful -> Motivated.
-- Remove trailing sentence fragments (e.g., ending on "to." or "by.").
-- Remove all advice/directive phrasing; keep hypothetical future language.
-- Do not use markdown bold markers.
-Return revised content only.
+- Trailhead must be current-state only, 8-12 sentences, generally affirming and intriguing, with light **bold** / *italic* emphasis on key phrases.
+- Trail Markers must open with 2-3 framing sentences in guide voice (call to pay attention), then exactly 2 lines starting with "EXAMPLE:" (no bullet points). Those two EXAMPLES are early-pattern moments.
+- Upcoming Hazards must open with 2-3 framing sentences, then exactly 2 lines starting with "EXAMPLE:" — paired 1:1 with the Trail Marker examples (Hazard 1 = Marker 1 a year later; Hazard 2 = Marker 2 a year later).
+- Each hazard EXAMPLE must describe employee behavior if people stay under that leadership and the pattern becomes perpetual — withholding, over-asking, self-protection, workarounds, slowed ownership, compliance without candor, etc.
+- Ban leave-copouts in hazards: no quitting, resigning, leaving, attrition, turnover, or "they walk."
+- A New Trail must be at least 3 prose sentences only — no lists, no trait names, no EXAMPLE lines, no bullet points.
+- Do not invent claims. Keep fidelity to intake evidence.
+- No advice, directives, or headings.
 `.trim();
+}
+
+function buildTrailheadHighlights(insightMap = null) {
+  const strength = Array.isArray(insightMap?.coreStrengths) ? insightMap.coreStrengths[0] : null;
+  const tension = Array.isArray(insightMap?.coreTensions) ? insightMap.coreTensions[0] : null;
+  const pickText = (item, fallbacks = []) => {
+    const candidates = [
+      item?.implication,
+      Array.isArray(item?.evidence) ? item.evidence[0] : '',
+      item?.label,
+      ...fallbacks,
+    ];
+    return candidates.map((x) => String(x || '').replace(/\s+/g, ' ').trim()).find(Boolean) || '';
+  };
+  const strengthLabel = String(strength?.label || 'Core strength').trim() || 'Core strength';
+  const focusLabel = String(tension?.label || 'Focus point').trim() || 'Focus point';
+  const strengthText = pickText(strength, [
+    insightMap?.leadershipMirror,
+    'A reliable leadership asset that already creates clarity and momentum for others.',
+  ]);
+  const focusText = pickText(tension, [
+    insightMap?.protectivePattern,
+    insightMap?.hiddenTradeoff,
+    'A recurring tension that quietly shapes how the team experiences your leadership.',
+  ]);
+  return {
+    strength: { label: strengthLabel, text: strengthText },
+    focus: { label: focusLabel, text: focusText },
+  };
 }
 
 
@@ -495,13 +569,17 @@ function buildFocusAreas(data, insightMap = null) {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   if (!CORE_TRAITS.length) return [];
   const allSubtraits = CORE_TRAITS.flatMap((trait) =>
-    (trait?.subTraits || []).map((subTrait) => ({
-      trait,
-      subTrait,
-      key: `${trait.id}-${subTrait.id}`,
-      nameLc: String(subTrait?.name || '').toLowerCase(),
-      parentLc: String(trait?.name || '').toLowerCase(),
-    }))
+    (trait?.subTraits || [])
+      .filter((subTrait) => isEligibleForFocusRecommendation(subTrait))
+      .map((subTrait) => ({
+        trait,
+        subTrait,
+        key: `${trait.id}-${subTrait.id}`,
+        nameLc: String(subTrait?.name || '').toLowerCase(),
+        aliasesLc: (Array.isArray(subTrait?.aliases) ? subTrait.aliases : [])
+          .map((a) => String(a || '').toLowerCase()),
+        parentLc: String(trait?.name || '').toLowerCase(),
+      }))
   );
   if (!allSubtraits.length) return [];
 
@@ -520,11 +598,28 @@ function buildFocusAreas(data, insightMap = null) {
 
   const selected = [];
   const seen = new Set();
-  const pick = (entry) => {
+  const whyByKey = {};
+  const pick = (entry, whyYou = '') => {
     if (!entry) return;
     if (seen.has(entry.key)) return;
     seen.add(entry.key);
+    if (whyYou) whyByKey[entry.key] = whyYou;
     selected.push(entry);
+  };
+
+  const matchSubtrait = (subTraitName, parentHint) => {
+    const exact = allSubtraits.find(
+      (e) =>
+        (e.nameLc === subTraitName || e.aliasesLc.includes(subTraitName)) &&
+        (!parentHint || e.parentLc.includes(parentHint))
+    );
+    if (exact) return exact;
+    return allSubtraits.find(
+      (e) =>
+        e.nameLc.includes(subTraitName) ||
+        subTraitName.includes(e.nameLc) ||
+        e.aliasesLc.some((a) => a.includes(subTraitName) || subTraitName.includes(a))
+    );
   };
 
   const recs = Array.isArray(insightMap?.focusRecommendations) ? insightMap.focusRecommendations : [];
@@ -532,10 +627,7 @@ function buildFocusAreas(data, insightMap = null) {
     const subTraitName = String(rec?.subTraitName || '').trim().toLowerCase();
     const parentHint = String(rec?.parentTraitHint || '').trim().toLowerCase();
     if (!subTraitName) return;
-    const exact = allSubtraits.find((e) => e.nameLc === subTraitName && (!parentHint || e.parentLc.includes(parentHint)));
-    if (exact) return pick(exact);
-    const partial = allSubtraits.find((e) => e.nameLc.includes(subTraitName) || subTraitName.includes(e.nameLc));
-    pick(partial);
+    pick(matchSubtrait(subTraitName, parentHint), String(rec?.rationale || '').trim());
   });
 
   const byTraitBuckets = CORE_TRAITS.map((trait) =>
@@ -558,7 +650,7 @@ function buildFocusAreas(data, insightMap = null) {
     if (selected.length > allSubtraits.length) break;
   }
 
-  return selected.slice(0, 5).map(({ trait, subTrait }) => ({
+  return selected.slice(0, 5).map(({ trait, subTrait, key }) => ({
     id: `${trait.id}-${subTrait.id}`,
     traitName: trait.name,
     traitDefinition: trait.definition || trait.description,
@@ -567,13 +659,17 @@ function buildFocusAreas(data, insightMap = null) {
     example: Array.isArray(subTrait?.examples) ? (subTrait.examples[0] || '') : '',
     risk: Array.isArray(subTrait?.riskSignals?.underuse) ? (subTrait.riskSignals.underuse[0] || '') : '',
     impact: subTrait.impact || '',
+    whyYou: whyByKey[key] || '',
   }));
 }
 
 function buildFocusTraitCatalog() {
   const CORE_TRAITS = traitSystem?.CORE_TRAITS || [];
   return CORE_TRAITS.flatMap((trait) =>
-    (trait?.subTraits || []).map((subTrait) => String(subTrait?.name || '').trim()).filter(Boolean)
+    (trait?.subTraits || [])
+      .filter((subTrait) => isEligibleForFocusRecommendation(subTrait))
+      .map((subTrait) => String(subTrait?.name || '').trim())
+      .filter(Boolean)
   );
 }
 
@@ -821,7 +917,7 @@ const agents = {
         .json({ error: `Invalid agent. Choose: ${Object.keys(agents).join(', ')}` });
     }
 
-    const maxChars = Math.max(1300, Math.min(Number(charLimit) || 1800, 2200));
+    const maxChars = Math.max(2400, Math.min(Number(charLimit) || 3200, 4000));
 
     // Build a compact persona voice guide
     const voiceGuide = (() => {
@@ -912,7 +1008,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
     const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas, contextSnapshot });
     const completion = await openai.chat.completions.create({
       model: NARRATIVE_MODEL,
-      max_tokens: 1300,
+      max_tokens: 2200,
       temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.12, 0.75),
       frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
       presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
@@ -926,7 +1022,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
     const shapePipeline = (value) => {
       const shaped = normalizeFourSections(value, insightMap);
       const withMarkers = ensureTrailMarkers(shaped, insightMap);
-      const withBullets = ensureFiveSubtraitBullets(withMarkers, focusAreas);
+      const withBullets = ensureNewTrailProseOnly(withMarkers);
       const softened = softenPrescriptiveLanguage(withBullets);
       const cleanedMarkdown = removeDanglingMarkdown(softened);
       return cleanedMarkdown.replace(/\*\*/g, '');
@@ -938,7 +1034,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
       const repairPrompt = `${buildNarrativeRepairPrompt()}\n\nDRAFT TO REPAIR:\n${capped}`;
       const retry = await openai.chat.completions.create({
         model: NARRATIVE_MODEL,
-        max_tokens: 1300,
+        max_tokens: 2200,
         temperature: Math.min((agents[selectedAgent]?.params?.temperature ?? 0.35) + 0.08, 0.72),
         frequency_penalty: agents[selectedAgent]?.params?.frequency_penalty ?? 0.2,
         presence_penalty: Math.max(agents[selectedAgent]?.params?.presence_penalty ?? 0.0, 0.15),
@@ -957,7 +1053,12 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
       }
     }
 
-    return res.status(200).json({ aiSummary: capped, maxChars, focusAreas });
+    return res.status(200).json({
+      aiSummary: capped,
+      maxChars,
+      focusAreas,
+      trailheadHighlights: buildTrailheadHighlights(insightMap),
+    });
   } catch (err) {
     return safeServerError(res, 'AI Summary error:', err);
   }

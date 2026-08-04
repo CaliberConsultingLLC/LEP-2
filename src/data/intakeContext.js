@@ -23,7 +23,7 @@ export const SOCIETAL_NORM_ITEMS = [
     displayTemplate: 'When challenges arise, I ____ share the answer from my experience and expertise.',
     reverse: true,
     normDriver: 'Leaders have the answers/solve problems',
-    traitsUndermined: ['Courage'],
+    traitsUndermined: ['emotionalIntelligence'],
   },
   {
     id: 'norm_visible_reaction',
@@ -31,7 +31,7 @@ export const SOCIETAL_NORM_ITEMS = [
     displayTemplate: 'I ____ visibly react before I respond to difficult or bad news that is shared with me about the company.',
     reverse: true,
     normDriver: 'A visible reaction reminds employees that my job is more stressful than theirs',
-    traitsUndermined: ['Shepherd', 'Courage'],
+    traitsUndermined: ['teamDevelopment', 'emotionalIntelligence'],
     interpretationNote:
       'Low score after reverse suggests risk of visible overreaction or emotional deadness; balanced expression supports sharing.',
   },
@@ -43,7 +43,7 @@ export const SOCIETAL_NORM_ITEMS = [
       "When the correction/learning from a team member's mistake will benefit the whole team, I ____ address the entire team about it to ensure consistency.",
     reverse: true,
     normDriver: 'Blanket corrections are acceptable and effective',
-    traitsUndermined: ['Shepherd', 'Courage'],
+    traitsUndermined: ['teamDevelopment', 'emotionalIntelligence'],
   },
   {
     id: 'norm_hiring_fit',
@@ -51,7 +51,7 @@ export const SOCIETAL_NORM_ITEMS = [
     displayTemplate: 'I ____ hire employees that equally fit the need and the company culture and values.',
     reverse: false,
     normDriver: 'A good fit is subservient to proficient skills',
-    traitsUndermined: ['Shepherd', 'Navigator'],
+    traitsUndermined: ['teamDevelopment', 'strategicThinking'],
   },
   {
     id: 'norm_dissent_growth',
@@ -61,7 +61,7 @@ export const SOCIETAL_NORM_ITEMS = [
       'My response to dissenting viewpoints ____ shows the team that challenging one another leads to growth and innovation.',
     reverse: false,
     normDriver: 'Don’t question the bosses/leaderships’ decisions',
-    traitsUndermined: ['Courage'],
+    traitsUndermined: ['emotionalIntelligence'],
   },
   {
     id: 'norm_one_liners',
@@ -71,7 +71,7 @@ export const SOCIETAL_NORM_ITEMS = [
       'I am ____ known among employees for one-line phrases like "do what’s right," "challenges mean learning," or "We’re in this together."',
     reverse: false,
     normDriver: 'Cliché one liners are futile or childish',
-    traitsUndermined: ['Shepherd', 'Navigator'],
+    traitsUndermined: ['teamDevelopment', 'strategicThinking'],
   },
   {
     id: 'norm_more_answers',
@@ -79,7 +79,7 @@ export const SOCIETAL_NORM_ITEMS = [
     displayTemplate: 'I ____ have more answers than I do questions in our team discussions.',
     reverse: true,
     normDriver: 'Leaders have the answers/solve problems',
-    traitsUndermined: ['Shepherd', 'Courage'],
+    traitsUndermined: ['teamDevelopment', 'emotionalIntelligence'],
   },
   {
     id: 'norm_metrics_control',
@@ -89,7 +89,7 @@ export const SOCIETAL_NORM_ITEMS = [
       'It is ____ important that our employee performance metrics are directly connected to their work and in their control.',
     reverse: false,
     normDriver: 'Outcomes are performance metrics',
-    traitsUndermined: ['Navigator'],
+    traitsUndermined: ['strategicThinking'],
     interpretationNote:
       'Outcomes matter but are influenced by variables outside employee control; balance includes controllable behaviors and attitudes.',
   },
@@ -100,7 +100,7 @@ export const SOCIETAL_NORM_ITEMS = [
       'I ____ communicate processes, vision, and expectations so much that I am tired of hearing it.',
     reverse: false,
     normDriver: 'My team knows what matters…they are adults',
-    traitsUndermined: ['Navigator'],
+    traitsUndermined: ['strategicThinking'],
     interpretationNote: 'Silence tells stories; people fill gaps with assumptions.',
   },
   {
@@ -109,7 +109,7 @@ export const SOCIETAL_NORM_ITEMS = [
     displayTemplate: 'When I am struggling professionally, I ____ openly share that information with my team.',
     reverse: false,
     normDriver: 'Don’t acknowledge weakness',
-    traitsUndermined: ['Shepherd', 'Courage'],
+    traitsUndermined: ['teamDevelopment', 'emotionalIntelligence'],
   },
 ];
 

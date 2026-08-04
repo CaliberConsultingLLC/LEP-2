@@ -5,10 +5,14 @@ import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/aut
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { buildPasswordResetActionSettings } from '../utils/authActionLinks';
+import { useCairnTheme } from '../config/runtimeFlags';
+import { useDarkMode } from '../hooks/useDarkMode';
+import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 
 function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isDark] = useDarkMode();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -287,6 +291,106 @@ function SignIn() {
 
     runAutoReset();
   }, [hasAutoResetRun, location.search]);
+
+  if (useCairnTheme) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100svh',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: colors.sand50,
+          px: 2,
+        }}
+      >
+        <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Box
+            sx={{
+              width: '100%',
+              maxWidth: 480,
+              borderRadius: radii.lg,
+              p: { xs: 3, sm: 3.5 },
+              border: isDark ? '1px solid rgba(244,206,161,0.14)' : `1px solid ${colors.sand200}`,
+              bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.88)',
+              boxShadow: isDark ? '0 10px 32px rgba(0,0,0,0.34)' : shadows.card,
+            }}
+          >
+            <Stack spacing={2}>
+              <Typography
+                sx={{
+                  fontFamily: fonts.sans,
+                  fontSize: { xs: '1.65rem', sm: '1.95rem' },
+                  fontWeight: 800,
+                  textAlign: 'center',
+                  color: isDark ? colors.ink : colors.navy900,
+                }}
+              >
+                Sign In
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: fonts.sans,
+                  fontSize: '0.9rem',
+                  textAlign: 'center',
+                  color: isDark ? 'rgba(240,233,222,0.64)' : colors.inkSoft,
+                }}
+              >
+                Enter your email and password to resume your journey.
+              </Typography>
+
+              {error && <Alert severity="error">{error}</Alert>}
+              {infoMessage && <Alert severity="success">{infoMessage}</Alert>}
+
+              <TextField
+                type="email"
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                type="password"
+                label="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                fullWidth
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSignIn();
+                }}
+              />
+              <Stack direction="row" justifyContent="flex-end" sx={{ mt: -0.5 }}>
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={handleForgotPassword}
+                  disabled={isResettingPassword}
+                  sx={{ minWidth: 0, px: 0.4, color: colors.orangeDeep, fontWeight: 700 }}
+                >
+                  {isResettingPassword ? 'Sending reset link...' : 'Forgot Password?'}
+                </Button>
+              </Stack>
+
+              <Stack direction="row" spacing={1.5} justifyContent="center" sx={{ pt: 0.5 }}>
+                <Button variant="outlined" onClick={() => navigate('/')} sx={buttons.secondary}>
+                  Back
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSignIn}
+                  disabled={isSubmitting}
+                  sx={buttons.primary}
+                >
+                  {isSubmitting ? 'Signing In...' : 'Sign In'}
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box

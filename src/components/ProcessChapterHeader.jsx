@@ -132,6 +132,9 @@ function HeaderMetaPlate({ meta }) {
 
   const countMatch = countText.match(/^(\d+)(.*)$/);
   const tailText = countMatch ? countMatch[2] : '';
+  const selectionAccent = /selected/i.test(label);
+  const pipActive = selectionAccent ? colors.green : colors.orange;
+  const countActive = selectionAccent ? colors.green : colors.orangeDeep;
 
   return (
     <Box
@@ -173,9 +176,13 @@ function HeaderMetaPlate({ meta }) {
                   width: 11,
                   height: 11,
                   borderRadius: '50%',
-                  border: `1.5px solid ${active ? colors.orange : colors.sand300}`,
-                  bgcolor: active ? colors.orange : 'transparent',
-                  boxShadow: active ? '0 1px 4px rgba(224,122,63,0.4)' : 'none',
+                  border: `1.5px solid ${active ? pipActive : colors.sand300}`,
+                  bgcolor: active ? pipActive : 'transparent',
+                  boxShadow: active
+                    ? (selectionAccent
+                      ? '0 1px 4px color-mix(in srgb, var(--green) 40%, transparent)'
+                      : '0 1px 4px color-mix(in srgb, var(--orange) 40%, transparent)')
+                    : 'none',
                 }}
               />
             );
@@ -193,7 +200,7 @@ function HeaderMetaPlate({ meta }) {
         >
           {countMatch ? (
             <>
-              <Box component="span" sx={{ color: colors.orangeDeep }}>
+              <Box component="span" sx={{ color: countActive }}>
                 {countMatch[1]}
               </Box>
               <Box component="span" sx={{ color: colors.inkSoft }}>

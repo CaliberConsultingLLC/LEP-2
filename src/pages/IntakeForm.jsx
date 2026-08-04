@@ -11,8 +11,11 @@ import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
+import CairnFlowButtons from '../components/CairnFlowButtons';
+import JourneyPorthole from '../components/JourneyPorthole';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useStepNav } from '../context/StepNavContext';
+import { useDarkMode } from '../hooks/useDarkMode';
 import { auth, db } from '../firebase';
 
 // ---------- Memo wrappers ----------
@@ -31,7 +34,7 @@ const parseJson = (raw, fallback = null) => {
 };
 
 // ---------- Message Dialog (reusable for pop-ups) ----------
-const MessageDialog = ({ open, onClose, title, content }) => (
+const MessageDialog = ({ open, onClose, title, content, chapterIndex = null, showPorthole = true }) => (
   <Dialog
     open={open}
     onClose={onClose}
@@ -40,9 +43,10 @@ const MessageDialog = ({ open, onClose, title, content }) => (
     PaperProps={{
       sx: useCairnTheme
         ? {
-            background: '#FFFFFF',
-            borderRadius: '16px',
+            background: 'var(--sand-50, #FBF7F0)',
+            borderRadius: 'var(--cairn-radius-xl, 24px)',
             boxShadow: '0 20px 60px rgba(15,28,46,0.18)',
+            border: '1px solid var(--sand-200, #E8DBC3)',
           }
         : {},
     }}
@@ -50,22 +54,41 @@ const MessageDialog = ({ open, onClose, title, content }) => (
     <DialogTitle sx={{
       fontWeight: useCairnTheme ? 700 : 800,
       textAlign: 'center',
-      fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
+      fontFamily: useCairnTheme ? '"Fraunces", serif' : 'inherit',
       fontStyle: 'normal',
-      fontSize: useCairnTheme ? '1.4rem' : 'inherit',
+      fontSize: useCairnTheme ? '1.55rem' : 'inherit',
       color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
       pt: useCairnTheme ? 3 : 2,
+      pb: useCairnTheme ? 1 : undefined,
     }}>{title}</DialogTitle>
     <DialogContent sx={{ textAlign: 'center', py: 2 }}>
+      {useCairnTheme && showPorthole && Number.isInteger(chapterIndex) && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <JourneyPorthole variant="ceremony" chapterIndex={chapterIndex} size={140} />
+        </Box>
+      )}
       <Typography sx={{
         lineHeight: 1.6,
         opacity: 0.9,
-        fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
+        fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+        fontSize: useCairnTheme ? '0.95rem' : 'inherit',
         color: useCairnTheme ? 'var(--ink-soft, #44566C)' : 'inherit',
       }}>{content}</Typography>
     </DialogContent>
     <DialogActions sx={{ justifyContent: 'center', pb: useCairnTheme ? 3 : 1 }}>
-      <MemoButton variant="contained" onClick={onClose}>Continue</MemoButton>
+      <MemoButton
+        variant="contained"
+        onClick={onClose}
+        sx={useCairnTheme ? {
+          borderRadius: 999,
+          bgcolor: 'var(--orange, #E07A3F)',
+          fontFamily: '"Montserrat", sans-serif',
+          fontWeight: 800,
+          px: 3,
+        } : undefined}
+      >
+        Continue
+      </MemoButton>
     </DialogActions>
   </Dialog>
 );
@@ -79,11 +102,20 @@ const PageContainer = ({ children }) => (
       py: useCairnTheme ? 0 : { xs: 2, sm: 3 },
       px: useCairnTheme ? 0 : { xs: 2, sm: 4 },
       display: 'flex',
-      justifyContent: useCairnTheme ? 'flex-start' : 'center',
+      justifyContent: 'center',
       width: useCairnTheme ? '100%' : '100vw',
     }}
   >
-    <Box sx={{ width: useCairnTheme ? 1180 : '100%', minWidth: useCairnTheme ? 1180 : 0, maxWidth: 1180 }}>{children}</Box>
+    <Box sx={{
+      width: '100%',
+      maxWidth: 1180,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    }}
+    >
+      {children}
+    </Box>
   </Container>
 );
 
@@ -92,7 +124,7 @@ const PageContainer = ({ children }) => (
 const SectionCard = ({ children, narrow = false }) => {
   if (useCairnTheme) {
     return (
-      <MemoBox sx={{ width: '100%', maxWidth: narrow ? 748 : 1180 }}>
+      <MemoBox sx={{ width: '100%', maxWidth: narrow ? 748 : 1180, mx: 'auto' }}>
         <Box
           sx={{
             width: '100%',
@@ -566,6 +598,7 @@ function IntakeForm() {
   const [postSignupNotice, setPostSignupNotice] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [isDark] = useDarkMode();
   const { register: registerStepNav, unregister: unregisterStepNav } = useStepNav();
   const autosaveTimeoutRef = useRef(null);
   const autosaveReadyRef = useRef(false);
@@ -696,7 +729,8 @@ function IntakeForm() {
         }
 
         if (useCairnTheme && stageTarget === 'intake') {
-          setCurrentStep(2);
+          // Chapter ceremony already introduced this section — skip the duplicate popup (step 2).
+          setCurrentStep(3);
           setResumeNotice(null);
         }
 
@@ -788,7 +822,7 @@ function IntakeForm() {
         'Dive into the most challenging aspect to lead by example.',
         'Gather the team for a collaborative brainstorming session.',
         'Focus on identifying and mitigating the biggest risks.',
-        'Distribute tasks to the team and set clear check-in points.',
+        'Distribute ownership with clear check-ins and criteria.',
         'Ask clarifying questions before diving in.',
       ],
     },
@@ -799,7 +833,7 @@ function IntakeForm() {
       type: 'multi-select',
       options: [
         'Repeating myself to ensure understanding',
-        "Addressing a team member's inconsistent contributions",
+        'Following up when someone misses a commitment',
         'Decoding unspoken concerns from the team',
         'Navigating frequent changes in priorities',
         'Meetings with limited or no outcomes',
@@ -817,7 +851,7 @@ function IntakeForm() {
       options: [
         'Maintain composure and provide clear, decisive direction to the team.',
         'Immediately gather the team to collaborate on potential solutions.',
-        'First verify all facts and details before taking any action.',
+        "Clarify what is known, what's open, and what's next.",
         'Delegate ownership to team members while providing support from the sidelines.',
         'Jump in directly to handle the most critical aspects myself.',
       ],
@@ -861,9 +895,9 @@ function IntakeForm() {
       prompt: 'If your leadership style had a "warning label," what would it be?',
       type: 'radio',
       options: [
-        'Caution: May overthink the details',
+        'Caution: May keep polishing past the finish line',
         'Warning: Moves fast—keep up!',
-        'Winding Road: we change directions quickly',
+        'Winding Road: Comfortable moving before the path is clear',
         'Flammable: Sparks fly under pressure',
         'Fragile: Avoid too much pushback',
         'Falling Rocks: Tendency to over-delegate',
@@ -878,11 +912,11 @@ function IntakeForm() {
       type: 'ranking',
       options: [
         'Seeing the team gel and succeed together',
-        'Nailing a tough project on time',
+        'Closing out a tough project completely',
         'Solving a problem no one else could',
         'Hearing the team say they learned something',
         'My team getting the recognition it deserves',
-        'Turning chaos into order',
+        'Turning chaos into quality',
       ],
       scale: { top: 'Energize Me Most', bottom: 'Energize Me Least' },
     },
@@ -903,7 +937,8 @@ function IntakeForm() {
         { left: 'Critical', right: 'Encouraging', min: 1, max: 10, step: 1 },
         { left: 'Detail-Oriented', right: 'Big-picture-oriented', min: 1, max: 10, step: 1 },
         { left: 'Directive', right: 'Empowering', min: 1, max: 10, step: 1 },
-        { left: 'Risk-averse', right: 'Risk-tolerant', min: 1, max: 10, step: 1 },
+        { left: 'Prefer clarity before moving', right: 'Move forward while clarity forms', min: 1, max: 10, step: 1 },
+        { left: 'Thorough communicator', right: 'Concise communicator', min: 1, max: 10, step: 1 },
       ],
     },
     {
@@ -927,19 +962,20 @@ function IntakeForm() {
       options: [
         { primary: 'The Fix', secondary: 'Get things back on track' },
         { primary: 'The Feedback', secondary: 'Learn where things went wrong' },
+        { primary: 'The Standard', secondary: 'Protect the quality bar before moving on' },
       ],
     },
     {
       id: 'teamPerception',
       theme: 'The Performance Check',
-      prompt: 'How do you handle a team member that is underperforming?',
+      prompt: 'When a team member is not meeting expectations, what do you do first?',
       type: 'radio',
       options: [
-        'Address it directly and immediately in a private conversation.',
+        'Name the gap in a private conversation and reset the expectation.',
         'Observe for patterns and gather context before taking action.',
-        'Provide additional support and resources to help them improve.',
+        'Provide support and resources, then confirm the new bar together.',
         'Reassign tasks or adjust their responsibilities to better fit their strengths.',
-        'Set clear expectations and create a performance improvement plan.',
+        'Set clear expectations, an owner, and a check-in date to close the gap.',
         'Involve HR or escalate to higher management for guidance.',
       ],
     },
@@ -1055,10 +1091,13 @@ function IntakeForm() {
 
   // ---- dialogs and reflection text ----
   useEffect(() => {
-    const messageSteps = [0, 2, mindsetIntroStep]; // Profile intro, Behaviors intro, Insights intro
+    // Cairn: behaviors intro is the chapter ceremony — don't re-open step 2 MessageDialog.
+    const messageSteps = useCairnTheme
+      ? [0, mindsetIntroStep]
+      : [0, 2, mindsetIntroStep];
     const reflectionIntro = currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current;
     setDialogOpen(messageSteps.includes(currentStep) || reflectionIntro);
-  }, [currentStep, mindsetIntroStep]);
+  }, [currentStep, mindsetIntroStep, reflectionStep, reflectionNumber]);
 
   const clampReflectionText = (text, max = 250) => {
     const clean = String(text || '').trim();
@@ -1237,7 +1276,7 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    const isMessageStep = [0, 3, mindsetIntroStep].includes(currentStep) || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current); // auto-advance popups
+    const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep) || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current); // auto-advance popups
 
     if (isMessageStep) {
       setDialogOpen(false);
@@ -1405,13 +1444,22 @@ function IntakeForm() {
   };
 
   const intakeQuestionNumber = (() => {
-    if (currentStep >= behaviorStart && currentStep <= behaviorEnd) return currentStep;
-    if (currentStep >= societalStart && currentStep <= societalEnd) return behaviorEnd + 1 + societalQuestionIndex;
-    if (currentStep === reflectionStep) return behaviorEnd + 1;
-    if (currentStep === agentStep) return 28;
+    // User-facing numbers start at 1 on the first behavior question (exclude profile steps).
+    if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
+      return (currentStep - behaviorStart) + 1;
+    }
+    if (currentStep === reflectionStep) return behaviorSet.length;
+    if (currentStep >= societalStart && currentStep <= societalEnd) {
+      return behaviorSet.length + 1 + societalQuestionIndex;
+    }
+    if (currentStep === agentStep) return behaviorSet.length + societalNormsQuestions.length;
     return Math.max(1, currentStep);
   })();
-  const intakeHeaderMeta = { label: 'Question', value: `${intakeQuestionNumber} / 28` };
+  const intakeQuestionTotal = behaviorSet.length + societalNormsQuestions.length;
+  const isProfileDetailsStep = useCairnTheme && currentStep === 1;
+  const intakeHeaderMeta = isProfileDetailsStep
+    ? null
+    : { label: 'Question', value: `${intakeQuestionNumber} / ${intakeQuestionTotal}` };
 
   // ---------- UI ----------
   return (
@@ -1446,26 +1494,38 @@ function IntakeForm() {
             }),
       }}
     >
-      <ProcessTopRail metaOverride={intakeHeaderMeta} />
+      <ProcessTopRail
+        metaOverride={intakeHeaderMeta}
+        titleOverride={isProfileDetailsStep ? 'Profile Details' : undefined}
+        subtitleOverride={isProfileDetailsStep
+          ? 'These details shape how the Compass agent reads your context. Every leader sits in a different spot — industry, team size, and tenure change the insights you receive.'
+          : undefined}
+      />
 
       {/* Message Pop-ups */}
       {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
+          chapterIndex={currentStep === mindsetIntroStep || currentStep === reflectionStep ? 1 : currentStep === 2 ? 1 : 0}
+          showPorthole={currentStep !== mindsetIntroStep}
           title={
             currentStep === 0
               ? 'Leader Profile'
               : currentStep === 2
-              ? 'Leader Behaviors'
-              : 'Leader Insights'
+              ? 'Daily Leadership Habits'
+              : currentStep === mindsetIntroStep
+              ? 'Leadership Insights'
+              : 'Reflection Moment'
           }
           content={
             currentStep === 0
               ? 'The Compass is considerate of your specific leadership environment! Think of the leader profile as context that helps both the insights and growth plan you receive be more pertinent.'
               : currentStep === 2
-              ? 'The Compass also takes into account the actions that are most natural to you as a leader, so that your insights and growth plan are considerate of your natural flow state.'
-              : 'The Compass is committed to facilitating awareness of a person\'s instincts and insights, which are the most influential and challenging elements to recognize and change.'
+              ? 'These questions are about how you normally lead day to day — not who you wish you were. Answer honestly; this feedback is here to help you grow.'
+              : currentStep === mindsetIntroStep
+              ? 'Same chapter, different scale. These questions use Never-to-Always — answer as your normal behavior, not an ideal. Honest signal is what helps the Compass help you.'
+              : 'Take a breath. This reflection is a pause between habits and insights — notice what stood out before you continue.'
           }
         />
       )}
@@ -1501,22 +1561,23 @@ function IntakeForm() {
                   : 'Your intake progress saves automatically as you move through the experience.'}
           </Alert>
         )}
-        {/* Profile Page (Step 1) - Combined */}
+        {/* Profile Details (Step 1) */}
         {currentStep === 1 && (
           <SectionCard narrow={true}>
-            <Stack spacing={1.8} alignItems="stretch" textAlign="center" sx={{ width: '100%' }}>
-              <Typography sx={{
-                fontFamily: useCairnTheme ? '"Inter", sans-serif' : 'inherit',
-                fontStyle: 'normal',
-                fontWeight: useCairnTheme ? 800 : 800,
-                fontSize: useCairnTheme ? { xs: '1.75rem', md: '2rem' } : { xs: '1.5rem', md: '1.5rem' },
-                lineHeight: useCairnTheme ? 1.2 : 1.35,
-                mb: 0.2,
-                textAlign: 'center',
-                color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
-              }}>
-                Leader Profile
-              </Typography>
+            <Stack spacing={1.8} alignItems="center" textAlign="center" sx={{ width: '100%', maxWidth: 640, mx: 'auto' }}>
+              {!useCairnTheme && (
+                <Typography sx={{
+                  fontFamily: 'inherit',
+                  fontStyle: 'normal',
+                  fontWeight: 800,
+                  fontSize: { xs: '1.5rem', md: '1.5rem' },
+                  lineHeight: 1.35,
+                  mb: 0.2,
+                  textAlign: 'center',
+                }}>
+                  Leader Profile
+                </Typography>
+              )}
 
               <Box
                 sx={{
@@ -1524,6 +1585,7 @@ function IntakeForm() {
                   borderRadius: 2,
                   border: useCairnTheme ? 'none' : '1px solid rgba(0,0,0,0.14)',
                   bgcolor: useCairnTheme ? 'transparent' : 'rgba(0,0,0,0.03)',
+                  width: '100%',
                 }}
               >
                 <Grid container spacing={1.3} alignItems="stretch">
@@ -1614,6 +1676,7 @@ function IntakeForm() {
                   borderRadius: 2,
                   border: useCairnTheme ? 'none' : '1px solid rgba(0,0,0,0.14)',
                   bgcolor: useCairnTheme ? 'transparent' : 'rgba(0,0,0,0.03)',
+                  width: '100%',
                 }}
               >
                 <Grid container spacing={1.3} alignItems="stretch">
@@ -1674,30 +1737,42 @@ function IntakeForm() {
                 </Grid>
               </Box>
 
-              <Stack direction="row" spacing={2} justifyContent="flex-start" sx={{ pt: 0.4 }}>
-                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)} sx={{ minWidth: 86 }}>Back</MemoButton>
-                <MemoButton
-                  variant="contained"
-                  onClick={handleNext}
-                  disabled={!isProfileValid()}
-                  sx={{
-                    minWidth: 120,
-                    py: 1,
-                    ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
-                    '@keyframes pulse': {
-                      '0%': { transform: 'scale(1)' },
-                      '50%': { transform: 'scale(1.04)' },
-                      '100%': { transform: 'scale(1)' },
-                    },
-                  }}
-                >
-                  Next
-                </MemoButton>
-              </Stack>
+              {useCairnTheme ? (
+                <Box sx={{ width: '100%', pt: 1.2 }}>
+                  <CairnFlowButtons
+                    isDark={isDark}
+                    backLabel="Back"
+                    nextLabel="Next"
+                    onBack={() => navigate('/user-info')}
+                    onNext={handleNext}
+                    nextDisabled={!isProfileValid()}
+                  />
+                </Box>
+              ) : (
+                <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 0.4 }}>
+                  <MemoButton variant="outlined" onClick={() => setCurrentStep(0)} sx={{ minWidth: 86 }}>Back</MemoButton>
+                  <MemoButton
+                    variant="contained"
+                    onClick={handleNext}
+                    disabled={!isProfileValid()}
+                    sx={{
+                      minWidth: 120,
+                      py: 1,
+                      ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+                      '@keyframes pulse': {
+                        '0%': { transform: 'scale(1)' },
+                        '50%': { transform: 'scale(1.04)' },
+                        '100%': { transform: 'scale(1)' },
+                      },
+                    }}
+                  >
+                    Next
+                  </MemoButton>
+                </Stack>
+              )}
             </Stack>
           </SectionCard>
         )}
-
 
         {/* Behaviors Questions (Steps 5..16) */}
         {currentStep >= behaviorStart && currentStep <= behaviorEnd && (
@@ -1892,22 +1967,40 @@ function IntakeForm() {
                   )}
 
                   {q.type === 'sliders' && Array.isArray(q.sliders) && (
-                    <Stack spacing={3} sx={{ width: '100%', alignItems: 'center' }}>
+                    <Stack spacing={useCairnTheme && q.id === 'behaviorDichotomies' ? 1.15 : 3} sx={{ width: '100%', alignItems: 'center' }}>
                       {q.sliders.map((s, idx) => {
                         const currentValues = Array.isArray(formData[q.id]) ? formData[q.id] : [];
                         // For Balance Line question, start at exact middle (5.5) for visual centering
-                        const defaultValue = q.id === 'behaviorDichotomies' 
-                          ? ((s.min ?? 1) + (s.max ?? 10)) / 2 
+                        const defaultValue = q.id === 'behaviorDichotomies'
+                          ? ((s.min ?? 1) + (s.max ?? 10)) / 2
                           : Math.round(((s.min ?? 1) + (s.max ?? 10)) / 2);
                         const currentValue = currentValues[idx] ?? defaultValue;
                         const marks = Array.from({ length: 10 }, (_, i) => ({ value: i + 1 }));
+                        const isBalance = useCairnTheme && q.id === 'behaviorDichotomies';
                         return (
-                          <Box key={`${q.id}_${idx}`} sx={{ position: 'relative', width: '100%', maxWidth: 600 }}>
-                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.left}</Typography>
-                              <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.right}</Typography>
-                            </Stack>
-                            <Box sx={{ position: 'relative', px: 1 }}>
+                          <Box
+                            key={`${q.id}_${idx}`}
+                            sx={{
+                              position: 'relative',
+                              width: '100%',
+                              maxWidth: isBalance ? 720 : 600,
+                              display: 'grid',
+                              gridTemplateColumns: isBalance ? 'minmax(110px, 1fr) minmax(220px, 2.2fr) minmax(110px, 1fr)' : '1fr',
+                              alignItems: 'center',
+                              gap: isBalance ? 1.25 : 0,
+                            }}
+                          >
+                            {isBalance ? (
+                              <Typography sx={{ fontWeight: 650, fontSize: '0.82rem', textAlign: 'right', lineHeight: 1.25, color: 'var(--ink-soft, #44566C)' }}>
+                                {s.left}
+                              </Typography>
+                            ) : (
+                              <Stack direction="row" justifyContent="space-between" sx={{ mb: 1.5 }}>
+                                <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.left}</Typography>
+                                <Typography sx={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.right}</Typography>
+                              </Stack>
+                            )}
+                            <Box sx={{ position: 'relative', px: isBalance ? 0.5 : 1, gridColumn: isBalance ? '2' : '1' }}>
                               {/* Gradient background track */}
                               <Box
                                 sx={{
@@ -1915,11 +2008,9 @@ function IntakeForm() {
                                   top: '50%',
                                   left: 0,
                                   right: 0,
-                                  height: 8,
+                                  height: isBalance ? 6 : 8,
                                   transform: 'translateY(-50%)',
                                   borderRadius: 1,
-                                  // Left section: blue to white (blue at 0%, white at 50%)
-                                  // Right section: white to orange (white at 50%, orange at 100%)
                                   background: 'linear-gradient(to right, #6393AA 0%, #ffffff 50%, #ffffff 50%, #E07A3F 100%)',
                                   zIndex: 0,
                                 }}
@@ -1931,7 +2022,7 @@ function IntakeForm() {
                                   top: '50%',
                                   left: '50%',
                                   width: 2,
-                                  height: 20,
+                                  height: isBalance ? 16 : 20,
                                   transform: 'translate(-50%, -50%)',
                                   bgcolor: 'rgba(0, 0, 0, 0.4)',
                                   zIndex: 1,
@@ -1953,17 +2044,17 @@ function IntakeForm() {
                                 sx={{
                                   position: 'relative',
                                   zIndex: 2,
-                                  height: 8,
+                                  height: isBalance ? 6 : 8,
                                   width: '100%',
                                   '& .MuiSlider-track': {
-                                    display: 'none', // Hide default track, using gradient background instead
+                                    display: 'none',
                                   },
                                   '& .MuiSlider-rail': {
-                                    display: 'none', // Hide default rail
+                                    display: 'none',
                                   },
                                   '& .MuiSlider-thumb': {
-                                    width: 20,
-                                    height: 20,
+                                    width: isBalance ? 16 : 20,
+                                    height: isBalance ? 16 : 20,
                                     bgcolor: '#fff',
                                     border: '2px solid',
                                     borderColor: currentValue <= 5 ? '#6393AA' : '#E07A3F',
@@ -1976,8 +2067,8 @@ function IntakeForm() {
                                     },
                                   },
                                   '& .MuiSlider-mark': {
-                                    width: 4,
-                                    height: 4,
+                                    width: isBalance ? 3 : 4,
+                                    height: isBalance ? 3 : 4,
                                     borderRadius: '50%',
                                     bgcolor: 'rgba(0, 0, 0, 0.4)',
                                     '&.MuiSlider-markActive': {
@@ -1987,12 +2078,50 @@ function IntakeForm() {
                                 }}
                               />
                             </Box>
+                            {isBalance && (
+                              <Typography sx={{ fontWeight: 650, fontSize: '0.82rem', textAlign: 'left', lineHeight: 1.25, color: 'var(--ink-soft, #44566C)' }}>
+                                {s.right}
+                              </Typography>
+                            )}
                           </Box>
                         );
                       })}
                     </Stack>
                   )}
 
+                  {useCairnTheme ? (
+                    <Box sx={{ width: '100%', maxWidth: 480, pt: 1 }}>
+                      <CairnFlowButtons
+                        isDark={isDark}
+                        backLabel="Back"
+                        nextLabel="Next"
+                        onBack={() => setCurrentStep(s => s - 1)}
+                        onNext={handleNext}
+                        nextDisabled={
+                          (q.type === 'text' && !formData[q.id]) ||
+                          (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
+                          (q.type === 'ranking' && (formData[q.id] != null && formData[q.id].length !== q.options.length)) ||
+                          (q.type === 'radio' && !formData[q.id]) ||
+                          (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(formData[q.id]))
+                        }
+                        middleAction={(q.id === 'projectApproach' || q.id === 'roleModelTrait') ? (
+                          <MemoButton
+                            variant="outlined"
+                            onClick={() => {
+                              if (q.id === 'projectApproach') {
+                                setCustomAnswerDialogOpen(true);
+                              } else if (q.id === 'roleModelTrait') {
+                                setRoleModelCustomAnswerDialogOpen(true);
+                              }
+                            }}
+                            sx={{ borderColor: 'rgba(224,122,63,0.5)', color: '#E07A3F', borderRadius: 999, textTransform: 'none' }}
+                          >
+                            I don't see my choice above
+                          </MemoButton>
+                        ) : null}
+                      />
+                    </Box>
+                  ) : (
                   <Stack direction="row" spacing={2} sx={{ pt: 1, justifyContent: 'center' }}>
                     <MemoButton variant="outlined" onClick={() => setCurrentStep(s => s - 1)}>
                       Back
@@ -2027,12 +2156,12 @@ function IntakeForm() {
                       Next
                     </MemoButton>
                   </Stack>
+                  )}
                 </Stack>
               );
             })()}
           </SectionCard>
         )}
-
        {/* Reflection Moment (Step 17) */}
 {currentStep === reflectionStep && (
   <SectionCard narrow={false}>
@@ -2149,7 +2278,7 @@ function IntakeForm() {
       const lastQuestion = activeIdx === societalNormsQuestions.length - 1;
 
       return (
-        <Stack spacing={2.4} alignItems={useCairnTheme ? 'stretch' : 'center'} textAlign={useCairnTheme ? 'left' : 'center'}>
+        <Stack spacing={2.4} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
           {!useCairnTheme && (
             <Typography
               variant="overline"
@@ -2166,14 +2295,14 @@ function IntakeForm() {
               fontWeight: 700,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              textAlign: 'left',
+              textAlign: 'center',
               color: 'var(--ink-soft)',
             }}>
-              Leader Instincts
+              Leadership Insights
             </Typography>
           )}
 
-          <Box sx={{ width: '100%', maxWidth: useCairnTheme ? '56ch' : 760, mx: useCairnTheme ? 0 : 'auto', textAlign: useCairnTheme ? 'left' : 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: useCairnTheme ? '56ch' : 760, mx: 'auto', textAlign: 'center' }}>
             <Typography
               sx={{
                 fontFamily: useCairnTheme ? '"Fraunces", serif' : 'inherit',
@@ -2182,7 +2311,7 @@ function IntakeForm() {
                 lineHeight: useCairnTheme ? 1.4 : 1.35,
                 fontSize: useCairnTheme ? 20 : { xs: '1.42rem', md: '1.58rem' },
                 letterSpacing: useCairnTheme ? '-0.01em' : undefined,
-                textAlign: useCairnTheme ? 'left' : 'center',
+                textAlign: 'center',
                 wordBreak: 'break-word',
                 overflowWrap: 'anywhere',
                 color: useCairnTheme ? 'var(--ink, #0f1c2e)' : 'inherit',
@@ -2287,37 +2416,62 @@ function IntakeForm() {
             </Box>
           </Box>
 
-          <Stack direction="row" spacing={2} sx={{ pt: 2, justifyContent: 'center' }}>
-            <MemoButton
-              variant="outlined"
-              onClick={() => {
-                if (activeIdx > 0) {
-                  setSocietalQuestionIndex((i) => i - 1);
-                } else {
-                  setCurrentStep(reflectionStep);
-                }
-              }}
-            >
-              Back
-            </MemoButton>
-            <MemoButton
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                if (!lastQuestion) {
-                  setSocietalQuestionIndex((i) => i + 1);
-                } else if (useCairnTheme) {
-                  // In cairn mode the guide was already chosen on /guide-select — submit directly.
-                  if (!formData.selectedAgent) handleChange('selectedAgent', 'balancedMentor');
-                  setIsSubmitting(true);
-                  handleSubmit();
-                } else {
-                  setCurrentStep(agentStep);
-                }
-              }}
-            >
-              Next
-            </MemoButton>
+          <Stack direction="row" spacing={2} sx={{ pt: 2, justifyContent: 'center', width: '100%' }}>
+            {useCairnTheme ? (
+              <Box sx={{ width: '100%', maxWidth: 420 }}>
+                <CairnFlowButtons
+                  isDark={isDark}
+                  backLabel="Back"
+                  nextLabel="Next"
+                  onBack={() => {
+                    if (activeIdx > 0) {
+                      setSocietalQuestionIndex((i) => i - 1);
+                    } else {
+                      setCurrentStep(reflectionStep);
+                    }
+                  }}
+                  onNext={() => {
+                    if (!lastQuestion) {
+                      setSocietalQuestionIndex((i) => i + 1);
+                    } else if (useCairnTheme) {
+                      if (!formData.selectedAgent) handleChange('selectedAgent', 'balancedMentor');
+                      setIsSubmitting(true);
+                      handleSubmit();
+                    } else {
+                      setCurrentStep(agentStep);
+                    }
+                  }}
+                />
+              </Box>
+            ) : (
+              <>
+                <MemoButton
+                  variant="outlined"
+                  onClick={() => {
+                    if (activeIdx > 0) {
+                      setSocietalQuestionIndex((i) => i - 1);
+                    } else {
+                      setCurrentStep(reflectionStep);
+                    }
+                  }}
+                >
+                  Back
+                </MemoButton>
+                <MemoButton
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    if (!lastQuestion) {
+                      setSocietalQuestionIndex((i) => i + 1);
+                    } else {
+                      setCurrentStep(agentStep);
+                    }
+                  }}
+                >
+                  Next
+                </MemoButton>
+              </>
+            )}
           </Stack>
         </Stack>
       );

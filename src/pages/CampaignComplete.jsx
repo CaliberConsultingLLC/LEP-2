@@ -127,7 +127,7 @@ function CampaignComplete() {
               onClick={() => navigate(isSelfCampaign ? '/campaign-verify' : '/')}
               sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', px: 4, py: 1, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
             >
-              {isSelfCampaign ? 'Return to Campaign Flow' : 'Return to Home'}
+              {isSelfCampaign ? 'Unlock Team Campaign Link' : 'Return to Home'}
             </Button>
           </Stack>
         </Box>

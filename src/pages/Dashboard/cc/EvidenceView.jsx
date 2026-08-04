@@ -167,22 +167,39 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
         cursor: 'pointer',
         boxSizing: 'border-box',
         width: '100%',
+        // Equal share of the map-height column — never grow only the selected row
+        flex: '1 1 0',
+        minHeight: 0,
         borderRadius: radii.md,
-        border: `1px solid ${selected ? colors.navy900 : colors.sand200}`,
-        bgcolor: selected ? colors.navy900 : colors.sand50,
+        border: 'none',
+        bgcolor: selected ? colors.navy900 : colors.surface1,
         color: selected ? colors.amberSoft : colors.textPrimary,
         display: 'flex',
         flexDirection: 'column',
+        justifyContent: selected ? 'flex-start' : 'center',
         overflow: 'hidden',
+        boxShadow: selected
+          ? '0 10px 28px rgba(16,34,60,0.22)'
+          : '0 4px 16px rgba(15,28,46,0.08)',
         transition: motion.standard,
-        '&:hover': { borderColor: selected ? colors.navy900 : colors.navy500 },
+        '&:hover': { transform: 'translateY(-1px)' },
       }}
     >
-      <Box sx={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: '14px', alignItems: 'center', px: '18px', py: '14px' }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: '42px 1fr',
+          gap: '12px',
+          alignItems: 'center',
+          px: '16px',
+          py: selected ? '10px' : '16px',
+          flexShrink: 0,
+        }}
+      >
         <Typography
           sx={{
             fontFamily: fonts.mono,
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: 700,
             lineHeight: 1.1,
             color: selected ? colors.amber : colors.textPrimary,
@@ -193,7 +210,7 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
           {statement.compass}
         </Typography>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.4, color: selected ? colors.amberSoft : colors.textPrimary }}>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.75, lineHeight: 1.35, color: selected ? colors.amberSoft : colors.textPrimary }}>
             {statement.text}
             {isLowest && (
               <Box
@@ -223,16 +240,118 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
       </Box>
 
       {selected && (
-        <Box>
-          <Box sx={{ height: '1px', bgcolor: 'rgba(244,206,161,0.22)' }} />
-          <Box sx={{ px: '18px', pt: '16px', pb: '18px' }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '18px' }}>
-            <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
-            <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box sx={{ height: '1px', flexShrink: 0, bgcolor: 'rgba(244,206,161,0.22)' }} />
+          <Box sx={{ px: '14px', pt: '8px', pb: '10px', flex: 1, minHeight: 0, overflow: 'auto' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
+              <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
+              <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
             </Box>
           </Box>
         </Box>
       )}
+    </Box>
+  );
+}
+
+function TraitSwitcher({ title, onPrev, onNext }) {
+  const btnSx = {
+    all: 'unset',
+    width: 34,
+    height: 34,
+    borderRadius: radii.circle,
+    border: `1px solid ${colors.sand300}`,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontFamily: fonts.mono,
+    fontSize: 18,
+    color: colors.inkSoft,
+    flexShrink: 0,
+    '&:hover': { borderColor: colors.orange, color: colors.orangeDeep },
+    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+  };
+
+  return (
+    <Box sx={{ minHeight: 52, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      {/* Arrows hug the title — not parked at the column edges */}
+      <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.25}>
+        <Box component="button" type="button" aria-label="Previous trait" onClick={onPrev} sx={btnSx}>
+          ‹
+        </Box>
+        <Typography
+          sx={{
+            textAlign: 'center',
+            fontFamily: fonts.serif,
+            fontSize: 25,
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.01em',
+            color: colors.textPrimary,
+            maxWidth: '100%',
+          }}
+        >
+          {title}
+        </Typography>
+        <Box component="button" type="button" aria-label="Next trait" onClick={onNext} sx={btnSx}>
+          ›
+        </Box>
+      </Stack>
+      <Box sx={{ mt: 1.05, width: '68%', mx: 'auto', height: '1px', bgcolor: colors.sand200 }} />
+    </Box>
+  );
+}
+
+function ModeBar({ mode, onModeChange }) {
+  const modes = [
+    { id: 'efficacy', label: 'Efficacy' },
+    { id: 'map', label: 'Map' },
+    { id: 'effort', label: 'Effort' },
+  ];
+  return (
+    <Box
+      sx={{
+        minHeight: 52,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1.25,
+      }}
+    >
+      {modes.map((item) => {
+        const active = mode === item.id;
+        return (
+          <Box
+            key={item.id}
+            component="button"
+            type="button"
+            aria-label={item.label}
+            onClick={() => onModeChange?.(item.id)}
+            sx={{
+              all: 'unset',
+              cursor: 'pointer',
+              minWidth: 96,
+              height: 34,
+              px: '12px',
+              borderRadius: radii.pill,
+              border: `1px solid ${active ? colors.navy900 : colors.sand300}`,
+              bgcolor: active ? colors.navy900 : colors.surface1,
+              color: active ? colors.amberSoft : colors.navy900,
+              fontFamily: fonts.mono,
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              textAlign: 'center',
+              lineHeight: '34px',
+              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+            }}
+          >
+            {item.label}
+          </Box>
+        );
+      })}
     </Box>
   );
 }
@@ -253,53 +372,54 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
       sx={{
         display: 'grid',
         gridTemplateColumns: '1fr',
+        gridTemplateRows: 'auto auto',
+        columnGap: '16px',
+        rowGap: { xs: '10px', md: '0px' },
         '@media (min-width:820px)': {
           gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         },
-        gap: '24px',
-        alignItems: 'stretch',
       }}
     >
+      {/* Row 1: trait switcher | mode buttons — same band */}
+      <Box sx={{ gridColumn: { md: 1 }, gridRow: { md: 1 }, mb: { md: 1.5 } }}>
+        {headerSlot}
+      </Box>
+      <Box sx={{ gridColumn: { md: 2 }, gridRow: { md: 1 }, mb: { md: 1.5 } }}>
+        <ModeBar mode={mode} onModeChange={onModeChange} />
+      </Box>
+
+      {/* Row 2: statements | map — align to the visible map square (SVG PAD inset), not outer chrome */}
       <Box
         sx={{
-          ...surfaces.card,
-          p: '22px',
+          gridColumn: { md: 1 },
+          gridRow: { md: 2 },
           display: 'flex',
           flexDirection: 'column',
-          gap: 0,
-          height: '100%',
+          gap: '8px',
+          '@media (min-width:820px)': {
+            aspectRatio: '1 / 1',
+            // EvidenceQuadrant map rect sits at PAD/VIEW = 40/560 from each edge
+            pt: `${(40 / 560) * 100}%`,
+            pb: `${(40 / 560) * 100}%`,
+          },
         }}
       >
-        {headerSlot && <Box sx={{ mb: '16px' }}>{headerSlot}</Box>}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-          }}
-        >
-          {statements.map((statement, idx) => (
-            <StageStatementRow
-              key={`${row.trait}-${idx}`}
-              statement={statement}
-              selected={idx === selected}
-              isLowest={idx === lowestIdx}
-              onSelect={() => onSelect(idx)}
-            />
-          ))}
-        </Box>
+        {statements.map((statement, idx) => (
+          <StageStatementRow
+            key={`${row.trait}-${idx}`}
+            statement={statement}
+            selected={idx === selected}
+            isLowest={idx === lowestIdx}
+            onSelect={() => onSelect(idx)}
+          />
+        ))}
       </Box>
 
       <Box
         sx={{
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          height: '100%',
-          bgcolor: 'transparent',
-          border: 'none',
-          boxShadow: 'none',
+          gridColumn: { md: 2 },
+          gridRow: { md: 2 },
+          '@media (min-width:820px)': { aspectRatio: '1 / 1' },
         }}
       >
         <EvidenceQuadrant
@@ -308,6 +428,7 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
           onSelect={onSelect}
           mode={mode}
           onModeChange={onModeChange}
+          showModeBar={false}
         />
       </Box>
     </Box>
@@ -315,18 +436,18 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
 }
 
 // ---------------------------------------------------------------------------
-// Trait exhibit chapter — header with description + the shared explorer
+// Trait exhibit chapter — same explorer format as Evidence snapshot
 // ---------------------------------------------------------------------------
-function EvTraitPage({ row, index, description }) {
-  const statements = useMemo(() => mapRowStatements(row), [row]);
+function EvTraitPage({ row, onPrevTrait, onNextTrait }) {
   const lowestIdx = useMemo(() => {
+    const statements = mapRowStatements(row);
     if (!statements.length) return 0;
     let minIdx = 0;
     statements.forEach((s, i) => {
       if (s.compass < statements[minIdx].compass) minIdx = i;
     });
     return minIdx;
-  }, [statements]);
+  }, [row]);
   const [selected, setSelected] = useState(lowestIdx);
   const [mode, setMode] = useState('map');
 
@@ -337,42 +458,20 @@ function EvTraitPage({ row, index, description }) {
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto' }}>
-      <Box sx={{ mb: 2 }}>
-        <ChapterEyebrow index={index} label={`Exhibit ${index - 1} · ${row.trait}`} />
-        <Stack direction="row" alignItems="center" spacing={1.75} sx={{ flexWrap: 'wrap', rowGap: 1, mb: 0.75 }}>
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: fonts.serif,
-              fontWeight: 500,
-              letterSpacing: '-0.03em',
-              fontSize: { xs: 24, md: 32 },
-              lineHeight: 1.05,
-              color: colors.textPrimary,
-              m: 0,
-            }}
-          >
-            {row.subTrait}
-          </Typography>
-        </Stack>
-        <Box sx={{ width: { xs: '100%', md: '56%' }, height: '1px', bgcolor: colors.sand200, mb: 1.2 }} />
-        {description && (
-          <Typography
-            sx={{
-              fontFamily: fonts.serif,
-              fontStyle: 'italic',
-              fontSize: 15,
-              lineHeight: 1.5,
-              color: colors.textSecondary,
-              maxWidth: 600,
-              textWrap: 'pretty',
-            }}
-          >
-            {description}
-          </Typography>
+      <StagePanels
+        row={row}
+        selected={selected}
+        onSelect={setSelected}
+        mode={mode}
+        onModeChange={setMode}
+        headerSlot={(
+          <TraitSwitcher
+            title={row.subTrait || row.trait}
+            onPrev={onPrevTrait}
+            onNext={onNextTrait}
+          />
         )}
-      </Box>
-      <StagePanels row={row} selected={selected} onSelect={setSelected} mode={mode} onModeChange={setMode} />
+      />
     </Box>
   );
 }
@@ -608,76 +707,11 @@ function EvidenceSnapshot({ orderedRows }) {
         mode={mode}
         onModeChange={setMode}
         headerSlot={(
-          <>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Box
-                component="button"
-                type="button"
-                onClick={() => setTraitIdx((p) => (p - 1 + orderedRows.length) % orderedRows.length)}
-                sx={{
-                  all: 'unset',
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.circle,
-                  border: `1px solid ${colors.sand300}`,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontFamily: fonts.mono,
-                  fontSize: 19,
-                  color: colors.inkSoft,
-                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                }}
-              >
-                ‹
-              </Box>
-              <Typography
-                sx={{
-                  flex: 1,
-                  textAlign: 'center',
-                  fontFamily: fonts.serif,
-                  fontSize: 25,
-                  fontWeight: 500,
-                  lineHeight: 1.15,
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {row.subTrait || row.trait}
-              </Typography>
-              <Box
-                component="button"
-                type="button"
-                onClick={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
-                sx={{
-                  all: 'unset',
-                  width: 38,
-                  height: 38,
-                  borderRadius: radii.circle,
-                  border: `1px solid ${colors.sand300}`,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontFamily: fonts.mono,
-                  fontSize: 19,
-                  color: colors.inkSoft,
-                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                }}
-              >
-                ›
-              </Box>
-            </Stack>
-            <Box
-              sx={{
-                mt: 1.05,
-                width: '68%',
-                mx: 'auto',
-                height: '1px',
-                bgcolor: colors.sand200,
-              }}
-            />
-          </>
+          <TraitSwitcher
+            title={row.subTrait || row.trait}
+            onPrev={() => setTraitIdx((p) => (p - 1 + orderedRows.length) % orderedRows.length)}
+            onNext={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
+          />
         )}
       />
     </SnapshotShell>
@@ -727,9 +761,14 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
   const mode = phases.modeFor('evidence');
 
   const chapters = useMemo(() => {
+    // Walkthrough order: Receipts (intro) → Floor & Gaps → Quadrants (per-trait)
     const list = [
-      { id: 'ev-intro', label: 'The Room', guide: () => EVIDENCE_GUIDE.intro, pose: 'read' },
+      { id: 'ev-intro', label: 'The Receipts', guide: () => EVIDENCE_GUIDE.intro, pose: 'read' },
+      { id: 'ev-floor', label: 'The Floor', guide: () => EVIDENCE_GUIDE.floor, pose: 'lantern' },
     ];
+    if (hasSelfData) {
+      list.push({ id: 'ev-gaps', label: 'The Gaps', guide: () => EVIDENCE_GUIDE.gaps, pose: 'lantern' });
+    }
     orderedRows.forEach((row) => {
       const role =
         row.trait === roles.edge?.trait ? 'edge' : row.trait === roles.lifting?.trait ? 'lifting' : 'strength';
@@ -742,10 +781,6 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
         pose: 'map',
       });
     });
-    list.push({ id: 'ev-floor', label: 'The Floor', guide: () => EVIDENCE_GUIDE.floor, pose: 'lantern' });
-    if (hasSelfData) {
-      list.push({ id: 'ev-gaps', label: 'The Gaps', guide: () => EVIDENCE_GUIDE.gaps, pose: 'lantern' });
-    }
     list.push({ id: 'ev-close', label: 'Close', guide: () => EVIDENCE_GUIDE.close, pose: 'point' });
     return list;
   }, [orderedRows, roles, hasSelfData]);
@@ -797,15 +832,21 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
   }
 
   return (
-    <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
+    <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx} hideSideArrows={Boolean(chapter.row)}>
       {chapter.id === 'ev-intro' && <EvIntroPage rows={orderedRows} respondents={respondents} />}
-      {chapter.row && (
-        <EvTraitPage
-          row={chapter.row}
-          index={idx + 1}
-          description={EXHIBIT_COPY[chapter.role].description}
-        />
-      )}
+      {chapter.row && (() => {
+        const traitChapters = chapters.filter((c) => c.row);
+        const traitPos = traitChapters.findIndex((c) => c.id === chapter.id);
+        const prevTrait = traitChapters[(traitPos - 1 + traitChapters.length) % traitChapters.length];
+        const nextTrait = traitChapters[(traitPos + 1) % traitChapters.length];
+        return (
+          <EvTraitPage
+            row={chapter.row}
+            onPrevTrait={() => setIdx(chapters.findIndex((c) => c.id === prevTrait.id))}
+            onNextTrait={() => setIdx(chapters.findIndex((c) => c.id === nextTrait.id))}
+          />
+        );
+      })()}
       {chapter.id === 'ev-floor' && <EvFloorPage rows={orderedRows} chapterIndex={idx + 1} />}
       {chapter.id === 'ev-gaps' && <EvGapsPage rows={orderedRows} chapterIndex={idx + 1} />}
       {chapter.id === 'ev-close' && <EvClosePage chapterIndex={idx + 1} onAdvancePhase={onAdvancePhase} />}

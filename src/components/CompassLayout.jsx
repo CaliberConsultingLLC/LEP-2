@@ -17,19 +17,21 @@ function CompassLayout({
   sidebar = null,
   rightRail = null,
   contentMaxWidth = CONTENT_MAX_WIDTH_DEFAULT,
+  viewportFit = false,
 }) {
   if (!useCairnTheme) {
     return children;
   }
 
   return (
-    <Box sx={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: viewportFit ? 'hidden' : 'visible' }}>
 
       {sidebar ? (
         // Full-width stage layout inspired by the Compass review screens:
         // compact chapter rail, generous reading column, optional context rail.
         <Box sx={{
           flex: 1,
+          minHeight: 0,
           display: 'grid',
           gridTemplateColumns: {
             xs: '1fr',
@@ -38,35 +40,46 @@ function CompassLayout({
           alignItems: 'start',
           position: 'relative',
           zIndex: 1,
+          overflow: viewportFit ? 'hidden' : 'visible',
         }}>
           {/* Left 20% — navigation sidebar */}
-          <Box sx={{ order: { xs: 1, md: 0 }, pt: 3, pb: { xs: 1.5, md: 12 }, px: { xs: 2, md: 2.5, lg: 3 } }}>
+          <Box sx={{ order: { xs: 1, md: 0 }, pt: 3, pb: { xs: 1.5, md: viewportFit ? 2 : 12 }, px: { xs: 2, md: 2.5, lg: 3 } }}>
             {sidebar}
           </Box>
 
           {/* Center — main content */}
-          <Box sx={{ order: { xs: 2, md: 0 }, pt: { xs: 1.5, md: 3 }, pb: 12, px: CONTENT_PX }}>
+          <Box sx={{ order: { xs: 2, md: 0 }, pt: { xs: 1.5, md: viewportFit ? 1.5 : 3 }, pb: viewportFit ? 2 : 12, px: CONTENT_PX, minHeight: 0, overflow: viewportFit ? 'hidden' : 'visible', height: viewportFit ? '100%' : 'auto' }}>
             {children}
           </Box>
 
           {/* Right — context rail or reserved empty column */}
-          <Box sx={{ order: { xs: 3, md: 0 }, display: 'block', pt: { xs: 0, md: 3 }, pb: { xs: 0, md: 12 }, pr: { md: 2.5, lg: 3 }, pl: 0 }}>
+          <Box sx={{ order: { xs: 3, md: 0 }, display: 'block', pt: { xs: 0, md: viewportFit ? 1.5 : 3 }, pb: { xs: 0, md: viewportFit ? 2 : 12 }, pr: { md: 2.5, lg: 3 }, pl: 0 }}>
             {rightRail}
           </Box>
         </Box>
       ) : (
         // Centered single column — intake form, verify, and other non-nav pages
         <Box sx={{
-          flex: 1, display: 'flex', justifyContent: 'center',
-          pt: 0, pb: 12, px: CONTENT_PX,
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          pt: viewportFit ? 1 : 0,
+          pb: viewportFit ? 2 : 12,
+          px: CONTENT_PX,
           overflowX: 'auto',
-          position: 'relative', zIndex: 1,
+          overflowY: viewportFit ? 'hidden' : 'visible',
+          position: 'relative',
+          zIndex: 1,
         }}>
           <Box
             sx={{
               width: rightRail ? '100%' : contentMaxWidth,
               minWidth: rightRail ? 0 : contentMaxWidth,
               maxWidth: contentMaxWidth,
+              height: viewportFit ? '100%' : 'auto',
+              minHeight: 0,
+              overflow: viewportFit ? 'hidden' : 'visible',
             }}
           >
             {children}

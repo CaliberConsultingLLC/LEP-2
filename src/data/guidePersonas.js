@@ -59,9 +59,42 @@ export const GUIDE_PERSONAS = [
     },
     accent: '#5A3C66', // deep plum / purple — sampled from Challenger's pendant
   },
+  // Placeholders — full personas coming soon
+  {
+    id: 'placeholder-scout',
+    name: 'Scout',
+    tagline: 'Curious. Forward-looking. Maps the next ridge.',
+    voice: 'Coming soon — a guide who helps you spot what’s ahead.',
+    poses: { idle: '/hero/MentorMap.png', greet: '/hero/MentorMap.png' },
+    accent: '#3D6B5A',
+    placeholder: true,
+  },
+  {
+    id: 'placeholder-anchor',
+    name: 'Anchor',
+    tagline: 'Steady. Practical. Holds the line.',
+    voice: 'Coming soon — a guide who keeps the work grounded.',
+    poses: { idle: '/hero/MentorThink.png', greet: '/hero/MentorThink.png' },
+    accent: '#4A5568',
+    placeholder: true,
+  },
+  {
+    id: 'placeholder-spark',
+    name: 'Spark',
+    tagline: 'Bold. Inventive. Starts the fire.',
+    voice: 'Coming soon — a guide who pushes creative courage.',
+    poses: { idle: '/hero/CatalystPointUp.png', greet: '/hero/CatalystPointUp.png' },
+    accent: '#A05A2C',
+    placeholder: true,
+  },
 ];
+
+/** Selectable guides only (excludes placeholders). */
+export const SELECTABLE_GUIDE_PERSONAS = GUIDE_PERSONAS.filter((p) => !p.placeholder);
 
 export const DEFAULT_GUIDE_ID = 'mentor';
 
 export const getPersona = (id) =>
-  GUIDE_PERSONAS.find((p) => p.id === id) || GUIDE_PERSONAS[0];
+  SELECTABLE_GUIDE_PERSONAS.find((p) => p.id === id)
+  || GUIDE_PERSONAS.find((p) => p.id === id)
+  || SELECTABLE_GUIDE_PERSONAS[0];

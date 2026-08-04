@@ -1,0 +1,32 @@
+---
+description: Compass Cairn design system standards
+alwaysApply: true
+---
+
+# Compass Design System
+
+Compass UI must be anchored on the locked-in Cairn pages: `Summary`, `TraitSelection`, `IntakeForm`, `UserInfo`, `GuideSelect`, and the campaign flow. The dashboard is not the visual source of truth.
+
+Use `src/styles/cairn-theme.css` as the single source of truth. Use `src/styles/tokens.js` only as the JS mirror for MUI `sx` props.
+
+## Required Patterns
+
+- Use `tokens.colors.*` or CSS vars from `cairn-theme.css` for color.
+- Use `tokens.radii.*` for radius. Do not invent values like `8`, `16`, or `22`.
+- Use `tokens.shadows.*` for shadows.
+- Use `tokens.type.*` for typography patterns when building custom UI.
+- Use `tokens.surfaces.card`, `cardFlat`, or `cardInner` for card-like surfaces.
+- Use pill radius for buttons, chips, toggles, and nav items.
+- Test touched Compass UI in light and dark mode.
+
+## Prohibited
+
+- No component-level hex literals for Compass styling.
+- No off-scale border radii.
+- No custom shadow strings unless they are first added to `cairn-theme.css` and mirrored in `tokens.js`.
+- No nested shadowed cards.
+- No dashboard-only visual language becoming a new standard.
+
+## When Adding A Token
+
+Add it to `src/styles/cairn-theme.css` first, mirror it in `src/styles/tokens.js`, document it in `src/styles/DESIGN.md`, and show it at `/design`.

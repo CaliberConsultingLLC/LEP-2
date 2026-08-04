@@ -341,6 +341,37 @@ function CampaignVerify() {
     generateCampaigns();
   }, []);
 
+  // Re-sync unlock state when returning from the self-assessment.
+  useEffect(() => {
+    const syncSelfCompleted = () => {
+      try {
+        const records = parseJson(localStorage.getItem('campaignRecords'), null);
+        const id = String(records?.selfCampaignId || selfCampaignId || '').trim();
+        if (!id) return;
+        const completed = Boolean(
+          records?.selfCompleted
+          || localStorage.getItem(`selfCampaignCompleted_${id}`) === 'true'
+          || localStorage.getItem('selfCampaignCompleted') === 'true'
+        );
+        setSelfCompleted(completed);
+        if (completed && records && !records.selfCompleted) {
+          const next = { ...records, selfCompleted: true };
+          localStorage.setItem('campaignRecords', JSON.stringify(next));
+        }
+      } catch {
+        // Ignore sync failures; unlock state will retry on next focus.
+      }
+    };
+
+    syncSelfCompleted();
+    window.addEventListener('focus', syncSelfCompleted);
+    document.addEventListener('visibilitychange', syncSelfCompleted);
+    return () => {
+      window.removeEventListener('focus', syncSelfCompleted);
+      document.removeEventListener('visibilitychange', syncSelfCompleted);
+    };
+  }, [selfCampaignId]);
+
   const copyToClipboard = async (text, type) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -389,33 +420,40 @@ function CampaignVerify() {
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail />
         <CompassLayout>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {/* Heading */}
-            <Box>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--orange, #E07A3F)', mb: 0.75 }}>
-                Your Next Move
-              </Typography>
-              <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.5 }}>
-                Campaign is Ready
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: 2,
+              width: '100%',
+              maxWidth: 640,
+              mx: 'auto',
+            }}
+          >
+            <Box sx={{ width: '100%' }}>
+              <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.75 }}>
+                Campaign is Ready!
               </Typography>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.6 }}>
                 Complete your personal benchmark first, then share the team campaign link with your team.
               </Typography>
             </Box>
 
-            {error && <Alert severity="error" sx={{ fontFamily: '"Manrope", sans-serif' }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ fontFamily: '"Manrope", sans-serif', width: '100%', textAlign: 'left' }}>{error}</Alert>}
 
             {/* Self campaign card */}
-            <Box sx={{ bgcolor: 'white', borderRadius: '16px', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', p: { xs: 2.5, md: 3 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>1</Typography>
+            <Box sx={{ bgcolor: 'white', borderRadius: '16px', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', p: { xs: 2, md: 2.25 }, width: '100%' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: 1.5 }}>
+                <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>1</Typography>
                 </Box>
-                <Box>
-                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                <Box sx={{ textAlign: 'left' }}>
+                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
                     Your Personal Benchmark
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--ink-soft, #44566C)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)' }}>
                     Rate yourself on the same statements your team will see.
                   </Typography>
                 </Box>
@@ -427,25 +465,25 @@ function CampaignVerify() {
                 sx={{
                   all: 'unset', cursor: 'pointer',
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  px: '24px', py: '13px', borderRadius: 999, mb: 2.5,
+                  px: '20px', py: '11px', borderRadius: 999, mb: 1.75,
                   bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
-                  fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.95rem',
+                  fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
                   boxShadow: '0 6px 20px rgba(16,34,60,0.22)',
                   transition: '180ms ease',
                   '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-1px)' },
                   '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
                 }}
               >
-                <TrendingUp sx={{ fontSize: 18 }} />
+                <TrendingUp sx={{ fontSize: 17 }} />
                 Start My Growth Campaign
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>
                     Self-Assessment Link
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selfCampaignLink || 'Generating…'}
                   </Typography>
                 </Box>
@@ -453,12 +491,12 @@ function CampaignVerify() {
               </Box>
 
               {selfCompleted && (
-                <Box sx={{ mt: 1.5 }}>
+                <Box sx={{ mt: 1.35 }}>
                   <Box
                     component="button" type="button"
                     onClick={() => navigate('/dashboard')}
                     sx={{
-                      all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.88rem', color: 'var(--orange, #E07A3F)', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.84rem', color: 'var(--orange, #E07A3F)', display: 'inline-flex', alignItems: 'center', gap: '6px',
                       '&:hover': { textDecoration: 'underline' },
                     }}
                   >
@@ -473,52 +511,52 @@ function CampaignVerify() {
               bgcolor: 'white', borderRadius: '16px',
               border: `1px solid ${selfCompleted ? 'var(--sand-200, #E8DBC3)' : 'var(--sand-100, #F3EAD8)'}`,
               boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-              p: { xs: 2.5, md: 3 },
+              p: { xs: 2, md: 2.25 },
+              width: '100%',
               opacity: selfCompleted ? 1 : 0.65,
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: selfCompleted ? 'var(--navy-500, #3F647B)' : 'var(--sand-200, #E8DBC3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Typography sx={{ color: selfCompleted ? '#fff' : 'var(--ink-soft, #44566C)', fontWeight: 700, fontSize: '1rem' }}>2</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: 1.5 }}>
+                <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: selfCompleted ? 'var(--green, #2F855A)' : 'var(--sand-200, #E8DBC3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ color: selfCompleted ? '#fff' : 'var(--ink-soft, #44566C)', fontWeight: 700, fontSize: '0.9rem' }}>2</Typography>
                 </Box>
-                <Box>
-                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                <Box sx={{ textAlign: 'left' }}>
+                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
                     Team Campaign {selfCompleted ? '(Unlocked)' : '(Complete benchmark first)'}
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--ink-soft, #44566C)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)' }}>
                     Share this link with your team once your benchmark is done.
                   </Typography>
                 </Box>
               </Box>
 
               {selfCompleted ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.15 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
                     <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Link</Typography>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamCampaignLink}</Typography>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Link</Typography>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamCampaignLink}</Typography>
                     </Box>
                     <CopyButton text={teamCampaignLink} type="teamLink" label="Copy Link" />
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
                     <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Password</Typography>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--navy-900, #10223C)' }}>{teamCampaignPassword}</Typography>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Password</Typography>
+                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)' }}>{teamCampaignPassword}</Typography>
                     </Box>
                     <CopyButton text={teamCampaignPassword} type="teamPassword" label="Copy" />
                   </Box>
                 </Box>
               ) : (
-                <Box sx={{ p: 2, borderRadius: '10px', bgcolor: 'var(--sand-100, #F3EAD8)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.88rem', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
+                <Box sx={{ p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-100, #F3EAD8)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
+                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.84rem', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
                     Complete your personal benchmark to unlock the team campaign link.
                   </Typography>
                 </Box>
               )}
             </Box>
 
-            {/* Dashboard credentials */}
             <Box sx={{ px: 1 }}>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', color: 'var(--ink-soft, #44566C)' }}>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', color: 'var(--ink-soft, #44566C)' }}>
                 Dashboard sign-in: <strong>{userEmail || '—'}</strong> · Use your account password.
               </Typography>
             </Box>
@@ -584,7 +622,7 @@ function CampaignVerify() {
                 textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
-              Your Next Move
+              Campaign is Ready!
             </Typography>
             <Typography
               sx={{

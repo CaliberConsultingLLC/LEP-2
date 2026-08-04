@@ -130,6 +130,7 @@ const VISIBILITY_COMFORT = [
 const DECISION_PACE = [
   'The Fix — Get things back on track',
   'The Feedback — Learn where things went wrong',
+  'The Standard — Protect the quality bar before moving on',
 ];
 
 const TEAM_PERCEPTION = [

@@ -21,15 +21,15 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
-import CairnProcessStepper from '../components/CairnProcessStepper';
-import CairnFlowButtons from '../components/CairnFlowButtons';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
+import { scoreIntakeAgainstCoverage, isEligibleForFocusRecommendation } from '../data/intakeTraitCoverage';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { colors, fonts, radii, shadows } from '../styles/tokens';
 
 
 function Summary() {
@@ -45,6 +45,7 @@ function Summary() {
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [userName, setUserName] = useState('');
   const [focusAreas, setFocusAreas] = useState([]);
+  const [trailheadHighlights, setTrailheadHighlights] = useState(null);
   const showInlineTraitSelection = false;
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState('');
@@ -59,7 +60,7 @@ function Summary() {
     return () => setSuppress(false);
   }, [setSuppress, useCairnTheme]);
 
-  const persistSummaryCache = async ({ data, agentId, text, areas }) => {
+  const persistSummaryCache = async ({ data, agentId, text, areas, highlights }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
     if (!uid || !text) return;
     const savedAt = new Date().toISOString();
@@ -79,6 +80,7 @@ function Summary() {
         summaryCache: {
           aiSummary: text,
           focusAreas: Array.isArray(areas) ? areas : [],
+          trailheadHighlights: highlights || null,
           selectedAgent: agentId || 'balancedMentor',
           savedAt,
         },
@@ -97,18 +99,16 @@ function Summary() {
     const scores = {};
     CORE_TRAITS.forEach((trait) => { scores[trait.id] = 0; });
 
-    const traitMap = {
-      Shepherd: 'teamDevelopment',
-      Courage: 'emotionalIntelligence',
-      Navigator: 'strategicThinking',
-    };
-
     const addScore = (traitId, amount = 1) => {
       if (!traitId || scores[traitId] == null) return;
       scores[traitId] += amount;
     };
 
-    // ---- norms-based scoring (societalResponses) ----
+    // Coverage-map behavior scoring (shared with AI path eligibility rules)
+    const { scores: coverageScores, subScores } = scoreIntakeAgainstCoverage(data);
+    Object.entries(coverageScores).forEach(([traitId, amount]) => addScore(traitId, amount));
+
+    // Norms-based scoring (modern core trait IDs on traitsUndermined)
     const normItems = intakeContext?.societalNorms?.items || [];
     const norms = Array.isArray(data.societalResponses) ? data.societalResponses : [];
     if (normItems.length === 10 && norms.length === 10) {
@@ -123,41 +123,9 @@ function Summary() {
       }
       flagged.forEach(({ item, score }) => {
         const weight = score <= 3 ? (4 - score) : 1;
-        (item.traitsUndermined || []).forEach((t) => addScore(traitMap[t], weight));
+        (item.traitsUndermined || []).forEach((t) => addScore(t, weight));
       });
     }
-
-    // ---- behavior-based scoring ----
-    const roleModelTraitMap = {
-      communicated: 'communication',
-      'made decisions': 'decisionMaking',
-      'thought strategically': 'strategicThinking',
-      'executed & followed through': 'execution',
-      'developed their team': 'teamDevelopment',
-      'shaped culture': 'teamDevelopment',
-      'built relationships': 'emotionalIntelligence',
-      'handled challenges': 'decisionMaking',
-      'inspired others': 'teamDevelopment',
-      'balanced priorities': 'strategicThinking',
-    };
-    addScore(roleModelTraitMap[data.roleModelTrait], 2);
-
-    if (data.decisionPace?.includes('Fix')) addScore('execution', 1);
-    if (data.decisionPace?.includes('Feedback')) addScore('decisionMaking', 1);
-
-    if (Array.isArray(data.leaderFuel) && data.leaderFuel[0]) {
-      const topFuel = data.leaderFuel[0];
-      if (topFuel.includes('team gel') || topFuel.includes('learned') || topFuel.includes('recognition')) {
-        addScore('teamDevelopment', 1);
-      } else if (topFuel.includes('project') || topFuel.includes('chaos')) {
-        addScore('execution', 1);
-      } else if (topFuel.includes('problem')) {
-        addScore('decisionMaking', 1);
-      }
-    }
-
-    if (data.visibilityComfort?.includes('spotlight')) addScore('communication', 1);
-    if (data.visibilityComfort?.includes('behind the scenes')) addScore('execution', 1);
 
     // ---- select top 5 traits ----
     const ranked = Object.entries(scores)
@@ -166,16 +134,21 @@ function Summary() {
       .filter(Boolean);
 
     const pickSubTrait = (trait) => {
-      if (!trait?.subTraits?.length) return null;
-      // Deterministic pick based on data + trait id
+      const eligible = (trait?.subTraits || []).filter((st) => isEligibleForFocusRecommendation(st));
+      if (!eligible.length) return null;
+      // Prefer subtraits that received coverage-map signal for this core trait
+      const rankedSubs = eligible
+        .map((st) => ({ st, score: subScores[`${trait.id}:${st.id}`] || 0 }))
+        .sort((a, b) => b.score - a.score);
+      if (rankedSubs[0]?.score > 0) return rankedSubs[0].st;
       const key = JSON.stringify({
         role: data.role || '',
         industry: data.industry || '',
         trait: trait.id,
       });
       let hash = 0;
-      for (let i = 0; i < key.length; i += 1) hash = (hash * 31 + key.charCodeAt(i)) % trait.subTraits.length;
-      return trait.subTraits[hash] || trait.subTraits[0];
+      for (let i = 0; i < key.length; i += 1) hash = (hash * 31 + key.charCodeAt(i)) % eligible.length;
+      return eligible[hash] || eligible[0];
     };
 
     const generatedAreas = ranked.slice(0, 5).map((trait) => {
@@ -234,6 +207,7 @@ function Summary() {
         example,
         risk,
         impact,
+        whyYou: '',
       };
     }).filter(Boolean);
 
@@ -378,7 +352,7 @@ function Summary() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ ...data, selectedAgent: baseAgent }),
-      }, 35000);
+      }, 60000);
 
       if (!summaryResp.ok) {
         let details = '';
@@ -401,6 +375,12 @@ function Summary() {
         localStorage.setItem('focusAreas', JSON.stringify(payload.focusAreas));
       }
 
+      const highlights = payload?.trailheadHighlights || null;
+      if (highlights?.strength?.text || highlights?.focus?.text) {
+        setTrailheadHighlights(highlights);
+        localStorage.setItem('trailheadHighlights', JSON.stringify(highlights));
+      }
+
       if (text) {
         localStorage.setItem('aiSummary', text);
         try {
@@ -409,6 +389,7 @@ function Summary() {
             agentId: baseAgent,
             text,
             areas: Array.isArray(payload?.focusAreas) ? payload.focusAreas : focusAreas,
+            highlights,
           });
         } catch (persistErr) {
           console.warn('Failed to cache summary to Firestore:', persistErr);
@@ -444,6 +425,12 @@ function Summary() {
 
       if (cachedSummary && focusAreasValid) {
         setAiSummary(cachedSummary);
+        try {
+          const cachedHighlights = JSON.parse(localStorage.getItem('trailheadHighlights') || 'null');
+          if (cachedHighlights?.strength?.text || cachedHighlights?.focus?.text) {
+            setTrailheadHighlights(cachedHighlights);
+          }
+        } catch { /* ignore */ }
         setIsLoading(false);
         return;
       }
@@ -610,7 +597,29 @@ function Summary() {
     setActiveJourneyStep(0);
   }, [aiSummary]);
 
-  const renderParagraphWithTooltips = (text) => String(text || '').replace(/\*\*/g, '');
+  const renderParagraphWithTooltips = (text) => {
+    const raw = String(text || '');
+    // Support light emphasis: **bold**, *italic*, _underline_
+    const parts = [];
+    const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_)/g;
+    let last = 0;
+    let match;
+    let key = 0;
+    while ((match = pattern.exec(raw)) !== null) {
+      if (match.index > last) parts.push(raw.slice(last, match.index));
+      const token = match[0];
+      if (token.startsWith('**')) {
+        parts.push(<strong key={`em-${key++}`}>{token.slice(2, -2)}</strong>);
+      } else if (token.startsWith('*')) {
+        parts.push(<em key={`em-${key++}`}>{token.slice(1, -1)}</em>);
+      } else {
+        parts.push(<u key={`em-${key++}`}>{token.slice(1, -1)}</u>);
+      }
+      last = match.index + token.length;
+    }
+    if (last < raw.length) parts.push(raw.slice(last));
+    return parts.length ? parts : raw;
+  };
 
   const renderNarrativeWithBullets = (text) => {
     const lines = String(text || '').split('\n');
@@ -785,23 +794,118 @@ function Summary() {
       ['Understanding the Cost', 'Possible consequences to watch for, not fixed outcomes or labels.'],
       ['Pivoting Towards Growth', 'Leverage points you can choose from, not flaws you need to fix all at once.'],
     ];
-    const sectionGuidance = {
-      trailhead: 'Read this reflection slowly as a current-state mirror. Notice what feels true, what feels incomplete, and where your first reaction may be pointing toward the most important leadership work.',
-      markers: 'Use these markers as practical examples to watch for in normal leadership moments. Look for repeated signals in meetings, decisions, communication patterns, and moments when pressure rises.',
-      hazards: 'Treat these hazards as preventable future costs, not fixed predictions. They are meant to help you see what may happen if the underlying pattern keeps repeating.',
-      'new-trail': 'Review these leverage points as possible places to build forward. Choose the shifts that would create the clearest benefit for your team right now.',
+    const splitSentences = (text) => String(text || '')
+      .replace(/\*\*/g, '')
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const stripLeadingListMarker = (value) => String(value || '')
+      .replace(/^\s*(?:EXAMPLE\s*:|[-–—•●▪·‣*])\s*/i, '')
+      .replace(/\*\*/g, '')
+      .trim();
+
+    const cleanSituationCopy = (raw) => {
+      let content = stripLeadingListMarker(raw);
+      content = content.replace(/^[^—:]{1,48}[:—]\s*/, '');
+      content = content.replace(/^watch for moments when\s+/i, '');
+      content = content.replace(/^if this remains unaddressed,?\s+/i, '');
+      content = content.replace(/^look for\s+/i, '');
+      if (!content) return '';
+      return content.charAt(0).toUpperCase() + content.slice(1);
     };
-    const buildMarkerBullets = () => {
-      const source = focusAreas.length ? focusAreas : [];
-      return source.slice(0, 5).map((area) => (
-        `${area.subTraitName}: watch for moments when ${String(area.example || area.subTraitDefinition || 'this pattern shows up in team communication').replace(/\.$/, '').toLowerCase()}.`
-      ));
+
+    const padFramingReflection = (text, mode) => {
+      const defaults = mode === 'markers'
+        ? [
+          'Pay attention here — a few recurring moments already show how this pattern lands with your team.',
+          'These are the places worth watching in real time as you lead.',
+          'Notice where the same friction shows up when pressure rises.',
+        ]
+        : [
+          'If those markers keep running, the road ahead gets more expensive for people and performance.',
+          'This is the call to take that pattern seriously before it hardens into the team’s default rhythm.',
+          'The longer it stays unaddressed, the more trust and execution both pay for it.',
+        ];
+      const list = splitSentences(text);
+      for (const s of defaults) {
+        if (list.length >= 3) break;
+        if (!list.includes(s)) list.push(s);
+      }
+      while (list.length < 2) list.push(defaults[list.length % defaults.length]);
+      return list.slice(0, 3).join(' ');
     };
-    const buildHazardBullets = () => {
-      const source = focusAreas.length ? focusAreas : [];
-      return source.slice(0, 5).map((area) => (
-        `${area.subTraitName}: if this remains unaddressed, ${String(area.risk || 'lower clarity, weaker trust, or slower execution').replace(/\.$/, '').toLowerCase()}.`
-      ));
+
+    const buildSituationStage = (text, mode) => {
+      const defaultIntro = mode === 'markers'
+        ? 'Pay attention here — a few situations may already be showing up as you lead.'
+        : 'If this pattern keeps running, these are costs that can show up down the road.';
+      const raw = String(text || '').trim();
+      if (!raw) {
+        return {
+          reflection: padFramingReflection('', mode),
+          prompt: defaultIntro,
+          situations: [],
+        };
+      }
+
+      const isExampleLine = (line) => {
+        const t = String(line || '').trim();
+        if (/^EXAMPLE\s*:/i.test(t)) return true;
+        if (!/^[-–—•●▪·‣*]\s+/.test(t)) return false;
+        const withoutBullet = t.replace(/^[-–—•●▪·‣*]\s+/, '');
+        const sentenceCount = splitSentences(withoutBullet).length;
+        return sentenceCount < 2;
+      };
+      const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean);
+      const exampleLines = lines.filter(isExampleLine);
+      const reflection = lines
+        .filter((line) => !isExampleLine(line))
+        .map(stripLeadingListMarker)
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+      if (exampleLines.length) {
+        const situations = exampleLines.map(cleanSituationCopy).filter(Boolean).slice(0, 2);
+        return {
+          reflection: padFramingReflection(reflection, mode),
+          prompt: defaultIntro,
+          situations,
+        };
+      }
+
+      const sentences = splitSentences(raw);
+      if (sentences.length <= 3) {
+        return {
+          reflection: padFramingReflection(sentences.slice(0, 2).join(' ') || sentences[0] || '', mode),
+          prompt: defaultIntro,
+          situations: sentences.slice(2).map(cleanSituationCopy).filter(Boolean).slice(0, 2),
+        };
+      }
+
+      const framingCount = 3;
+      const reflectionText = sentences.slice(0, framingCount).join(' ');
+      const rest = sentences.slice(framingCount);
+      const situations = [];
+      if (rest.length <= 2) {
+        rest.forEach((s) => {
+          const cleaned = cleanSituationCopy(s);
+          if (cleaned) situations.push(cleaned);
+        });
+      } else {
+        const perCard = Math.ceil(rest.length / 2);
+        for (let i = 0; i < 2; i += 1) {
+          const chunk = rest.slice(i * perCard, (i + 1) * perCard).slice(0, 2).join(' ');
+          const cleaned = cleanSituationCopy(chunk);
+          if (cleaned) situations.push(cleaned);
+        }
+      }
+      return {
+        reflection: padFramingReflection(reflectionText, mode),
+        prompt: defaultIntro,
+        situations: situations.slice(0, 2),
+      };
     };
     const getBackTarget = () => {
       if (activeJourneyStep === 0) return { label: 'Assessment', action: () => navigate('/intake') };
@@ -837,250 +941,658 @@ function Summary() {
       </CairnGuidePanel>
     );
 
-    const NavSidebar = (
-      <Box sx={{
-        bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white',
-        borderRadius: '16px',
-        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
-        overflow: 'hidden',
-        position: 'sticky',
-        top: 96,
-      }}>
-        {cairnJourneyStages.map((stage, idx) => {
-          const active = idx === activeJourneyStep;
-          return (
-            <Box
-              key={stage.id}
-              component="button"
-              type="button"
-              onClick={() => setActiveJourneyStep(idx)}
-              sx={{
-                all: 'unset', cursor: 'pointer',
-                display: 'flex', alignItems: 'flex-start', gap: 1.5,
-                px: 2, py: 1.5, width: '100%', boxSizing: 'border-box',
-                bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
-                transition: '140ms',
-                '&:hover': { bgcolor: active ? 'var(--navy-800, #162A44)' : 'var(--sand-50, #FBF7F0)' },
-                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: -3 },
-              }}
-            >
-              <Box sx={{
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0, mt: '1px',
-                bgcolor: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'rgba(244,206,161,0.08)' : 'var(--sand-100, #F3EAD8)',
-                border: active ? 'none' : isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: active ? 'var(--navy-900, #10223C)' : isDark ? 'rgba(244,206,161,0.7)' : 'var(--navy-900, #10223C)' }}>
-                  {ROMAN[idx]}
-                </Typography>
-              </Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                  {stage.label}
-                </Typography>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
-                  {stage.title}
-                </Typography>
-              </Box>
-            </Box>
-          );
-        })}
-        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
-        <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', flexShrink: 0 }} />
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
-            Guide: <strong>{guideName}</strong>
-          </Typography>
-        </Box>
-      </Box>
+    const STAGE_VISUAL = {
+      trailhead: { wash: 'rgba(94,145,176,0.10)', accent: colors.navy400, roman: 'I' },
+      markers: { wash: 'rgba(224,122,63,0.08)', accent: colors.orange, roman: 'II' },
+      hazards: { wash: 'rgba(192,97,42,0.08)', accent: colors.orangeDeep, roman: 'III' },
+      'new-trail': { wash: 'rgba(47,133,90,0.08)', accent: colors.green, roman: 'IV' },
+    };
+    const RAIL_KICKERS = {
+      trailhead: 'Current-state mirror',
+      markers: 'Recurring moments',
+      hazards: 'Preventable costs',
+      'new-trail': 'Growth leverage',
+    };
+    const activeVisual = STAGE_VISUAL[activeStage.id] || STAGE_VISUAL.trailhead;
+    const stageBodyText = (
+      activeStage.id === 'new-trail'
+        ? (summarySections[3] || activeStage.text)
+        : (summarySections[['trailhead', 'markers', 'hazards'].indexOf(activeStage.id)] || activeStage.text)
     );
 
+    const situationStage = (activeStage.id === 'markers' || activeStage.id === 'hazards')
+      ? buildSituationStage(stageBodyText, activeStage.id)
+      : null;
+
+    const newTrailIntro = (() => {
+      if (activeStage.id !== 'new-trail') return '';
+      const lines = String(stageBodyText || '').split('\n').map((l) => l.trim()).filter(Boolean);
+      const prose = lines
+        .map((line) => stripLeadingListMarker(String(line || '').replace(/^\s*EXAMPLE\s*:/i, '')))
+        .filter(Boolean)
+        .join(' ')
+        .replace(/(^|[.!?]\s*)[-–—•●▪·‣*]\s+/g, '$1')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (prose) return prose;
+      return splitSentences(stageBodyText)
+        .map(stripLeadingListMarker)
+        .filter(Boolean)
+        .slice(0, 5)
+        .join(' ');
+    })();
+    const trailheadDisplay = String(stageBodyText || '').trim();
+    const leverageCards = (focusAreas.length ? focusAreas : []).slice(0, 5);
+
+    const bodyType = {
+      fontFamily: fonts.sans,
+      fontSize: 16,
+      lineHeight: 1.7,
+      color: colors.ink,
+      textAlign: 'left',
+      '& strong, & b': { fontWeight: 800, color: colors.navy900 },
+      '& em, & i': { fontStyle: 'italic' },
+      '& u': { textDecoration: 'underline', textUnderlineOffset: '2px' },
+    };
+
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
-        <ProcessTopRail titleOverride="Leadership Reflection" />
-        <CompassLayout rightRail={RightRail}>
+      <Box
+        sx={{
+          height: '100vh',
+          overflow: 'hidden',
+          bgcolor: colors.sand50,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <Box sx={{ flexShrink: 0 }}>
+          <ProcessTopRail
+            titleOverride="Reflection & Creation"
+            subtitleOverride="Your first internal look — read the trailhead, markers, hazards, and the new trail before you choose what to grow."
+          />
+        </Box>
+        <CompassLayout rightRail={RightRail} viewportFit>
           {error ? (
             <Box sx={{ py: 4 }}>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
+              <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-
-              {/* Stage header */}
-              <Box sx={{ textAlign: 'center', maxWidth: 760, mx: 'auto' }}>
-                <Typography sx={{
-                  fontFamily: '"Montserrat", sans-serif', fontWeight: 800,
-                  fontSize: { xs: '1.9rem', md: '2.35rem' }, lineHeight: 1.08,
-                  color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75,
-                }}>
-                  {activeStage.label}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                gap: '24px',
+                alignItems: 'flex-start',
+                height: { md: '100%' },
+                maxHeight: { md: '100%' },
+                overflow: { xs: 'auto', md: 'visible' },
+                overflowY: { md: 'hidden' },
+                '@keyframes nodePulse': {
+                  '0%': { transform: 'scale(0.85)', opacity: 0.6 },
+                  '70%': { transform: 'scale(1.55)', opacity: 0 },
+                  '100%': { transform: 'scale(1.55)', opacity: 0 },
+                },
+              }}
+            >
+              <Box
+                component="nav"
+                aria-label="Your reflection trail"
+                sx={{
+                  width: { xs: '100%', md: 232 },
+                  flexShrink: 0,
+                  alignSelf: 'flex-start',
+                  pt: '18px',
+                  pl: '14px',
+                  bgcolor: 'transparent',
+                  border: 'none',
+                  boxShadow: 'none',
+                  overflow: 'visible',
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontFamily: fonts.mono,
+                    fontSize: '9.5px',
+                    fontWeight: 700,
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    color: colors.navy500,
+                    mb: '22px',
+                  }}
+                >
+                  Your reflection trail
                 </Typography>
-                <Typography sx={{
-                  fontFamily: '"Manrope", sans-serif',
-                  fontWeight: 700,
-                  fontSize: '0.92rem',
-                  color: isDark ? 'rgba(244,206,161,0.72)' : 'var(--orange-deep, #C0612A)',
-                  lineHeight: 1.45,
-                }}>
-                  {activeStage.title}
-                </Typography>
-              </Box>
 
-              {/* Content card */}
-              <Box sx={{
-                bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'white', borderRadius: '16px',
-                border: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)',
-                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
-                p: { xs: 2.5, md: 3.5 },
-                minHeight: 220,
-              }}>
-                <CairnProcessStepper
-                  steps={cairnJourneyStages.map((stage) => ({
-                    id: stage.id,
-                    label: stage.label,
-                    icon: stage.icon,
-                  }))}
-                  activeIndex={activeJourneyStep}
-                  onStepChange={setActiveJourneyStep}
-                  isDark={isDark}
-                  fixedCircleSize
-                  connectorVariant="journey"
-                />
-                <Box sx={{
-                  borderRadius: '14px',
-                  bgcolor: isDark ? 'rgba(224,122,63,0.08)' : 'rgba(224,122,63,0.07)',
-                  border: '1px solid rgba(224,122,63,0.18)',
-                  px: { xs: 1.75, md: 2.25 },
-                  py: { xs: 1.45, md: 1.65 },
-                  mx: 'auto',
-                  mt: { xs: 2.25, md: 2.75 },
-                  width: '100%',
-                  maxWidth: 760,
-                }}>
-                  <Typography sx={{
-                    fontFamily: '"Manrope", sans-serif',
-                    fontSize: '0.88rem',
-                    lineHeight: 1.6,
-                    textAlign: 'center',
-                    color: isDark ? 'rgba(240,233,222,0.76)' : 'var(--ink-soft, #44566C)',
-                  }}>
-                    {sectionGuidance[activeStage.id]}
-                  </Typography>
-                </Box>
-                <Box sx={{ my: { xs: 2.25, md: 3 }, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }} />
-                {activeStage.id === 'new-trail' && focusAreas.length > 0 ? (
-                  <Stack spacing={2.2}>
-                    <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.92rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', textAlign: 'center' }}>
-                      Five leverage points emerged from your reflection:
-                    </Typography>
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(5, minmax(0, 1fr))' }, gap: 1.25 }}>
-                      {focusAreas.map((fa, idx) => (
-                        <Tooltip key={fa.id || idx} title={fa.subTraitDefinition || fa.traitDefinition || ''} arrow placement="top">
-                          <Box sx={{
-                            borderRadius: '14px',
-                            border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-                            bgcolor: isDark ? 'rgba(244,206,161,0.05)' : 'rgba(251,247,240,0.78)',
-                            p: 1.6,
-                            minHeight: 108,
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+                  {cairnJourneyStages.map((stage, idx) => {
+                    const active = idx === activeJourneyStep;
+                    const isLast = idx === cairnJourneyStages.length - 1;
+                    return (
+                      <Box
+                        key={stage.id}
+                        component="button"
+                        type="button"
+                        onClick={() => setActiveJourneyStep(idx)}
+                        aria-current={active ? 'page' : undefined}
+                        sx={{
+                          all: 'unset',
+                          cursor: 'pointer',
+                          boxSizing: 'border-box',
+                          position: 'relative',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          width: '100%',
+                          '&:focus-visible': {
+                            outline: `3px solid ${colors.orange}`,
+                            outlineOffset: 4,
+                            borderRadius: radii.sm,
+                          },
+                        }}
+                      >
+                        {!isLast && (
+                          <Box
+                            aria-hidden
+                            sx={{
+                              position: 'absolute',
+                              left: 16,
+                              top: 38,
+                              bottom: -28,
+                              borderLeft: `2px dashed ${colors.sand300}`,
+                              pointerEvents: 'none',
+                            }}
+                          />
+                        )}
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            width: 34,
+                            height: 34,
+                            flexShrink: 0,
+                            borderRadius: '50%',
+                            bgcolor: active ? colors.orange : colors.surface1,
+                            border: active ? `2px solid ${colors.orange}` : `2px solid ${colors.sand300}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            textAlign: 'center',
-                          }}>
-                          <Box>
-                            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.9rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.25, textAlign: 'center' }}>
-                              {fa.subTraitName}
-                            </Typography>
-                            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.74rem', color: isDark ? 'rgba(240,233,222,0.6)' : 'var(--ink-soft, #44566C)', lineHeight: 1.4, mt: 0.35, textAlign: 'center' }}>
-                              {fa.traitName}
-                            </Typography>
-                          </Box>
-                          </Box>
-                        </Tooltip>
-                      ))}
-                    </Box>
-                  </Stack>
-                ) : activeStage.id === 'markers' ? (
-                  <Box component="ul" sx={{
-                    m: 0,
-                    pl: { xs: 2.4, md: 3 },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1.15,
-                    maxWidth: 760,
-                    mx: 'auto',
-                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                    '& li::marker': { color: 'var(--orange, #E07A3F)' },
-                  }}>
-                    {buildMarkerBullets().map((item) => (
-                      <Typography key={item} component="li" sx={{
-                        fontFamily: '"Manrope", sans-serif',
-                        fontSize: '0.92rem',
-                        lineHeight: 1.68,
-                        color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                        textAlign: 'left',
-                      }}>
-                        {item}
-                      </Typography>
-                    ))}
-                  </Box>
-                ) : activeStage.id === 'hazards' ? (
-                  <Box component="ul" sx={{
-                    m: 0,
-                    pl: { xs: 2.4, md: 3 },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1.15,
-                    maxWidth: 760,
-                    mx: 'auto',
-                    color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                    '& li::marker': { color: 'var(--orange, #E07A3F)' },
-                  }}>
-                    {buildHazardBullets().map((item) => (
-                      <Typography key={item} component="li" sx={{
-                        fontFamily: '"Manrope", sans-serif',
-                        fontSize: '0.92rem',
-                        lineHeight: 1.68,
-                        color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                        textAlign: 'left',
-                      }}>
-                        {item}
-                      </Typography>
-                    ))}
-                  </Box>
-                ) : activeStage.text ? (
-                    <Typography sx={{
-                      fontFamily: '"Manrope", sans-serif',
-                      fontSize: { xs: '1rem', md: '1.04rem' },
-                      lineHeight: 1.75,
-                      color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
-                      fontStyle: 'normal',
-                      textAlign: 'center',
-                    }}>
-                      {renderParagraphWithTooltips(activeStage.text)}
-                    </Typography>
-                ) : (
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
-                    Generating your summary…
+                            zIndex: 1,
+                          }}
+                        >
+                          {active && (
+                            <Box
+                              aria-hidden
+                              sx={{
+                                position: 'absolute',
+                                inset: -7,
+                                borderRadius: '50%',
+                                border: `2px solid ${colors.orange}`,
+                                animation: 'nodePulse 2.4s ease-out infinite',
+                                '@media (prefers-reduced-motion: reduce)': {
+                                  animation: 'none',
+                                  opacity: 0.35,
+                                },
+                              }}
+                            />
+                          )}
+                          <Typography
+                            sx={{
+                              fontFamily: fonts.serif,
+                              fontSize: 13,
+                              fontWeight: 600,
+                              lineHeight: 1,
+                              color: active ? colors.surface1 : colors.inkSoft,
+                              position: 'relative',
+                              zIndex: 1,
+                            }}
+                          >
+                            {ROMAN[idx]}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ minWidth: 0, pt: 0.15 }}>
+                          <Typography
+                            sx={{
+                              fontFamily: fonts.sans,
+                              fontSize: '13.5px',
+                              fontWeight: active ? 800 : 650,
+                              lineHeight: 1.2,
+                              color: active ? colors.navy900 : colors.inkSoft,
+                            }}
+                          >
+                            {stage.label}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontFamily: fonts.sans,
+                              fontSize: '10.5px',
+                              lineHeight: 1.3,
+                              mt: 0.25,
+                              color: colors.navy300,
+                            }}
+                          >
+                            {RAIL_KICKERS[stage.id] || stage.subtitle}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                <Box sx={{ mt: '24px', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.orange, flexShrink: 0 }} />
+                  <Typography sx={{ fontFamily: fonts.sans, fontSize: '11.5px', color: colors.inkSoft }}>
+                    Guide: <strong>{guideName}</strong>
                   </Typography>
-                )}
+                </Box>
               </Box>
 
-              <CairnFlowButtons
-                isDark={isDark}
-                backLabel={backTarget.label}
-                nextLabel={nextTarget.label}
-                onBack={backTarget.action}
-                onNext={nextTarget.action}
-              />
+              <Box
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  alignSelf: 'flex-start',
+                  width: '100%',
+                  maxHeight: { md: '100%' },
+                  position: 'relative',
+                  border: `1px solid ${colors.sand200}`,
+                  borderRadius: radii.lg,
+                  boxShadow: shadows.card,
+                  overflow: 'hidden',
+                  bgcolor: colors.surface1,
+                  background: `linear-gradient(180deg, ${activeVisual.wash} 0%, rgba(255,255,255,0) 46%), ${colors.surface1}`,
+                  px: { xs: '22px', md: '36px' },
+                  pt: { xs: '28px', md: '32px' },
+                  pb: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <Typography
+                  aria-hidden
+                  sx={{
+                    position: 'absolute',
+                    right: 20,
+                    top: -38,
+                    fontFamily: fonts.serif,
+                    fontWeight: 600,
+                    fontSize: 220,
+                    lineHeight: 1,
+                    color: 'rgba(16,34,60,0.05)',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    zIndex: 0,
+                  }}
+                >
+                  {activeVisual.roman}
+                </Typography>
 
+                <Box
+                  sx={{
+                    position: 'relative',
+                    zIndex: 1,
+                    maxWidth: 720,
+                    width: '100%',
+                    mx: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: 0,
+                    maxHeight: '100%',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.mono,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: colors.orangeDeep,
+                      textAlign: 'center',
+                      mb: 1.1,
+                    }}
+                  >
+                    {`PART ${activeVisual.roman}`}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.serif,
+                      fontWeight: 500,
+                      fontSize: 30,
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.15,
+                      color: colors.navy900,
+                      textAlign: 'center',
+                      mb: 0.65,
+                    }}
+                  >
+                    {activeStage.label}
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.serif,
+                      fontStyle: 'italic',
+                      fontSize: 15,
+                      fontWeight: 500,
+                      color: colors.inkSoft,
+                      textAlign: 'center',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {activeStage.title}
+                  </Typography>
+
+                  <Box
+                    aria-hidden
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1.15,
+                      my: '14px',
+                    }}
+                  >
+                    <Box sx={{ width: 56, borderTop: `1px solid ${activeVisual.accent}`, opacity: 0.7 }} />
+                    <Box sx={{ color: activeVisual.accent, fontSize: 8, lineHeight: 1, opacity: 0.9 }}>◆</Box>
+                    <Box sx={{ width: 56, borderTop: `1px solid ${activeVisual.accent}`, opacity: 0.7 }} />
+                  </Box>
+
+                  {activeStage.id === 'trailhead' && (
+                    trailheadDisplay ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0, overflow: 'hidden' }}>
+                        <Typography sx={bodyType}>
+                          {renderParagraphWithTooltips(trailheadDisplay)}
+                        </Typography>
+                        {(trailheadHighlights?.strength?.text || trailheadHighlights?.focus?.text) && (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'row',
+                              flexWrap: 'nowrap',
+                              gap: '14px',
+                              width: '100%',
+                              alignItems: 'stretch',
+                            }}
+                          >
+                            {[
+                              trailheadHighlights?.strength?.text
+                                ? { key: 'strength', eyebrow: 'Strength', text: trailheadHighlights.strength.text }
+                                : null,
+                              trailheadHighlights?.focus?.text
+                                ? { key: 'focus', eyebrow: 'Focus', text: trailheadHighlights.focus.text }
+                                : null,
+                            ].filter(Boolean).map((card) => (
+                              <Box
+                                key={card.key}
+                                sx={{
+                                  flex: '1 1 0',
+                                  minWidth: 0,
+                                  bgcolor: colors.surface1,
+                                  border: `1px solid ${colors.sand200}`,
+                                  borderRadius: radii.md,
+                                  px: '16px',
+                                  py: '16px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  textAlign: 'center',
+                                  boxShadow: shadows.none,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontFamily: fonts.mono,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: colors.orangeDeep,
+                                    mb: 0.75,
+                                    letterSpacing: '0.08em',
+                                    textTransform: 'uppercase',
+                                  }}
+                                >
+                                  {card.eyebrow}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    fontFamily: fonts.sans,
+                                    fontSize: '13.5px',
+                                    lineHeight: 1.55,
+                                    color: colors.ink,
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  {card.text}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                    ) : (
+                      <Typography sx={{ fontFamily: fonts.sans, color: colors.inkSoft, fontStyle: 'italic', textAlign: 'center' }}>
+                        Generating your summary…
+                      </Typography>
+                    )
+                  )}
+
+                  {situationStage && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0, overflow: 'hidden' }}>
+                      {situationStage.reflection ? (
+                        <Typography sx={bodyType}>
+                          {renderParagraphWithTooltips(
+                            splitSentences(situationStage.reflection).slice(0, 3).join(' ')
+                          )}
+                        </Typography>
+                      ) : null}
+                      {situationStage.situations.length > 0 && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            flexWrap: 'nowrap',
+                            gap: '14px',
+                            width: '100%',
+                            alignItems: 'stretch',
+                          }}
+                        >
+                          {situationStage.situations.slice(0, 2).map((situation, idx) => (
+                            <Box
+                              key={`sit-${activeStage.id}-${idx}`}
+                              sx={{
+                                flex: '1 1 0',
+                                minWidth: 0,
+                                bgcolor: colors.surface1,
+                                border: `1px solid ${colors.sand200}`,
+                                borderRadius: radii.md,
+                                px: '16px',
+                                py: '16px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                textAlign: 'center',
+                                boxShadow: shadows.none,
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontFamily: fonts.mono,
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  color: colors.orangeDeep,
+                                  mb: 0.85,
+                                  letterSpacing: '0.06em',
+                                }}
+                              >
+                                {String(idx + 1).padStart(2, '0')}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontFamily: fonts.sans,
+                                  fontSize: '14px',
+                                  lineHeight: 1.55,
+                                  color: colors.ink,
+                                  textAlign: 'center',
+                                }}
+                              >
+                                {splitSentences(situation).slice(0, 2).join(' ')}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+
+                  {activeStage.id === 'new-trail' && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75, minHeight: 0, overflow: 'hidden' }}>
+                      {newTrailIntro ? (
+                        <Typography sx={bodyType}>
+                          {renderParagraphWithTooltips(splitSentences(newTrailIntro).slice(0, 5).join(' '))}
+                        </Typography>
+                      ) : null}
+                      {leverageCards.length > 0 && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            justifyContent: 'center',
+                            gap: '14px',
+                            width: '100%',
+                          }}
+                        >
+                          {leverageCards.map((fa, idx) => (
+                            <Tooltip key={fa.id || `lev-${idx}`} title={fa.subTraitDefinition || fa.traitDefinition || ''} arrow placement="top">
+                              <Box
+                                sx={{
+                                  width: 196,
+                                  boxSizing: 'border-box',
+                                  flex: '0 0 196px',
+                                  bgcolor: '#FFFFFF',
+                                  backgroundColor: '#FFFFFF',
+                                  backgroundImage: 'none',
+                                  border: `1.5px solid ${colors.navy400}`,
+                                  opacity: 1,
+                                  borderRadius: radii.md,
+                                  px: '16px',
+                                  py: '16px',
+                                  boxShadow: shadows.none,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  textAlign: 'center',
+                                  minHeight: 96,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontFamily: fonts.sans,
+                                    fontWeight: 800,
+                                    fontSize: '13.5px',
+                                    color: colors.navy900,
+                                    lineHeight: 1.3,
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  {fa.subTraitName}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    fontFamily: fonts.sans,
+                                    fontSize: '11.5px',
+                                    color: colors.inkSoft,
+                                    lineHeight: 1.4,
+                                    mt: 0.45,
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  {fa.traitName || fa.example || fa.subTraitDefinition || ''}
+                                </Typography>
+                              </Box>
+                            </Tooltip>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+
+                  <Box
+                    sx={{
+                      mt: '18px',
+                      pt: '14px',
+                      borderTop: `1px solid ${colors.sand100}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 1.5,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={backTarget.action}
+                      sx={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        fontFamily: fonts.sans,
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        color: colors.inkSoft,
+                        whiteSpace: 'nowrap',
+                        '&:hover': { color: colors.navy900 },
+                        '&:focus-visible': {
+                          outline: `3px solid ${colors.orange}`,
+                          outlineOffset: 3,
+                          borderRadius: radii.sm,
+                        },
+                      }}
+                    >
+                      {`‹ ${backTarget.label}`}
+                    </Box>
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={nextTarget.action}
+                      sx={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        boxSizing: 'border-box',
+                        bgcolor: colors.navy900,
+                        color: colors.amberSoft,
+                        borderRadius: radii.pill,
+                        px: '22px',
+                        py: '11px',
+                        fontFamily: fonts.sans,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        letterSpacing: '0.02em',
+                        whiteSpace: 'nowrap',
+                        boxShadow: shadows.buttonPrimary,
+                        transition: '180ms ease',
+                        '&:hover': {
+                          bgcolor: colors.navy800,
+                          boxShadow: shadows.buttonPrimaryHover,
+                        },
+                        '&:focus-visible': {
+                          outline: `3px solid ${colors.orange}`,
+                          outlineOffset: 3,
+                        },
+                      }}
+                    >
+                      {nextTarget.label}
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
             </Box>
           )}
         </CompassLayout>
       </Box>
     );
   }
+
   // ── End cairn theme render ──────────────────────────────────────────────────
 
   return (

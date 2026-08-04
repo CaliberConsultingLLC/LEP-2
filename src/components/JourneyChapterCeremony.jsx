@@ -1,18 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Box, Button, Typography } from '@mui/material';
 import JourneyPorthole from './JourneyPorthole';
+import { COMPASS_TRAIL } from '../pages/Dashboard/journey/trail-data.js';
 import {
-  COMPASS_TRAIL,
-} from '../pages/Dashboard/journey/trail-data.js';
-import {
-  chapterText,
-  JOURNEY_BASE_SRC,
   JOURNEY_ROMAN,
   JOURNEY_STATIONS,
 } from '../pages/Dashboard/journey/journeyModel.js';
 import { buttons, colors, fonts, radii } from '../styles/tokens';
-
-const WALK_SCALE = 1;
 
 function segmentPathD(points, k = 0.85) {
   if (!points.length) return '';
@@ -31,17 +26,19 @@ function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+/**
+ * Two-beat chapter handoff that stays on one card:
+ * 1) Complete — celebrate the finished station
+ * 2) Walk — porthole pans along the trail with the pulse fixed at center
+ * 3) Begin — same card swaps to the next chapter + "Let's get started"
+ */
 export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDone }) {
   const [phase, setPhase] = useState('complete');
-  const [visualIndex, setVisualIndex] = useState(fromIndex);
-  const [traveler, setTraveler] = useState(null);
-  const [footsteps, setFootsteps] = useState([]);
-  const [arrived, setArrived] = useState(false);
-  const [camera, setCamera] = useState({ transform: 'none', glide: false });
+  const [focus, setFocus] = useState(null);
   const pathRef = useRef(null);
-  const cameraRef = useRef(null);
   const timers = useRef([]);
   const frame = useRef(null);
+  const openedAtRef = useRef(0);
   const reducedMotion = useMemo(() => (
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   ), []);
@@ -68,17 +65,20 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
     onDone?.();
   }, [clearAsync, onDone]);
 
+  // Desktop nav clicks (mousedown on link → navigation → mouseup/click on the
+  // newly mounted backdrop) were instantly dismissing the popup. Guard that.
+  const dismissFromBackdrop = useCallback(() => {
+    if (Date.now() - openedAtRef.current < 600) return;
+    skip();
+  }, [skip]);
+
   useEffect(() => {
     if (!open) return undefined;
+    openedAtRef.current = Date.now();
     setPhase('complete');
-    setVisualIndex(fromIndex);
-    setTraveler(null);
-    setFootsteps([]);
-    setArrived(false);
-    setCamera({ transform: 'none', glide: false });
-
+    setFocus({ x: from.x, y: from.y });
     return clearAsync;
-  }, [clearAsync, open, fromIndex]);
+  }, [clearAsync, open, from.x, from.y, fromIndex]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -94,51 +94,50 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
     timers.current.push(id);
   };
 
-  const continueFromComplete = () => {
-    if (phase !== 'complete') return;
-    if (reducedMotion) {
-      setPhase('begin');
-      setVisualIndex(toIndex);
-      return;
-    }
-    setPhase('walk');
-    setCamera({ transform: 'none', glide: false });
-    after(2150, playWalk);
-  };
-
   const playWalk = () => {
     const path = pathRef.current;
     if (!path) {
+      setFocus({ x: to.x, y: to.y });
       setPhase('begin');
-      setVisualIndex(toIndex);
       return;
     }
     const total = path.getTotalLength();
-    const started = performance.now() + 150;
-    let lastStep = 0;
-    setCamera({ transform: 'none', glide: false });
+    if (!total) {
+      setFocus({ x: to.x, y: to.y });
+      setPhase('begin');
+      return;
+    }
+    const started = performance.now();
+    const duration = Math.min(4200, Math.max(2200, total * 4.2));
 
     const tick = (now) => {
-      const t = Math.max(0, Math.min(1, (now - started) / 3000));
+      const t = Math.max(0, Math.min(1, (now - started) / duration));
       const len = total * easeInOutCubic(t);
       const p = path.getPointAtLength(len);
-      setTraveler({ x: p.x, y: p.y });
-      while (len - lastStep > 26) {
-        lastStep += 26;
-        const fp = path.getPointAtLength(lastStep);
-        setFootsteps((steps) => [...steps, { x: fp.x, y: fp.y, id: `${fp.x}-${fp.y}-${steps.length}` }]);
-      }
+      setFocus({
+        x: p.x / COMPASS_TRAIL.W,
+        y: p.y / COMPASS_TRAIL.H,
+      });
       if (t < 1) {
         frame.current = window.requestAnimationFrame(tick);
       } else {
-        setTraveler(null);
-        setVisualIndex(toIndex);
-        setArrived(true);
-        setCamera({ transform: 'none', glide: false });
-        after(2700, () => setPhase('begin'));
+        setFocus({ x: to.x, y: to.y });
+        after(280, () => setPhase('begin'));
       }
     };
     frame.current = window.requestAnimationFrame(tick);
+  };
+
+  const continueFromComplete = () => {
+    if (phase !== 'complete') return;
+    if (reducedMotion) {
+      setFocus({ x: to.x, y: to.y });
+      setPhase('begin');
+      return;
+    }
+    setPhase('walk');
+    // Let the hidden SVG path mount, then animate.
+    after(40, playWalk);
   };
 
   const begin = () => {
@@ -147,18 +146,50 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
     onDone?.();
   };
 
-  if (!open || phase === 'idle') return null;
+  if (!open || phase === 'idle' || typeof document === 'undefined') return null;
 
-  return (
+  const isCompleteBeat = phase === 'complete' || phase === 'walk';
+  const portholeIndex = isCompleteBeat ? fromIndex : toIndex;
+  const eyebrow = isCompleteBeat ? (
+    <>
+      Chapter {JOURNEY_ROMAN[fromIndex]}
+      {' · '}
+      <Box component="span" sx={{ color: colors.green, fontWeight: 800, fontSize: '1.15em' }}>
+        Complete ✓
+      </Box>
+    </>
+  ) : (
+    <>Chapter {JOURNEY_ROMAN[toIndex]} of IX · {to.label}</>
+  );
+  const title = isCompleteBeat ? from.label : to.label;
+  const body = isCompleteBeat
+    ? (from.completeBlurb || `You just completed ${from.label}. Here’s what you accomplished on this stretch of the trail.`)
+    : (to.blurb || to.subtitle);
+  const button = isCompleteBeat
+    ? (phase === 'walk' ? 'On the trail…' : `Continue to ${to.label}`)
+    : "Let's get started";
+  const buttonDisabled = phase === 'walk';
+  const onButton = isCompleteBeat
+    ? (event) => { event.stopPropagation(); continueFromComplete(); }
+    : (event) => { event.stopPropagation(); begin(); };
+
+  return createPortal(
     <Box
       role="dialog"
       aria-modal="true"
       aria-label="Chapter transition ceremony"
-      onClick={skip}
+      onClick={dismissFromBackdrop}
+      onMouseUp={(event) => {
+        // Swallow the trailing mouseup from the click that opened this dialog.
+        if (Date.now() - openedAtRef.current < 600) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
       sx={{
         position: 'fixed',
         inset: 0,
-        zIndex: 1300,
+        zIndex: 10050,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -167,45 +198,40 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
         p: 2,
       }}
     >
-      {phase === 'complete' && (
-        <CeremonyCard
-          index={fromIndex}
-          eyebrow={<>Chapter {JOURNEY_ROMAN[fromIndex]} · <Box component="span" sx={{ color: colors.green }}>Complete ✓</Box></>}
-          title={from.label}
-          body={`Well walked — this ground is yours now. Ahead lies ${to.label}.`}
-          button="Continue →"
-          onClick={(event) => { event.stopPropagation(); continueFromComplete(); }}
-        />
-      )}
+      {/* Hidden path used only for getPointAtLength during the walk beat */}
+      <svg width={0} height={0} style={{ position: 'absolute', overflow: 'hidden' }} aria-hidden>
+        <path ref={pathRef} d={pathD} fill="none" stroke="none" />
+      </svg>
 
-      {phase === 'walk' && (
-        <MapWalk
-          cameraRef={cameraRef}
-          camera={camera}
-          pathD={pathD}
-          pathRef={pathRef}
-          visualIndex={visualIndex}
-          traveler={traveler}
-          footsteps={footsteps}
-          arrived={arrived}
-        />
-      )}
-
-      {phase === 'begin' && (
-        <CeremonyCard
-          index={toIndex}
-          eyebrow={chapterText(toIndex)}
-          title={to.label}
-          body={to.blurb}
-          button={`Begin Chapter ${JOURNEY_ROMAN[toIndex]} →`}
-          onClick={(event) => { event.stopPropagation(); begin(); }}
-        />
-      )}
-    </Box>
+      <CeremonyCard
+        index={portholeIndex}
+        focus={focus}
+        walking={phase === 'walk'}
+        eyebrow={eyebrow}
+        title={title}
+        body={body}
+        nextHint={isCompleteBeat ? (to.arriveHint || to.subtitle || to.blurb) : null}
+        button={button}
+        buttonDisabled={buttonDisabled}
+        onClick={onButton}
+      />
+    </Box>,
+    document.body,
   );
 }
 
-function CeremonyCard({ index, eyebrow, title, body, button, onClick }) {
+function CeremonyCard({
+  index,
+  focus,
+  walking,
+  eyebrow,
+  title,
+  body,
+  nextHint,
+  button,
+  buttonDisabled,
+  onClick,
+}) {
   return (
     <Box
       onClick={(event) => event.stopPropagation()}
@@ -222,84 +248,79 @@ function CeremonyCard({ index, eyebrow, title, body, button, onClick }) {
         p: { xs: 2.4, sm: 3 },
       }}
     >
-      <JourneyPorthole chapterIndex={index} variant="ceremony" />
+      <JourneyPorthole
+        chapterIndex={index}
+        variant="ceremony"
+        focusX={focus?.x}
+        focusY={focus?.y}
+        instant={walking}
+      />
       <Box>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: colors.orangeDeep, mb: 1 }}>
-          {eyebrow}
-        </Typography>
-        <Typography sx={{ fontFamily: fonts.serif, fontSize: 30, fontWeight: 500, lineHeight: 1.12, letterSpacing: '-0.02em', color: colors.ink, mb: 1 }}>
-          {title}
-        </Typography>
-        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 15.5, fontWeight: 500, lineHeight: 1.45, color: colors.inkSoft, mb: 2.4 }}>
-          {body}
-        </Typography>
-        <Button variant="contained" onClick={onClick} sx={buttons.primary}>
-          {button}
-        </Button>
-      </Box>
-    </Box>
-  );
-}
-
-function MapWalk({ cameraRef, camera, pathD, pathRef, visualIndex, traveler, footsteps, arrived }) {
-  return (
-    <Box
-      onClick={(event) => event.stopPropagation()}
-      sx={{
-        bgcolor: 'transparent',
-        borderRadius: radii.lg,
-        p: 0,
-        boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
-      }}
-    >
-      <Box sx={{ position: 'relative', width: 'min(94vw, calc(94vh * 1.5))', aspectRatio: '3 / 2', overflow: 'hidden', borderRadius: radii.lg, bgcolor: colors.sand100 }}>
-        <Box
-          ref={cameraRef}
+        <Typography
           sx={{
-            position: 'absolute',
-            inset: 0,
-            transform: camera.transform,
-            transformOrigin: 'center center',
-            transition: camera.glide ? 'transform 1500ms cubic-bezier(0.3,0.7,0.2,1)' : 'none',
+            fontFamily: fonts.mono,
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: colors.orangeDeep,
+            mb: 1,
+            lineHeight: 1.35,
           }}
         >
-          <Box component="img" src={JOURNEY_BASE_SRC} alt="" draggable={false} sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'fill', userSelect: 'none' }} />
-          <svg viewBox={`0 0 ${COMPASS_TRAIL.W} ${COMPASS_TRAIL.H}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-            <path ref={pathRef} d={pathD} fill="none" stroke="none" />
-            {footsteps.map((step) => <circle key={step.id} cx={step.x} cy={step.y} r="4.5" fill="var(--orange-deep)" />)}
-            {traveler && <circle cx={traveler.x} cy={traveler.y} r="11" fill="var(--orange)" stroke="white" strokeWidth="3.5" />}
-            {arrived && (
-              <circle className="journey-arrival-ring" cx={JOURNEY_STATIONS[visualIndex].point[0]} cy={JOURNEY_STATIONS[visualIndex].point[1]} r="10" fill="none" stroke="var(--orange)" strokeWidth="5" />
-            )}
-          </svg>
-          {JOURNEY_STATIONS.map((station, index) => (
-            <Box
-              key={station.key}
-              sx={{
-                position: 'absolute',
-                left: `${station.x * 100}%`,
-                top: `${station.y * 100}%`,
-                transform: 'translate(-50%, -50%)',
-                width: 26,
-                height: 26,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                bgcolor: index < visualIndex ? colors.green : index === visualIndex ? colors.orange : 'rgba(255,255,255,0.92)',
-                border: index <= visualIndex ? 'none' : '1.5px solid var(--sand-300)',
-                color: index <= visualIndex ? 'white' : colors.inkSoft,
-                fontFamily: fonts.mono,
-                fontSize: 11,
-                fontWeight: 700,
-                boxShadow: '0 2px 8px rgba(15,28,46,0.24)',
-                zIndex: 3,
-              }}
-            >
-              {index < visualIndex ? '✓' : index + 1}
-            </Box>
-          ))}
-        </Box>
+          {eyebrow}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: fonts.serif,
+            fontSize: { xs: 28, sm: 32 },
+            fontWeight: 600,
+            lineHeight: 1.12,
+            letterSpacing: '-0.02em',
+            color: colors.ink,
+            mb: 1,
+          }}
+        >
+          {title}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: fonts.serif,
+            fontStyle: 'italic',
+            fontSize: 15.5,
+            fontWeight: 500,
+            lineHeight: 1.45,
+            color: colors.inkSoft,
+            mb: nextHint ? 1.2 : 2.4,
+          }}
+        >
+          {body}
+        </Typography>
+        {nextHint && (
+          <Typography
+            sx={{
+              fontFamily: fonts.sans,
+              fontSize: 13,
+              fontWeight: 600,
+              lineHeight: 1.45,
+              color: colors.inkSoft,
+              mb: 2.4,
+            }}
+          >
+            Next: {nextHint}
+          </Typography>
+        )}
+        <Button
+          variant="contained"
+          onClick={onClick}
+          disabled={buttonDisabled}
+          sx={{
+            ...buttons.primary,
+            opacity: buttonDisabled ? 0.72 : 1,
+          }}
+        >
+          {button}
+        </Button>
       </Box>
     </Box>
   );

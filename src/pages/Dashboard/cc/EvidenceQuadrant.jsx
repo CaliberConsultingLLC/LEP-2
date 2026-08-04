@@ -78,6 +78,7 @@ export default function EvidenceQuadrant({
   onSelect,
   mode = 'map',
   onModeChange,
+  showModeBar = true,
 }) {
   const plotted = useMemo(() => statements.map((s, i) => {
     if (mode === 'efficacy') {
@@ -109,8 +110,52 @@ export default function EvidenceQuadrant({
   const selected = plotted[selectedIdx] || null;
 
   return (
-    <div style={{ width: '100%', position: 'relative' }}>
-      <svg viewBox={`0 0 ${VIEW} ${VIEW}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+      {showModeBar && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 12, flexShrink: 0 }}>
+          <button
+            type="button"
+            aria-label="Focus efficacy"
+            onClick={() => onModeChange?.('efficacy')}
+            style={{
+              ...MODE_BUTTON,
+              background: mode === 'efficacy' ? colors.navy900 : colors.surface1,
+              color: mode === 'efficacy' ? colors.amberSoft : colors.navy900,
+              borderColor: mode === 'efficacy' ? colors.navy900 : colors.sand300,
+            }}
+          >
+            Efficacy
+          </button>
+          <button
+            type="button"
+            aria-label="Map mode"
+            onClick={() => onModeChange?.('map')}
+            style={{
+              ...MODE_BUTTON,
+              background: mode === 'map' ? colors.navy900 : colors.surface1,
+              color: mode === 'map' ? colors.amberSoft : colors.navy900,
+              borderColor: mode === 'map' ? colors.navy900 : colors.sand300,
+            }}
+          >
+            Map
+          </button>
+          <button
+            type="button"
+            aria-label="Focus effort"
+            onClick={() => onModeChange?.('effort')}
+            style={{
+              ...MODE_BUTTON,
+              background: mode === 'effort' ? colors.navy900 : colors.surface1,
+              color: mode === 'effort' ? colors.amberSoft : colors.navy900,
+              borderColor: mode === 'effort' ? colors.navy900 : colors.sand300,
+            }}
+          >
+            Effort
+          </button>
+        </div>
+      )}
+
+      <svg viewBox={`0 0 ${VIEW} ${VIEW}`} style={{ width: '100%', height: 'auto', flex: 1, display: 'block', minHeight: 0 }}>
         <defs>
           <linearGradient id="efficacyGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={colors.navy900} stopOpacity="0.2" />
@@ -227,48 +272,6 @@ export default function EvidenceQuadrant({
           />
         ))}
       </svg>
-
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 12 }}>
-        <button
-          type="button"
-          aria-label="Focus efficacy"
-          onClick={() => onModeChange?.('efficacy')}
-          style={{
-            ...MODE_BUTTON,
-            background: mode === 'efficacy' ? colors.navy900 : colors.surface1,
-            color: mode === 'efficacy' ? colors.amberSoft : colors.navy900,
-            borderColor: mode === 'efficacy' ? colors.navy900 : colors.sand300,
-          }}
-        >
-          Efficacy
-        </button>
-        <button
-          type="button"
-          aria-label="Map mode"
-          onClick={() => onModeChange?.('map')}
-          style={{
-            ...MODE_BUTTON,
-            background: mode === 'map' ? colors.navy900 : colors.surface1,
-            color: mode === 'map' ? colors.amberSoft : colors.navy900,
-            borderColor: mode === 'map' ? colors.navy900 : colors.sand300,
-          }}
-        >
-          Map
-        </button>
-        <button
-          type="button"
-          aria-label="Focus effort"
-          onClick={() => onModeChange?.('effort')}
-          style={{
-            ...MODE_BUTTON,
-            background: mode === 'effort' ? colors.navy900 : colors.surface1,
-            color: mode === 'effort' ? colors.amberSoft : colors.navy900,
-            borderColor: mode === 'effort' ? colors.navy900 : colors.sand300,
-          }}
-        >
-          Effort
-        </button>
-      </div>
     </div>
   );
 }

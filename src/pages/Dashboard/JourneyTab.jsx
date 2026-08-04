@@ -352,18 +352,6 @@ export default function JourneyTab() {
         <Typography sx={{ ...eyebrow(colors.orangeDeep), mb: 0.4 }}>
           The Journey{firstName ? ` · ${firstName}` : ''}
         </Typography>
-        <Typography
-          sx={{
-            fontFamily: fonts.serif,
-            fontSize: { xs: 24, md: 30 },
-            letterSpacing: '-0.02em',
-            color: colors.textPrimary,
-            lineHeight: 1.15,
-            fontWeight: 500,
-          }}
-        >
-          The record of your becoming
-        </Typography>
       </Box>
 
       {/* Full-bleed map stage. The area behind the image is the exact dashboard
@@ -389,7 +377,7 @@ export default function JourneyTab() {
               display: 'block',
               width: 'auto',
               maxWidth: '100%',
-              maxHeight: { xs: '52vh', md: 'min(66vh, 680px)' },
+              maxHeight: { xs: '62vh', md: 'min(80vh, 820px)' },
               userSelect: 'none',
               // Feather all four edges fully into the page background.
               maskImage:

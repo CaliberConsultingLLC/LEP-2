@@ -197,53 +197,56 @@ export function ProgressDots({ chapters, current, onJump }) {
 }
 
 // ---------------------------------------------------------------------------
-// Footer nav — Back / dots / Next, clustered center
+// Side arrows — flank the walkthrough content (replaces bottom Back/Next)
 // ---------------------------------------------------------------------------
-export function FooterNav({ chapters, idx, setIdx, isLast }) {
+function SideArrow({ direction, onClick, hidden, label }) {
   return (
-    <Stack
-      direction="row"
-      alignItems="center"
-      justifyContent="center"
-      spacing={3.5}
-      sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 0, py: 1.2 }}
+    <Box
+      component="button"
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={hidden}
+      sx={{
+        all: 'unset',
+        cursor: hidden ? 'default' : 'pointer',
+        // Keep layout slot always so arrows never shift when first/last page hides one.
+        visibility: hidden ? 'hidden' : 'visible',
+        pointerEvents: hidden ? 'none' : 'auto',
+        position: 'sticky',
+        top: { xs: 148, md: 168 },
+        alignSelf: 'flex-start',
+        flexShrink: 0,
+        width: { xs: 36, md: 42 },
+        height: { xs: 36, md: 42 },
+        mt: { xs: 1, md: 1.25 },
+        borderRadius: radii.circle,
+        border: `1px solid ${colors.sand300}`,
+        bgcolor: colors.surface1,
+        boxShadow: shadows.card,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: fonts.mono,
+        fontSize: { xs: 18, md: 22 },
+        color: colors.inkSoft,
+        transition: motion.standard,
+        zIndex: 2,
+        '&:hover': hidden ? {} : { borderColor: colors.orange, color: colors.orangeDeep },
+        '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+      }}
     >
-      <Box
-        component="button"
-        type="button"
-        onClick={() => setIdx(idx - 1)}
-        sx={{
-          all: 'unset',
-          cursor: 'pointer',
-          ...buttons.outlinedPrimary,
-          visibility: idx === 0 ? 'hidden' : 'visible',
-        }}
-      >
-        ← Back
-      </Box>
-      <ProgressDots chapters={chapters} current={idx} onJump={setIdx} />
-      <Box
-        component="button"
-        type="button"
-        onClick={() => setIdx(idx + 1)}
-        sx={{
-          all: 'unset',
-          cursor: 'pointer',
-          ...buttons.primary,
-          visibility: isLast ? 'hidden' : 'visible',
-        }}
-      >
-        {idx === 0 ? 'Begin' : 'Next'} →
-      </Box>
-    </Stack>
+      {direction === 'prev' ? '‹' : '›'}
+    </Box>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Stage — single-viewport centered page + footer, with keyboard nav
+// Stage — single-viewport centered page + side arrows, with keyboard nav
 // ---------------------------------------------------------------------------
-export function WalkthroughStage({ chapters, idx, setIdx, children }) {
+export function WalkthroughStage({ chapters, idx, setIdx, children, hideSideArrows = false }) {
   const isLast = idx === chapters.length - 1;
+  const isFirst = idx === 0;
 
   React.useEffect(() => {
     const onKey = (e) => {
@@ -258,28 +261,47 @@ export function WalkthroughStage({ chapters, idx, setIdx, children }) {
   return (
     <Box
       sx={{
-        minHeight: 'auto',
+        width: '100%',
+        maxWidth: 1180,
+        mx: 'auto',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: hideSideArrows ? 0 : { xs: 0.75, md: 1 },
+        px: { xs: 0.5, md: 0 },
       }}
     >
+      {!hideSideArrows && (
+        <SideArrow
+          direction="prev"
+          label="Previous"
+          hidden={isFirst}
+          onClick={() => setIdx(Math.max(0, idx - 1))}
+        />
+      )}
       <Box
         component="main"
         sx={{
           flex: 1,
+          minWidth: 0,
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
-          px: 0,
-          pt: 0,
-          pb: 0.6,
+          py: 0.4,
         }}
       >
-        <PageFade fadeKey={chapters[idx].id} sx={{ width: '100%', maxWidth: 1180 }}>
+        <PageFade fadeKey={chapters[idx].id} sx={{ width: '100%' }}>
           {children}
         </PageFade>
       </Box>
-      <FooterNav chapters={chapters} idx={idx} setIdx={setIdx} isLast={isLast} />
+      {!hideSideArrows && (
+        <SideArrow
+          direction="next"
+          label="Next"
+          hidden={isLast}
+          onClick={() => setIdx(idx + 1)}
+        />
+      )}
     </Box>
   );
 }

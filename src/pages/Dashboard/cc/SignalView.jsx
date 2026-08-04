@@ -312,7 +312,7 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Signal snapshot — the whole debrief in one view
 // ---------------------------------------------------------------------------
-function SignalSnapshot({ traitStories, onOpenEvidence }) {
+function SignalSnapshot({ traitStories }) {
   const [highlight, setHighlight] = useState(null);
 
   return (
@@ -320,42 +320,45 @@ function SignalSnapshot({ traitStories, onOpenEvidence }) {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
-          gap: 2,
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.15fr) minmax(0, 0.85fr)' },
+          gap: 1.5,
           alignItems: 'start',
         }}
       >
-        <TraitScoresPanel
-          rows={traitStories.map((s) => s.row)}
-          highlightKey={highlight}
-          onSelect={(traitKey) => setHighlight(highlight === traitKey ? null : traitKey)}
-          cardMinHeight={178}
-        />
-        <Stack spacing={1.75}>
+        <Stack spacing={1.2}>
           {traitStories.map((story) => (
-            <Box key={story.row.trait} sx={{ ...surfaces.cardFlat, px: 2.5, py: 2, minHeight: 178, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <Typography sx={{ ...type.eyebrow, mb: 0.7 }}>{story.eyebrow}</Typography>
+            <Box
+              key={story.row.trait}
+              sx={{
+                ...surfaces.cardFlat,
+                px: 2,
+                py: 1.5,
+                minHeight: 132,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography sx={{ ...type.eyebrow, mb: 0.45, fontSize: 9.5 }}>{story.eyebrow}</Typography>
               <Typography
-                sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, color: colors.textPrimary, mb: 0.7, textWrap: 'pretty' }}
+                sx={{ fontFamily: fonts.serif, fontSize: 15.5, fontWeight: 600, color: colors.textPrimary, mb: 0.45, textWrap: 'pretty' }}
               >
                 {story.headline}
               </Typography>
               <Typography
-                sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 13.5, lineHeight: 1.5, color: colors.textSecondary, textWrap: 'pretty' }}
+                sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 12.5, lineHeight: 1.45, color: colors.textSecondary, textWrap: 'pretty' }}
               >
                 {story.paras[0]}
               </Typography>
             </Box>
           ))}
-          <Box
-            component="button"
-            type="button"
-            onClick={onOpenEvidence}
-            sx={{ all: 'unset', cursor: 'pointer', ...buttons.primary, alignSelf: 'flex-start' }}
-          >
-            Review the evidence →
-          </Box>
         </Stack>
+        <TraitScoresPanel
+          rows={traitStories.map((s) => s.row)}
+          highlightKey={highlight}
+          onSelect={(traitKey) => setHighlight(highlight === traitKey ? null : traitKey)}
+          cardMinHeight={132}
+        />
       </Box>
     </SnapshotShell>
   );
@@ -449,7 +452,6 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
     return (
       <SignalSnapshot
         traitStories={traitStories}
-        onOpenEvidence={onOpenEvidence}
       />
     );
   }

@@ -66,6 +66,26 @@ const RECS_BY_SUBTRAIT = {
       why: 'Criteria first, options second. The order changes the conversation.',
     },
   ],
+  'Decision Quality & Pace': [
+    {
+      type: 'Read',
+      title: 'Thinking in Bets',
+      by: 'Annie Duke',
+      why: 'Separate decision quality from outcome quality. The two are not the same.',
+    },
+    {
+      type: 'Watch',
+      title: 'How Amazon Decides · 6-pager system',
+      by: 'Various · 14 min',
+      why: 'Make the reasoning visible, then let the conversation refine it.',
+    },
+    {
+      type: 'Practice',
+      title: 'State Criteria Before You Decide',
+      by: 'In your next decision meeting',
+      why: 'Criteria first, options second. The order changes the conversation.',
+    },
+  ],
   Prioritization: [
     {
       type: 'Read',

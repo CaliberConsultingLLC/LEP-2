@@ -46,7 +46,7 @@ const PAGE_GROUPS = [
     label: 'Command Center',
     pages: [
       { label: 'Current Bearing', path: '/dashboard?tab=current-bearing' },
-      { label: 'Signals', path: '/dashboard?tab=signals' },
+      { label: 'Signals', path: '/dashboard?tab=signal' },
       { label: 'Evidence', path: '/dashboard?tab=evidence' },
       { label: 'Practice', path: '/dashboard?tab=practice' },
       { label: 'Journey', path: '/dashboard?tab=journey' },
@@ -54,10 +54,58 @@ const PAGE_GROUPS = [
   },
 ];
 
+const SUMMARY_VOICES = [
+  { id: 'balancedMentor', label: 'Balanced Mentor' },
+  { id: 'bluntPracticalFriend', label: 'Blunt Friend' },
+  { id: 'formalEmpatheticCoach', label: 'Formal Coach' },
+  { id: 'comedyRoaster', label: 'Comedy Roaster' },
+  { id: 'pragmaticProblemSolver', label: 'Problem Solver' },
+  { id: 'highSchoolCoach', label: 'HS Coach' },
+];
+
+const utilBtnSx = {
+  all: 'unset',
+  cursor: 'pointer',
+  textAlign: 'center',
+  px: '10px',
+  py: '6px',
+  borderRadius: '8px',
+  fontFamily: '"Manrope", sans-serif',
+  fontWeight: 700,
+  fontSize: 11,
+  boxSizing: 'border-box',
+  transition: '120ms',
+};
+
+function readStagingIntakePayload() {
+  try {
+    const latest = JSON.parse(localStorage.getItem('latestFormData') || 'null');
+    if (latest && typeof latest === 'object') return latest;
+  } catch { /* ignore */ }
+  try {
+    const draft = JSON.parse(localStorage.getItem('intakeDraft') || 'null');
+    if (draft?.formData && typeof draft.formData === 'object') {
+      return {
+        ...draft.formData,
+        societalResponses: draft.societalResponses || draft.formData.societalResponses,
+      };
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 function StagingDevPanel() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [flash, setFlash] = useState('');
+  const [voiceId, setVoiceId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('selectedAgent');
+      if (SUMMARY_VOICES.some((v) => v.id === saved)) return saved;
+    } catch { /* ignore */ }
+    return 'balancedMentor';
+  });
+  const [regenBusy, setRegenBusy] = useState(false);
 
   const go = (path) => {
     navigate(path);
@@ -83,6 +131,60 @@ function StagingDevPanel() {
     setTimeout(() => setFlash(''), 3000);
   };
 
+  const handleRegenerateSummary = async () => {
+    if (regenBusy) return;
+    let payload = readStagingIntakePayload();
+    if (!payload) {
+      seedStagingData();
+      payload = readStagingIntakePayload();
+    }
+    if (!payload) {
+      setFlash('No intake data — Seed first');
+      setTimeout(() => setFlash(''), 2500);
+      return;
+    }
+
+    setRegenBusy(true);
+    setFlash('Generating live summary…');
+    try {
+      localStorage.setItem('selectedAgent', voiceId);
+      const res = await fetch('/api/get-ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ...payload, selectedAgent: voiceId }),
+      });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ''}`);
+      }
+      const json = await res.json();
+      const text = String(json?.aiSummary || '').trim();
+      if (!text) throw new Error('Empty summary returned');
+
+      localStorage.setItem('aiSummary', text);
+      if (Array.isArray(json?.focusAreas) && json.focusAreas.length) {
+        localStorage.setItem('focusAreas', JSON.stringify(json.focusAreas));
+      }
+      if (json?.trailheadHighlights) {
+        localStorage.setItem('trailheadHighlights', JSON.stringify(json.trailheadHighlights));
+      } else {
+        localStorage.removeItem('trailheadHighlights');
+      }
+      localStorage.setItem('summarySavedAt', new Date().toISOString());
+
+      setFlash('Live summary ready ✓');
+      setTimeout(() => {
+        window.location.assign('/summary');
+      }, 400);
+    } catch (err) {
+      console.error('[StageNavigator] regenerate summary failed:', err);
+      setFlash(`Regen failed: ${err?.message || 'error'}`);
+      setTimeout(() => setFlash(''), 4000);
+    } finally {
+      setRegenBusy(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -97,7 +199,6 @@ function StagingDevPanel() {
         pointerEvents: 'none',
       }}
     >
-      {/* Expanded panel */}
       {open && (
         <Box
           sx={{
@@ -107,8 +208,8 @@ function StagingDevPanel() {
             borderRadius: '14px',
             boxShadow: '0 12px 36px rgba(0,0,0,0.35)',
             p: '14px 10px 10px',
-            width: 252,
-            maxHeight: 'min(72vh, 680px)',
+            width: 268,
+            maxHeight: 'min(72vh, 720px)',
             overflowY: 'auto',
             mb: '2px',
           }}
@@ -128,7 +229,6 @@ function StagingDevPanel() {
             Stage Navigator
           </Box>
 
-          {/* Page links */}
           <Stack spacing={0.7} sx={{ mb: 1 }}>
             {PAGE_GROUPS.map((group) => (
               <Box key={group.label}>
@@ -182,10 +282,71 @@ function StagingDevPanel() {
             ))}
           </Stack>
 
-          {/* Divider */}
           <Box sx={{ height: '1px', bgcolor: 'rgba(255,255,255,0.1)', mx: '4px', mb: 1 }} />
 
-          {/* Data utilities */}
+          <Stack spacing={0.55} sx={{ px: '4px', mb: 1 }}>
+            <Box
+              sx={{
+                fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                fontSize: 8.5,
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: 'rgba(244,206,161,0.58)',
+                px: '2px',
+              }}
+            >
+              Live summary test
+            </Box>
+            <Box
+              component="select"
+              value={voiceId}
+              disabled={regenBusy}
+              onChange={(e) => setVoiceId(e.target.value)}
+              aria-label="Summary guide voice"
+              sx={{
+                width: '100%',
+                boxSizing: 'border-box',
+                borderRadius: '8px',
+                border: '1px solid rgba(244,206,161,0.28)',
+                bgcolor: 'rgba(255,255,255,0.06)',
+                color: 'var(--amber-soft, #F4CEA1)',
+                fontFamily: '"Manrope", sans-serif',
+                fontSize: 11.5,
+                fontWeight: 650,
+                px: '8px',
+                py: '7px',
+                outline: 'none',
+                cursor: regenBusy ? 'wait' : 'pointer',
+              }}
+            >
+              {SUMMARY_VOICES.map((voice) => (
+                <option key={voice.id} value={voice.id} style={{ color: '#10223C' }}>
+                  {voice.label}
+                </option>
+              ))}
+            </Box>
+            <Box
+              component="button"
+              type="button"
+              onClick={handleRegenerateSummary}
+              disabled={regenBusy}
+              sx={{
+                ...utilBtnSx,
+                color: 'var(--navy-900, #10223C)',
+                bgcolor: regenBusy ? 'rgba(244,206,161,0.55)' : 'var(--amber-soft, #F4CEA1)',
+                border: '1px solid rgba(244,206,161,0.55)',
+                opacity: regenBusy ? 0.85 : 1,
+                cursor: regenBusy ? 'wait' : 'pointer',
+                '&:hover': regenBusy ? {} : { filter: 'brightness(1.05)' },
+              }}
+            >
+              {regenBusy ? 'Generating…' : '↻ Regenerate live summary'}
+            </Box>
+          </Stack>
+
+          <Box sx={{ height: '1px', bgcolor: 'rgba(255,255,255,0.1)', mx: '4px', mb: 1 }} />
+
           <Stack spacing={0.5} sx={{ px: '4px' }}>
             {flash ? (
               <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: 11, color: '#6EE7B7', py: '4px', textAlign: 'center' }}>
@@ -198,18 +359,9 @@ function StagingDevPanel() {
                   type="button"
                   onClick={handleReset}
                   sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    px: '10px',
-                    py: '6px',
-                    borderRadius: '8px',
-                    fontFamily: '"Manrope", sans-serif',
-                    fontWeight: 700,
-                    fontSize: 11,
+                    ...utilBtnSx,
                     color: 'var(--amber-soft, #F4CEA1)',
                     border: '1px solid rgba(244,206,161,0.3)',
-                    transition: '120ms',
                     '&:hover': { bgcolor: 'rgba(244,206,161,0.1)' },
                   }}
                 >
@@ -221,19 +373,10 @@ function StagingDevPanel() {
                     type="button"
                     onClick={handleSeed}
                     sx={{
-                      all: 'unset',
-                      cursor: 'pointer',
+                      ...utilBtnSx,
                       flex: 1,
-                      textAlign: 'center',
-                      px: '8px',
-                      py: '5px',
-                      borderRadius: '8px',
-                      fontFamily: '"Manrope", sans-serif',
-                      fontWeight: 600,
-                      fontSize: 11,
                       color: 'rgba(255,255,255,0.7)',
                       border: '1px solid rgba(255,255,255,0.15)',
-                      transition: '120ms',
                       '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff' },
                     }}
                   >
@@ -244,19 +387,10 @@ function StagingDevPanel() {
                     type="button"
                     onClick={handleClear}
                     sx={{
-                      all: 'unset',
-                      cursor: 'pointer',
+                      ...utilBtnSx,
                       flex: 1,
-                      textAlign: 'center',
-                      px: '8px',
-                      py: '5px',
-                      borderRadius: '8px',
-                      fontFamily: '"Manrope", sans-serif',
-                      fontWeight: 600,
-                      fontSize: 11,
                       color: 'rgba(255,255,255,0.7)',
                       border: '1px solid rgba(255,255,255,0.15)',
-                      transition: '120ms',
                       '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff' },
                     }}
                   >
@@ -269,7 +403,6 @@ function StagingDevPanel() {
         </Box>
       )}
 
-      {/* Toggle pill */}
       <Box
         component="button"
         type="button"

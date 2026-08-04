@@ -327,6 +327,8 @@ const CORE_TRAITS = [
       {
         id: 'audienceAdaptability',
         name: 'Audience Adaptability',
+        // Kept in library for content; excluded from intake scoring / focus recommendations.
+        scoringRole: 'libraryOnly',
         shortDescription: 'Adjusting communication style to different audiences',
         definition: 'Recognizing different communication needs and adapting your approach accordingly.',
         longDescription: 'The ability to recognize different communication needs and adapt your approach accordingly. Strong adaptability means you can effectively communicate with executives, peers, direct reports, and external stakeholders.',
@@ -439,109 +441,58 @@ const CORE_TRAITS = [
     definition: 'Making sound decisions efficiently by balancing analysis with action, considering stakeholders, and learning from outcomes.',
     subTraits: [
       {
-        id: 'speed',
-        name: 'Decision Speed',
-        shortDescription: 'Making timely decisions without unnecessary delay',
-        definition: 'Gathering necessary information and making decisions quickly enough to maintain momentum.',
-        longDescription: 'The ability to gather necessary information and make decisions quickly enough to maintain momentum, without rushing into poor choices.',
+        // Merged from Decision Speed + Decision Quality (Trait Audit).
+        id: 'qualityAndPace',
+        name: 'Decision Quality & Pace',
+        aliases: ['Decision Speed', 'Decision Quality'],
+        shortDescription: 'Making well-reasoned decisions at a pace that keeps momentum',
+        definition: 'Weighing relevant factors and choosing sound paths quickly enough to maintain momentum without rushing into poor choices.',
+        longDescription: 'The ability to consider relevant factors, weigh options, and choose paths that lead to positive outcomes — at a pace that keeps projects moving. Strong decision quality and pace means your choices consistently produce good results without unnecessary delay.',
         strengthSignals: [
+          'Your decisions lead to positive outcomes more often than not',
           'You make decisions in a timeframe that keeps projects moving',
-          'Team members don\'t wait unnecessarily for your input',
-          'You can make good decisions with incomplete information',
+          'You can explain the reasoning behind your decisions',
           'You balance speed with quality effectively',
         ],
         riskSignals: {
           underuse: [
-            'Decisions take so long that opportunities are missed or you over-analyze when action is needed',
-            'Team momentum stalls as members wait for direction, leading to missed deadlines and lost opportunities',
-            'Team frustration increases as indecision creates uncertainty and reduces confidence in your leadership',
+            'Decisions take so long that opportunities are missed, or choices frequently lead to negative outcomes',
+            'Team momentum stalls as members wait for direction, or performance suffers from setbacks and lost trust',
+            'Team confidence erodes as members question your judgment or grow frustrated with indecision',
           ],
           overuse: [
             'You make hasty decisions without sufficient consideration',
-            'You frequently need to reverse or correct decisions',
-            'You rush decisions that require more thought',
+            'You over-analyze to the point of paralysis',
+            'You seek perfection when "good enough" would suffice',
           ],
           imbalance: [
             'You\'re fast on some decisions but slow on others',
-            'You make quick decisions but struggle with follow-through',
+            'You make good strategic decisions but poor tactical ones (or vice versa)',
           ],
         },
         actions: {
           dailyHabits: [
             'Set decision deadlines for yourself',
             'Use the "80% rule": make decisions when you have 80% of the information',
-            'Practice making smaller decisions quickly to build the habit',
-          ],
-          situationalTactics: [
-            'Use decision frameworks (pros/cons, impact/effort matrix)',
-            'Delegate decisions that don\'t require your input',
-            'Set clear criteria for when a decision needs more time vs. immediate action',
-          ],
-          strategicShifts: [
-            'Build decision-making processes that enable speed',
-            'Develop your intuition through experience and reflection',
-            'Create a culture where good decisions are rewarded, even if outcomes vary',
-          ],
-        },
-        impact: 'When decision speed is strong, your team maintains momentum and seizes opportunities. Projects move forward without delays, team members don\'t wait unnecessarily, and you can respond quickly to changing circumstances. This creates a culture of action where progress happens consistently.',
-        toneTags: {
-          default: 'Timely and decisive',
-          bluntPracticalFriend: 'Decide. Move. Iterate.',
-          formalEmpatheticCoach: 'Thoughtful decisions made with appropriate speed',
-          balancedMentor: 'Balance speed with sound judgment',
-        },
-      },
-      {
-        id: 'quality',
-        name: 'Decision Quality',
-        shortDescription: 'Making well-reasoned, effective decisions',
-        definition: 'Considering relevant factors, weighing options, and choosing paths that lead to positive outcomes.',
-        longDescription: 'The ability to consider relevant factors, weigh options, and choose paths that lead to positive outcomes. Strong decision quality means your choices consistently produce good results.',
-        strengthSignals: [
-          'Your decisions lead to positive outcomes more often than not',
-          'You consider multiple perspectives before deciding',
-          'You can explain the reasoning behind your decisions',
-          'Team members trust your judgment',
-        ],
-        riskSignals: {
-          underuse: [
-            'Your decisions frequently lead to negative outcomes or you don\'t consider long-term consequences',
-            'Team performance suffers as poor decisions create setbacks, wasted resources, and lost trust',
-            'Team confidence erodes as members question your judgment and hesitate to commit to your direction',
-          ],
-          overuse: [
-            'You over-analyze to the point of paralysis',
-            'You seek perfection when "good enough" would suffice',
-            'You delay decisions waiting for perfect information',
-          ],
-          imbalance: [
-            'You make good strategic decisions but poor tactical ones (or vice versa)',
-            'You consider some factors but miss others',
-          ],
-        },
-        actions: {
-          dailyHabits: [
             'List pros and cons for significant decisions',
-            'Consider "What could go wrong?" before finalizing decisions',
-            'Seek input from 2-3 trusted advisors on important choices',
           ],
           situationalTactics: [
-            'Use decision frameworks (SWOT, cost-benefit analysis)',
+            'Use decision frameworks (pros/cons, impact/effort, SWOT)',
             'Consider both short-term and long-term implications',
-            'Test decisions with small pilots when possible',
+            'Set clear criteria for when a decision needs more time vs. immediate action',
           ],
           strategicShifts: [
             'Build decision-making frameworks for common scenarios',
             'Review past decisions to identify patterns in your judgment',
-            'Develop expertise in areas where you make frequent decisions',
+            'Create a culture where good decisions are rewarded, even if outcomes vary',
           ],
         },
-        impact: 'When decision quality is strong, your choices consistently lead to positive outcomes. Your team trusts your judgment, initiatives succeed more often, and you build a track record of sound decision-making. This creates confidence in your leadership and enables the organization to move forward with certainty.',
+        impact: 'When decision quality and pace are strong, your choices consistently lead to positive outcomes while the team maintains momentum. Initiatives succeed more often, people trust your judgment, and progress happens without unnecessary delay.',
         toneTags: {
-          default: 'Sound and well-reasoned',
-          bluntPracticalFriend: 'Make the call. Own the outcome.',
-          formalEmpatheticCoach: 'Decisions grounded in analysis and wisdom',
-          balancedMentor: 'Quality decisions that balance multiple factors',
+          default: 'Sound, timely judgment',
+          bluntPracticalFriend: 'Make the call. Own the outcome. Move.',
+          formalEmpatheticCoach: 'Decisions grounded in analysis, made with appropriate speed',
+          balancedMentor: 'Quality decisions that balance speed with sound judgment',
         },
       },
       {
@@ -817,6 +768,7 @@ const CORE_TRAITS = [
       {
         id: 'futureOrientation',
         name: 'Future Orientation',
+        scoringRole: 'levelDependent',
         shortDescription: 'Anticipating trends and preparing for what\'s next',
         longDescription: 'The ability to look ahead, identify emerging trends, and position your organization for future success. Strong future orientation means you\'re proactive rather than reactive.',
         strengthSignals: [
@@ -919,6 +871,7 @@ const CORE_TRAITS = [
       {
         id: 'longTermPlanning',
         name: 'Long-Term Planning',
+        scoringRole: 'levelDependent',
         shortDescription: 'Creating and executing multi-year strategies',
         longDescription: 'The ability to think beyond immediate concerns, create plans that span years, and maintain focus on long-term goals despite short-term pressures.',
         strengthSignals: [
@@ -970,6 +923,7 @@ const CORE_TRAITS = [
       {
         id: 'competitiveIntelligence',
         name: 'Competitive Intelligence',
+        scoringRole: 'levelDependent',
         shortDescription: 'Understanding market dynamics and competitive landscape',
         longDescription: 'The ability to understand your competitive environment, identify threats and opportunities, and position your organization effectively.',
         strengthSignals: [
@@ -1545,6 +1499,7 @@ const CORE_TRAITS = [
       {
         id: 'mentoring',
         name: 'Mentoring',
+        scoringRole: 'levelDependent',
         shortDescription: 'Sharing wisdom and experience to guide others',
         longDescription: 'The ability to share your experience, provide perspective, and help others navigate their careers and challenges. Strong mentoring means you help people learn from your successes and failures.',
         strengthSignals: [
@@ -2797,6 +2752,7 @@ const CORE_TRAITS = [
       {
         id: 'partnershipBuilding',
         name: 'Partnership Building',
+        scoringRole: 'levelDependent',
         shortDescription: 'Creating mutually beneficial relationships',
         longDescription: 'The ability to identify partnership opportunities, build relationships, and create value for all parties. Strong partnership building means you create win-win situations.',
         strengthSignals: [
@@ -3001,6 +2957,7 @@ const CORE_TRAITS = [
       {
         id: 'negotiation',
         name: 'Negotiation',
+        scoringRole: 'levelDependent',
         shortDescription: 'Reaching agreements that work for all parties',
         longDescription: 'The ability to negotiate effectively, find common ground, and reach agreements that create value. Strong negotiation means you can get what you need while maintaining relationships.',
         strengthSignals: [
@@ -3557,6 +3514,29 @@ export function getToneAdjustedContent(subTrait, agentId = 'balancedMentor') {
   };
 }
 
+/** Subtraits eligible for intake focus recommendations / confidence averages. */
+export function isScoredForIntake(subTrait) {
+  const role = subTrait?.scoringRole || 'scored';
+  return role === 'scored';
+}
+
+/** Resolve a subtrait by name, including merged aliases (e.g. Decision Quality → Decision Quality & Pace). */
+export function resolveSubTraitByName(name) {
+  const needle = String(name || '').trim().toLowerCase();
+  if (!needle) return null;
+  for (const trait of NORMALIZED_CORE_TRAITS) {
+    for (const sub of trait.subTraits || []) {
+      const names = [sub.name, ...(Array.isArray(sub.aliases) ? sub.aliases : [])]
+        .map((n) => String(n || '').trim().toLowerCase())
+        .filter(Boolean);
+      if (names.some((n) => n === needle || n.includes(needle) || needle.includes(n))) {
+        return { trait, subTrait: sub };
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Export the trait system
  */
@@ -3566,5 +3546,7 @@ export default {
   getSubTrait,
   getSubTraitsForCoreTrait,
   getToneAdjustedContent,
+  isScoredForIntake,
+  resolveSubTraitByName,
 };
 

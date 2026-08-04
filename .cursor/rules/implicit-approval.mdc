@@ -1,0 +1,13 @@
+---
+description: Work prompts are implicit approval — never wait for yes/go
+alwaysApply: true
+---
+
+# Implicit approval
+
+When the user sends a change request or follow-up prompt describing work to do, that **is** approval. Execute immediately.
+
+- Do **not** ask for "approve", "yes", or "go".
+- Do **not** stop after a confirmation restatement.
+- A short restatement is fine only if you start executing in the same turn.
+- Exception: refuse only for truly blocked external actions you cannot perform.

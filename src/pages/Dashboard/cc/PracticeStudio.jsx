@@ -4,6 +4,7 @@ import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '
 import { useBenchmarkData } from './dashboardData.js';
 import { getRootRecommendations } from './rootRecommendations.js';
 import { useGuide } from '../../../context/GuideContext';
+import CairnLeftRail from '../../../components/CairnLeftRail';
 import {
   ChapterEyebrow,
   Headline,
@@ -13,7 +14,6 @@ import {
   WalkthroughStage,
 } from './debriefUi.jsx';
 import { deriveTraitRoles } from './debriefContent.js';
-
 const readJson = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);
@@ -134,81 +134,6 @@ const PROMPT_FIELD_SX = {
 };
 
 // ---------------------------------------------------------------------------
-// Stepper rail — Envision / Root / Branch / Commit
-// ---------------------------------------------------------------------------
-function PrStepper({ stepIdx, onJump, plan }) {
-  const stepDone = [
-    Boolean(String(plan.envisionExperience || '').trim() || String(plan.envisionWant || '').trim()),
-    Boolean(plan.rootSelection || String(plan.rootCustom || '').trim()),
-    Boolean(String(plan.branchBehavior || '').trim()),
-    Number.isFinite(plan.commitGoal),
-  ];
-
-  return (
-    <Stack direction="row" alignItems="center" justifyContent="center" sx={{ gap: 1.75, flexWrap: 'wrap', mb: 3 }}>
-      {PR_STEPS.map((step, idx) => {
-        const active = idx === stepIdx;
-        const complete = stepDone[idx] && idx !== stepIdx;
-        return (
-          <React.Fragment key={step.id}>
-            <Box
-              component="button"
-              type="button"
-              onClick={() => onJump(idx)}
-              aria-current={active ? 'step' : undefined}
-              sx={{
-                all: 'unset',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.9,
-                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-              }}
-            >
-              <Box
-                component="span"
-                sx={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: radii.circle,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: active ? colors.orange : complete ? colors.green : 'transparent',
-                  color: active || complete ? colors.surface1 : colors.textSecondary,
-                  border: active || complete ? 'none' : `1px solid ${colors.sand300}`,
-                  fontFamily: fonts.serif,
-                  fontStyle: 'italic',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  boxShadow: active ? shadows.buttonSecondary : shadows.none,
-                }}
-              >
-                {complete ? '✓' : idx + 1}
-              </Box>
-              <Typography
-                component="span"
-                sx={{
-                  fontFamily: fonts.mono,
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: active ? colors.textPrimary : colors.textSecondary,
-                }}
-              >
-                {step.label}
-              </Typography>
-            </Box>
-            {idx < PR_STEPS.length - 1 && <Box sx={{ width: 24, height: '1px', bgcolor: colors.sand200 }} />}
-          </React.Fragment>
-        );
-      })}
-    </Stack>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // 01 · From signal to practice
 // ---------------------------------------------------------------------------
 function PrIntroPage({ edgeRow, traitCount }) {
@@ -233,7 +158,7 @@ function PrIntroPage({ edgeRow, traitCount }) {
 // ---------------------------------------------------------------------------
 // Trait plan page — title, the four-step rail, ONE prompt at a time
 // ---------------------------------------------------------------------------
-function PrTraitPlanPage({ row, plan, onPatch }) {
+function PrTraitPlanPage({ row, plan, onPatch, onNextTrait, nextTraitLabel }) {
   const [promptIdx, setPromptIdx] = useState(0);
   const label = row.subTrait || row.trait;
 
@@ -258,34 +183,23 @@ function PrTraitPlanPage({ row, plan, onPatch }) {
   };
 
   return (
-    <Box sx={{ maxWidth: 780, mx: 'auto' }}>
-      {/* Title only — the plan is the focus */}
-      <Box sx={{ textAlign: 'center', mb: 2.2 }}>
-        <Typography
-          component="h1"
-          sx={{
-            fontFamily: fonts.serif,
-            fontWeight: 500,
-            letterSpacing: '-0.03em',
-            fontSize: { xs: 26, md: 36 },
-            lineHeight: 1.05,
-            color: colors.textPrimary,
-            m: 0,
-          }}
-        >
-          {label}
-        </Typography>
-      </Box>
-
-      <PrStepper stepIdx={prompt.step} onJump={jumpToStep} plan={plan} />
-
-      <Box sx={{ ...surfaces.card, px: { xs: 3, md: 4.5 }, py: 3.75 }}>
+    <Box sx={{ maxWidth: 980, mx: 'auto' }}>
+      <CairnLeftRail
+        tabs={PR_STEPS.map((s) => ({ id: s.id, label: s.label }))}
+        activeId={PR_STEPS[prompt.step]?.id}
+        onChange={(id) => {
+          const stepIdx = PR_STEPS.findIndex((s) => s.id === id);
+          if (stepIdx >= 0) jumpToStep(stepIdx);
+        }}
+      >
+      <Box sx={{ px: { xs: 0.5, md: 1 }, py: 0.5 }}>
+        <Typography sx={{ ...type.eyebrow, mb: 0.6 }}>Action Plan · {label}</Typography>
         <PageFade fadeKey={`prompt-${row.trait}-${promptIdx}`}>
-          <Typography sx={{ ...type.eyebrow, mb: 1.2 }}>{step.eyebrow}</Typography>
+          <Typography sx={{ ...type.eyebrow, mb: 1 }}>{step.eyebrow}</Typography>
           <Typography
             sx={{
               fontFamily: fonts.serif,
-              fontSize: { xs: 22, md: 28 },
+              fontSize: { xs: 20, md: 26 },
               fontWeight: 500,
               letterSpacing: '-0.018em',
               lineHeight: 1.15,
@@ -300,16 +214,15 @@ function PrTraitPlanPage({ row, plan, onPatch }) {
             sx={{
               fontFamily: fonts.serif,
               fontStyle: 'italic',
-              fontSize: 15.5,
+              fontSize: 14.5,
               lineHeight: 1.5,
               color: colors.textSecondary,
-              mb: 2.75,
+              mb: 2.2,
               textWrap: 'pretty',
             }}
           >
             {prompt.hint}
           </Typography>
-
           {prompt.type === 'textarea' && (
             <TextField
               fullWidth
@@ -449,7 +362,13 @@ function PrTraitPlanPage({ row, plan, onPatch }) {
           <Box
             component="button"
             type="button"
-            onClick={() => setPromptIdx(Math.min(PR_FLOW.length - 1, promptIdx + 1))}
+            onClick={() => {
+              if (!isLastPrompt) {
+                setPromptIdx(Math.min(PR_FLOW.length - 1, promptIdx + 1));
+                return;
+              }
+              if (onNextTrait) onNextTrait();
+            }}
             sx={{
               all: 'unset',
               cursor: 'pointer',
@@ -457,13 +376,16 @@ function PrTraitPlanPage({ row, plan, onPatch }) {
               minHeight: 36,
               px: 2.2,
               py: 1,
-              visibility: isLastPrompt ? 'hidden' : 'visible',
+              visibility: isLastPrompt && !onNextTrait ? 'hidden' : 'visible',
             }}
           >
-            Continue →
+            {isLastPrompt
+              ? (nextTraitLabel ? `Next: ${nextTraitLabel} →` : 'Continue to Commitment →')
+              : 'Continue →'}
           </Box>
         </Stack>
       </Box>
+      </CairnLeftRail>
     </Box>
   );
 }
@@ -588,6 +510,7 @@ function PrCommitAllPage({ orderedRows, plans, chapterIndex, onAdvancePhase }) {
 // Practice snapshot — standing commitments
 // ---------------------------------------------------------------------------
 function PracticeSnapshot({ orderedRows, plans }) {
+  const [expanded, setExpanded] = useState(null);
   return (
     <SnapshotShell>
       <Stack spacing={1.75} sx={{ mb: 2.2 }}>
@@ -598,54 +521,50 @@ function PracticeSnapshot({ orderedRows, plans }) {
           const ground =
             String(plan.rootCustom || '').trim() ||
             (plan.rootSelection ? String(plan.rootSelection).split('::').pop() : '');
+          const isOpen = expanded === row.trait;
           return (
-            <Box key={row.trait} sx={{ ...surfaces.card, px: 3.5, py: 3 }}>
-              {/* Header — identity left, the committed move right */}
+            <Box
+              key={row.trait}
+              component="button"
+              type="button"
+              onClick={() => setExpanded(isOpen ? null : row.trait)}
+              sx={{
+                all: 'unset',
+                cursor: 'pointer',
+                display: 'block',
+                width: '100%',
+                boxSizing: 'border-box',
+                ...surfaces.card,
+                px: 3.5,
+                py: 3,
+                textAlign: 'left',
+              }}
+            >
               <Stack
                 direction="row"
                 alignItems="flex-end"
                 justifyContent="space-between"
                 spacing={2.2}
-                sx={{ flexWrap: 'wrap', rowGap: 1.5, mb: 2 }}
+                sx={{ flexWrap: 'wrap', rowGap: 1.5, mb: isOpen ? 2 : 0 }}
               >
                 <Box>
                   <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, color: colors.textPrimary, mb: 0.5 }}>
                     {row.subTrait || row.trait}
                   </Typography>
                   <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', color: colors.textSecondary }}>
-                    Efficacy {Math.round(row.team.efficacy)} · Effort {Math.round(row.team.effort)}
+                    {current} → {goal} · {isOpen ? 'Hide plan' : 'Expand plan'}
                   </Typography>
                 </Box>
                 <Stack direction="row" alignItems="flex-end" spacing={1.75}>
                   <Box sx={{ textAlign: 'center' }}>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.serif,
-                        fontWeight: 600,
-                        fontSize: 36,
-                        lineHeight: 0.95,
-                        letterSpacing: '-0.04em',
-                        color: colors.orange,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
+                    <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 36, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange, fontVariantNumeric: 'tabular-nums' }}>
                       {current}
                     </Typography>
                     <Typography sx={{ ...type.monoLabel, mt: 0.4 }}>Today</Typography>
                   </Box>
                   <Typography sx={{ fontFamily: fonts.serif, fontSize: 22, color: colors.sand300, pb: 2 }}>→</Typography>
                   <Box sx={{ textAlign: 'center' }}>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.serif,
-                        fontWeight: 600,
-                        fontSize: 36,
-                        lineHeight: 0.95,
-                        letterSpacing: '-0.04em',
-                        color: colors.textPrimary,
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
+                    <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 36, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.textPrimary, fontVariantNumeric: 'tabular-nums' }}>
                       {goal}
                     </Typography>
                     <Typography sx={{ ...type.monoLabel, mt: 0.4 }}>Goal</Typography>
@@ -653,35 +572,35 @@ function PracticeSnapshot({ orderedRows, plans }) {
                 </Stack>
               </Stack>
 
-              <Box sx={{ borderTop: `1px solid ${colors.sand200}`, mb: 2 }} />
-
-              {/* The commitments — behavior and ground, side by side */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.25fr) minmax(0, 1fr)' },
-                  gap: 3.5,
-                  alignItems: 'start',
-                }}
-              >
-                <Box sx={{ borderLeft: `2px solid ${colors.orange}`, pl: 2 }}>
-                  <Typography sx={{ ...type.monoLabel, mb: 0.6 }}>The visible behavior</Typography>
-                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: colors.textPrimary, textWrap: 'pretty' }}>
-                    {String(plan.branchBehavior || '').trim() ? `“${plan.branchBehavior}”` : 'No behavior recorded.'}
-                  </Typography>
-                </Box>
-                <Box sx={{ borderLeft: `2px solid ${colors.sand200}`, pl: 2 }}>
-                  <Typography sx={{ ...type.monoLabel, mb: 0.6 }}>The ground</Typography>
-                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: colors.textPrimary, textWrap: 'pretty' }}>
-                    {ground || 'No ground chosen yet.'}
-                  </Typography>
-                </Box>
-              </Box>
+              {isOpen && (
+                <>
+                  <Box sx={{ borderTop: `1px solid ${colors.sand200}`, mb: 2 }} />
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                    <Box>
+                      <Typography sx={{ ...type.eyebrow, mb: 0.6 }}>Behavior</Typography>
+                      <Typography sx={{ fontFamily: fonts.serif, fontSize: 15, lineHeight: 1.5, color: colors.textPrimary }}>
+                        {plan.branchBehavior || '—'}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ ...type.eyebrow, mb: 0.6 }}>Ground</Typography>
+                      <Typography sx={{ fontFamily: fonts.serif, fontSize: 15, lineHeight: 1.5, color: colors.textPrimary }}>
+                        {ground || '—'}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ gridColumn: '1 / -1' }}>
+                      <Typography sx={{ ...type.eyebrow, mb: 0.6 }}>What the team can expect</Typography>
+                      <Typography sx={{ fontFamily: fonts.serif, fontSize: 15, lineHeight: 1.5, color: colors.textPrimary }}>
+                        {plan.commitPromise || plan.envisionExperience || '—'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </>
+              )}
             </Box>
           );
         })}
       </Stack>
-
     </SnapshotShell>
   );
 }
@@ -851,6 +770,13 @@ export default function PracticeStudio({ t, phases, onAdvancePhase }) {
           row={chapter.row}
           plan={plans[chapter.row.trait] || EMPTY_PLAN}
           onPatch={(patch) => patchPlan(chapter.row.trait, patch)}
+          onNextTrait={() => setIdx(idx + 1)}
+          nextTraitLabel={(() => {
+            const next = chapters[idx + 1];
+            if (!next) return '';
+            if (next.id === 'pr-commit') return 'Commitment';
+            return next.label || '';
+          })()}
         />
       )}
       {chapter.id === 'pr-commit' && (

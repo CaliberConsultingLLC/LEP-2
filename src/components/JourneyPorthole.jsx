@@ -12,14 +12,35 @@ const ZOOM_BY_VARIANT = {
   ceremony: 0.46,
 };
 
-export default function JourneyPorthole({ chapterIndex = 0, variant = 'header', size }) {
+const PAD_BY_VARIANT = {
+  header: 5,
+  ceremony: 6,
+};
+
+/**
+ * Circular map lens. The orange pulse stays fixed at center; the map pans
+ * underneath so the focus point (station or animated walk) sits on the pulse.
+ */
+export default function JourneyPorthole({
+  chapterIndex = 0,
+  variant = 'header',
+  size,
+  focusX = null,
+  focusY = null,
+  instant = false,
+}) {
   const station = JOURNEY_STATIONS[Math.max(0, Math.min(chapterIndex, JOURNEY_STATIONS.length - 1))] || JOURNEY_STATIONS[0];
   const diameter = size || SIZE_BY_VARIANT[variant] || SIZE_BY_VARIANT.header;
   const zoom = ZOOM_BY_VARIANT[variant] || ZOOM_BY_VARIANT.header;
+  const pad = PAD_BY_VARIANT[variant] || PAD_BY_VARIANT.header;
+  const contentSize = diameter - pad * 2;
   const bgWidth = JOURNEY_IMAGE.width * zoom;
   const bgHeight = JOURNEY_IMAGE.height * zoom;
-  const bgX = diameter / 2 - station.x * bgWidth;
-  const bgY = diameter / 2 - station.y * bgHeight;
+  const fx = Number.isFinite(focusX) ? focusX : station.x;
+  const fy = Number.isFinite(focusY) ? focusY : station.y;
+  // Position relative to the painted map circle (content box), not the outer bezel.
+  const bgX = contentSize / 2 - fx * bgWidth;
+  const bgY = contentSize / 2 - fy * bgHeight;
   const dotSize = variant === 'ceremony' ? 12 : 10;
 
   return (
@@ -32,7 +53,7 @@ export default function JourneyPorthole({ chapterIndex = 0, variant = 'header', 
         flexShrink: 0,
         position: 'relative',
         borderRadius: '50%',
-        padding: variant === 'ceremony' ? '6px' : '5px',
+        padding: `${pad}px`,
         background: 'linear-gradient(155deg, var(--navy-700), var(--navy-950) 70%)',
         boxShadow: '0 10px 24px rgba(15,28,46,0.28), inset 0 1px 0 rgba(244,206,161,0.3)',
       }}
@@ -70,7 +91,7 @@ export default function JourneyPorthole({ chapterIndex = 0, variant = 'header', 
           backgroundImage: `url(${JOURNEY_BASE_SRC})`,
           backgroundSize: `${bgWidth}px ${bgHeight}px`,
           backgroundPosition: `${bgX}px ${bgY}px`,
-          transition: 'background-position 1300ms cubic-bezier(0.2,0.8,0.2,1)',
+          transition: instant ? 'none' : 'background-position 1300ms cubic-bezier(0.2,0.8,0.2,1)',
           boxShadow: 'inset 0 0 22px rgba(15,28,46,0.38)',
           '&::before': {
             content: '""',

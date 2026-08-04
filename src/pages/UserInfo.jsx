@@ -253,6 +253,8 @@ function UserInfo() {
 
       if (useCairnTheme) {
         localStorage.removeItem('cairn_profile_details_complete');
+        // Fresh journey — allow chapter transition popups again.
+        localStorage.removeItem('journeyCeremonySeen');
         navigate('/form?stage=profile');
       } else {
         navigate('/form');
@@ -628,7 +630,7 @@ function UserInfo() {
                   },
                 }}
               >
-                {isSubmitting ? 'Saving...' : 'Continue to Assessment'}
+                {isSubmitting ? 'Saving...' : 'Continue to Profile Details'}
               </Button>
             </Stack>
           </CardContent>

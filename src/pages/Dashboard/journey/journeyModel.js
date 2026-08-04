@@ -11,52 +11,64 @@ export const JOURNEY_IMAGE = {
 const STATION_META = [
   {
     key: 'intake',
-    label: 'Profile & Intake',
+    label: 'Profile',
     title: 'Leader Profile',
     subtitle: 'Name the context that shapes the leadership work in front of you.',
     kind: 'phase',
     blurb: 'Where it begins — you told the Compass who you are and what you lead.',
+    completeBlurb: 'You set up your profile, shared the details that shape your context, and chose a guide for the road ahead.',
+    arriveHint: 'Daily leadership habits — answer as you normally show up.',
   },
   {
     key: 'behaviors',
     label: 'Behaviors & Instincts',
-    title: 'Instincts Under Pressure',
-    subtitle: 'Name the instincts that shape how you show up — honestly, not aspirationally.',
+    title: 'Daily Leadership Habits',
+    subtitle: 'These questions help the Compass understand how you normally lead — answer honestly, not aspirationally. The feedback is here to help you grow.',
     kind: 'phase',
-    blurb: 'You named the instincts that shape how you show up under pressure.',
+    blurb: 'You named the habits and instincts that shape how you show up day to day.',
+    completeBlurb: 'You finished the behaviors and instincts stretch — a clear read on how you lead in the flow of real work.',
+    arriveHint: 'Reflection & creation — your summary, traits, and growth campaign.',
   },
   {
     key: 'campaign',
-    label: 'Campaign Creation',
-    title: 'Growth Campaign',
-    subtitle: 'Choose the signal you are ready to hear from your team.',
+    label: 'Reflection & Creation',
+    title: 'Reflection & Creation',
+    subtitle: 'Take your first internal look, then choose traits and build the growth campaign your team will help you run.',
     kind: 'phase',
-    blurb: 'You chose the traits to listen for and invited your team to weigh in.',
+    blurb: 'You reflected on the pattern, chose traits to grow, and shaped a campaign your team can answer.',
+    completeBlurb: 'You reflected on the trailhead, chose what to grow, and set your campaign in motion.',
+    arriveHint: 'Self & team assessment — the first clear signal reading.',
   },
   {
     key: 'assessment',
     label: 'Self & Team Assessment',
-    title: 'First Signal Reading',
-    subtitle: 'Invite the first clear reading of how your leadership is landing.',
+    title: 'Self-Assessment',
+    subtitle: 'Invite the first clear reading of how your leadership is landing — from you, then from your team.',
     kind: 'assessment',
     campaign: 'team',
     blurb: 'The first real signal — how you and your team each read your leadership.',
+    completeBlurb: 'You completed the self and team assessment — the first signal is in.',
+    arriveHint: 'Review & reflect — sit with Signal and Evidence before you act.',
   },
   {
     key: 'reflect',
     label: 'Review & Reflect',
-    title: 'Signal Reflection',
-    subtitle: 'Sit with the signal long enough for the pattern to become clear.',
+    title: 'Review & Reflect',
+    subtitle: 'Sit with the signal long enough for the pattern to become clear — Signal, then Evidence.',
     kind: 'phase',
     blurb: 'Sitting with the signal before acting — letting the gaps speak.',
+    completeBlurb: 'You walked Signal and Evidence — the pattern is clear enough to act on.',
+    arriveHint: 'Action plan — turn insight into practice your team can feel.',
   },
   {
     key: 'action',
     label: 'Action Plan',
-    title: 'Practice Commitment',
+    title: 'Action Plan',
     subtitle: 'Turn insight into one practice your team can actually feel.',
     kind: 'action',
     blurb: 'Turning insight into a practice your team can actually feel.',
+    completeBlurb: 'You set your bearing and committed to a practice the team can feel.',
+    arriveHint: 'Check-in assessment — a second reading of whether the practice is landing.',
   },
   {
     key: 'checkin',
@@ -66,6 +78,8 @@ const STATION_META = [
     kind: 'assessment',
     campaign: 'checkin',
     blurb: 'A second reading — is the practice landing the way you hoped?',
+    completeBlurb: 'You took the check-in reading — proof of what is landing and what still needs work.',
+    arriveHint: 'Revise your action plan — keep what works, adjust what does not.',
   },
   {
     key: 'revise',
@@ -74,6 +88,8 @@ const STATION_META = [
     subtitle: 'Keep what is working and adjust what is asking for a truer path.',
     kind: 'action',
     blurb: 'Adjusting the climb — keep what is working, change what is not.',
+    completeBlurb: 'You revised the plan — a truer path for the next stretch.',
+    arriveHint: 'Final assessment — the summit reading.',
   },
   {
     key: 'final',
@@ -83,9 +99,10 @@ const STATION_META = [
     kind: 'assessment',
     campaign: 'final',
     blurb: 'The summit reading — proof of how far your team has felt you grow.',
+    completeBlurb: 'You reached the summit reading — growth your team can feel.',
+    arriveHint: 'The trail continues — carry what you learned forward.',
   },
 ];
-
 export const JOURNEY_STATIONS = STATION_META.map((station, index) => {
   const point = COMPASS_TRAIL.POINTS[COMPASS_TRAIL.STATION_POINT_INDICES[index]];
   return {
@@ -141,12 +158,22 @@ export function getJourneyCompletion() {
     || Array.isArray(selectedTraits) && selectedTraits.length >= 3
     || Boolean(campaignRecords?.bundleId || campaignRecords?.teamCampaignId || campaignRecords?.selfCampaignId);
 
+  // Ch5 complete only after Signal + Evidence walkthroughs, not merely team survey close.
+  const debriefCampaignKey = String(
+    campaignRecords?.bundleId
+    || campaignRecords?.teamCampaignId
+    || campaignRecords?.selfCampaignId
+    || '123'
+  );
+  const debriefDone = readJourneyJson(`signalDebrief_${debriefCampaignKey}_${userKey}_done`, {});
+  const reviewReflectComplete = Boolean(debriefDone?.signal && debriefDone?.evidence);
+
   return [
     Boolean(String(userInfo?.name || userInfo?.email || '').trim()),
     Boolean(intakeData || aiSummary),
     campaignCreated,
     Boolean(selfComplete || teamComplete),
-    Boolean(teamComplete),
+    reviewReflectComplete,
     Boolean(hasAnyPlan),
     false,
     false,
@@ -163,21 +190,38 @@ export function getCurrentJourneyIndexFromState() {
 export function getJourneyIndexForLocation(pathname = '', search = '') {
   const params = new URLSearchParams(search || '');
   const tab = String(params.get('tab') || '').trim().toLowerCase();
+  const stage = String(params.get('stage') || '').trim().toLowerCase();
   const path = pathname || '';
 
+  // Chapter I — profile creation, profile details, guide selection
   if (path.startsWith('/user-info') || path.startsWith('/guide-select')) return 0;
-  if (path.startsWith('/form') || path.startsWith('/summary')) return 1;
-  if (path.startsWith('/trait-selection') || path.startsWith('/campaign-intro') || path.startsWith('/campaign-builder') || path.startsWith('/campaign-verify')) return 2;
+  if (path.startsWith('/form') && stage === 'profile') return 0;
+
+  // Chapter II — behaviors & instincts (intake)
+  if (path.startsWith('/form')) return 1;
+
+  // Chapter III — reflection & creation (summary → traits → campaign)
+  if (
+    path.startsWith('/summary')
+    || path.startsWith('/trait-selection')
+    || path.startsWith('/campaign-intro')
+    || path.startsWith('/campaign-builder')
+    || path.startsWith('/campaign-verify')
+  ) return 2;
+
+  // Chapter IV — self & team assessment
   if (path.startsWith('/campaign/')) return 3;
+
   if (path.startsWith('/dashboard')) {
+    // Chapter VI — action plan / practice
     if (['growth-plan', 'plan', 'practice'].includes(tab)) return 5;
     if (['my-journey', 'journey'].includes(tab)) return getCurrentJourneyIndexFromState();
-    if (['campaign-results', 'results', 'signals', 'detailed-results', 'detailed', 'evidence'].includes(tab)) return 4;
+    // Chapter V — review & reflect (signal + evidence)
+    if (['campaign-results', 'results', 'signals', 'signal', 'detailed-results', 'detailed', 'evidence'].includes(tab)) return 4;
     return getCurrentJourneyIndexFromState();
   }
   return getCurrentJourneyIndexFromState();
 }
-
 export function getHeaderMetaForLocation(pathname = '', search = '') {
   const params = new URLSearchParams(search || '');
   const tab = String(params.get('tab') || '').trim().toLowerCase();

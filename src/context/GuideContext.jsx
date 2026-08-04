@@ -1,20 +1,27 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { DEFAULT_GUIDE_ID, GUIDE_PERSONAS, getPersona } from '../data/guidePersonas';
+import { DEFAULT_GUIDE_ID, SELECTABLE_GUIDE_PERSONAS, getPersona } from '../data/guidePersonas';
 
 const STORAGE_KEY = 'cairnGuide';
 
 const readState = () => {
-  if (typeof window === 'undefined') return { personaId: DEFAULT_GUIDE_ID, hidden: false };
+  if (typeof window === 'undefined') {
+    return { personaId: DEFAULT_GUIDE_ID, hidden: false, selected: false };
+  }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { personaId: DEFAULT_GUIDE_ID, hidden: false };
+    if (!raw) return { personaId: DEFAULT_GUIDE_ID, hidden: false, selected: false };
     const parsed = JSON.parse(raw);
-    const personaId = GUIDE_PERSONAS.some((p) => p.id === parsed?.personaId)
+    const personaId = SELECTABLE_GUIDE_PERSONAS.some((p) => p.id === parsed?.personaId)
       ? parsed.personaId
       : DEFAULT_GUIDE_ID;
-    return { personaId, hidden: Boolean(parsed?.hidden) };
+    // Legacy saves had personaId but no selected flag — treat those as selected
+    // so returning users keep guide chrome. Brand-new sessions have no storage.
+    const selected = typeof parsed?.selected === 'boolean'
+      ? parsed.selected
+      : Boolean(parsed?.personaId);
+    return { personaId, hidden: Boolean(parsed?.hidden), selected: Boolean(selected) };
   } catch {
-    return { personaId: DEFAULT_GUIDE_ID, hidden: false };
+    return { personaId: DEFAULT_GUIDE_ID, hidden: false, selected: false };
   }
 };
 
@@ -41,7 +48,7 @@ export function GuideProvider({ children }) {
   }, [state]);
 
   const setPersona = useCallback((personaId) => {
-    setState((prev) => ({ ...prev, personaId }));
+    setState((prev) => ({ ...prev, personaId, selected: true }));
   }, []);
 
   const toggleHidden = useCallback(() => {
@@ -63,6 +70,7 @@ export function GuideProvider({ children }) {
       personaId: state.personaId,
       persona: getPersona(state.personaId),
       hidden: state.hidden,
+      hasSelectedGuide: Boolean(state.selected),
       suppress,
       pageMessage,
       setPersona,
@@ -71,7 +79,7 @@ export function GuideProvider({ children }) {
       setSuppress,
       setPageMessage,
       clearPageMessage,
-      personas: GUIDE_PERSONAS,
+      personas: SELECTABLE_GUIDE_PERSONAS,
     }),
     [state, suppress, pageMessage, setPersona, toggleHidden, setHidden, setSuppress, setPageMessage, clearPageMessage],
   );
@@ -87,6 +95,7 @@ export function useGuide() {
       personaId: DEFAULT_GUIDE_ID,
       persona: getPersona(DEFAULT_GUIDE_ID),
       hidden: true,
+      hasSelectedGuide: false,
       suppress: false,
       pageMessage: null,
       setPersona: () => {},
@@ -95,7 +104,7 @@ export function useGuide() {
       setSuppress: () => {},
       setPageMessage: () => {},
       clearPageMessage: () => {},
-      personas: GUIDE_PERSONAS,
+      personas: SELECTABLE_GUIDE_PERSONAS,
     };
   }
   return ctx;

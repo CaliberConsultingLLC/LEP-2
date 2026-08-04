@@ -271,7 +271,24 @@ export default function CompassTopbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [isDark, toggleDark] = useDarkMode();
-  const isPreGuide = pathname.startsWith('/user-info');
+  const { hasSelectedGuide } = useGuide();
+  const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
+  const campaignType = (() => {
+    try {
+      const m = pathname.match(/^\/campaign\/([^/]+)/);
+      if (!m) return '';
+      const data = JSON.parse(localStorage.getItem(`campaign_${m[1]}`) || '{}');
+      return String(data?.campaignType || '').toLowerCase();
+    } catch {
+      return '';
+    }
+  })();
+  const isTeamSurvey = pathname.startsWith('/campaign/') && campaignType === 'team';
+  const isPreGuide = pathname.startsWith('/user-info')
+    || pathname.startsWith('/guide-select')
+    || (pathname.startsWith('/form') && stage === 'profile')
+    || !hasSelectedGuide
+    || isTeamSurvey;
 
   const { chapterIndex, station, completion, initials, userName, firstName, userEmail, joinedDate } = useMemo(() => {
     const chapterIndex = getJourneyIndexForLocation(pathname, location.search);

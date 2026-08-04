@@ -6,7 +6,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
-
+import { useCairnTheme } from '../config/runtimeFlags';
+import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 function NewCampaignIntro() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,6 +16,12 @@ function NewCampaignIntro() {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('what');
   const [surveyClosed, setSurveyClosed] = useState(false);
+  const introSections = ['what', 'how', 'agreement'];
+  const introSectionIdx = introSections.indexOf(activeSection);
+  const goIntroSection = (dir) => {
+    const next = Math.min(introSections.length - 1, Math.max(0, introSectionIdx + dir));
+    setActiveSection(introSections[next]);
+  };
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -305,12 +312,19 @@ function NewCampaignIntro() {
 
   return (
     <Box
-      sx={{
+      sx={useCairnTheme
+        ? {
+            position: 'relative',
+            minHeight: '100vh',
+            width: '100%',
+            overflowX: 'hidden',
+            bgcolor: colors.sand50,
+          }
+        : {
         position: 'relative',
         minHeight: '100vh',
         width: '100%',
         overflowX: 'hidden',
-        // full bleed bg
         '&:before': {
           content: '""',
           position: 'fixed',
@@ -322,7 +336,6 @@ function NewCampaignIntro() {
           backgroundRepeat: 'no-repeat',
           transform: 'translateZ(0)',
         },
-        // dark overlay
         '&:after': {
           content: '""',
           position: 'fixed',
@@ -332,10 +345,29 @@ function NewCampaignIntro() {
         },
       }}
     >
-      <ProcessTopRail />
-      <Container maxWidth={false} disableGutters sx={{ py: { xs: 2, md: 3 }, px: { xs: 2, md: 4 }, textAlign: 'center' }}>
+      {useCairnTheme ? null : <ProcessTopRail />}
+      <Container maxWidth={false} disableGutters sx={{
+        py: { xs: 3, md: 5 },
+        px: { xs: 2, md: 4 },
+        textAlign: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: useCairnTheme ? 'calc(100vh - 80px)' : undefined,
+      }}>
         <Paper
-          sx={{
+          sx={useCairnTheme
+            ? {
+                p: { xs: 3, md: 4.5 },
+                border: `1px solid ${colors.sand200}`,
+                borderRadius: radii.lg,
+                boxShadow: shadows.card,
+                bgcolor: colors.surface1,
+                maxWidth: 920,
+                mx: 'auto',
+                width: '100%',
+              }
+            : {
             p: { xs: 2.2, md: 3.2 },
             border: '1px solid rgba(255,255,255,0.2)',
             borderRadius: 3,
@@ -346,15 +378,58 @@ function NewCampaignIntro() {
             mx: 'auto',
           }}
         >
-          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: { xs: '1.4rem', md: '1.7rem' }, fontWeight: 800, mb: 0.8, color: 'text.primary' }}>
-            {isSelfCampaign ? 'Welcome to the Compass' : 'Welcome to the Compass'}
+          <Typography sx={{
+            fontFamily: useCairnTheme ? fonts.serif : 'Montserrat, sans-serif',
+            fontSize: { xs: '1.7rem', md: '2.1rem' },
+            fontWeight: useCairnTheme ? 600 : 800,
+            mb: 1,
+            color: useCairnTheme ? colors.navy900 : 'text.primary',
+          }}>
+            Welcome to the Compass
           </Typography>
-          <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.98rem', color: 'text.secondary', mb: 2.2 }}>
+          <Typography sx={{
+            fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+            fontSize: { xs: '1.02rem', md: '1.08rem' },
+            color: useCairnTheme ? colors.inkSoft : 'text.secondary',
+            mb: 2.8,
+            maxWidth: 640,
+            mx: 'auto',
+            lineHeight: 1.55,
+          }}>
             {isSelfCampaign
               ? 'This personal benchmark helps compare your self-assessment to team feedback later.'
               : 'You are invited to provide feedback that helps your leader grow with clearer, data-backed insight.'}
           </Typography>
 
+          {useCairnTheme ? (
+            <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} sx={{ mb: 2.5 }}>
+              <Button
+                onClick={() => goIntroSection(-1)}
+                disabled={introSectionIdx <= 0}
+                sx={{ ...buttons.secondary, minWidth: 44, px: 1.5, opacity: introSectionIdx <= 0 ? 0.4 : 1 }}
+              >
+                ‹
+              </Button>
+              <Typography sx={{
+                fontFamily: fonts.mono,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: colors.inkSoft,
+                minWidth: 140,
+              }}>
+                {activeSection === 'what' ? 'What is the Compass' : activeSection === 'how' ? 'How it works' : 'Agreement'}
+              </Typography>
+              <Button
+                onClick={() => goIntroSection(1)}
+                disabled={introSectionIdx >= introSections.length - 1}
+                sx={{ ...buttons.secondary, minWidth: 44, px: 1.5, opacity: introSectionIdx >= introSections.length - 1 ? 0.4 : 1 }}
+              >
+                ›
+              </Button>
+            </Stack>
+          ) : (
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center" sx={{ mb: 2 }}>
             <Button
               variant={activeSection === 'what' ? 'contained' : 'outlined'}
@@ -378,6 +453,7 @@ function NewCampaignIntro() {
               Agreement
             </Button>
           </Stack>
+          )}
 
           {activeSection === 'what' && (
             <Grid container spacing={1.2} sx={{ textAlign: 'left' }}>
@@ -396,9 +472,34 @@ function NewCampaignIntro() {
                 },
               ].map((card) => (
                 <Grid item xs={12} md={4} key={card.title}>
-                  <Paper sx={{ p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '0.98rem', mb: 0.6 }}>{card.title}</Typography>
-                    <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'text.secondary', lineHeight: 1.5 }}>
+                  <Paper sx={useCairnTheme
+                    ? {
+                        p: 1.5,
+                        borderRadius: radii.md,
+                        minHeight: 128,
+                        border: `1px solid ${colors.sand200}`,
+                        bgcolor: colors.surface1,
+                        boxShadow: shadows.none,
+                      }
+                    : { p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}
+                  >
+                    <Typography sx={{
+                      fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+                      fontWeight: 800,
+                      fontSize: '0.98rem',
+                      mb: 0.6,
+                      color: useCairnTheme ? colors.navy900 : 'inherit',
+                    }}
+                    >
+                      {card.title}
+                    </Typography>
+                    <Typography sx={{
+                      fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+                      fontSize: '0.9rem',
+                      color: useCairnTheme ? colors.inkSoft : 'text.secondary',
+                      lineHeight: 1.5,
+                    }}
+                    >
                       {card.body}
                     </Typography>
                   </Paper>
@@ -442,9 +543,36 @@ function NewCampaignIntro() {
                   body: 'Leaders run additional campaigns over time to track progress, close gaps, and sustain measurable leadership growth.',
                 },
               ].map((card) => (
-                <Paper key={card.title} sx={{ p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '0.98rem', mb: 0.6 }}>{card.title}</Typography>
-                  <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.9rem', color: 'text.secondary', lineHeight: 1.5 }}>
+                <Paper
+                  key={card.title}
+                  sx={useCairnTheme
+                    ? {
+                        p: 1.5,
+                        borderRadius: radii.md,
+                        minHeight: 128,
+                        border: `1px solid ${colors.sand200}`,
+                        bgcolor: colors.surface1,
+                        boxShadow: shadows.none,
+                      }
+                    : { p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}
+                >
+                  <Typography sx={{
+                    fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+                    fontWeight: 800,
+                    fontSize: '0.98rem',
+                    mb: 0.6,
+                    color: useCairnTheme ? colors.navy900 : 'inherit',
+                  }}
+                  >
+                    {card.title}
+                  </Typography>
+                  <Typography sx={{
+                    fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+                    fontSize: '0.9rem',
+                    color: useCairnTheme ? colors.inkSoft : 'text.secondary',
+                    lineHeight: 1.5,
+                  }}
+                  >
                     {card.body}
                   </Typography>
                 </Paper>
@@ -453,8 +581,25 @@ function NewCampaignIntro() {
           )}
 
           {activeSection === 'agreement' && (
-            <Paper sx={{ p: 2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.32)', bgcolor: 'rgba(255,250,244,0.92)' }}>
-              <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.93rem', lineHeight: 1.6, color: 'text.primary', textAlign: 'left', mb: 1.2 }}>
+            <Paper sx={useCairnTheme
+              ? {
+                  p: 2,
+                  borderRadius: radii.md,
+                  border: `1px solid ${colors.sand200}`,
+                  bgcolor: colors.sand50,
+                  boxShadow: shadows.none,
+                }
+              : { p: 2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.32)', bgcolor: 'rgba(255,250,244,0.92)' }}
+            >
+              <Typography sx={{
+                fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+                fontSize: '0.93rem',
+                lineHeight: 1.6,
+                color: useCairnTheme ? colors.ink : 'text.primary',
+                textAlign: 'left',
+                mb: 1.2,
+              }}
+              >
                 Please provide candid, honest feedback so this process can be useful for leadership growth. Your participation is optional. If you do not wish to provide feedback for any reason, you may opt out anonymously.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center">
@@ -463,7 +608,9 @@ function NewCampaignIntro() {
                   color="primary"
                   onClick={handleStart}
                   disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
-                  sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
+                  sx={useCairnTheme
+                    ? buttons.primary
+                    : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
                 >
                   {!isSelfCampaign && surveyClosed ? 'Survey Closed' : 'Proceed with Feedback'}
                 </Button>
@@ -471,13 +618,21 @@ function NewCampaignIntro() {
                   variant="outlined"
                   color="inherit"
                   onClick={handleOptOut}
-                  sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
+                  sx={useCairnTheme
+                    ? buttons.secondary
+                    : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
                 >
                   Opt Out Anonymously
                 </Button>
               </Stack>
               {!isSelfCampaign && surveyClosed && (
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.86rem', color: '#9B2C2C', mt: 1.1 }}>
+                <Typography sx={{
+                  fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
+                  fontSize: '0.86rem',
+                  color: useCairnTheme ? colors.orangeDeep : '#9B2C2C',
+                  mt: 1.1,
+                }}
+                >
                   This campaign has been manually closed. New survey responses are no longer accepted.
                 </Typography>
               )}
