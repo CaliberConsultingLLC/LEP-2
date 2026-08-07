@@ -21,6 +21,8 @@ How to fill Guide Copy
 
 Within-page steps worth filling
 -------------------------------
+Intake: behaviors-intro, each q-* behavior question, reflection,
+        mindset-intro, societal-1..10 (one line per next-click)
 Summary: trailhead, markers, hazards, new-trail
 Trait Selection: focus-trait, selected-1, selected-2, selected-3
 Signal: threshold, traits, gap, checkin, reactions, close

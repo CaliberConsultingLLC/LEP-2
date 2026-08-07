@@ -16,7 +16,20 @@ function writeCsv(file, headers, rows) {
   for (const row of rows) {
     lines.push(headers.map((h) => csvEscape(row[h] ?? '')).join(','));
   }
-  fs.writeFileSync(path.join(dir, file), `${lines.join('\n')}\n`, 'utf8');
+  const body = `${lines.join('\n')}\n`;
+  const target = path.join(dir, file);
+  try {
+    fs.writeFileSync(target, body, 'utf8');
+    return file;
+  } catch (err) {
+    if (err && err.code === 'EBUSY') {
+      const alt = file.replace(/\.csv$/i, '.UPDATED.csv');
+      fs.writeFileSync(path.join(dir, alt), body, 'utf8');
+      console.warn(`${file} is locked — wrote ${alt} instead. Close Excel and rename/replace.`);
+      return alt;
+    }
+    throw err;
+  }
 }
 
 // Existing first-line copy from guideContent.js (defaults) + sensible seeds
@@ -168,14 +181,46 @@ const stepSeeds = {
   'dashboardGate|default': { mentor: { text: 'One step at a time. Finish the prior station before you force this door open.', cta: 'Okay' } },
 };
 
+// One row per intake click-through beat (behavior question ids match IntakeForm.behaviorSet).
+const intakeBehaviorQuestions = [
+  ['q-resourcePick', 'The Quick Pick', 'Q1 · When resources are tight…', 'think'],
+  ['q-projectApproach', 'The Team Puzzle', 'Q2 · Complex project, first move', 'map'],
+  ['q-energyDrains', 'The Energy Drain', 'Q3 · Three situations to minimize', 'think'],
+  ['q-crisisResponse', 'The Fire Drill', 'Q4 · Crisis hits — rank responses', 'point'],
+  ['q-pushbackFeeling', 'The Pushback Moment', 'Q5 · Emotions when challenged', 'armsCross'],
+  ['q-roleModelTrait', 'The Role Model', 'Q6 · Leader you admire', 'lantern'],
+  ['q-warningLabel', 'The Warning Label', 'Q7 · Your leadership warning label', 'sign'],
+  ['q-leaderFuel', 'The Leader\'s Fuel', 'Q8 · What energizes you most', 'greet'],
+  ['q-proudMoment', 'The Highlight Reel', 'Q9 · Significant team accomplishment', 'read'],
+  ['q-behaviorDichotomies', 'The Balance Line', 'Q10 · Behavior sliders', 'map'],
+  ['q-visibilityComfort', 'The Spotlight', 'Q11 · High-visibility comfort', 'idle'],
+  ['q-decisionPace', 'The Lesson Loop', 'Q12 · When something goes wrong', 'think'],
+  ['q-teamPerception', 'The Performance Check', 'Q13 · Team member missing expectations', 'point'],
+];
+
+const intakeSocietalQuestions = Array.from({ length: 10 }, (_, i) => {
+  const n = i + 1;
+  return [`societal-${n}`, `Insights ${n} of 10`, `Societal/insights scale question ${n}`, 'read'];
+});
+
+const intakeSteps = [
+  ['P0', 'intake', 'default', 'Intake', 'Arrive / fallback', 'Any /form intake moment without a more specific step', 'Fallback if step unknown', 'read'],
+  ['P0', 'intake', 'behaviors-intro', 'Intake', 'Behaviors intro ceremony', 'Ceremony/popup before behavior questions', 'Chapter II kickoff — before Q1', 'lantern'],
+  ...intakeBehaviorQuestions.map(([stepKey, theme, when, pose]) => (
+    ['P0', 'intake', stepKey, 'Intake - Behaviors', theme, when, 'Unique line when user lands on this question (next-click changes guide text)', pose]
+  )),
+  ['P0', 'intake', 'reflection', 'Intake - Reflection', 'Reflection / AI pause', 'After behavior questions, before mindset block', 'Sit with the mirror', 'read'],
+  ['P0', 'intake', 'mindset-intro', 'Intake - Insights', 'Mindset / insights intro', 'Popup before societal/insights questions', 'Transition into scale questions', 'idle'],
+  ...intakeSocietalQuestions.map(([stepKey, theme, when, pose]) => (
+    ['P0', 'intake', stepKey, 'Intake - Insights', theme, when, 'Unique line each time they advance to the next insights question', pose]
+  )),
+  ['P2', 'intake', 'agent-select', 'Intake - Agent (legacy)', 'Choose AI agent voice', 'Non-Cairn path only; Cairn usually skips', 'Optional / legacy', 'greet'],
+];
+
 const steps = [
   ['P0', 'userInfo', 'default', 'Profile / User Info', 'Arrive on page', 'First load of /user-info', 'Page-level default line', 'idle'],
   ['P0', 'guideSelect', 'default', 'Guide Select', 'Arrive on page', '/guide-select carousel', 'Selection screen; overlay usually hidden here but keep copy for panel/future', 'greet'],
-  ['P0', 'intake', 'default', 'Intake (Behaviors)', 'Arrive / general', 'Any /form intake moment without a more specific step', 'Fallback for intake', 'read'],
-  ['P0', 'intake', 'behaviors-intro', 'Intake (Behaviors)', 'Behaviors intro ceremony', 'Ceremony/popup before behavior questions', 'Chapter II kickoff tone', 'lantern'],
-  ['P1', 'intake', 'behaviors', 'Intake (Behaviors)', 'Answering behavior questions', 'While answering Never→Always style items', 'Keep short; pace/honesty cues', 'think'],
-  ['P1', 'intake', 'reflection', 'Intake (Behaviors)', 'Reflection / AI pause', 'Reflection step before continuing', 'Support sitting with the mirror', 'read'],
-  ['P1', 'intake', 'mindset-intro', 'Intake (Behaviors)', 'Mindset / societal intro', 'Popup before later intake block', 'Transition energy', 'idle'],
+  ...intakeSteps,
   ['P0', 'summary', 'default', 'Summary', 'Arrive on page', '/summary first load / no stage override', 'Fallback if stage unknown', 'read'],
   ['P0', 'summary', 'trailhead', 'Summary', 'Trailhead stage', 'Click/advance to Trailhead (stage 1)', 'Mirror current signal', 'read'],
   ['P0', 'summary', 'markers', 'Summary', 'Trail Markers stage', 'Click/advance to Trail Markers', 'Recurring moments', 'map'],
@@ -362,6 +407,8 @@ How to fill Guide Copy
 
 Within-page steps worth filling
 -------------------------------
+Intake: behaviors-intro, each q-* behavior question, reflection,
+        mindset-intro, societal-1..10 (one line per next-click)
 Summary: trailhead, markers, hazards, new-trail
 Trait Selection: focus-trait, selected-1, selected-2, selected-3
 Signal: threshold, traits, gap, checkin, reactions, close
