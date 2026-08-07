@@ -12,7 +12,7 @@ How to fill Guide Copy
 ----------------------
 - Each ROW is one page-step beat the app can show.
 - routeKey + stepKey are stable IDs — do not rename those two columns.
-- Fill *_text for all six guides. *_cta is optional button/ack label.
+- Fill *_text for all six guides (the bubble copy). No CTA columns — unused in UI.
 - suggestedPose should match a poseKey from the Pose Legend tab.
 - priority: P0 = ship first, P1 = important within-page variants, P2 = legacy/optional.
 - Mentor / Catalyst / Challenger page defaults are prefilled from current app copy.

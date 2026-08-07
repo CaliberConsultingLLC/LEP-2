@@ -283,7 +283,7 @@ const guides = ['mentor', 'catalyst', 'challenger', 'bestFriend', 'mother', 'roa
 
 const copyHeaders = [
   'priority', 'routeKey', 'stepKey', 'pageLabel', 'stepLabel', 'whenItShows', 'notes', 'suggestedPose',
-  ...guides.flatMap((g) => [`${g}_text`, `${g}_cta`]),
+  ...guides.map((g) => `${g}_text`),
 ];
 
 const copyRows = steps.map(([priority, routeKey, stepKey, pageLabel, stepLabel, whenItShows, notes, suggestedPose]) => {
@@ -296,7 +296,6 @@ const copyRows = steps.map(([priority, routeKey, stepKey, pageLabel, stepLabel, 
     const fromPage = stepKey === 'default' ? pageExisting[g] : null;
     const src = fromStep || fromPage || null;
     row[`${g}_text`] = src?.text || '';
-    row[`${g}_cta`] = src?.cta || '';
   }
   return row;
 });
@@ -398,7 +397,7 @@ How to fill Guide Copy
 ----------------------
 - Each ROW is one page-step beat the app can show.
 - routeKey + stepKey are stable IDs — do not rename those two columns.
-- Fill *_text for all six guides. *_cta is optional button/ack label.
+- Fill *_text for all six guides (the bubble copy). No CTA columns — unused in UI.
 - suggestedPose should match a poseKey from the Pose Legend tab.
 - priority: P0 = ship first, P1 = important within-page variants, P2 = legacy/optional.
 - Mentor / Catalyst / Challenger page defaults are prefilled from current app copy.
