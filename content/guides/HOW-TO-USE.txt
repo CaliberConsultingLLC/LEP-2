@@ -1,0 +1,36 @@
+Guide content authoring pack
+=============================
+
+Import these three CSVs into one Google Sheet as three tabs
+(File → Import → Upload → Insert new sheet(s)):
+
+  1-personas.csv      → tab: Personas
+  2-pose-legend.csv   → tab: Pose Legend
+  3-guide-copy.csv    → tab: Guide Copy   ← main work tab
+
+How to fill Guide Copy
+----------------------
+- Each ROW is one page-step beat the app can show.
+- routeKey + stepKey are stable IDs — do not rename those two columns.
+- Fill *_text for all six guides. *_cta is optional button/ack label.
+- suggestedPose should match a poseKey from the Pose Legend tab.
+- priority: P0 = ship first, P1 = important within-page variants, P2 = legacy/optional.
+- Mentor / Catalyst / Challenger page defaults are prefilled from current app copy.
+  Many step-specific beats only have a Mentor draft — rewrite in all six voices.
+- Leave a cell blank only if you want that guide to fall back to the page default.
+
+Within-page steps worth filling
+-------------------------------
+Summary: trailhead, markers, hazards, new-trail
+Trait Selection: focus-trait, selected-1, selected-2, selected-3
+Signal: threshold, traits, gap, checkin, reactions, close
+Evidence: ev-intro, ev-floor, ev-gaps, ev-trait, ev-close
+Practice: pr-intro, pr-edge, pr-lifting, pr-strength, pr-commit
+
+When the sheet is ready
+-----------------------
+1. Download CSV/XLSX back into this folder (same names is fine)
+2. Tell the agent: "reimport guides"
+   (CSV overwrite alone does not hot-reload the app)
+
+Do not put secrets in these files.

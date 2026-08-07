@@ -1,0 +1,7 @@
+guideId,displayName,tagline,voiceBlurb,accentHex,imagePrefix,status,notes
+mentor,Mentor,Warm. Grounded. Asks the quiet questions.,Speaks in long vowels. Invites reflection before action. Never rushes.,#2F4A5C,Mentor,live,Already in app; refresh art + copy from this sheet
+catalyst,Catalyst,Energetic. Optimistic. Ships first drafts fast.,Short sentences. Celebrates momentum. Converts hesitation into action.,#B8532C,Catalyst,live,Already in app
+challenger,Challenger,Direct. Honest. Won’t let you hide.,Plain words. Names the avoidance. Pushes you to commit before you feel ready.,#5A3C66,Challenger,live,Already in app
+bestFriend,Best Friend,,,,BestFriend,new,Fill from your sheet; replaces a placeholder
+mother,Mother,,,,Mother,new,Confirm final display name
+roaster,Roaster,,,,Roaster,new,Confirm final display name

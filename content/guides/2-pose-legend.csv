@@ -1,0 +1,61 @@
+sheet,guideId,poseKey,meaning,usedWhen,mentor_file,catalyst_file,challenger_file,bestFriend_file,mother_file,roaster_file,notes
+semantic,*,idle,Default resting pose,Most page defaults,,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,greet,Greeting / welcome / selection,"Guide select, completions, warm opens",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,think,Reflective / considering,"Hard questions, hazards, disagreement",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,read,Reading / studying,"Summary, evidence receipts",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,map,Orienting / pointing to the path,"Journey, trait picks, signal map",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,lantern,Guiding light / care,"Ceremonies, practice, stings",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,point,Directing action / urgency,"Action nudges, gates, ship moments",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,pointUp,Amped / celebrate momentum,High-energy wins,,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,page,Document / drafting,"Builder, survey answering",,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,armsCross,Skeptical / holding the line,Pressure / challenge,,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,sign,Calling it out,Naming avoidance,,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+semantic,*,mad,Max intensity (use sparingly),Rare spikes,,,,,,,Map each guide's 01-08 files onto these poseKeys in the file columns (or fill the files section below)
+files,mentor,,FILL: assign poseKey (idle/greet/think/...),,Mentor_01.png,,,,,,Current file: Mentor_01.png — put poseKey in poseKey column
+files,mentor,,FILL: assign poseKey (idle/greet/think/...),,Mentor_02.png,,,,,,Current file: Mentor_02.png — put poseKey in poseKey column
+files,mentor,,FILL: assign poseKey (idle/greet/think/...),,Mentor_03.png,,,,,,Current file: Mentor_03.png — put poseKey in poseKey column
+files,mentor,,FILL: assign poseKey (idle/greet/think/...),,Mentor_04.png,,,,,,Current file: Mentor_04.png — put poseKey in poseKey column
+files,mentor,,FILL: assign poseKey (idle/greet/think/...),,Mentor_05.png,,,,,,Current file: Mentor_05.png — put poseKey in poseKey column
+files,mentor,,FILL: assign poseKey (idle/greet/think/...),,Mentor_06.png,,,,,,Current file: Mentor_06.png — put poseKey in poseKey column
+files,mentor,,no file yet,,,,,,,,slot unused
+files,mentor,,no file yet,,,,,,,,slot unused
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_01.png,,,,,Current file: Catalyst_01.png — put poseKey in poseKey column
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_02.png,,,,,Current file: Catalyst_02.png — put poseKey in poseKey column
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_03.png,,,,,Current file: Catalyst_03.png — put poseKey in poseKey column
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_04.png,,,,,Current file: Catalyst_04.png — put poseKey in poseKey column
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_05.png,,,,,Current file: Catalyst_05.png — put poseKey in poseKey column
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_06.png,,,,,Current file: Catalyst_06.png — put poseKey in poseKey column
+files,catalyst,,FILL: assign poseKey (idle/greet/think/...),,,Catalyst_07.png,,,,,Current file: Catalyst_07.png — put poseKey in poseKey column
+files,catalyst,,no file yet,,,,,,,,slot unused
+files,challenger,,FILL: assign poseKey (idle/greet/think/...),,,,Challenger_01.png,,,,Current file: Challenger_01.png — put poseKey in poseKey column
+files,challenger,,FILL: assign poseKey (idle/greet/think/...),,,,Challenger_02.png,,,,Current file: Challenger_02.png — put poseKey in poseKey column
+files,challenger,,FILL: assign poseKey (idle/greet/think/...),,,,Challenger_03.png,,,,Current file: Challenger_03.png — put poseKey in poseKey column
+files,challenger,,FILL: assign poseKey (idle/greet/think/...),,,,Challenger_04.png,,,,Current file: Challenger_04.png — put poseKey in poseKey column
+files,challenger,,FILL: assign poseKey (idle/greet/think/...),,,,Challenger_05.png,,,,Current file: Challenger_05.png — put poseKey in poseKey column
+files,challenger,,FILL: assign poseKey (idle/greet/think/...),,,,Challenger_06.png,,,,Current file: Challenger_06.png — put poseKey in poseKey column
+files,challenger,,no file yet,,,,,,,,slot unused
+files,challenger,,no file yet,,,,,,,,slot unused
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_01.png,,,Current file: BestFriend_01.png — put poseKey in poseKey column
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_02.png,,,Current file: BestFriend_02.png — put poseKey in poseKey column
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_03.png,,,Current file: BestFriend_03.png — put poseKey in poseKey column
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_04.png,,,Current file: BestFriend_04.png — put poseKey in poseKey column
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_05.png,,,Current file: BestFriend_05.png — put poseKey in poseKey column
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_06.png,,,Current file: BestFriend_06.png — put poseKey in poseKey column
+files,bestFriend,,FILL: assign poseKey (idle/greet/think/...),,,,,BestFriend_07.png,,,Current file: BestFriend_07.png — put poseKey in poseKey column
+files,bestFriend,,no file yet,,,,,,,,slot unused
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_01.png,,Current file: Mother_01.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_02.png,,Current file: Mother_02.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_03.png,,Current file: Mother_03.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_04.png,,Current file: Mother_04.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_05.png,,Current file: Mother_05.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_06.png,,Current file: Mother_06.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_07.png,,Current file: Mother_07.png — put poseKey in poseKey column
+files,mother,,FILL: assign poseKey (idle/greet/think/...),,,,,,Mother_08.png,,Current file: Mother_08.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_01.png,Current file: Roaster_01.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_02.png,Current file: Roaster_02.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_03.png,Current file: Roaster_03.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_04.png,Current file: Roaster_04.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_05.png,Current file: Roaster_05.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_06.png,Current file: Roaster_06.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_07.png,Current file: Roaster_07.png — put poseKey in poseKey column
+files,roaster,,FILL: assign poseKey (idle/greet/think/...),,,,,,,Roaster_08.png,Current file: Roaster_08.png — put poseKey in poseKey column
