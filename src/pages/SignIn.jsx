@@ -90,6 +90,14 @@ function SignIn() {
     } else {
       localStorage.removeItem('aiSummary');
     }
+    if (summaryCache?.summariesByGuide && typeof summaryCache.summariesByGuide === 'object') {
+      localStorage.setItem('summariesByGuide', JSON.stringify(summaryCache.summariesByGuide));
+    } else {
+      localStorage.removeItem('summariesByGuide');
+    }
+    if (summaryCache?.selectedGuideId) {
+      localStorage.setItem('selectedGuideId', String(summaryCache.selectedGuideId));
+    }
     if (summaryCache?.savedAt) {
       localStorage.setItem('summarySavedAt', String(summaryCache.savedAt || '').trim());
     } else {
@@ -178,6 +186,8 @@ function SignIn() {
             localStorage.removeItem('intakeStatus');
             localStorage.removeItem('latestFormData');
             localStorage.removeItem('aiSummary');
+            localStorage.removeItem('summariesByGuide');
+            localStorage.removeItem('selectedGuideId');
             localStorage.removeItem('summarySavedAt');
             localStorage.removeItem('focusAreas');
             clearLocalCampaignState();

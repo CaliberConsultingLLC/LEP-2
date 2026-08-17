@@ -6,12 +6,14 @@
  * Only imported / executed when useCairnTheme === true.
  */
 
+import { STAGING_GUIDE_SUMMARIES, stagingFlattenedSummary } from '../data/stagingGuideSummaries';
+
 export const STAGING_USER_ID   = 'staging-test-uid-001';
 export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
-export const STAGING_SEED_VERSION = '2026-07-27-ceremony-clickthrough-v2';
+export const STAGING_SEED_VERSION = '2026-08-17-guide-voices-v2';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
@@ -20,9 +22,12 @@ const SEED_KEYS = [
   'intakeDraft',
   'intakeStatus',
   'aiSummary',
+  'summariesByGuide',
   'focusAreas',
   'trailheadHighlights',
   'selectedAgent',
+  'selectedGuideId',
+  'cairnGuide',
   'selectedTraits',
   'currentCampaign',
   'campaignRecords',
@@ -147,9 +152,12 @@ export function seedStagingData() {
     teamPerception: 'Observe for patterns and gather context before taking action.',
     responsibilities: 'Product roadmap, cross-functional alignment, and team development',
     societalResponses: [7, 6, 8, 5, 7, 9, 6, 8, 7, 6],
-    selectedAgent: 'balancedMentor',
+    selectedAgent: 'mentor',
   };
   localStorage.setItem('latestFormData', JSON.stringify(formData));
+  localStorage.setItem('selectedGuideId', 'mentor');
+  localStorage.setItem('selectedAgent', 'mentor');
+  localStorage.setItem('cairnGuide', JSON.stringify({ personaId: 'mentor', hidden: false, selected: true }));
 
   localStorage.setItem('intakeDraft', JSON.stringify({
     draftVersion: 2,
@@ -168,15 +176,8 @@ export function seedStagingData() {
     updatedAt: now,
   }));
 
-  localStorage.setItem('aiSummary', [
-    'Alex Rivera leads with a collaborative instinct and a strong drive for meaningful impact. As a Director with 5–10 years of experience in the Technology sector, Alex navigates a mid-sized team of 10–25 people through a landscape defined by rapid change and cross-functional complexity. The profile that emerges is one of a leader who values clarity and alignment above all — someone who believes that when people understand the "why," execution takes care of itself.',
-
-    'Behaviorally, Alex draws energy from team growth and purpose-driven outcomes, and tends to process pushback as a signal worth investigating rather than a threat to deflect. Under pressure, the natural pull is toward over-communication — a pattern that can dilute urgency or slow momentum when speed matters more than consensus. The instinct to collaborate is a genuine strength, but it occasionally competes with the need to make decisive calls in ambiguous situations.',
-
-    'The leadership reflection points to three areas with the highest leverage for growth: communication clarity, follow-through on timelines, and the ability to paint a credible long-term picture for the team. These are not weaknesses so much as underdeveloped edges — places where Alex\'s impact is already significant but could be sharpened to match the scale of the role.',
-
-    'The campaign ahead is designed around these three focus areas. The goal is not transformation but calibration — helping Alex close the gap between intent and impact in the moments that matter most. The team will be asked to reflect on what they experience, not what they expect. That feedback, held alongside Alex\'s own self-assessment, will form the foundation for a growth plan built on evidence rather than assumption.',
-  ].join('\n\n'));
+  localStorage.setItem('summariesByGuide', JSON.stringify(STAGING_GUIDE_SUMMARIES));
+  localStorage.setItem('aiSummary', stagingFlattenedSummary('mentor'));
 
   localStorage.setItem('focusAreas', JSON.stringify([
     {
@@ -343,6 +344,10 @@ export function seedStagingData() {
 
   localStorage.setItem('__cairn_seeded__', 'true');
   localStorage.setItem('__cairn_seed_version__', STAGING_SEED_VERSION);
+  try {
+    sessionStorage.removeItem('summaryBriefingSeen');
+    sessionStorage.removeItem('journeyCeremonyOpen');
+  } catch { /* ignore */ }
 }
 
 export function clearStagingData() {
