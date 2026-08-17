@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 function NewCampaignIntro() {
@@ -136,6 +136,7 @@ function NewCampaignIntro() {
   }, [campaignData]);
 
   const isSelfCampaign = campaignData?.campaignType === 'self';
+  const leaderName = getLeaderDisplayName(campaignData);
   const hasUsableCampaign = isCampaignReady(campaignData?.campaign, { minTraits: isSelfCampaign ? 1 : 0, minStatementsPerTrait: isSelfCampaign ? 1 : 0 });
 
   useEffect(() => {
@@ -398,8 +399,26 @@ function NewCampaignIntro() {
           }}>
             {isSelfCampaign
               ? 'This personal benchmark helps compare your self-assessment to team feedback later.'
-              : 'You are invited to provide feedback that helps your leader grow with clearer, data-backed insight.'}
+              : leaderName
+                ? `You are invited to rate ${leaderName} — about five minutes.`
+                : 'You are invited to provide feedback that helps your leader grow. About five minutes.'}
           </Typography>
+
+          {!isSelfCampaign && (
+            <Box sx={{ mb: 2.4 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleStart}
+                disabled={isNavigating || surveyClosed}
+                sx={useCairnTheme
+                  ? buttons.primary
+                  : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
+              >
+                {surveyClosed ? 'Survey Closed' : 'Start the 5-minute survey'}
+              </Button>
+            </Box>
+          )}
 
           {useCairnTheme ? (
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} sx={{ mb: 2.5 }}>
