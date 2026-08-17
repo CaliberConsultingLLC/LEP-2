@@ -675,10 +675,6 @@ function Summary() {
     [summarySections]
   );
 
-  useEffect(() => {
-    setActiveJourneyStep(0);
-  }, [aiSummary]);
-
   const renderParagraphWithTooltips = (text) => {
     const raw = String(text || '');
     // Support light emphasis: **bold**, *italic*, _underline_
