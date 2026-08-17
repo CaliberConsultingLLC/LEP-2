@@ -912,7 +912,7 @@ function Summary() {
       return { label: cairnJourneyStages[activeJourneyStep - 1]?.label || 'Back', action: () => setActiveJourneyStep((s) => Math.max(0, s - 1)) };
     };
     const getNextTarget = () => {
-      if (activeJourneyStep === cairnJourneyStages.length - 1) return { label: 'Leverage Points', action: () => navigate('/trait-selection') };
+      if (activeJourneyStep === cairnJourneyStages.length - 1) return { label: 'Traits', action: () => navigate('/trait-selection') };
       return { label: cairnJourneyStages[activeJourneyStep + 1]?.label || 'Next', action: () => setActiveJourneyStep((s) => Math.min(cairnJourneyStages.length - 1, s + 1)) };
     };
     const backTarget = getBackTarget();

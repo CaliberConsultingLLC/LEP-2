@@ -889,7 +889,7 @@ function CampaignBuilder() {
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 0.5 }}>
                 <CairnFlowButtons
                   isDark={isDark}
-                  backLabel="Leverage Points"
+                  backLabel="Traits"
                   nextLabel="Verify Campaign"
                   onBack={() => navigate('/trait-selection')}
                   onNext={() => {

@@ -515,7 +515,7 @@ function TraitSelection() {
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
             contentMaxWidth={1180}
-            titleOverride="Trait Selection"
+            titleOverride="Choose three traits"
             subtitleOverride="Choose three of these five leverage points for your growth campaign — the traits that feel most true, most visible to your team, and most useful for the next stretch."
             metaOverride={{ label: 'Selected', value: `${selectedTraits.length}/3` }}
           />
@@ -536,7 +536,7 @@ function TraitSelection() {
             >
               <CairnLeftRail
                 isDark={isDark}
-                railLabel="Leverage points"
+                railLabel="Traits"
                 contentSelected={isActiveSelected}
                 tabs={focusAreas.map((area, idx) => ({
                   id: area.id,
