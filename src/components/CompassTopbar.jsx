@@ -319,6 +319,9 @@ export default function CompassTopbar() {
     };
   }, [pathname, location.search]);
 
+  const hasAccount = Boolean(userName || userEmail);
+  const atYearStart = chapterIndex === 0 && !completion[1];
+
   return (
     <Box
       component="header"
@@ -357,7 +360,9 @@ export default function CompassTopbar() {
       </Box>
 
       <Box sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', zIndex: 1 }}>
-        <MapBanner chapterIndex={chapterIndex} chapterName={station.label} onClick={() => setMapOpen(true)} />
+        {hasAccount && (
+          <MapBanner chapterIndex={chapterIndex} chapterName={station.label} onClick={() => setMapOpen(true)} />
+        )}
       </Box>
 
       <Stack direction="row" alignItems="center" gap={1.5} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
@@ -390,6 +395,7 @@ export default function CompassTopbar() {
           {isDark ? <WbSunnyIcon sx={{ fontSize: 16 }} /> : <NightlightRoundIcon sx={{ fontSize: 16 }} />}
         </Box>
 
+        {hasAccount && (
         <Box
           component="button"
           type="button"
@@ -420,6 +426,7 @@ export default function CompassTopbar() {
         >
           {initials}
         </Box>
+        )}
       </Stack>
 
       <ProfilePopover
@@ -438,6 +445,7 @@ export default function CompassTopbar() {
         currentIndex={chapterIndex}
         firstName={firstName}
         completion={completion}
+        startOfYear={atYearStart}
         onClose={() => setMapOpen(false)}
       />
     </Box>

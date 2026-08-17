@@ -22,6 +22,7 @@ export default function JourneyMapModal({
   firstName = '',
   onClose,
   completion: completionProp,
+  startOfYear = false,
 }) {
   const completion = completionProp || getJourneyCompletion();
   const [selectedIndex, setSelectedIndex] = useState(currentIndex);
@@ -142,7 +143,12 @@ export default function JourneyMapModal({
               </IconButton>
 
               {mode === 'reference' && (
-                <ChapterPanel station={selected} index={selectedIndex} status={selectedStatus} />
+                <ChapterPanel
+                  station={selected}
+                  index={selectedIndex}
+                  status={selectedStatus}
+                  startOfYear={startOfYear && selectedIndex === currentIndex}
+                />
               )}
 
               {JOURNEY_STATIONS.map((station, index) => (
@@ -170,7 +176,7 @@ function getStatus(index, currentIndex, completion) {
   return 'upcoming';
 }
 
-function ChapterPanel({ station, index, status }) {
+function ChapterPanel({ station, index, status, startOfYear = false }) {
   const meta = STATUS_META[status];
   return (
     <Box
@@ -239,7 +245,9 @@ function ChapterPanel({ station, index, status }) {
           color: colors.inkSoft,
         }}
       >
-        {station.blurb}
+        {startOfYear
+          ? 'This is the year ahead. You are at the start — not a status report yet.'
+          : station.blurb}
       </Typography>
     </Box>
   );
