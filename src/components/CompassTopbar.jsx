@@ -8,9 +8,6 @@ import { auth } from '../firebase';
 import { useDarkMode } from '../hooks/useDarkMode';
 import JourneyMapModal from './JourneyMapModal';
 import GuidePickerMenu from './GuidePickerMenu';
-import { auth } from '../firebase';
-import { useDarkMode } from '../hooks/useDarkMode';
-import JourneyMapModal from './JourneyMapModal';
 import {
   chapterText,
   getJourneyCompletion,
