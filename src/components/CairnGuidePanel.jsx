@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Collapse, Typography } from '@mui/material';
+import { colors, fonts, radii, shadows } from '../styles/tokens';
 
 function CairnGuidePanel({
   persona,
@@ -13,6 +14,8 @@ function CairnGuidePanel({
   moreLabel = 'More Guidance',
 }) {
   const [expanded, setExpanded] = useState(false);
+  const bubbleBg = isDark ? 'rgba(8,16,28,0.88)' : 'rgba(255,255,255,0.92)';
+  const bubbleBorder = isDark ? '1px solid rgba(244,206,161,0.14)' : `1px solid ${colors.sand200}`;
 
   if (hidden) {
     return (
@@ -32,18 +35,18 @@ function CairnGuidePanel({
           alignItems: 'center',
           gap: 1,
           padding: '10px 14px 10px 16px',
-          borderRadius: '14px 0 0 14px',
-          background: 'var(--navy-900, #10223C)',
-          color: 'var(--amber-soft, #F4CEA1)',
-          boxShadow: '0 12px 28px rgba(15,28,46,0.28)',
-          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+          borderRadius: `${radii.md} 0 0 ${radii.md}`,
+          background: colors.navy900,
+          color: colors.amberSoft,
+          boxShadow: shadows.overlay,
+          fontFamily: fonts.mono,
           fontSize: 10.5,
           fontWeight: 700,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
           transition: 'transform 180ms cubic-bezier(.2,.8,.2,1)',
           '&:hover': { transform: 'translateX(-3px)' },
-          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
         }}
       >
         <Box
@@ -54,11 +57,11 @@ function CairnGuidePanel({
           sx={{
             width: 28,
             height: 28,
-            borderRadius: '50%',
+            borderRadius: radii.circle,
             objectFit: 'cover',
             objectPosition: 'top center',
-            border: '2px solid var(--amber-soft, #F4CEA1)',
-            background: 'var(--navy-800, #162A44)',
+            border: `2px solid ${colors.amberSoft}`,
+            background: colors.navy800,
           }}
         />
         Guide
@@ -70,35 +73,43 @@ function CairnGuidePanel({
     <Box
       sx={{
         position: 'fixed',
-        right: { xs: 10, md: 16, lg: 24 },
+        right: { xs: 6, md: 10, lg: 16 },
         bottom: 0,
         zIndex: 1100,
-        width: 'clamp(250px, 25vw, 350px)',
+        display: 'flex',
+        alignItems: 'flex-end',
         pointerEvents: 'none',
+        overflow: 'visible',
       }}
     >
-      <Box sx={{
-        position: 'relative',
-        borderRadius: '18px',
-        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-        bgcolor: isDark ? 'rgba(8,16,28,0.82)' : 'rgba(255,255,255,0.86)',
-        boxShadow: isDark ? '0 16px 42px rgba(0,0,0,0.34)' : '0 14px 32px rgba(15,28,46,0.08)',
-        p: 2.1,
-        pointerEvents: 'auto',
-        backdropFilter: 'blur(10px)',
-        '&:after': {
-          content: '""',
-          position: 'absolute',
-          right: 78,
-          bottom: -10,
-          width: 18,
-          height: 18,
-          bgcolor: isDark ? 'rgba(8,16,28,0.82)' : 'rgba(255,255,255,0.86)',
-          borderRight: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-          borderBottom: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-          transform: 'rotate(45deg)',
-        },
-      }}>
+      <Box
+        sx={{
+          position: 'relative',
+          width: { xs: 188, sm: 210, md: 220 },
+          flexShrink: 0,
+          borderRadius: radii.md,
+          border: bubbleBorder,
+          bgcolor: bubbleBg,
+          boxShadow: shadows.overlay,
+          p: '16px 18px 18px',
+          mb: '10px',
+          pointerEvents: 'auto',
+          backdropFilter: 'blur(10px)',
+          '&:after': {
+            content: '""',
+            position: 'absolute',
+            right: -8,
+            bottom: 28,
+            width: 16,
+            height: 16,
+            bgcolor: bubbleBg,
+            borderRight: bubbleBorder,
+            borderTop: bubbleBorder,
+            transform: 'rotate(45deg)',
+            zIndex: 1,
+          },
+        }}
+      >
         <Box
           component="button"
           type="button"
@@ -112,44 +123,45 @@ function CairnGuidePanel({
             right: 8,
             width: 20,
             height: 20,
-            borderRadius: '50%',
+            borderRadius: radii.circle,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
-            fontFamily: '"Manrope", sans-serif',
+            color: isDark ? 'rgba(240,233,222,0.72)' : colors.inkSoft,
+            fontFamily: fonts.sans,
             fontSize: 14,
             lineHeight: 1,
             fontWeight: 600,
             transition: 'background 140ms',
-            '&:hover': { background: isDark ? 'rgba(244,206,161,0.1)' : 'var(--sand-100, #F4ECDD)' },
-            '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+            '&:hover': { background: isDark ? 'rgba(244,206,161,0.1)' : colors.sand100 },
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
           }}
         >
           ×
         </Box>
 
         <Typography sx={{
-          fontFamily: '"JetBrains Mono", monospace',
+          fontFamily: fonts.mono,
           fontSize: '0.64rem',
           letterSpacing: '0.15em',
           textTransform: 'uppercase',
-          color: 'var(--orange-deep, #C0612A)',
-          mb: 1.35,
+          color: colors.orangeDeep,
+          mb: 1.1,
+          pr: '18px',
         }}>
           Guide Notes
         </Typography>
         <Typography sx={{
-          fontFamily: 'Georgia, serif',
+          fontFamily: fonts.serif,
           fontStyle: 'italic',
-          fontSize: '0.94rem',
-          lineHeight: 1.62,
-          color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)',
+          fontSize: '0.88rem',
+          lineHeight: 1.55,
+          color: isDark ? colors.ink : colors.navy900,
         }}>
           "{commentary}"
         </Typography>
 
-        <Box sx={{ my: 1.5, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }} />
+        <Box sx={{ my: 1.25, borderTop: bubbleBorder }} />
 
         <Box
           component="button"
@@ -162,12 +174,12 @@ function CairnGuidePanel({
             display: 'inline-flex',
             alignItems: 'center',
             gap: 0.75,
-            fontFamily: '"Montserrat", sans-serif',
+            fontFamily: fonts.sans,
             fontSize: '0.74rem',
             fontWeight: 800,
-            color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--orange-deep, #C0612A)',
+            color: isDark ? colors.amberSoft : colors.orangeDeep,
             letterSpacing: '0.02em',
-            '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 3, borderRadius: 999 },
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3, borderRadius: radii.pill },
           }}
         >
           {moreLabel}
@@ -175,7 +187,7 @@ function CairnGuidePanel({
         </Box>
 
         <Collapse in={expanded} timeout="auto">
-          <Box sx={{ pt: 1.35 }}>
+          <Box sx={{ pt: 1.2 }}>
             {children}
           </Box>
         </Collapse>
@@ -186,13 +198,16 @@ function CairnGuidePanel({
         src={owlPose || persona.poses.idle}
         alt={`${persona.name} guide`}
         sx={{
-          width: '100%',
+          width: { xs: 200, sm: 240, md: 280 },
           height: 'auto',
           display: 'block',
           objectFit: 'contain',
           objectPosition: 'bottom right',
+          ml: { xs: '-10px', md: '-14px' },
+          mb: '-4px',
           pointerEvents: 'auto',
           cursor: 'pointer',
+          zIndex: 2,
         }}
         onClick={toggleHidden}
         draggable={false}
