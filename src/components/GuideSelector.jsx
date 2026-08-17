@@ -26,7 +26,7 @@ function Pendant({ color, size = 18, active = false }) {
 
 // Replaces the legacy ProcessTopRail when the Cairn skin is active.
 // A single "Guide" pill sits centred at the top of the page; clicking it
-// opens a small popover listing the three personas so the user can swap
+// opens a small popover listing the guide personas so the user can swap
 // their guide at any time.
 function GuideSelector({ embedded = false, sticky = true }) {
   const { personas, personaId, persona, setPersona } = useGuide();

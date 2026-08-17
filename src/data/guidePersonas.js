@@ -1,12 +1,9 @@
-// Guide persona registry. Images live in /public/hero/.
-// Each persona has several poses so the overlay can vary its look later.
-// Keep poses lightweight — the full list of files for future animation:
-//   Mentor:     MentorWave, MentorBook, MentorLantern, MentorMap,
-//               MentorPage, MentorThink, MentorWave2
-//   Catalyst:   Catalyst, CatalystIntro, CatalystPage, CatalystPoint,
-//               CatalystPointUp, CatalystWave
-//   Challenger: Challenger, ChallengeArmsCross, ChallengerMad,
-//               ChallengerSign, ChallengerWave
+// Guide persona registry.
+// Select / greet art: /public/guides/<id>.png (standard _01 pose).
+// Extra poses for Mentor / Catalyst / Challenger still live in /public/hero/
+// until the full Guide Images set is wired.
+
+const selectArt = (id) => `/guides/${id}.png`;
 
 export const GUIDE_PERSONAS = [
   {
@@ -15,18 +12,16 @@ export const GUIDE_PERSONAS = [
     tagline: 'Warm. Grounded. Asks the quiet questions.',
     voice:
       'Speaks in long vowels. Invites reflection before action. Never rushes.',
-    // idle = default pose shown in the overlay
-    // greet = used when persona is first selected / welcome state
     poses: {
-      idle: '/hero/MentorWave.png',
-      greet: '/hero/MentorWave2.png',
+      idle: selectArt('mentor'),
+      greet: selectArt('mentor'),
       think: '/hero/MentorThink.png',
       map: '/hero/MentorMap.png',
       read: '/hero/MentorBook.png',
       lantern: '/hero/MentorLantern.png',
       page: '/hero/MentorPage.png',
     },
-    accent: '#2F4A5C', // deep teal-blue — sampled from Mentor's pendant
+    accent: '#2F4A5C', // deep teal-blue — Mentor pendant
   },
   {
     id: 'catalyst',
@@ -35,14 +30,14 @@ export const GUIDE_PERSONAS = [
     voice:
       'Short sentences. Celebrates momentum. Converts hesitation into action.',
     poses: {
-      idle: '/hero/CatalystWave.png',
-      greet: '/hero/CatalystIntro.png',
+      idle: selectArt('catalyst'),
+      greet: selectArt('catalyst'),
       point: '/hero/CatalystPoint.png',
       pointUp: '/hero/CatalystPointUp.png',
       page: '/hero/CatalystPage.png',
       plain: '/hero/Catalyst.png',
     },
-    accent: '#B8532C', // burnt orange / rust — sampled from Catalyst's pendant
+    accent: '#B8532C', // burnt orange / rust — Catalyst pendant
   },
   {
     id: 'challenger',
@@ -51,41 +46,49 @@ export const GUIDE_PERSONAS = [
     voice:
       'Plain words. Names the avoidance. Pushes you to commit before you feel ready.',
     poses: {
-      idle: '/hero/ChallengerWave.png',
-      greet: '/hero/Challenger.png',
+      idle: selectArt('challenger'),
+      greet: selectArt('challenger'),
       armsCross: '/hero/ChallengeArmsCross.png',
       sign: '/hero/ChallengerSign.png',
       mad: '/hero/ChallengerMad.png',
     },
-    accent: '#5A3C66', // deep plum / purple — sampled from Challenger's pendant
-  },
-  // Placeholders — full personas coming soon
-  {
-    id: 'placeholder-scout',
-    name: 'Scout',
-    tagline: 'Curious. Forward-looking. Maps the next ridge.',
-    voice: 'Coming soon — a guide who helps you spot what’s ahead.',
-    poses: { idle: '/hero/MentorMap.png', greet: '/hero/MentorMap.png' },
-    accent: '#3D6B5A',
-    placeholder: true,
+    accent: '#5A3C66', // deep plum — Challenger pendant
   },
   {
-    id: 'placeholder-anchor',
-    name: 'Anchor',
-    tagline: 'Steady. Practical. Holds the line.',
-    voice: 'Coming soon — a guide who keeps the work grounded.',
-    poses: { idle: '/hero/MentorThink.png', greet: '/hero/MentorThink.png' },
-    accent: '#4A5568',
-    placeholder: true,
+    id: 'bestFriend',
+    name: 'Best Friend',
+    tagline: 'Loyal. Easy company. Says the hard thing kindly.',
+    voice:
+      'Talks like someone who already knows your patterns. Keeps it human, never clinical.',
+    poses: {
+      idle: selectArt('bestFriend'),
+      greet: selectArt('bestFriend'),
+    },
+    accent: '#1E6B75', // teal — Best Friend scarf / medallion
   },
   {
-    id: 'placeholder-spark',
-    name: 'Spark',
-    tagline: 'Bold. Inventive. Starts the fire.',
-    voice: 'Coming soon — a guide who pushes creative courage.',
-    poses: { idle: '/hero/CatalystPointUp.png', greet: '/hero/CatalystPointUp.png' },
-    accent: '#A05A2C',
-    placeholder: true,
+    id: 'mother',
+    name: 'Mother',
+    tagline: 'Steady care. Warm accountability.',
+    voice:
+      'Protective without soft-pedaling. Reminds you what matters and won’t let you abandon it.',
+    poses: {
+      idle: selectArt('mother'),
+      greet: selectArt('mother'),
+    },
+    accent: '#C47A6A', // peach / rose — Mother shawl / medallion
+  },
+  {
+    id: 'roaster',
+    name: 'Roaster',
+    tagline: 'Sharp humor. Cuts through the spin.',
+    voice:
+      'Needles the ego so the truth can land. Funny on purpose — never cruel without a point.',
+    poses: {
+      idle: selectArt('roaster'),
+      greet: selectArt('roaster'),
+    },
+    accent: '#A33A32', // deep red — Roaster scarf / medallion
   },
 ];
 

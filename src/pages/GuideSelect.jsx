@@ -4,7 +4,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
-import { GUIDE_PERSONAS, SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
+import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { colors, fonts, radii } from '../styles/tokens';
@@ -15,29 +15,27 @@ function GuideSelect() {
   const navigate = useNavigate();
   const { personaId, setPersona, hasSelectedGuide } = useGuide();
   const [isDark] = useDarkMode();
-  const initialIndex = Math.max(0, GUIDE_PERSONAS.findIndex((p) => p.id === personaId && hasSelectedGuide));
+  const guides = SELECTABLE_GUIDE_PERSONAS;
+  const initialIndex = Math.max(0, guides.findIndex((p) => p.id === personaId && hasSelectedGuide));
   const [activeIndex, setActiveIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
 
-  const active = GUIDE_PERSONAS[activeIndex] || GUIDE_PERSONAS[0];
-  const canBegin = hasSelectedGuide && SELECTABLE_GUIDE_PERSONAS.some((p) => p.id === personaId);
+  const active = guides[activeIndex] || guides[0];
+  const canBegin = hasSelectedGuide && guides.some((p) => p.id === personaId);
 
   const visible = useMemo(() => {
-    const count = GUIDE_PERSONAS.length;
+    const count = SELECTABLE_GUIDE_PERSONAS.length;
     const left = (activeIndex - 1 + count) % count;
     const right = (activeIndex + 1) % count;
     return [
-      { persona: GUIDE_PERSONAS[left], slot: 'left', index: left },
-      { persona: GUIDE_PERSONAS[activeIndex], slot: 'center', index: activeIndex },
-      { persona: GUIDE_PERSONAS[right], slot: 'right', index: right },
+      { persona: SELECTABLE_GUIDE_PERSONAS[left], slot: 'left', index: left },
+      { persona: SELECTABLE_GUIDE_PERSONAS[activeIndex], slot: 'center', index: activeIndex },
+      { persona: SELECTABLE_GUIDE_PERSONAS[right], slot: 'right', index: right },
     ];
   }, [activeIndex]);
 
   const handleSelectIndex = (index) => {
-    const persona = GUIDE_PERSONAS[index];
-    if (!persona || persona.placeholder) {
-      setActiveIndex(index);
-      return;
-    }
+    const persona = guides[index];
+    if (!persona) return;
     setActiveIndex(index);
     setPersona(persona.id);
   };
@@ -48,7 +46,7 @@ function GuideSelect() {
   };
 
   const step = (delta) => {
-    const next = (activeIndex + delta + GUIDE_PERSONAS.length) % GUIDE_PERSONAS.length;
+    const next = (activeIndex + delta + guides.length) % guides.length;
     handleSelectIndex(next);
   };
 
@@ -75,8 +73,8 @@ function GuideSelect() {
         <Box sx={{
           position: 'relative',
           width: '100%',
-          maxWidth: 980,
-          height: { xs: 340, md: 380 },
+          maxWidth: 1180,
+          height: { xs: 425, md: 475 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -119,20 +117,19 @@ function GuideSelect() {
           }}>
             {visible.map(({ persona, slot, index }) => {
               const isCenter = slot === 'center';
-              const isPlaceholder = Boolean(persona.placeholder);
-              const selected = !isPlaceholder && personaId === persona.id;
+              const selected = personaId === persona.id;
               return (
                 <Box
                   key={`${persona.id}-${slot}`}
                   component="button"
                   type="button"
-                  disabled={isPlaceholder && isCenter}
                   onClick={() => handleSelectIndex(index)}
                   sx={{
                     all: 'unset',
-                    cursor: isPlaceholder ? 'default' : 'pointer',
+                    cursor: 'pointer',
                     position: 'absolute',
-                    width: isCenter ? { xs: 240, md: 280 } : { xs: 170, md: 210 },
+                    // ~25% larger than prior 240/280 center and 170/210 side tiles
+                    width: isCenter ? { xs: 300, md: 350 } : { xs: 213, md: 263 },
                     transform: isCenter
                       ? 'translateX(0) scale(1)'
                       : slot === 'left'
@@ -153,12 +150,11 @@ function GuideSelect() {
                       ? `0 20px 56px ${persona.accent}38`
                       : '0 8px 24px rgba(15,28,46,0.08)',
                     overflow: 'hidden',
-                    pointerEvents: isCenter ? 'auto' : 'auto',
                   }}
                 >
-                  <Box sx={{ height: 5, bgcolor: persona.accent, width: '100%', flexShrink: 0, opacity: isPlaceholder ? 0.45 : 1 }} />
+                  <Box sx={{ height: 5, bgcolor: persona.accent, width: '100%', flexShrink: 0 }} />
                   <Box sx={{
-                    height: { xs: isCenter ? 150 : 110, md: isCenter ? 168 : 120 },
+                    height: { xs: isCenter ? 188 : 138, md: isCenter ? 210 : 150 },
                     display: 'flex',
                     alignItems: 'flex-end',
                     justifyContent: 'center',
@@ -182,34 +178,15 @@ function GuideSelect() {
                         {ROMAN[index]}
                       </Typography>
                     </Box>
-                    {isPlaceholder && (
-                      <Box sx={{
-                        position: 'absolute',
-                        top: 12, right: 12,
-                        px: 0.9,
-                        py: 0.25,
-                        borderRadius: radii.pill,
-                        bgcolor: 'rgba(15,28,46,0.72)',
-                        color: '#fff',
-                        fontFamily: fonts.sans,
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                      }}>
-                        Soon
-                      </Box>
-                    )}
                     <Box
                       component="img"
                       src={persona.poses.greet || persona.poses.idle}
                       alt={persona.name}
                       sx={{
-                        height: { xs: isCenter ? 138 : 100, md: isCenter ? 156 : 112 },
+                        height: { xs: isCenter ? 173 : 125, md: isCenter ? 195 : 140 },
                         objectFit: 'contain',
                         objectPosition: 'bottom',
                         display: 'block',
-                        opacity: isPlaceholder ? 0.55 : 1,
                       }}
                     />
                   </Box>
@@ -284,11 +261,11 @@ function GuideSelect() {
             component="button"
             type="button"
             onClick={handleBegin}
-            disabled={!canBegin || active.placeholder}
+            disabled={!canBegin}
             sx={{
               all: 'unset',
-              cursor: (!canBegin || active.placeholder) ? 'default' : 'pointer',
-              opacity: (!canBegin || active.placeholder) ? 0.5 : 1,
+              cursor: !canBegin ? 'default' : 'pointer',
+              opacity: !canBegin ? 0.5 : 1,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '10px',
@@ -303,7 +280,7 @@ function GuideSelect() {
               letterSpacing: '0.02em',
               boxShadow: '0 10px 32px rgba(16,34,60,0.28)',
               transition: 'all 220ms ease',
-              '&:hover': (!canBegin || active.placeholder) ? {} : {
+              '&:hover': !canBegin ? {} : {
                 bgcolor: colors.navy800,
                 transform: 'translateY(-2px)',
                 boxShadow: '0 16px 40px rgba(16,34,60,0.38)',
