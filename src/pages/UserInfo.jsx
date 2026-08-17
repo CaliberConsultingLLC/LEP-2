@@ -24,6 +24,7 @@ import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { colors } from '../styles/tokens';
 
 function UserInfo() {
   const navigate = useNavigate();
@@ -632,9 +633,13 @@ function UserInfo() {
                   py: useCairnTheme ? 1.05 : 1.5,
                   mt: useCairnTheme ? 0.4 : 2,
                   borderRadius: useCairnTheme ? 999 : undefined,
-                  bgcolor: useCairnTheme ? 'var(--orange, #E07A3F)' : undefined,
+                  bgcolor: useCairnTheme ? colors.navy900 : undefined,
+                  color: useCairnTheme ? colors.amberSoft : undefined,
+                  '&:hover': useCairnTheme ? { bgcolor: colors.navy800 } : undefined,
                   '&:disabled': {
                     opacity: 0.5,
+                    color: useCairnTheme ? colors.amberSoft : undefined,
+                    bgcolor: useCairnTheme ? colors.navy900 : undefined,
                   },
                 }}
               >
