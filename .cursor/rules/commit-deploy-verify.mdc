@@ -1,0 +1,18 @@
+---
+description: Always commit, push, and verify Vercel deploy status after product changes
+alwaysApply: true
+---
+
+# Commit + deploy every time
+
+After any product change (UI, assets, `src/`, `api/`, `public/` product assets):
+
+1. **Commit** (product files only; no secrets / design dumps).
+2. **Push** to the tracked remote branch (`origin`).
+3. **Verify deploy**: run `npx vercel ls` (use `NODE_TLS_REJECT_UNAUTHORIZED=0` on this machine if TLS fails) against `compass-staging` and confirm the latest deployment is **Ready** — do not stop at "pushed".
+4. In the closing reply, state explicitly:
+   - commit SHA + message
+   - pushed: yes/no
+   - deploy: Ready / Building / Failed (+ deployment URL if available)
+
+If deploy is still Building, poll until Ready or Failed before ending the turn when the user needs staging. Never claim "deployed" without Ready confirmation.
