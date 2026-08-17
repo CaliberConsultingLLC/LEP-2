@@ -341,6 +341,10 @@ export function seedStagingData() {
 
   localStorage.setItem('__cairn_seeded__', 'true');
   localStorage.setItem('__cairn_seed_version__', STAGING_SEED_VERSION);
+  try {
+    sessionStorage.removeItem('summaryBriefingSeen');
+    sessionStorage.removeItem('journeyCeremonyOpen');
+  } catch { /* ignore */ }
 }
 
 export function clearStagingData() {
