@@ -34,8 +34,9 @@ function TraitSelection() {
   useEffect(() => {
     if (!useCairnTheme) return undefined;
     setSuppress(true);
+    setHidden(true);
     return () => setSuppress(false);
-  }, [setSuppress, useCairnTheme]);
+  }, [setSuppress, setHidden, useCairnTheme]);
 
   const getTraitLibraryEntry = (focusArea) => {
     const [traitId, subTraitId] = String(focusArea?.id || '').split('-');

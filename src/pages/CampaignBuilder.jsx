@@ -58,8 +58,9 @@ function CampaignBuilder() {
   useEffect(() => {
     if (!useCairnTheme) return undefined;
     setSuppress(true);
+    setHidden(true);
     return () => setSuppress(false);
-  }, [setSuppress, useCairnTheme]);
+  }, [setSuppress, setHidden, useCairnTheme]);
 
   useEffect(() => {
     // Load selectedTraits first
