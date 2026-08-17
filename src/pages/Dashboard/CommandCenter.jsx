@@ -13,7 +13,7 @@ import SignalView from './cc/SignalView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
-import { useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
+import { getDebriefScope, useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
 import GatePage from './cc/GatePage.jsx';
 
 // ============================================================================
@@ -431,8 +431,14 @@ function SignalFocalCard({ traitLabel, score, onClick }) {
 }
 
 function EvidenceFocalCard({ statement, onClick }) {
+  const interactive = typeof onClick === 'function';
   return (
-    <Box component="button" type="button" onClick={onClick} sx={focalCardSx(true)}>
+    <Box
+      component={interactive ? 'button' : 'div'}
+      type={interactive ? 'button' : undefined}
+      onClick={onClick}
+      sx={focalCardSx(interactive)}
+    >
       <Typography sx={{ ...type.eyebrow, mb: 0.6 }}>Review Evidence</Typography>
       {statement ? (
         <>
@@ -576,6 +582,9 @@ function TodayLanding({ t, onNavigate }) {
 
   const journeyCompletion = getJourneyCompletion();
   const journeyCurrentIndex = journeyIndex;
+  const debriefDone = readJson(`${getDebriefScope()}_done`, {});
+  const evidenceOpen = Boolean(teamCampaignClosed && debriefDone?.signal);
+  const practiceOpen = Boolean(debriefDone?.evidence);
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto', px: { xs: 2.4, md: 4 }, py: { xs: 4, md: 5 } }}>
@@ -668,9 +677,11 @@ function TodayLanding({ t, onNavigate }) {
             <Box component="button" type="button" onClick={() => onNavigate(teamCampaignClosed ? 'signal' : 'journey')} sx={{ all: 'unset', cursor: 'pointer', ...buttons.primary }}>
               {teamCampaignClosed ? 'Read the Signal' : 'View the Journey'}
             </Box>
-            <Box component="button" type="button" onClick={() => onNavigate('practice')} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
-              Continue Practice
-            </Box>
+            {practiceOpen && (
+              <Box component="button" type="button" onClick={() => onNavigate('practice')} sx={{ all: 'unset', cursor: 'pointer', ...buttons.outlinedPrimary }}>
+                Continue Practice
+              </Box>
+            )}
           </Stack>
         </Box>
 
@@ -694,7 +705,7 @@ function TodayLanding({ t, onNavigate }) {
           score={signalScore}
           onClick={() => onNavigate('signal')}
         />
-        <EvidenceFocalCard statement={lowestStatement} onClick={() => onNavigate('evidence')} />
+        <EvidenceFocalCard statement={lowestStatement} onClick={evidenceOpen ? () => onNavigate('evidence') : undefined} />
         <SitFocalCard prompt={sitPrompt} />
       </Box>
     </Box>
@@ -876,14 +887,16 @@ export default function CommandCenter() {
           >
             ↻ Walk through again
           </Box>
-          <Box
-            component="button"
-            type="button"
-            onClick={() => goToTab('practice')}
-            sx={compactHeaderActionSx}
-          >
-            Continue to practice →
-          </Box>
+          {!phases.isGated('practice') && (
+            <Box
+              component="button"
+              type="button"
+              onClick={() => goToTab('practice')}
+              sx={compactHeaderActionSx}
+            >
+              Continue to practice →
+            </Box>
+          )}
         </Stack>
       )
       : activeTab === 'signal'
