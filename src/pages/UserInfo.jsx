@@ -300,7 +300,7 @@ function UserInfo() {
       }}
     >
       <ProcessTopRail
-        titleOverride="Create your Compass account"
+        titleOverride="Account"
         subtitleOverride="This creates a login so you can leave and come back. We'll ask for your role and team context next."
       />
       <CompassLayout>
@@ -633,7 +633,7 @@ function UserInfo() {
                   },
                 }}
               >
-                {isSubmitting ? 'Saving...' : 'Continue to Profile Details'}
+                {isSubmitting ? 'Saving...' : 'Continue to your context'}
               </Button>
             </Stack>
           </CardContent>

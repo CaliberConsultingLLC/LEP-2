@@ -1502,7 +1502,7 @@ function IntakeForm() {
     >
       <ProcessTopRail
         metaOverride={intakeHeaderMeta}
-        titleOverride={isProfileDetailsStep ? 'Profile Details' : undefined}
+        titleOverride={isProfileDetailsStep ? 'Your context' : undefined}
         subtitleOverride={isProfileDetailsStep
           ? 'Name the context that shapes the leadership work in front of you. These details shape how your guide reads your context. Every leader sits in a different spot — industry, team size, and tenure change the insights you receive.'
           : undefined}
@@ -1517,7 +1517,7 @@ function IntakeForm() {
           showPorthole={currentStep !== mindsetIntroStep}
           title={
             currentStep === 0
-              ? 'Leader Profile'
+              ? 'Your context'
               : currentStep === 2
               ? 'Daily Leadership Habits'
               : currentStep === mindsetIntroStep
@@ -1581,7 +1581,7 @@ function IntakeForm() {
                   mb: 0.2,
                   textAlign: 'center',
                 }}>
-                  Leader Profile
+                  Your context
                 </Typography>
               )}
 

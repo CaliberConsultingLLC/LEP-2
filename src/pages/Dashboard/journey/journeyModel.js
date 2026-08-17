@@ -12,7 +12,7 @@ const STATION_META = [
   {
     key: 'intake',
     label: 'Profile',
-    title: 'Leader Profile',
+    title: 'Profile',
     subtitle: 'Name the context that shapes the leadership work in front of you.',
     kind: 'phase',
     blurb: 'This is setup: who you are, the work you lead, and the voice that will talk to you along the way.',

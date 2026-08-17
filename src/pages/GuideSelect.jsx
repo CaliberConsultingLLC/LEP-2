@@ -56,8 +56,8 @@ function GuideSelect() {
   return (
     <Box sx={{ minHeight: '100svh', maxHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <ProcessTopRail
-        titleOverride="Guide Selection"
-        subtitleOverride="Your guide shapes how your insights are delivered and the tone of your entire leadership journey. Choose the voice that fits you."
+        titleOverride="Your guide"
+        subtitleOverride="Your guide shapes how your insights are delivered and the tone of your leadership journey. Choose the voice that fits you."
         metaOverride={null}
       />
 
