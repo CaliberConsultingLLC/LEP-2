@@ -8,7 +8,7 @@ import { useFakeDashboardData } from '../../config/runtimeFlags';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useGuide } from '../../context/GuideContext';
 import JourneyTab from './JourneyTab';
-import { getCurrentJourneyIndexFromState } from './journey/journeyModel.js';
+import { getCurrentJourneyIndexFromState, getJourneyCompletion, JOURNEY_CHAPTER_COUNT, JOURNEY_ROMAN, JOURNEY_STATIONS } from './journey/journeyModel.js';
 import SignalView from './cc/SignalView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
@@ -238,20 +238,6 @@ function Dock({ activeTab, onSelect, t, status = {} }) {
 // Today Landing — the personal Season hero + actionable footer tiles
 // ============================================================================
 
-// The nine steps of the Compass journey, mirrored from the "Your Journey"
-// chapter popover. A fresh dashboard arrival has the first four complete.
-const JOURNEY_STEPS = [
-  'Profile & Intake',
-  'Behaviors & Instincts',
-  'Campaign Creation',
-  'Self & Team Assessment',
-  'Review & Reflect',
-  'Action Plan',
-  'Check-In Assessment',
-  'Revise Action Plan',
-  'Final Assessment',
-];
-
 function JourneyChecklist({ completion, currentIndex, onOpenJourney }) {
   const doneCount = completion.filter(Boolean).length;
   return (
@@ -284,7 +270,7 @@ function JourneyChecklist({ completion, currentIndex, onOpenJourney }) {
       <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 0.4 }}>
         <Typography sx={{ ...type.eyebrow, color: colors.orangeDeep }}>Your Journey</Typography>
         <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.12em', color: colors.textSecondary }}>
-          {doneCount} / {JOURNEY_STEPS.length}
+          {doneCount} / {JOURNEY_STATIONS.length}
         </Typography>
       </Stack>
       <Typography sx={{ ...type.sectionTitle, fontStyle: 'normal', fontSize: 20, mb: 1.6 }}>
@@ -292,7 +278,8 @@ function JourneyChecklist({ completion, currentIndex, onOpenJourney }) {
       </Typography>
 
       <Stack spacing={0}>
-        {JOURNEY_STEPS.map((label, idx) => {
+        {JOURNEY_STATIONS.map((station, idx) => {
+          const label = station.label;
           const isComplete = completion[idx];
           const isCurrent = idx === currentIndex;
           return (
@@ -522,7 +509,9 @@ function TodayLanding({ t, onNavigate }) {
     useFakeDashboardData ||
     String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
   const season = teamCampaignClosed ? 'Embarking' : 'Understanding';
-  const chapter = teamCampaignClosed ? 'VII' : 'VI';
+  const journeyIndex = getCurrentJourneyIndexFromState();
+  const station = JOURNEY_STATIONS[journeyIndex] || JOURNEY_STATIONS[0];
+  const chapter = JOURNEY_ROMAN[journeyIndex] || JOURNEY_ROMAN[0];
   const name = firstName(userInfo?.name);
 
   const userKey = userInfo?.email || userInfo?.name || 'anonymous';
@@ -585,20 +574,8 @@ function TodayLanding({ t, onNavigate }) {
     });
   });
 
-  // Journey checklist — a fresh dashboard arrival has the first four complete.
-  const journeyCompletion = [
-    true,
-    true,
-    true,
-    teamCampaignClosed,
-    planCount > 0,
-    planCount > 0,
-    false,
-    false,
-    false,
-  ];
-  const firstIncomplete = journeyCompletion.findIndex((c) => !c);
-  const journeyCurrentIndex = firstIncomplete === -1 ? JOURNEY_STEPS.length - 1 : firstIncomplete;
+  const journeyCompletion = getJourneyCompletion();
+  const journeyCurrentIndex = journeyIndex;
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto', px: { xs: 2.4, md: 4 }, py: { xs: 4, md: 5 } }}>
@@ -661,15 +638,15 @@ function TodayLanding({ t, onNavigate }) {
               mb: 1.6,
             }}
           >
-            {name || 'Leader'}, you are in the{' '}
+            {name || 'Leader'}, you are in Chapter {chapter},{' '}
             <Box component="span" sx={{ fontStyle: 'italic', color: colors.orange }}>
-              {season}
-            </Box>{' '}
-            season.
+              {station.label}
+            </Box>
+            .
           </Typography>
 
           <Typography sx={{ ...type.italicBody, fontSize: { xs: 17, md: 20 }, maxWidth: 720, color: t.inkSoft, mb: 3 }}>
-            {seasonInterpretation(season)}
+            Season: {season} · {journeyIndex + 1} of {JOURNEY_CHAPTER_COUNT}. {seasonInterpretation(season)}
           </Typography>
 
           <Box
