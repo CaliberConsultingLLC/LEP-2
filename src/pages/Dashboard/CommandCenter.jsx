@@ -942,6 +942,7 @@ export default function CommandCenter() {
           titleOverride={headerTitleOverride}
           subtitleOverride={headerSubtitleOverride}
           contentMaxWidth={1180}
+          contentGap={activeTab === 'evidence' ? '12px' : '34px'}
         />
       )}
       <Box sx={{ position: 'relative', zIndex: 1 }}>{renderActive()}</Box>

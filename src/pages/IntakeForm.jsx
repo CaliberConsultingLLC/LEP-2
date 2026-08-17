@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, CardActions, Grid, Paper, Divider, Alert
+  Card, CardContent, CardActions, Grid, Alert
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -17,6 +17,7 @@ import { useCairnTheme } from '../config/runtimeFlags';
 import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { auth, db } from '../firebase';
+import { colors, fonts, radii, type } from '../styles/tokens';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -579,11 +580,15 @@ function IntakeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [reflectionText, setReflectionText] = useState('');
-  const [isLoadingReflection, setIsLoadingReflection] = useState(false);
-  const [reflectionNumber, setReflectionNumber] = useState(1); // Track which reflection (1 or 2)
-  const reflectionGeneratedRef = useRef(false); // Track if first reflection has been generated
-  const secondReflectionGeneratedRef = useRef(false); // Track if second reflection has been generated
+  const [clarification, setClarification] = useState({
+    needsClarification: false,
+    notice: '',
+    questions: [],
+  });
+  const [clarificationAnswers, setClarificationAnswers] = useState({});
+  const [clarificationStatus, setClarificationStatus] = useState('idle');
+  const clarificationKeyRef = useRef('');
+  const clarificationSubmitLockRef = useRef(false);
   const [customAnswerDialogOpen, setCustomAnswerDialogOpen] = useState(false);
   const [customAnswerText, setCustomAnswerText] = useState('');
   const [roleModelElaborationDialogOpen, setRoleModelElaborationDialogOpen] = useState(false);
@@ -683,13 +688,21 @@ function IntakeForm() {
         });
       }
       if (Number.isInteger(draft?.currentStep)) {
-        setCurrentStep(draft.currentStep);
+        let step = draft.currentStep;
+        const isLegacyDraft = draft?.draftVersion !== 2
+          && (draft?.reflectionNumber != null || typeof draft?.reflectionText === 'string');
+        if (isLegacyDraft && step > 15) step -= 1;
+        setCurrentStep(step);
       }
-      if (Number.isInteger(draft?.reflectionNumber)) {
-        setReflectionNumber(draft.reflectionNumber);
+      if (draft?.clarification && typeof draft.clarification === 'object') {
+        setClarification({
+          needsClarification: Boolean(draft.clarification.needsClarification),
+          notice: String(draft.clarification.notice || ''),
+          questions: Array.isArray(draft.clarification.questions) ? draft.clarification.questions : [],
+        });
       }
-      if (typeof draft?.reflectionText === 'string') {
-        setReflectionText(draft.reflectionText);
+      if (draft?.clarificationAnswers && typeof draft.clarificationAnswers === 'object') {
+        setClarificationAnswers(draft.clarificationAnswers);
       }
       if (Number.isInteger(draft?.societalQuestionIndex)) {
         setSocietalQuestionIndex(draft.societalQuestionIndex);
@@ -1014,29 +1027,30 @@ function IntakeForm() {
   const stepVars = useMemo(() => {
     const behaviorStart = 3; // after profile (step 1) and behaviors intro popup (step 2)
     const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 3..14 (12 qs)
-    const reflectionStep = behaviorEnd + 1; // 15
-    const mindsetIntroStep = reflectionStep + 1; // 16 (popup)
-    const societalStart = mindsetIntroStep + 1; // 17
+    const mindsetIntroStep = behaviorEnd + 1; // 15 (popup)
+    const societalStart = mindsetIntroStep + 1; // 16
     const societalEnd = societalStart; // single page with progressive questions
-    const agentStep = societalEnd + 1; // 24
+    const clarificationStep = societalEnd + 1; // 17
+    const agentStep = clarificationStep + 1; // 18
     const totalSteps = agentStep + 1;
     return {
-      behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
+      behaviorStart, behaviorEnd, mindsetIntroStep, clarificationStep,
       societalStart, societalEnd, agentStep, totalSteps
     };
   }, [behaviorSet.length]);
 
   const {
-    behaviorStart, behaviorEnd, reflectionStep, mindsetIntroStep,
+    behaviorStart, behaviorEnd, mindsetIntroStep, clarificationStep,
     societalStart, societalEnd, agentStep, totalSteps
   } = stepVars;
 
   const buildDraftPayload = () => ({
+    draftVersion: 2,
     formData,
     societalResponses,
     currentStep,
-    reflectionNumber,
-    reflectionText,
+    clarification,
+    clarificationAnswers,
     societalQuestionIndex,
   });
 
@@ -1089,7 +1103,7 @@ function IntakeForm() {
     );
   };
 
-  // ---- dialogs and reflection text ----
+  // ---- dialogs ----
   useEffect(() => {
     // Cairn: behaviors intro is the chapter ceremony — don't re-open step 2 MessageDialog.
     const ceremonyOpen = (() => {
@@ -1099,71 +1113,124 @@ function IntakeForm() {
       ? [0, mindsetIntroStep].filter((step) => !(ceremonyOpen && step === 0))
       : [0, 2, mindsetIntroStep];
     const skipHabitsIntro = useCairnTheme || ceremonyOpen;
-    const reflectionIntro = currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current;
-    const shouldOpen = (messageSteps.includes(currentStep) || reflectionIntro)
+    const shouldOpen = messageSteps.includes(currentStep)
       && !(skipHabitsIntro && currentStep === 2);
     setDialogOpen(shouldOpen);
-  }, [currentStep, mindsetIntroStep, reflectionStep, reflectionNumber]);
+  }, [currentStep, mindsetIntroStep]);
 
-  const clampReflectionText = (text, max = 250) => {
-    const clean = String(text || '').trim();
-    if (clean.length <= max) return clean;
-    return `${clean.slice(0, max).trimEnd()}...`;
-  };
+  const buildClarificationPayload = (resolution, extra = {}) => ({
+    notice: extra.notice ?? clarification.notice ?? '',
+    questions: extra.questions ?? clarification.questions ?? [],
+    answers: extra.answers ?? clarificationAnswers ?? {},
+    resolution,
+  });
 
-  const requestReflection = (payload, isSecond = false) => {
-    const guardRef = isSecond ? secondReflectionGeneratedRef : reflectionGeneratedRef;
-    if (guardRef.current) return;
+  const compactClarificationKey = () => JSON.stringify({
+    resourcePick: formData.resourcePick || '',
+    projectApproach: formData.projectApproach || '',
+    energyDrains: formData.energyDrains || [],
+    crisisResponse: formData.crisisResponse || [],
+    pushbackFeeling: formData.pushbackFeeling || [],
+    roleModelTrait: formData.roleModelTrait || '',
+    warningLabel: formData.warningLabel || '',
+    leaderFuel: formData.leaderFuel || [],
+    proudMoment: formData.proudMoment || '',
+    behaviorDichotomies: formData.behaviorDichotomies || [],
+    visibilityComfort: formData.visibilityComfort || '',
+    decisionPace: formData.decisionPace || '',
+    teamPerception: formData.teamPerception || '',
+    societalResponses,
+  });
 
-    guardRef.current = true;
-    setIsLoadingReflection(true);
-    setReflectionText('');
+  useEffect(() => {
+    if (currentStep !== clarificationStep) {
+      clarificationSubmitLockRef.current = false;
+      return undefined;
+    }
+
+    const key = compactClarificationKey();
+    if (clarificationKeyRef.current === key && clarificationStatus === 'ready') {
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    clarificationKeyRef.current = key;
+    clarificationSubmitLockRef.current = false;
+    setClarificationStatus('loading');
 
     fetch('/api/get-ai-reflection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      signal: controller.signal,
+      body: JSON.stringify({
+        ...formData,
+        societalResponses,
+        societalLabels: societalNormsQuestions,
+      }),
     })
-      .then(r => r.json())
-      .then(data => {
-        if (data?.reflection) {
-          setReflectionText(clampReflectionText(data.reflection, 250));
-        } else {
-          setReflectionText("We couldn't generate a reflection right now. Try again or continue.");
+      .then((r) => r.json())
+      .then((data) => {
+        if (controller.signal.aborted) return;
+        const questions = Array.isArray(data?.questions) ? data.questions.slice(0, 2) : [];
+        const needs = Boolean(data?.needsClarification) && questions.length > 0;
+        const next = {
+          needsClarification: needs,
+          notice: String(data?.notice || ''),
+          questions: needs ? questions : [],
+        };
+        setClarification(next);
+        setClarificationStatus('ready');
+        if (!needs && !clarificationSubmitLockRef.current) {
+          clarificationSubmitLockRef.current = true;
+          if (useCairnTheme && !formData.selectedAgent) {
+            handleChange('selectedAgent', 'balancedMentor');
+          }
+          if (useCairnTheme) {
+            setIsSubmitting(true);
+            handleSubmit(buildClarificationPayload('none', next));
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              intakeClarification: buildClarificationPayload('none', next),
+            }));
+            setCurrentStep(agentStep);
+          }
         }
       })
-      .catch(() => setReflectionText("Reflection generation failed. Please continue."))
-      .finally(() => setIsLoadingReflection(false));
-  };
-
-  // Generate reflection only once when reaching the step
-  useEffect(() => {
-    if (currentStep !== reflectionStep) return;
-
-    if (reflectionNumber === 1) {
-      requestReflection({
-        energyDrains: formData.energyDrains,
-        leaderFuel: formData.leaderFuel,
-        selectedAgent: 'bluntPracticalFriend',
-        reflectionNumber: 1,
+      .catch((err) => {
+        if (controller.signal.aborted || err?.name === 'AbortError') return;
+        setClarification({
+          needsClarification: false,
+          notice: '',
+          questions: [],
+        });
+        setClarificationStatus('error');
+        if (!clarificationSubmitLockRef.current) {
+          clarificationSubmitLockRef.current = true;
+          if (useCairnTheme && !formData.selectedAgent) {
+            handleChange('selectedAgent', 'balancedMentor');
+          }
+          if (useCairnTheme) {
+            setIsSubmitting(true);
+            handleSubmit(buildClarificationPayload('check_failed'));
+          } else {
+            setFormData((prev) => ({
+              ...prev,
+              intakeClarification: buildClarificationPayload('check_failed'),
+            }));
+            setCurrentStep(agentStep);
+          }
+        }
       });
-    }
 
-    if (reflectionNumber === 2) {
-      requestReflection({
-        warningLabel: formData.warningLabel,
-        proudMoment: formData.proudMoment,
-        reflectionNumber: 2,
-        selectedAgent: 'bluntPracticalFriend',
-      }, true);
-    }
-  }, [currentStep, reflectionStep, reflectionNumber]);
+    return () => controller.abort();
+  }, [currentStep, clarificationStep]);
 
   useEffect(() => {
-    if (currentStep === societalStart) {
+    if (currentStep === mindsetIntroStep) {
       setSocietalQuestionIndex(0);
     }
-  }, [currentStep, societalStart]);
+  }, [currentStep, mindsetIntroStep]);
 
   useEffect(() => {
     if (!autosaveReadyRef.current) return undefined;
@@ -1230,8 +1297,8 @@ function IntakeForm() {
     currentStep,
     formData,
     societalResponses,
-    reflectionNumber,
-    reflectionText,
+    clarification,
+    clarificationAnswers,
     societalQuestionIndex,
     totalSteps,
     allowStagingPersistenceBypass,
@@ -1282,7 +1349,7 @@ function IntakeForm() {
   };
 
   const handleNext = async () => {
-    const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep) || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current); // auto-advance popups
+    const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep);
 
     if (isMessageStep) {
       setDialogOpen(false);
@@ -1325,11 +1392,10 @@ function IntakeForm() {
         // For Role Model question, also require elaboration (unless custom answer was used)
         if (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v)) return;
 
-      // Reflection step - no validation; buttons control navigation
-      } else if (currentStep === reflectionStep) {
+      } else if (currentStep === clarificationStep) {
+        finishClarification('clarified');
         return;
 
-      // Societal (Insights) validation: only current 5 in the shown group must be answered
       // Societal (Insights): no validation required
 } else if (currentStep >= societalStart && currentStep <= societalEnd) {
   // allow skipping unanswered
@@ -1339,7 +1405,7 @@ function IntakeForm() {
       } else if (currentStep === agentStep) {
         if (!formData.selectedAgent) return;
         setIsSubmitting(true);
-        await handleSubmit();
+        await handleSubmit(formData.intakeClarification);
         return;
       }
 
@@ -1365,8 +1431,7 @@ function IntakeForm() {
 
   // Register step-level back/forward with the topbar arrows.
   useEffect(() => {
-    const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep) ||
-      (currentStep === reflectionStep && reflectionNumber === 1);
+    const isMessageStep = [0, 2, mindsetIntroStep].includes(currentStep);
 
     let canFwd = true;
     if (!isMessageStep) {
@@ -1382,6 +1447,8 @@ function IntakeForm() {
           (q?.type === 'radio' && !v) ||
           (q?.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v))
         );
+      } else if (currentStep === clarificationStep) {
+        canFwd = clarificationStatus !== 'loading' && !isSubmitting;
       } else if (currentStep === agentStep) {
         canFwd = !!formData.selectedAgent;
       }
@@ -1394,7 +1461,7 @@ function IntakeForm() {
       goForward: handleNext,
     });
     return unregisterStepNav;
-  }, [currentStep, formData, reflectionNumber, mindsetIntroStep, reflectionStep,
+  }, [currentStep, formData, mindsetIntroStep, clarificationStep, clarificationStatus, clarification, isSubmitting,
       behaviorStart, behaviorEnd, behaviorSet, agentStep]);
 
   const formatAutosaveTime = (value) => {
@@ -1410,13 +1477,33 @@ function IntakeForm() {
   };
 
 
-  const handleSubmit = async () => {
+  const finishClarification = (resolution) => {
+    if (clarificationSubmitLockRef.current) return;
+    const hasText = (clarification.questions || []).some((q) => String(clarificationAnswers[q.id] || '').trim());
+    const finalResolution = resolution === 'clarified' && !hasText ? 'both_accurate' : resolution;
+    clarificationSubmitLockRef.current = true;
+    const payload = buildClarificationPayload(finalResolution);
+    if (useCairnTheme && !formData.selectedAgent) {
+      handleChange('selectedAgent', 'balancedMentor');
+    }
+    if (useCairnTheme) {
+      setIsSubmitting(true);
+      handleSubmit(payload);
+      return;
+    }
+    setFormData((prev) => ({ ...prev, intakeClarification: payload }));
+    setCurrentStep(agentStep);
+  };
+
+  const handleSubmit = async (clarificationPayload) => {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
+      const intakeClarification = clarificationPayload || formData.intakeClarification || buildClarificationPayload('none');
       const updated = {
         ...formData,
         selectedAgent: selectedAgentId,
-        societalResponses
+        societalResponses,
+        intakeClarification,
       };
       const finalDraft = {
         ...buildDraftPayload(),
@@ -1441,9 +1528,13 @@ function IntakeForm() {
         complete: true,
         latestFormData: updated,
       });
-      navigate('/summary', { state: { formData: updated } });
+      ['aiSummary', 'focusAreas', 'trailheadHighlights', 'aiCampaign'].forEach((key) => {
+        try { localStorage.removeItem(key); } catch { /* ignore */ }
+      });
+      navigate('/summary', { state: { formData: updated, liveIntake: true } });
     } catch (e) {
       console.error('Submit failed', e);
+      clarificationSubmitLockRef.current = false;
       alert('Failed to submit form. Please try again.');
       setIsSubmitting(false);
     }
@@ -1454,18 +1545,22 @@ function IntakeForm() {
     if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
       return (currentStep - behaviorStart) + 1;
     }
-    if (currentStep === reflectionStep) return behaviorSet.length;
     if (currentStep >= societalStart && currentStep <= societalEnd) {
       return behaviorSet.length + 1 + societalQuestionIndex;
     }
-    if (currentStep === agentStep) return behaviorSet.length + societalNormsQuestions.length;
+    if (currentStep === clarificationStep || currentStep === agentStep) {
+      return behaviorSet.length + societalNormsQuestions.length;
+    }
     return Math.max(1, currentStep);
   })();
   const intakeQuestionTotal = behaviorSet.length + societalNormsQuestions.length;
   const isProfileDetailsStep = useCairnTheme && currentStep === 1;
+  const isClarificationStep = currentStep === clarificationStep;
   const intakeHeaderMeta = isProfileDetailsStep
     ? null
-    : { label: 'Question', value: `${intakeQuestionNumber} / ${intakeQuestionTotal}` };
+    : isClarificationStep
+      ? { label: 'Pause', value: 'Before the five' }
+      : { label: 'Question', value: `${intakeQuestionNumber} / ${intakeQuestionTotal}` };
 
   // ---------- UI ----------
   return (
@@ -1509,29 +1604,25 @@ function IntakeForm() {
       />
 
       {/* Message Pop-ups */}
-      {(currentStep === 0 || (!useCairnTheme && currentStep === 2) || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
+      {(currentStep === 0 || (!useCairnTheme && currentStep === 2) || currentStep === mindsetIntroStep) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
-          chapterIndex={currentStep === mindsetIntroStep || currentStep === reflectionStep ? 1 : currentStep === 2 ? 1 : 0}
+          chapterIndex={currentStep === mindsetIntroStep ? 1 : currentStep === 2 ? 1 : 0}
           showPorthole={currentStep !== mindsetIntroStep}
           title={
             currentStep === 0
               ? 'Your context'
               : currentStep === 2
               ? 'Daily Leadership Habits'
-              : currentStep === mindsetIntroStep
-              ? 'Leadership Insights'
-              : 'Reflection Moment'
+              : 'Leadership Insights'
           }
           content={
             currentStep === 0
               ? 'The Compass is considerate of your specific leadership environment! Think of the leader profile as context that helps both the insights and growth plan you receive be more pertinent.'
               : currentStep === 2
               ? 'These questions are about how you normally lead day to day — not who you wish you were. Answer honestly; this feedback is here to help you grow.'
-              : currentStep === mindsetIntroStep
-              ? 'Same chapter, different scale. These questions use Never-to-Always — answer as your normal behavior, not an ideal. Honest signal is what helps the Compass help you.'
-              : 'Take a breath. This reflection is a pause between habits and insights — notice what stood out before you continue.'
+              : 'Same chapter, different scale. These questions use Never-to-Always — answer as your normal behavior, not an ideal. Honest signal is what helps the Compass help you.'
           }
         />
       )}
@@ -2168,108 +2259,136 @@ function IntakeForm() {
             })()}
           </SectionCard>
         )}
-       {/* Reflection Moment (Step 17) */}
-{currentStep === reflectionStep && (
+        {currentStep === clarificationStep && (
   <SectionCard narrow={false}>
-    <Stack spacing={3} alignItems="center" textAlign="center">
-      <Typography
-        sx={{
-          fontFamily: 'Gemunu Libre, sans-serif',
-          fontSize: { xs: '2.05rem', md: '2.35rem' },
-          fontWeight: 800,
-          lineHeight: 1.1,
-          color: 'text.primary',
-          textShadow: '0 1px 0 rgba(255,255,255,0.6)',
-        }}
-      >
-        Reflection Moment
+    <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
+      <Typography sx={useCairnTheme ? type.monoLabel : {
+        letterSpacing: 1.2,
+        opacity: 0.75,
+        textAlign: 'center',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+      }}>
+        Before the five
       </Typography>
-      <Typography
-        sx={{
-          fontFamily: 'Gemunu Libre, sans-serif',
-          fontSize: '1.03rem',
-          color: 'text.secondary',
-          lineHeight: 1.45,
-          mt: -0.75,
-          mb: 0.5,
-        }}
-      >
-        Insights from your reflection and leadership assessment
+      <Typography sx={useCairnTheme ? { ...type.question, textAlign: 'center', maxWidth: '56ch' } : {
+        fontWeight: 800,
+        fontSize: { xs: '1.25rem', md: '1.5rem' },
+        lineHeight: 1.35,
+        textAlign: 'center',
+      }}>
+        {clarificationStatus === 'ready' && clarification.needsClarification
+          ? 'We noticed something worth a second look.'
+          : 'Taking a moment before we lock the five.'}
+      </Typography>
+      <Typography sx={useCairnTheme ? { ...type.bodyMuted, textAlign: 'center', maxWidth: '52ch' } : {
+        opacity: 0.8,
+        maxWidth: 640,
+      }}>
+        {clarificationStatus === 'ready' && clarification.needsClarification
+          ? (clarification.notice || 'This could be read two ways. You can clarify, or keep both as true.')
+          : 'Checking whether anything in your answers would change the traits we recommend.'}
       </Typography>
 
-      {/* AI Reflection Text */}
-      <Paper
-        elevation={3}
-        sx={{
-          p: 3,
-          borderRadius: 3,
-          background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
-          border: '1px solid rgba(0,0,0,0.08)',
-          maxWidth: 720,
-          mx: 'auto',
-          boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-        }}
-      >
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: '1.1rem',
-            color: 'text.primary',
-            textAlign: 'left',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            lineHeight: 1.6,
-          }}
-        >
-          <strong>Agent Observation:</strong>{' '}
-          {reflectionText || 'Generating observation...'}
-        </Typography>
-      </Paper>
+      {clarificationStatus === 'ready' && clarification.needsClarification && clarification.questions.map((q) => (
+        <Box key={q.id} sx={{ width: '100%', maxWidth: useCairnTheme ? '56ch' : 720 }}>
+          <Typography sx={useCairnTheme ? { ...type.question, fontSize: 18, textAlign: 'center', mb: 1.5 } : {
+            fontWeight: 700,
+            fontSize: '1.05rem',
+            textAlign: 'center',
+            mb: 1.5,
+          }}>
+            {q.prompt}
+          </Typography>
+          <MemoTextField
+            value={clarificationAnswers[q.id] || ''}
+            onChange={(e) => setClarificationAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+            fullWidth
+            multiline
+            minRows={3}
+            placeholder="Optional — add a distinction if you want to."
+            sx={{
+              maxWidth: '100%',
+              '& .MuiOutlinedInput-root': useCairnTheme ? {
+                bgcolor: colors.surface2,
+                borderRadius: radii.md,
+                fontFamily: fonts.sans,
+                color: colors.ink,
+                '& fieldset': { borderColor: colors.sand300 },
+              } : undefined,
+            }}
+          />
+        </Box>
+      ))}
 
-      {/* User Input Box */}
-      <Typography
-        sx={{
-          fontWeight: 700,
-          fontSize: '1.05rem',
-          color: 'text.primary',
-          maxWidth: 720,
-          textAlign: 'left',
-          width: '100%',
-        }}
-      >
-        How have these traits/behaviors negatively impacted your ability to lead in the past?
-      </Typography>
-      <MemoTextField
-        value={formData.userReflection || ''}
-        onChange={(e) => handleChange('userReflection', e.target.value)}
-        fullWidth
-        multiline
-        minRows={3}
-        placeholder="Write your reflection here..."
-        sx={{
-          backgroundColor: 'rgba(255,255,255,0.85)',
-          borderRadius: 2,
-          maxWidth: 720,
-        }}
-      />
-
-      {/* Action Button */}
-      <Stack direction="row" justifyContent="center" sx={{ pt: 2 }}>
-        <MemoButton
-          variant="contained"
-          color="primary"
-          onClick={() => setCurrentStep(mindsetIntroStep)}
-          disabled={isLoadingReflection || !formData.userReflection?.trim()}
-        >
-          Next
-        </MemoButton>
+      <Stack spacing={1.5} alignItems="center" sx={{ pt: 1, width: '100%' }}>
+        {clarificationStatus === 'ready' && clarification.needsClarification && (
+          <Box
+            component="button"
+            type="button"
+            onClick={() => finishClarification('both_accurate')}
+            disabled={isSubmitting}
+            sx={{
+              all: 'unset',
+              cursor: 'pointer',
+              fontFamily: fonts.sans,
+              fontSize: 13,
+              lineHeight: 1.5,
+              color: colors.inkSoft,
+              textDecoration: 'underline',
+              textUnderlineOffset: '3px',
+              '&:hover': { color: colors.ink },
+            }}
+          >
+            Both are accurate — that&apos;s just me
+          </Box>
+        )}
+        {useCairnTheme ? (
+          <Box sx={{ width: '100%', maxWidth: 420 }}>
+            <CairnFlowButtons
+              isDark={isDark}
+              backLabel="Back"
+              nextLabel={isSubmitting ? 'Locking…' : 'Continue'}
+              backDisabled={isSubmitting}
+              nextDisabled={isSubmitting || clarificationStatus === 'loading'}
+              onBack={() => {
+                setSocietalQuestionIndex(societalNormsQuestions.length - 1);
+                setCurrentStep(societalStart);
+              }}
+              onNext={() => {
+                if (clarification.needsClarification) finishClarification('clarified');
+                else finishClarification(clarificationStatus === 'error' ? 'check_failed' : 'none');
+              }}
+            />
+          </Box>
+        ) : (
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <MemoButton
+              variant="outlined"
+              disabled={isSubmitting}
+              onClick={() => {
+                setSocietalQuestionIndex(societalNormsQuestions.length - 1);
+                setCurrentStep(societalStart);
+              }}
+            >
+              Back
+            </MemoButton>
+            <MemoButton
+              variant="contained"
+              disabled={isSubmitting || clarificationStatus === 'loading'}
+              onClick={() => {
+                if (clarification.needsClarification) finishClarification('clarified');
+                else finishClarification(clarificationStatus === 'error' ? 'check_failed' : 'none');
+              }}
+            >
+              {isSubmitting ? 'Submitting...' : 'Continue'}
+            </MemoButton>
+          </Stack>
+        )}
       </Stack>
     </Stack>
   </SectionCard>
 )}
-
-
-
 
         {/* Leader Instincts (Societal Norms) – single page, one question at a time */}
 {currentStep >= societalStart && currentStep <= societalEnd && (
@@ -2433,18 +2552,17 @@ function IntakeForm() {
                     if (activeIdx > 0) {
                       setSocietalQuestionIndex((i) => i - 1);
                     } else {
-                      setCurrentStep(reflectionStep);
+                      setCurrentStep(mindsetIntroStep);
                     }
                   }}
                   onNext={() => {
                     if (!lastQuestion) {
                       setSocietalQuestionIndex((i) => i + 1);
-                    } else if (useCairnTheme) {
-                      if (!formData.selectedAgent) handleChange('selectedAgent', 'balancedMentor');
-                      setIsSubmitting(true);
-                      handleSubmit();
                     } else {
-                      setCurrentStep(agentStep);
+                      if (useCairnTheme && !formData.selectedAgent) {
+                        handleChange('selectedAgent', 'balancedMentor');
+                      }
+                      setCurrentStep(clarificationStep);
                     }
                   }}
                 />
@@ -2457,7 +2575,7 @@ function IntakeForm() {
                     if (activeIdx > 0) {
                       setSocietalQuestionIndex((i) => i - 1);
                     } else {
-                      setCurrentStep(reflectionStep);
+                      setCurrentStep(mindsetIntroStep);
                     }
                   }}
                 >
@@ -2470,7 +2588,7 @@ function IntakeForm() {
                     if (!lastQuestion) {
                       setSocietalQuestionIndex((i) => i + 1);
                     } else {
-                      setCurrentStep(agentStep);
+                      setCurrentStep(clarificationStep);
                     }
                   }}
                 >

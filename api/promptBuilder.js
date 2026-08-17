@@ -6,6 +6,15 @@ EVIDENCE RUBRIC
 - Explicitly note one productive pattern and one costly pattern.
 `.trim();
 
+const CLARIFICATION_RULES = `
+CLARIFICATION INTERPRETATION
+- If intakeClarification is missing, ignore this section.
+- Structured answers (clicks, ranks, sliders) are the primary evidence. Open text is not automatically weightier because it is prose.
+- If resolution is "both_accurate", "none", or "check_failed", keep existing tensions. Do not flatten them.
+- If the user wrote a clarification that corrects or disambiguates a named prior answer, treat that write-in as the intended meaning for those relatedSignals when forming insights and the five focusRecommendations. Do not claim the stored clicks changed; interpret as if those signals now mean what the user clarified.
+- Ignore asides that do not address the named conflict.
+`.trim();
+
 export const buildInsightExtractionSystemPrompt = ({ agentIdentity }) => `
 ROLE
 You are the Compass Insight Extractor. Turn intake data into a persona-blind evidence map.
@@ -28,6 +37,8 @@ ${agentIdentity}
 export const buildInsightExtractionUserPrompt = (body, traitCatalog = []) => `
 INTAKE DATA (JSON)
 ${JSON.stringify(body)}
+
+${CLARIFICATION_RULES}
 
 VALID FOCUS SUBTRAITS (use names from this catalog)
 ${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
@@ -173,6 +184,8 @@ ${JSON.stringify(insightMap, null, 2)}
 
 CONTEXT SNAPSHOT (use only when it sharpens a sentence; never as a parenthetical bio dump)
 ${JSON.stringify(contextSnapshot, null, 2)}
+
+${CLARIFICATION_RULES}
 
 Focus leverage points are for your awareness only — do NOT list them in newTrail:
 ${(focusAreas || []).map((area) => `- ${area.subTraitName} (Parent: ${area.traitName})`).join('\n')}

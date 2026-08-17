@@ -299,6 +299,7 @@ function buildContextSnapshot(body) {
     warningLabel: body?.warningLabel || '',
     teamPerception: body?.teamPerception || '',
     decisionPace: body?.decisionPace || '',
+    intakeClarification: body?.intakeClarification || null,
   };
 }
 

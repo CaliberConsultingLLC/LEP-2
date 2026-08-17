@@ -160,11 +160,12 @@ export function seedStagingData() {
   localStorage.setItem('cairnGuide', JSON.stringify({ personaId: 'mentor', hidden: false, selected: true }));
 
   localStorage.setItem('intakeDraft', JSON.stringify({
+    draftVersion: 2,
     formData,
     societalResponses: formData.societalResponses,
     currentStep: 3,
-    reflectionNumber: 1,
-    reflectionText: '',
+    clarification: { needsClarification: false, notice: '', questions: [] },
+    clarificationAnswers: {},
     societalQuestionIndex: 0,
   }));
 

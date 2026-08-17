@@ -822,7 +822,12 @@ export default function DevSkipOne() {
       }).catch(() => null);
 
       const refJson = await refRes?.json().catch(() => ({}));
-      setReflection(refJson?.reflection || '(no reflection returned)');
+      if (refJson?.needsClarification) {
+        const prompts = (refJson.questions || []).map((q) => q.prompt).filter(Boolean);
+        setReflection(refJson.notice || prompts.join(' ') || 'Clarification suggested.');
+      } else {
+        setReflection(refJson?.notice || refJson?.reflection || 'No clarification needed.');
+      }
 
       const sumRes = await fetch('/api/get-ai-summary', {
         method: 'POST',
