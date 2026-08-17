@@ -22,6 +22,7 @@ import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
+import GuidePickerMenu from '../components/GuidePickerMenu';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -56,9 +57,10 @@ function Summary() {
   const [selectedAgent, setSelectedAgent] = useState('');
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const [briefingOpen, setBriefingOpen] = useState(false);
+  const [guideMenuAnchor, setGuideMenuAnchor] = useState(null);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
-  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, openGuidePicker } = useGuide();
+  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -1385,7 +1387,7 @@ function Summary() {
                       color: colors.navy500,
                     }}
                   >
-                    {`${persona.name}, on your ${activeStage.label}`}
+                    {`${persona.name} · ${activeStage.label}`}
                   </Typography>
 
                   <Box
@@ -1632,7 +1634,7 @@ function Summary() {
                         <Box
                           component="button"
                           type="button"
-                          onClick={openGuidePicker}
+                          onClick={(event) => setGuideMenuAnchor(event.currentTarget)}
                           sx={{
                             ...buttons.secondary,
                             display: 'inline-flex',
@@ -1642,6 +1644,12 @@ function Summary() {
                         >
                           Hear another guide
                         </Box>
+                        <GuidePickerMenu
+                          open={Boolean(guideMenuAnchor)}
+                          anchorEl={guideMenuAnchor}
+                          onClose={() => setGuideMenuAnchor(null)}
+                          isDark={isDark}
+                        />
                         <Typography
                           sx={{
                             fontFamily: fonts.sans,

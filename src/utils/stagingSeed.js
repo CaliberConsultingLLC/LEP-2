@@ -13,7 +13,7 @@ export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
-export const STAGING_SEED_VERSION = '2026-08-17-guide-voices-v1';
+export const STAGING_SEED_VERSION = '2026-08-17-guide-voices-v2';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
@@ -27,6 +27,7 @@ const SEED_KEYS = [
   'trailheadHighlights',
   'selectedAgent',
   'selectedGuideId',
+  'cairnGuide',
   'selectedTraits',
   'currentCampaign',
   'campaignRecords',
@@ -156,6 +157,7 @@ export function seedStagingData() {
   localStorage.setItem('latestFormData', JSON.stringify(formData));
   localStorage.setItem('selectedGuideId', 'mentor');
   localStorage.setItem('selectedAgent', 'mentor');
+  localStorage.setItem('cairnGuide', JSON.stringify({ personaId: 'mentor', hidden: false, selected: true }));
 
   localStorage.setItem('intakeDraft', JSON.stringify({
     formData,
