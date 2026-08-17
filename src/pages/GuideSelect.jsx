@@ -9,8 +9,6 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { colors, fonts, radii } from '../styles/tokens';
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
-
 function GuideSelect() {
   const navigate = useNavigate();
   const { personaId, setPersona, hasSelectedGuide } = useGuide();
@@ -168,21 +166,6 @@ function GuideSelect() {
                     px: 2,
                     pt: 1.5,
                   }}>
-                    <Box sx={{
-                      position: 'absolute',
-                      top: 12, left: 12,
-                      width: 28, height: 28,
-                      borderRadius: '50%',
-                      bgcolor: 'rgba(255,255,255,0.85)',
-                      border: `1.5px solid ${persona.accent}44`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <Typography sx={{ fontFamily: fonts.serif, fontWeight: 700, fontSize: '0.72rem', color: persona.accent }}>
-                        {ROMAN[index]}
-                      </Typography>
-                    </Box>
                     <Box
                       component="img"
                       src={persona.poses.greet || persona.poses.idle}
