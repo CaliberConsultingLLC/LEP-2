@@ -1,9 +1,18 @@
 // Guide persona registry.
-// Select / greet art: /public/guides/<id>.png (standard _01 pose).
+// Select / greet art: /public/guides/<file>.png (standard pose, transparent BG).
 // Extra poses for Mentor / Catalyst / Challenger still live in /public/hero/
 // until the full Guide Images set is wired.
 
-const selectArt = (id) => `/guides/${id}.png`;
+const SELECT_ART = {
+  mentor: '/guides/mentor.png',
+  catalyst: '/guides/catalyst.png',
+  challenger: '/guides/challenger.png',
+  bestFriend: '/guides/best-friend.png',
+  mother: '/guides/mother.png',
+  roaster: '/guides/roaster.png',
+};
+
+const selectArt = (id) => SELECT_ART[id];
 
 export const GUIDE_PERSONAS = [
   {
