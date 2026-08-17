@@ -15,44 +15,44 @@ import { useNavigate } from 'react-router-dom';
 
 const FAQ_ITEMS = [
   {
-    q: 'How is my Compass Score calculated?',
-    a: 'Your Compass Score blends efficacy and effort from team ratings, weighted toward efficacy to reflect outcomes, not just intent.',
+    q: 'What do I get from the first sitting?',
+    a: 'A written reflection of how you lead, three traits to grow, a self-assessment, and a team survey on the same statements. That sitting opens the year on the dashboard: Signal, Evidence, then one practice.',
   },
   {
-    q: 'What does the gap between effort and efficacy mean?',
-    a: 'A larger gap suggests you are putting in strong effort but your team is not consistently experiencing the intended impact.',
+    q: 'What is the Signal?',
+    a: 'After your team answers, Signal is the reading of how those traits are landing. It is a pattern across the statements, not a verdict or a personality score.',
   },
   {
-    q: 'Why do campaign response rates matter so much?',
-    a: 'Higher response rates improve reliability. When too few responses are submitted, patterns may look sharper or weaker than reality.',
+    q: 'What is the difference between Effort and Efficacy?',
+    a: 'Effort is how much you try the behavior. Efficacy is how well it lands for the people around you. Your team rates the same sentences; they are not scoring your intent.',
   },
   {
-    q: 'When should I close a campaign?',
-    a: 'Close the campaign once participation is broad enough to trust the signal. Ten days is a practical default window.',
+    q: 'When should I invite my team?',
+    a: 'After you finish your self-assessment. The team gets a different link. You will see the aggregate — never who said what.',
   },
   {
-    q: 'Can I run more than one campaign cycle?',
-    a: 'Yes. Multiple campaign rounds help you compare trend lines and validate whether behavior changes are being felt by the team.',
+    q: 'How many people need to answer?',
+    a: 'More responses make a steadier Signal. If only a few people answer, treat the pattern as a sketch, not a conclusion.',
   },
   {
-    q: 'How do I know which trait to prioritize first?',
-    a: 'Prioritize traits where the impact risk is highest and the gap is largest, especially when trust, clarity, or pace are affected.',
+    q: 'Which trait should I practice first?',
+    a: 'Start with the trait your team can actually feel this stretch — often the one with the widest gap between how hard you try and how clearly it lands.',
   },
   {
-    q: 'What if team ratings conflict with my self-perception?',
-    a: 'That is normal and useful. The difference often reveals hidden blind spots or communication mismatches worth investigating.',
+    q: 'What if my self-rating and the team Signal disagree?',
+    a: 'That difference is useful. Sit with Signal and Evidence before you pick a practice. The point is what they experience, not proving the number wrong.',
   },
   {
-    q: 'Can I share dashboard insights with stakeholders?',
-    a: 'Yes. Share summary insights, trend direction, and action priorities while preserving individual response privacy and confidentiality.',
+    q: 'Can I share this with my boss or HR?',
+    a: 'Share the pattern and the practice you chose. Do not share individual answers. Compass does not show who said what.',
   },
   {
-    q: 'How often should I update my action plans?',
-    a: 'Review action plans weekly and refresh them each campaign cycle based on current data, not assumptions from past rounds.',
+    q: 'What is a practice in Compass?',
+    a: 'One visible behavior your team should be able to notice in a normal week — not a list of goals. You will take a second reading later to see whether it is landing.',
   },
   {
-    q: 'What is the best indicator that growth is working?',
-    a: 'Look for improved efficacy, narrowing effort-efficacy gaps, and stronger consistency across team feedback over consecutive campaigns.',
+    q: 'How do I know the year is working?',
+    a: 'Look for a clearer Signal on the traits you chose, a smaller gap between Effort and Efficacy, and a practice your team can name without a slide deck.',
   },
 ];
 
@@ -109,13 +109,22 @@ function Faq() {
                 Help & FAQ
               </Typography>
             </Stack>
-            <Button
-              variant="outlined"
-              onClick={() => navigate('/dashboard')}
-              sx={{ fontFamily: 'Gemunu Libre, sans-serif', textTransform: 'none' }}
-            >
-              Back to Dashboard
-            </Button>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/')}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', textTransform: 'none' }}
+              >
+                Return to Compass
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/dashboard')}
+                sx={{ fontFamily: 'Gemunu Libre, sans-serif', textTransform: 'none' }}
+              >
+                Dashboard
+              </Button>
+            </Stack>
           </Stack>
 
           <Typography
