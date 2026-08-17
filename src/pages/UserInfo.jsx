@@ -42,6 +42,11 @@ function UserInfo() {
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDialog, setOpenDialog] = useState(null);
+  const closeDialog = () => setOpenDialog(null);
+  const agreeDialog = (field) => {
+    setUserInfo((prev) => ({ ...prev, [field]: true }));
+    setOpenDialog(null);
+  };
   const [isDark] = useDarkMode();
 
   const mapFirebaseAuthError = (code) => {
@@ -641,7 +646,7 @@ function UserInfo() {
         </Box>
       </Container>
 
-      <Dialog open={openDialog === 'terms'} onClose={() => setOpenDialog(null)} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog === 'terms'} onClose={closeDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>Terms of Use</DialogTitle>
         <DialogContent dividers>
           <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', lineHeight: 1.6 }}>
@@ -649,11 +654,12 @@ function UserInfo() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(null)}>Close</Button>
+          <Button onClick={closeDialog}>Close</Button>
+          <Button variant="contained" onClick={() => agreeDialog('agreeTerms')}>Agree</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openDialog === 'privacy'} onClose={() => setOpenDialog(null)} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog === 'privacy'} onClose={closeDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>Privacy Policy</DialogTitle>
         <DialogContent dividers>
           <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', lineHeight: 1.6 }}>
@@ -661,7 +667,8 @@ function UserInfo() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(null)}>Close</Button>
+          <Button onClick={closeDialog}>Close</Button>
+          <Button variant="contained" onClick={() => agreeDialog('agreePrivacy')}>Agree</Button>
         </DialogActions>
       </Dialog>
       </CompassLayout>
