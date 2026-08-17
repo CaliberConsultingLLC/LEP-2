@@ -32,7 +32,14 @@ function easeInOutCubic(t) {
  * 2) Walk — porthole pans along the trail with the pulse fixed at center
  * 3) Begin — same card swaps to the next chapter + "Let's get started"
  */
-export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDone }) {
+export default function JourneyChapterCeremony({
+  open,
+  fromIndex,
+  toIndex,
+  onDone,
+  copy = null,
+  skipWalk = false,
+}) {
   const [phase, setPhase] = useState('complete');
   const [focus, setFocus] = useState(null);
   const pathRef = useRef(null);
@@ -43,8 +50,20 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   ), []);
 
-  const from = JOURNEY_STATIONS[fromIndex] || JOURNEY_STATIONS[0];
-  const to = JOURNEY_STATIONS[toIndex] || JOURNEY_STATIONS[Math.min(fromIndex + 1, JOURNEY_STATIONS.length - 1)];
+  const fromStation = JOURNEY_STATIONS[fromIndex] || JOURNEY_STATIONS[0];
+  const toStation = JOURNEY_STATIONS[toIndex] || JOURNEY_STATIONS[Math.min(fromIndex + 1, JOURNEY_STATIONS.length - 1)];
+  const from = {
+    ...fromStation,
+    label: copy?.fromLabel || fromStation.label,
+    completeBlurb: copy?.completeBlurb || fromStation.completeBlurb,
+  };
+  const to = {
+    ...toStation,
+    label: copy?.toLabel || toStation.label,
+    blurb: copy?.blurb || toStation.blurb,
+    arriveHint: copy?.arriveHint || toStation.arriveHint,
+  };
+  const shouldSkipWalk = Boolean(skipWalk || fromIndex === toIndex);
   const segmentPoints = useMemo(() => {
     const start = COMPASS_TRAIL.STATION_POINT_INDICES[fromIndex] || 0;
     const end = COMPASS_TRAIL.STATION_POINT_INDICES[toIndex] || start;
@@ -130,7 +149,7 @@ export default function JourneyChapterCeremony({ open, fromIndex, toIndex, onDon
 
   const continueFromComplete = () => {
     if (phase !== 'complete') return;
-    if (reducedMotion) {
+    if (shouldSkipWalk || reducedMotion) {
       setFocus({ x: to.x, y: to.y });
       setPhase('begin');
       return;

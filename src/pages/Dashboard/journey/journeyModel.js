@@ -118,6 +118,62 @@ export const JOURNEY_STATIONS = STATION_META.map((station, index) => {
 export const chapterText = (index) => `Chapter ${JOURNEY_ROMAN[index] || JOURNEY_ROMAN[0]} of IX`;
 export const chapterEyebrow = (index) => `${chapterText(index)} · ${JOURNEY_STATIONS[index]?.label || JOURNEY_STATIONS[0].label}`;
 
+/** Same-chapter handoffs that still deserve the map popup. */
+export const FLOW_HANDOFFS = [
+  {
+    id: 'summary-to-traits',
+    fromPrefix: '/summary',
+    toPrefix: '/trait-selection',
+    fromIndex: 2,
+    toIndex: 2,
+    fromLabel: 'Your reflection',
+    completeBlurb: 'You have the writeup from your intake. The next decision is which three traits your year will run on.',
+    toLabel: 'Choose three traits',
+    blurb: 'The reflection surfaced five options, each tied to how you lead. Choose three. Those three shape every check-in that follows.',
+    arriveHint: 'Pick the three that feel most true, most visible to your team, and most useful for the next stretch.',
+  },
+  {
+    id: 'traits-to-builder',
+    fromPrefix: '/trait-selection',
+    toPrefix: '/campaign-builder',
+    fromIndex: 2,
+    toIndex: 2,
+    fromLabel: 'Three traits',
+    completeBlurb: 'You chose the three traits your year runs on. Next you review the sentences your team will actually rate.',
+    toLabel: 'Build the campaign',
+    blurb: 'This is not a marketing campaign. Keep the statements that feel fair and useful. Remove anything confusing, unfair, or outside this stretch.',
+    arriveHint: 'You will review each trait’s statements, then move to self-assessment and the team invite.',
+  },
+  {
+    id: 'traits-to-intro',
+    fromPrefix: '/trait-selection',
+    toPrefix: '/campaign-intro',
+    fromIndex: 2,
+    toIndex: 2,
+    fromLabel: 'Three traits',
+    completeBlurb: 'You chose the three traits your year runs on. Next you review the sentences your team will actually rate.',
+    toLabel: 'Build the campaign',
+    blurb: 'This is not a marketing campaign. Keep the statements that feel fair and useful. Remove anything confusing, unfair, or outside this stretch.',
+    arriveHint: 'You will review each trait’s statements, then move to self-assessment and the team invite.',
+  },
+  {
+    id: 'builder-to-verify',
+    fromPrefix: '/campaign-builder',
+    toPrefix: '/campaign-verify',
+    fromIndex: 2,
+    toIndex: 2,
+    fromLabel: 'Campaign statements',
+    completeBlurb: 'The sentences are set. Next you rate yourself, then send a different link to your team.',
+    toLabel: 'Self-assessment, then invite',
+    blurb: 'Start your self-assessment first — the same statements your team will see. After that, the team link unlocks. Do not share the self-assessment link with your team.',
+    arriveHint: 'One primary action: start the self-assessment. Copy the team link only after that is done.',
+  },
+];
+
+export const matchFlowHandoff = (fromPath = '', toPath = '') => (
+  FLOW_HANDOFFS.find((step) => fromPath.startsWith(step.fromPrefix) && toPath.startsWith(step.toPrefix)) || null
+);
+
 export const readJourneyJson = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);

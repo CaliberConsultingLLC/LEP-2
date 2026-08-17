@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import JourneyChapterCeremony from './JourneyChapterCeremony';
-import { getJourneyIndexForLocation, readJourneyJson } from '../pages/Dashboard/journey/journeyModel.js';
+import {
+  getJourneyIndexForLocation,
+  matchFlowHandoff,
+  readJourneyJson,
+} from '../pages/Dashboard/journey/journeyModel.js';
 
 const SEEN_KEY = 'journeyCeremonySeen';
 
@@ -16,9 +20,10 @@ function readSeen() {
   }
 }
 
-function markSeen(toIndex) {
+function markSeen(key) {
+  if (key == null) return;
   try {
-    const next = { ...readSeen(), [toIndex]: true };
+    const next = { ...readSeen(), [key]: true };
     localStorage.setItem(SEEN_KEY, JSON.stringify(next));
   } catch {
     /* ignore */
@@ -38,6 +43,7 @@ export default function JourneyCeremonyGate() {
   );
   const previousIndex = useRef(currentIndex);
   const previousTab = useRef(null);
+  const previousPath = useRef(location.pathname || '');
   const suppressInitialFlow = useRef(true);
   const ceremonyOpenRef = useRef(false);
   const userInfo = readJourneyJson('userInfo', {});
@@ -49,6 +55,7 @@ export default function JourneyCeremonyGate() {
     const seen = readSeen();
     const fromIndex = previousIndex.current;
     const prevTab = previousTab.current;
+    const prevPath = previousPath.current;
     let nextCeremony = null;
 
     // First paint after load/refresh: remember location, don't popup mid-page.
@@ -56,19 +63,36 @@ export default function JourneyCeremonyGate() {
       suppressInitialFlow.current = false;
       previousIndex.current = currentIndex;
       previousTab.current = tab;
+      previousPath.current = path;
       return;
     }
 
-    if (path.startsWith('/dashboard')) {
+    const intraChapter = matchFlowHandoff(prevPath, path);
+    if (intraChapter && !seen[intraChapter.id] && !ceremonyOpenRef.current) {
+      nextCeremony = {
+        fromIndex: intraChapter.fromIndex,
+        toIndex: intraChapter.toIndex,
+        seenKey: intraChapter.id,
+        skipWalk: true,
+        copy: {
+          fromLabel: intraChapter.fromLabel,
+          completeBlurb: intraChapter.completeBlurb,
+          toLabel: intraChapter.toLabel,
+          blurb: intraChapter.blurb,
+          arriveHint: intraChapter.arriveHint,
+        },
+        key: `${intraChapter.id}-${Date.now()}`,
+      };
+    } else if (path.startsWith('/dashboard')) {
       // Ch5: first enter Signal (accept legacy tab aliases used by nav / staging panel).
       const enteredSignal = SIGNAL_TABS.includes(tab) && !SIGNAL_TABS.includes(prevTab);
       if (enteredSignal && !seen[4] && !ceremonyOpenRef.current) {
-        nextCeremony = { fromIndex: 3, toIndex: 4, key: `3-4-${Date.now()}` };
+        nextCeremony = { fromIndex: 3, toIndex: 4, seenKey: 4, key: `3-4-${Date.now()}` };
       }
       // Ch6: first enter Practice.
       const enteredPractice = PRACTICE_TABS.includes(tab) && !PRACTICE_TABS.includes(prevTab);
       if (enteredPractice && !seen[5] && !ceremonyOpenRef.current && !nextCeremony) {
-        nextCeremony = { fromIndex: 4, toIndex: 5, key: `4-5-${Date.now()}` };
+        nextCeremony = { fromIndex: 4, toIndex: 5, seenKey: 5, key: `4-5-${Date.now()}` };
       }
     } else if (
       currentIndex > fromIndex
@@ -82,6 +106,7 @@ export default function JourneyCeremonyGate() {
       nextCeremony = {
         fromIndex: Math.max(0, ceremonyFrom),
         toIndex: currentIndex,
+        seenKey: currentIndex,
         key: `${ceremonyFrom}-${currentIndex}-${Date.now()}`,
       };
     }
@@ -92,6 +117,7 @@ export default function JourneyCeremonyGate() {
     }
     previousIndex.current = currentIndex;
     previousTab.current = tab;
+    previousPath.current = path;
   }, [currentIndex, location.pathname, location.search]);
 
   return (
@@ -100,9 +126,11 @@ export default function JourneyCeremonyGate() {
       open={Boolean(ceremony)}
       fromIndex={ceremony?.fromIndex || 0}
       toIndex={ceremony?.toIndex || 1}
+      copy={ceremony?.copy || null}
+      skipWalk={Boolean(ceremony?.skipWalk)}
       firstName={firstName}
       onDone={() => {
-        if (ceremony?.toIndex != null) markSeen(ceremony.toIndex);
+        markSeen(ceremony?.seenKey);
         ceremonyOpenRef.current = false;
         setCeremony(null);
       }}
