@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, Stack } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -21,6 +21,11 @@ function GuideSelect() {
 
   const active = guides[activeIndex] || guides[0];
   const canBegin = hasSelectedGuide && guides.some((p) => p.id === personaId);
+
+  useEffect(() => {
+    const centered = guides[activeIndex];
+    if (centered) setPersona(centered.id);
+  }, [activeIndex, guides, setPersona]);
 
   const visible = useMemo(() => {
     const count = SELECTABLE_GUIDE_PERSONAS.length;
@@ -297,9 +302,7 @@ function GuideSelect() {
             color: isDark ? 'rgba(240,233,222,0.5)' : colors.inkSoft,
             opacity: 0.7,
           }}>
-            {canBegin
-              ? 'You can change your guide at any time after you begin.'
-              : 'Select a guide to continue.'}
+            You can change your guide at any time after you begin.
           </Typography>
         </Stack>
       </Box>
