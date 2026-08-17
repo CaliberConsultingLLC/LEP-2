@@ -115,6 +115,7 @@ export default function JourneyCeremonyGate() {
 
     if (nextCeremony) {
       ceremonyOpenRef.current = true;
+      try { sessionStorage.setItem('journeyCeremonyOpen', '1'); } catch { /* ignore */ }
       setCeremony(nextCeremony);
     }
     previousIndex.current = currentIndex;
@@ -135,6 +136,7 @@ export default function JourneyCeremonyGate() {
       onDone={() => {
         markSeen(ceremony?.seenKey);
         ceremonyOpenRef.current = false;
+        try { sessionStorage.removeItem('journeyCeremonyOpen'); } catch { /* ignore */ }
         setCeremony(null);
       }}
     />

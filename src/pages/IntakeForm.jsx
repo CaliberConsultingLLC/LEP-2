@@ -1092,11 +1092,17 @@ function IntakeForm() {
   // ---- dialogs and reflection text ----
   useEffect(() => {
     // Cairn: behaviors intro is the chapter ceremony — don't re-open step 2 MessageDialog.
+    const ceremonyOpen = (() => {
+      try { return sessionStorage.getItem('journeyCeremonyOpen') === '1'; } catch { return false; }
+    })();
     const messageSteps = useCairnTheme
-      ? [0, mindsetIntroStep]
+      ? [0, mindsetIntroStep].filter((step) => !(ceremonyOpen && step === 0))
       : [0, 2, mindsetIntroStep];
+    const skipHabitsIntro = useCairnTheme || ceremonyOpen;
     const reflectionIntro = currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current;
-    setDialogOpen(messageSteps.includes(currentStep) || reflectionIntro);
+    const shouldOpen = (messageSteps.includes(currentStep) || reflectionIntro)
+      && !(skipHabitsIntro && currentStep === 2);
+    setDialogOpen(shouldOpen);
   }, [currentStep, mindsetIntroStep, reflectionStep, reflectionNumber]);
 
   const clampReflectionText = (text, max = 250) => {
@@ -1503,7 +1509,7 @@ function IntakeForm() {
       />
 
       {/* Message Pop-ups */}
-      {(currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
+      {(currentStep === 0 || (!useCairnTheme && currentStep === 2) || currentStep === mindsetIntroStep || (currentStep === reflectionStep && reflectionNumber === 1 && !reflectionGeneratedRef.current)) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}
