@@ -513,6 +513,12 @@ function CampaignSurvey() {
               {isSelfCampaign ? toSelfVoice(questions[currentQuestion]) : questions[currentQuestion]}
             </Typography>
 
+            <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.inkSoft, lineHeight: 1.5, mb: 1.75, textAlign: 'center' }}>
+              {isSelfCampaign
+                ? 'Effort is how much you try this. Efficacy is how well it lands. Your team will rate the same sentences, not your intent.'
+                : 'Effort is how much they try this. Efficacy is how well it lands. Rate what you experience, not what you think they meant.'}
+            </Typography>
+
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.75, mb: 1.75, width: '100%' }}>
               <Box sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#fff', borderRadius: radii.lg, border: '1px solid rgba(224,122,63,0.28)', p: 2.25, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
                 <Typography sx={{ fontFamily: fonts.sans, fontSize: '1rem', fontWeight: 700, color: isDark ? colors.ink : colors.navy900, mb: 0.6, textAlign: 'left' }}>Effort</Typography>
