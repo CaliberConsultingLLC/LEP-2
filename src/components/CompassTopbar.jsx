@@ -7,6 +7,7 @@ import { useGuide } from '../context/GuideContext';
 import { auth } from '../firebase';
 import { useDarkMode } from '../hooks/useDarkMode';
 import JourneyMapModal from './JourneyMapModal';
+import GuidePickerMenu from './GuidePickerMenu';
 import {
   chapterText,
   getJourneyCompletion,
@@ -20,9 +21,8 @@ const parseJson = (raw, fallback) => {
 };
 
 function GuidePill({ isDark }) {
-  const { personas, personaId, persona, setPersona } = useGuide();
+  const { persona, pickerOpen, setPickerOpen } = useGuide();
   const anchorRef = useRef(null);
-  const [open, setOpen] = useState(false);
 
   return (
     <>
@@ -30,9 +30,9 @@ function GuidePill({ isDark }) {
         component="button"
         type="button"
         ref={anchorRef}
-        onClick={() => setOpen(true)}
+        onClick={() => setPickerOpen(true)}
         aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-expanded={pickerOpen}
         aria-label={`Guide — ${persona.name}`}
         sx={{
           all: 'unset',
@@ -68,74 +68,12 @@ function GuidePill({ isDark }) {
         />
         Guide
       </Box>
-
-      <Popover
-        open={open}
+      <GuidePickerMenu
+        open={pickerOpen}
         anchorEl={anchorRef.current}
-        onClose={() => setOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 0.75,
-              p: 0.5,
-              minWidth: 210,
-              borderRadius: radii.md,
-              border: isDark ? '1px solid rgba(244,206,161,0.2)' : '1px solid var(--sand-200)',
-              boxShadow: '0 18px 40px rgba(15,28,46,0.18)',
-              bgcolor: isDark ? colors.navy800 : colors.surface1,
-            },
-          },
-        }}
-      >
-        <Stack role="listbox" aria-label="Choose guide" spacing={0.25}>
-          {personas.map((p) => {
-            const selected = p.id === personaId;
-            return (
-              <Box
-                key={p.id}
-                component="button"
-                type="button"
-                role="option"
-                aria-selected={selected}
-                onClick={() => { setPersona(p.id); setOpen(false); }}
-                sx={{
-                  all: 'unset',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '10px 14px',
-                  borderRadius: radii.sm,
-                  fontFamily: fonts.sans,
-                  fontSize: 14,
-                  fontWeight: selected ? 700 : 600,
-                  color: selected ? colors.amberSoft : isDark ? colors.ink : colors.navy900,
-                  bgcolor: selected ? colors.navy900 : 'transparent',
-                  transition: 'background 140ms, color 140ms',
-                  '&:hover': { bgcolor: selected ? colors.navy800 : isDark ? 'rgba(244,206,161,0.08)' : colors.sand50 },
-                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                }}
-              >
-                <Box
-                  aria-hidden
-                  sx={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    background: `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.55), ${p.accent} 55%, rgba(0,0,0,0.18))`,
-                    border: `1.5px solid ${selected ? 'var(--amber-soft)' : 'rgba(15,28,46,0.25)'}`,
-                    boxShadow: selected ? '0 0 0 2px rgba(244,206,161,0.35)' : 'none',
-                  }}
-                />
-                {p.name}
-              </Box>
-            );
-          })}
-        </Stack>
-      </Popover>
+        onClose={() => setPickerOpen(false)}
+        isDark={isDark}
+      />
     </>
   );
 }
