@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { seedStagingData, clearStagingData, STAGING_SELF_ID, STAGING_TEAM_ID } from '../utils/stagingSeed';
+import { GUIDE_VOICE_IDS, getGuideVoice } from '../data/guideVoices';
 
 const PAGE_GROUPS = [
   {
@@ -54,14 +54,10 @@ const PAGE_GROUPS = [
   },
 ];
 
-const SUMMARY_VOICES = [
-  { id: 'balancedMentor', label: 'Balanced Mentor' },
-  { id: 'bluntPracticalFriend', label: 'Blunt Friend' },
-  { id: 'formalEmpatheticCoach', label: 'Formal Coach' },
-  { id: 'comedyRoaster', label: 'Comedy Roaster' },
-  { id: 'pragmaticProblemSolver', label: 'Problem Solver' },
-  { id: 'highSchoolCoach', label: 'HS Coach' },
-];
+const SUMMARY_VOICES = GUIDE_VOICE_IDS.map((id) => ({
+  id,
+  label: getGuideVoice(id).name,
+}));
 
 const utilBtnSx = {
   all: 'unset',
@@ -103,7 +99,7 @@ function StagingDevPanel() {
       const saved = localStorage.getItem('selectedAgent');
       if (SUMMARY_VOICES.some((v) => v.id === saved)) return saved;
     } catch { /* ignore */ }
-    return 'balancedMentor';
+    return 'mentor';
   });
   const [regenBusy, setRegenBusy] = useState(false);
 
@@ -148,10 +144,11 @@ function StagingDevPanel() {
     setFlash('Generating live summary…');
     try {
       localStorage.setItem('selectedAgent', voiceId);
+      localStorage.setItem('selectedGuideId', voiceId);
       const res = await fetch('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...payload, selectedAgent: voiceId }),
+        body: JSON.stringify({ ...payload, guideId: voiceId, selectedAgent: voiceId }),
       });
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
@@ -162,6 +159,12 @@ function StagingDevPanel() {
       if (!text) throw new Error('Empty summary returned');
 
       localStorage.setItem('aiSummary', text);
+      if (json?.summariesByGuide && typeof json.summariesByGuide === 'object') {
+        localStorage.setItem('summariesByGuide', JSON.stringify(json.summariesByGuide));
+      }
+      if (json?.selectedGuideId) {
+        localStorage.setItem('selectedGuideId', json.selectedGuideId);
+      }
       if (Array.isArray(json?.focusAreas) && json.focusAreas.length) {
         localStorage.setItem('focusAreas', JSON.stringify(json.focusAreas));
       }

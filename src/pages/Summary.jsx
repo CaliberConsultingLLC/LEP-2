@@ -30,6 +30,8 @@ import { scoreIntakeAgainstCoverage, isEligibleForFocusRecommendation } from '..
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { colors, fonts, radii, shadows } from '../styles/tokens';
+import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
+import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
 
 
 function Summary() {
@@ -47,12 +49,13 @@ function Summary() {
   const [focusAreas, setFocusAreas] = useState([]);
   const [trailheadHighlights, setTrailheadHighlights] = useState(null);
   const showInlineTraitSelection = false;
+  const [summariesByGuide, setSummariesByGuide] = useState({});
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState('');
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
-  const { persona, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -60,7 +63,7 @@ function Summary() {
     return () => setSuppress(false);
   }, [setSuppress, useCairnTheme]);
 
-  const persistSummaryCache = async ({ data, agentId, text, areas, highlights }) => {
+  const persistSummaryCache = async ({ data, guideId, text, areas, highlights, summaries }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
     if (!uid || !text) return;
     const savedAt = new Date().toISOString();
@@ -79,9 +82,11 @@ function Summary() {
         },
         summaryCache: {
           aiSummary: text,
+          summariesByGuide: summaries && typeof summaries === 'object' ? summaries : {},
           focusAreas: Array.isArray(areas) ? areas : [],
           trailheadHighlights: highlights || null,
-          selectedAgent: agentId || 'balancedMentor',
+          selectedGuideId: guideId || 'mentor',
+          selectedAgent: guideId || 'mentor',
           savedAt,
         },
       },
@@ -269,15 +274,23 @@ function Summary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [summaryData]);
 
-  // agent selection
-  const agents = [
-    { id: 'bluntPracticalFriend', name: 'Blunt Practical Friend' },
-    { id: 'formalEmpatheticCoach', name: 'Formal Empathetic Coach' },
-    { id: 'balancedMentor', name: 'Balanced Mentor' },
-    { id: 'comedyRoaster', name: 'Comedy Roaster' },
-    { id: 'pragmaticProblemSolver', name: 'Pragmatic Problem Solver' },
-    { id: 'highSchoolCoach', name: 'High School Coach' },
-  ];
+  // agent selection — six Compass guides
+  const agents = GUIDE_VOICE_IDS.map((id) => ({
+    id,
+    name: getGuideVoice(id).name,
+  }));
+
+  const applyGuideVoice = (map, guideId, fallbackText = '') => {
+    const picked = pickGuideSummary(map, guideId, fallbackText);
+    const flat = flattenGuideSummary(picked.summary);
+    if (flat) {
+      setAiSummary(flat);
+      localStorage.setItem('aiSummary', flat);
+    }
+    setSelectedAgent(picked.id);
+    localStorage.setItem('selectedGuideId', picked.id);
+    return picked;
+  };
 
   const fetchWithTimeout = async (url, options = {}, timeoutMs = 35000) => {
     const controller = new AbortController();
@@ -339,20 +352,18 @@ function Summary() {
 
       setSummaryData(data);
 
-      // 2) choose agent
-      const validAgentIds = agents.map((a) => a.id);
-      const baseAgent =
-        (overrideAgentId && validAgentIds.includes(overrideAgentId) && overrideAgentId) ||
-        (data?.selectedAgent && validAgentIds.includes(data.selectedAgent) && data.selectedAgent) ||
-        'balancedMentor';
-      setSelectedAgent(baseAgent);
+      // 2) choose guide
+      const baseGuide = resolveGuideVoiceId(
+        overrideAgentId || personaId || data?.guideId || data?.selectedAgent || 'mentor'
+      );
+      setSelectedAgent(baseGuide);
 
-      // 3) request the 4-paragraph summary (canonical format)
+      // 3) request all six guide narratives from one insight map
       const summaryResp = await fetchWithTimeout('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...data, selectedAgent: baseAgent }),
-      }, 60000);
+        body: JSON.stringify({ ...data, guideId: baseGuide, selectedAgent: baseGuide }),
+      }, 90000);
 
       if (!summaryResp.ok) {
         let details = '';
@@ -367,7 +378,15 @@ function Summary() {
 
       const payload = await summaryResp.json();
       if (activeRunIdRef.current !== runId) return;
-      const text = payload?.aiSummary || '';
+      const map = payload?.summariesByGuide && typeof payload.summariesByGuide === 'object'
+        ? payload.summariesByGuide
+        : {};
+      setSummariesByGuide(map);
+      if (Object.keys(map).length) {
+        localStorage.setItem('summariesByGuide', JSON.stringify(map));
+      }
+      const picked = applyGuideVoice(map, payload?.selectedGuideId || baseGuide, payload?.aiSummary || '');
+      const text = flattenGuideSummary(picked.summary) || payload?.aiSummary || '';
       setAiSummary(text);
 
       if (Array.isArray(payload?.focusAreas) && payload.focusAreas.length === 5) {
@@ -386,10 +405,11 @@ function Summary() {
         try {
           await persistSummaryCache({
             data,
-            agentId: baseAgent,
+            guideId: picked.id,
             text,
             areas: Array.isArray(payload?.focusAreas) ? payload.focusAreas : focusAreas,
             highlights,
+            summaries: map,
           });
         } catch (persistErr) {
           console.warn('Failed to cache summary to Firestore:', persistErr);
@@ -426,6 +446,13 @@ function Summary() {
       if (cachedSummary && focusAreasValid) {
         setAiSummary(cachedSummary);
         try {
+          const cachedMap = JSON.parse(localStorage.getItem('summariesByGuide') || '{}');
+          if (cachedMap && typeof cachedMap === 'object') {
+            setSummariesByGuide(cachedMap);
+            applyGuideVoice(cachedMap, personaId, cachedSummary);
+          }
+        } catch { /* ignore */ }
+        try {
           const cachedHighlights = JSON.parse(localStorage.getItem('trailheadHighlights') || 'null');
           if (cachedHighlights?.strength?.text || cachedHighlights?.focus?.text) {
             setTrailheadHighlights(cachedHighlights);
@@ -442,6 +469,13 @@ function Summary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!summariesByGuide || !Object.keys(summariesByGuide).length) return;
+    applyGuideVoice(summariesByGuide, personaId, aiSummary);
+    // Swap only — do not regenerate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personaId]);
+
   const openAgentMenu = (event) => {
     setAgentMenuAnchor(event.currentTarget);
   };
@@ -453,6 +487,10 @@ function Summary() {
   const handleAgentMenuSelect = async (agentId) => {
     closeAgentMenu();
     if (!agentId) return;
+    if (summariesByGuide[agentId] || Object.keys(summariesByGuide).length) {
+      applyGuideVoice(summariesByGuide, agentId, aiSummary);
+      return;
+    }
     setSelectedAgent(agentId);
     await runSummary(agentId);
   };
