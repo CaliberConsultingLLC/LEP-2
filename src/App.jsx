@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { Typography } from '@mui/material';
+import NotFound from './pages/NotFound';
 import Home from './pages/Home';
 import UserInfo from './pages/UserInfo';
 import IntakeForm from './pages/IntakeForm';
@@ -68,7 +68,7 @@ function AppRoutes() {
       {showDevTools && <Route path="/dev-assessments" element={<DevSkipAssessments />} />}
       {showDevTools && <Route path="/dev-repository-login" element={<RepositoryLogin />} />}
       {showDevTools && <Route path="/dev-repository" element={<RepositoryConsole />} />}
-      <Route path="*" element={<Typography sx={{ fontFamily: 'Montserrat, sans-serif' }}>No match found</Typography>} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
