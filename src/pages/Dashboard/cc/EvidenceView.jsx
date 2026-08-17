@@ -105,7 +105,7 @@ function MetricBlock({ label, team, self }) {
           letterSpacing: '0.16em',
           textTransform: 'uppercase',
           color: 'rgba(244,206,161,0.7)',
-          mb: '11px',
+          mb: '8px',
         }}
       >
         {label}
@@ -161,15 +161,16 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
     <Box
       component="button"
       type="button"
+      aria-pressed={selected}
       onClick={onSelect}
       sx={{
         all: 'unset',
         cursor: 'pointer',
         boxSizing: 'border-box',
         width: '100%',
-        // Equal share of the map-height column — never grow only the selected row
-        flex: '1 1 0',
-        minHeight: 0,
+        // One expanded card (~2× the old equal share); collapsed cards hug the score row
+        flex: selected ? '2.4 1 0' : '0.7 1 0',
+        minHeight: selected ? 0 : 44,
         borderRadius: radii.md,
         border: 'none',
         bgcolor: selected ? colors.navy900 : colors.surface1,
@@ -192,14 +193,14 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
           gap: '12px',
           alignItems: 'center',
           px: '16px',
-          py: selected ? '10px' : '16px',
+          py: selected ? '12px' : '8px',
           flexShrink: 0,
         }}
       >
         <Typography
           sx={{
             fontFamily: fonts.mono,
-            fontSize: 16,
+            fontSize: selected ? 18 : 16,
             fontWeight: 700,
             lineHeight: 1.1,
             color: selected ? colors.amber : colors.textPrimary,
@@ -210,7 +211,21 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
           {statement.compass}
         </Typography>
         <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.75, lineHeight: 1.35, color: selected ? colors.amberSoft : colors.textPrimary }}>
+          <Typography
+            sx={{
+              fontFamily: fonts.sans,
+              fontSize: selected ? 13.75 : 12.5,
+              lineHeight: selected ? 1.35 : 1.3,
+              color: selected ? colors.amberSoft : colors.textPrimary,
+              ...(selected
+                ? {}
+                : {
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }),
+            }}
+          >
             {statement.text}
             {isLowest && (
               <Box
@@ -240,10 +255,10 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
       </Box>
 
       {selected && (
-        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           <Box sx={{ height: '1px', flexShrink: 0, bgcolor: 'rgba(244,206,161,0.22)' }} />
-          <Box sx={{ px: '14px', pt: '8px', pb: '10px', flex: 1, minHeight: 0, overflow: 'auto' }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px' }}>
+          <Box sx={{ px: '14px', pt: '10px', pb: '12px', flex: 1, minHeight: 0, display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', width: '100%' }}>
               <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
               <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
             </Box>
@@ -274,7 +289,7 @@ function TraitSwitcher({ title, onPrev, onNext }) {
   };
 
   return (
-    <Box sx={{ minHeight: 52, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <Box sx={{ minHeight: 44, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
       {/* Arrows hug the title — not parked at the column edges */}
       <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.25}>
         <Box component="button" type="button" aria-label="Previous trait" onClick={onPrev} sx={btnSx}>
@@ -312,7 +327,7 @@ function ModeBar({ mode, onModeChange }) {
   return (
     <Box
       sx={{
-        minHeight: 52,
+        minHeight: 44,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -381,14 +396,14 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
       }}
     >
       {/* Row 1: trait switcher | mode buttons — same band */}
-      <Box sx={{ gridColumn: { md: 1 }, gridRow: { md: 1 }, mb: { md: 1.5 } }}>
+      <Box sx={{ gridColumn: { md: 1 }, gridRow: { md: 1 }, mb: { md: 0.75 } }}>
         {headerSlot}
       </Box>
-      <Box sx={{ gridColumn: { md: 2 }, gridRow: { md: 1 }, mb: { md: 1.5 } }}>
+      <Box sx={{ gridColumn: { md: 2 }, gridRow: { md: 1 }, mb: { md: 0.75 } }}>
         <ModeBar mode={mode} onModeChange={onModeChange} />
       </Box>
 
-      {/* Row 2: statements | map — align to the visible map square (SVG PAD inset), not outer chrome */}
+      {/* Row 2: statements | map — sit a little above the inner map square so the page doesn't need a nudge-scroll */}
       <Box
         sx={{
           gridColumn: { md: 1 },
@@ -398,8 +413,8 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
           gap: '8px',
           '@media (min-width:820px)': {
             aspectRatio: '1 / 1',
-            // EvidenceQuadrant map rect sits at PAD/VIEW = 40/560 from each edge
-            pt: `${(40 / 560) * 100}%`,
+            // Was PAD/VIEW (40/560). Pull the stack up ~24px while keeping the bottom aligned.
+            pt: `${(16 / 560) * 100}%`,
             pb: `${(40 / 560) * 100}%`,
           },
         }}

@@ -18,6 +18,7 @@ export default function ProcessChapterHeader({
   chapterIndex: chapterIndexOverride = null,
   metaOverride = undefined,
   contentMaxWidth = CONTENT_MAX_WIDTH_DEFAULT,
+  contentGap = '34px',
 }) {
   const location = useLocation();
   const { chapterIndex, station, meta } = useMemo(() => {
@@ -53,7 +54,7 @@ export default function ProcessChapterHeader({
             gap: { xs: 2.5, md: '28px' },
             borderBottom: `1px solid ${colors.sand200}`,
             pb: '22px',
-            mb: '34px',
+            mb: contentGap,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '26px', minWidth: 0, flex: 1 }}>
