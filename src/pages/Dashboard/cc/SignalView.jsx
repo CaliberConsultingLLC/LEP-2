@@ -105,8 +105,8 @@ function ThresholdPage({ firstName, respondents, invited, overallCompass }) {
         >
           {overallCompass}
         </Typography>
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary }}>
-          One number can't hold a team's experience — the next pages tell you what it's made of.
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary, maxWidth: 420, textAlign: 'center' }}>
+          Average team score across all of your traits, on a 0–100 scale. Higher means those behaviors are landing more clearly. One number can't hold a team's experience — the next pages tell you what it's made of.
         </Typography>
       </Stack>
     </Box>
