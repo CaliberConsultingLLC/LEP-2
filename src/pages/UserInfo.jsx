@@ -299,7 +299,10 @@ function UserInfo() {
             }),
       }}
     >
-      <ProcessTopRail />
+      <ProcessTopRail
+        titleOverride="Create your Compass account"
+        subtitleOverride="This creates a login so you can leave and come back. We'll ask for your role and team context next."
+      />
       <CompassLayout>
       <Container
         maxWidth={false}
@@ -340,7 +343,7 @@ function UserInfo() {
                 color: useCairnTheme ? isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' : 'text.primary',
               }}
             >
-              Compass Profile
+              Your account
             </Typography>
             <Typography
               sx={{
@@ -351,7 +354,7 @@ function UserInfo() {
                 color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.64)' : 'var(--ink-soft, #44566C)' : 'text.secondary',
               }}
             >
-              Set up your Compass profile so we can personalize your journey.
+              Name, email, and password — this is a login, not your leadership situation yet.
             </Typography>
             {!useCairnTheme && <Alert severity="info" sx={{ mb: 3, fontFamily: 'Gemunu Libre, sans-serif' }}>
               Compass does not share your profile information or assessment results with other users or company leadership/HR without explicit authorization.

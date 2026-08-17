@@ -1498,7 +1498,7 @@ function IntakeForm() {
         metaOverride={intakeHeaderMeta}
         titleOverride={isProfileDetailsStep ? 'Profile Details' : undefined}
         subtitleOverride={isProfileDetailsStep
-          ? 'These details shape how the Compass agent reads your context. Every leader sits in a different spot — industry, team size, and tenure change the insights you receive.'
+          ? 'Name the context that shapes the leadership work in front of you. These details shape how the Compass agent reads your context. Every leader sits in a different spot — industry, team size, and tenure change the insights you receive.'
           : undefined}
       />
 
