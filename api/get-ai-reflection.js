@@ -1,34 +1,83 @@
 import { OpenAI } from 'openai';
-import fs from 'fs';
-import path from 'path';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-function pickThemeFromDrains(drains = []) {
-  const text = String((drains || []).join(' ').toLowerCase());
-  if (!text) return 'constant uncertainty and emotional friction';
-  if (/(conflict|mediating|concerns|unspoken|stakeholders)/.test(text)) return 'relational tension and unresolved people dynamics';
-  if (/(changes|priorities|direction|goals|clear)/.test(text)) return 'ambiguity and shifting priorities';
-  if (/(meetings|repeating|understanding|decode)/.test(text)) return 'communication loops that slow momentum';
-  if (/(inconsistent|contributions|performance)/.test(text)) return 'inconsistent execution and accountability drag';
-  return 'operational noise that drains your focus';
+function emptyResult() {
+  return { needsClarification: false, notice: '', questions: [] };
 }
 
-function pickAvoidancePattern(fuel = []) {
-  const text = String((fuel || []).join(' ').toLowerCase());
-  if (!text) return 'prolonged ambiguity where ownership stays unclear';
-  if (/(team gel|learned|recognition|succeed together)/.test(text)) return 'disconnected team moments where alignment is weak';
-  if (/(project|time|chaos|order|on time)/.test(text)) return 'unstructured situations where standards blur';
-  if (/(problem no one else could|solving)/.test(text)) return 'shared problem-solving when roles are unclear';
-  return 'situations that dilute clarity and collective ownership';
+function extractFirstJsonObject(text) {
+  const input = String(text || '').trim();
+  if (!input) return null;
+  const fenced = input.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced ? fenced[1].trim() : input;
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    const start = candidate.indexOf('{');
+    const end = candidate.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(candidate.slice(start, end + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
 }
 
-function buildFirstReflection(body) {
-  const drainsTheme = pickThemeFromDrains(body?.energyDrains || []);
-  const avoidTheme = pickAvoidancePattern(body?.leaderFuel || []);
-  const sentence = `You are drained by ${drainsTheme} and seem to avoid ${avoidTheme}. That pattern can quietly narrow how boldly and consistently you lead.`;
-  return sentence.length <= 250 ? sentence : sentence.slice(0, 247).trimEnd() + '...';
+function compactIntake(body = {}) {
+  const societal = Array.isArray(body.societalResponses) ? body.societalResponses : [];
+  const societalLabels = Array.isArray(body.societalLabels) ? body.societalLabels : [];
+  return {
+    industry: body.industry || '',
+    role: body.role || '',
+    teamSize: body.teamSize || '',
+    leadershipExperience: body.leadershipExperience || '',
+    careerExperience: body.careerExperience || '',
+    resourcePick: body.resourcePick || '',
+    projectApproach: body.projectApproach || '',
+    energyDrains: body.energyDrains || [],
+    crisisResponse: body.crisisResponse || [],
+    pushbackFeeling: body.pushbackFeeling || [],
+    roleModelTrait: body.roleModelTrait || '',
+    warningLabel: body.warningLabel || '',
+    leaderFuel: body.leaderFuel || [],
+    proudMoment: body.proudMoment || '',
+    behaviorDichotomies: body.behaviorDichotomies || [],
+    visibilityComfort: body.visibilityComfort || '',
+    decisionPace: body.decisionPace || '',
+    teamPerception: body.teamPerception || '',
+    societal: societal.map((score, index) => ({
+      item: societalLabels[index] || `instinct_${index + 1}`,
+      score,
+    })),
+  };
+}
+
+function normalizeResult(raw) {
+  const questions = Array.isArray(raw?.questions)
+    ? raw.questions
+        .slice(0, 2)
+        .map((q, index) => ({
+          id: String(q?.id || `c${index + 1}`).trim() || `c${index + 1}`,
+          prompt: String(q?.prompt || '').trim(),
+          relatedSignals: Array.isArray(q?.relatedSignals)
+            ? q.relatedSignals.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 4)
+            : [],
+        }))
+        .filter((q) => q.prompt)
+    : [];
+  const needsClarification = questions.length > 0 && raw?.needsClarification !== false;
+  if (!needsClarification || !questions.length) return emptyResult();
+  return {
+    needsClarification: true,
+    notice: String(raw?.notice || '').trim()
+      || 'We noticed something that could be read two ways. Want to clarify before we lock the five?',
+    questions,
+  };
 }
 
 export default async function handler(req, res) {
@@ -40,7 +89,7 @@ export default async function handler(req, res) {
 
   const rate = applyRateLimit(req, res, {
     action: 'get-ai-reflection',
-    limit: 60,
+    limit: 40,
     windowMs: 60_000,
   });
   if (!rate.allowed) {
@@ -51,99 +100,70 @@ export default async function handler(req, res) {
     if (!ensureJsonObjectBody(req, res)) {
       return;
     }
-    const body = req.body || {};
 
-    // Always use blunt friend
-    const selectedAgent = 'bluntPracticalFriend';
-
-    // load agent identity
-    const identityPath = path.join(process.cwd(), 'api', 'AgentIdentity.txt');
-    let agentIdentity = '';
-    try {
-      agentIdentity = fs.readFileSync(identityPath, 'utf8');
-    } catch {}
-    const cleanIdentity = String(agentIdentity || '').replace(/\r/g, '').trim();
-
-    // Agent definition (subset: just bluntPracticalFriend)
-    const agent = {
-      prompt: `You are a blunt, practical friend. Direct, observational, no fluff.`,
-      params: { temperature: 0.7, frequency_penalty: 0.3, presence_penalty: 0.2 },
-    };
-
-    const reflectionNumber = Number(body.reflectionNumber || 1);
-    
-    let systemPrompt = '';
-    if (reflectionNumber === 1) {
-      const deterministicObservation = buildFirstReflection(body);
-      return res.status(200).json({ reflection: deterministicObservation });
-    } else {
-      systemPrompt = `
-${agent.prompt}
-You are the Compass Reflection Agent — a blunt, practical friend who notices patterns in leadership style.
-
-You've just reviewed their warning label (what their leadership style warns about) and their highlight reel (a significant team accomplishment).
-
-Your job: deliver ONE short, punchy observation (under 250 characters) that synthesizes these two responses together to reveal a fresh perspective. DO NOT simply restate what they said. Instead, connect the dots between their warning label and their proud moment to reveal something they might not have noticed.
-
-FOCUS:
-- Use ONLY their warningLabel (their leadership warning label) and proudMoment (their significant team accomplishment description)
-- SYNTHESIZE the two responses - find the connection, pattern, or tension between them
-- Provide a NEW perspective that they might not have considered
-- Reveal what these two responses say about their leadership when viewed together
-
-STRUCTURE:
-- Start with an observation that connects both responses
-- Reveal a pattern, tension, or insight that emerges when viewing them together
-- Be punchy and fresh - avoid generic statements
-- DO NOT end with a question - the only question is in the text box below
-
-TONE:
-- Confident, conversational, human.
-- Use real-world language, not corporate buzzwords.
-- Sharp and insightful - like you're pointing out something they didn't see
-- Fresh perspective, not a restatement
-
-RULES:
-- Max 250 characters total.
-- NO questions in the reflection text
-- NO advice, coaching, or directives
-- Avoid "should", "try", "consider", "need to", "must", "recommend"
-- NO direct restatement of their answers
-- NO generic observations
-- Must synthesize both responses into a new insight
-- Be punchy and fresh
-
-=== AGENT_IDENTITY ===
-${cleanIdentity}
-=== END IDENTITY ===
-`.trim();
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(200).json(emptyResult());
     }
 
-    const userPrompt = `Here is the intake data so far (profile + behaviors):\n${JSON.stringify(
-      body,
-      null,
-      2
-    )}`;
+    const intake = compactIntake(req.body || {});
+    const systemPrompt = `
+You are the Compass intake check. Your only job is to decide whether the finished intake has a resolvable ambiguity that would change the five trait recommendations.
+
+DEFAULT: return needsClarification=false and questions=[]. Most intakes should skip.
+
+ASK only when BOTH are true:
+1) Two answers on the SAME construct pull apart (likely misclick, confusion, or a correction the user would want to make), OR the five traits would rest on thin/conflicting evidence for a specific named signal.
+2) A short open question would actually help lock the five.
+
+DO NOT ASK for:
+- Productive tension (speed vs care, warning label vs proud moment, Balance Line poles that simply describe this leader).
+- Coverage gaps in the instrument.
+- Generic "tell us more about your leadership".
+- Anything already answered in proudMoment.
+
+TONE
+- Curious, not accusatory. Never imply they were wrong, sloppy, or testing the tool.
+- Frame as noticing, then offering a chance to clarify.
+- Each question must name the two signals in plain language.
+
+OUTPUT JSON ONLY:
+{
+  "needsClarification": false,
+  "notice": "",
+  "questions": [
+    {
+      "id": "c1",
+      "prompt": "You chose X and also Y. Which is closer to how you actually operate under pressure?",
+      "relatedSignals": ["warningLabel", "decisionPace"]
+    }
+  ]
+}
+
+Rules:
+- 0 questions unless the bar above is met. Max 2.
+- notice: one or two sentences, spoken to the user, if you are asking.
+- prompts: under 220 characters, one question each, open-ended.
+`.trim();
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      max_tokens: 250, // ~250 characters
-      temperature: agent.params.temperature,
-      frequency_penalty: agent.params.frequency_penalty,
-      presence_penalty: agent.params.presence_penalty,
+      max_tokens: 420,
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        { role: 'user', content: `FINISHED INTAKE (JSON)\n${JSON.stringify(intake)}` },
       ],
     });
 
-    let text = completion?.choices?.[0]?.message?.content?.trim() || '';
-    // enforce 250 chars max
-    if (text.length > 250) text = text.slice(0, 250).trim();
-
-
-    return res.status(200).json({ reflection: text });
+    const raw = extractFirstJsonObject(completion?.choices?.[0]?.message?.content || '');
+    return res.status(200).json(normalizeResult(raw));
   } catch (err) {
-    return safeServerError(res, 'Reflection AI error:', err);
+    console.warn('Intake clarification check failed:', err?.message || err);
+    try {
+      return res.status(200).json(emptyResult());
+    } catch {
+      return safeServerError(res, 'Reflection AI error:', err);
+    }
   }
 }

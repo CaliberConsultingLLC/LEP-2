@@ -6,6 +6,15 @@ EVIDENCE RUBRIC
 - Explicitly note one productive pattern and one costly pattern.
 `.trim();
 
+const CLARIFICATION_RULES = `
+CLARIFICATION INTERPRETATION
+- If intakeClarification is missing, ignore this section.
+- Structured answers (clicks, ranks, sliders) are the primary evidence. Open text is not automatically weightier because it is prose.
+- If resolution is "both_accurate", "none", or "check_failed", keep existing tensions. Do not flatten them.
+- If the user wrote a clarification that corrects or disambiguates a named prior answer, treat that write-in as the intended meaning for those relatedSignals when forming insights and the five focusRecommendations. Do not claim the stored clicks changed; interpret as if those signals now mean what the user clarified.
+- Ignore asides that do not address the named conflict.
+`.trim();
+
 export const buildInsightExtractionSystemPrompt = ({ agentIdentity }) => `
 ROLE
 You are the Compass Insight Extractor. Your task is to turn intake data into high-quality, non-generic insight evidence.
@@ -26,6 +35,8 @@ ${agentIdentity}
 export const buildInsightExtractionUserPrompt = (body, traitCatalog = []) => `
 INTAKE DATA (JSON)
 ${JSON.stringify(body)}
+
+${CLARIFICATION_RULES}
 
 VALID FOCUS SUBTRAITS (use names from this catalog)
 ${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
@@ -170,66 +181,14 @@ ${agentPrompt}
 ${voiceGuide}
 `.trim();
 
-export const buildInsightExtractionUserPrompt = (body, traitCatalog = []) => `
-INTAKE DATA (JSON)
-${JSON.stringify(body)}
-
-VALID FOCUS SUBTRAITS (use names from this catalog)
-${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
-
-Return strict JSON with this exact shape:
-{
-  "leadershipMirror": "2-3 sentence identity-level mirror",
-  "protectivePattern": "single sentence describing the pattern that keeps this leader safe",
-  "pressurePattern": "single sentence describing how stress distorts behavior",
-  "peopleImpact": "single sentence about likely team-level impact",
-  "performanceImpact": "single sentence about likely performance-level impact",
-  "hiddenTradeoff": "single sentence describing what this approach protects and what it costs",
-  "teamLikelyFeels": ["", "", ""],
-  "whatThisLeaderOveruses": ["", "", ""],
-  "whatThisLeaderAvoids": ["", "", ""],
-  "futureRiskIfUnchanged": "2-3 sentence downside trajectory",
-  "coreStrengths": [{"label":"", "evidence":["",""], "implication":""}],
-  "coreTensions": [{"label":"", "evidence":["",""], "implication":""}],
-  "blindSpots": [{"label":"", "evidence":["",""], "teamImpact":""}],
-  "contradictionMap": [{"tension":"", "cause":"", "effect":""}],
-  "trajectory": {
-    "bestCase": "2-3 sentences",
-    "driftCase": "2-3 sentences"
-  },
-  "focusRecommendations": [
-    {
-      "subTraitName": "",
-      "parentTraitHint": "",
-      "rationale": ""
-    }
-  ],
-  "languageAvoid": ["phrase1", "phrase2"],
-  "confidence": {
-    "overall": "high|medium|low",
-    "trailhead": "high|medium|low",
-    "trajectory": "high|medium|low"
-  }
-}
-
-Constraints:
-- 3 coreStrengths, 3 coreTensions, 3 blindSpots.
-- 2 contradictionMap entries.
-- 5 focusRecommendations.
-- focusRecommendations must use ONLY names from VALID FOCUS SUBTRAITS above.
-- Do NOT recommend Audience Adaptability, Competitive Intelligence, Negotiation, Mentoring, Future Orientation, Long-Term Planning, or Partnership Building (excluded from middle-manager intake scoring).
-- Prefer Decision Quality & Pace (merged Decision Speed + Decision Quality) when decision timing/quality is the opportunity.
-- If evidence for a subtrait is thin, set confidence fields to "low" or "medium" and avoid strong claims in rationale.
-- "evidence" items must be short reworded observations, not copied answer text.
-- Keep all fields concise and concrete.
-`.trim();
-
 export const buildSummaryNarrativeUserPrompt = ({ insightMap, focusAreas = [], contextSnapshot = {} }) => `
 INSIGHT MAP (JSON)
 ${JSON.stringify(insightMap, null, 2)}
 
 CONTEXT SNAPSHOT (use when relevant for specificity)
 ${JSON.stringify(contextSnapshot, null, 2)}
+
+${CLARIFICATION_RULES}
 
 PROFILE INTERPRETATION RULE
 - Use profile context to sharpen specificity and realism.

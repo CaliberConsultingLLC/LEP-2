@@ -415,7 +415,12 @@ function Summary() {
   useEffect(() => {
     // Cairn/staging is a static review path: never regenerate the summary or
     // prefetch a live campaign unless this page is running outside Cairn.
-    if (useCairnTheme) {
+    const liveFromIntake = Boolean(
+      state?.liveIntake
+      || formDataFromRoute?.intakeClarification
+      || (formDataFromRoute?.societalResponses && state?.formData)
+    );
+    if (useCairnTheme && !liveFromIntake) {
       const cachedSummary = (localStorage.getItem('aiSummary') || '').trim();
       let focusAreasValid = false;
       try {

@@ -152,11 +152,12 @@ export function seedStagingData() {
   localStorage.setItem('latestFormData', JSON.stringify(formData));
 
   localStorage.setItem('intakeDraft', JSON.stringify({
+    draftVersion: 2,
     formData,
     societalResponses: formData.societalResponses,
     currentStep: 3,
-    reflectionNumber: 1,
-    reflectionText: '',
+    clarification: { needsClarification: false, notice: '', questions: [] },
+    clarificationAnswers: {},
     societalQuestionIndex: 0,
   }));
 

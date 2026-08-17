@@ -1004,6 +1004,7 @@ ${((personaInterpretiveLens[selectedAgent] || personaInterpretiveLens.balancedMe
       warningLabel: body?.warningLabel || '',
       teamPerception: body?.teamPerception || '',
       decisionPace: body?.decisionPace || '',
+      intakeClarification: body?.intakeClarification || null,
     };
     const narrativeUser = buildSummaryNarrativeUserPrompt({ insightMap, focusAreas, contextSnapshot });
     const completion = await openai.chat.completions.create({
