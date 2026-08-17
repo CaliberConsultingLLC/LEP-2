@@ -121,6 +121,19 @@ export const chapterEyebrow = (index) => `${chapterText(index)} · ${JOURNEY_STA
 /** Same-chapter handoffs that still deserve the map popup. */
 export const FLOW_HANDOFFS = [
   {
+    id: 'profile-to-guide',
+    fromPrefix: '/form',
+    fromStage: 'profile',
+    toPrefix: '/guide-select',
+    fromIndex: 0,
+    toIndex: 0,
+    fromLabel: 'Your context',
+    completeBlurb: 'Setup is done: who you are and the work you lead. Next you pick the voice that will talk to you for the year. This does not change your answers — only the tone of the writeup and later notes.',
+    toLabel: 'Your guide',
+    blurb: 'Choose the guide whose voice fits you. You can change it later.',
+    arriveHint: 'Then the intake begins — about 23 questions, roughly 15 minutes.',
+  },
+  {
     id: 'summary-to-traits',
     fromPrefix: '/summary',
     toPrefix: '/trait-selection',
@@ -170,9 +183,16 @@ export const FLOW_HANDOFFS = [
   },
 ];
 
-export const matchFlowHandoff = (fromPath = '', toPath = '') => (
-  FLOW_HANDOFFS.find((step) => fromPath.startsWith(step.fromPrefix) && toPath.startsWith(step.toPrefix)) || null
-);
+export const matchFlowHandoff = (fromPath = '', toPath = '', fromSearch = '', toSearch = '') => {
+  const fromStage = String(new URLSearchParams(fromSearch || '').get('stage') || '').trim().toLowerCase();
+  const toStage = String(new URLSearchParams(toSearch || '').get('stage') || '').trim().toLowerCase();
+  return FLOW_HANDOFFS.find((step) => {
+    if (!fromPath.startsWith(step.fromPrefix) || !toPath.startsWith(step.toPrefix)) return false;
+    if (step.fromStage && fromStage !== step.fromStage) return false;
+    if (step.toStage && toStage !== step.toStage) return false;
+    return true;
+  }) || null;
+};
 
 export const readJourneyJson = (key, fallback) => {
   try {

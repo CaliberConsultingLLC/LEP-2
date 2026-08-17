@@ -287,7 +287,7 @@ function GuideSelect() {
               },
             }}
           >
-            Begin Your Journey
+            Continue with {active.name}
             <Box component="span" sx={{ fontSize: '1.2rem', lineHeight: 1 }}>→</Box>
           </Box>
 

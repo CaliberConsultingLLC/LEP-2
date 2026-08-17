@@ -44,6 +44,7 @@ export default function JourneyCeremonyGate() {
   const previousIndex = useRef(currentIndex);
   const previousTab = useRef(null);
   const previousPath = useRef(location.pathname || '');
+  const previousSearch = useRef(location.search || '');
   const suppressInitialFlow = useRef(true);
   const ceremonyOpenRef = useRef(false);
   const userInfo = readJourneyJson('userInfo', {});
@@ -64,10 +65,11 @@ export default function JourneyCeremonyGate() {
       previousIndex.current = currentIndex;
       previousTab.current = tab;
       previousPath.current = path;
+      previousSearch.current = location.search || '';
       return;
     }
 
-    const intraChapter = matchFlowHandoff(prevPath, path);
+    const intraChapter = matchFlowHandoff(prevPath, path, previousSearch.current, location.search || '');
     if (intraChapter && !seen[intraChapter.id] && !ceremonyOpenRef.current) {
       nextCeremony = {
         fromIndex: intraChapter.fromIndex,
@@ -118,6 +120,7 @@ export default function JourneyCeremonyGate() {
     previousIndex.current = currentIndex;
     previousTab.current = tab;
     previousPath.current = path;
+    previousSearch.current = location.search || '';
   }, [currentIndex, location.pathname, location.search]);
 
   return (
