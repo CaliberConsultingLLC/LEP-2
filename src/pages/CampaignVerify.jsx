@@ -418,7 +418,10 @@ function CampaignVerify() {
 
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
-        <ProcessTopRail />
+        <ProcessTopRail
+          titleOverride="Self-assessment"
+          subtitleOverride="Rate yourself, then invite the team. One primary action on this page."
+        />
         <CompassLayout>
           <Box
             sx={{
@@ -434,10 +437,10 @@ function CampaignVerify() {
           >
             <Box sx={{ width: '100%' }}>
               <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.75 }}>
-                Campaign is Ready!
+                Self-assessment
               </Typography>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.6 }}>
-                Complete your personal benchmark first, then share the team campaign link with your team.
+                Rate yourself on the same statements your team will see, then invite them. Do not share the self-assessment link with your team.
               </Typography>
             </Box>
 
@@ -451,7 +454,7 @@ function CampaignVerify() {
                 </Box>
                 <Box sx={{ textAlign: 'left' }}>
                   <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
-                    Your Personal Benchmark
+                    Self-assessment
                   </Typography>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)' }}>
                     Rate yourself on the same statements your team will see.
@@ -475,13 +478,13 @@ function CampaignVerify() {
                 }}
               >
                 <TrendingUp sx={{ fontSize: 17 }} />
-                Start My Growth Campaign
+                Start self-assessment
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>
-                    Self-Assessment Link
+                    For you, not for your team
                   </Typography>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selfCampaignLink || 'Generating…'}
@@ -521,10 +524,12 @@ function CampaignVerify() {
                 </Box>
                 <Box sx={{ textAlign: 'left' }}>
                   <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
-                    Team Campaign {selfCompleted ? '(Unlocked)' : '(Complete benchmark first)'}
+                    Team invite {selfCompleted ? '(Unlocked)' : '(Locked)'}
                   </Typography>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)' }}>
-                    Share this link with your team once your benchmark is done.
+                    {selfCompleted
+                      ? 'Share this link with your team. It is a different link than the one above.'
+                      : 'This unlocks after you finish your self-assessment.'}
                   </Typography>
                 </Box>
               </Box>
@@ -549,7 +554,7 @@ function CampaignVerify() {
               ) : (
                 <Box sx={{ p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-100, #F3EAD8)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
                   <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.84rem', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
-                    Complete your personal benchmark to unlock the team campaign link.
+                    Finish your self-assessment first. The team link stays locked until then.
                   </Typography>
                 </Box>
               )}
@@ -622,7 +627,7 @@ function CampaignVerify() {
                 textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
               }}
             >
-              Campaign is Ready!
+              Self-assessment
             </Typography>
             <Typography
               sx={{
@@ -635,7 +640,7 @@ function CampaignVerify() {
                 lineHeight: 1.6,
               }}
             >
-              Your campaign is built. Complete your personal benchmark first, then share the team campaign.
+              Rate yourself on the same statements your team will see, then invite them. Do not share the self-assessment link with your team.
             </Typography>
           </Box>
 
@@ -662,11 +667,10 @@ function CampaignVerify() {
                 <Paper sx={{ p: 2.2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.28)', background: 'linear-gradient(160deg, rgba(255,255,255,0.95), rgba(255,248,238,0.9))' }}>
                   <Stack spacing={1.3}>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '1.2rem', fontWeight: 800, color: 'text.primary' }}>
-                      Complete your personal benchmark campaign
+                      Start your self-assessment
                     </Typography>
                     <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.96rem', color: 'text.secondary', lineHeight: 1.6 }}>
-                      This is the same campaign structure your team will see, but rewritten in first person so you can score yourself directly.
-                      We store your benchmark responses separately from team responses and use that comparison in Perception Gap metrics.
+                      This is the same campaign structure your team will see, rewritten so you can score yourself. Team responses stay separate.
                     </Typography>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.3}>
                       <Button
@@ -675,7 +679,7 @@ function CampaignVerify() {
                         onClick={() => navigate(`/campaign/${selfCampaignId}`)}
                         sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 2.2, py: 1 }}
                       >
-                        Start My Growth Campaign
+                        Start self-assessment
                       </Button>
                       {selfCompleted && (
                         <Button
@@ -734,7 +738,7 @@ function CampaignVerify() {
 
                 <Paper sx={{ p: 2.1, borderRadius: 2, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.84)' }}>
                   <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.06rem', color: 'text.primary', mb: 1 }}>
-                    Team Campaign Access {selfCompleted ? '(Unlocked)' : '(Locked until your benchmark is complete)'}
+                    Team invite {selfCompleted ? '(Unlocked)' : '(Locked until self-assessment is done)'}
                   </Typography>
                   <Stack spacing={1.2}>
                     <TextField
