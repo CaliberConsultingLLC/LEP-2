@@ -116,6 +116,7 @@ export default function JourneyCeremonyGate() {
     if (nextCeremony) {
       ceremonyOpenRef.current = true;
       try { sessionStorage.setItem('journeyCeremonyOpen', '1'); } catch { /* ignore */ }
+      try { window.dispatchEvent(new CustomEvent('compass:journey-ceremony-start')); } catch { /* ignore */ }
       setCeremony(nextCeremony);
     }
     previousIndex.current = currentIndex;
@@ -137,6 +138,7 @@ export default function JourneyCeremonyGate() {
         markSeen(ceremony?.seenKey);
         ceremonyOpenRef.current = false;
         try { sessionStorage.removeItem('journeyCeremonyOpen'); } catch { /* ignore */ }
+        try { window.dispatchEvent(new CustomEvent('compass:journey-ceremony-done')); } catch { /* ignore */ }
         setCeremony(null);
       }}
     />

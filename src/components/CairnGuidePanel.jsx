@@ -11,6 +11,7 @@ function CairnGuidePanel({
   children,
   owlPose,
   moreLabel = 'More Guidance',
+  presenceOnly = false,
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -86,6 +87,7 @@ function CairnGuidePanel({
         p: 2.1,
         pointerEvents: 'auto',
         backdropFilter: 'blur(10px)',
+        display: presenceOnly ? 'none' : 'block',
         '&:after': {
           content: '""',
           position: 'absolute',

@@ -21,6 +21,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
+import SummaryBriefingModal from '../components/SummaryBriefingModal';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -29,9 +30,10 @@ import { intakeContext } from '../data/intakeContext';
 import { scoreIntakeAgainstCoverage, isEligibleForFocusRecommendation } from '../data/intakeTraitCoverage';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { colors, fonts, radii, shadows } from '../styles/tokens';
+import { colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
+import { getSummaryBriefing } from '../data/guideBriefings';
 
 
 function Summary() {
@@ -53,6 +55,7 @@ function Summary() {
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState('');
   const [activeJourneyStep, setActiveJourneyStep] = useState(0);
+  const [briefingOpen, setBriefingOpen] = useState(false);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
   const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
@@ -476,6 +479,45 @@ function Summary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personaId]);
 
+  const currentStageId = ['trailhead', 'markers', 'hazards', 'new-trail'][activeJourneyStep] || 'trailhead';
+  const briefingFirstName = userName ? userName.split(' ')[0] : '';
+
+  useEffect(() => {
+    if (!useCairnTheme || isLoading) return undefined;
+    const readSeen = () => {
+      try { return JSON.parse(sessionStorage.getItem('summaryBriefingSeen') || '{}'); }
+      catch { return {}; }
+    };
+    const ceremonyOpen = () => {
+      try { return sessionStorage.getItem('journeyCeremonyOpen') === '1'; }
+      catch { return false; }
+    };
+    if (readSeen()[currentStageId]) {
+      setBriefingOpen(false);
+      return undefined;
+    }
+    const show = () => {
+      if (readSeen()[currentStageId]) return;
+      if (ceremonyOpen()) return;
+      setBriefingOpen(true);
+    };
+    window.addEventListener('compass:journey-ceremony-done', show);
+    const timer = window.setTimeout(show, 180);
+    return () => {
+      window.removeEventListener('compass:journey-ceremony-done', show);
+      window.clearTimeout(timer);
+    };
+  }, [currentStageId, isLoading]);
+
+  const dismissBriefing = () => {
+    try {
+      const seen = JSON.parse(sessionStorage.getItem('summaryBriefingSeen') || '{}');
+      seen[currentStageId] = true;
+      sessionStorage.setItem('summaryBriefingSeen', JSON.stringify(seen));
+    } catch { /* ignore */ }
+    setBriefingOpen(false);
+  };
+
   const openAgentMenu = (event) => {
     setAgentMenuAnchor(event.currentTarget);
   };
@@ -826,12 +868,6 @@ function Summary() {
 
     const firstName = userName ? userName.split(' ')[0] : '';
 
-    const stageDefinitions = [
-      ['Reflecting on Current Reality', 'A current-state mirror of what may be shaping your leadership right now.'],
-      ['Noticing Patterns', 'Recurring signals that may become visible to others when pressure rises.'],
-      ['Understanding the Cost', 'Possible consequences to watch for, not fixed outcomes or labels.'],
-      ['Pivoting Towards Growth', 'Leverage points you can choose from, not flaws you need to fix all at once.'],
-    ];
     const splitSentences = (text) => String(text || '')
       .replace(/\*\*/g, '')
       .split(/(?<=[.!?])\s+/)
@@ -963,20 +999,10 @@ function Summary() {
         setHidden={setHidden}
         toggleHidden={toggleHidden}
         isDark={isDark}
-        commentary={`${firstName || 'Alex'}, read your following summary slowly. Notice what resonates and what chafes - both are meaningful. Remember, this is not a label, score, or diagnosis. It's a reflection that will prove valuable.`}
-        owlPose={persona.poses.idle}
-      >
-        {stageDefinitions.map(([title, body]) => (
-          <Box key={title} sx={{ mb: 1.15 }}>
-            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.76rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', lineHeight: 1.3 }}>
-              {title}
-            </Typography>
-            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.72rem', lineHeight: 1.45, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
-              {body}
-            </Typography>
-          </Box>
-        ))}
-      </CairnGuidePanel>
+        presenceOnly
+        commentary=""
+        owlPose={persona.poses.read || persona.poses.idle}
+      />
     );
 
     const STAGE_VISUAL = {
@@ -1231,19 +1257,50 @@ function Summary() {
                   width: '100%',
                   maxHeight: { md: '100%' },
                   position: 'relative',
+                  mt: '48px',
+                  mb: '14px',
                   border: `1px solid ${colors.sand200}`,
                   borderRadius: radii.lg,
                   boxShadow: shadows.card,
-                  overflow: 'hidden',
+                  overflow: 'visible',
                   bgcolor: colors.surface1,
                   background: `linear-gradient(180deg, ${activeVisual.wash} 0%, rgba(255,255,255,0) 46%), ${colors.surface1}`,
                   px: { xs: '22px', md: '36px' },
-                  pt: { xs: '28px', md: '32px' },
+                  pt: { xs: '36px', md: '40px' },
                   pb: '20px',
                   display: 'flex',
                   flexDirection: 'column',
+                  '&:after': {
+                    content: '""',
+                    position: 'absolute',
+                    right: { xs: 48, md: 72 },
+                    bottom: -10,
+                    width: 18,
+                    height: 18,
+                    bgcolor: colors.surface1,
+                    borderRight: `1px solid ${colors.sand200}`,
+                    borderBottom: `1px solid ${colors.sand200}`,
+                    transform: 'rotate(45deg)',
+                    zIndex: 2,
+                  },
                 }}
               >
+                <Box
+                  component="img"
+                  src={persona.poses.read || persona.poses.idle}
+                  alt=""
+                  aria-hidden
+                  sx={{
+                    position: 'absolute',
+                    right: { xs: 4, md: 10 },
+                    top: -52,
+                    width: { xs: 88, md: 112 },
+                    height: 'auto',
+                    zIndex: 3,
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                  }}
+                />
                 <Typography
                   aria-hidden
                   sx={{
@@ -1319,6 +1376,16 @@ function Summary() {
                     }}
                   >
                     {activeStage.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      ...type.eyebrow,
+                      textAlign: 'center',
+                      mt: 0.85,
+                      color: colors.navy500,
+                    }}
+                  >
+                    {`${persona.name}, on your ${activeStage.label}`}
                   </Typography>
 
                   <Box
@@ -1627,6 +1694,13 @@ function Summary() {
             </Box>
           )}
         </CompassLayout>
+        <SummaryBriefingModal
+          open={briefingOpen}
+          persona={persona}
+          stageLabel={activeStage.label}
+          text={getSummaryBriefing(activeStage.id, personaId, firstName || briefingFirstName || 'Alex')}
+          onDone={dismissBriefing}
+        />
       </Box>
     );
   }
