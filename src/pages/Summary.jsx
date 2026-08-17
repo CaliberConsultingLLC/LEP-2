@@ -908,7 +908,7 @@ function Summary() {
       };
     };
     const getBackTarget = () => {
-      if (activeJourneyStep === 0) return { label: 'Assessment', action: () => navigate('/intake') };
+      if (activeJourneyStep === 0) return { label: 'Intake', action: () => navigate('/form?stage=intake') };
       return { label: cairnJourneyStages[activeJourneyStep - 1]?.label || 'Back', action: () => setActiveJourneyStep((s) => Math.max(0, s - 1)) };
     };
     const getNextTarget = () => {
