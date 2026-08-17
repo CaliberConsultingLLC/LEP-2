@@ -63,6 +63,7 @@ function CampaignVerify() {
     if (!text) return '';
 
     text = text
+      .replace(/\bmy leader\b/gi, 'I')
       .replace(/\bBrian\b/gi, 'I')
       .replace(/\bthe leader\b/gi, 'I')
       .replace(/\byour leader\b/gi, 'I')

@@ -26,6 +26,20 @@ import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '.
 import { useStepNav } from '../context/StepNavContext';
 import { useGuide } from '../context/GuideContext';
 import { colors, fonts, radii } from '../styles/tokens';
+
+function toSelfVoice(statement) {
+  let text = String(statement || '').trim();
+  if (!text) return '';
+  text = text
+    .replace(/\bmy leader\b/gi, 'I')
+    .replace(/\bthe leader\b/gi, 'I')
+    .replace(/\byour leader\b/gi, 'I');
+  if (!/\b(I|me|my|mine|myself)\b/i.test(text)) {
+    text = `I ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+  }
+  return text.replace(/\bI\s+([a-z]+)s\b/gi, (_, verb) => `I ${verb}`);
+}
+
 function CampaignSurvey() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -469,7 +483,7 @@ function CampaignSurvey() {
         <ProcessTopRail
           titleOverride={isSelfCampaign ? 'Self-Assessment' : 'Team Assessment'}
           subtitleOverride={isSelfCampaign
-            ? 'Rate how intentional and effective you are in each area — answer as you normally show up, not as you wish you did.'
+            ? 'These are the same sentences your team will see. You are the leader they describe — rate how you show up, not how you wish you did.'
             : 'You are here — rate how this leader shows up in each area. Answer from what you experience day to day.'}
           metaOverride={{ label: 'Question', value: `${currentQuestion + 1} / ${questions.length || 15}` }}
         />
@@ -496,7 +510,7 @@ function CampaignSurvey() {
               textAlign: 'center',
               mb: 2.5,
             }}>
-              {questions[currentQuestion]}
+              {isSelfCampaign ? toSelfVoice(questions[currentQuestion]) : questions[currentQuestion]}
             </Typography>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.75, mb: 1.75, width: '100%' }}>
@@ -701,7 +715,7 @@ function CampaignSurvey() {
                 maxWidth: 980,
               }}
             >
-              {questions[currentQuestion]}
+              {isSelfCampaign ? toSelfVoice(questions[currentQuestion]) : questions[currentQuestion]}
             </Typography>
           </Box>
 
