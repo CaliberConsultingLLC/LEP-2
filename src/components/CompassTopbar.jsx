@@ -20,9 +20,8 @@ const parseJson = (raw, fallback) => {
 };
 
 function GuidePill({ isDark }) {
-  const { personas, personaId, persona, setPersona } = useGuide();
+  const { personas, personaId, persona, setPersona, pickerOpen, setPickerOpen } = useGuide();
   const anchorRef = useRef(null);
-  const [open, setOpen] = useState(false);
 
   return (
     <>
@@ -30,9 +29,9 @@ function GuidePill({ isDark }) {
         component="button"
         type="button"
         ref={anchorRef}
-        onClick={() => setOpen(true)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
+          onClick={() => setPickerOpen(true)}
+          aria-haspopup="listbox"
+          aria-expanded={pickerOpen}
         aria-label={`Guide — ${persona.name}`}
         sx={{
           all: 'unset',
@@ -70,9 +69,9 @@ function GuidePill({ isDark }) {
       </Box>
 
       <Popover
-        open={open}
+        open={pickerOpen}
         anchorEl={anchorRef.current}
-        onClose={() => setOpen(false)}
+        onClose={() => setPickerOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
         slotProps={{
@@ -99,7 +98,7 @@ function GuidePill({ isDark }) {
                 type="button"
                 role="option"
                 aria-selected={selected}
-                onClick={() => { setPersona(p.id); setOpen(false); }}
+                onClick={() => { setPersona(p.id); setPickerOpen(false); }}
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',

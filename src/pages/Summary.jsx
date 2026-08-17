@@ -30,7 +30,7 @@ import { intakeContext } from '../data/intakeContext';
 import { scoreIntakeAgainstCoverage, isEligibleForFocusRecommendation } from '../data/intakeTraitCoverage';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { colors, fonts, radii, shadows, type } from '../styles/tokens';
+import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
 import { getSummaryBriefing } from '../data/guideBriefings';
@@ -58,7 +58,7 @@ function Summary() {
   const [briefingOpen, setBriefingOpen] = useState(false);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
-  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, openGuidePicker } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -1619,6 +1619,41 @@ function Summary() {
                           ))}
                         </Box>
                       )}
+                      <Box
+                        sx={{
+                          mt: 0.5,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 0.85,
+                          textAlign: 'center',
+                        }}
+                      >
+                        <Box
+                          component="button"
+                          type="button"
+                          onClick={openGuidePicker}
+                          sx={{
+                            ...buttons.secondary,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          Hear another guide
+                        </Box>
+                        <Typography
+                          sx={{
+                            fontFamily: fonts.sans,
+                            fontSize: 12.5,
+                            lineHeight: 1.45,
+                            color: colors.inkSoft,
+                            maxWidth: 420,
+                          }}
+                        >
+                          Want another perspective on the same reflection? One click. Same truth, different voice.
+                        </Typography>
+                      </Box>
                     </Box>
                   )}
 

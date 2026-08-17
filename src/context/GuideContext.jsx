@@ -42,6 +42,7 @@ export function GuideProvider({ children }) {
   // Pages can push a contextual message that overrides the rotating route bank.
   // Shape: { text: string, pose?: string, eyebrow?: string } | null
   const [pageMessage, setPageMessageState] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     writeState(state);
@@ -64,6 +65,8 @@ export function GuideProvider({ children }) {
   }, []);
 
   const clearPageMessage = useCallback(() => setPageMessageState(null), []);
+  const openGuidePicker = useCallback(() => setPickerOpen(true), []);
+  const closeGuidePicker = useCallback(() => setPickerOpen(false), []);
 
   const value = useMemo(
     () => ({
@@ -73,15 +76,19 @@ export function GuideProvider({ children }) {
       hasSelectedGuide: Boolean(state.selected),
       suppress,
       pageMessage,
+      pickerOpen,
       setPersona,
       toggleHidden,
       setHidden,
       setSuppress,
       setPageMessage,
       clearPageMessage,
+      openGuidePicker,
+      closeGuidePicker,
+      setPickerOpen,
       personas: SELECTABLE_GUIDE_PERSONAS,
     }),
-    [state, suppress, pageMessage, setPersona, toggleHidden, setHidden, setSuppress, setPageMessage, clearPageMessage],
+    [state, suppress, pageMessage, pickerOpen, setPersona, toggleHidden, setHidden, setSuppress, setPageMessage, clearPageMessage, openGuidePicker, closeGuidePicker],
   );
 
   return <GuideContext.Provider value={value}>{children}</GuideContext.Provider>;
@@ -98,12 +105,16 @@ export function useGuide() {
       hasSelectedGuide: false,
       suppress: false,
       pageMessage: null,
+      pickerOpen: false,
       setPersona: () => {},
       toggleHidden: () => {},
       setHidden: () => {},
       setSuppress: () => {},
       setPageMessage: () => {},
       clearPageMessage: () => {},
+      openGuidePicker: () => {},
+      closeGuidePicker: () => {},
+      setPickerOpen: () => {},
       personas: SELECTABLE_GUIDE_PERSONAS,
     };
   }
