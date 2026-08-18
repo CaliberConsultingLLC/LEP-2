@@ -183,20 +183,54 @@ const SIGNAL_ROWS = [
   { name: 'Strategic Patience', you: 6.9, team: 5.8, trend: '▼ −0.7', down: true },
 ];
 
+const GAP_ROWS = [
+  { name: 'Decisive Direction', you: 8.4, team: 6.1, delta: '−2.3' },
+  { name: 'Coaching', you: 7.2, team: 6.8, delta: '−0.4' },
+  { name: 'Strategic Patience', you: 6.9, team: 5.8, delta: '−1.1' },
+];
+
 const GUIDE_INSIGHTS = {
   gap: {
-    mentor:
-      'You gave yourself 8.4 because you decide fast. They gave you 6.1 because they find out afterward. Both are true.',
-    catalyst:
-      'That 2.3 is one habit wide — say the why before the what. Closable by the month-3 calibration.',
-    challenger:
-      'You experience decisiveness. They experience speed without a map. The −2.3 is what that costs you.',
-    bestFriend:
-      'They’re not saying you can’t decide. They’re saying they can’t see how you decide. That’s fixable.',
-    mother:
-      'A −2.3 on direction means they’re guessing what you want. Guessing wears a team down.',
-    roaster:
-      'An 8.4 self-score against their 6.1. The 2.3 in between? Every decision you made alone and called alignment.',
+    'Decisive Direction': {
+      mentor:
+        'You gave yourself 8.4 because you decide fast. They gave you 6.1 because they find out afterward. Both are true.',
+      catalyst:
+        'That 2.3 is one habit wide — say the why before the what. Closable by the month-3 calibration.',
+      challenger:
+        'You experience decisiveness. They experience speed without a map. The −2.3 is what that costs you.',
+      bestFriend:
+        'They’re not saying you can’t decide. They’re saying they can’t see how you decide. That’s fixable.',
+      mother:
+        'A −2.3 on direction means they’re guessing what you want. Guessing wears a team down.',
+      roaster:
+        'An 8.4 self-score against their 6.1. The 2.3 in between? Every decision you made alone and called alignment.',
+    },
+    Coaching: {
+      mentor:
+        'You’re close. A four-tenths gap on coaching is a conversation you haven’t had yet — not a verdict.',
+      catalyst: 'Nearly even. One more real coaching moment before month 3 and this one closes.',
+      challenger:
+        'You scored yourself 7.2. They gave 6.8. Close isn’t the same as true. Ask who you haven’t developed.',
+      bestFriend:
+        'They’re almost with you on this one. Almost is a gift — it means they want you to finish it.',
+      mother: 'You’re tending them. They’re asking for a little more time. You can give that.',
+      roaster:
+        'A −0.4. The smallest gap on the map. Don’t let that make you skip it — that’s how it grows.',
+    },
+    'Strategic Patience': {
+      mentor:
+        'You feel patient. They feel the wait without the why. Name the pause, and it becomes leadership instead of delay.',
+      catalyst:
+        'Patience down a point. Speed is a gift until the team can’t see where you’re going with it.',
+      challenger:
+        'A −1.1 on patience. You call it urgency. They call it being rushed. Which one is the room living in?',
+      bestFriend:
+        'They’re not asking you to slow down forever. They’re asking to catch up. That’s fair.',
+      mother:
+        'Urgency without rest wears a team thin. A little more air in the room, and they’ll meet you there.',
+      roaster:
+        'You 6.9, them 5.8. You think you’re waiting. They think you’re already gone. Cute mismatch.',
+    },
   },
   signals: {
     mentor: 'Coaching rose 1.6 in one season. That isn’t a number moving — that’s trust moving.',
@@ -249,40 +283,65 @@ function SectionRule({ label }) {
   );
 }
 
+function MeterPair({ you, team }) {
+  return (
+    <div>
+      <div className="cl-signal-label">
+        <span>YOU</span>
+        <span>{you.toFixed(1)}</span>
+      </div>
+      <div className="cl-signal-meter">
+        <span style={{ width: `${you * 10}%` }} />
+      </div>
+      <div className="cl-signal-label team">
+        <span>TEAM</span>
+        <span>{team.toFixed(1)}</span>
+      </div>
+      <div className="cl-signal-meter team">
+        <span style={{ width: `${team * 10}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function SignalRow({ row }) {
   return (
     <div className="cl-signal-row">
       <span className="cl-signal-name">{row.name}</span>
-      <div>
-        <div className="cl-signal-label">
-          <span>YOU</span>
-          <span>{row.you.toFixed(1)}</span>
-        </div>
-        <div className="cl-signal-meter">
-          <span style={{ width: `${row.you * 10}%` }} />
-        </div>
-        <div className="cl-signal-label team">
-          <span>TEAM</span>
-          <span>{row.team.toFixed(1)}</span>
-        </div>
-        <div className="cl-signal-meter team">
-          <span style={{ width: `${row.team * 10}%` }} />
-        </div>
-      </div>
+      <MeterPair you={row.you} team={row.team} />
       <span className={`cl-signal-trend${row.down ? ' is-down' : ''}`}>{row.trend}</span>
     </div>
+  );
+}
+
+function GapRow({ row, selected, onSelect }) {
+  return (
+    <button
+      type="button"
+      className={`cl-gap-row${selected ? ' is-active' : ''}`}
+      aria-pressed={selected}
+      onClick={() => onSelect(row.name)}
+    >
+      <span className="cl-signal-name">{row.name}</span>
+      <MeterPair you={row.you} team={row.team} />
+      <span className="cl-gap-delta">{row.delta}</span>
+    </button>
   );
 }
 
 export default function CompassLanding() {
   const navigate = useNavigate();
   const [waypoint, setWaypoint] = useState(0);
-  const [activeGuide, setActiveGuide] = useState(null);
+  const [activeGuide, setActiveGuide] = useState('mentor');
   const [showcase, setShowcase] = useState('gap');
+  const [gapTrait, setGapTrait] = useState('Decisive Direction');
 
   const wp = WAYPOINTS[waypoint];
-  const selectedId = activeGuide || 'mentor';
-  const guide = GUIDES.find((g) => g.id === selectedId);
+  const guide = GUIDES.find((g) => g.id === activeGuide);
+  const railQuote =
+    showcase === 'gap'
+      ? GUIDE_INSIGHTS.gap[gapTrait][activeGuide]
+      : GUIDE_INSIGHTS[showcase][activeGuide];
 
   const startJourney = () => navigate('/user-info');
 
@@ -318,9 +377,9 @@ export default function CompassLanding() {
       <header className="cl-hero">
         <span className="cl-eyebrow">NOT A COURSE. NOT A COACH. AN EXPEDITION.</span>
         <h1>
-          <em>Your team sees everything.</em>
+          <em>Leaders don&apos;t follow paths.</em>
           <br />
-          <span className="cl-gold">They tell you nothing.</span>
+          <em className="cl-gold">They set them.</em>
         </h1>
         <p className="cl-hero-sub">
           Compass gets the truth out — anonymously — and turns it into your year of growth. One map.
@@ -338,9 +397,6 @@ export default function CompassLanding() {
         <h2>
           Four waypoints. <em>Your pace.</em>
         </h2>
-        <p className="cl-section-sub">
-          Click a waypoint — the journal shows what you do there, and what you walk away with.
-        </p>
         <div className="cl-map">
           <img src={ASSETS.mountains} alt="Mountain route map" />
           {WAYPOINTS.map((point, i) => (
@@ -388,9 +444,6 @@ export default function CompassLanding() {
         <h2>
           Six voices. <em>You pick who walks with you.</em>
         </h2>
-        <p className="cl-section-sub">
-          Click a guide — each has their own way of getting you to the summit.
-        </p>
         <div className="cl-guide-grid">
           {GUIDES.map((g) => {
             const on = activeGuide === g.id;
@@ -401,7 +454,7 @@ export default function CompassLanding() {
                 className={`cl-guide-tile${on ? ' is-active' : ''}`}
                 style={{ '--tile-accent': g.accent }}
                 aria-pressed={on}
-                onClick={() => setActiveGuide(on ? null : g.id)}
+                onClick={() => setActiveGuide(g.id)}
               >
                 <img src={g.img} alt={g.name} />
                 <span className="cl-guide-name">{g.name}</span>
@@ -424,10 +477,6 @@ export default function CompassLanding() {
               <span className="cl-guide-detail-tag">{guide.tagline}</span>
             </div>
             <p className="cl-guide-detail-pitch">&ldquo;{guide.pitch}&rdquo;</p>
-            <span className="cl-guide-detail-note">
-              Every insight, check-in, and hard conversation this year arrives in this voice. Switch
-              anytime.
-            </span>
           </div>
         </div>
       </section>
@@ -451,10 +500,6 @@ export default function CompassLanding() {
           <h3>
             See it before you buy it. <em>Click around — your guide reacts.</em>
           </h3>
-          <p className="cl-showcase-sub">
-            Sample data from a real dashboard view. The owl on the right is whichever guide you chose
-            above.
-          </p>
           {/* Toggle buttons rather than a role="tab" widget: the panels below
               are plain content, not tabpanels, and cairn-theme.css repaints
               [aria-selected="true"] globally. */}
@@ -472,42 +517,27 @@ export default function CompassLanding() {
             ))}
           </div>
 
-          <div className="cl-panel-frame">
+          <div className="cl-showcase-stage">
+            <div className="cl-panel-frame">
             <div className="cl-panel-body">
               {showcase === 'gap' && (
-                <div>
-                  <span className="cl-kicker">PERCEPTION GAP · DECISIVE DIRECTION · SAMPLE</span>
-                  <div className="cl-gap-head">
-                    <span className="cl-gap-trait">Decisive Direction</span>
-                    <span className="cl-gap-delta">−2.3</span>
-                  </div>
-                  <div style={{ marginTop: 14 }}>
-                    <div className="cl-meter-label">
-                      <span>HOW YOU SEE IT</span>
-                      <span>8.4</span>
-                    </div>
-                    <div className="cl-meter">
-                      <span style={{ width: '84%' }} />
-                    </div>
-                    <div className="cl-meter-label ember">
-                      <span>HOW YOUR TEAM EXPERIENCES IT</span>
-                      <span>6.1</span>
-                    </div>
-                    <div className="cl-meter ember">
-                      <span style={{ width: '61%' }} />
-                    </div>
-                  </div>
-                  <p className="cl-panel-note">
-                    The decisiveness you feel is landing as pressure. Every gap is named like this —
-                    and this is where a year starts.
-                  </p>
+                <div className="cl-gap-stack">
+                  <span className="cl-kicker">PERCEPTION GAP · {gapTrait.toUpperCase()}</span>
+                  {GAP_ROWS.map((row) => (
+                    <GapRow
+                      key={row.name}
+                      row={row}
+                      selected={gapTrait === row.name}
+                      onSelect={setGapTrait}
+                    />
+                  ))}
                 </div>
               )}
 
               {showcase === 'signals' && (
-                <div>
-                  <span className="cl-kicker">SIGNALS OVERVIEW · MONTH 4 · SAMPLE</span>
-                  <div style={{ marginTop: 10 }}>
+                <div className="cl-gap-stack">
+                  <span className="cl-kicker">SIGNALS OVERVIEW · MONTH 4</span>
+                  <div>
                     {SIGNAL_ROWS.map((row) => (
                       <SignalRow key={row.name} row={row} />
                     ))}
@@ -519,8 +549,8 @@ export default function CompassLanding() {
               )}
 
               {showcase === 'plan' && (
-                <div>
-                  <span className="cl-kicker">ACTION PLAN · DECISIVE DIRECTION · SAMPLE</span>
+                <div className="cl-gap-stack">
+                  <span className="cl-kicker">ACTION PLAN · DECISIVE DIRECTION</span>
                   <p className="cl-plan-intro">
                     Built once after your calibration, revised when new signals land. One page. You
                     live it — you don&apos;t log into it.
@@ -564,10 +594,33 @@ export default function CompassLanding() {
                 <img src={guide.alt} alt={guide.name} />
               </div>
               <div className="cl-rail-quote">
-                <p>&ldquo;{GUIDE_INSIGHTS[showcase][selectedId]}&rdquo;</p>
+                <p>&ldquo;{railQuote}&rdquo;</p>
                 <span className="cl-attrib">— {guide.name.toUpperCase()}</span>
               </div>
             </div>
+          </div>
+
+          <div className="cl-guide-index" role="group" aria-label="Choose a guide">
+            {GUIDES.map((g) => {
+              const on = activeGuide === g.id;
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  className={`cl-guide-index-item${on ? ' is-active' : ''}`}
+                  style={{ '--tile-accent': g.accent }}
+                  aria-pressed={on}
+                  aria-label={g.name}
+                  onClick={() => setActiveGuide(g.id)}
+                >
+                  <span className="cl-guide-index-face">
+                    <img src={g.img} alt="" />
+                  </span>
+                  <span className="cl-guide-index-name">{g.name}</span>
+                </button>
+              );
+            })}
+          </div>
           </div>
         </div>
       </section>
