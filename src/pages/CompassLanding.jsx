@@ -178,9 +178,9 @@ const SHOWCASE_TABS = [
 ];
 
 const SIGNAL_ROWS = [
-  { name: 'Decisive Direction', you: 8.4, team: 6.1, trend: '▲ +1.2', down: false },
-  { name: 'Coaching', you: 7.2, team: 6.8, trend: '▲ +1.6', down: false },
-  { name: 'Strategic Patience', you: 6.9, team: 5.8, trend: '▼ −0.7', down: true },
+  { name: 'Decisive Direction', compass: 6.1, effort: 7.4, efficacy: 5.5, growth: '+1.2', down: false },
+  { name: 'Coaching', compass: 6.8, effort: 6.2, efficacy: 7.1, growth: '+1.6', down: false },
+  { name: 'Strategic Patience', compass: 5.8, effort: 6.9, efficacy: 5.2, growth: '−0.7', down: true },
 ];
 
 const GAP_ROWS = [
@@ -233,12 +233,36 @@ const GUIDE_INSIGHTS = {
     },
   },
   signals: {
-    mentor: 'Coaching rose 1.6 in one season. That isn’t a number moving — that’s trust moving.',
-    catalyst: 'Up 1.2, up 1.6, down 0.7. Two wins and next quarter’s target, all on one screen.',
-    challenger: 'Patience fell 0.7 while you improved elsewhere. Growth you don’t tend regresses.',
-    bestFriend: 'Big gains where you worked, a slide where you didn’t. It’s honest math — and it’s yours.',
-    mother: 'Look what grew where you paid attention. Patience slipped 0.7 — it’s asking for some too.',
-    roaster: 'Coaching up 1.6, patience down 0.7. Better at listening, worse at waiting. Poetry.',
+    'Decisive Direction': {
+      mentor:
+        '6.1 Compass. They feel the decisions land. They don’t feel invited into how they got there.',
+      catalyst: 'Effort is high, efficacy is the leak. Say the why before the what and this number moves.',
+      challenger:
+        'You are deciding. They are catching up. A 5.5 efficacy score is the cost of speed without a map.',
+      bestFriend:
+        'They’re not asking you to slow every call. They’re asking to see the call being made.',
+      mother: 'Direction without the why wears a team down. Name it, and they’ll walk with you.',
+      roaster:
+        '7.4 effort, 5.5 efficacy. Lots of motion. Not a lot of “we knew that was coming.”',
+    },
+    Coaching: {
+      mentor: 'This is the one that’s moving. 6.8 Compass — and the growth line is the proof they felt it.',
+      catalyst: 'Up 1.6. Coaching is compounding. Keep feeding this and month 9 writes itself.',
+      challenger: 'Best number on the board. Don’t coast it — growth you don’t tend regresses.',
+      bestFriend: 'They felt the coaching. That’s the kind of number you protect, not explain away.',
+      mother: 'Look what grew where you paid attention. This is care they can point to.',
+      roaster: 'Coaching’s the bright one. Try not to get sentimental. Just do it again.',
+    },
+    'Strategic Patience': {
+      mentor:
+        '5.8 Compass on patience. Efficacy is the short number — the wait without the why.',
+      catalyst: 'Down 0.7. Speed is a gift until they can’t see where you’re going with it.',
+      challenger:
+        'You call it urgency. They call it being rushed. The 5.2 efficacy is which one the room is living in.',
+      bestFriend: 'They’re not asking you to slow down forever. They’re asking to catch up.',
+      mother: 'Urgency without rest wears a team thin. A little air, and they’ll meet you there.',
+      roaster: 'Patience took the L. Better at listening, worse at waiting. Poetry.',
+    },
   },
   plan: {
     mentor:
@@ -304,13 +328,20 @@ function MeterPair({ you, team }) {
   );
 }
 
-function SignalRow({ row }) {
+function SignalRow({ row, selected, onSelect }) {
   return (
-    <div className="cl-signal-row">
+    <button
+      type="button"
+      className={`cl-signal-row${selected ? ' is-active' : ''}`}
+      aria-pressed={selected}
+      onClick={() => onSelect(row.name)}
+    >
       <span className="cl-signal-name">{row.name}</span>
-      <MeterPair you={row.you} team={row.team} />
-      <span className={`cl-signal-trend${row.down ? ' is-down' : ''}`}>{row.trend}</span>
-    </div>
+      <span className="cl-signal-metric is-compass">{row.compass.toFixed(1)}</span>
+      <span className="cl-signal-metric">{row.effort.toFixed(1)}</span>
+      <span className="cl-signal-metric">{row.efficacy.toFixed(1)}</span>
+      <span className={`cl-signal-metric is-growth${row.down ? ' is-down' : ''}`}>{row.growth}</span>
+    </button>
   );
 }
 
@@ -335,13 +366,14 @@ export default function CompassLanding() {
   const [activeGuide, setActiveGuide] = useState('mentor');
   const [showcase, setShowcase] = useState('gap');
   const [gapTrait, setGapTrait] = useState('Decisive Direction');
+  const [signalTrait, setSignalTrait] = useState('Decisive Direction');
 
   const wp = WAYPOINTS[waypoint];
   const guide = GUIDES.find((g) => g.id === activeGuide);
   const railQuote =
-    showcase === 'gap'
-      ? GUIDE_INSIGHTS.gap[gapTrait][activeGuide]
-      : GUIDE_INSIGHTS[showcase][activeGuide];
+    showcase === 'plan'
+      ? GUIDE_INSIGHTS.plan[activeGuide]
+      : GUIDE_INSIGHTS[showcase][showcase === 'gap' ? gapTrait : signalTrait][activeGuide];
 
   const startJourney = () => navigate('/user-info');
 
@@ -377,7 +409,7 @@ export default function CompassLanding() {
       <header className="cl-hero">
         <span className="cl-eyebrow">NOT A COURSE. NOT A COACH. AN EXPEDITION.</span>
         <h1>
-          <em>Leaders don&apos;t follow paths.</em>
+          Leaders don&apos;t follow paths.
           <br />
           <em className="cl-gold">They set them.</em>
         </h1>
@@ -536,12 +568,22 @@ export default function CompassLanding() {
 
               {showcase === 'signals' && (
                 <div className="cl-gap-stack">
-                  <span className="cl-kicker">SIGNALS OVERVIEW · MONTH 4</span>
-                  <div>
-                    {SIGNAL_ROWS.map((row) => (
-                      <SignalRow key={row.name} row={row} />
-                    ))}
+                  <span className="cl-kicker">SIGNALS OVERVIEW · MONTH 4 · {signalTrait.toUpperCase()}</span>
+                  <div className="cl-signal-head" aria-hidden="true">
+                    <span />
+                    <span>Compass</span>
+                    <span>Effort</span>
+                    <span>Efficacy</span>
+                    <span>Growth</span>
                   </div>
+                  {SIGNAL_ROWS.map((row) => (
+                    <SignalRow
+                      key={row.name}
+                      row={row}
+                      selected={signalTrait === row.name}
+                      onSelect={setSignalTrait}
+                    />
+                  ))}
                   <p className="cl-signal-foot">
                     Campaign 2 of 3 · Team responses 7 of 9 · aggregate only, always.
                   </p>
