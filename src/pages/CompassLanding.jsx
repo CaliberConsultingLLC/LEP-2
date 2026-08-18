@@ -2,158 +2,293 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/compass-landing.css';
 
+/**
+ * Staging-only landing page.
+ *
+ * Home.jsx renders this component instead of the legacy MUI landing when
+ * `useCairnTheme` is true (staging host, or `?theme=cairn`). Production is
+ * untouched — nothing else in the app imports this file.
+ *
+ * Implements design "Compass Landing Options" → Turn 4 / 4a.
+ */
+
 const ASSETS = {
   logo: '/landing/CompassLogo.png',
   mountains: '/landing/mountains.png',
-  mentor: '/landing/MentorLantern.png',
-  challenger: '/landing/ChallengerArmsCross.png',
 };
 
 const WAYPOINTS = [
   {
-    pin: 'I · YOUR REFLECTION',
-    pinStyle: { left: '11%', bottom: '15%' },
-    card: { num: 'I · Uncover', time: '15 MIN' },
-    what: 'A 15-minute intake on how you lead under real conditions — the decisions you face, the pressure you carry, how your team hears you. Not a personality quiz.',
-    get: 'Your written reflection: 3–4 pages on how you actually lead — your instincts, your blind spots, what each costs you. Instant, private, and yours alone.',
+    pin: 'I · UNCOVER',
+    time: '15 MIN',
+    title: 'Waypoint I — Uncover',
+    pos: { left: '11%', bottom: '15%' },
+    does:
+      'A 15-minute intake on how you lead under real conditions — the decisions you face, the pressure you carry, how your team hears you. Not a personality quiz.',
+    gets:
+      'Your written reflection: 3–4 pages of AI-drawn insight on how you actually lead — your instincts, your blind spots, what each one costs you. Instant, private, yours alone.',
   },
   {
-    pin: 'II · YOUR THREE TRAITS',
-    pinStyle: { left: '39%', bottom: '21%' },
-    card: { num: 'II · Reflect', time: 'INSTANT' },
-    what: 'The reflection surfaces five growth traits calibrated to you — each one named, defined, and tied to a moment from your own intake.',
-    get: 'You choose the three traits your year runs on. Not assigned — chosen. That decision shapes every check-in that follows.',
+    pin: 'II · REFLECT',
+    time: 'INSTANT',
+    title: 'Waypoint II — Reflect',
+    pos: { left: '39%', bottom: '21%' },
+    does:
+      'The reflection surfaces five growth traits calibrated to you — each named, defined, and tied to a moment from your own intake.',
+    gets:
+      'You choose the three traits your year runs on. Not assigned — chosen. That decision shapes every check-in that follows.',
   },
   {
-    pin: 'III · TEAM CALIBRATION',
-    pinStyle: { left: '61%', bottom: '39%' },
-    card: { num: 'III · Calibrate', time: '5 MIN' },
-    what: 'Your team answers a 5-minute anonymous survey on observable behaviors — the same traits, seen from the other side of the table.',
-    get: 'Your perception-gap map: how you see it laid against how they experience it, every gap named. Aggregate only, never individuals.',
+    pin: 'III · CALIBRATE',
+    time: '5 MIN',
+    title: 'Waypoint III — Calibrate',
+    pos: { left: '61%', bottom: '39%' },
+    does:
+      'Your team answers a 5-minute survey on observable behaviors — the same traits, seen from the other side of the table. Fully anonymous to you.',
+    gets:
+      'Your perception-gap map: how you see it laid against how they experience it, every gap named. Aggregate only, never individuals.',
   },
   {
-    pin: 'IV · THE SUMMIT',
-    pinStyle: { right: '5%', top: '10%' },
-    card: { num: 'IV · Embark', time: '1 YEAR' },
-    what: "A year-long campaign built on your three traits — check-ins, milestones, course corrections, and a guide who won't let it drift.",
-    get: 'A dashboard of your journey, and — twelve months on — change your team can feel, and can say they feel.',
+    pin: 'IV · EMBARK',
+    time: '1 YEAR',
+    title: 'Waypoint IV — Embark',
+    pos: { right: '5%', top: '10%' },
+    does:
+      'A year-long campaign on your three traits: your team recalibrates at months 3 and 9, you re-assess at month 9, and your guide won’t let it drift.',
+    gets:
+      'A living action plan revised after every calibration, a dashboard of the whole journey, and — twelve months on — change your team can feel.',
+  },
+];
+
+const PILLARS = [
+  {
+    num: '01',
+    title: (
+      <>
+        AI insight into how <em>you</em> lead
+      </>
+    ),
+    body:
+      'A written reflection built from your own answers — your instincts, and what each one costs you. A TED talk inspires everyone the same way. This reads you.',
+  },
+  {
+    num: '02',
+    title: <>Your team&apos;s honest read</>,
+    body:
+      'A coach never meets your team. Compass asks them — anonymously, three times across the year — and lays their answer against yours. That gap is the growth edge.',
+  },
+  {
+    num: '03',
+    title: <>A guide for the hard parts</>,
+    body:
+      'Some feedback stings. You choose the voice that walks you through the difficult pages and harder conversations, all year. Nobody summits alone.',
+  },
+];
+
+const GUIDES = [
+  {
+    id: 'mentor',
+    name: 'Mentor',
+    img: '/guides/mentor.png',
+    alt: '/landing/alt/mentor-alt.png',
+    accent: '#2F4A5C',
+    tagline: 'Warm. Grounded. Asks the quiet questions.',
+    quip: 'The quietest person in the meeting usually holds the most accurate map of it.',
+    pitch:
+      'Most leaders wait for a crisis to look inward. You could simply decide to look. I’ll hold the lantern.',
+  },
+  {
+    id: 'catalyst',
+    name: 'Catalyst',
+    img: '/guides/catalyst.png',
+    alt: '/landing/alt/catalyst-alt.png',
+    accent: '#B8532C',
+    tagline: 'Energetic. Optimistic. Ships first drafts fast.',
+    quip: 'Teams don’t follow the plan. They follow whoever moves first.',
+    pitch: 'Fifteen minutes today. A different team by spring. Why are we still talking?',
+  },
+  {
+    id: 'challenger',
+    name: 'Challenger',
+    img: '/guides/challenger.png',
+    alt: '/landing/alt/challenger-alt.png',
+    accent: '#5A3C66',
+    tagline: 'Direct. Honest. Won’t let you hide.',
+    quip: 'If nobody disagreed with you this month, you weren’t agreed with. You were managed.',
+    pitch: 'You call yourself self-aware. Prove it — ask the people who work for you.',
+  },
+  {
+    id: 'bestFriend',
+    name: 'Best Friend',
+    img: '/guides/best-friend.png',
+    alt: '/landing/alt/bestFriend-alt.png',
+    accent: '#1E6B75',
+    tagline: 'Loyal. Easy company. Says the hard thing kindly.',
+    quip: 'Nobody quits the company. They quit the Tuesday version of their boss.',
+    pitch:
+      'You’d want to know if something was off. Your team already knows. Let’s hear them out — together.',
+  },
+  {
+    id: 'mother',
+    name: 'Mother',
+    img: '/guides/mother.png',
+    alt: '/landing/alt/mother-alt.png',
+    accent: '#C47A6A',
+    tagline: 'Steady care. Warm accountability.',
+    quip: 'A team can only be as honest as its leader is unhurried.',
+    pitch: 'You invest in everyone but yourself. This year, that changes — I’ll see to it.',
+  },
+  {
+    id: 'roaster',
+    name: 'Roaster',
+    img: '/guides/roaster.png',
+    alt: '/landing/alt/roaster-alt.png',
+    accent: '#A33A32',
+    tagline: 'Sharp humor. Cuts through the spin.',
+    quip: 'Everyone says they want feedback. What they want is applause with footnotes.',
+    pitch: '$250 to learn what your team says after you leave the room? Honestly, a bargain.',
+  },
+];
+
+const GROWTH = [
+  {
+    kicker: 'TWICE THIS YEAR',
+    title: 'Your self-assessment',
+    body:
+      'A 15-minute intake at the start and again at month nine — each producing a written 3–4 page reflection on how you actually lead.',
+  },
+  {
+    kicker: 'THREE TIMES THIS YEAR',
+    title: 'Team calibration',
+    body:
+      'Anonymous 5-minute team surveys at the start, month three, and month nine — your self-view laid against how they experience you, every gap named.',
+  },
+  {
+    kicker: 'ALL YEAR',
+    title: 'Action plans + your data',
+    body:
+      'An action plan built on the three traits you choose, revised after every calibration — with your guide alongside. Twelve months of access to all of it.',
+  },
+];
+
+const SHOWCASE_TABS = [
+  { id: 'gap', label: 'The gap map' },
+  { id: 'signals', label: 'Signals overview' },
+  { id: 'plan', label: 'Your action plan' },
+];
+
+const SIGNAL_ROWS = [
+  { name: 'Decisive Direction', you: 8.4, team: 6.1, trend: '▲ +1.2', down: false },
+  { name: 'Coaching', you: 7.2, team: 6.8, trend: '▲ +1.6', down: false },
+  { name: 'Strategic Patience', you: 6.9, team: 5.8, trend: '▼ −0.7', down: true },
+];
+
+const GUIDE_INSIGHTS = {
+  gap: {
+    mentor:
+      'You gave yourself 8.4 because you decide fast. They gave you 6.1 because they find out afterward. Both are true.',
+    catalyst:
+      'That 2.3 is one habit wide — say the why before the what. Closable by the month-3 calibration.',
+    challenger:
+      'You experience decisiveness. They experience speed without a map. The −2.3 is what that costs you.',
+    bestFriend:
+      'They’re not saying you can’t decide. They’re saying they can’t see how you decide. That’s fixable.',
+    mother:
+      'A −2.3 on direction means they’re guessing what you want. Guessing wears a team down.',
+    roaster:
+      'An 8.4 self-score against their 6.1. The 2.3 in between? Every decision you made alone and called alignment.',
+  },
+  signals: {
+    mentor: 'Coaching rose 1.6 in one season. That isn’t a number moving — that’s trust moving.',
+    catalyst: 'Up 1.2, up 1.6, down 0.7. Two wins and next quarter’s target, all on one screen.',
+    challenger: 'Patience fell 0.7 while you improved elsewhere. Growth you don’t tend regresses.',
+    bestFriend: 'Big gains where you worked, a slide where you didn’t. It’s honest math — and it’s yours.',
+    mother: 'Look what grew where you paid attention. Patience slipped 0.7 — it’s asking for some too.',
+    roaster: 'Coaching up 1.6, patience down 0.7. Better at listening, worse at waiting. Poetry.',
+  },
+  plan: {
+    mentor:
+      'One root, one branch, one goal. You don’t report to this page — you live it, and the next calibration tells the truth.',
+    catalyst: 'The root feeds you. The branch is what the team sees. They’ll see it by March.',
+    challenger:
+      'Your branch is public — end every meeting naming the decision. They’ll know if you skip it.',
+    bestFriend: 'It’s one page you could recite in an elevator. That’s exactly why it works.',
+    mother: 'Tend the root and the branch, and the goal takes care of itself. I’ll check on the gardener.',
+    roaster: 'A year of growth on one page. Even you can’t lose this one.',
+  },
+};
+
+const PRIVACY_TERMS = [
+  {
+    lead: 'Your data is yours.',
+    body:
+      ' Your reflection, scores, and gaps are never shared with your boss, your executive team, or HR. If it’s ever shared, you shared it.',
+  },
+  {
+    lead: 'Your team is anonymous to you.',
+    body: ' You see the aggregate — never who said what.',
+  },
+  {
+    lead: 'No org dashboard — by design.',
+    body: ' Companies buy seats; each leader owns the journey.',
   },
 ];
 
 const NAV_LINKS = [
-  { label: 'The route', id: 'route' },
-  { label: 'What you receive', id: 'route' },
-  { label: 'Calibration', id: 'calibration' },
-  { label: 'Pricing', id: 'pricing' },
+  { label: 'Your route', id: 'cl-route' },
+  { label: 'Your guide', id: 'cl-guide' },
+  { label: 'Your growth', id: 'cl-growth' },
+  { label: 'Pricing', id: 'cl-pricing' },
 ];
 
-function HorizonDivider({ label }) {
+function SectionRule({ label }) {
   return (
-    <div className="cl-horizon" aria-hidden={false}>
-      <span className="cl-horizon-line left" />
-      <span className="cl-horizon-diamond" />
-      <span className="cl-horizon-label">{label}</span>
-      <span className="cl-horizon-diamond" />
-      <span className="cl-horizon-line right" />
+    <div className="cl-rule">
+      <span>{label}</span>
     </div>
   );
 }
 
-function JournalPages({ active }) {
+function SignalRow({ row }) {
   return (
-    <>
-      <div className={`cl-journal${active === 0 ? ' active' : ''}`} aria-hidden={active !== 0}>
-        <span className="cl-journal-label">Field journal · Waypoint I — The reflection</span>
-        <p className="cl-journal-quote">
-          “You lead from momentum. When a room stalls, you fill the silence — often before your team
-          has finished forming a thought.”
-        </p>
-        <span className="cl-journal-meta">Page 2 of 4 · instant, and yours alone</span>
-        <img className="cl-journal-guide" src={ASSETS.mentor} alt="" />
-      </div>
-
-      <div className={`cl-journal${active === 1 ? ' active' : ''}`} aria-hidden={active !== 1}>
-        <span className="cl-journal-label">Field journal · Waypoint II — The three traits</span>
-        <div className="cl-trait-list">
-          <span className="cl-trait chosen">Decisive Direction ✓</span>
-          <span className="cl-trait chosen">Coaching ✓</span>
-          <span className="cl-trait chosen">Strategic Patience ✓</span>
-          <span className="cl-trait open">Change Leadership</span>
-          <span className="cl-trait open">Vision Casting</span>
+    <div className="cl-signal-row">
+      <span className="cl-signal-name">{row.name}</span>
+      <div>
+        <div className="cl-signal-label">
+          <span>YOU</span>
+          <span>{row.you.toFixed(1)}</span>
         </div>
-        <span className="cl-journal-meta">Five calibrated options · you chose three</span>
-      </div>
-
-      <div className={`cl-journal${active === 2 ? ' active' : ''}`} aria-hidden={active !== 2}>
-        <span className="cl-journal-label">Field journal · Waypoint III — Calibration</span>
-        <div className="cl-journal-bars">
-          <div>
-            <div className="cl-mini-bar-head" style={{ color: '#3F647B' }}>
-              <span>HOW YOU SEE IT</span>
-              <span>8.4</span>
-            </div>
-            <div className="cl-mini-bar-track">
-              <div className="cl-mini-bar-fill" style={{ width: '84%', background: '#3F647B' }} />
-            </div>
-          </div>
-          <div>
-            <div className="cl-mini-bar-head" style={{ color: '#B8532C' }}>
-              <span>HOW YOUR TEAM SEES IT</span>
-              <span>6.1</span>
-            </div>
-            <div className="cl-mini-bar-track">
-              <div className="cl-mini-bar-fill" style={{ width: '61%', background: '#B8532C' }} />
-            </div>
-          </div>
+        <div className="cl-signal-meter">
+          <span style={{ width: `${row.you * 10}%` }} />
         </div>
-        <span className="cl-journal-meta">Gap: −2.3 · where your year starts</span>
-      </div>
-
-      <div className={`cl-journal${active === 3 ? ' active' : ''}`} aria-hidden={active !== 3}>
-        <span className="cl-journal-label">Field journal · Waypoint IV — The dashboard</span>
-        <div className="cl-dash-rows">
-          <div className="cl-dash-row">
-            <span>Campaign progress</span>
-            <span style={{ color: '#B8532C' }}>Month 4 of 12</span>
-          </div>
-          <div className="cl-dash-progress">
-            <div />
-          </div>
-          <div className="cl-dash-row">
-            <span>Team responses</span>
-            <span style={{ color: '#2F855A' }}>7 of 9 in</span>
-          </div>
-          <div className="cl-dash-row">
-            <span>Next check-in</span>
-            <span>Coaching · Tue</span>
-          </div>
+        <div className="cl-signal-label team">
+          <span>TEAM</span>
+          <span>{row.team.toFixed(1)}</span>
         </div>
-        <span className="cl-journal-meta">A year of milestones and course corrections</span>
+        <div className="cl-signal-meter team">
+          <span style={{ width: `${row.team * 10}%` }} />
+        </div>
       </div>
-    </>
+      <span className={`cl-signal-trend${row.down ? ' is-down' : ''}`}>{row.trend}</span>
+    </div>
   );
 }
 
 export default function CompassLanding() {
   const navigate = useNavigate();
-  const [activeWaypoint, setActiveWaypoint] = useState(0);
-  const active = WAYPOINTS[activeWaypoint];
-  const calendlyUrl = String(import.meta.env.VITE_CALENDLY_URL || '').trim();
+  const [waypoint, setWaypoint] = useState(0);
+  const [activeGuide, setActiveGuide] = useState(null);
+  const [showcase, setShowcase] = useState('gap');
+
+  const wp = WAYPOINTS[waypoint];
+  const selectedId = activeGuide || 'mentor';
+  const guide = GUIDES.find((g) => g.id === selectedId);
+
+  const startJourney = () => navigate('/user-info');
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const startJourney = () => navigate('/user-info');
-
-  const talkToUs = () => {
-    if (calendlyUrl) {
-      window.open(calendlyUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    // Placeholder until Calendly URL is configured in VITE_CALENDLY_URL
-    scrollTo('pricing');
   };
 
   return (
@@ -174,235 +309,324 @@ export default function CompassLanding() {
               {link.label}
             </button>
           ))}
-          <button type="button" className="cl-btn cl-btn-ember cl-btn-nav" onClick={startJourney}>
-            Begin Your Journey →
+          <button type="button" className="cl-btn-ember" onClick={startJourney}>
+            Begin your expedition →
           </button>
         </div>
       </nav>
 
-      <section className="cl-hero" aria-label="Hero">
-        <div className="cl-starfield" aria-hidden />
-        <div className="cl-hero-inner">
-          <span className="cl-eyebrow">Leadership development · Calibrated by your team</span>
-          <h1>
-            <em>Leaders don&apos;t follow paths.</em>
-            <br />
-            <span className="cl-gold-line">They set them.</span>
-          </h1>
-          <p className="cl-hero-sub">
-            A written reflection of how you lead. An anonymous team survey of how it lands. A
-            year-long campaign to close the gap. That&apos;s Compass — the whole of it.
-          </p>
-          <div className="cl-hero-ctas">
-            <button type="button" className="cl-btn cl-btn-ember cl-btn-hero" onClick={startJourney}>
-              Start your journey
-            </button>
+      <header className="cl-hero">
+        <span className="cl-eyebrow">NOT A COURSE. NOT A COACH. AN EXPEDITION.</span>
+        <h1>
+          <em>Your team sees everything.</em>
+          <br />
+          <span className="cl-gold">They tell you nothing.</span>
+        </h1>
+        <p className="cl-hero-sub">
+          Compass gets the truth out — anonymously — and turns it into your year of growth. One map.
+          One guide. One team, finally honest.
+        </p>
+        <div className="cl-hero-cta">
+          <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
+            Walk the expedition ↓
+          </button>
+        </div>
+      </header>
+
+      <section className="cl-section cl-route" id="cl-route" aria-label="Your route">
+        <SectionRule label="YOUR ROUTE" />
+        <h2>
+          Four waypoints. <em>Your pace.</em>
+        </h2>
+        <p className="cl-section-sub">
+          Click a waypoint — the journal shows what you do there, and what you walk away with.
+        </p>
+        <div className="cl-map">
+          <img src={ASSETS.mountains} alt="Mountain route map" />
+          {WAYPOINTS.map((point, i) => (
             <button
+              key={point.pin}
               type="button"
-              className="cl-btn cl-btn-outline cl-btn-hero"
-              onClick={() => scrollTo('route')}
+              className={`cl-pin${i === waypoint ? ' is-active' : ''}`}
+              style={point.pos}
+              aria-pressed={i === waypoint}
+              onClick={() => setWaypoint(i)}
             >
-              See the route
+              {point.pin}
             </button>
-          </div>
-          <div className="cl-step-strip" aria-hidden>
-            <span>I · UNCOVER — 15 MIN</span>
-            <span className="cl-arrow">→</span>
-            <span>II · REFLECT — INSTANT</span>
-            <span className="cl-arrow">→</span>
-            <span>III · CALIBRATE — 5 MIN</span>
-            <span className="cl-arrow">→</span>
-            <span className="cl-ember-step">IV · EMBARK — 1 YEAR</span>
+          ))}
+          <div className="cl-journal">
+            <div className="cl-journal-head">
+              <span className="cl-kicker">FIELD JOURNAL</span>
+              <span className="cl-journal-time">{wp.time}</span>
+            </div>
+            <h3>{wp.title}</h3>
+            <span className="cl-journal-label">WHAT YOU DO</span>
+            <p>{wp.does}</p>
+            <span className="cl-journal-label ember">WHAT YOU WALK AWAY WITH</span>
+            <p>{wp.gets}</p>
           </div>
         </div>
       </section>
 
-      <HorizonDivider label="The route" />
-
-      <section className="cl-route" id="route">
-        <div className="cl-route-head">
-          <h2>
-            The route <em>you&apos;re charting.</em>
-          </h2>
-          <p className="cl-route-sub">
-            Click a waypoint — each one leaves a page in your field journal
-          </p>
+      <section className="cl-section cl-pillars" aria-label="What Compass gives you">
+        <div className="cl-pillars-grid">
+          {PILLARS.map((pillar) => (
+            <div className="cl-pillar" key={pillar.num}>
+              <div className="cl-pillar-head">
+                <span className="cl-pillar-num">{pillar.num}</span>
+                <h3>{pillar.title}</h3>
+              </div>
+              <p>{pillar.body}</p>
+            </div>
+          ))}
         </div>
+      </section>
 
-        <div className="cl-map-frame">
-          <span className="cl-tick tl" aria-hidden />
-          <span className="cl-tick tr" aria-hidden />
-          <span className="cl-tick bl" aria-hidden />
-          <span className="cl-tick br" aria-hidden />
-          <div className="cl-map-stage">
-            <img src={ASSETS.mountains} alt="Mountain route map with four waypoints" />
-            {WAYPOINTS.map((wp, i) => (
+      <section className="cl-section cl-guides" id="cl-guide" aria-label="Your guide">
+        <SectionRule label="YOUR GUIDE" />
+        <h2>
+          Six voices. <em>You pick who walks with you.</em>
+        </h2>
+        <p className="cl-section-sub">
+          Click a guide — each has their own way of getting you to the summit.
+        </p>
+        <div className="cl-guide-grid">
+          {GUIDES.map((g) => {
+            const on = activeGuide === g.id;
+            return (
               <button
-                key={wp.pin}
+                key={g.id}
                 type="button"
-                className={`cl-wp-pin${activeWaypoint === i ? ' active' : ''}`}
-                style={wp.pinStyle}
-                aria-pressed={activeWaypoint === i}
-                onClick={() => setActiveWaypoint(i)}
+                className={`cl-guide-tile${on ? ' is-active' : ''}`}
+                style={{ '--tile-accent': g.accent }}
+                aria-pressed={on}
+                onClick={() => setActiveGuide(on ? null : g.id)}
               >
-                {wp.pin}
+                <img src={g.img} alt={g.name} />
+                <span className="cl-guide-name">{g.name}</span>
+                <span className="cl-guide-tag">{g.tagline}</span>
+                <div className="cl-guide-quote">
+                  <p>&ldquo;{g.quip}&rdquo;</p>
+                  <span className="cl-attrib">— {g.name.toUpperCase()}</span>
+                </div>
               </button>
-            ))}
-            <JournalPages active={activeWaypoint} />
+            );
+          })}
+        </div>
+        <div className="cl-guide-detail">
+          <div className="cl-guide-detail-portrait">
+            <img src={guide.img} alt={guide.name} />
+          </div>
+          <div>
+            <div className="cl-guide-detail-head">
+              <span className="cl-guide-detail-name">{guide.name}</span>
+              <span className="cl-guide-detail-tag">{guide.tagline}</span>
+            </div>
+            <p className="cl-guide-detail-pitch">&ldquo;{guide.pitch}&rdquo;</p>
+            <span className="cl-guide-detail-note">
+              Every insight, check-in, and hard conversation this year arrives in this voice. Switch
+              anytime.
+            </span>
           </div>
         </div>
+      </section>
 
-        <div className="cl-step-cards" role="tablist" aria-label="Route waypoints">
-          {WAYPOINTS.map((wp, i) => (
-            <button
-              key={wp.card.num}
-              type="button"
-              role="tab"
-              aria-selected={activeWaypoint === i}
-              className={`cl-wp-card${activeWaypoint === i ? ' active' : ''}`}
-              onClick={() => setActiveWaypoint(i)}
-            >
-              <div className="cl-wp-card-row">
-                <span className="cl-wp-num">{wp.card.num}</span>
-                <span className="cl-wp-time">{wp.card.time}</span>
-              </div>
-            </button>
+      <section className="cl-section cl-growth" id="cl-growth" aria-label="Your growth">
+        <SectionRule label="YOUR GROWTH" />
+        <h2>
+          Everything you get. <em>Nothing behind a tier.</em>
+        </h2>
+        <div className="cl-growth-grid">
+          {GROWTH.map((card) => (
+            <div className="cl-growth-card" key={card.title}>
+              <span className="cl-growth-card-kicker">{card.kicker}</span>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+            </div>
           ))}
         </div>
 
-        <div className="cl-detail">
-          <div>
-            <span className="cl-detail-label slate">What happens</span>
-            <p className="cl-detail-what">{active.what}</p>
+        <div className="cl-showcase">
+          <h3>
+            See it before you buy it. <em>Click around — your guide reacts.</em>
+          </h3>
+          <p className="cl-showcase-sub">
+            Sample data from a real dashboard view. The owl on the right is whichever guide you chose
+            above.
+          </p>
+          {/* Toggle buttons rather than a role="tab" widget: the panels below
+              are plain content, not tabpanels, and cairn-theme.css repaints
+              [aria-selected="true"] globally. */}
+          <div className="cl-tabs" role="group" aria-label="Product showcase">
+            {SHOWCASE_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                aria-pressed={showcase === tab.id}
+                className={`cl-tab${showcase === tab.id ? ' is-active' : ''}`}
+                onClick={() => setShowcase(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-          <div>
-            <span className="cl-detail-label ember">What you receive</span>
-            <p className="cl-detail-get">{active.get}</p>
+
+          <div className="cl-panel-frame">
+            <div className="cl-panel-body">
+              {showcase === 'gap' && (
+                <div>
+                  <span className="cl-kicker">PERCEPTION GAP · DECISIVE DIRECTION · SAMPLE</span>
+                  <div className="cl-gap-head">
+                    <span className="cl-gap-trait">Decisive Direction</span>
+                    <span className="cl-gap-delta">−2.3</span>
+                  </div>
+                  <div style={{ marginTop: 14 }}>
+                    <div className="cl-meter-label">
+                      <span>HOW YOU SEE IT</span>
+                      <span>8.4</span>
+                    </div>
+                    <div className="cl-meter">
+                      <span style={{ width: '84%' }} />
+                    </div>
+                    <div className="cl-meter-label ember">
+                      <span>HOW YOUR TEAM EXPERIENCES IT</span>
+                      <span>6.1</span>
+                    </div>
+                    <div className="cl-meter ember">
+                      <span style={{ width: '61%' }} />
+                    </div>
+                  </div>
+                  <p className="cl-panel-note">
+                    The decisiveness you feel is landing as pressure. Every gap is named like this —
+                    and this is where a year starts.
+                  </p>
+                </div>
+              )}
+
+              {showcase === 'signals' && (
+                <div>
+                  <span className="cl-kicker">SIGNALS OVERVIEW · MONTH 4 · SAMPLE</span>
+                  <div style={{ marginTop: 10 }}>
+                    {SIGNAL_ROWS.map((row) => (
+                      <SignalRow key={row.name} row={row} />
+                    ))}
+                  </div>
+                  <p className="cl-signal-foot">
+                    Campaign 2 of 3 · Team responses 7 of 9 · aggregate only, always.
+                  </p>
+                </div>
+              )}
+
+              {showcase === 'plan' && (
+                <div>
+                  <span className="cl-kicker">ACTION PLAN · DECISIVE DIRECTION · SAMPLE</span>
+                  <p className="cl-plan-intro">
+                    Built once after your calibration, revised when new signals land. One page. You
+                    live it — you don&apos;t log into it.
+                  </p>
+                  <div className="cl-plan-steps">
+                    <div className="cl-plan-step">
+                      <span className="cl-plan-label">ENVISION · IN THEIR SHOES</span>
+                      <p className="quote">
+                        &ldquo;Priorities shift mid-week and I find out in the standup. So I&apos;ve
+                        stopped planning ahead.&rdquo;
+                      </p>
+                    </div>
+                    <div className="cl-plan-step">
+                      <span className="cl-plan-label">ROOT · WHAT FEEDS THE CHANGE</span>
+                      <p>
+                        Study one framework on decision cadence; bring the idea of &ldquo;decision
+                        debt&rdquo; to the team.
+                      </p>
+                    </div>
+                    <div className="cl-plan-step">
+                      <span className="cl-plan-label ember">BRANCH · WHAT THE TEAM SEES</span>
+                      <p>Close every meeting by naming the decision, the why, and who owns it.</p>
+                    </div>
+                    <div className="cl-plan-step is-last">
+                      <div className="cl-plan-goal-label">
+                        <span>TRAIT GOAL</span>
+                        <em>6.1 today → 7.5 by month 9</em>
+                      </div>
+                      <div className="cl-plan-goal-meter">
+                        <span style={{ width: '61%' }} />
+                        <i />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="cl-panel-rail">
+              <div className="cl-rail-portrait">
+                <img src={guide.alt} alt={guide.name} />
+              </div>
+              <div className="cl-rail-quote">
+                <p>&ldquo;{GUIDE_INSIGHTS[showcase][selectedId]}&rdquo;</p>
+                <span className="cl-attrib">— {guide.name.toUpperCase()}</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <HorizonDivider label="Waypoint III · In depth" />
-
-      <section className="cl-calibration" id="calibration">
-        <div className="cl-cal-grid">
-          <div className="cl-cal-left">
-            <span className="cl-cal-eyebrow">Waypoint III · Calibration</span>
+      <section className="cl-privacy" aria-label="The privacy contract">
+        <div className="cl-privacy-grid">
+          <div>
+            <span className="cl-privacy-kicker">THE PRIVACY CONTRACT</span>
             <h2>
-              The mirror only your team <em>can hold up.</em>
+              Honest answers require <em>a locked journal.</em>
             </h2>
-            <p className="cl-cal-body">
-              A 5-minute anonymous survey on observable behaviors, laid against your self-view.
-              Every gap named. You see the aggregate — never individuals.
+            <p className="cl-privacy-lede">
+              This only works if everyone can tell the truth. So the rules are absolute, in both
+              directions:
             </p>
-            <div className="cl-quote-row">
-              <img src={ASSETS.challenger} alt="" />
-              <div className="cl-quote-card">
-                <p>
-                  “You call it decisiveness. Your team calls it steamrolling — 2.3 points apart.”
-                </p>
-                <span className="cl-quote-attr">— Challenger, one of your three guides</span>
-              </div>
-            </div>
           </div>
-
-          <div className="cl-gap-panel">
-            <div className="cl-gap-head">
-              <span className="cl-gap-trait">Decisive Direction</span>
-              <span className="cl-gap-score">−2.3</span>
-            </div>
-            <div className="cl-gap-bars">
-              <div>
-                <div className="cl-gap-bar-head" style={{ color: '#6393AA' }}>
-                  <span>HOW YOU SEE IT</span>
-                  <span>8.4</span>
-                </div>
-                <div className="cl-gap-track">
-                  <div
-                    className="cl-gap-fill"
-                    style={{
-                      width: '84%',
-                      background: 'linear-gradient(90deg, #3F647B, #6393AA)',
-                      boxShadow: '0 0 20px rgba(99,147,170,0.8)',
-                    }}
-                  />
-                </div>
+          <div className="cl-privacy-list">
+            {PRIVACY_TERMS.map((term) => (
+              <div className="cl-privacy-item" key={term.lead}>
+                <span className="cl-privacy-check">✓</span>
+                <p>
+                  <strong>{term.lead}</strong>
+                  {term.body}
+                </p>
               </div>
-              <div>
-                <div className="cl-gap-bar-head" style={{ color: '#E07A3F' }}>
-                  <span>HOW YOUR TEAM EXPERIENCES IT</span>
-                  <span>6.1</span>
-                </div>
-                <div className="cl-gap-track">
-                  <div
-                    className="cl-gap-fill"
-                    style={{
-                      width: '61%',
-                      background: 'linear-gradient(90deg, #C0612A, #E07A3F)',
-                      boxShadow: '0 0 20px rgba(224,122,63,0.8)',
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-            <p className="cl-gap-takeaway">
-              The decisiveness you feel is landing as pressure. This is where your year should
-              start.
-            </p>
+            ))}
           </div>
         </div>
       </section>
 
-      <HorizonDivider label="Pricing" />
-
-      <section className="cl-pricing" id="pricing">
-        <div className="cl-price-grid">
-          <div className="cl-price-card featured">
-            <span className="cl-price-tier ember">Team · Early adopter</span>
-            <div className="cl-price-row">
-              <span className="cl-price-was">$500</span>
-              <span className="cl-price-now">$250</span>
-              <span className="cl-price-unit">/ year</span>
-            </div>
-            <p className="cl-price-body">
-              One leader, one team, one year — every waypoint above, plus your guide.
-            </p>
-            <button type="button" className="cl-btn cl-btn-ember cl-btn-card" onClick={startJourney}>
-              Start free, upgrade when ready
-            </button>
+      <section className="cl-close" id="cl-pricing" aria-label="Pricing">
+        <div className="cl-price-card">
+          <span className="cl-price-kicker">EARLY ADOPTER · FIRST 200 LEADERS</span>
+          <div className="cl-price-row">
+            <span className="cl-price-was">$500</span>
+            <span className="cl-price-now">$250</span>
+            <span className="cl-price-per">/ year</span>
           </div>
-
-          <div className="cl-price-card plain">
-            <span className="cl-price-tier muted">Organization</span>
-            <div className="cl-price-row">
-              <span className="cl-price-now plain">$500</span>
-              <span className="cl-price-unit">/ leader / year</span>
-            </div>
-            <p className="cl-price-body">
-              You buy the seats; each leader owns the journey. Nothing shared upward. No org
-              dashboard — by design.
-            </p>
-            <button
-              type="button"
-              className="cl-btn cl-btn-ghost-gold cl-btn-card"
-              onClick={talkToUs}
-            >
-              Talk to us
-            </button>
-          </div>
-        </div>
-
-        <div className="cl-close">
-          <h2>
-            The path doesn&apos;t exist
-            <br />
-            <em>until you set it.</em>
-          </h2>
-          <button type="button" className="cl-btn cl-btn-ember cl-btn-close" onClick={startJourney}>
-            Begin Your Journey →
+          <p className="cl-price-copy">
+            Half off, nothing else different. Same price whether you buy it or your company does. No
+            tiers, no premium package, no paywalls inside.
+          </p>
+          <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
+            Begin your expedition — $250
           </button>
-          <p className="cl-footer-line">North Star Partners · Free to start · No credit card</p>
+          <p className="cl-price-fine">
+            30-day money-back guarantee. Not what we promised? Full refund, keep your reflection.
+          </p>
         </div>
+
+        <h2>
+          The path doesn&apos;t exist
+          <br />
+          <em>until you set it.</em>
+        </h2>
+        <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
+          Begin your expedition →
+        </button>
+        <p className="cl-colophon">North Star Partners · $250 early adopter · 30-day guarantee</p>
       </section>
     </div>
   );
