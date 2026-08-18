@@ -178,15 +178,15 @@ const SHOWCASE_TABS = [
 ];
 
 const SIGNAL_ROWS = [
-  { name: 'Decisive Direction', compass: 6.1, effort: 7.4, efficacy: 5.5, growth: '+1.2', down: false },
-  { name: 'Coaching', compass: 6.8, effort: 6.2, efficacy: 7.1, growth: '+1.6', down: false },
-  { name: 'Strategic Patience', compass: 5.8, effort: 6.9, efficacy: 5.2, growth: '−0.7', down: true },
+  { name: 'Decisive Direction', compass: 5.3, effort: 6.9, efficacy: 4.5, growth: '+0.4', down: false },
+  { name: 'Coaching', compass: 7.8, effort: 7.1, efficacy: 8.1, growth: '+1.8', down: false },
+  { name: 'Strategic Patience', compass: 5.9, effort: 6.4, efficacy: 5.7, growth: '−0.7', down: true },
 ];
 
 const GAP_ROWS = [
-  { name: 'Decisive Direction', you: 8.4, team: 6.1, delta: '−2.3' },
-  { name: 'Coaching', you: 7.2, team: 6.8, delta: '−0.4' },
-  { name: 'Strategic Patience', you: 6.9, team: 5.8, delta: '−1.1' },
+  { name: 'Decisive Direction', you: 8.4, team: 6.1, delta: '−2.3', up: false },
+  { name: 'Coaching', you: 5.6, team: 7.9, delta: '+2.3', up: true },
+  { name: 'Strategic Patience', you: 6.9, team: 5.8, delta: '−1.1', up: false },
 ];
 
 const GUIDE_INSIGHTS = {
@@ -207,15 +207,14 @@ const GUIDE_INSIGHTS = {
     },
     Coaching: {
       mentor:
-        'You’re close. A four-tenths gap on coaching is a conversation you haven’t had yet — not a verdict.',
-      catalyst: 'Nearly even. One more real coaching moment before month 3 and this one closes.',
+        'You scored yourself 5.6. They scored you 7.9. You’re the last one to see the coaching they already feel.',
+      catalyst: 'A +2.3 the right way. They’re already getting the coaching. Now do it on purpose.',
       challenger:
-        'You scored yourself 7.2. They gave 6.8. Close isn’t the same as true. Ask who you haven’t developed.',
-      bestFriend:
-        'They’re almost with you on this one. Almost is a gift — it means they want you to finish it.',
-      mother: 'You’re tending them. They’re asking for a little more time. You can give that.',
+        'You think you’re behind on coaching. They don’t. Stop arguing with the people you lead.',
+      bestFriend: 'They’re not being nice. They’re telling you this is working. Believe them.',
+      mother: 'You under-count the care you give. They didn’t. That’s a gift — protect it.',
       roaster:
-        'A −0.4. The smallest gap on the map. Don’t let that make you skip it — that’s how it grows.',
+        'You 5.6, them 7.9. Humble isn’t the same as accurate. They’re saying you’re better at this than you think. Awkward.',
     },
     'Strategic Patience': {
       mentor:
@@ -235,30 +234,27 @@ const GUIDE_INSIGHTS = {
   signals: {
     'Decisive Direction': {
       mentor:
-        '6.1 Compass. They feel the decisions land. They don’t feel invited into how they got there.',
-      catalyst: 'Effort is high, efficacy is the leak. Say the why before the what and this number moves.',
-      challenger:
-        'You are deciding. They are catching up. A 5.5 efficacy score is the cost of speed without a map.',
-      bestFriend:
-        'They’re not asking you to slow every call. They’re asking to see the call being made.',
+        '5.3 Compass — the lowest on the board. Effort is there. Efficacy isn’t. They feel the call, not the why.',
+      catalyst: '6.9 effort, 4.5 efficacy. The leak is the landing. Say the why and this is closable.',
+      challenger: 'Lowest Compass you have. Speed without a map. The 4.5 efficacy is the bill.',
+      bestFriend: 'They’re not asking you to decide less. They’re asking to see how you decide.',
       mother: 'Direction without the why wears a team down. Name it, and they’ll walk with you.',
-      roaster:
-        '7.4 effort, 5.5 efficacy. Lots of motion. Not a lot of “we knew that was coming.”',
+      roaster: 'Lots of motion, not a lot of “we knew that was coming.” 4.5 efficacy. Ouch — and useful.',
     },
     Coaching: {
-      mentor: 'This is the one that’s moving. 6.8 Compass — and the growth line is the proof they felt it.',
-      catalyst: 'Up 1.6. Coaching is compounding. Keep feeding this and month 9 writes itself.',
-      challenger: 'Best number on the board. Don’t coast it — growth you don’t tend regresses.',
+      mentor: '7.8 Compass. Highest on the board — and the +1.8 is the proof they felt it.',
+      catalyst: 'Up 1.8. Coaching is compounding. Keep feeding this and month 9 writes itself.',
+      challenger: 'Best number you have. Don’t coast it. Growth you don’t tend regresses.',
       bestFriend: 'They felt the coaching. That’s the kind of number you protect, not explain away.',
       mother: 'Look what grew where you paid attention. This is care they can point to.',
       roaster: 'Coaching’s the bright one. Try not to get sentimental. Just do it again.',
     },
     'Strategic Patience': {
       mentor:
-        '5.8 Compass on patience. Efficacy is the short number — the wait without the why.',
+        '5.9 Compass — just above direction. Efficacy is the short number: the wait without the why.',
       catalyst: 'Down 0.7. Speed is a gift until they can’t see where you’re going with it.',
       challenger:
-        'You call it urgency. They call it being rushed. The 5.2 efficacy is which one the room is living in.',
+        'You call it urgency. They call it being rushed. The 5.7 efficacy is which one the room is living in.',
       bestFriend: 'They’re not asking you to slow down forever. They’re asking to catch up.',
       mother: 'Urgency without rest wears a team thin. A little air, and they’ll meet you there.',
       roaster: 'Patience took the L. Better at listening, worse at waiting. Poetry.',
@@ -355,7 +351,7 @@ function GapRow({ row, selected, onSelect }) {
     >
       <span className="cl-signal-name">{row.name}</span>
       <MeterPair you={row.you} team={row.team} />
-      <span className="cl-gap-delta">{row.delta}</span>
+      <span className={`cl-gap-delta${row.up ? ' is-up' : ''}`}>{row.delta}</span>
     </button>
   );
 }
@@ -414,8 +410,9 @@ export default function CompassLanding() {
           <em className="cl-gold">They set them.</em>
         </h1>
         <p className="cl-hero-sub">
-          Compass gets the truth out — anonymously — and turns it into your year of growth. One map.
-          One guide. One team, finally honest.
+          Borrowed playbooks are still someone else&apos;s trail. Compass asks your team —
+          anonymously — how you actually lead, then gives you a map, a guide, and a year to set a
+          path of your own.
         </p>
         <div className="cl-hero-cta">
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
