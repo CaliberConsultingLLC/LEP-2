@@ -77,7 +77,7 @@ function GuideSelect() {
           position: 'relative',
           width: '100%',
           maxWidth: 1180,
-          height: { xs: 425, md: 475 },
+          height: { xs: 480, md: 560 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -132,12 +132,12 @@ function GuideSelect() {
                     cursor: 'pointer',
                     position: 'absolute',
                     // ~25% larger than prior 240/280 center and 170/210 side tiles
-                    width: isCenter ? { xs: 300, md: 350 } : { xs: 213, md: 263 },
+                    width: isCenter ? { xs: 340, md: 400 } : { xs: 220, md: 270 },
                     transform: isCenter
                       ? 'translateX(0) scale(1)'
                       : slot === 'left'
-                        ? 'translateX(-118%) scale(0.82)'
-                        : 'translateX(118%) scale(0.82)',
+                        ? 'translateX(-112%) scale(0.78)'
+                        : 'translateX(112%) scale(0.78)',
                     opacity: isCenter ? 1 : 0.42,
                     filter: isCenter ? 'none' : 'saturate(0.7)',
                     zIndex: isCenter ? 3 : 1,
@@ -157,7 +157,7 @@ function GuideSelect() {
                 >
                   <Box sx={{ height: 5, bgcolor: persona.accent, width: '100%', flexShrink: 0 }} />
                   <Box sx={{
-                    height: { xs: isCenter ? 188 : 138, md: isCenter ? 210 : 150 },
+                    height: { xs: isCenter ? 248 : 160, md: isCenter ? 300 : 180 },
                     display: 'flex',
                     alignItems: 'flex-end',
                     justifyContent: 'center',
@@ -171,7 +171,7 @@ function GuideSelect() {
                       src={persona.poses.greet || persona.poses.idle}
                       alt={persona.name}
                       sx={{
-                        height: { xs: isCenter ? 173 : 125, md: isCenter ? 195 : 140 },
+                        height: { xs: isCenter ? 232 : 148, md: isCenter ? 284 : 168 },
                         objectFit: 'contain',
                         objectPosition: 'bottom',
                         display: 'block',
@@ -182,7 +182,7 @@ function GuideSelect() {
                     <Typography sx={{
                       fontFamily: fonts.sans,
                       fontWeight: 800,
-                      fontSize: isCenter ? { xs: '1.1rem', md: '1.25rem' } : '0.95rem',
+                      fontSize: isCenter ? { xs: '1.35rem', md: '1.55rem' } : '0.95rem',
                       color: isDark ? colors.ink : colors.navy900,
                       mb: 0.35,
                     }}>
@@ -193,7 +193,7 @@ function GuideSelect() {
                         <Typography sx={{
                           fontFamily: fonts.sans,
                           fontWeight: 600,
-                          fontSize: '0.76rem',
+                          fontSize: '0.84rem',
                           color: persona.accent,
                           fontStyle: 'italic',
                           lineHeight: 1.35,

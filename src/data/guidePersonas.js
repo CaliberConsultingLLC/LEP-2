@@ -4,12 +4,12 @@
 // until the full Guide Images set is wired.
 
 const SELECT_ART = {
-  mentor: '/guides/mentor.png',
-  catalyst: '/guides/catalyst.png',
-  challenger: '/guides/challenger.png',
-  bestFriend: '/guides/best-friend.png',
-  mother: '/guides/mother.png',
-  roaster: '/guides/roaster.png',
+  mentor: '/Guide%20Images/Mentor_01.png',
+  catalyst: '/Guide%20Images/Catalyst_01.png',
+  challenger: '/Guide%20Images/Challenger_01.png',
+  bestFriend: '/Guide%20Images/BestFriend_01.png',
+  mother: '/Guide%20Images/Mother_01.png',
+  roaster: '/Guide%20Images/Roaster_01.png',
 };
 
 const selectArt = (id) => SELECT_ART[id];
