@@ -1254,6 +1254,44 @@ function Summary() {
                     Guide: <strong>{guideName}</strong>
                   </Typography>
                 </Box>
+
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={(event) => setGuideMenuAnchor(event.currentTarget)}
+                  sx={{
+                    all: 'unset',
+                    boxSizing: 'border-box',
+                    cursor: 'pointer',
+                    mt: '16px',
+                    width: '100%',
+                    minHeight: 36,
+                    px: '12px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: radii.pill,
+                    border: `1.5px solid ${colors.navy900}`,
+                    bgcolor: colors.navy900,
+                    color: colors.amberSoft,
+                    fontFamily: fonts.sans,
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    letterSpacing: '0.02em',
+                    lineHeight: 1.2,
+                    textAlign: 'center',
+                    '&:hover': { bgcolor: colors.navy800 },
+                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                  }}
+                >
+                  Hear another guide
+                </Box>
+                <GuidePickerMenu
+                  open={Boolean(guideMenuAnchor)}
+                  anchorEl={guideMenuAnchor}
+                  onClose={() => setGuideMenuAnchor(null)}
+                  isDark={isDark}
+                />
               </Box>
 
               <Box
@@ -1609,47 +1647,6 @@ function Summary() {
                           ))}
                         </Box>
                       )}
-                      <Box
-                        sx={{
-                          mt: 0.5,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 0.85,
-                          textAlign: 'center',
-                        }}
-                      >
-                        <Box
-                          component="button"
-                          type="button"
-                          onClick={(event) => setGuideMenuAnchor(event.currentTarget)}
-                          sx={{
-                            ...buttons.secondary,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          Hear another guide
-                        </Box>
-                        <GuidePickerMenu
-                          open={Boolean(guideMenuAnchor)}
-                          anchorEl={guideMenuAnchor}
-                          onClose={() => setGuideMenuAnchor(null)}
-                          isDark={isDark}
-                        />
-                        <Typography
-                          sx={{
-                            fontFamily: fonts.sans,
-                            fontSize: 12.5,
-                            lineHeight: 1.45,
-                            color: colors.inkSoft,
-                            maxWidth: 420,
-                          }}
-                        >
-                          Want another perspective on the same reflection? One click. Same truth, different voice.
-                        </Typography>
-                      </Box>
                     </Box>
                   )}
 
