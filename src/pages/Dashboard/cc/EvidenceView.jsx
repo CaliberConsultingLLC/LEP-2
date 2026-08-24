@@ -269,50 +269,23 @@ function StageStatementRow({ statement, selected, isLowest, onSelect }) {
   );
 }
 
-function TraitSwitcher({ title, onPrev, onNext }) {
-  const btnSx = {
-    all: 'unset',
-    width: 34,
-    height: 34,
-    borderRadius: radii.circle,
-    border: `1px solid ${colors.sand300}`,
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    fontFamily: fonts.mono,
-    fontSize: 18,
-    color: colors.inkSoft,
-    flexShrink: 0,
-    '&:hover': { borderColor: colors.orange, color: colors.orangeDeep },
-    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-  };
-
+function TraitSwitcher({ title }) {
   return (
     <Box sx={{ minHeight: 44, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      {/* Arrows hug the title — not parked at the column edges */}
-      <Stack direction="row" alignItems="center" justifyContent="center" spacing={1.25}>
-        <Box component="button" type="button" aria-label="Previous trait" onClick={onPrev} sx={btnSx}>
-          ‹
-        </Box>
-        <Typography
-          sx={{
-            textAlign: 'center',
-            fontFamily: fonts.serif,
-            fontSize: 25,
-            fontWeight: 500,
-            lineHeight: 1.15,
-            letterSpacing: '-0.01em',
-            color: colors.textPrimary,
-            maxWidth: '100%',
-          }}
-        >
-          {title}
-        </Typography>
-        <Box component="button" type="button" aria-label="Next trait" onClick={onNext} sx={btnSx}>
-          ›
-        </Box>
-      </Stack>
+      <Typography
+        sx={{
+          textAlign: 'center',
+          fontFamily: fonts.serif,
+          fontSize: 25,
+          fontWeight: 500,
+          lineHeight: 1.15,
+          letterSpacing: '-0.01em',
+          color: colors.textPrimary,
+          maxWidth: '100%',
+        }}
+      >
+        {title}
+      </Typography>
       <Box sx={{ mt: 1.05, width: '68%', mx: 'auto', height: '1px', bgcolor: colors.sand200 }} />
     </Box>
   );
@@ -453,7 +426,7 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
 // ---------------------------------------------------------------------------
 // Trait exhibit chapter — same explorer format as Evidence snapshot
 // ---------------------------------------------------------------------------
-function EvTraitPage({ row, onPrevTrait, onNextTrait }) {
+function EvTraitPage({ row }) {
   const lowestIdx = useMemo(() => {
     const statements = mapRowStatements(row);
     if (!statements.length) return 0;
@@ -480,11 +453,7 @@ function EvTraitPage({ row, onPrevTrait, onNextTrait }) {
         mode={mode}
         onModeChange={setMode}
         headerSlot={(
-          <TraitSwitcher
-            title={row.subTrait || row.trait}
-            onPrev={onPrevTrait}
-            onNext={onNextTrait}
-          />
+          <TraitSwitcher title={row.subTrait || row.trait} />
         )}
       />
     </Box>
@@ -847,21 +816,9 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
   }
 
   return (
-    <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx} hideSideArrows={Boolean(chapter.row)}>
+    <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
       {chapter.id === 'ev-intro' && <EvIntroPage rows={orderedRows} respondents={respondents} />}
-      {chapter.row && (() => {
-        const traitChapters = chapters.filter((c) => c.row);
-        const traitPos = traitChapters.findIndex((c) => c.id === chapter.id);
-        const prevTrait = traitChapters[(traitPos - 1 + traitChapters.length) % traitChapters.length];
-        const nextTrait = traitChapters[(traitPos + 1) % traitChapters.length];
-        return (
-          <EvTraitPage
-            row={chapter.row}
-            onPrevTrait={() => setIdx(chapters.findIndex((c) => c.id === prevTrait.id))}
-            onNextTrait={() => setIdx(chapters.findIndex((c) => c.id === nextTrait.id))}
-          />
-        );
-      })()}
+      {chapter.row && <EvTraitPage row={chapter.row} />}
       {chapter.id === 'ev-floor' && <EvFloorPage rows={orderedRows} chapterIndex={idx + 1} />}
       {chapter.id === 'ev-gaps' && <EvGapsPage rows={orderedRows} chapterIndex={idx + 1} />}
       {chapter.id === 'ev-close' && <EvClosePage chapterIndex={idx + 1} onAdvancePhase={onAdvancePhase} />}
