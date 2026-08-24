@@ -100,15 +100,15 @@ function replaceLeaveCopouts(examples, lockedHazards, markerExamples) {
 export function normalizeGuideSummary(raw, insightMap = {}) {
   const src = raw && typeof raw === 'object' ? raw : {};
   const seeds = spokenSeedsFromInsightMap(insightMap);
-  const trailheadSentences = asSentences(src.trailhead, 6);
-  const trailhead = (trailheadSentences.length >= 4 ? trailheadSentences : trailheadSentences.concat(
+  const trailheadSentences = asSentences(src.trailhead, 12);
+  const trailhead = (trailheadSentences.length >= 8 ? trailheadSentences : trailheadSentences.concat(
     [seeds.clearestAsset, seeds.coreTension].filter(Boolean)
-  ).slice(0, 6)).join(' ');
+  ).slice(0, 12)).join(' ');
 
-  const markerFraming = asSentences(src?.markers?.framing, 3).join(' ')
-    || asSentences(src?.markers, 3).join(' ');
-  const hazardFraming = asSentences(src?.hazards?.framing, 3).join(' ')
-    || asSentences(src?.hazards, 3).join(' ');
+  const markerFraming = asSentences(src?.markers?.framing, 7).join(' ')
+    || asSentences(src?.markers, 7).join(' ');
+  const hazardFraming = asSentences(src?.hazards?.framing, 7).join(' ')
+    || asSentences(src?.hazards, 7).join(' ');
 
   const markerExamples = pairExamples(
     src?.markers?.examples,
@@ -124,11 +124,11 @@ export function normalizeGuideSummary(raw, insightMap = {}) {
     markerExamples
   );
 
-  let newTrailSentences = asSentences(src.newTrail, 5);
-  if (newTrailSentences.length < 3) {
-    const extra = asSentences(insightMap?.trajectory?.bestCase, 3);
+  let newTrailSentences = asSentences(src.newTrail, 10);
+  if (newTrailSentences.length < 7) {
+    const extra = asSentences(insightMap?.trajectory?.bestCase, 6);
     extra.forEach((sentence) => {
-      if (newTrailSentences.length >= 3) return;
+      if (newTrailSentences.length >= 10) return;
       if (!newTrailSentences.includes(sentence)) newTrailSentences.push(sentence);
     });
   }

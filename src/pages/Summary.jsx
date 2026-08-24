@@ -898,19 +898,23 @@ function Summary() {
           'Pay attention here — a few recurring moments already show how this pattern lands with your team.',
           'These are the places worth watching in real time as you lead.',
           'Notice where the same friction shows up when pressure rises.',
+          'The room already knows these tells, even if nobody names them.',
+          'Sit with the ones that feel too familiar before you move on.',
         ]
         : [
           'If those markers keep running, the road ahead gets more expensive for people and performance.',
           'This is the call to take that pattern seriously before it hardens into the team’s default rhythm.',
           'The longer it stays unaddressed, the more trust and execution both pay for it.',
+          'People who stay will adapt around it, and that adaptation is the cost.',
+          'You still have a say in whether this becomes the year that follows.',
         ];
       const list = splitSentences(text);
       for (const s of defaults) {
-        if (list.length >= 3) break;
+        if (list.length >= 5) break;
         if (!list.includes(s)) list.push(s);
       }
-      while (list.length < 2) list.push(defaults[list.length % defaults.length]);
-      return list.slice(0, 3).join(' ');
+      while (list.length < 5) list.push(defaults[list.length % defaults.length]);
+      return list.slice(0, 7).join(' ');
     };
 
     const buildSituationStage = (text, mode) => {
@@ -953,15 +957,15 @@ function Summary() {
       }
 
       const sentences = splitSentences(raw);
-      if (sentences.length <= 3) {
+      if (sentences.length <= 7) {
         return {
-          reflection: padFramingReflection(sentences.slice(0, 2).join(' ') || sentences[0] || '', mode),
+          reflection: padFramingReflection(sentences.slice(0, 5).join(' ') || sentences[0] || '', mode),
           prompt: defaultIntro,
-          situations: sentences.slice(2).map(cleanSituationCopy).filter(Boolean).slice(0, 2),
+          situations: sentences.slice(5).map(cleanSituationCopy).filter(Boolean).slice(0, 2),
         };
       }
 
-      const framingCount = 3;
+      const framingCount = 7;
       const reflectionText = sentences.slice(0, framingCount).join(' ');
       const rest = sentences.slice(framingCount);
       const situations = [];
@@ -1045,7 +1049,7 @@ function Summary() {
       return splitSentences(stageBodyText)
         .map(stripLeadingListMarker)
         .filter(Boolean)
-        .slice(0, 5)
+        .slice(0, 10)
         .join(' ');
     })();
     const trailheadDisplay = String(stageBodyText || '').trim();
@@ -1472,7 +1476,7 @@ function Summary() {
                       {situationStage.reflection ? (
                         <Typography sx={bodyType}>
                           {renderParagraphWithTooltips(
-                            splitSentences(situationStage.reflection).slice(0, 3).join(' ')
+                            splitSentences(situationStage.reflection).slice(0, 7).join(' ')
                           )}
                         </Typography>
                       ) : null}
@@ -1539,7 +1543,7 @@ function Summary() {
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75, minHeight: 0, overflow: 'hidden' }}>
                       {newTrailIntro ? (
                         <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(splitSentences(newTrailIntro).slice(0, 5).join(' '))}
+                          {renderParagraphWithTooltips(splitSentences(newTrailIntro).slice(0, 10).join(' '))}
                         </Typography>
                       ) : null}
                       {leverageCards.length > 0 && (

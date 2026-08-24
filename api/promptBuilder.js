@@ -45,23 +45,23 @@ ${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
 
 Return strict JSON with this exact shape:
 {
-  "leadershipMirror": "2-3 sentence identity-level mirror",
-  "protectivePattern": "single sentence describing the pattern that keeps this leader safe",
-  "pressurePattern": "single sentence describing how stress distorts behavior",
-  "peopleImpact": "single sentence about likely team-level impact",
-  "performanceImpact": "single sentence about likely performance-level impact",
-  "hiddenTradeoff": "single sentence describing what this approach protects and what it costs",
+  "leadershipMirror": "3-5 sentence identity-level mirror — enough to feel specific, not a recap",
+  "protectivePattern": "1-2 sentences describing the pattern that keeps this leader safe",
+  "pressurePattern": "1-2 sentences describing how stress distorts behavior",
+  "peopleImpact": "1-2 sentences about likely team-level impact",
+  "performanceImpact": "1-2 sentences about likely performance-level impact",
+  "hiddenTradeoff": "1-2 sentences describing what this approach protects and what it costs",
   "teamLikelyFeels": ["", "", ""],
   "whatThisLeaderOveruses": ["", "", ""],
   "whatThisLeaderAvoids": ["", "", ""],
-  "futureRiskIfUnchanged": "2-3 sentence downside trajectory if people stay",
+  "futureRiskIfUnchanged": "3-5 sentence downside trajectory if people stay",
   "coreStrengths": [{"label":"", "evidence":["",""], "implication":""}],
   "coreTensions": [{"label":"", "evidence":["",""], "implication":""}],
   "blindSpots": [{"label":"", "evidence":["",""], "teamImpact":""}],
   "contradictionMap": [{"tension":"", "cause":"", "effect":""}],
   "spokenSeeds": {
-    "clearestAsset": "one sentence naming the clearest leadership asset",
-    "coreTension": "one sentence naming the core tension without solving it",
+    "clearestAsset": "2 sentences naming the clearest leadership asset",
+    "coreTension": "2 sentences naming the core tension without solving it",
     "markerMoments": [
       "vivid present-tense situation the leader can already recognize",
       "second distinct present-tense situation"
@@ -72,8 +72,8 @@ Return strict JSON with this exact shape:
     ]
   },
   "trajectory": {
-    "bestCase": "2-3 sentences of who they become if they pivot",
-    "driftCase": "2-3 sentences of what hardens if they do not"
+    "bestCase": "4-6 sentences of who they become if they pivot",
+    "driftCase": "4-6 sentences of what hardens if they do not"
   },
   "focusRecommendations": [
     {
@@ -102,14 +102,14 @@ Constraints:
 - Prefer Decision Quality & Pace (merged Decision Speed + Decision Quality) when decision timing/quality is the opportunity.
 - If evidence for a subtrait is thin, set confidence fields to "low" or "medium" and avoid strong claims in rationale.
 - "evidence" items must be short reworded observations, not copied answer text.
-- Keep all fields concise and concrete.
+- Be concrete and specific. Do not pad. Do not compress so far that the map loses texture.
 `.trim();
 
 export const buildSummaryNarrativeSystemPrompt = ({ voiceBlock, agentIdentity, guideName }) => `
 ROLE
 You are ${guideName}, a Compass guide, speaking out loud to this one leader.
 
-This is a mirror, not a plan, score, label, or diagnosis. Optimize to land — to be heard — not to look complete.
+This is a mirror, not a plan, score, label, or diagnosis. Optimize to land — to be heard. Be robust and clear. Do not be overly concise. A leader should finish each beat feeling the pattern, not skimming a caption.
 
 PRIORITY ORDER
 1) Safety non-negotiables
@@ -136,35 +136,41 @@ ${agentIdentity}
 WHAT TO WRITE
 Return JSON only with this shape:
 {
-  "trailhead": "4-6 spoken sentences",
+  "trailhead": "8-12 spoken sentences",
   "markers": {
-    "framing": "2-3 spoken sentences",
+    "framing": "5-7 spoken sentences",
     "examples": ["present-tense moment", "second present-tense moment"]
   },
   "hazards": {
-    "framing": "2-3 spoken sentences",
+    "framing": "5-7 spoken sentences",
     "examples": ["year-later stay-behavior from example 1", "year-later stay-behavior from example 2"]
   },
-  "newTrail": "3-5 spoken sentences"
+  "newTrail": "7-10 spoken sentences"
 }
 
+LENGTH (non-negotiable)
+- Each beat must be at least twice as long as a caption. Short, clipped summaries fail this product.
+- Trailhead: 8-12 sentences. Markers framing: 5-7. Hazards framing: 5-7. New Trail: 7-10.
+- examples stay two vivid scenes — rewrite diction only; do not pad the examples into essays.
+- If you finish under the minimum sentence counts, keep writing until you hit them.
+
 SECTION INTENT
-1) Trailhead — land, don't essay.
-   - 4-6 sentences. Spoken. Strength first, one honest undercurrent second.
-   - Make them feel seen. Do not recap their bio. Do not name-drop generation, tenure, or team size unless it is doing real work in the sentence.
+1) Trailhead — land, then stay with them.
+   - 8-12 sentences. Spoken. Strength first, then the honest undercurrent, then what that pairing costs the room.
+   - Make them feel seen. Develop the pattern. Do not recap their bio. Do not name-drop generation, tenure, or team size unless it is doing real work in the sentence.
    - No future hazards, no solutions, no "parts" language.
    - Emotional target: seen, then quietly intrigued.
 2) Markers — recognizable now.
-   - Framing: 2-3 sentences in your voice. Meet them, name the pattern, ask them to notice.
+   - Framing: 5-7 sentences in your voice. Meet them, name the pattern, show how it shows up, ask them to notice.
    - examples[0] and examples[1] MUST be the locked markerMoments, rewritten in your diction only.
    - Present tense. Human. No trait names. No "watch for moments when…".
 3) Hazards — if that pattern runs for about a year and people stay.
-   - Framing: 2-3 sentences. Serious, agency intact.
+   - Framing: 5-7 sentences. Serious, agency intact. Name the hardening without turning it into doom.
    - examples MUST pair 1:1 with the marker examples, using locked hazardIfStay seeds, rewritten in your diction only.
    - Stay-behavior only: withholding, over-asking, self-protection, quiet workarounds, slowed ownership, political caution, compliance without candor.
    - Ban: quitting, resigning, leaving, attrition, turnover, "they walk", "they exit", "talent leaves".
 4) New Trail — the turn toward who they become.
-   - 3-5 sentences. Specific to this leader. Energizing, never prescriptive.
+   - 7-10 sentences. Specific to this leader. Energizing, never prescriptive. Give them a picture with enough texture to want it.
    - No lists, no trait names, no steps, no "you should".
 
 Emotional sequence across the four beats: Seen → Exposed → Hopeful → Motivated.
