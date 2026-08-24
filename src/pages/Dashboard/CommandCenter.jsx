@@ -141,27 +141,30 @@ function Dock({ activeTab, onSelect, t, status = {} }) {
         position: 'sticky',
         top: 80,
         zIndex: 12,
-        width: '100%',
+        flexShrink: 0,
+        width: { xs: '100%', md: 220 },
+        alignSelf: { md: 'stretch' },
         bgcolor: t.dockBg,
-        borderBottom: `1px solid ${t.hairline}`,
+        borderRight: { md: `1px solid ${t.hairline}` },
+        borderBottom: { xs: `1px solid ${t.hairline}`, md: 'none' },
         boxShadow: shadows.none,
       }}
     >
       <Box
         sx={{
-          maxWidth: 1180,
-          mx: 'auto',
-          px: { xs: 2, md: 4 },
-          height: 60,
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: { xs: 1.2, md: 2.6 },
+          flexDirection: { xs: 'row', md: 'column' },
+          alignItems: { xs: 'center', md: 'stretch' },
+          gap: 0.6,
+          px: { xs: 1.5, md: 1.75 },
+          py: { xs: 1, md: 2.4 },
+          overflowX: { xs: 'auto', md: 'visible' },
         }}
       >
         {TABS.map((tab) => {
           const isActive = tab.id === activeTab;
           const tabStatus = status[tab.id]; // 'done' | 'locked' | undefined
+          const locked = tabStatus === 'locked';
           return (
             <Box
               key={tab.id}
@@ -169,42 +172,36 @@ function Dock({ activeTab, onSelect, t, status = {} }) {
               type="button"
               onClick={() => onSelect(tab.id)}
               aria-current={isActive ? 'page' : undefined}
+              aria-disabled={locked || undefined}
               sx={{
                 all: 'unset',
-                cursor: 'pointer',
-                position: 'relative',
+                cursor: locked ? 'default' : 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 0.6,
-                px: { xs: 1.2, md: 1.6 },
-                py: 1.1,
-                opacity: tabStatus === 'locked' ? 0.45 : 1,
-                color: isActive ? t.ink : t.inkSoft,
-                transition: 'color 160ms ease',
-                '&:hover': { color: t.ink },
-                '&:focus-visible': {
-                  outline: `2px solid ${t.accent}`,
-                  outlineOffset: 3,
-                  borderRadius: 4,
+                justifyContent: { xs: 'center', md: 'flex-start' },
+                gap: 0.8,
+                px: { xs: 1.4, md: 1.6 },
+                py: { xs: 0.85, md: 1 },
+                borderRadius: radii.pill,
+                flexShrink: 0,
+                opacity: locked ? 0.45 : 1,
+                color: isActive ? colors.amberSoft : t.inkSoft,
+                bgcolor: isActive ? colors.navy900 : 'transparent',
+                transition: motion.standard,
+                '&:hover': locked ? {} : {
+                  color: isActive ? colors.amberSoft : t.ink,
+                  bgcolor: isActive ? colors.navy900 : colors.sand100,
                 },
-                '&::after': isActive
-                  ? {
-                      content: '""',
-                      position: 'absolute',
-                      left: 4,
-                      right: 4,
-                      bottom: -1,
-                      height: 2,
-                      borderRadius: 2,
-                      bgcolor: t.accent,
-                    }
-                  : {},
+                '&:focus-visible': {
+                  outline: `2px solid ${colors.ringFocus}`,
+                  outlineOffset: 2,
+                },
               }}
             >
               <Typography
                 component="span"
                 sx={{
-                  fontFamily: '"Manrope", "Inter", sans-serif',
+                  fontFamily: fonts.sans,
                   fontSize: 13.5,
                   fontWeight: isActive ? 700 : 600,
                   letterSpacing: '0.02em',
@@ -217,13 +214,13 @@ function Dock({ activeTab, onSelect, t, status = {} }) {
                 <Typography
                   component="span"
                   aria-label="Complete"
-                  sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: colors.green, lineHeight: 1 }}
+                  sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: isActive ? colors.amberSoft : colors.green, lineHeight: 1 }}
                 >
                   ✓
                 </Typography>
               )}
               {tabStatus === 'locked' && (
-                <LockOutlined aria-label="Locked" sx={{ fontSize: 12, color: t.inkSoft }} />
+                <LockOutlined aria-label="Locked" sx={{ fontSize: 13, color: isActive ? colors.amberSoft : t.inkSoft }} />
               )}
             </Box>
           );
@@ -938,21 +935,35 @@ export default function CommandCenter() {
         bgcolor: t.bg,
         color: t.ink,
         overflowX: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <ProcessTopRail hideChapterHeader />
-      <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={dockStatus} />
-      {showJourneyHeader && (
-        <ProcessChapterHeader
-          chapterIndex={chapterIndex}
-          metaOverride={headerMeta}
-          titleOverride={headerTitleOverride}
-          subtitleOverride={headerSubtitleOverride}
-          contentMaxWidth={1180}
-          contentGap={activeTab === 'evidence' ? '12px' : '34px'}
-        />
-      )}
-      <Box sx={{ position: 'relative', zIndex: 1 }}>{renderActive()}</Box>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: 'stretch',
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={dockStatus} />
+        <Box sx={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+          {showJourneyHeader && (
+            <ProcessChapterHeader
+              chapterIndex={chapterIndex}
+              metaOverride={headerMeta}
+              titleOverride={headerTitleOverride}
+              subtitleOverride={headerSubtitleOverride}
+              contentMaxWidth={1180}
+              contentGap={activeTab === 'evidence' ? '12px' : '34px'}
+            />
+          )}
+          {renderActive()}
+        </Box>
+      </Box>
     </Box>
   );
 }
