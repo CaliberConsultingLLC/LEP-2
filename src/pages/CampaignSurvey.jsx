@@ -49,6 +49,7 @@ function CampaignSurvey() {
   const [savedActionItems, setSavedActionItems] = useState([]);
   const [campaignMeta, setCampaignMeta] = useState({});
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
+  const [surveyClosed, setSurveyClosed] = useState(false);
   const [loadState, setLoadState] = useState('loading');
   const [isDark] = useDarkMode();
 
