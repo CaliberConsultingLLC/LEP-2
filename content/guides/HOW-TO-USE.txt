@@ -32,7 +32,10 @@ Practice: pr-intro, pr-edge, pr-lifting, pr-strength, pr-commit
 When the sheet is ready
 -----------------------
 1. Download CSV/XLSX back into this folder (same names is fine)
-2. Tell the agent: "reimport guides"
+2. Run: node content/guides/sync-guide-copy.mjs
    (CSV overwrite alone does not hot-reload the app)
+3. The app reads src/data/guideCopy.generated.js. Overlay and dashboard
+   guide lines resolve routeKey + stepKey. Blank step cells fall back to
+   that same guide's page default — never Mentor's voice.
 
 Do not put secrets in these files.

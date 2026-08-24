@@ -1,15 +1,13 @@
 // Guide content registry.
 //
-// Structure per route key:
-//   { title, mentor: [{text, pose, cta}, ...], catalyst: [...], challenger: [...] }
-//
-// Each persona gets 2–3 entries. The overlay rotates to a new entry on every
-// route/tab change. `pose` maps to a key in the persona's `poses` object in
-// guidePersonas.js — the overlay swaps the owl image accordingly.
-//
-// Persona display names are TBD ("Guide 1", "Guide 2", "Guide 3" in the UI)
-// until final names are approved. Internally Mentor / Catalyst / Challenger
-// remain as stable IDs.
+// Route-level rotating lines in GUIDE_CONTENT remain for legacy callers.
+// Live overlay + setPageMessage now resolve through GUIDE_STEPS
+// (generated from content/guides/3-guide-copy.csv). Blank step cells fall
+// back to that persona's page default — never another guide's voice.
+
+import { GUIDE_STEPS } from './guideCopy.generated.js';
+
+const PERSONA_IDS = ['mentor', 'catalyst', 'challenger', 'bestFriend', 'mother', 'roaster'];
 
 export const GUIDE_CONTENT = {
 
@@ -446,20 +444,71 @@ export function resolveRouteKey(pathname = '', search = '') {
   return 'default';
 }
 
-// Return the full array of messages for a route + persona.
-export function getGuideMessages(routeKey, personaId) {
+function pickPersonaLine(entry, personaId) {
+  if (!entry) return null;
+  const hit = entry[personaId];
+  const text = String(hit?.text || '').trim();
+  if (!text) return null;
+  return {
+    text,
+    pose: hit.pose || entry.pose || 'idle',
+    cta: 'Okay',
+    title: entry.title || 'Guide',
+  };
+}
+
+function legacyLine(routeKey, personaId) {
+  const bucket = GUIDE_CONTENT[routeKey] || GUIDE_CONTENT.default;
+  const entries = bucket[personaId];
+  if (!entries) return null;
+  const first = Array.isArray(entries) ? entries[0] : entries;
+  if (!first?.text) return null;
+  return {
+    text: first.text,
+    pose: first.pose || 'idle',
+    cta: first.cta || 'Okay',
+    title: bucket.title || 'Guide',
+  };
+}
+
+/** Spoken line for one route + step. Blank step cells fall back to that guide's page default — never another persona. */
+export function getGuideLine(personaId, routeKey, stepKey = 'default') {
+  const persona = PERSONA_IDS.includes(personaId) ? personaId : 'mentor';
+  const step = String(stepKey || 'default').trim() || 'default';
+  return pickPersonaLine(GUIDE_STEPS[`${routeKey}::${step}`], persona)
+    || pickPersonaLine(GUIDE_STEPS[`${routeKey}::default`], persona)
+    || pickPersonaLine(GUIDE_STEPS['default::default'], persona)
+    || legacyLine(routeKey, persona)
+    || { text: '', pose: 'idle', cta: 'Okay', title: 'Guide' };
+}
+
+export function spokenGuide(personaId, routeKey, stepKey, fallbackText = '', fallbackPose = 'idle') {
+  const line = getGuideLine(personaId, routeKey, stepKey);
+  return {
+    text: line.text || fallbackText,
+    pose: line.pose || fallbackPose,
+    cta: line.cta || 'Okay',
+    title: line.title || 'Guide',
+  };
+}
+
+// Return the full array of messages for a route + persona (+ optional step).
+export function getGuideMessages(routeKey, personaId, stepKey = 'default') {
+  const line = getGuideLine(personaId, routeKey, stepKey);
+  if (line.text) return [line];
   const bucket  = GUIDE_CONTENT[routeKey] || GUIDE_CONTENT.default;
-  const entries = bucket[personaId] || GUIDE_CONTENT.default[personaId] || GUIDE_CONTENT.default.mentor;
-  return Array.isArray(entries) ? entries : [entries];
+  const entries = bucket[personaId];
+  if (Array.isArray(entries) && entries.length) return entries;
+  return [{ text: '', pose: 'idle', cta: 'Okay' }];
 }
 
 // Single-message shim for backward compat (returns first entry).
-export function getGuideMessage(routeKey, personaId) {
-  const msgs = getGuideMessages(routeKey, personaId);
+export function getGuideMessage(routeKey, personaId, stepKey = 'default') {
+  const line = getGuideLine(personaId, routeKey, stepKey);
   return {
-    title: (GUIDE_CONTENT[routeKey] || GUIDE_CONTENT.default).title || 'Guide',
-    text:  msgs[0].text,
-    cta:   msgs[0].cta || 'Okay',
-    pose:  msgs[0].pose || 'idle',
+    title: line.title || (GUIDE_CONTENT[routeKey] || GUIDE_CONTENT.default).title || 'Guide',
+    text:  line.text,
+    cta:   line.cta || 'Okay',
+    pose:  line.pose || 'idle',
   };
 }

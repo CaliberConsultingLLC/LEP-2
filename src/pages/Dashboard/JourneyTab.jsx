@@ -4,6 +4,7 @@ import StatTable from '../../components/StatTable';
 import { chips, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useBenchmarkData } from './cc/dashboardData.js';
 import { useGuide } from '../../context/GuideContext';
+import { spokenGuide } from '../../data/guideContent';
 import { JOURNEY_STATIONS, JOURNEY_BASE_SRC } from './journey/journeyStations.js';
 
 const STAT_COLUMNS = [
@@ -253,7 +254,7 @@ export default function JourneyTab() {
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
   const intakeData = useMemo(() => readJson('latestFormData', null), []);
   const campaignRecords = useMemo(() => readJson('campaignRecords', {}), []);
-  const { setPageMessage, clearPageMessage } = useGuide();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
   const liveCampaignId = String(campaignRecords?.teamCampaignId || '').trim();
   const hasTeamData = rows.some((r) => r.team);
@@ -339,9 +340,10 @@ export default function JourneyTab() {
   // Guide narrative on select.
   useEffect(() => {
     const meta = STATUS_META[selectedStatus];
-    const text = `${selectedStation.label} — ${meta.label.toLowerCase()}. ${selectedStation.blurb}`;
-    setPageMessage({ text, pose: 'map', eyebrow: 'The Journey' });
-  }, [selectedStation, selectedStatus, setPageMessage]);
+    const fallback = `${selectedStation.label} — ${meta.label.toLowerCase()}. ${selectedStation.blurb}`;
+    const spoken = spokenGuide(personaId, 'dashboardJourney', 'station-focus', fallback, 'map');
+    setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'The Journey' });
+  }, [selectedStation, selectedStatus, setPageMessage, personaId]);
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 

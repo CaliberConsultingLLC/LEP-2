@@ -4,6 +4,7 @@ import { LockOutlined } from '@mui/icons-material';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
+import { spokenGuide } from '../../../data/guideContent';
 import {
   ChapterEyebrow,
   GapScoresPanel,
@@ -371,7 +372,7 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
   const intakeData = useMemo(() => readJson('latestFormData', null), []);
-  const { setPageMessage, clearPageMessage } = useGuide();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
   const firstName = String(userInfo?.name || '').trim().split(/\s+/)[0] || '';
   const respondents = teamResponses?.length || 0;
@@ -417,12 +418,16 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
   useEffect(() => {
     if (!rows.some((r) => r.team)) return undefined;
     if (mode === 'snapshot') {
-      setPageMessage({ text: SIGNAL_GUIDE.snapshot, pose: 'map', eyebrow: 'The Signal' });
+      const spoken = spokenGuide(personaId, 'dashboardSignal', 'snapshot', SIGNAL_GUIDE.snapshot, 'map');
+      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'The Signal' });
     } else {
-      setPageMessage({ text: chapter.guide(), pose: chapter.pose, eyebrow: chapter.label });
+      const reactionKey = reaction ? `reaction-${reaction}` : '';
+      const stepKey = chapter.id === 'checkin' && reactionKey ? reactionKey : chapter.id;
+      const spoken = spokenGuide(personaId, 'dashboardSignal', stepKey, chapter.guide(), chapter.pose);
+      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapter.label });
     }
     return undefined;
-  }, [mode, chapter, rows, setPageMessage]);
+  }, [mode, chapter, rows, setPageMessage, personaId, reaction]);
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 

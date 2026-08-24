@@ -43,6 +43,7 @@ export function GuideProvider({ children }) {
   // Shape: { text: string, pose?: string, eyebrow?: string } | null
   const [pageMessage, setPageMessageState] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [stepKey, setStepKeyState] = useState('default');
 
   useEffect(() => {
     writeState(state);
@@ -65,6 +66,9 @@ export function GuideProvider({ children }) {
   }, []);
 
   const clearPageMessage = useCallback(() => setPageMessageState(null), []);
+  const setGuideStep = useCallback((key) => {
+    setStepKeyState(String(key || 'default').trim() || 'default');
+  }, []);
   const openGuidePicker = useCallback(() => setPickerOpen(true), []);
   const closeGuidePicker = useCallback(() => setPickerOpen(false), []);
 
@@ -76,6 +80,7 @@ export function GuideProvider({ children }) {
       hasSelectedGuide: Boolean(state.selected),
       suppress,
       pageMessage,
+      stepKey,
       pickerOpen,
       setPersona,
       toggleHidden,
@@ -83,12 +88,13 @@ export function GuideProvider({ children }) {
       setSuppress,
       setPageMessage,
       clearPageMessage,
+      setGuideStep,
       openGuidePicker,
       closeGuidePicker,
       setPickerOpen,
       personas: SELECTABLE_GUIDE_PERSONAS,
     }),
-    [state, suppress, pageMessage, pickerOpen, setPersona, toggleHidden, setHidden, setSuppress, setPageMessage, clearPageMessage, openGuidePicker, closeGuidePicker],
+    [state, suppress, pageMessage, stepKey, pickerOpen, setPersona, toggleHidden, setHidden, setSuppress, setPageMessage, clearPageMessage, setGuideStep, openGuidePicker, closeGuidePicker],
   );
 
   return <GuideContext.Provider value={value}>{children}</GuideContext.Provider>;
@@ -105,6 +111,7 @@ export function useGuide() {
       hasSelectedGuide: false,
       suppress: false,
       pageMessage: null,
+      stepKey: 'default',
       pickerOpen: false,
       setPersona: () => {},
       toggleHidden: () => {},
@@ -112,6 +119,7 @@ export function useGuide() {
       setSuppress: () => {},
       setPageMessage: () => {},
       clearPageMessage: () => {},
+      setGuideStep: () => {},
       openGuidePicker: () => {},
       closeGuidePicker: () => {},
       setPickerOpen: () => {},

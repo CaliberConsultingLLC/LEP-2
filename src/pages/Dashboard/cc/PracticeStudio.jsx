@@ -4,6 +4,7 @@ import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '
 import { useBenchmarkData } from './dashboardData.js';
 import { getRootRecommendations } from './rootRecommendations.js';
 import { useGuide } from '../../../context/GuideContext';
+import { spokenGuide } from '../../../data/guideContent';
 import CairnLeftRail from '../../../components/CairnLeftRail';
 import {
   ChapterEyebrow,
@@ -625,7 +626,7 @@ export default function PracticeStudio({ t, phases, onAdvancePhase }) {
   const { loaded, rows } = useBenchmarkData();
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
   const campaignRecords = useMemo(() => readJson('campaignRecords', {}), []);
-  const { setPageMessage, clearPageMessage } = useGuide();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
   // Practice order: edge first (where the signal points), then the rest
@@ -714,12 +715,23 @@ export default function PracticeStudio({ t, phases, onAdvancePhase }) {
   useEffect(() => {
     if (!orderedRows.length) return undefined;
     if (mode === 'snapshot') {
-      setPageMessage({ text: PRACTICE_GUIDE.snapshot, pose: 'lantern', eyebrow: 'Practice' });
+      const spoken = spokenGuide(personaId, 'dashboardPractice', 'snapshot', PRACTICE_GUIDE.snapshot, 'lantern');
+      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'Practice' });
     } else {
-      setPageMessage({ text: chapter.guide(), pose: chapter.pose, eyebrow: chapter.label });
+      let stepKey = chapter.id;
+      if (String(chapter.id || '').startsWith('pr-plan-')) {
+        const role = chapter.row?.trait === roles.edge?.trait
+          ? 'edge'
+          : chapter.row?.trait === roles.lifting?.trait
+            ? 'lifting'
+            : 'strength';
+        stepKey = `pr-${role}`;
+      }
+      const spoken = spokenGuide(personaId, 'dashboardPractice', stepKey, chapter.guide(), chapter.pose);
+      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapter.label });
     }
     return undefined;
-  }, [mode, chapter, orderedRows.length, setPageMessage]);
+  }, [mode, chapter, orderedRows.length, setPageMessage, personaId, roles]);
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 

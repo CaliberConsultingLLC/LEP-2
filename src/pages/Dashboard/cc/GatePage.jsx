@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import { buttons, colors, fonts, type } from '../../../styles/tokens';
 import { useGuide } from '../../../context/GuideContext';
+import { spokenGuide } from '../../../data/guideContent';
 
 // ----------------------------------------------------------------------------
 // Gate page — shown when Evidence is visited before the Signal walkthrough is
@@ -40,12 +41,13 @@ const COPY = {
 
 export default function GatePage({ phase, onGoTab }) {
   const copy = COPY[phase] || COPY.campaign;
-  const { setPageMessage, clearPageMessage } = useGuide();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
   useEffect(() => {
-    setPageMessage({ text: GATE_GUIDE_LINE, pose: 'point', eyebrow: 'One step at a time' });
+    const spoken = spokenGuide(personaId, 'dashboardGate', 'default', GATE_GUIDE_LINE, 'point');
+    setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'One step at a time' });
     return () => clearPageMessage();
-  }, [setPageMessage, clearPageMessage]);
+  }, [setPageMessage, clearPageMessage, personaId]);
 
   return (
     <Box

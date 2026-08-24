@@ -44,7 +44,7 @@ function GuideFaqItem({ q, a }) {
 }
 
 function GuideOverlay() {
-  const { persona, hidden, toggleHidden, setHidden, suppress, pageMessage, hasSelectedGuide } = useGuide();
+  const { persona, hidden, toggleHidden, setHidden, suppress, pageMessage, hasSelectedGuide, stepKey } = useGuide();
   const location = useLocation();
 
   // All hooks must run unconditionally before any early return.
@@ -54,8 +54,8 @@ function GuideOverlay() {
   );
 
   const messages = useMemo(
-    () => getGuideMessages(routeKey, persona.id),
-    [routeKey, persona.id],
+    () => getGuideMessages(routeKey, persona.id, stepKey || 'default'),
+    [routeKey, persona.id, stepKey],
   );
 
   const [msgIdx, setMsgIdx] = useState(0);

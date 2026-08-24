@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import { colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
+import { spokenGuide } from '../../../data/guideContent';
 import EvidenceQuadrant from './EvidenceQuadrant.jsx';
 import {
   ChapterEyebrow,
@@ -736,7 +737,7 @@ const EVIDENCE_GUIDE = {
 
 export default function EvidenceView({ t, phases, onAdvancePhase }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
-  const { setPageMessage, clearPageMessage } = useGuide();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
   const orderedRows = roles.ordered;
@@ -776,12 +777,16 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
   useEffect(() => {
     if (!orderedRows.length) return undefined;
     if (mode === 'snapshot') {
-      setPageMessage({ text: EVIDENCE_GUIDE.snapshot, pose: 'map', eyebrow: 'The Evidence' });
+      const spoken = spokenGuide(personaId, 'dashboardEvidence', 'snapshot', EVIDENCE_GUIDE.snapshot, 'map');
+      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'The Evidence' });
     } else {
-      setPageMessage({ text: chapter.guide(), pose: chapter.pose, eyebrow: chapter.label });
+      const known = ['ev-intro', 'ev-floor', 'ev-gaps', 'ev-close'];
+      const stepKey = known.includes(chapter.id) ? chapter.id : 'ev-trait';
+      const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, chapter.guide(), chapter.pose);
+      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapter.label });
     }
     return undefined;
-  }, [mode, chapter, orderedRows.length, setPageMessage]);
+  }, [mode, chapter, orderedRows.length, setPageMessage, personaId]);
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 

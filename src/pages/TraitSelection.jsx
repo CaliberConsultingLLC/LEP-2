@@ -29,7 +29,7 @@ function TraitSelection() {
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [focusAreas, setFocusAreas] = useState([]);
   const [loadError, setLoadError] = useState('');
-  const { persona, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+  const { persona, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -164,6 +164,16 @@ function TraitSelection() {
   };
 
   const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    let key = 'default';
+    if (selectedTraits.length === 3) key = 'selected-3';
+    else if (selectedTraits.length === 2) key = 'selected-2';
+    else if (selectedTraits.length === 1) key = 'selected-1';
+    else if (focusAreas[activeIndex]) key = 'focus-trait';
+    setGuideStep(key);
+    return () => setGuideStep('default');
+  }, [selectedTraits.length, activeIndex, focusAreas, setGuideStep]);
 
   const handleContinue = () => {
     if (selectedTraits.length !== 3) {

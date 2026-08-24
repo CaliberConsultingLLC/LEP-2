@@ -6,6 +6,7 @@ import ProcessTopRail from '../../components/ProcessTopRail';
 import ProcessChapterHeader from '../../components/ProcessChapterHeader';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useGuide } from '../../context/GuideContext';
+import { spokenGuide } from '../../data/guideContent';
 import JourneyTab from './JourneyTab';
 import { getCurrentJourneyIndexFromState, getJourneyCompletion, JOURNEY_CHAPTER_COUNT, JOURNEY_ROMAN, JOURNEY_STATIONS } from './journey/journeyModel.js';
 import SignalView from './cc/SignalView.jsx';
@@ -504,7 +505,7 @@ function TodayLanding({ t, onNavigate }) {
   const selectedTraits = readJson('selectedTraits', []);
   const campaignRecords = readJson('campaignRecords', {});
   const actionPlansByCampaign = readJson('actionPlansByCampaign', {});
-  const { setPageMessage, clearPageMessage } = useGuide();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
   const { rows } = useBenchmarkData();
 
   const teamCampaignClosed = String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
@@ -540,13 +541,20 @@ function TodayLanding({ t, onNavigate }) {
     : 'Let the listening window do its work, then come back to read the pattern.';
 
   useEffect(() => {
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardToday',
+      teamCampaignClosed ? 'season' : 'default',
+      guideLine(season, teamCampaignClosed),
+      season === 'Embarking' ? 'map' : 'read',
+    );
     setPageMessage({
-      text: guideLine(season, teamCampaignClosed),
-      pose: season === 'Embarking' ? 'map' : 'read',
+      text: spoken.text,
+      pose: spoken.pose,
       eyebrow: season,
     });
     return () => clearPageMessage();
-  }, [season, teamCampaignClosed, setPageMessage, clearPageMessage]);
+  }, [season, teamCampaignClosed, setPageMessage, clearPageMessage, personaId]);
 
   // ---- Focal data points for the bottom cards -------------------------------
   const teamRows = rows.filter((r) => r.team);

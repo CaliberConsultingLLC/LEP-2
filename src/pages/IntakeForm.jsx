@@ -16,6 +16,7 @@ import JourneyPorthole from '../components/JourneyPorthole';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { useGuide } from '../context/GuideContext';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
@@ -576,6 +577,7 @@ const OptionCard = ({ selected, children, onClick, disabled, compact, showWarnin
 // ---------- Component ----------
 function IntakeForm() {
   const [currentStep, setCurrentStep] = useState(0);
+  const { setGuideStep } = useGuide();
   const [formData, setFormData] = useState({});
   const [societalResponses, setSocietalResponses] = useState(Array(10).fill(null)); // null = unanswered
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1051,6 +1053,31 @@ function IntakeForm() {
     behaviorStart, behaviorEnd, mindsetIntroStep, clarificationStep,
     societalStart, societalEnd, agentStep, totalSteps
   } = stepVars;
+
+  useEffect(() => {
+    let key = 'default';
+    if (currentStep === 2) key = 'behaviors-intro';
+    else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
+      const q = behaviorSet[currentStep - behaviorStart];
+      key = q?.id ? `q-${q.id}` : 'default';
+    } else if (currentStep === mindsetIntroStep) key = 'mindset-intro';
+    else if (currentStep >= societalStart && currentStep <= societalEnd) {
+      key = `societal-${Math.min(10, Math.max(1, (societalQuestionIndex || 0) + 1))}`;
+    } else if (currentStep === clarificationStep) key = 'reflection';
+    setGuideStep(key);
+    return () => setGuideStep('default');
+  }, [
+    currentStep,
+    behaviorStart,
+    behaviorEnd,
+    mindsetIntroStep,
+    societalStart,
+    societalEnd,
+    clarificationStep,
+    societalQuestionIndex,
+    behaviorSet,
+    setGuideStep,
+  ]);
 
   const buildDraftPayload = () => ({
     draftVersion: 2,

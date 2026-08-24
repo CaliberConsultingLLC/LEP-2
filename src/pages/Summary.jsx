@@ -60,7 +60,7 @@ function Summary() {
   const [guideMenuAnchor, setGuideMenuAnchor] = useState(null);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
-  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -488,6 +488,11 @@ function Summary() {
 
   const currentStageId = ['trailhead', 'markers', 'hazards', 'new-trail'][activeJourneyStep] || 'trailhead';
   const briefingFirstName = userName ? userName.split(' ')[0] : '';
+
+  useEffect(() => {
+    setGuideStep(currentStageId);
+    return () => setGuideStep('default');
+  }, [currentStageId, setGuideStep]);
 
   useEffect(() => {
     if (!useCairnTheme || isLoading) return undefined;
