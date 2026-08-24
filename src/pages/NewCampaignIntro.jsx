@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Stack, Button, Paper, Grid } from '@mui/material';
+import { Container, Box, Typography, Stack, Button, Paper, Grid, TextField } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -16,6 +16,8 @@ function NewCampaignIntro() {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [activeSection, setActiveSection] = useState('what');
   const [surveyClosed, setSurveyClosed] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const introSections = ['what', 'how', 'agreement'];
   const introSectionIdx = introSections.indexOf(activeSection);
   const goIntroSection = (dir) => {
@@ -43,7 +45,8 @@ function NewCampaignIntro() {
     const fetchCampaignData = async () => {
       try {
         const cachedCampaign = parseJson(localStorage.getItem(`campaign_${id}`), {});
-        if (cachedCampaign?.campaignType) {
+        const cachedType = String(cachedCampaign?.campaignType || '').toLowerCase();
+        if (cachedType === 'self' && cachedCampaign?.campaignType) {
           setSurveyClosed(Boolean(cachedCampaign?.surveyClosed));
           const normalizedCached = {
             ...cachedCampaign,
@@ -66,15 +69,20 @@ function NewCampaignIntro() {
             const payload = await introResponse.json().catch(() => ({}));
             if (isMounted) {
               setSurveyClosed(Boolean(payload?.campaign?.surveyClosed));
+              const cachedTeam = cachedType === 'team' ? {
+                ...cachedCampaign,
+                campaign: normalizeCampaignItems(cachedCampaign?.campaign),
+              } : null;
               setCampaignData({
                 campaignType: 'team',
-                campaign: [],
-                ownerId: payload?.campaign?.ownerId || null,
-                ownerUid: payload?.campaign?.ownerUid || null,
-                bundleId: payload?.campaign?.bundleId || null,
+                campaign: cachedTeam?.campaign || [],
+                ownerId: payload?.campaign?.ownerId || cachedTeam?.ownerId || null,
+                ownerUid: payload?.campaign?.ownerUid || cachedTeam?.ownerUid || null,
+                bundleId: payload?.campaign?.bundleId || cachedTeam?.bundleId || null,
+                accessToken: cachedTeam?.accessToken || '',
                 userInfo: {
-                  uid: payload?.campaign?.ownerUid || null,
-                  name: payload?.campaign?.ownerName || '',
+                  uid: payload?.campaign?.ownerUid || cachedTeam?.userInfo?.uid || null,
+                  name: payload?.campaign?.ownerName || cachedTeam?.userInfo?.name || '',
                 },
                 surveyClosed: Boolean(payload?.campaign?.surveyClosed),
               });
@@ -164,8 +172,12 @@ function NewCampaignIntro() {
 
     const proceed = async () => {
       if (!isSelfCampaign) {
-        const enteredPassword = prompt('Please enter the campaign password:');
-        if (!enteredPassword) return;
+        const enteredPassword = String(passwordInput || '').trim();
+        if (!enteredPassword) {
+          setPasswordError('Enter the password your leader sent.');
+          return;
+        }
+        setPasswordError('');
 
         const verifyResponse = await fetch('/api/verify-team-campaign', {
           method: 'POST',
@@ -178,19 +190,19 @@ function NewCampaignIntro() {
         const verifyPayload = await verifyResponse.json().catch(() => ({}));
         if (!verifyResponse.ok) {
           if (verifyResponse.status === 401) {
-            alert('Incorrect password. Please try again.');
+            setPasswordError('Incorrect password. Please try again.');
             return;
           }
           if (verifyResponse.status === 409) {
             setSurveyClosed(true);
-            alert('This survey has already been closed by the campaign owner.');
+            setPasswordError('This survey has already been closed by the campaign owner.');
             return;
           }
           if (verifyResponse.status === 404) {
-            alert('Campaign not found.');
+            setPasswordError('Campaign not found.');
             return;
           }
-          alert('This campaign could not be verified right now. Please refresh and try again.');
+          setPasswordError('This campaign could not be verified right now. Please refresh and try again.');
           return;
         }
 
@@ -237,8 +249,11 @@ function NewCampaignIntro() {
       let accessToken = String(parseJson(localStorage.getItem(`campaign_${id}`), {})?.accessToken || '').trim();
 
       if (!accessToken) {
-        const enteredPassword = prompt('Please enter the campaign password to continue:');
-        if (!enteredPassword) return;
+        const enteredPassword = String(passwordInput || '').trim();
+        if (!enteredPassword) {
+          setPasswordError('Enter the password your leader sent to continue.');
+          return;
+        }
         const verifyResponse = await fetch('/api/verify-team-campaign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -250,15 +265,15 @@ function NewCampaignIntro() {
         const verifyPayload = await verifyResponse.json().catch(() => ({}));
         if (!verifyResponse.ok) {
           if (verifyResponse.status === 401) {
-            alert('Incorrect password. Please try again.');
+            setPasswordError('Incorrect password. Please try again.');
             return;
           }
           if (verifyResponse.status === 409) {
             setSurveyClosed(true);
-            alert('This survey has already been closed by the campaign owner.');
+            setPasswordError('This survey has already been closed by the campaign owner.');
             return;
           }
-          alert('Campaign could not be verified. Please try again.');
+          setPasswordError('Campaign could not be verified. Please try again.');
           return;
         }
         accessToken = String(verifyPayload?.accessToken || '').trim();
@@ -405,15 +420,30 @@ function NewCampaignIntro() {
           </Typography>
 
           {!isSelfCampaign && (
-            <Box sx={{ mb: 2.4 }}>
+            <Box sx={{ mb: 2.4, maxWidth: 420, mx: 'auto', textAlign: 'left' }}>
+              <TextField
+                fullWidth
+                type="password"
+                autoComplete="off"
+                label="Campaign password"
+                value={passwordInput}
+                onChange={(event) => {
+                  setPasswordInput(event.target.value);
+                  if (passwordError) setPasswordError('');
+                }}
+                error={Boolean(passwordError)}
+                helperText={passwordError || 'This is the password your leader sent — not a Compass account.'}
+                sx={{ mb: 1.5 }}
+              />
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleStart}
                 disabled={isNavigating || surveyClosed}
+                fullWidth
                 sx={useCairnTheme
-                  ? buttons.primary
-                  : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
+                  ? { ...buttons.primary, minHeight: 48 }
+                  : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3, minHeight: 48 }}
               >
                 {surveyClosed ? 'Survey Closed' : 'Start the 5-minute survey'}
               </Button>
@@ -490,7 +520,7 @@ function NewCampaignIntro() {
                   body: 'The intent is practical growth over time through clear insights, focused action, and repeated measurement across campaigns.',
                 },
               ].map((card) => (
-                <Grid item xs={12} md={4} key={card.title}>
+                <Grid item xs={12} key={card.title}>
                   <Paper sx={useCairnTheme
                     ? {
                         p: 1.5,
@@ -533,11 +563,7 @@ function NewCampaignIntro() {
                 display: 'grid',
                 gap: 1.2,
                 textAlign: 'left',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: 'repeat(2, minmax(0, 1fr))',
-                  lg: 'repeat(5, minmax(0, 1fr))',
-                },
+                gridTemplateColumns: '1fr',
               }}
             >
               {[

@@ -18,6 +18,7 @@ function CompassLayout({
   rightRail = null,
   contentMaxWidth = CONTENT_MAX_WIDTH_DEFAULT,
   viewportFit = false,
+  fluid = false,
 }) {
   if (!useCairnTheme) {
     return children;
@@ -74,8 +75,8 @@ function CompassLayout({
         }}>
           <Box
             sx={{
-              width: rightRail ? '100%' : contentMaxWidth,
-              minWidth: rightRail ? 0 : contentMaxWidth,
+              width: rightRail || fluid ? '100%' : contentMaxWidth,
+              minWidth: rightRail || fluid ? 0 : contentMaxWidth,
               maxWidth: contentMaxWidth,
               height: viewportFit ? '100%' : 'auto',
               minHeight: 0,

@@ -93,8 +93,8 @@ function CampaignComplete() {
             }),
       }}
     >
-      <ProcessTopRail />
-      <CompassLayout>
+      <ProcessTopRail hideChapterHeader={!isSelfCampaign} />
+      <CompassLayout fluid contentMaxWidth={560}>
       <Container maxWidth="sm" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
         <Box
           sx={{
@@ -107,14 +107,14 @@ function CampaignComplete() {
             width: '100%',
           }}
         >
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 3 }}>
+          <Typography sx={{ fontFamily: useCairnTheme ? '"Fraunces", serif' : 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 3 }}>
             {isSelfCampaign ? 'Benchmark Complete' : 'Thank You for Your Feedback'}
           </Typography>
           <Stack spacing={2} alignItems="stretch">
-            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2 }}>
+            <Typography sx={{ fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2 }}>
               {isSelfCampaign
                 ? 'Your personal benchmark is now saved separately from team responses. Next, return to the transition page to unlock and share your team campaign link.'
-                : 'Your feedback is a catalyst for growth. Once all results are in, your leader will get a report that helps them understand their path forward. They will be required to log actions associated with this feedback, all of which will be visible to you prior to taking the next campaign in 6 months. Transparency is key here.'}
+                : 'Your feedback is in. Once everyone has answered and the leader closes the survey, they will see the pattern — never individual names.'}
             </Typography>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', mb: 2, color: 'text.secondary' }}>
               {isSelfCampaign

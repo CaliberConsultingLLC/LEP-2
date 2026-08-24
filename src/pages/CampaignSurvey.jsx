@@ -49,7 +49,7 @@ function CampaignSurvey() {
   const [savedActionItems, setSavedActionItems] = useState([]);
   const [campaignMeta, setCampaignMeta] = useState({});
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
-  const [surveyClosed, setSurveyClosed] = useState(false);
+  const [loadState, setLoadState] = useState('loading');
   const [isDark] = useDarkMode();
 
   const TRAIT_QUESTION_COUNT = 5;
@@ -62,22 +62,22 @@ function CampaignSurvey() {
   };
 
   useEffect(() => {
-    const campaignData = parseJson(localStorage.getItem(`campaign_${id}`), {});
-    const normalizedCampaign = normalizeCampaignItems(campaignData?.campaign);
-    if (campaignData?.campaignType && isCampaignReady(normalizedCampaign)) {
+    let cancelled = false;
+
+    const applyCampaign = (campaignData) => {
+      const normalizedCampaign = normalizeCampaignItems(campaignData?.campaign);
       setCampaign(normalizedCampaign);
       setCampaignMeta({
         ...campaignData,
         campaign: normalizedCampaign,
       });
-      if (useCairnTheme) {
-        setRatings(parseJson(localStorage.getItem(`latestSurveyRatings_${id}`), {}));
+      setRatings(parseJson(localStorage.getItem(`latestSurveyRatings_${id}`), {}));
+      if (Boolean(campaignData?.surveyClosed) && String(campaignData?.campaignType || '').toLowerCase() === 'team') {
+        setSurveyClosed(true);
       }
-    } else {
-      navigate('/');
-    }
+    };
 
-    const checkIfSurveyClosed = async () => {
+    const refreshClosedState = async (campaignData) => {
       if (String(campaignData?.campaignType || '').toLowerCase() !== 'team') return;
       try {
         const response = await fetch('/api/get-team-campaign-intro', {
@@ -87,7 +87,7 @@ function CampaignSurvey() {
         });
         if (!response.ok) return;
         const payload = await response.json().catch(() => ({}));
-        if (Boolean(payload?.campaign?.surveyClosed)) {
+        if (Boolean(payload?.campaign?.surveyClosed) && !cancelled) {
           setSurveyClosed(true);
           setCampaignMeta((prev) => ({
             ...prev,
@@ -103,7 +103,34 @@ function CampaignSurvey() {
       }
     };
 
-    if (!useCairnTheme) checkIfSurveyClosed();
+    const loadCampaign = async () => {
+      const campaignData = parseJson(localStorage.getItem(`campaign_${id}`), {});
+      const normalizedCampaign = normalizeCampaignItems(campaignData?.campaign);
+      const campaignType = String(campaignData?.campaignType || '').toLowerCase();
+      const accessToken = String(campaignData?.accessToken || '').trim();
+      const ready = Boolean(campaignType) && isCampaignReady(normalizedCampaign);
+
+      if (campaignType === 'self' && ready) {
+        if (cancelled) return;
+        applyCampaign(campaignData);
+        setLoadState('ready');
+        return;
+      }
+
+      if (campaignType === 'team' && ready && accessToken) {
+        if (cancelled) return;
+        applyCampaign(campaignData);
+        setLoadState('ready');
+        await refreshClosedState(campaignData);
+        return;
+      }
+
+      if (!cancelled) {
+        navigate(`/campaign/${id}`, { replace: true });
+      }
+    };
+
+    loadCampaign();
 
     try {
       const userInfo = parseJson(localStorage.getItem('userInfo'), {});
@@ -124,6 +151,10 @@ function CampaignSurvey() {
     } catch {
       setSavedActionItems([]);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, navigate]);
 
   const saveResponses = async () => {
@@ -139,11 +170,7 @@ function CampaignSurvey() {
       submittedAt: new Date(),
       ratings,
     };
-    if (useCairnTheme) {
-      localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
-      localStorage.setItem(`stagingSurveyResponse_${id}`, JSON.stringify(ratingsData));
-      return;
-    }
+    localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
     try {
       if (campaignType === 'team') {
         const accessToken = String(campaignMeta?.accessToken || '').trim();
@@ -177,10 +204,13 @@ function CampaignSurvey() {
         navigate(`/campaign/${id}`, { replace: true });
         return;
       }
+      if (useCairnTheme) {
+        localStorage.setItem(`stagingSurveyResponse_${id}`, JSON.stringify(ratingsData));
+        return;
+      }
       throw persistErr;
     }
-    localStorage.setItem(`latestSurveyRatings_${id}`, JSON.stringify(ratings));
-    console.log('Survey responses saved to Firestore:', ratingsData);
+    console.log('Survey responses saved:', ratingsData);
   };
 
   const getTraitRecapMetrics = (questionIdx) => {
@@ -306,12 +336,12 @@ function CampaignSurvey() {
     return () => unregisterStepNav();
   }, [currentQuestion, ratings, registerStepNav, unregisterStepNav]);
 
-  // Suppress guide for team campaigns.
+  // Suppress the guide overlay on assessments — team members are not Compass users.
   useEffect(() => {
     if (!useCairnTheme) return;
-    if (!isSelfCampaign) setSuppress(true);
+    setSuppress(true);
     return () => setSuppress(false);
-  }, [isSelfCampaign, setSuppress]);
+  }, [setSuppress]);
   const traitIndex = Math.floor(currentQuestion / TRAIT_QUESTION_COUNT);
   const currentTrait = campaign[traitIndex]?.trait || '';
   const currentSubTrait = campaign[traitIndex]?.subTrait || campaign[traitIndex]?.title || currentTrait;
@@ -340,21 +370,25 @@ function CampaignSurvey() {
       opacity: 1,
       bgcolor: 'transparent',
       background: 'linear-gradient(90deg, #dbe4ee 0%, #ccd8e6 100%)',
-      height: 8,
+      height: { xs: 12, md: 8 },
       borderRadius: 10,
     },
     '& .MuiSlider-track': {
       bgcolor: trackColor,
       border: 'none',
-      height: 8,
+      height: { xs: 12, md: 8 },
       boxShadow: '0 0 0 1px rgba(63,100,123,0.12)',
     },
     '& .MuiSlider-thumb': {
-      width: 20,
-      height: 20,
+      width: { xs: 32, md: 28 },
+      height: { xs: 32, md: 28 },
       bgcolor: '#fff',
       border: `2px solid ${trackColor}`,
       boxShadow: '0 4px 10px rgba(20,30,50,0.22)',
+      '&:after': {
+        width: 44,
+        height: 44,
+      },
       '&:hover, &.Mui-focusVisible': {
         boxShadow: '0 6px 14px rgba(20,30,50,0.30)',
       },
@@ -414,6 +448,14 @@ function CampaignSurvey() {
   const recapLeftArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 + (recapEfficacyPct * 180));
   const recapRightArcProgress = describeArc(ringCx, ringCy, ringRadius, 90, 90 - (recapEffortPct * 180));
   const recapCenterScore = (traitRecap.effortAvg + traitRecap.efficacyAvg) / 2;
+
+  if (loadState === 'loading') {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
+        {useCairnTheme ? <ProcessTopRail hideChapterHeader /> : <ProcessTopRail />}
+      </Box>
+    );
+  }
 
   if (currentQuestion >= questions.length) return null;
   if (surveyClosed && !isSelfCampaign) {
@@ -481,13 +523,14 @@ function CampaignSurvey() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
+          hideChapterHeader={!isSelfCampaign}
           titleOverride={isSelfCampaign ? 'Self-Assessment' : 'Team Assessment'}
           subtitleOverride={isSelfCampaign
             ? 'These are the same sentences your team will see. You are the leader they describe — rate how you show up, not how you wish you did.'
             : 'You are here — rate how this leader shows up in each area. Answer from what you experience day to day.'}
           metaOverride={{ label: 'Question', value: `${currentQuestion + 1} / ${questions.length || 15}` }}
         />
-        <CompassLayout>
+        <CompassLayout fluid contentMaxWidth={640}>
           <Box sx={{ maxWidth: 640, mx: 'auto', width: '100%', textAlign: 'center', pt: { xs: 3, md: 4.5 } }}>
             <Typography sx={{
               fontFamily: fonts.mono,
@@ -637,8 +680,8 @@ function CampaignSurvey() {
             }),
       }}
     >
-      <ProcessTopRail />
-      <CompassLayout>
+      <ProcessTopRail hideChapterHeader={!isSelfCampaign} />
+      <CompassLayout fluid contentMaxWidth={640}>
       <Container
         maxWidth={useCairnTheme ? false : 'lg'}
         sx={{

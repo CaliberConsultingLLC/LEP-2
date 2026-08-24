@@ -208,22 +208,12 @@ export default function CompassTopbar() {
   const barDark = true;
   const { hasSelectedGuide } = useGuide();
   const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
-  const campaignType = (() => {
-    try {
-      const m = pathname.match(/^\/campaign\/([^/]+)/);
-      if (!m) return '';
-      const data = JSON.parse(localStorage.getItem(`campaign_${m[1]}`) || '{}');
-      return String(data?.campaignType || '').toLowerCase();
-    } catch {
-      return '';
-    }
-  })();
-  const isTeamSurvey = pathname.startsWith('/campaign/') && campaignType === 'team';
+  const isCampaignRespondent = pathname.startsWith('/campaign/');
   const isPreGuide = pathname.startsWith('/user-info')
     || pathname.startsWith('/guide-select')
     || (pathname.startsWith('/form') && stage === 'profile')
     || !hasSelectedGuide
-    || isTeamSurvey;
+    || isCampaignRespondent;
 
   const { chapterIndex, station, completion, initials, userName, firstName, userEmail, joinedDate } = useMemo(() => {
     const chapterIndex = getJourneyIndexForLocation(pathname, location.search);
@@ -295,7 +285,7 @@ export default function CompassTopbar() {
       </Box>
 
       <Box sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', zIndex: 1 }}>
-        {hasAccount && (
+        {hasAccount && !isCampaignRespondent && (
           <MapBanner chapterIndex={chapterIndex} chapterName={station.label} onClick={() => setMapOpen(true)} />
         )}
       </Box>

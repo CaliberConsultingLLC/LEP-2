@@ -39,7 +39,7 @@ const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/use
 
 function RouteAwareGuide() {
   const { pathname } = useLocation();
-  if (GUIDE_HIDDEN_ROUTES.includes(pathname)) return null;
+  if (GUIDE_HIDDEN_ROUTES.includes(pathname) || pathname.startsWith('/campaign/')) return null;
   return <GuideOverlay />;
 }
 
