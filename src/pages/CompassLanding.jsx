@@ -692,22 +692,19 @@ export default function CompassLanding() {
 
       <section className="cl-close" id="cl-pricing" aria-label="Pricing">
         <div className="cl-price-card">
-          <span className="cl-price-kicker">EARLY ADOPTER · FIRST 200 LEADERS</span>
+          <span className="cl-price-kicker">INTRODUCTORY PRICE · FIRST SET OF USERS</span>
           <div className="cl-price-row">
             <span className="cl-price-was">$500</span>
             <span className="cl-price-now">$250</span>
-            <span className="cl-price-per">/ year</span>
+            <span className="cl-price-per">/ leader / year</span>
           </div>
           <p className="cl-price-copy">
-            Half off, nothing else different. Same price whether you buy it or your company does. No
-            tiers, no premium package, no paywalls inside.
+            $500 per leader, per year. The first set of users pays $250 — same product, introductory
+            price. Same whether you buy it or your company does. No tiers inside.
           </p>
           <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
             Begin your expedition — $250
           </button>
-          <p className="cl-price-fine">
-            30-day money-back guarantee. Not what we promised? Full refund, keep your reflection.
-          </p>
         </div>
 
         <h2>
@@ -718,8 +715,26 @@ export default function CompassLanding() {
         <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
           Begin your expedition →
         </button>
-        <p className="cl-colophon">North Star Partners · $250 early adopter · 30-day guarantee</p>
       </section>
+
+      <footer className="cl-org-footer">
+        <div className="cl-org-footer-inner">
+          <p className="cl-org-kicker">North Star Partners</p>
+          <p className="cl-org-about">
+            The Compass is a product of North Star Partners. The methodology, assessments, written
+            reflections, and campaign materials are proprietary intellectual property. Unauthorized
+            copying or redistribution is not permitted.
+          </p>
+          <p className="cl-org-contact">
+            Questions:{' '}
+            <a href="mailto:hello@northstarpartners.org">hello@northstarpartners.org</a>
+          </p>
+          <p className="cl-org-legal">
+            © {new Date().getFullYear()} North Star Partners. All rights reserved. Terms of Use and
+            Privacy Policy apply when you create an account.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

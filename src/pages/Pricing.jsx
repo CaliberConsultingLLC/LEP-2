@@ -74,7 +74,7 @@ const tiers = [
 const faqs = [
   {
     q: 'Is there a free trial?',
-    a: 'Yes. You can complete the full intake and receive your reflection at no cost. Upgrading unlocks the team survey and campaign dashboard.',
+    a: 'No public trial. Compass is $500 per leader per year, $250 for the first set of users. You create an account, choose a guide, then pay before the intake.',
   },
   {
     q: 'How does the team survey work?',

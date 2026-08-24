@@ -1298,10 +1298,45 @@ html:has([data-compass-landing]) {
   color: var(--cl-gold);
 }
 
-.cl-colophon {
-  margin: 20px 0 0;
+.cl-org-footer {
+  padding: 48px var(--cl-gutter) 64px;
+  border-top: 1px solid var(--cl-hairline);
+  background: rgba(4, 9, 26, 0.45);
+}
+
+.cl-org-footer-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cl-org-kicker {
+  font-family: 'Cinzel', Georgia, serif;
   font-size: 13px;
-  color: rgba(255, 248, 240, 0.45);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cl-gold);
+  margin-bottom: 14px;
+}
+
+.cl-org-about,
+.cl-org-contact,
+.cl-org-legal {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 248, 240, 0.62);
+}
+
+.cl-org-about { margin-bottom: 16px; }
+.cl-org-contact { margin-bottom: 18px; }
+.cl-org-contact a {
+  color: var(--cl-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cl-org-legal {
+  font-size: 12px;
+  color: rgba(255, 248, 240, 0.42);
 }
 
 /* ---------------------------------------------------------- responsive --- */
