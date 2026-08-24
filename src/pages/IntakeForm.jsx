@@ -2269,7 +2269,7 @@ function IntakeForm() {
         fontWeight: 700,
         textTransform: 'uppercase',
       }}>
-        Before the five
+        Before the reflection
       </Typography>
       <Typography sx={useCairnTheme ? { ...type.question, textAlign: 'center', maxWidth: '56ch' } : {
         fontWeight: 800,
@@ -2278,16 +2278,16 @@ function IntakeForm() {
         textAlign: 'center',
       }}>
         {clarificationStatus === 'ready' && clarification.needsClarification
-          ? 'We noticed something worth a second look.'
-          : 'Taking a moment before we lock the five.'}
+          ? 'Two of your answers can be read two ways.'
+          : 'We are reading for a tension worth naming.'}
       </Typography>
       <Typography sx={useCairnTheme ? { ...type.bodyMuted, textAlign: 'center', maxWidth: '52ch' } : {
         opacity: 0.8,
         maxWidth: 640,
       }}>
         {clarificationStatus === 'ready' && clarification.needsClarification
-          ? (clarification.notice || 'This could be read two ways. You can clarify, or keep both as true.')
-          : 'Checking whether anything in your answers would change the traits we recommend.'}
+          ? (clarification.notice || 'If a distinction would make the picture truer, write it here. If both answers are simply you, leave it.')
+          : 'If nothing needs a second look, we will move you on. This pause is only for a real contradiction — not a recap of what you already said.'}
       </Typography>
 
       {clarificationStatus === 'ready' && clarification.needsClarification && clarification.questions.map((q) => (
@@ -2306,7 +2306,7 @@ function IntakeForm() {
             fullWidth
             multiline
             minRows={3}
-            placeholder="Optional — add a distinction if you want to."
+            placeholder="Optional — only if one answer was doing different work than it looks like."
             sx={{
               maxWidth: '100%',
               '& .MuiOutlinedInput-root': useCairnTheme ? {

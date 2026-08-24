@@ -75,7 +75,7 @@ function normalizeResult(raw) {
   return {
     needsClarification: true,
     notice: String(raw?.notice || '').trim()
-      || 'We noticed something that could be read two ways. Want to clarify before we lock the five?',
+      || 'Two signals can be true at once. If one of them was doing different work than it looks like, say so here.',
     questions,
   };
 }
@@ -141,7 +141,7 @@ OUTPUT JSON ONLY:
 
 Rules:
 - 0 questions unless the bar above is met. Max 2.
-- notice: one or two sentences, spoken to the user, if you are asking.
+- notice: one or two sentences to the user if you are asking. Do not mention "the five", locking traits, or survey mechanics.
 - prompts: under 220 characters, one question each, open-ended.
 `.trim();
 
