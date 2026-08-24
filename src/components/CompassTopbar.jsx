@@ -1,11 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Box, Popover, Stack, Typography } from '@mui/material';
-import WbSunnyIcon from '@mui/icons-material/WbSunny';
-import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { auth } from '../firebase';
-import { useDarkMode } from '../hooks/useDarkMode';
 import JourneyMapModal from './JourneyMapModal';
 import GuidePickerMenu from './GuidePickerMenu';
 import {
@@ -208,7 +205,7 @@ export default function CompassTopbar() {
   const avatarRef = useRef(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
-  const [isDark, toggleDark] = useDarkMode();
+  const barDark = true;
   const { hasSelectedGuide } = useGuide();
   const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
   const campaignType = (() => {
@@ -273,8 +270,8 @@ export default function CompassTopbar() {
         alignItems: 'center',
         justifyContent: 'space-between',
         px: '28px',
-        bgcolor: isDark ? colors.navy950 : colors.surface1,
-        borderBottom: '1px solid var(--sand-200)',
+        bgcolor: colors.navy950,
+        borderBottom: '1px solid rgba(244,206,161,0.16)',
         overflow: 'visible',
         flexShrink: 0,
       }}
@@ -287,7 +284,7 @@ export default function CompassTopbar() {
             fontSize: { xs: 22, sm: 25 },
             letterSpacing: '-0.045em',
             fontVariant: 'small-caps',
-            color: isDark ? colors.amberSoft : colors.navy900,
+            color: colors.amberSoft,
             lineHeight: 0.95,
             userSelect: 'none',
             whiteSpace: 'nowrap',
@@ -304,35 +301,7 @@ export default function CompassTopbar() {
       </Box>
 
       <Stack direction="row" alignItems="center" gap={1.5} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
-        {!isPreGuide && <GuidePill isDark={isDark} />}
-        <Box
-          component="button"
-          type="button"
-          onClick={toggleDark}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={isDark ? 'Light mode' : 'Dark mode'}
-          sx={{
-            all: 'unset',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
-            border: isDark ? '1px solid rgba(244,206,161,0.22)' : '1px solid var(--sand-200)',
-            bgcolor: isDark ? 'rgba(22,42,68,0.9)' : colors.surface1,
-            color: isDark ? colors.amberSoft : colors.navy700,
-            boxShadow: '0 1px 3px rgba(15,28,46,0.06)',
-            flexShrink: 0,
-            transition: 'all 180ms cubic-bezier(0.2,0.8,0.2,1)',
-            '&:hover': { borderColor: isDark ? 'rgba(244,206,161,0.5)' : colors.navy500, bgcolor: isDark ? colors.navy700 : colors.sand50 },
-            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-          }}
-        >
-          {isDark ? <WbSunnyIcon sx={{ fontSize: 16 }} /> : <NightlightRoundIcon sx={{ fontSize: 16 }} />}
-        </Box>
-
+        {!isPreGuide && <GuidePill isDark={barDark} />}
         {hasAccount && (
         <Box
           component="button"
@@ -346,19 +315,19 @@ export default function CompassTopbar() {
             width: 34,
             height: 34,
             borderRadius: '50%',
-            bgcolor: isDark ? 'rgba(22,42,68,0.9)' : colors.sand200,
-            border: isDark ? '1px solid rgba(244,206,161,0.22)' : '1px solid rgba(15,28,46,0.08)',
+            bgcolor: 'rgba(22,42,68,0.9)',
+            border: '1px solid rgba(244,206,161,0.22)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: fonts.serif,
             fontWeight: 700,
             fontSize: 13,
-            color: isDark ? colors.amberSoft : colors.navy700,
+            color: colors.amberSoft,
             flexShrink: 0,
             userSelect: 'none',
             transition: 'all 180ms cubic-bezier(0.2,0.8,0.2,1)',
-            '&:hover': { borderColor: isDark ? 'rgba(244,206,161,0.5)' : colors.navy500, bgcolor: isDark ? colors.navy700 : colors.sand100 },
+            '&:hover': { borderColor: 'rgba(244,206,161,0.5)', bgcolor: colors.navy700 },
             '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
           }}
         >
@@ -371,7 +340,7 @@ export default function CompassTopbar() {
         anchorEl={avatarRef.current}
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
-        isDark={isDark}
+        isDark={barDark}
         userName={userName}
         userEmail={userEmail}
         joinedDate={joinedDate}
