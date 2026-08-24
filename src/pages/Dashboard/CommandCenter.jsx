@@ -4,7 +4,6 @@ import { ArrowForward, LockOutlined } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../../components/ProcessTopRail';
 import ProcessChapterHeader from '../../components/ProcessChapterHeader';
-import { useFakeDashboardData } from '../../config/runtimeFlags';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useGuide } from '../../context/GuideContext';
 import JourneyTab from './JourneyTab';
@@ -511,9 +510,7 @@ function TodayLanding({ t, onNavigate }) {
   const { setPageMessage, clearPageMessage } = useGuide();
   const { rows } = useBenchmarkData();
 
-  const teamCampaignClosed =
-    useFakeDashboardData ||
-    String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
+  const teamCampaignClosed = String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
   const season = teamCampaignClosed ? 'Embarking' : 'Understanding';
   const journeyIndex = getCurrentJourneyIndexFromState();
   const station = JOURNEY_STATIONS[journeyIndex] || JOURNEY_STATIONS[0];
@@ -787,6 +784,13 @@ export default function CommandCenter() {
 
   // Signal → Evidence → Practice journey state (gating, snapshots, dock badges)
   const phases = useDebriefPhases();
+  const campaignClosed = String(readJson('campaignRecords', {})?.teamCampaignClosed || '').toLowerCase() === 'true';
+  const dockStatus = {
+    ...phases.dockStatus,
+    signal: !campaignClosed ? 'locked' : phases.dockStatus.signal,
+    evidence: !campaignClosed ? 'locked' : phases.dockStatus.evidence,
+    practice: !campaignClosed ? 'locked' : phases.dockStatus.practice,
+  };
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
@@ -796,6 +800,9 @@ export default function CommandCenter() {
   };
 
   const renderActive = () => {
+    if (['signal', 'evidence', 'practice'].includes(activeTab) && !campaignClosed) {
+      return <GatePage phase="campaign" onGoTab={goToTab} />;
+    }
     if (PHASE_ORDER.includes(activeTab) && phases.isGated(activeTab)) {
       return <GatePage phase={activeTab} onGoTab={goToTab} />;
     }
@@ -934,7 +941,7 @@ export default function CommandCenter() {
       }}
     >
       <ProcessTopRail hideChapterHeader />
-      <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={phases.dockStatus} />
+      <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={dockStatus} />
       {showJourneyHeader && (
         <ProcessChapterHeader
           chapterIndex={chapterIndex}

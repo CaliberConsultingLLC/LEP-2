@@ -158,15 +158,34 @@ export function useBenchmarkData() {
         const teamCampaignId = records?.teamCampaignId;
         const selfCampaignId = records?.selfCampaignId;
         const ownerUid = auth?.currentUser?.uid || null;
+        const campaignClosed = String(records?.teamCampaignClosed || '').toLowerCase() === 'true';
+
+        if (!campaignClosed) {
+          if (active) {
+            setTeamResponses([]);
+            setSelfResponses([]);
+            setLoaded(true);
+          }
+          return;
+        }
+
+        const applyClosedPreview = () => {
+          const rowsForSynth = nextRows.length ? nextRows : campaignRows;
+          const fakeTeam = useFakeDashboardData ? fakeData.responses : [];
+          const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, rowsForSynth);
+          setTeamResponses(spreadTeam);
+          setSelfResponses(synthesizeSelfResponses(spreadTeam, rowsForSynth));
+          setLoaded(true);
+        };
 
         if (!teamCampaignId || !ownerUid) {
           if (active) {
-            const rowsForSynth = nextRows.length ? nextRows : campaignRows;
-            const fakeTeam = useFakeDashboardData ? fakeData.responses : [];
-            const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, rowsForSynth);
-            setTeamResponses(spreadTeam);
-            setSelfResponses(synthesizeSelfResponses(spreadTeam, rowsForSynth));
-            setLoaded(true);
+            if (useFakeDashboardData) applyClosedPreview();
+            else {
+              setTeamResponses([]);
+              setSelfResponses([]);
+              setLoaded(true);
+            }
           }
           return;
         }
@@ -194,25 +213,24 @@ export function useBenchmarkData() {
         const selfDocs = selfSnap.docs.map((d) => d.data()).filter((d) => d?.ratings);
 
         if (!active) return;
-        const rowsForSynth = nextRows.length ? nextRows : campaignRows;
-        const usingFakeTeam = !teamDocs.length && useFakeDashboardData;
-        const baseTeam = teamDocs.length ? teamDocs : (useFakeDashboardData ? fakeData.responses : []);
-        const finalTeam = usingFakeTeam
-          ? spreadResponsesAcrossTraits(baseTeam, TEAM_SPREAD_PROFILES, rowsForSynth)
-          : baseTeam;
-        const finalSelf = selfDocs.length
-          ? selfDocs
-          : synthesizeSelfResponses(finalTeam, rowsForSynth);
-        setTeamResponses(finalTeam);
-        setSelfResponses(finalSelf);
+        if (teamDocs.length) {
+          setTeamResponses(teamDocs);
+          setSelfResponses(selfDocs.length ? selfDocs : []);
+          setLoaded(true);
+          return;
+        }
+        if (useFakeDashboardData) {
+          applyClosedPreview();
+          return;
+        }
+        setTeamResponses([]);
+        setSelfResponses(selfDocs);
         setLoaded(true);
       } catch (err) {
         console.warn('useBenchmarkData: load failed', err);
         if (active) {
-          const fakeTeam = useFakeDashboardData ? fakeData.responses : [];
-          const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, campaignRows);
-          setTeamResponses(spreadTeam);
-          setSelfResponses(synthesizeSelfResponses(spreadTeam, campaignRows));
+          setTeamResponses([]);
+          setSelfResponses([]);
           setLoaded(true);
         }
       }

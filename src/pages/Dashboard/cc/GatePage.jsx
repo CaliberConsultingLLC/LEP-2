@@ -15,6 +15,13 @@ const GATE_GUIDE_LINE =
   'Each room opens in order — that\u2019s not bureaucracy, it\u2019s pacing. The sequence is how the signal stays understandable.';
 
 const COPY = {
+  campaign: {
+    eyebrow: 'Signal · Not yet open',
+    headline: 'The campaign is still listening.',
+    body: 'Signal and Evidence stay empty until every invited voice has answered and you close the survey. Partial results would be a sketch, not a reading.',
+    cta: 'Back to Today',
+    goTo: 'today',
+  },
   evidence: {
     eyebrow: 'Evidence · Not yet open',
     headline: 'The signal comes first.',
@@ -32,7 +39,7 @@ const COPY = {
 };
 
 export default function GatePage({ phase, onGoTab }) {
-  const copy = COPY[phase] || COPY.evidence;
+  const copy = COPY[phase] || COPY.campaign;
   const { setPageMessage, clearPageMessage } = useGuide();
 
   useEffect(() => {
