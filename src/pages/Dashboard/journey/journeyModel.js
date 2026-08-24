@@ -181,6 +181,67 @@ export const FLOW_HANDOFFS = [
     blurb: 'Start your self-assessment first — the same statements your team will see. After that, the team link unlocks. Do not share the self-assessment link with your team.',
     arriveHint: 'One primary action: start the self-assessment. Copy the team link only after that is done.',
   },
+  {
+    id: 'intro-to-verify',
+    fromPrefix: '/campaign-intro',
+    toPrefix: '/campaign-verify',
+    fromIndex: 2,
+    toIndex: 2,
+    fromLabel: 'Campaign statements',
+    completeBlurb: 'The sentences are set. Next you rate yourself, then send a different link to your team.',
+    toLabel: 'Self-assessment, then invite',
+    blurb: 'Start your self-assessment first — the same statements your team will see. After that, the team link unlocks. Do not share the self-assessment link with your team.',
+    arriveHint: 'One primary action: start the self-assessment. Copy the team link only after that is done.',
+  },
+  {
+    id: 'guide-to-pay',
+    fromPrefix: '/guide-select',
+    toPrefix: '/pay',
+    fromIndex: 0,
+    toIndex: 0,
+    fromLabel: 'Your guide',
+    completeBlurb: 'You chose the voice that will talk to you this year. Next is a short payment step, then the intake begins.',
+    toLabel: 'Payment',
+    blurb: 'This unlocks the year: reflection, campaign, and the team reading. Intro pricing applies to the first set of leaders.',
+    arriveHint: 'After this, about 23 questions. Roughly 15 minutes. Honest answers make a better writeup.',
+  },
+  {
+    id: 'pay-to-intake',
+    fromPrefix: '/pay',
+    toPrefix: '/form',
+    toStage: 'intake',
+    fromIndex: 0,
+    toIndex: 1,
+    fromLabel: 'Payment',
+    completeBlurb: 'You are in. The next stretch is the intake — how you actually lead, not the version you wish they saw.',
+    toLabel: 'Behaviors & instincts',
+    blurb: 'About 23 questions, roughly 15 minutes. Answer as you normally show up. When you finish, Compass writes your reflection.',
+    arriveHint: 'Sit with anything that surprises you. The discomfort is part of the data.',
+  },
+  {
+    id: 'verify-to-self',
+    fromPrefix: '/campaign-verify',
+    toPrefix: '/campaign/',
+    fromIndex: 2,
+    toIndex: 3,
+    fromLabel: 'Campaign ready',
+    completeBlurb: 'The statements are locked. Next you rate yourself on the same sentences your team will see. Do not send them this link.',
+    toLabel: 'Self-assessment',
+    blurb: 'About five minutes. Rate how you actually show up, not the version you wish they saw.',
+    arriveHint: 'When you finish, you return here to copy the separate team link.',
+  },
+  {
+    id: 'self-complete-to-invite',
+    fromPrefix: '/campaign/',
+    toPrefix: '/campaign-verify',
+    fromIndex: 3,
+    toIndex: 2,
+    fromLabel: 'Self-assessment',
+    completeBlurb: 'Your benchmark is in. The team link is now the thing that matters — a different URL, a different password.',
+    toLabel: 'Invite the team',
+    blurb: 'Copy the team link only. Wait until everyone has answered, then close the survey. Signal stays empty until then.',
+    arriveHint: 'Send it to the people who see you lead. You will not see individuals.',
+  },
 ];
 
 export const matchFlowHandoff = (fromPath = '', toPath = '', fromSearch = '', toSearch = '') => {
@@ -270,7 +331,7 @@ export function getJourneyIndexForLocation(pathname = '', search = '') {
   const path = pathname || '';
 
   // Chapter I — profile creation, profile details, guide selection
-  if (path.startsWith('/user-info') || path.startsWith('/guide-select')) return 0;
+  if (path.startsWith('/user-info') || path.startsWith('/guide-select') || path.startsWith('/pay')) return 0;
   if (path.startsWith('/form') && stage === 'profile') return 0;
 
   // Chapter II — behaviors & instincts (intake)

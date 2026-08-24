@@ -10,6 +10,7 @@ import {
 const SEEN_KEY = 'journeyCeremonySeen';
 
 const SIGNAL_TABS = ['signal', 'signals', 'campaign-results', 'results'];
+const EVIDENCE_TABS = ['evidence', 'detailed', 'detailed-results'];
 const PRACTICE_TABS = ['practice', 'growth-plan', 'plan'];
 
 function readSeen() {
@@ -75,7 +76,7 @@ export default function JourneyCeremonyGate() {
         fromIndex: intraChapter.fromIndex,
         toIndex: intraChapter.toIndex,
         seenKey: intraChapter.id,
-        skipWalk: true,
+        skipWalk: intraChapter.fromIndex === intraChapter.toIndex,
         copy: {
           fromLabel: intraChapter.fromLabel,
           completeBlurb: intraChapter.completeBlurb,
@@ -90,6 +91,23 @@ export default function JourneyCeremonyGate() {
       const enteredSignal = SIGNAL_TABS.includes(tab) && !SIGNAL_TABS.includes(prevTab);
       if (enteredSignal && !seen[4] && !ceremonyOpenRef.current) {
         nextCeremony = { fromIndex: 3, toIndex: 4, seenKey: 4, key: `3-4-${Date.now()}` };
+      }
+      const enteredEvidence = EVIDENCE_TABS.includes(tab) && !EVIDENCE_TABS.includes(prevTab);
+      if (enteredEvidence && !seen['ch5-evidence'] && !ceremonyOpenRef.current && !nextCeremony) {
+        nextCeremony = {
+          fromIndex: 4,
+          toIndex: 4,
+          seenKey: 'ch5-evidence',
+          skipWalk: true,
+          copy: {
+            fromLabel: 'The Signal',
+            completeBlurb: 'You have the pattern. Evidence is the receipts — statements and numbers, not another summary.',
+            toLabel: 'The Evidence',
+            blurb: 'Read what shaped the signal before you pick a practice. Nothing here is styled on your behalf.',
+            arriveHint: 'Use the arrows to move through the room. Practice opens after this.',
+          },
+          key: `signal-evidence-${Date.now()}`,
+        };
       }
       // Ch6: first enter Practice.
       const enteredPractice = PRACTICE_TABS.includes(tab) && !PRACTICE_TABS.includes(prevTab);
