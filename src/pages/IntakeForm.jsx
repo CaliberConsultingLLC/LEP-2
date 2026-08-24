@@ -18,6 +18,7 @@ import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, type } from '../styles/tokens';
+import { isIntakeUnlocked } from '../utils/billing';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -614,6 +615,13 @@ function IntakeForm() {
     stagingHost.includes('staging.northstarpartners.org') ||
     stagingHost.includes('compass-staging');
   const allowStagingPersistenceBypass = useCairnTheme || isStagingRuntime;
+
+  useEffect(() => {
+    const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
+    if (stage === 'intake' && !isIntakeUnlocked()) {
+      navigate('/pay', { replace: true });
+    }
+  }, [location.search, navigate]);
 
   const handleCustomAnswerSubmit = () => {
     if (customAnswerText.trim()) {

@@ -45,7 +45,7 @@ function GuideSelect() {
 
   const handleBegin = () => {
     if (!canBegin) return;
-    navigate('/form?stage=intake');
+    navigate('/pay');
   };
 
   const step = (delta) => {

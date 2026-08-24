@@ -24,6 +24,8 @@ import RepositoryLogin from './pages/RepositoryLogin';
 import SignIn from './pages/SignIn';
 import Pricing from './pages/Pricing';
 import GuideSelect from './pages/GuideSelect';
+import Checkout from './pages/Checkout';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 import ProtectedRoute from './components/ProtectedRoute';
 import { showDevTools, useCairnTheme } from './config/runtimeFlags';
 import { GuideProvider } from './context/GuideContext';
@@ -33,7 +35,7 @@ import StagingDevPanel from './components/StagingDevPanel';
 import JourneyCeremonyGate from './components/JourneyCeremonyGate';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
 
-const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info'];
+const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success'];
 
 function RouteAwareGuide() {
   const { pathname } = useLocation();
@@ -48,6 +50,8 @@ function AppRoutes() {
       <Route path="/landing" element={<Home />} />
       <Route path="/user-info" element={<UserInfo />} />
       <Route path="/guide-select" element={<GuideSelect />} />
+      <Route path="/pay" element={<Checkout />} />
+      <Route path="/pay/success" element={<CheckoutSuccess />} />
       <Route path="/form" element={<IntakeForm />} />
       <Route path="/summary" element={<Summary />} />
       <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />
