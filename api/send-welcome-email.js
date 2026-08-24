@@ -208,7 +208,7 @@ export default async function handler(req, res) {
     const resolvedBaseUrl = originBase || envBase || 'https://YOUR_DOMAIN';
     const signInUrl = resolveSignInUrl(process.env.APP_SIGN_IN_URL, resolvedBaseUrl);
     const forgotPasswordUrl = process.env.APP_FORGOT_PASSWORD_URL
-      || `${resolvedBaseUrl}/sign-in?reset=1&email=${encodeURIComponent(requestEmail)}`;
+      || `${resolvedBaseUrl}/sign-in?email=${encodeURIComponent(requestEmail)}`;
 
     if (!postmarkServerToken) {
       return res.status(503).json({ error: 'Email service not configured' });

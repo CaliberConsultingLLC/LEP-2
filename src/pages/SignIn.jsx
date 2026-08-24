@@ -259,48 +259,16 @@ function SignIn() {
   };
 
   useEffect(() => {
-    if (hasAutoResetRun) {
-      return;
-    }
-
     const params = new URLSearchParams(location.search || '');
-    const shouldReset = params.get('reset') === '1';
     const prefilledEmail = String(params.get('email') || '').trim().toLowerCase();
-    if (!shouldReset || !prefilledEmail) {
-      return;
-    }
+    if (prefilledEmail && !email) setEmail(prefilledEmail);
+
+    if (hasAutoResetRun) return;
+    if (params.get('passwordUpdated') !== '1') return;
 
     setHasAutoResetRun(true);
-    setEmail(prefilledEmail);
-
-    const runAutoReset = async () => {
-      setError('');
-      setInfoMessage('');
-      setIsResettingPassword(true);
-      try {
-        await sendPasswordResetEmail(auth, prefilledEmail, buildPasswordResetActionSettings(prefilledEmail));
-        logAuthEvent({ emailAddress: prefilledEmail, status: 'success', message: 'Password reset email sent.' });
-        setInfoMessage('Password reset link sent. Check your inbox.');
-      } catch (resetError) {
-        logAuthEvent({
-          emailAddress: prefilledEmail,
-          status: 'failed',
-          message: String(resetError?.code || resetError?.message || 'Password reset failed.'),
-        });
-        if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {
-          setError('Please enter a valid account email address.');
-        } else if (resetError?.code === 'auth/too-many-requests') {
-          setError('Too many reset attempts. Please wait and try again.');
-        } else {
-          setError('Could not send reset email right now. Please try again.');
-        }
-      } finally {
-        setIsResettingPassword(false);
-      }
-    };
-
-    runAutoReset();
-  }, [hasAutoResetRun, location.search]);
+    setInfoMessage('Password updated. Sign in with your new password.');
+  }, [email, hasAutoResetRun, location.search]);
 
   if (useCairnTheme) {
     return (

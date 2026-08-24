@@ -47,9 +47,10 @@ export function getCompassSignInUrl() {
 
 export function buildPasswordResetActionSettings(email = '') {
   const signInUrl = getCompassSignInUrl();
-  const targetUrl = email
-    ? `${signInUrl}?reset=1&email=${encodeURIComponent(String(email || '').trim().toLowerCase())}`
-    : signInUrl;
+  const address = String(email || '').trim().toLowerCase();
+  const targetUrl = address
+    ? `${signInUrl}?passwordUpdated=1&email=${encodeURIComponent(address)}`
+    : `${signInUrl}?passwordUpdated=1`;
 
   return {
     url: targetUrl,
