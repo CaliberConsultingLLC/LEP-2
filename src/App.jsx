@@ -26,16 +26,19 @@ import Pricing from './pages/Pricing';
 import GuideSelect from './pages/GuideSelect';
 import Checkout from './pages/Checkout';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import DemoStart from './pages/DemoStart';
 import ProtectedRoute from './components/ProtectedRoute';
-import { showDevTools, useCairnTheme } from './config/runtimeFlags';
+import DemoBanner from './components/DemoBanner';
+import { showDevTools, useCairnTheme, isProductionHost } from './config/runtimeFlags';
 import { GuideProvider } from './context/GuideContext';
 import { StepNavProvider } from './context/StepNavContext';
 import GuideOverlay from './components/GuideOverlay';
 import StagingDevPanel from './components/StagingDevPanel';
 import JourneyCeremonyGate from './components/JourneyCeremonyGate';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
+import { isDemoSession } from './utils/demoMode';
 
-const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success'];
+const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success', '/demo'];
 
 function RouteAwareGuide() {
   const { pathname } = useLocation();
@@ -48,6 +51,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/landing" element={<Home />} />
+      {!isProductionHost && <Route path="/demo" element={<DemoStart />} />}
       <Route path="/user-info" element={<UserInfo />} />
       <Route path="/guide-select" element={<GuideSelect />} />
       <Route path="/pay" element={<Checkout />} />
@@ -82,15 +86,16 @@ function App() {
   // skin is active. On production the tree is identical to what shipped
   // before — no provider, no overlay, no behavior change.
   if (useCairnTheme) {
-    autoSeedIfNeeded();
+    if (!isDemoSession()) autoSeedIfNeeded();
     return (
       <GuideProvider>
         <StepNavProvider>
           <Router>
+            <DemoBanner />
             <AppRoutes />
             <JourneyCeremonyGate />
             <RouteAwareGuide />
-            <StagingDevPanel />
+            {!isDemoSession() && <StagingDevPanel />}
           </Router>
         </StepNavProvider>
       </GuideProvider>

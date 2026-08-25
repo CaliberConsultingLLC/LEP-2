@@ -18,6 +18,8 @@ import CompassLayout from '../components/CompassLayout';
 import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { finishDemoCampaign, isDemoSession } from '../utils/demoMode';
+import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import {
   TrendingUp,
   ContentCopy,
@@ -194,9 +196,13 @@ function CampaignVerify() {
 
         if (matchesExistingCampaign) {
           applyCampaignRecords(existingRecords, campaignData);
-          persistCampaignBundle({ userInfo, campaignData, records: existingRecords }).catch((persistErr) => {
-            console.warn('Failed to persist existing campaign bundle:', persistErr);
-          });
+          if (isDemoSession()) {
+            finishDemoCampaign();
+          } else {
+            persistCampaignBundle({ userInfo, campaignData, records: existingRecords }).catch((persistErr) => {
+              console.warn('Failed to persist existing campaign bundle:', persistErr);
+            });
+          }
           setError(null);
           setIsGenerating(false);
           return;
@@ -209,7 +215,34 @@ function CampaignVerify() {
         let selfCampaignId = '';
         let teamCampaignId = '';
 
-        try {
+        if (isDemoSession()) {
+          selfCampaignId = `demo-self-${bundleId}`;
+          teamCampaignId = `demo-team-${bundleId}`;
+          const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
+          localCampaignDocs[selfCampaignId] = {
+            userInfo,
+            ownerId,
+            ownerUid: userInfo?.uid || null,
+            bundleId,
+            campaignType: 'self',
+            campaign: selfCampaign,
+            password: selfPasswordGenerated,
+            createdAt: new Date().toISOString(),
+          };
+          localCampaignDocs[teamCampaignId] = {
+            userInfo,
+            ownerId,
+            ownerUid: userInfo?.uid || null,
+            bundleId,
+            campaignType: 'team',
+            campaign: campaignData,
+            password: teamPasswordGenerated,
+            createdAt: new Date().toISOString(),
+            selfCampaignId,
+          };
+          localStorage.setItem('localCampaignDocs', JSON.stringify(localCampaignDocs));
+        } else {
+          try {
           const selfDocRef = await addDoc(collection(db, 'campaigns'), {
             userInfo,
             ownerId,
@@ -267,6 +300,7 @@ function CampaignVerify() {
           };
           localStorage.setItem('localCampaignDocs', JSON.stringify(localCampaignDocs));
           console.warn('[CampaignVerify] Staging fallback activated: campaign docs stored locally.');
+          }
         }
 
         const selfLink = `${window.location.origin}/campaign/${selfCampaignId}`;
@@ -327,9 +361,13 @@ function CampaignVerify() {
         };
         localStorage.setItem('currentCampaign', JSON.stringify(campaignData));
         localStorage.setItem('campaignRecords', JSON.stringify(records));
-        persistCampaignBundle({ userInfo, campaignData, records }).catch((persistErr) => {
-          console.warn('Failed to persist campaign bundle:', persistErr);
-        });
+        if (isDemoSession()) {
+          finishDemoCampaign();
+        } else {
+          persistCampaignBundle({ userInfo, campaignData, records }).catch((persistErr) => {
+            console.warn('Failed to persist campaign bundle:', persistErr);
+          });
+        }
         setError(null);
       } catch (err) {
         console.error('Error generating campaigns:', err);
@@ -420,8 +458,10 @@ function CampaignVerify() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
-          titleOverride="Self-assessment"
-          subtitleOverride="Rate yourself, then invite the team. One primary action on this page."
+          titleOverride={isDemoSession() ? 'Campaign ready' : 'Self-assessment'}
+          subtitleOverride={isDemoSession()
+            ? 'Sample team answers are mapped onto the campaign you just built.'
+            : 'Rate yourself, then invite the team. One primary action on this page.'}
         />
         <CompassLayout>
           <Box
@@ -437,16 +477,44 @@ function CampaignVerify() {
             }}
           >
             <Box sx={{ width: '100%' }}>
-              <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', md: '2.1rem' }, lineHeight: 1.1, color: 'var(--navy-900, #10223C)', mb: 0.75 }}>
-                Self-assessment
+              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: { xs: 28, md: 34 }, lineHeight: 1.1, letterSpacing: '-0.03em', color: colors.navy900, mb: 0.75 }}>
+                {isDemoSession() ? 'Your campaign is ready' : 'Self-assessment'}
               </Typography>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.95rem', color: 'var(--ink-soft, #44566C)', lineHeight: 1.6 }}>
-                Rate yourself on the same statements your team will see, then invite them. Do not share the self-assessment link with your team.
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.95rem', color: colors.inkSoft, lineHeight: 1.6 }}>
+                {isDemoSession()
+                  ? 'We filled in sample team answers against the statements you just generated so Signal, Evidence, Practice, and Journey are open. Nothing here is a live team survey.'
+                  : 'Rate yourself on the same statements your team will see, then invite them. Do not share the self-assessment link with your team.'}
               </Typography>
             </Box>
 
-            {error && <Alert severity="error" sx={{ fontFamily: '"Manrope", sans-serif', width: '100%', textAlign: 'left' }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ fontFamily: fonts.sans, width: '100%', textAlign: 'left' }}>{error}</Alert>}
 
+            {isDemoSession() ? (
+              <Box sx={{ ...surfaces.card, p: { xs: 2.5, md: 3 }, width: '100%', textAlign: 'left' }}>
+                <Typography sx={{ ...type.eyebrow, mb: 1 }}>Demo dashboard</Typography>
+                <Typography sx={{ ...type.body, mb: 2.5 }}>
+                  Open the rooms and walk the prompting output on this campaign. Exit from the banner whenever you are done.
+                </Typography>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => {
+                    finishDemoCampaign();
+                    navigate('/dashboard');
+                  }}
+                  sx={{
+                    all: 'unset',
+                    boxSizing: 'border-box',
+                    cursor: 'pointer',
+                    ...buttons.primary,
+                    borderRadius: radii.pill,
+                  }}
+                >
+                  Open the dashboard
+                </Box>
+              </Box>
+            ) : (
+              <>
             {/* Self campaign card */}
             <Box sx={{ bgcolor: 'white', borderRadius: '16px', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', p: { xs: 2, md: 2.25 }, width: '100%' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: 1.5 }}>
@@ -560,12 +628,16 @@ function CampaignVerify() {
                 </Box>
               )}
             </Box>
+              </>
+            )}
 
+            {!isDemoSession() && (
             <Box sx={{ px: 1 }}>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', color: 'var(--ink-soft, #44566C)' }}>
                 Dashboard sign-in: <strong>{userEmail || '—'}</strong> · Use your account password.
               </Typography>
             </Box>
+            )}
           </Box>
         </CompassLayout>
       </Box>

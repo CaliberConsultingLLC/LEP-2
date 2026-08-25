@@ -3,6 +3,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { auth, db } from '../../../firebase';
 import fakeData from '../../../data/fakeData.js';
 import { useFakeDashboardData } from '../../../config/runtimeFlags';
+import { isDemoSession } from '../../../utils/demoMode';
 import {
   calculateCampaignTraitMetrics,
   getDashboardCampaignRows,
@@ -171,7 +172,7 @@ export function useBenchmarkData() {
 
         const applyClosedPreview = () => {
           const rowsForSynth = nextRows.length ? nextRows : campaignRows;
-          const fakeTeam = useFakeDashboardData ? fakeData.responses : [];
+          const fakeTeam = (useFakeDashboardData || isDemoSession()) ? fakeData.responses : [];
           const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, rowsForSynth);
           setTeamResponses(spreadTeam);
           setSelfResponses(synthesizeSelfResponses(spreadTeam, rowsForSynth));
@@ -180,7 +181,7 @@ export function useBenchmarkData() {
 
         if (!teamCampaignId || !ownerUid) {
           if (active) {
-            if (useFakeDashboardData) applyClosedPreview();
+            if (useFakeDashboardData || isDemoSession()) applyClosedPreview();
             else {
               setTeamResponses([]);
               setSelfResponses([]);
@@ -219,7 +220,7 @@ export function useBenchmarkData() {
           setLoaded(true);
           return;
         }
-        if (useFakeDashboardData) {
+        if (useFakeDashboardData || isDemoSession()) {
           applyClosedPreview();
           return;
         }

@@ -15,6 +15,7 @@ import PracticeStudio from './cc/PracticeStudio.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
 import { getDebriefScope, useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
 import GatePage from './cc/GatePage.jsx';
+import { isDemoSession } from '../../utils/demoMode';
 
 // ============================================================================
 // Tokens — thin page aliases over the canonical Cairn system.
@@ -790,12 +791,19 @@ export default function CommandCenter() {
   // Signal → Evidence → Practice journey state (gating, snapshots, dock badges)
   const phases = useDebriefPhases();
   const campaignClosed = String(readJson('campaignRecords', {})?.teamCampaignClosed || '').toLowerCase() === 'true';
-  const dockStatus = {
-    ...phases.dockStatus,
-    signal: !campaignClosed ? 'locked' : phases.dockStatus.signal,
-    evidence: !campaignClosed ? 'locked' : phases.dockStatus.evidence,
-    practice: !campaignClosed ? 'locked' : phases.dockStatus.practice,
-  };
+  const demoSession = isDemoSession();
+  const dockStatus = demoSession
+    ? {
+        signal: phases.dockStatus.signal === 'done' ? 'done' : undefined,
+        evidence: phases.dockStatus.evidence === 'done' ? 'done' : undefined,
+        practice: phases.dockStatus.practice === 'done' ? 'done' : undefined,
+      }
+    : {
+        ...phases.dockStatus,
+        signal: !campaignClosed ? 'locked' : phases.dockStatus.signal,
+        evidence: !campaignClosed ? 'locked' : phases.dockStatus.evidence,
+        practice: !campaignClosed ? 'locked' : phases.dockStatus.practice,
+      };
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
@@ -805,10 +813,10 @@ export default function CommandCenter() {
   };
 
   const renderActive = () => {
-    if (['signal', 'evidence', 'practice'].includes(activeTab) && !campaignClosed) {
+    if (['signal', 'evidence', 'practice'].includes(activeTab) && !campaignClosed && !demoSession) {
       return <GatePage phase="campaign" onGoTab={goToTab} />;
     }
-    if (PHASE_ORDER.includes(activeTab) && phases.isGated(activeTab)) {
+    if (PHASE_ORDER.includes(activeTab) && phases.isGated(activeTab) && !demoSession) {
       return <GatePage phase={activeTab} onGoTab={goToTab} />;
     }
     switch (activeTab) {

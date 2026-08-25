@@ -1,3 +1,5 @@
+import { isDemoSession } from './demoMode';
+
 const PAID_KEY = 'compassPaid';
 
 export const INTRO_PRICE_USD = 250;
@@ -24,6 +26,7 @@ export function setPaymentStatus(status) {
 }
 
 export function isIntakeUnlocked() {
+  if (isDemoSession()) return true;
   if (!stripeIsConfigured()) return true;
   return getPaymentStatus() === 'paid';
 }

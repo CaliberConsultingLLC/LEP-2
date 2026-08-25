@@ -20,6 +20,7 @@ import { useGuide } from '../context/GuideContext';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
+import { demoRequestFields, isDemoSession } from '../utils/demoMode';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -620,7 +621,7 @@ function IntakeForm() {
 
   useEffect(() => {
     const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
-    if (stage === 'intake' && !isIntakeUnlocked()) {
+    if (stage === 'intake' && !isIntakeUnlocked() && !isDemoSession()) {
       navigate('/pay', { replace: true });
     }
   }, [location.search, navigate]);
@@ -1110,6 +1111,7 @@ function IntakeForm() {
   };
 
   const persistDraftToFirestore = async (draft, options = {}) => {
+    if (isDemoSession()) return;
     const localUserInfo = parseJson(localStorage.getItem('userInfo'), {});
     const uid = String(authUidRef.current || auth.currentUser?.uid || localUserInfo?.uid || '').trim();
     if (!uid) return;
@@ -1201,6 +1203,7 @@ function IntakeForm() {
         ...formData,
         societalResponses,
         societalLabels: societalNormsQuestions,
+        ...demoRequestFields(),
       }),
     })
       .then((r) => r.json())

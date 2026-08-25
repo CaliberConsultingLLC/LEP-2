@@ -34,6 +34,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
+import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing } from '../data/guideBriefings';
 
 
@@ -314,7 +315,7 @@ function Summary() {
       const campaignResp = await fetchWithTimeout('/api/get-campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null }),
+        body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null, ...demoRequestFields() }),
       }, 20000);
 
       if (!campaignResp.ok) return;
@@ -367,7 +368,7 @@ function Summary() {
       const summaryResp = await fetchWithTimeout('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...data, guideId: baseGuide, selectedAgent: baseGuide }),
+        body: JSON.stringify({ ...data, guideId: baseGuide, selectedAgent: baseGuide, ...demoRequestFields() }),
       }, 90000);
 
       if (!summaryResp.ok) {

@@ -49,11 +49,30 @@ export const isStagingHost = (() => {
   return STAGING_HOST_NEEDLES.some((needle) => host.includes(needle));
 })();
 
+export const isProductionHost = (() => {
+  const host = getHostname();
+  if (!host || isStagingHost) return false;
+  return host.includes('app.northstarpartners.org');
+})();
+
+const isDemoRuntime = (() => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (sessionStorage.getItem('compassDemo') === '1') return true;
+    const path = String(window.location.pathname || '');
+    return path === '/demo' || path.startsWith('/demo/');
+  } catch {
+    return false;
+  }
+})();
+
 // Enable the Cairn visual skin when on the staging host, or when explicitly
 // requested via `?theme=cairn` (useful for previewing on other hosts).
 // Production host (app.northstarpartners.org) never enables this.
 export const useCairnTheme = (() => {
+  if (isProductionHost) return false;
   if (isStagingHost) return true;
+  if (isDemoRuntime) return true;
   const override = normalize(getQueryParam('theme'));
   return override === 'cairn';
 })();

@@ -31,6 +31,7 @@ import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { seedStagingData } from '../utils/stagingSeed';
+import { demoRequestFields, isDemoSession } from '../utils/demoMode';
 import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
 const CAMPAIGN_ROMAN = ['I', 'II', 'III'];
@@ -193,7 +194,7 @@ function CampaignBuilder() {
       return;
     }
 
-    if (useCairnTheme) {
+    if (useCairnTheme && !isDemoSession()) {
       const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
       if (isCampaignReady(cachedCampaign, { minTraits: 1, minStatementsPerTrait: 1 })) {
         setCampaign(cachedCampaign);
@@ -216,6 +217,7 @@ function CampaignBuilder() {
       body: JSON.stringify({ 
         aiSummary: effectiveSummary,
         selectedTraits: selectedTraits,
+        ...demoRequestFields(),
       }),
     })
       .then(async (resp) => {
@@ -287,7 +289,7 @@ function CampaignBuilder() {
 
   const handleRebuildCampaign = () => {
     try {
-      if (useCairnTheme) {
+      if (useCairnTheme && !isDemoSession()) {
         seedStagingData();
         const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
         setCampaign(cachedCampaign);
@@ -327,6 +329,7 @@ function CampaignBuilder() {
         body: JSON.stringify({ 
           aiSummary: storedSummary,
           selectedTraits: selectedTraits,
+          ...demoRequestFields(),
         }),
       })
         .then(async (resp) => {

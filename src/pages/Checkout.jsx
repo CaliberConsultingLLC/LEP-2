@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Box, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
@@ -10,6 +10,7 @@ import {
   setPaymentStatus,
   stripeIsConfigured,
 } from '../utils/billing';
+import { isDemoSession } from '../utils/demoMode';
 
 function readUserInfo() {
   try {
@@ -27,6 +28,10 @@ function Checkout() {
   const [busy, setBusy] = useState(false);
   const stripeReady = stripeIsConfigured();
   const userInfo = useMemo(() => readUserInfo(), []);
+
+  useEffect(() => {
+    if (isDemoSession()) navigate('/form?stage=intake', { replace: true });
+  }, [navigate]);
 
   const startCheckout = async () => {
     setError('');

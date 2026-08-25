@@ -8,6 +8,7 @@ import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { colors, fonts, radii } from '../styles/tokens';
+import { isDemoSession } from '../utils/demoMode';
 
 function GuideSelect() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ function GuideSelect() {
 
   const handleBegin = () => {
     if (!canBegin) return;
-    navigate('/pay');
+    navigate(isDemoSession() ? '/form?stage=intake' : '/pay');
   };
 
   const step = (delta) => {
