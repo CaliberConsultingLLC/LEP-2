@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import JourneyPorthole from './JourneyPorthole';
-import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX } from './layoutConstants';
+import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX, TOPBAR_CONTENT_GAP } from './layoutConstants';
 import {
   chapterText,
   getHeaderMetaForLocation,
@@ -39,7 +39,7 @@ export default function ProcessChapterHeader({
       <Box
         sx={{
           bgcolor: 'transparent',
-          pt: { xs: 1.25, md: 1.5 },
+          pt: TOPBAR_CONTENT_GAP,
         }}
       >
         <Box

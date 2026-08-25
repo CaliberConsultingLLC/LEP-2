@@ -1089,7 +1089,7 @@ function Summary() {
             subtitleOverride="Your first internal look — read the trailhead, markers, hazards, and the new trail before you choose what to grow."
           />
         </Box>
-        <CompassLayout rightRail={RightRail} viewportFit>
+        <CompassLayout rightRail={RightRail} viewportFit afterTopbar>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>

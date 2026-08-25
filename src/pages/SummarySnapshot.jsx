@@ -16,6 +16,7 @@ import {
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { TOPBAR_CONTENT_GAP } from '../components/layoutConstants';
 import { auth, db } from '../firebase';
 
 const parseJson = (raw, fallback = null) => {
@@ -154,7 +155,7 @@ function SummarySnapshot() {
     >
       <ProcessTopRail hideChapterHeader titleOverride="Leadership Reflection Snapshot" />
 
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
+      <Container maxWidth="lg" sx={{ pt: TOPBAR_CONTENT_GAP, pb: { xs: 4, md: 5 } }}>
         <Stack spacing={2.4}>
           <Paper
             elevation={0}

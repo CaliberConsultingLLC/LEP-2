@@ -701,7 +701,7 @@ function CampaignBuilder() {
           titleOverride="Growth Campaign Builder"
           subtitleOverride="Review the statements for each selected trait. Keep what feels true; remove anything that misses the mark before you invite your team."
         />
-        <CompassLayout rightRail={campaign ? GuideRail : null}>
+        <CompassLayout rightRail={campaign ? GuideRail : null} afterTopbar>
           {error ? (
             <Box>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>

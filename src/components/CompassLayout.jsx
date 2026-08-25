@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { useCairnTheme } from '../config/runtimeFlags';
-import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX } from './layoutConstants';
+import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX, TOPBAR_CONTENT_GAP } from './layoutConstants';
 
 // Layout wrapper for the Cairn (staging) theme.
 //
@@ -19,10 +19,18 @@ function CompassLayout({
   contentMaxWidth = CONTENT_MAX_WIDTH_DEFAULT,
   viewportFit = false,
   fluid = false,
+  afterTopbar = false,
+  flushTop = false,
 }) {
   if (!useCairnTheme) {
     return children;
   }
+
+  const sharedPt = flushTop ? 0 : afterTopbar ? TOPBAR_CONTENT_GAP : null;
+  const leftPt = sharedPt ?? 3;
+  const centerPt = sharedPt ?? { xs: 1.5, md: viewportFit ? 1.5 : 3 };
+  const rightPt = sharedPt ?? { xs: 0, md: viewportFit ? 1.5 : 3 };
+  const singlePt = sharedPt ?? (viewportFit ? 1 : 0);
 
   return (
     <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: viewportFit ? 'hidden' : 'visible' }}>
@@ -44,17 +52,17 @@ function CompassLayout({
           overflow: viewportFit ? 'hidden' : 'visible',
         }}>
           {/* Left 20% — navigation sidebar */}
-          <Box sx={{ order: { xs: 1, md: 0 }, pt: 3, pb: { xs: 1.5, md: viewportFit ? 2 : 12 }, px: { xs: 2, md: 2.5, lg: 3 } }}>
+          <Box sx={{ order: { xs: 1, md: 0 }, pt: leftPt, pb: { xs: 1.5, md: viewportFit ? 2 : 12 }, px: { xs: 2, md: 2.5, lg: 3 } }}>
             {sidebar}
           </Box>
 
           {/* Center — main content */}
-          <Box sx={{ order: { xs: 2, md: 0 }, pt: { xs: 1.5, md: viewportFit ? 1.5 : 3 }, pb: viewportFit ? 2 : 12, px: CONTENT_PX, minHeight: 0, overflow: viewportFit ? 'hidden' : 'visible', height: viewportFit ? '100%' : 'auto' }}>
+          <Box sx={{ order: { xs: 2, md: 0 }, pt: centerPt, pb: viewportFit ? 2 : 12, px: CONTENT_PX, minHeight: 0, overflow: viewportFit ? 'hidden' : 'visible', height: viewportFit ? '100%' : 'auto' }}>
             {children}
           </Box>
 
           {/* Right — context rail or reserved empty column */}
-          <Box sx={{ order: { xs: 3, md: 0 }, display: 'block', pt: { xs: 0, md: viewportFit ? 1.5 : 3 }, pb: { xs: 0, md: viewportFit ? 2 : 12 }, pr: { md: 2.5, lg: 3 }, pl: 0 }}>
+          <Box sx={{ order: { xs: 3, md: 0 }, display: 'block', pt: rightPt, pb: { xs: 0, md: viewportFit ? 2 : 12 }, pr: { md: 2.5, lg: 3 }, pl: 0 }}>
             {rightRail}
           </Box>
         </Box>
@@ -65,7 +73,7 @@ function CompassLayout({
           minHeight: 0,
           display: 'flex',
           justifyContent: 'center',
-          pt: viewportFit ? 1 : 0,
+          pt: singlePt,
           pb: viewportFit ? 2 : 12,
           px: CONTENT_PX,
           overflowX: 'auto',
@@ -93,3 +101,4 @@ function CompassLayout({
 }
 
 export default CompassLayout;
+

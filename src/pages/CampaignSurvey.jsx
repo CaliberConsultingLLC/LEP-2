@@ -531,8 +531,8 @@ function CampaignSurvey() {
             : 'You are here — rate how this leader shows up in each area. Answer from what you experience day to day.'}
           metaOverride={{ label: 'Question', value: `${currentQuestion + 1} / ${questions.length || 15}` }}
         />
-        <CompassLayout fluid contentMaxWidth={640}>
-          <Box sx={{ maxWidth: 640, mx: 'auto', width: '100%', textAlign: 'center', pt: { xs: 3, md: 4.5 } }}>
+        <CompassLayout fluid contentMaxWidth={640} afterTopbar>
+          <Box sx={{ maxWidth: 640, mx: 'auto', width: '100%', textAlign: 'center' }}>
             <Typography sx={{
               fontFamily: fonts.mono,
               fontSize: 10,
@@ -682,7 +682,7 @@ function CampaignSurvey() {
       }}
     >
       <ProcessTopRail hideChapterHeader />
-      <CompassLayout fluid contentMaxWidth={640}>
+      <CompassLayout fluid contentMaxWidth={640} afterTopbar>
       <Container
         maxWidth={useCairnTheme ? false : 'lg'}
         sx={{

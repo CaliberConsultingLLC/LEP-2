@@ -49,8 +49,7 @@ function CampaignIntro() {
       }}
     >
       <ProcessTopRail hideChapterHeader />
-      <CompassLayout>
-      <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 3, sm: 4 } }}>
+      <CompassLayout afterTopbar>
         <Box
           sx={{
             p: 6,
@@ -60,6 +59,9 @@ function CampaignIntro() {
             bgcolor: 'white',
             opacity: 0.925,
             width: '100%',
+            maxWidth: 900,
+            mx: 'auto',
+            textAlign: 'center',
           }}
         >
           <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', mb: 3 }}>
@@ -89,7 +91,6 @@ function CampaignIntro() {
             </Button>
           </Stack>
         </Box>
-      </Container>
       </CompassLayout>
     </Box>
   );

@@ -464,7 +464,7 @@ function CampaignVerify() {
             ? 'Sample team answers are mapped onto the campaign you just built.'
             : 'Rate yourself, then invite the team. One primary action on this page.'}
         />
-        <CompassLayout>
+        <CompassLayout afterTopbar>
           <Box
             sx={{
               display: 'flex',
