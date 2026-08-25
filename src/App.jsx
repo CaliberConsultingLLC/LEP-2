@@ -46,6 +46,18 @@ function RouteAwareGuide() {
   return <GuideOverlay />;
 }
 
+function DemoChrome() {
+  const { pathname } = useLocation();
+  const demo = isDemoSession();
+  const onDemoStart = pathname === '/demo' || pathname.startsWith('/demo/');
+  return (
+    <>
+      {demo && <DemoBanner />}
+      {!demo && !onDemoStart && <StagingDevPanel />}
+    </>
+  );
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -91,11 +103,10 @@ function App() {
       <GuideProvider>
         <StepNavProvider>
           <Router>
-            <DemoBanner />
+            <DemoChrome />
             <AppRoutes />
             <JourneyCeremonyGate />
             <RouteAwareGuide />
-            {!isDemoSession() && <StagingDevPanel />}
           </Router>
         </StepNavProvider>
       </GuideProvider>

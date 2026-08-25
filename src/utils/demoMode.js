@@ -99,6 +99,11 @@ export function startDemoSession() {
     /* ignore */
   }
   installDemoStorage();
+  try {
+    window.dispatchEvent(new Event('compass-demo-change'));
+  } catch {
+    /* ignore */
+  }
 }
 
 export function endDemoSession() {

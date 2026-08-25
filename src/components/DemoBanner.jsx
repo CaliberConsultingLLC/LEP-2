@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 import { buttons, colors, fonts, radii } from '../styles/tokens';
 import { endDemoSession, isDemoSession } from '../utils/demoMode';
 
 function DemoBanner() {
+  useLocation();
   if (!isDemoSession()) return null;
 
   return (
