@@ -294,6 +294,7 @@ function ProcessTopRail(props) {
       return (
         <ProcessChapterHeader
           compact
+          hideCopy={props.hideChapterCopy}
           titleOverride={props.titleOverride}
           subtitleOverride={props.subtitleOverride}
           metaOverride={props.metaOverride}
@@ -305,6 +306,7 @@ function ProcessTopRail(props) {
       <>
         <CompassTopbar />
         <ProcessChapterHeader
+          hideCopy={props.hideChapterCopy}
           titleOverride={props.titleOverride}
           subtitleOverride={props.subtitleOverride}
           metaOverride={props.metaOverride}

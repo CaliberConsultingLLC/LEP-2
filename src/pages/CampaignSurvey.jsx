@@ -487,7 +487,7 @@ function CampaignSurvey() {
           },
         }}
       >
-        <ProcessTopRail />
+        <ProcessTopRail hideChapterHeader />
         <Container maxWidth="md" sx={{ py: { xs: 3.5, md: 5.2 } }}>
           <Paper
             sx={{
@@ -524,7 +524,7 @@ function CampaignSurvey() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
-          hideChapterHeader={!isSelfCampaign}
+          hideChapterHeader
           titleOverride={isSelfCampaign ? 'Self-Assessment' : 'Team Assessment'}
           subtitleOverride={isSelfCampaign
             ? 'These are the same sentences your team will see. You are the leader they describe — rate how you show up, not how you wish you did.'
@@ -681,7 +681,7 @@ function CampaignSurvey() {
             }),
       }}
     >
-      <ProcessTopRail hideChapterHeader={!isSelfCampaign} />
+      <ProcessTopRail hideChapterHeader />
       <CompassLayout fluid contentMaxWidth={640}>
       <Container
         maxWidth={useCairnTheme ? false : 'lg'}

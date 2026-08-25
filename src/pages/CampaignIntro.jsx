@@ -48,7 +48,7 @@ function CampaignIntro() {
             }),
       }}
     >
-      <ProcessTopRail />
+      <ProcessTopRail hideChapterHeader />
       <CompassLayout>
       <Container maxWidth="md" sx={{ textAlign: 'center', py: { xs: 3, sm: 4 } }}>
         <Box

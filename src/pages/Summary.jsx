@@ -1084,6 +1084,7 @@ function Summary() {
       >
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
+            hideChapterHeader
             titleOverride="Reflection & Creation"
             subtitleOverride="Your first internal look — read the trailhead, markers, hazards, and the new trail before you choose what to grow."
           />
@@ -1771,7 +1772,7 @@ function Summary() {
             },
           }),
     }}>
-      <ProcessTopRail titleOverride="Leadership Reflection" />
+      <ProcessTopRail hideChapterHeader titleOverride="Leadership Reflection" />
       <CompassLayout>
       <Container
         maxWidth={false}

@@ -524,6 +524,7 @@ function TraitSelection() {
       >
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
+            hideChapterCopy
             contentMaxWidth={1180}
             titleOverride="Choose three traits"
             subtitleOverride="Choose three of these five leverage points for your growth campaign — the traits that feel most true, most visible to your team, and most useful for the next stretch."
@@ -817,7 +818,7 @@ function TraitSelection() {
             }),
       }}
     >
-      <ProcessTopRail contentMaxWidth={1180} />
+      <ProcessTopRail hideChapterCopy contentMaxWidth={1180} />
       <CompassLayout contentMaxWidth={1180}>
       <Container
         maxWidth={false}

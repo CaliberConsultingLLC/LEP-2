@@ -152,7 +152,7 @@ function SummarySnapshot() {
         },
       }}
     >
-      <ProcessTopRail titleOverride="Leadership Reflection Snapshot" />
+      <ProcessTopRail hideChapterHeader titleOverride="Leadership Reflection Snapshot" />
 
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
         <Stack spacing={2.4}>

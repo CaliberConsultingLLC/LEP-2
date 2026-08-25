@@ -458,6 +458,7 @@ function CampaignVerify() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
+          hideChapterHeader
           titleOverride={isDemoSession() ? 'Campaign ready' : 'Self-assessment'}
           subtitleOverride={isDemoSession()
             ? 'Sample team answers are mapped onto the campaign you just built.'
@@ -676,7 +677,7 @@ function CampaignVerify() {
             }),
       }}
     >
-      <ProcessTopRail />
+      <ProcessTopRail hideChapterHeader />
       <CompassLayout>
       <Container
         maxWidth={false}

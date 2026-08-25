@@ -93,7 +93,7 @@ function CampaignComplete() {
             }),
       }}
     >
-      <ProcessTopRail hideChapterHeader={!isSelfCampaign} />
+      <ProcessTopRail hideChapterHeader />
       <CompassLayout fluid contentMaxWidth={560}>
       <Container maxWidth="sm" sx={{ textAlign: 'center', py: { xs: 2, md: 3.5 } }}>
         <Box

@@ -13,6 +13,7 @@ import { colors, fonts, shadows, type } from '../styles/tokens';
 
 export default function ProcessChapterHeader({
   compact = false,
+  hideCopy = false,
   titleOverride = '',
   subtitleOverride = '',
   chapterIndex: chapterIndexOverride = null,
@@ -31,6 +32,31 @@ export default function ProcessChapterHeader({
       meta: metaOverride !== undefined ? metaOverride : getHeaderMetaForLocation(location.pathname, location.search),
     };
   }, [chapterIndexOverride, location.pathname, location.search, metaOverride]);
+
+  if (hideCopy) {
+    if (!meta) return null;
+    return (
+      <Box
+        sx={{
+          bgcolor: 'transparent',
+          pt: { xs: 1.25, md: 1.5 },
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: contentMaxWidth,
+            mx: 'auto',
+            px: CONTENT_PX,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            pb: 1.5,
+          }}
+        >
+          {renderMeta(meta)}
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
