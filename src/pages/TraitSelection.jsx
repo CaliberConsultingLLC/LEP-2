@@ -531,7 +531,7 @@ function TraitSelection() {
             metaOverride={{ label: 'Selected', value: `${selectedTraits.length}/3` }}
           />
         </Box>
-        <CompassLayout rightRail={GuideRail} contentMaxWidth={1180} viewportFit flushTop>
+        <CompassLayout rightRail={GuideRail} contentMaxWidth={1180} viewportFit afterTopbar>
           {loadError ? (
             <Alert severity="warning" sx={{ fontFamily: '"Manrope", sans-serif' }}>{loadError}</Alert>
           ) : activeFocus ? (

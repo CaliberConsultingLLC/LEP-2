@@ -36,23 +36,29 @@ export default function ProcessChapterHeader({
   if (hideCopy) {
     if (!meta) return null;
     return (
-      <Box
-        sx={{
-          bgcolor: 'transparent',
-          pt: TOPBAR_CONTENT_GAP,
-        }}
-      >
+      <Box sx={{ position: 'relative', height: 0, overflow: 'visible' }}>
         <Box
           sx={{
-            maxWidth: contentMaxWidth,
-            mx: 'auto',
-            px: CONTENT_PX,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            pb: 1.5,
+            position: 'absolute',
+            top: TOPBAR_CONTENT_GAP,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+            pointerEvents: 'none',
           }}
         >
-          {renderMeta(meta)}
+          <Box
+            sx={{
+              maxWidth: contentMaxWidth,
+              mx: 'auto',
+              px: CONTENT_PX,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              pointerEvents: 'auto',
+            }}
+          >
+            {renderMeta(meta)}
+          </Box>
         </Box>
       </Box>
     );
