@@ -40,7 +40,7 @@ export default function ProcessChapterHeader({
         <Box
           sx={{
             position: 'absolute',
-            top: TOPBAR_CONTENT_GAP,
+            top: (theme) => theme.spacing(4),
             left: 0,
             right: 0,
             zIndex: 2,
