@@ -28,6 +28,12 @@ const colorTokens = [
   ['orangeDeep', colors.orangeDeep],
   ['green', colors.green],
   ['greenSoft', colors.greenSoft],
+  ['efficacyBlue', colors.efficacyBlue],
+  ['gapNegative', colors.gapNegative],
+  ['gapPositive', colors.gapPositive],
+  ['brass', colors.brass],
+  ['dialFace', colors.dialFace],
+  ['zoneHonedInk', colors.zoneHonedInk],
   ['sand50', colors.sand50],
   ['sand100', colors.sand100],
   ['sand200', colors.sand200],
@@ -59,6 +65,9 @@ const shadowTokens = [
   ['buttonPrimaryHover', shadows.buttonPrimaryHover],
   ['buttonSecondary', shadows.buttonSecondary],
   ['appBar', shadows.appBar],
+  ['dialCase', shadows.dialCase],
+  ['dialNode', shadows.dialNode],
+  ['dialNext', shadows.dialNext],
 ];
 
 function PageSection({ eyebrow, title, children }) {

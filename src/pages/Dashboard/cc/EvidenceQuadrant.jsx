@@ -1,74 +1,247 @@
-import React, { useMemo } from 'react';
-import { colors, fonts } from '../../../styles/tokens';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import { colors, fonts, radii, shadows } from '../../../styles/tokens';
+import { DIAL_ZONES, perceptionGap } from './evidenceDial.js';
 
-const VIEW = 560;
-const PAD = 40;
-const INNER = VIEW - PAD * 2;
-const MAP_BG = '#fbf8f2';
-const FOCUS_INK = '#161616';
+const DIAL_EASE = '180ms cubic-bezier(.2,.8,.2,1)';
+const PAD = 1.35;
+const R_FACE = 48;
+const DG = 1 / Math.SQRT2;
+const EFFORT_DIR = { x: DG, y: -DG };
+const EFFICACY_DIR = { x: -DG, y: -DG };
+const AX = 46.65;
+const TICK_DEGS = [45, 90, 135, 180, 225, 270, 315];
 
-const MODE_BUTTON = {
-  minWidth: 96,
-  height: 34,
-  padding: '0 12px',
-  borderRadius: '999px',
-  border: `1px solid ${colors.sand300}`,
-  background: colors.surface1,
-  color: colors.navy900,
-  fontFamily: fonts.mono,
-  fontSize: 10.5,
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
+const ZONE_LIST = [DIAL_ZONES.honed, DIAL_ZONES.offtarget, DIAL_ZONES.missing, DIAL_ZONES.natural];
+
+function rad(d) {
+  return (d * Math.PI) / 180;
+}
+
+function wedgePath(a0) {
+  const e0 = { x: Math.sin(rad(a0)), y: -Math.cos(rad(a0)) };
+  const e1 = { x: Math.sin(rad(a0 + 90)), y: -Math.cos(rad(a0 + 90)) };
+  const Ro = R_FACE - PAD / 2;
+  const t = Math.sqrt(Math.max(0, Ro * Ro - PAD * PAD));
+  const P = (ta, tb) =>
+    `${(50 + e0.x * ta + e1.x * tb).toFixed(2)} ${(50 + e0.y * ta + e1.y * tb).toFixed(2)}`;
+  return `M${P(PAD, PAD)}L${P(t, PAD)}A${Ro} ${Ro} 0 0 1 ${P(PAD, t)}L${P(PAD, PAD)}Z`;
+}
+
+function circPos(effort, efficacy) {
+  const c = Math.SQRT1_2;
+  const k = 0.68;
+  const max = 0.9;
+  const u = (effort - 50) / 50;
+  const v = (efficacy - 50) / 50;
+  let ru = (u - v) * c * k;
+  let rv = (u + v) * c * k;
+  const r = Math.hypot(ru, rv);
+  if (r > max) {
+    ru *= max / r;
+    rv *= max / r;
+  }
+  return { x: 50 + ru * 50, y: 50 - rv * 50 };
+}
+
+function axPt(dir, t) {
+  return { x: 50 + dir.x * t, y: 50 + dir.y * t };
+}
+
+function axT(v) {
+  return ((v - 50) / 50) * AX;
+}
+
+function modeInk(mode) {
+  if (mode === 'effort') return colors.orange;
+  if (mode === 'efficacy') return colors.efficacyBlue;
+  return colors.navy900;
+}
+
+function modeTrack(mode) {
+  if (mode === 'effort') return colors.effortTrack;
+  if (mode === 'efficacy') return colors.efficacyTrack;
+  return colors.compassNodeGlow;
+}
+
+function relaxNodes(positions) {
+  const pts = positions.map((p) => ({ ...p }));
+  for (let pass = 0; pass < 3; pass += 1) {
+    for (let i = 0; i < pts.length; i += 1) {
+      for (let j = i + 1; j < pts.length; j += 1) {
+        const dx = pts[j].x - pts[i].x;
+        const dy = pts[j].y - pts[i].y;
+        const d = Math.hypot(dx, dy) || 0.001;
+        if (d < 8.5) {
+          const push = (8.5 - d) / 2;
+          const ux = dx / d;
+          const uy = dy / d;
+          pts[i].x -= ux * push;
+          pts[i].y -= uy * push;
+          pts[j].x += ux * push;
+          pts[j].y += uy * push;
+        }
+      }
+    }
+  }
+  return pts;
+}
+
+function laneOffsets(values) {
+  const order = values.map((item, idx) => ({ ...item, idx })).sort((a, b) => a.t - b.t);
+  const assigned = new Array(values.length).fill(0);
+  const laneSeq = [0];
+  for (let k = 1; k < 12; k += 1) {
+    laneSeq.push(k * 7.4, -k * 7.4);
+  }
+  order.forEach((item, i) => {
+    const taken = new Set();
+    for (let p = 0; p < i; p += 1) {
+      const prev = order[p];
+      if (Math.abs(item.t - prev.t) < 7.2) taken.add(assigned[prev.idx]);
+    }
+    assigned[item.idx] = laneSeq.find((lane) => !taken.has(lane)) ?? 0;
+  });
+  return assigned;
+}
+
+function useDialScale(ref, base = 520) {
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const apply = () => setScale(Math.max(0.55, el.clientWidth / base));
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, base]);
+  return scale;
+}
+
+const FOCUS_SX = {
+  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
 };
 
-function clamp01(v) {
-  return Math.max(0, Math.min(100, Number(v) || 0));
-}
-
-function xForEffort(v) {
-  return PAD + (clamp01(v) / 100) * INNER;
-}
-
-function yForEfficacy(v) {
-  return PAD + INNER - (clamp01(v) / 100) * INNER;
-}
-
-function Node({ x, y, label, selected, dimmed, mode, onClick }) {
-  const isFocusMode = mode !== 'map';
-  const r = selected ? 17.5 : 13.5;
-  const fill = selected ? (isFocusMode ? colors.surface1 : colors.navy900) : colors.navy300;
-  const stroke = selected
-    ? (isFocusMode ? FOCUS_INK : colors.navy900)
-    : colors.surface1;
-
+function ModeBar({ mode, onModeChange, embedded = false }) {
+  const modes = [
+    { id: 'map', label: 'Compass' },
+    { id: 'effort', label: 'Effort' },
+    { id: 'efficacy', label: 'Efficacy' },
+  ];
   return (
-    <g
-      onClick={onClick}
-      style={{
-        cursor: 'pointer',
-        opacity: dimmed ? 0.34 : 1,
-        transition: 'opacity 220ms ease',
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: embedded ? 'flex-end' : 'center',
+        flexShrink: 0,
+        mb: embedded ? 0 : '12px',
       }}
     >
-      <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke} strokeWidth={selected ? 2.8 : 1.6} />
-      <text
-        x={x}
-        y={y + 4.5}
-        textAnchor="middle"
-        fill={selected ? (isFocusMode ? FOCUS_INK : colors.surface1) : colors.surface1}
-        style={{
-          fontFamily: fonts.mono,
-          fontSize: 12,
-          fontWeight: 700,
-          fontVariantNumeric: 'tabular-nums',
-          pointerEvents: 'none',
+      <Box
+        sx={{
+          display: 'flex',
+          gap: '4px',
+          p: '4px',
+          borderRadius: radii.pill,
+          border: `1px solid ${colors.sand200}`,
+          bgcolor: colors.sand100,
         }}
       >
-        {label}
-      </text>
-    </g>
+        {modes.map((item) => {
+          const active = mode === item.id;
+          return (
+            <Box
+              key={item.id}
+              component="button"
+              type="button"
+              aria-label={item.label}
+              aria-pressed={active}
+              onClick={() => onModeChange?.(item.id)}
+              sx={{
+                all: 'unset',
+                cursor: 'pointer',
+                minWidth: 96,
+                height: 34,
+                px: '12px',
+                boxSizing: 'border-box',
+                borderRadius: radii.pill,
+                border: `1px solid ${active ? colors.navy900 : 'transparent'}`,
+                bgcolor: active ? colors.navy900 : 'transparent',
+                color: active ? colors.amberSoft : colors.navy900,
+                fontFamily: fonts.mono,
+                fontSize: 10.5,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                lineHeight: '32px',
+                ...FOCUS_SX,
+              }}
+            >
+              {item.label}
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
+function DialNode({
+  x,
+  y,
+  label,
+  selected,
+  mode,
+  scale,
+  onClick,
+  ariaLabel,
+}) {
+  const size = (selected ? 38 : 29) * scale;
+  const ink = modeInk(mode);
+  return (
+    <Box
+      component="button"
+      type="button"
+      aria-label={ariaLabel}
+      aria-pressed={selected}
+      onClick={onClick}
+      sx={{
+        all: 'unset',
+        boxSizing: 'border-box',
+        position: 'absolute',
+        left: `${x}%`,
+        top: `${y}%`,
+        width: size,
+        height: size,
+        transform: 'translate(-50%, -50%)',
+        borderRadius: radii.pill,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        zIndex: selected ? 4 : 2,
+        background: selected ? ink : colors.dialNodeFill,
+        border: selected
+          ? `2px solid ${ink}`
+          : `1.5px solid ${colors.navy300}`,
+        color: selected
+          ? (mode === 'map' ? colors.amber : colors.dialNodeFill)
+          : colors.inkSoft,
+        boxShadow: selected
+          ? `0 0 0 ${7 * scale}px ${modeTrack(mode)}`
+          : shadows.dialNode,
+        fontFamily: fonts.mono,
+        fontSize: (selected ? 13 : 11.5) * scale,
+        fontWeight: 700,
+        fontVariantNumeric: 'tabular-nums',
+        transition: DIAL_EASE,
+        ...FOCUS_SX,
+      }}
+    >
+      {label}
+    </Box>
   );
 }
 
@@ -80,198 +253,443 @@ export default function EvidenceQuadrant({
   onModeChange,
   showModeBar = true,
 }) {
-  const plotted = useMemo(() => statements.map((s, i) => {
-    if (mode === 'efficacy') {
-      const x = PAD + INNER * (0.28 + ((i % 3) * 0.2));
-      return {
-        idx: i,
-        x,
-        y: yForEfficacy(s.efficacy),
-        label: Math.round(s.efficacy),
-      };
+  const squareRef = useRef(null);
+  const scale = useDialScale(squareRef);
+  const isAll = selectedIdx === 'all';
+  const selectedNumeric = typeof selectedIdx === 'number' ? selectedIdx : null;
+  const compass = mode === 'map';
+  const axisDir = mode === 'efficacy' ? EFFICACY_DIR : EFFORT_DIR;
+
+  const visible = useMemo(() => {
+    if (isAll) return statements.map((s, idx) => ({ ...s, idx }));
+    if (selectedNumeric == null) return [];
+    const s = statements[selectedNumeric];
+    return s ? [{ ...s, idx: selectedNumeric }] : [];
+  }, [isAll, selectedNumeric, statements]);
+
+  const plotted = useMemo(() => {
+    if (compass) {
+      const raw = visible.map((s) => ({
+        idx: s.idx,
+        label: Math.round(s.compass),
+        ...circPos(s.effort, s.efficacy),
+      }));
+      return isAll ? relaxNodes(raw) : raw;
     }
-    if (mode === 'effort') {
-      const y = PAD + INNER * (0.28 + ((i % 3) * 0.2));
+    const values = visible.map((s) => ({
+      t: axT(mode === 'effort' ? s.effort : s.efficacy),
+    }));
+    const lanes = isAll ? laneOffsets(values) : visible.map(() => 0);
+    const n = { x: -axisDir.y, y: axisDir.x };
+    return visible.map((s, i) => {
+      const t = values[i].t;
+      const base = axPt(axisDir, t);
+      const off = lanes[i] || 0;
       return {
-        idx: i,
-        x: xForEffort(s.effort),
-        y,
-        label: Math.round(s.effort),
+        idx: s.idx,
+        label: Math.round(mode === 'effort' ? s.effort : s.efficacy),
+        t,
+        x: base.x + n.x * off,
+        y: base.y + n.y * off,
       };
+    });
+  }, [axisDir, compass, isAll, mode, visible]);
+
+  const teamPt = !isAll && plotted[0] ? plotted[0] : null;
+  const selectedStatement =
+    selectedNumeric != null ? statements[selectedNumeric] : null;
+
+  const selfDrawn = useMemo(() => {
+    if (!compass || isAll || !selectedStatement) return null;
+    const pos = circPos(selectedStatement.effortSelf, selectedStatement.efficacySelf);
+    if (teamPt && Math.hypot(pos.x - teamPt.x, pos.y - teamPt.y) < 9) {
+      pos.y += 8;
     }
     return {
-      idx: i,
-      x: xForEffort(s.effort),
-      y: yForEfficacy(s.efficacy),
-      label: Math.round(s.compass),
+      ...pos,
+      label: Math.round(selectedStatement.compassSelf),
     };
-  }), [mode, statements]);
+  }, [compass, isAll, selectedStatement, teamPt]);
 
-  const selected = plotted[selectedIdx] || null;
+  const gapValue = selectedStatement
+    ? perceptionGap(selectedStatement.compass, selectedStatement.compassSelf)
+    : 0;
+  const showGapChip = Boolean(compass && teamPt && selfDrawn && Math.abs(gapValue) >= 10);
+  const gapMid = teamPt && selfDrawn
+    ? { x: (teamPt.x + selfDrawn.x) / 2, y: (teamPt.y + selfDrawn.y) / 2 }
+    : null;
+
+  const axisLine = useMemo(() => {
+    if (compass || !teamPt) return null;
+    const tN = teamPt.t;
+    const tStart = -50;
+    const tStop = Math.max(tStart + 0.8, tN - 8.2);
+    const start = axPt(axisDir, tStart);
+    const end = axPt(axisDir, tStop);
+    const tArrow = Math.max(tN, tStart + 8.2);
+    const n = { x: -axisDir.y, y: axisDir.x };
+    const tip = axPt(axisDir, tArrow - 4.4);
+    const base = axPt(axisDir, tArrow - 8.2);
+    const arrow = `M${tip.x} ${tip.y}L${base.x + n.x * 2.4} ${base.y + n.y * 2.4}L${base.x - n.x * 2.4} ${base.y - n.y * 2.4}Z`;
+    return { start, end, arrow };
+  }, [axisDir, compass, teamPt]);
+
+  const axisColor = (axis) => {
+    if (compass) return colors.inkSoft;
+    if (mode === axis) return modeInk(mode);
+    return colors.inkSoft;
+  };
+  const axisOpacity = (axis) => {
+    if (compass) return 1;
+    return mode === axis ? 1 : 0.4;
+  };
+
+  const px = (n) => n * scale;
+  const brassRing = `color-mix(in srgb, ${colors.amber} 75%, ${colors.orangeDeep})`;
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-      {showModeBar && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 12, flexShrink: 0 }}>
-          <button
-            type="button"
-            aria-label="Focus efficacy"
-            onClick={() => onModeChange?.('efficacy')}
-            style={{
-              ...MODE_BUTTON,
-              background: mode === 'efficacy' ? colors.navy900 : colors.surface1,
-              color: mode === 'efficacy' ? colors.amberSoft : colors.navy900,
-              borderColor: mode === 'efficacy' ? colors.navy900 : colors.sand300,
+    <Box sx={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+      {showModeBar && <ModeBar mode={mode} onModeChange={onModeChange} />}
+
+      <Box
+        ref={squareRef}
+        sx={{
+          width: '100%',
+          aspectRatio: '1 / 1',
+          position: 'relative',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'visible',
+        }}
+      >
+        {[
+          { key: 'hi-eff', text: 'HIGH EFFICACY', axis: 'efficacy', left: 0, top: 0, textAlign: 'left' },
+          { key: 'hi-eft', text: 'HIGH EFFORT', axis: 'effort', right: 0, top: 0, textAlign: 'right' },
+          { key: 'lo-eft', text: 'LOW EFFORT', axis: 'effort', left: 0, bottom: 0, textAlign: 'left' },
+          { key: 'lo-eff', text: 'LOW EFFICACY', axis: 'efficacy', right: 0, bottom: 0, textAlign: 'right' },
+        ].map((lab) => (
+          <Typography
+            key={lab.key}
+            sx={{
+              position: 'absolute',
+              left: lab.left === 0 ? 0 : 'auto',
+              right: lab.right === 0 ? 0 : 'auto',
+              top: lab.top === 0 ? 0 : 'auto',
+              bottom: lab.bottom === 0 ? 0 : 'auto',
+              fontFamily: fonts.mono,
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.18em',
+              whiteSpace: 'nowrap',
+              textAlign: lab.textAlign,
+              color: axisColor(lab.axis),
+              opacity: axisOpacity(lab.axis),
+              transition: DIAL_EASE,
+              pointerEvents: 'none',
+              zIndex: 2,
             }}
           >
-            Efficacy
-          </button>
-          <button
-            type="button"
-            aria-label="Map mode"
-            onClick={() => onModeChange?.('map')}
-            style={{
-              ...MODE_BUTTON,
-              background: mode === 'map' ? colors.navy900 : colors.surface1,
-              color: mode === 'map' ? colors.amberSoft : colors.navy900,
-              borderColor: mode === 'map' ? colors.navy900 : colors.sand300,
-            }}
-          >
-            Map
-          </button>
-          <button
-            type="button"
-            aria-label="Focus effort"
-            onClick={() => onModeChange?.('effort')}
-            style={{
-              ...MODE_BUTTON,
-              background: mode === 'effort' ? colors.navy900 : colors.surface1,
-              color: mode === 'effort' ? colors.amberSoft : colors.navy900,
-              borderColor: mode === 'effort' ? colors.navy900 : colors.sand300,
-            }}
-          >
-            Effort
-          </button>
-        </div>
-      )}
-
-      <svg viewBox={`0 0 ${VIEW} ${VIEW}`} style={{ width: '100%', height: 'auto', flex: 1, display: 'block', minHeight: 0 }}>
-        <defs>
-          <linearGradient id="efficacyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={colors.navy900} stopOpacity="0.2" />
-            <stop offset="100%" stopColor={MAP_BG} stopOpacity="0.04" />
-          </linearGradient>
-          <linearGradient id="effortGrad" x1="1" y1="0" x2="0" y2="0">
-            <stop offset="0%" stopColor={colors.orange} stopOpacity="0.24" />
-            <stop offset="100%" stopColor={MAP_BG} stopOpacity="0.06" />
-          </linearGradient>
-        </defs>
-
-        <rect x={PAD} y={PAD} width={INNER} height={INNER} fill={MAP_BG} stroke={colors.sand200} />
-
-        {mode === 'map' && (
-          <>
-            <rect x={PAD} y={PAD} width={INNER / 2} height={INNER / 2} fill={colors.navy300} opacity="0.11" />
-            <rect x={PAD + INNER / 2} y={PAD} width={INNER / 2} height={INNER / 2} fill={colors.amberSoft} opacity="0.24" />
-            <rect x={PAD} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.navy500} opacity="0.07" />
-            <rect x={PAD + INNER / 2} y={PAD + INNER / 2} width={INNER / 2} height={INNER / 2} fill={colors.orange} opacity="0.07" />
-            <line x1={PAD + INNER / 2} y1={PAD} x2={PAD + INNER / 2} y2={PAD + INNER} stroke={colors.sand300} strokeDasharray="5 5" />
-            <line x1={PAD} y1={PAD + INNER / 2} x2={PAD + INNER} y2={PAD + INNER / 2} stroke={colors.sand300} strokeDasharray="5 5" />
-            <text x={PAD + 12} y={PAD + 16} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>NATURAL GIFT</text>
-            <text x={PAD + INNER - 12} y={PAD + 16} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>FULL STRENGTH</text>
-            <text x={PAD + 12} y={PAD + INNER - 10} fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>UNTAPPED</text>
-            <text x={PAD + INNER - 12} y={PAD + INNER - 10} textAnchor="end" fill={colors.inkMute} style={{ fontFamily: fonts.mono, fontSize: 10.25, letterSpacing: '0.11em' }}>OFF-TARGET</text>
-            <text
-              x={PAD - 18}
-              y={PAD + INNER / 2}
-              fill={colors.inkSoft}
-              style={{ fontFamily: fonts.mono, fontSize: 11.25, letterSpacing: '0.09em', fontWeight: 700 }}
-              transform={`rotate(-90 ${PAD - 18} ${PAD + INNER / 2})`}
-            >
-              EFFICACY
-            </text>
-            <text x={PAD + INNER / 2} y={PAD + INNER + 24} textAnchor="middle" fill={colors.inkSoft} style={{ fontFamily: fonts.mono, fontSize: 11.25, letterSpacing: '0.09em', fontWeight: 700 }}>EFFORT</text>
-          </>
-        )}
-
-        {mode === 'efficacy' && (
-          <>
-            <rect x={PAD} y={PAD} width={INNER} height={INNER} fill="url(#efficacyGrad)" />
-            {Array.from({ length: 5 }).map((_, i) => {
-              const y = PAD + (INNER / 4) * i;
-              return <line key={i} x1={PAD} y1={y} x2={PAD + INNER} y2={y} stroke={colors.sand300} strokeDasharray="2 6" />;
-            })}
-            <text x={PAD + INNER / 2} y={PAD + 18} textAnchor="middle" fill={colors.amberSoft} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }}>HIGHLY EFFECTIVE</text>
-            <text x={PAD + INNER / 2} y={PAD + INNER - 10} textAnchor="middle" fill={colors.navy900} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }}>NOT EFFECTIVE</text>
-            {selected && (
-              <>
-                <line
-                  x1={selected.x}
-                  y1={PAD + INNER - 2}
-                  x2={selected.x}
-                  y2={selected.y + 10}
-                  stroke={FOCUS_INK}
-                  strokeDasharray="4 5"
-                  strokeWidth="1.7"
-                />
-                <polygon
-                  points={`${selected.x},${selected.y + 10} ${selected.x - 4.5},${selected.y + 18} ${selected.x + 4.5},${selected.y + 18}`}
-                  fill={FOCUS_INK}
-                />
-              </>
-            )}
-          </>
-        )}
-
-        {mode === 'effort' && (
-          <>
-            <rect x={PAD} y={PAD} width={INNER} height={INNER} fill="url(#effortGrad)" />
-            {Array.from({ length: 5 }).map((_, i) => {
-              const x = PAD + (INNER / 4) * i;
-              return <line key={i} x1={x} y1={PAD} x2={x} y2={PAD + INNER} stroke={colors.sand300} strokeDasharray="2 6" />;
-            })}
-            <text x={PAD + 18} y={PAD + INNER / 2} textAnchor="middle" fill={colors.navy900} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }} transform={`rotate(-90 ${PAD + 18} ${PAD + INNER / 2})`}>LOW EFFORT</text>
-            <text x={PAD + INNER - 18} y={PAD + INNER / 2} textAnchor="middle" fill={colors.navy900} style={{ fontFamily: fonts.mono, fontSize: 11.5, letterSpacing: '0.11em', fontWeight: 700 }} transform={`rotate(-90 ${PAD + INNER - 18} ${PAD + INNER / 2})`}>HIGH EFFORT</text>
-            {selected && (
-              <>
-                <line
-                  x1={PAD + 2}
-                  y1={selected.y}
-                  x2={selected.x - 10}
-                  y2={selected.y}
-                  stroke={FOCUS_INK}
-                  strokeDasharray="4 5"
-                  strokeWidth="1.7"
-                />
-                <polygon
-                  points={`${selected.x - 10},${selected.y} ${selected.x - 18},${selected.y - 4.5} ${selected.x - 18},${selected.y + 4.5}`}
-                  fill={FOCUS_INK}
-                />
-              </>
-            )}
-          </>
-        )}
-
-        {mode === 'map' && selected && (
-          <>
-            <line x1={selected.x} y1={selected.y} x2={selected.x} y2={PAD + INNER} stroke={colors.orange} strokeDasharray="4 5" strokeWidth="1.5" />
-            <line x1={PAD} y1={selected.y} x2={selected.x} y2={selected.y} stroke={colors.navy500} strokeDasharray="4 5" strokeWidth="1.5" />
-          </>
-        )}
-
-        {plotted.map((pt) => (
-          <Node
-            key={pt.idx}
-            x={pt.x}
-            y={pt.y}
-            label={pt.label}
-            mode={mode}
-            selected={pt.idx === selectedIdx}
-            dimmed={selectedIdx != null && pt.idx !== selectedIdx}
-            onClick={() => onSelect?.(pt.idx)}
-          />
+            {lab.text}
+          </Typography>
         ))}
-      </svg>
-    </div>
+
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: px(18),
+            borderRadius: '50%',
+            background: `radial-gradient(circle at 50% -10%, ${colors.dialBezelHi}, ${colors.dialBezelLo} 72%)`,
+            boxShadow: shadows.dialCase,
+            padding: `${px(17)}px`,
+            overflow: 'visible',
+          }}
+        >
+          {TICK_DEGS.map((deg) => {
+            const cardinal = deg % 90 === 0;
+            const w = cardinal ? 3.5 : 2.5;
+            const h = cardinal ? 10 : 7;
+            return (
+              <Box
+                key={deg}
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  transform: `rotate(${deg}deg)`,
+                  pointerEvents: 'none',
+                  zIndex: 9,
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: px(5),
+                    width: px(w),
+                    height: px(h),
+                    ml: `${-px(w) / 2}px`,
+                    borderRadius: '1px',
+                    background: cardinal
+                      ? `color-mix(in srgb, ${colors.brass} 95%, transparent)`
+                      : `color-mix(in srgb, ${colors.brass} 55%, transparent)`,
+                  }}
+                />
+              </Box>
+            );
+          })}
+
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: px(13),
+              borderRadius: '50%',
+              border: `2px solid ${brassRing}`,
+              pointerEvents: 'none',
+              zIndex: 9,
+            }}
+          />
+
+          <Box
+            aria-hidden
+            sx={{
+              position: 'absolute',
+              left: '50%',
+              top: 0,
+              width: px(61),
+              height: px(48),
+              transform: 'translate(-50%, -52%)',
+              background: `linear-gradient(180deg, ${colors.dialArrowStart}, ${colors.brass} 55%, ${colors.dialArrowEnd})`,
+              clipPath: 'polygon(50% 0, 100% 100%, 50% 72%, 0 100%)',
+              zIndex: 10,
+              pointerEvents: 'none',
+            }}
+          />
+
+          <Box
+            sx={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              background: colors.dialFace,
+              overflow: 'visible',
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                bgcolor: colors.dialNodeFill,
+                opacity: compass ? 0 : 1,
+                transition: DIAL_EASE,
+                pointerEvents: 'none',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                background: colors.dialEffortFace,
+                opacity: mode === 'effort' ? 1 : 0,
+                transition: DIAL_EASE,
+                pointerEvents: 'none',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                background: colors.dialEfficacyFace,
+                opacity: mode === 'efficacy' ? 1 : 0,
+                transition: DIAL_EASE,
+                pointerEvents: 'none',
+              }}
+            />
+
+            <Box
+              component="svg"
+              viewBox="0 0 100 100"
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                overflow: 'visible',
+                pointerEvents: 'none',
+              }}
+            >
+              <g style={{ opacity: compass ? 1 : 0, transition: `opacity ${DIAL_EASE}` }}>
+                {ZONE_LIST.map((z) => (
+                  <path key={z.id} d={wedgePath(z.a0)} fill={z.tint} />
+                ))}
+                <line
+                  x1={axPt(EFFORT_DIR, -AX).x}
+                  y1={axPt(EFFORT_DIR, -AX).y}
+                  x2={axPt(EFFORT_DIR, AX).x}
+                  y2={axPt(EFFORT_DIR, AX).y}
+                  stroke={colors.dialAxis}
+                  strokeWidth="1"
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={axPt(EFFICACY_DIR, -AX).x}
+                  y1={axPt(EFFICACY_DIR, -AX).y}
+                  x2={axPt(EFFICACY_DIR, AX).x}
+                  y2={axPt(EFFICACY_DIR, AX).y}
+                  stroke={colors.dialAxis}
+                  strokeWidth="1"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+              {axisLine && (
+                <g style={{ opacity: compass ? 0 : 1, transition: `opacity ${DIAL_EASE}` }}>
+                  <line
+                    x1={axisLine.start.x}
+                    y1={axisLine.start.y}
+                    x2={axisLine.end.x}
+                    y2={axisLine.end.y}
+                    stroke={modeInk(mode)}
+                    strokeWidth="1.8"
+                    strokeDasharray="4 4"
+                    strokeLinecap="butt"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <path d={axisLine.arrow} fill={modeInk(mode)} />
+                </g>
+              )}
+              {teamPt && selfDrawn && (
+                <line
+                  x1={teamPt.x}
+                  y1={teamPt.y}
+                  x2={selfDrawn.x}
+                  y2={selfDrawn.y}
+                  stroke={colors.navy900}
+                  strokeWidth="1.5"
+                  strokeDasharray="3 4"
+                  opacity={compass && !isAll ? 0.55 : 0}
+                  vectorEffect="non-scaling-stroke"
+                  style={{ transition: `opacity ${DIAL_EASE}` }}
+                />
+              )}
+            </Box>
+
+            <Box
+              sx={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                width: px(7),
+                height: px(7),
+                transform: 'translate(-50%, -50%)',
+                borderRadius: '50%',
+                bgcolor: colors.dialHub,
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            />
+
+            {ZONE_LIST.map((z) => (
+              <Typography
+                key={z.id}
+                sx={{
+                  position: 'absolute',
+                  ...z.place,
+                  maxWidth: 108,
+                  fontFamily: fonts.sans,
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  lineHeight: 1.3,
+                  color: z.ink,
+                  opacity: compass ? 1 : 0,
+                  transition: DIAL_EASE,
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                }}
+              >
+                {z.label}
+              </Typography>
+            ))}
+
+            {plotted.map((pt) => (
+              <DialNode
+                key={pt.idx}
+                x={pt.x}
+                y={pt.y}
+                label={pt.label}
+                selected={!isAll}
+                mode={mode}
+                scale={scale}
+                ariaLabel={`Statement ${pt.idx + 1}, ${pt.label}`}
+                onClick={() => onSelect?.(pt.idx)}
+              />
+            ))}
+
+            {selfDrawn && (
+              <Box
+                aria-hidden={!compass || isAll}
+                sx={{
+                  position: 'absolute',
+                  left: `${selfDrawn.x}%`,
+                  top: `${selfDrawn.y}%`,
+                  width: px(30),
+                  height: px(30),
+                  transform: 'translate(-50%, -50%)',
+                  borderRadius: radii.pill,
+                  background: colors.dialNodeFill,
+                  border: `2px dashed ${colors.navy900}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: fonts.mono,
+                  fontSize: 11.5 * scale,
+                  fontWeight: 700,
+                  fontVariantNumeric: 'tabular-nums',
+                  color: colors.navy900,
+                  zIndex: 3,
+                  pointerEvents: 'none',
+                  opacity: compass && !isAll ? 1 : 0,
+                  transition: DIAL_EASE,
+                }}
+              >
+                {selfDrawn.label}
+              </Box>
+            )}
+
+            {gapMid && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: `${gapMid.x}%`,
+                  top: `${gapMid.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                  px: '8px',
+                  py: '2px',
+                  borderRadius: radii.pill,
+                  bgcolor: colors.dialNodeFill,
+                  border: `1px solid ${colors.sand200}`,
+                  fontFamily: fonts.mono,
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  fontVariantNumeric: 'tabular-nums',
+                  color: gapValue < 0 ? colors.gapNegative : colors.gapPositive,
+                  boxShadow: shadows.dialNode,
+                  zIndex: 5,
+                  pointerEvents: 'none',
+                  opacity: showGapChip ? 1 : 0,
+                  transition: DIAL_EASE,
+                }}
+              >
+                {gapValue > 0 ? `+${gapValue}` : gapValue}
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
+
+export { ModeBar as EvidenceModeBar };

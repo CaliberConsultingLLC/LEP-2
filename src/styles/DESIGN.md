@@ -120,6 +120,11 @@ aliases (`textPrimary`, `textSecondary`) so dark mode flips automatically.
 | `amberSoft`       | `#F4CEA1`                    | Primary action **text**, AppBar text       |
 | `orange`          | `#E07A3F`                    | Secondary action, accent ink              |
 | `orangeDeep`      | `#C0612A`                    | Eyebrow text, link, focused input label   |
+| `efficacyBlue`    | `#2B6BA8`                    | Efficacy-mode dial chrome (not navy)      |
+| `gapNegative`     | `#B4321F`                    | Perception gap when team − self is < 0    |
+| `gapPositive`     | `#2F6B4F`                    | Perception gap when team − self is ≥ 0    |
+| `brass`           | amber 75% + orange-deep      | Dial case ring and north-arrow mid        |
+| `dialFace`        | `#F4ECDD` (does not remap)   | Compass dial face — stays cream in dark   |
 | `sand50`          | `#FBF7F0`                    | Page background (light), chip bg          |
 | `sand100`         | `#F4ECDD`                    | Subtle wash surface, alert bg             |
 | `sand200`         | `#E8DBC3`                    | Card border, divider                      |
@@ -146,6 +151,9 @@ component will then look correct in dark mode without any conditional.
 | `buttonPrimaryHover`   | Primary button hover                                 |
 | `buttonSecondary`      | Secondary (orange) button rest                       |
 | `appBar`               | Top app bar                                          |
+| `dialCase`             | Compass dial navy bezel                              |
+| `dialNode`             | Unselected dial node                                 |
+| `dialNext`             | Evidence next-trait arrow button                     |
 
 ### Type (`tokens.type`)
 

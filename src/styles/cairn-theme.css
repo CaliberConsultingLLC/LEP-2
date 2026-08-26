@@ -25,6 +25,30 @@ html[data-theme='cairn'] {
   --orange-deep: #c0612a;
   --green: #2f855a;
   --green-soft: #6f9a83;
+  --efficacy-blue: #2b6ba8;
+  --gap-negative: #b4321f;
+  --gap-positive: #2f6b4f;
+  --gap-negative-tint: rgba(180, 50, 31, 0.07);
+  --gap-positive-tint: rgba(47, 107, 79, 0.07);
+  --effort-track: rgba(224, 122, 63, 0.20);
+  --efficacy-track: rgba(43, 107, 168, 0.20);
+  --compass-node-glow: rgba(16, 34, 60, 0.10);
+  --brass: color-mix(in srgb, var(--amber) 75%, var(--orange-deep));
+  --dial-face: #f4ecdd;
+  --dial-node-fill: #ffffff;
+  --dial-bezel-hi: #223d66;
+  --dial-bezel-lo: #0a1424;
+  --dial-arrow-start: #f0c396;
+  --dial-arrow-end: #c0793f;
+  --zone-honed-tint: rgba(236, 201, 75, 0.22);
+  --zone-honed-ink: #8a6a13;
+  --zone-offtarget-tint: rgba(224, 122, 63, 0.14);
+  --zone-natural-tint: rgba(143, 179, 205, 0.16);
+  --zone-missing-tint: rgba(15, 28, 46, 0.05);
+  --dial-effort-face: linear-gradient(45deg, #ffffff 6%, rgba(224, 122, 63, 0.12) 42%, rgba(224, 122, 63, 0.52) 100%);
+  --dial-efficacy-face: linear-gradient(315deg, #ffffff 6%, rgba(43, 107, 168, 0.12) 42%, rgba(43, 107, 168, 0.58) 100%);
+  --dial-axis: rgba(15, 28, 46, 0.14);
+  --dial-hub: rgba(15, 28, 46, 0.22);
 
   /* --- Paper / cream scale --- */
   --sand-50: #fbf7f0;

@@ -4,11 +4,11 @@ import { colors, fonts, motion, radii, shadows, surfaces, type } from '../../../
 import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
-import EvidenceQuadrant from './EvidenceQuadrant.jsx';
+import EvidenceQuadrant, { EvidenceModeBar } from './EvidenceQuadrant.jsx';
+import { metricLabel, perceptionGap, scoresFor, zoneFor } from './evidenceDial.js';
 import {
   ChapterEyebrow,
   Headline,
-  PageFade,
   Prose,
   SnapshotShell,
   WalkthroughStage,
@@ -71,6 +71,7 @@ function mapRowStatements(row) {
       effortSelf: Math.round(Number(self.effort) || Number(s.effort) || 0),
       efficacySelf: Math.round(Number(self.efficacy) || Number(s.efficacy) || 0),
       compass: Math.round(Number(s.lepScore) || 0),
+      compassSelf: Math.round(Number(self.lepScore) || Number(s.lepScore) || 0),
     };
   });
 }
@@ -93,251 +94,171 @@ function fallbackStatementsForRow(row) {
     .slice(0, 5);
 }
 
-function MetricBlock({ label, team, self }) {
-  const gap = Math.round(self - team);
-  const gapAlert = Math.abs(gap) >= 15;
+const FOCUS_SX = {
+  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+};
+
+function fmtSigned(n) {
+  return n > 0 ? `+${n}` : String(n);
+}
+
+function traitAverages(statements, mode) {
+  if (!statements.length) return { team: 0, self: 0 };
+  const sum = statements.reduce(
+    (acc, s) => {
+      const sc = scoresFor(s, mode);
+      return { team: acc.team + sc.team, self: acc.self + sc.self };
+    },
+    { team: 0, self: 0 }
+  );
+  return {
+    team: Math.round(sum.team / statements.length),
+    self: Math.round(sum.self / statements.length),
+  };
+}
+
+function ScoreCell({ label, value, note, variant, gapSign }) {
+  const isGap = variant === 'gap';
+  const negative = isGap && gapSign < 0;
+  const allSelf = variant === 'allSelf';
+  const selectedTeam = variant === 'selectedTeam';
+  let bgcolor = colors.surface1;
+  let valueColor = colors.ink;
+  let labelColor = colors.inkSoft;
+  let noteColor = colors.inkSoft;
+  if (selectedTeam) {
+    bgcolor = colors.navy900;
+    valueColor = colors.amberSoft;
+    labelColor = 'color-mix(in srgb, var(--amber-soft) 72%, transparent)';
+                noteColor = 'color-mix(in srgb, var(--dial-node-fill) 72%, transparent)';
+  } else if (allSelf) {
+    bgcolor = 'color-mix(in srgb, var(--orange) 6%, transparent)';
+    valueColor = colors.orangeDeep;
+    labelColor = colors.orangeDeep;
+  } else if (isGap) {
+    bgcolor = negative ? colors.gapNegativeTint : colors.gapPositiveTint;
+    valueColor = negative ? colors.gapNegative : colors.gapPositive;
+    labelColor = valueColor;
+  }
   return (
-    <Box>
+    <Box sx={{ px: '22px', py: '18px', bgcolor }}>
       <Typography
         sx={{
           fontFamily: fonts.mono,
           fontSize: 9,
           fontWeight: 700,
-          letterSpacing: '0.16em',
+          letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          color: 'rgba(244,206,161,0.7)',
-          mb: '8px',
+          color: labelColor,
         }}
       >
         {label}
       </Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: '34px 1fr 26px', alignItems: 'center', gap: '9px', mb: '9px' }}>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(244,206,161,0.6)' }}>
-          TEAM
-        </Typography>
-        <Box sx={{ height: '7px', borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
-          <Box sx={{ width: `${Math.max(0, Math.min(100, team))}%`, height: '100%', bgcolor: colors.navy300 }} />
-        </Box>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: colors.amberSoft, textAlign: 'right' }}>
-          {team}
-        </Typography>
-      </Box>
-      <Box sx={{ display: 'grid', gridTemplateColumns: '34px 1fr 26px', alignItems: 'center', gap: '9px', mb: '9px' }}>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(244,206,161,0.6)' }}>
-          SELF
-        </Typography>
-        <Box sx={{ height: '7px', borderRadius: radii.pill, bgcolor: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
-          <Box sx={{ width: `${Math.max(0, Math.min(100, self))}%`, height: '100%', bgcolor: colors.orange }} />
-        </Box>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: colors.amberSoft, textAlign: 'right' }}>
-          {self}
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          mt: '4px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          px: '9px',
-          py: '3px',
-          borderRadius: radii.pill,
-          border: `1px solid ${gapAlert ? colors.orange : 'rgba(244,206,161,0.35)'}`,
-          color: gapAlert ? colors.orange : 'rgba(244,206,161,0.75)',
-          fontFamily: fonts.mono,
-          fontSize: 8.5,
-          fontWeight: 700,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        Gap {gap > 0 ? `+${gap}` : gap}
-      </Box>
-    </Box>
-  );
-}
-
-function StageStatementRow({ statement, selected, isLowest, onSelect }) {
-  return (
-    <Box
-      component="button"
-      type="button"
-      aria-pressed={selected}
-      onClick={onSelect}
-      sx={{
-        all: 'unset',
-        cursor: 'pointer',
-        boxSizing: 'border-box',
-        width: '100%',
-        // One expanded card (~2× the old equal share); collapsed cards hug the score row
-        flex: selected ? '2.4 1 0' : '0.7 1 0',
-        minHeight: selected ? 0 : 44,
-        borderRadius: radii.md,
-        border: 'none',
-        bgcolor: selected ? colors.navy900 : colors.surface1,
-        color: selected ? colors.amberSoft : colors.textPrimary,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: selected ? 'flex-start' : 'center',
-        overflow: 'hidden',
-        boxShadow: selected
-          ? '0 10px 28px rgba(16,34,60,0.22)'
-          : '0 4px 16px rgba(15,28,46,0.08)',
-        transition: motion.standard,
-        '&:hover': { transform: 'translateY(-1px)' },
-      }}
-    >
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: '42px 1fr',
-          gap: '12px',
-          alignItems: 'center',
-          px: '16px',
-          py: selected ? '12px' : '8px',
-          flexShrink: 0,
-        }}
-      >
-        <Typography
-          sx={{
-            fontFamily: fonts.mono,
-            fontSize: selected ? 18 : 16,
-            fontWeight: 700,
-            lineHeight: 1.1,
-            color: selected ? colors.amber : colors.textPrimary,
-            fontVariantNumeric: 'tabular-nums',
-            textAlign: 'center',
-          }}
-        >
-          {statement.compass}
-        </Typography>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            sx={{
-              fontFamily: fonts.sans,
-              fontSize: selected ? 13.75 : 12.5,
-              lineHeight: selected ? 1.35 : 1.3,
-              color: selected ? colors.amberSoft : colors.textPrimary,
-              ...(selected
-                ? {}
-                : {
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }),
-            }}
-          >
-            {statement.text}
-            {isLowest && (
-              <Box
-                component="span"
-                sx={{
-                  ml: '8px',
-                  display: 'inline-flex',
-                  px: '7px',
-                  py: '1.5px',
-                  borderRadius: radii.pill,
-                  border: `1px solid ${selected ? colors.amber : colors.orangeDeep}`,
-                  color: selected ? colors.amber : colors.orangeDeep,
-                  fontFamily: fonts.mono,
-                  fontSize: 7.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  verticalAlign: '2px',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                LOWEST
-              </Box>
-            )}
-          </Typography>
-        </Box>
-      </Box>
-
-      {selected && (
-        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ height: '1px', flexShrink: 0, bgcolor: 'rgba(244,206,161,0.22)' }} />
-          <Box sx={{ px: '14px', pt: '10px', pb: '12px', flex: 1, minHeight: 0, display: 'flex', alignItems: 'center' }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '12px', width: '100%' }}>
-              <MetricBlock label="EFFORT" team={statement.effort} self={statement.effortSelf} />
-              <MetricBlock label="EFFICACY" team={statement.efficacy} self={statement.efficacySelf} />
-            </Box>
-          </Box>
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-function TraitSwitcher({ title }) {
-  return (
-    <Box sx={{ minHeight: 44, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
       <Typography
         sx={{
-          textAlign: 'center',
-          fontFamily: fonts.serif,
-          fontSize: 25,
-          fontWeight: 500,
-          lineHeight: 1.15,
-          letterSpacing: '-0.01em',
-          color: colors.textPrimary,
-          maxWidth: '100%',
+          fontFamily: fonts.mono,
+          fontSize: 40,
+          fontWeight: 700,
+          lineHeight: 1,
+          letterSpacing: '-0.03em',
+          mt: '9px',
+          fontVariantNumeric: 'tabular-nums',
+          color: valueColor,
         }}
       >
-        {title}
+        {isGap ? fmtSigned(value) : value}
       </Typography>
-      <Box sx={{ mt: 1.05, width: '68%', mx: 'auto', height: '1px', bgcolor: colors.sand200 }} />
+      <Typography
+        sx={{
+          fontFamily: fonts.sans,
+          fontSize: 11,
+          lineHeight: 1.3,
+          mt: '7px',
+          color: noteColor,
+        }}
+      >
+        {note}
+      </Typography>
     </Box>
   );
 }
 
-function ModeBar({ mode, onModeChange }) {
-  const modes = [
-    { id: 'efficacy', label: 'Efficacy' },
-    { id: 'map', label: 'Map' },
-    { id: 'effort', label: 'Effort' },
-  ];
+function ScoreCells({ team, self, all, mode }) {
+  const gap = perceptionGap(team, self);
+  const label = metricLabel(mode);
   return (
     <Box
       sx={{
-        minHeight: 44,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 1.25,
+        display: 'grid',
+        gridTemplateColumns: '1fr 1px 1fr 1px 1fr',
+        bgcolor: colors.surface1,
+        border: `1px solid ${colors.sand200}`,
+        borderRadius: radii.md,
+        overflow: 'hidden',
+        mt: '26px',
       }}
     >
-      {modes.map((item) => {
-        const active = mode === item.id;
+      <ScoreCell
+        label={label}
+        value={team}
+        note="What the team reported"
+        variant={all ? 'plain' : 'selectedTeam'}
+      />
+      <Box sx={{ bgcolor: colors.sand200 }} />
+      <ScoreCell
+        label="Self score"
+        value={self}
+        note="What you reported"
+        variant={all ? 'allSelf' : 'plain'}
+      />
+      <Box sx={{ bgcolor: colors.sand200 }} />
+      <ScoreCell
+        label="Perception gap"
+        value={gap}
+        note={Math.abs(gap) >= 15 ? 'Worth a conversation' : 'Closely aligned'}
+        variant="gap"
+        gapSign={gap}
+      />
+    </Box>
+  );
+}
+
+function StatementTabs({ selected, onSelect, count }) {
+  const tabs = ['all', ...Array.from({ length: count }, (_, i) => i)];
+  return (
+    <Box sx={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+      {tabs.map((tab) => {
+        const isAll = tab === 'all';
+        const active = isAll ? selected === 'all' : selected === tab;
         return (
           <Box
-            key={item.id}
+            key={isAll ? 'all' : tab}
             component="button"
             type="button"
-            aria-label={item.label}
-            onClick={() => onModeChange?.(item.id)}
+            aria-label={isAll ? 'All statements' : `Statement ${tab + 1}`}
+            aria-pressed={active}
+            onClick={() => onSelect(isAll ? 'all' : tab)}
             sx={{
               all: 'unset',
               cursor: 'pointer',
-              minWidth: 96,
+              boxSizing: 'border-box',
               height: 34,
-              px: '12px',
+              width: isAll ? 'auto' : 34,
+              px: isAll ? '15px' : 0,
               borderRadius: radii.pill,
-              border: `1px solid ${active ? colors.navy900 : colors.sand300}`,
-              bgcolor: active ? colors.navy900 : colors.surface1,
-              color: active ? colors.amberSoft : colors.navy900,
+              border: `1px solid ${active ? colors.navy900 : colors.sand200}`,
+              bgcolor: active ? colors.navy900 : 'transparent',
+              color: active ? colors.amberSoft : colors.inkSoft,
               fontFamily: fonts.mono,
-              fontSize: 10.5,
+              fontSize: 11.5,
               fontWeight: 700,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
+              letterSpacing: isAll ? '0.14em' : '0.04em',
               textAlign: 'center',
-              lineHeight: '34px',
-              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+              lineHeight: '32px',
+              ...FOCUS_SX,
             }}
           >
-            {item.label}
+            {isAll ? 'ALL' : tab + 1}
           </Box>
         );
       })}
@@ -345,80 +266,257 @@ function ModeBar({ mode, onModeChange }) {
   );
 }
 
-function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot = null }) {
-  const statements = useMemo(() => mapRowStatements(row), [row]);
-  const lowestIdx = useMemo(() => {
-    if (!statements.length) return 0;
-    let minIdx = 0;
-    statements.forEach((s, i) => {
-      if (s.compass < statements[minIdx].compass) minIdx = i;
-    });
-    return minIdx;
-  }, [statements]);
-
+function StageHeader({ title, traitIndex, traitCount, onNextTrait, mode, onModeChange }) {
+  const n = Number.isFinite(traitIndex) ? traitIndex + 1 : 1;
+  const total = traitCount || 1;
   return (
     <Box
       sx={{
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gridTemplateRows: 'auto auto',
-        columnGap: '16px',
-        rowGap: { xs: '10px', md: '0px' },
-        '@media (min-width:820px)': {
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-        },
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        gap: 2,
+        pb: '20px',
+        mb: '28px',
+        borderBottom: `1px solid ${colors.sand200}`,
+        flexWrap: 'wrap',
+        rowGap: 1.5,
       }}
     >
-      {/* Row 1: trait switcher | mode buttons — same band */}
-      <Box sx={{ gridColumn: { md: 1 }, gridRow: { md: 1 }, mb: { md: 0.75 } }}>
-        {headerSlot}
+      <Box>
+        <Typography sx={{ ...type.eyebrow, mb: '8px' }}>
+          TRAIT {String(n).padStart(2, '0')} OF {String(total).padStart(2, '0')}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Typography
+            sx={{
+              fontFamily: fonts.serif,
+              fontSize: 32,
+              fontWeight: 500,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: colors.ink,
+            }}
+          >
+            {title}
+          </Typography>
+          {onNextTrait && (
+            <Box
+              component="button"
+              type="button"
+              aria-label="Next trait"
+              onClick={onNextTrait}
+              sx={{
+                all: 'unset',
+                cursor: 'pointer',
+                width: 42,
+                height: 42,
+                flexShrink: 0,
+                borderRadius: radii.circle,
+                border: `1px solid ${colors.sand200}`,
+                bgcolor: colors.surface1,
+                color: colors.navy900,
+                fontSize: 19,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: shadows.dialNext,
+                ...FOCUS_SX,
+              }}
+            >
+              →
+            </Box>
+          )}
+        </Box>
       </Box>
-      <Box sx={{ gridColumn: { md: 2 }, gridRow: { md: 1 }, mb: { md: 0.75 } }}>
-        <ModeBar mode={mode} onModeChange={onModeChange} />
-      </Box>
+      <EvidenceModeBar mode={mode} onModeChange={onModeChange} embedded />
+    </Box>
+  );
+}
 
-      {/* Row 2: statements | map — sit a little above the inner map square so the page doesn't need a nudge-scroll */}
+function AllStatementList({ statements, mode, onSelect }) {
+  return (
+    <Box sx={{ mt: '22px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 2, mb: '4px' }}>
+        <Typography
+          sx={{
+            fontFamily: fonts.mono,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: colors.inkSoft,
+          }}
+        >
+          All five statements · Pick one to focus
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: fonts.mono,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: colors.inkSoft,
+            flexShrink: 0,
+          }}
+        >
+          {metricLabel(mode)}
+        </Typography>
+      </Box>
+      {statements.map((statement, idx) => {
+        const zone = zoneFor(statement.effort, statement.efficacy);
+        const score = scoresFor(statement, mode).team;
+        return (
+          <Box
+            key={idx}
+            component="button"
+            type="button"
+            onClick={() => onSelect(idx)}
+            aria-label={`Focus statement ${idx + 1}`}
+            sx={{
+              all: 'unset',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              display: 'grid',
+              gridTemplateColumns: '26px 1fr 30px',
+              gap: '14px',
+              alignItems: 'center',
+              width: '100%',
+              py: '13px',
+              px: '4px',
+              borderTop: idx === 0 ? 'none' : `1px solid ${colors.sand200}`,
+              ...FOCUS_SX,
+            }}
+          >
+            <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, color: colors.inkSoft }}>
+              {idx + 1}
+            </Typography>
+            <Typography sx={{ fontFamily: fonts.serif, fontSize: 15.5, lineHeight: 1.35, color: colors.ink }}>
+              {statement.text}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: fonts.mono,
+                fontSize: 19,
+                fontWeight: 700,
+                textAlign: 'right',
+                fontVariantNumeric: 'tabular-nums',
+                color: zone.ink,
+              }}
+            >
+              {score}
+            </Typography>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+}
+
+function StagePanels({
+  row,
+  selected,
+  onSelect,
+  mode,
+  onModeChange,
+  traitIndex = 0,
+  traitCount = 1,
+  onNextTrait,
+}) {
+  const statements = useMemo(() => mapRowStatements(row), [row]);
+  const isAll = selected === 'all';
+  const active = !isAll && typeof selected === 'number' ? statements[selected] : null;
+  const avgs = traitAverages(statements, mode);
+  const activeScores = active ? scoresFor(active, mode) : avgs;
+  const zone = active ? zoneFor(active.effort, active.efficacy) : null;
+
+  return (
+    <Box>
+      <StageHeader
+        title={row.subTrait || row.trait}
+        traitIndex={traitIndex}
+        traitCount={traitCount}
+        onNextTrait={onNextTrait}
+        mode={mode}
+        onModeChange={onModeChange}
+      />
       <Box
         sx={{
-          gridColumn: { md: 1 },
-          gridRow: { md: 2 },
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          '@media (min-width:820px)': {
-            aspectRatio: '1 / 1',
-            // Was PAD/VIEW (40/560). Pull the stack up ~24px while keeping the bottom aligned.
-            pt: `${(16 / 560) * 100}%`,
-            pb: `${(40 / 560) * 100}%`,
-          },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(240px, 520px) minmax(0, 1fr)' },
+          gap: '40px',
+          alignItems: 'start',
         }}
       >
-        {statements.map((statement, idx) => (
-          <StageStatementRow
-            key={`${row.trait}-${idx}`}
-            statement={statement}
-            selected={idx === selected}
-            isLowest={idx === lowestIdx}
-            onSelect={() => onSelect(idx)}
+        <Box sx={{ width: '100%', maxWidth: 520, aspectRatio: '1 / 1', overflow: 'visible' }}>
+          <EvidenceQuadrant
+            statements={statements}
+            selectedIdx={selected}
+            onSelect={onSelect}
+            mode={mode}
+            onModeChange={onModeChange}
+            showModeBar={false}
           />
-        ))}
-      </Box>
-
-      <Box
-        sx={{
-          gridColumn: { md: 2 },
-          gridRow: { md: 2 },
-          '@media (min-width:820px)': { aspectRatio: '1 / 1' },
-        }}
-      >
-        <EvidenceQuadrant
-          statements={statements}
-          selectedIdx={selected}
-          onSelect={onSelect}
-          mode={mode}
-          onModeChange={onModeChange}
-          showModeBar={false}
-        />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <StatementTabs selected={selected} onSelect={onSelect} count={statements.length} />
+          {isAll ? (
+            <>
+              <ScoreCells team={avgs.team} self={avgs.self} all mode={mode} />
+              <AllStatementList statements={statements} mode={mode} onSelect={onSelect} />
+            </>
+          ) : (
+            active && (
+              <>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    mt: '22px',
+                    px: '14px',
+                    py: '7px',
+                    borderRadius: radii.pill,
+                    bgcolor: zone.tint,
+                    border: `1px solid ${zone.ink}`,
+                    fontFamily: fonts.mono,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: zone.ink,
+                  }}
+                >
+                  {zone.label}
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: fonts.serif,
+                    fontSize: 26,
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    letterSpacing: '-0.015em',
+                    color: colors.ink,
+                    mt: '16px',
+                  }}
+                >
+                  “{active.text}”
+                </Typography>
+                <Typography
+                  sx={{
+                    ...type.italicBody,
+                    color: colors.inkSoft,
+                    maxWidth: '44ch',
+                    mt: '10px',
+                    mb: 0,
+                  }}
+                >
+                  {zone.note}
+                </Typography>
+                <ScoreCells team={activeScores.team} self={activeScores.self} mode={mode} />
+              </>
+            )
+          )}
+        </Box>
       </Box>
     </Box>
   );
@@ -427,7 +525,7 @@ function StagePanels({ row, selected, onSelect, mode, onModeChange, headerSlot =
 // ---------------------------------------------------------------------------
 // Trait exhibit chapter — same explorer format as Evidence snapshot
 // ---------------------------------------------------------------------------
-function EvTraitPage({ row }) {
+function EvTraitPage({ row, traitIndex = 0, traitCount = 1, onNextTrait }) {
   const lowestIdx = useMemo(() => {
     const statements = mapRowStatements(row);
     if (!statements.length) return 0;
@@ -453,9 +551,9 @@ function EvTraitPage({ row }) {
         onSelect={setSelected}
         mode={mode}
         onModeChange={setMode}
-        headerSlot={(
-          <TraitSwitcher title={row.subTrait || row.trait} />
-        )}
+        traitIndex={traitIndex}
+        traitCount={traitCount}
+        onNextTrait={onNextTrait}
       />
     </Box>
   );
@@ -578,7 +676,7 @@ function EvGapsPage({ rows, chapterIndex }) {
         text: s.text,
         teamScore: Math.round(s.lepScore),
         selfScore: Math.round(self.lepScore),
-        gap: Math.round(self.lepScore - s.lepScore),
+        gap: Math.round(s.lepScore - self.lepScore),
       });
     });
   });
@@ -600,7 +698,7 @@ function EvGapsPage({ rows, chapterIndex }) {
             key={i}
             number={g.gap > 0 ? `+${g.gap}` : g.gap}
             numberLabel="Gap"
-            numberColor={g.gap > 0 ? colors.orange : colors.green}
+            numberColor={g.gap < 0 ? colors.gapNegative : colors.gapPositive}
             stats={[
               { label: 'You felt', value: g.selfScore, color: colors.orangeDeep },
               { label: 'They felt', value: g.teamScore, color: colors.textPrimary },
@@ -691,13 +789,9 @@ function EvidenceSnapshot({ orderedRows }) {
         onSelect={setSelected}
         mode={mode}
         onModeChange={setMode}
-        headerSlot={(
-          <TraitSwitcher
-            title={row.subTrait || row.trait}
-            onPrev={() => setTraitIdx((p) => (p - 1 + orderedRows.length) % orderedRows.length)}
-            onNext={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
-          />
-        )}
+        traitIndex={traitIdx}
+        traitCount={orderedRows.length}
+        onNextTrait={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
       />
     </SnapshotShell>
   );
@@ -823,7 +917,19 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
   return (
     <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
       {chapter.id === 'ev-intro' && <EvIntroPage rows={orderedRows} respondents={respondents} />}
-      {chapter.row && <EvTraitPage row={chapter.row} />}
+      {chapter.row && (
+        <EvTraitPage
+          row={chapter.row}
+          traitIndex={Math.max(0, orderedRows.findIndex((r) => r.trait === chapter.row.trait))}
+          traitCount={orderedRows.length}
+          onNextTrait={() => {
+            const current = orderedRows.findIndex((r) => r.trait === chapter.row.trait);
+            const nextRow = orderedRows[(current + 1) % orderedRows.length];
+            const nextChapter = chapters.findIndex((c) => c.row && c.row.trait === nextRow.trait);
+            if (nextChapter >= 0) setIdx(nextChapter);
+          }}
+        />
+      )}
       {chapter.id === 'ev-floor' && <EvFloorPage rows={orderedRows} chapterIndex={idx + 1} />}
       {chapter.id === 'ev-gaps' && <EvGapsPage rows={orderedRows} chapterIndex={idx + 1} />}
       {chapter.id === 'ev-close' && <EvClosePage chapterIndex={idx + 1} onAdvancePhase={onAdvancePhase} />}
