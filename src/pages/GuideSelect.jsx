@@ -105,9 +105,8 @@ function GuideSelect() {
           <Box sx={{
             position: 'relative',
             width: '100%',
-            flex: 1,
-            minHeight: 0,
-            maxHeight: { xs: 420, md: 480 },
+            flexShrink: 0,
+            height: { xs: 360, md: 400 },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -146,7 +145,7 @@ function GuideSelect() {
                       WebkitAppearance: 'none',
                       cursor: 'pointer',
                       position: 'absolute',
-                      width: isCenter ? { xs: 300, md: 360 } : { xs: 200, md: 240 },
+                      width: isCenter ? { xs: 280, md: 320 } : { xs: 180, md: 220 },
                       transform: isCenter
                         ? 'translateX(0) scale(1)'
                         : slot === 'left'
@@ -170,7 +169,7 @@ function GuideSelect() {
                   >
                     <Box sx={{ height: 5, bgcolor: persona.accent, width: '100%', flexShrink: 0 }} />
                     <Box sx={{
-                      height: { xs: isCenter ? 200 : 132, md: isCenter ? 248 : 152 },
+                      height: { xs: isCenter ? 176 : 116, md: isCenter ? 208 : 136 },
                       display: 'flex',
                       alignItems: 'flex-end',
                       justifyContent: 'center',
@@ -184,7 +183,7 @@ function GuideSelect() {
                         src={persona.poses.greet || persona.poses.idle}
                         alt={persona.name}
                         sx={{
-                          height: { xs: isCenter ? 188 : 120, md: isCenter ? 232 : 140 },
+                          height: { xs: isCenter ? 164 : 104, md: isCenter ? 196 : 124 },
                           objectFit: 'contain',
                           objectPosition: 'bottom',
                           display: 'block',
