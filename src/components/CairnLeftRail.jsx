@@ -1,10 +1,11 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { colors, fonts, radii, shadows } from '../styles/tokens';
+import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
 /**
- * Left spine rail — navy active pill, cream inactive pills, roman badge + title/subtitle.
- * Wider than the old flush tabs so labels wrap cleanly instead of spilling.
+ * Connected index rail — left tabs share one card with the content pane
+ * and stretch to fill its height. Three-item rails (campaign builder) use
+ * the same structure with taller, evenly spaced entries.
  */
 export default function CairnLeftRail({
   tabs = [],
@@ -15,11 +16,15 @@ export default function CairnLeftRail({
   contentSelected = false,
   railLabel = '',
 }) {
-  const inactiveBg = isDark ? 'rgba(255,255,255,0.04)' : colors.sand100;
+  const tabCount = tabs.length;
+  const compactRail = tabCount > 0 && tabCount <= 3;
   const border = isDark ? 'rgba(244,206,161,0.14)' : colors.sand200;
   const selectedFill = isDark
     ? `linear-gradient(180deg, color-mix(in srgb, ${colors.green} 28%, ${colors.surface1}) 0%, color-mix(in srgb, ${colors.greenSoft} 16%, ${colors.surface1}) 42%, ${colors.surface1} 100%)`
     : `linear-gradient(180deg, color-mix(in srgb, ${colors.green} 20%, ${colors.surface1}) 0%, color-mix(in srgb, ${colors.greenSoft} 12%, ${colors.sand50}) 38%, ${colors.surface1} 100%)`;
+  const selectedBorder = isDark
+    ? 'color-mix(in srgb, var(--green) 45%, transparent)'
+    : 'color-mix(in srgb, var(--green) 35%, var(--sand-200))';
 
   return (
     <Box
@@ -28,7 +33,14 @@ export default function CairnLeftRail({
         flexDirection: { xs: 'column', md: 'row' },
         alignItems: 'stretch',
         width: '100%',
-        gap: { xs: 1.5, md: 2 },
+        height: { md: '100%' },
+        minHeight: { md: 0 },
+        flex: 1,
+        ...surfaces.card,
+        border: `1px solid ${contentSelected ? selectedBorder : border}`,
+        bgcolor: colors.surface1,
+        overflow: 'hidden',
+        boxShadow: shadows.card,
       }}
     >
       <Box
@@ -38,16 +50,20 @@ export default function CairnLeftRail({
           display: 'flex',
           flexDirection: { xs: 'row', md: 'column' },
           flexShrink: 0,
-          width: { xs: '100%', md: 248 },
-          gap: { xs: 0.75, md: 0.85 },
-          pt: { md: 0.25 },
-          overflowX: { xs: 'auto', md: 'visible' },
+          width: { xs: '100%', md: compactRail ? 228 : 248 },
+          alignSelf: 'stretch',
+          borderRight: { md: `1px solid ${border}` },
+          borderBottom: { xs: `1px solid ${border}`, md: 'none' },
+          bgcolor: isDark ? 'rgba(255,255,255,0.03)' : colors.sand50,
+          overflowX: { xs: 'auto', md: 'hidden' },
+          overflowY: 'hidden',
         }}
       >
         {tabs.map((tab, index) => {
           const active = tab.id === activeId;
           const marked = Boolean(tab.selected);
           const number = tab.number || tab.roman || tab.icon || String(index + 1);
+          const last = index === tabCount - 1;
           return (
             <Box
               key={tab.id}
@@ -61,34 +77,43 @@ export default function CairnLeftRail({
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.25,
+                gap: compactRail ? 1.4 : 1.25,
                 width: { xs: 'auto', md: '100%' },
                 minWidth: { xs: 168, md: 0 },
-                minHeight: { xs: 52, md: 64 },
-                px: 1.35,
-                py: 1.15,
+                flex: { xs: '0 0 auto', md: 1 },
+                minHeight: {
+                  xs: 52,
+                  md: compactRail ? 96 : 72,
+                },
+                px: compactRail ? 1.7 : 1.45,
+                py: compactRail ? 1.5 : 1.2,
                 flexShrink: 0,
-                bgcolor: active ? colors.navy900 : inactiveBg,
+                bgcolor: active ? colors.navy900 : 'transparent',
                 color: active ? colors.amberSoft : (isDark ? colors.ink : colors.navy900),
-                border: `1px solid ${active ? colors.navy900 : border}`,
-                borderRadius: radii.lg,
-                boxShadow: active ? shadows.buttonPrimary : shadows.none,
-                transition: 'background-color 160ms ease, color 160ms ease, box-shadow 160ms ease',
+                borderBottom: {
+                  xs: 'none',
+                  md: last ? 'none' : `1px solid ${active ? colors.navy800 : border}`,
+                },
+                borderRight: {
+                  xs: last ? 'none' : `1px solid ${active ? colors.navy800 : border}`,
+                  md: 'none',
+                },
+                transition: 'background-color 160ms ease, color 160ms ease',
                 '&:hover': {
                   bgcolor: active
                     ? colors.navy800
-                    : (isDark ? 'rgba(255,255,255,0.07)' : colors.sand50),
+                    : (isDark ? 'rgba(255,255,255,0.06)' : colors.sand100),
                 },
                 '&:focus-visible': {
                   outline: `3px solid ${colors.ringFocus}`,
-                  outlineOffset: 2,
+                  outlineOffset: -3,
                 },
               }}
             >
               <Box
                 sx={{
-                  width: 30,
-                  height: 30,
+                  width: compactRail ? 34 : 30,
+                  height: compactRail ? 34 : 30,
                   borderRadius: radii.circle,
                   flexShrink: 0,
                   display: 'flex',
@@ -108,7 +133,7 @@ export default function CairnLeftRail({
                   sx={{
                     fontFamily: fonts.serif,
                     fontWeight: 700,
-                    fontSize: marked ? '0.78rem' : '0.78rem',
+                    fontSize: compactRail ? '0.86rem' : '0.78rem',
                     lineHeight: 1,
                     color: 'inherit',
                   }}
@@ -121,7 +146,7 @@ export default function CairnLeftRail({
                   sx={{
                     fontFamily: fonts.sans,
                     fontWeight: active ? 800 : 700,
-                    fontSize: '0.88rem',
+                    fontSize: compactRail ? '0.96rem' : '0.88rem',
                     lineHeight: 1.25,
                     letterSpacing: '0.01em',
                     color: active ? colors.amberSoft : (isDark ? colors.ink : colors.navy900),
@@ -136,9 +161,9 @@ export default function CairnLeftRail({
                     sx={{
                       fontFamily: fonts.sans,
                       fontWeight: 500,
-                      fontSize: '0.72rem',
-                      lineHeight: 1.3,
-                      mt: 0.2,
+                      fontSize: compactRail ? '0.78rem' : '0.72rem',
+                      lineHeight: 1.35,
+                      mt: 0.3,
                       color: active
                         ? 'rgba(244,206,161,0.72)'
                         : (isDark ? 'rgba(240,233,222,0.55)' : colors.inkSoft),
@@ -159,16 +184,14 @@ export default function CairnLeftRail({
         sx={{
           flex: 1,
           minWidth: 0,
-          minHeight: { md: 440 },
-          bgcolor: contentSelected ? undefined : (isDark ? 'rgba(255,255,255,0.05)' : colors.surface1),
-          background: contentSelected ? selectedFill : undefined,
-          border: `1px solid ${contentSelected
-            ? (isDark ? 'color-mix(in srgb, var(--green) 45%, transparent)' : 'color-mix(in srgb, var(--green) 35%, var(--sand-200))')
-            : border}`,
-          borderRadius: radii.lg,
-          boxShadow: shadows.card,
-          p: { xs: 2.5, md: 3.5 },
-          transition: 'background 220ms ease, border-color 220ms ease',
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: contentSelected ? undefined : 'transparent',
+          background: contentSelected ? selectedFill : 'transparent',
+          p: { xs: 2.5, md: compactRail ? 3.25 : 3.5 },
+          overflow: 'hidden',
+          transition: 'background 220ms ease',
         }}
       >
         {children}
