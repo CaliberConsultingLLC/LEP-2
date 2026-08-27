@@ -32,19 +32,22 @@ const cairnLabelSx = {
   color: colors.inkSoft,
   display: 'block',
   mb: 0.75,
-  textAlign: 'left',
+  textAlign: 'center',
 };
 
 const cairnInputSx = {
   '& .MuiInputBase-input': {
-    textAlign: 'left',
+    textAlign: 'center',
     py: 1.15,
     fontFamily: fonts.sans,
     fontSize: 14,
   },
   '& .MuiOutlinedInput-root': {
     bgcolor: colors.surface1,
-    borderRadius: radii.md,
+    borderRadius: radii.sm,
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderRadius: radii.sm,
   },
 };
 
@@ -398,8 +401,8 @@ function UserInfo() {
               Compass does not share your profile information or assessment results with other users or company leadership/HR without explicit authorization.
             </Alert>}
 
-            <Stack spacing={useCairnTheme ? 1.35 : 3}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: useCairnTheme ? 1.15 : 3 }}>
+            <Stack spacing={useCairnTheme ? 1.35 : 3} sx={useCairnTheme ? { alignItems: 'center', textAlign: 'center' } : undefined}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: useCairnTheme ? 1.15 : 3, width: '100%' }}>
               <Box>
                 <Typography
                   component="label"
@@ -475,7 +478,7 @@ function UserInfo() {
               </Box>
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: useCairnTheme ? 1.15 : 3 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: useCairnTheme ? 1.15 : 3, width: '100%' }}>
               <Box>
                 <Typography
                   component="label"
@@ -511,7 +514,7 @@ function UserInfo() {
                     },
                   }}
                 />
-                <Typography sx={{ mt: 0.45, fontSize: useCairnTheme ? 12 : '0.8rem', fontFamily: fonts.sans, color: useCairnTheme ? colors.inkSoft : 'text.secondary', textAlign: useCairnTheme ? 'left' : 'center' }}>
+                <Typography sx={{ mt: 0.45, fontSize: useCairnTheme ? 12 : '0.8rem', fontFamily: fonts.sans, color: useCairnTheme ? colors.inkSoft : 'text.secondary', textAlign: 'center' }}>
                   Minimum 10 characters with uppercase, lowercase, and a number.
                 </Typography>
               </Box>
@@ -554,7 +557,7 @@ function UserInfo() {
               </Box>
               </Box>
 
-              <Stack spacing={0.55} sx={{ alignItems: useCairnTheme ? 'flex-start' : 'center', pt: useCairnTheme ? 0.4 : 0 }}>
+              <Stack spacing={0.55} sx={{ alignItems: 'center', pt: useCairnTheme ? 0.4 : 0 }}>
                 {[
                   {
                     name: 'agreeTerms',
@@ -576,7 +579,7 @@ function UserInfo() {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: useCairnTheme ? 'flex-start' : 'center',
+                      justifyContent: 'center',
                       gap: 0.85,
                       width: '100%',
                     }}
@@ -638,7 +641,7 @@ function UserInfo() {
                 onClick={handleContinue}
                 disabled={isSubmitting}
                 sx={useCairnTheme
-                  ? { ...buttons.primary, alignSelf: 'flex-start', mt: 0.5 }
+                  ? { ...buttons.primary, alignSelf: 'center', mt: 0.5 }
                   : {
                   fontFamily: 'Gemunu Libre, sans-serif',
                   fontSize: '1.1rem',

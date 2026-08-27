@@ -167,16 +167,19 @@ const contextFieldSx = {
     fontFamily: fonts.sans,
     fontSize: 14,
     py: 1.15,
-    textAlign: 'left',
+    textAlign: 'center',
   },
   '& .MuiOutlinedInput-root': {
-    borderRadius: radii.md,
+    borderRadius: radii.sm,
     bgcolor: colors.surface1,
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderRadius: radii.sm,
   },
 };
 
 const ContextField = ({ label, children }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 }}>
+  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', minWidth: 0 }}>
     <Typography
       component="label"
       sx={{
@@ -186,7 +189,8 @@ const ContextField = ({ label, children }) => (
         color: colors.inkSoft,
         display: 'block',
         mb: 0.75,
-        textAlign: 'left',
+        textAlign: 'center',
+        width: '100%',
       }}
     >
       {label}
@@ -1782,7 +1786,7 @@ function IntakeForm() {
         {/* Profile Details (Step 1) */}
         {currentStep === 1 && useCairnTheme && (
           <SectionCard maxWidth={840}>
-            <Box sx={{ width: '100%' }}>
+            <Box sx={{ width: '100%', textAlign: 'center' }}>
               <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
                 <Typography sx={{ ...type.question, mb: 0.75 }}>Your context</Typography>
