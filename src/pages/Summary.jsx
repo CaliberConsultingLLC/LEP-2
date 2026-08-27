@@ -1086,7 +1086,7 @@ function Summary() {
             }}
           />
         </Box>
-        <CompassLayout fluid>
+        <CompassLayout fluid allowBleed>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -1094,22 +1094,19 @@ function Summary() {
           ) : (
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexWrap: { xs: 'wrap', md: 'nowrap' },
-                gap: { xs: 1, md: 0 },
+                position: 'relative',
                 width: '100%',
                 overflow: 'visible',
+                minHeight: { md: 560, lg: 640 },
               }}
             >
               <Box
                 sx={{
                   width: '100%',
                   maxWidth: 960,
-                  minWidth: 0,
-                  flex: '1 1 640px',
+                  mx: 'auto',
                   position: 'relative',
+                  zIndex: 2,
                   mb: '14px',
                   border: `1px solid ${colors.sand200}`,
                   borderRadius: radii.lg,
@@ -1525,31 +1522,26 @@ function Summary() {
                 </Box>
               </Box>
               <Box
+                component="img"
+                src={persona.poses.read || persona.poses.idle}
+                alt={`${persona.name} delivering your reflection`}
+                draggable={false}
                 sx={{
-                  flex: '0 0 auto',
-                  width: { xs: 220, sm: 280, md: 420, lg: 560, xl: 640 },
-                  maxWidth: { xs: '58%', md: 'none' },
-                  ml: { xs: 0, md: -1.5, lg: -3 },
-                  mr: { xs: 0, md: -3, lg: -6 },
-                  alignSelf: { xs: 'center', md: 'center' },
-                  pointerEvents: 'none',
+                  display: { xs: 'block', md: 'block' },
+                  position: { xs: 'relative', md: 'absolute' },
+                  right: { md: -12, lg: -28, xl: -40 },
+                  top: { md: '50%' },
+                  width: { xs: 240, sm: 280, md: 520, lg: 600, xl: 640 },
+                  maxWidth: { xs: 280, md: 'none' },
+                  mx: { xs: 'auto', md: 0 },
+                  mt: { xs: -1, md: 0 },
+                  height: 'auto',
+                  transform: { xs: 'scaleX(-1)', md: 'translateY(-50%) scaleX(-1)' },
+                  transformOrigin: 'center center',
                   zIndex: 1,
+                  pointerEvents: 'none',
                 }}
-              >
-                <Box
-                  component="img"
-                  src={persona.poses.read || persona.poses.idle}
-                  alt={`${persona.name} delivering your reflection`}
-                  draggable={false}
-                  sx={{
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                    transform: 'scaleX(-1)',
-                    transformOrigin: 'center bottom',
-                  }}
-                />
-              </Box>
+              />
             </Box>
           )}
         </CompassLayout>
