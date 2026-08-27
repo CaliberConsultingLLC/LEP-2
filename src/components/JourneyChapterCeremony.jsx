@@ -65,7 +65,8 @@ function resolveActiveGuideId(personaId) {
  * Two-beat chapter handoff that stays on one card:
  * 1) Complete — map, chapter line, title, button
  * 2) Walk — porthole pans along the trail with the pulse fixed at center
- * 3) Begin — same card swaps copy; a guide panel grows from the right edge
+ * 3) Begin — the cream card slides left as a guide panel opens on the right
+ *    so the combined shape stays centered
  */
 export default function JourneyChapterCeremony({
   open,
@@ -256,56 +257,51 @@ export default function JourneyChapterCeremony({
       </svg>
 
       <Box
-        // Desktop: 620px anchor stays centered; the panel grows out of the right edge.
+        // The cream card starts centered. As the guide panel width grows, this
+        // wrapper grows with it; flex-centering on the backdrop slides the
+        // original card left so the combined shape stays in the middle —
+        // like the box sliding open for the owl.
         onClick={(event) => event.stopPropagation()}
         sx={{
-          position: 'relative',
+          display: 'flex',
+          overflow: 'hidden',
+          borderRadius: radii.xl,
+          boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
           width: 'min(620px, calc(100vw - 32px))',
           height: 'auto',
           [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
-            width: CARD_W,
+            width: panelOpen ? CARD_W + PANEL_W : CARD_W,
             height: CARD_H,
+            transition: reducedMotion ? 'none' : `width 660ms ${PANEL_EASE}`,
+          },
+          [`@media (max-width: ${MOBILE_MAX}px)`]: {
+            flexDirection: 'column',
+            width: 'min(620px, calc(100vw - 32px))',
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            transition: 'none',
           },
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            overflow: 'hidden',
-            borderRadius: radii.xl,
-            boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
-            [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              height: CARD_H,
-            },
-            [`@media (max-width: ${MOBILE_MAX}px)`]: {
-              flexDirection: 'column',
-              width: '100%',
-            },
-          }}
-        >
-          <CeremonyCard
-            index={portholeIndex}
-            focus={focus}
-            walking={phase === 'walk'}
-            arrived={panelOpen}
-            reducedMotion={reducedMotion}
-            eyebrow={eyebrow}
-            title={title}
-            guideLine={panelOpen ? guideLine : null}
-            button={button}
-            buttonDisabled={buttonDisabled}
-            onClick={onButton}
-          />
-          <GuidePanel
-            open={panelOpen}
-            reducedMotion={reducedMotion}
-            guideId={guideId}
-            guideName={guide?.name || 'Mentor'}
-          />
-        </Box>
+        <CeremonyCard
+          index={portholeIndex}
+          focus={focus}
+          walking={phase === 'walk'}
+          arrived={panelOpen}
+          reducedMotion={reducedMotion}
+          eyebrow={eyebrow}
+          title={title}
+          guideLine={panelOpen ? guideLine : null}
+          button={button}
+          buttonDisabled={buttonDisabled}
+          onClick={onButton}
+        />
+        <GuidePanel
+          open={panelOpen}
+          reducedMotion={reducedMotion}
+          guideId={guideId}
+          guideName={guide?.name || 'Mentor'}
+        />
       </Box>
     </Box>,
     document.body,
