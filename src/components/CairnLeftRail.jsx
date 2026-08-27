@@ -3,9 +3,8 @@ import { Box, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
 /**
- * Connected index rail — left tabs share one card with the content pane
- * and stretch to fill its height. Three-item rails (campaign builder) use
- * the same structure with taller, evenly spaced entries.
+ * Index rail — a stacked list of consistent-size items, vertically centered
+ * beside a content card that keeps all four rounded corners.
  */
 export default function CairnLeftRail({
   tabs = [],
@@ -16,8 +15,7 @@ export default function CairnLeftRail({
   contentSelected = false,
   railLabel = '',
 }) {
-  const tabCount = tabs.length;
-  const compactRail = tabCount > 0 && tabCount <= 3;
+  const inactiveBg = isDark ? 'rgba(255,255,255,0.04)' : colors.sand100;
   const border = isDark ? 'rgba(244,206,161,0.14)' : colors.sand200;
   const selectedFill = isDark
     ? `linear-gradient(180deg, color-mix(in srgb, ${colors.green} 28%, ${colors.surface1}) 0%, color-mix(in srgb, ${colors.greenSoft} 16%, ${colors.surface1}) 42%, ${colors.surface1} 100%)`
@@ -31,41 +29,31 @@ export default function CairnLeftRail({
       sx={{
         display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
-        alignItems: 'stretch',
+        alignItems: { xs: 'stretch', md: 'stretch' },
         width: '100%',
         flex: 1,
         minHeight: { md: 0 },
         height: { md: '100%' },
-        ...surfaces.card,
-        border: `1px solid ${contentSelected ? selectedBorder : border}`,
-        bgcolor: colors.surface1,
-        overflow: 'hidden',
-        boxShadow: shadows.card,
+        gap: { xs: 1.5, md: 2 },
       }}
     >
       <Box
         component="nav"
         aria-label={railLabel || 'Section index'}
         sx={{
-          display: { xs: 'flex', md: 'grid' },
-          flexDirection: { xs: 'row', md: undefined },
-          gridTemplateRows: { md: `repeat(${Math.max(tabCount, 1)}, minmax(0, 1fr))` },
-          flex: { xs: '0 0 auto', md: `0 0 ${compactRail ? 228 : 248}px` },
-          width: { xs: '100%', md: compactRail ? 228 : 248 },
-          height: { md: '100%' },
-          alignSelf: 'stretch',
-          borderRight: { md: `1px solid ${border}` },
-          borderBottom: { xs: `1px solid ${border}`, md: 'none' },
-          bgcolor: isDark ? 'rgba(255,255,255,0.03)' : colors.sand50,
-          overflowX: { xs: 'auto', md: 'hidden' },
-          overflowY: 'hidden',
+          display: 'flex',
+          flexDirection: { xs: 'row', md: 'column' },
+          flexShrink: 0,
+          width: { xs: '100%', md: 236 },
+          alignSelf: { xs: 'stretch', md: 'center' },
+          gap: 1,
+          overflowX: { xs: 'auto', md: 'visible' },
         }}
       >
         {tabs.map((tab, index) => {
           const active = tab.id === activeId;
           const marked = Boolean(tab.selected);
           const number = tab.number || tab.roman || tab.icon || String(index + 1);
-          const last = index === tabCount - 1;
           return (
             <Box
               key={tab.id}
@@ -77,63 +65,38 @@ export default function CairnLeftRail({
                 appearance: 'none',
                 WebkitAppearance: 'none',
                 margin: 0,
-                border: 0,
-                font: 'inherit',
-                textAlign: 'inherit',
                 cursor: 'pointer',
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
-                gap: compactRail ? 1.4 : 1.25,
+                gap: 1.2,
                 width: { xs: 'auto', md: '100%' },
                 minWidth: { xs: 168, md: 0 },
-                flexGrow: { xs: 0, md: 1 },
-                flexShrink: { xs: 0, md: 1 },
-                flexBasis: { xs: 'auto', md: 0 },
-                minHeight: {
-                  xs: 52,
-                  md: compactRail ? 88 : 0,
-                },
-                px: compactRail ? 1.7 : 1.45,
-                py: compactRail ? 1.5 : 1.2,
-                bgcolor: active ? colors.navy900 : 'transparent',
+                minHeight: 58,
+                flexShrink: 0,
+                px: 1.4,
+                py: 1.05,
+                bgcolor: active ? colors.navy900 : inactiveBg,
                 color: active ? colors.amberSoft : (isDark ? colors.ink : colors.navy900),
-                borderBottom: {
-                  xs: 'none',
-                  md: last ? 'none' : `1px solid ${active ? colors.navy800 : border}`,
-                },
-                borderRight: {
-                  xs: last ? 'none' : `1px solid ${active ? colors.navy800 : border}`,
-                  md: 'none',
-                },
-                position: 'relative',
-                zIndex: active ? 2 : 1,
-                transition: 'background-color 160ms ease, color 160ms ease',
+                border: `1px solid ${active ? colors.navy900 : border}`,
+                borderRadius: radii.pill,
+                boxShadow: active ? shadows.buttonPrimary : shadows.none,
+                transition: 'background-color 160ms ease, color 160ms ease, box-shadow 160ms ease',
                 '&:hover': {
                   bgcolor: active
                     ? colors.navy800
-                    : (isDark ? 'rgba(255,255,255,0.06)' : colors.sand100),
+                    : (isDark ? 'rgba(255,255,255,0.07)' : colors.sand50),
                 },
                 '&:focus-visible': {
                   outline: `3px solid ${colors.ringFocus}`,
-                  outlineOffset: -3,
+                  outlineOffset: 2,
                 },
-                '&::after': active ? {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  right: -1,
-                  bottom: 0,
-                  width: 2,
-                  bgcolor: colors.navy900,
-                  display: { xs: 'none', md: 'block' },
-                } : { content: 'none' },
               }}
             >
               <Box
                 sx={{
-                  width: compactRail ? 34 : 30,
-                  height: compactRail ? 34 : 30,
+                  width: 28,
+                  height: 28,
                   borderRadius: radii.circle,
                   flexShrink: 0,
                   display: 'flex',
@@ -153,7 +116,7 @@ export default function CairnLeftRail({
                   sx={{
                     fontFamily: fonts.serif,
                     fontWeight: 700,
-                    fontSize: compactRail ? '0.86rem' : '0.78rem',
+                    fontSize: '0.76rem',
                     lineHeight: 1,
                     color: 'inherit',
                   }}
@@ -166,7 +129,7 @@ export default function CairnLeftRail({
                   sx={{
                     fontFamily: fonts.sans,
                     fontWeight: active ? 800 : 700,
-                    fontSize: compactRail ? '0.96rem' : '0.88rem',
+                    fontSize: '0.86rem',
                     lineHeight: 1.25,
                     letterSpacing: '0.01em',
                     color: active ? colors.amberSoft : (isDark ? colors.ink : colors.navy900),
@@ -181,9 +144,9 @@ export default function CairnLeftRail({
                     sx={{
                       fontFamily: fonts.sans,
                       fontWeight: 500,
-                      fontSize: compactRail ? '0.78rem' : '0.72rem',
-                      lineHeight: 1.35,
-                      mt: 0.3,
+                      fontSize: '0.7rem',
+                      lineHeight: 1.3,
+                      mt: 0.15,
                       color: active
                         ? 'rgba(244,206,161,0.72)'
                         : (isDark ? 'rgba(240,233,222,0.55)' : colors.inkSoft),
@@ -202,16 +165,21 @@ export default function CairnLeftRail({
 
       <Box
         sx={{
+          ...surfaces.card,
           flex: 1,
           minWidth: 0,
-          minHeight: 0,
+          minHeight: { md: 0 },
+          height: { md: '100%' },
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: contentSelected ? undefined : 'transparent',
-          background: contentSelected ? selectedFill : 'transparent',
-          p: { xs: 2.5, md: compactRail ? 3.25 : 3.5 },
+          bgcolor: contentSelected ? undefined : colors.surface1,
+          background: contentSelected ? selectedFill : colors.surface1,
+          border: `1px solid ${contentSelected ? selectedBorder : border}`,
+          borderRadius: radii.lg,
+          boxShadow: shadows.card,
+          p: { xs: 2.5, md: 3.5 },
           overflow: 'hidden',
-          transition: 'background 220ms ease',
+          transition: 'background 220ms ease, border-color 220ms ease',
         }}
       >
         {children}
