@@ -41,43 +41,66 @@ Manrope, and JetBrains Mono.
 
 ### Page Headers
 
-Every process page opens with the Option C chapter header by default:
+Every authenticated Compass page uses one canonical two-bar chapter header
+(`src/components/ChapterHeader.jsx`). Marketing and auth routes render the navy
+utility bar only.
 
 ```text
-[porthole 116px] │ CHAPTER II OF IX · BEHAVIORS & INSTINCTS
-                 │ Instincts Under Pressure
-                 │ Name the instincts that shape how you show up...
-                                                   [META PLATE]
+BAR 1 · navy 60px          THE COMPASS          STAGING  Guide  AR
+BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary  Trait Selection  Campaign  [chip]
+                     100px porthole straddles both bars (top:-38px, 5px white ring)
 ```
 
-- Full tier row: porthole, vertical divider, text stack, right meta plate.
-- Container: `display:flex`, `align-items:center`, `justify-content:space-between`, `gap:28px`, `border-bottom:1px solid --sand-200`, `padding-bottom:22px`, `margin-bottom:34px`.
-- Left cluster: `display:flex`, `align-items:center`, `gap:26px`.
-- Divider: `1px` vertical rule in `--sand-200` (`my:4px`) between porthole and text stack.
-- Text stack gap is `9px`, title remains Fraunces 500 / 30px (Tier 1), subtitle uses `type.subtitle`.
-- Eyebrow format is always `Chapter {ROMAN} of IX · {Chapter Name}`. The separator dot uses `--sand-300`.
-- Meta plate frame: `surface-1`, `1px --sand-200` border, `radius-md`, `px:18px`, `py:13px`, `shadows.card`.
-- Meta plate label: Mono 9.5px, 700, 0.18em tracking, uppercase, `--ink-soft`.
-- Meta plate state row: pip set + count when `{ current, total }` is available and `total <= 8`; otherwise render count/value only. Active pips use `--orange`, idle pips use `--sand-300`.
-- The meta slot replaces all per-page progress bars and step indicators.
-- The porthole map position updates only when the chapter changes and stays still while paging within a chapter.
-- The compact tier uses the same hairline and meta plate but removes the porthole and vertical divider.
+- Utility bar: `--navy-950`, wordmark absolutely centered on the window
+  (`left:50%; translateX(-50%)`), Cinzel 600 / 23px / small-caps / `--amber-soft`.
+  Right cluster is env label, Guide pill, avatar. The wordmark must not shift
+  when the right cluster grows.
+- Chapter rail: white, `padding: 0 28px 0 152px`, `border-bottom: 1px solid --sand-200`.
+  Left: chapter block (eyebrow `CHAPTER n OF VII`, Fraunces 21px name). Then a
+  34px sand divider, step tabs, `flex:1`, one status chip.
+- Copy, numbers, and step lists live in `src/data/chapterMap.js`. Numbering is
+  **of VII**. "What happens here" hangs off the active step, not the chapter.
+- Porthole: `JourneyPorthole` `variant="corner"` — 100px, 4px navy bezel, 2px
+  brass inner ring, amber diamond at 12 o'clock, 5px white outer ring. Clicking
+  it or the chapter name opens the drawer.
+- Drawer: three columns (purpose / what happens here / map card). No buttons.
+  Purpose is Fraunces italic 400, 15.5px/1.55, max 46ch. Map card opens the
+  existing journey map modal.
+- One header per page. One count/progress chip per page. Never two chips.
+
+#### Status chip (right end of bar 2)
+
+`--sand-50` bg, `1px --sand-200`, pill radius, `padding: 7px 14px`. One chip only:
+
+| Archetype | Chip |
+|---|---|
+| Sequence page | mono label + dot track + `n / total` (`SELECTED 0 / 3`, `STAGE 1 / 4`) |
+| Dashboard | `RESPONSES n / m` + status word in `--green` (`Signal ready`) |
+| Intake | `QUESTION n / 32` + 92×5px progress track + `Saved` |
+
+#### Responsive
+
+- Below 1180px: drop step numerals; shorten tab labels to the first word.
+- Below 900px: replace the tab row with `Step n of m` (opens the drawer);
+  porthole 72px, `top:-26px`, rail padding-left 108px.
+
+#### Reduced motion
+
+Skip drawer `dropIn` and porthole `phPulse` when `prefers-reduced-motion` is set.
 
 ### Header / Body Alignment Rule
 
-Header column width must always equal page content column width.
-
-- `ProcessTopRail contentMaxWidth` and `CompassLayout contentMaxWidth` must match on every page using both.
-- Header and body share the same horizontal content padding via shared constants (`CONTENT_PX`) so porthole/plate edges align with cards below.
-- No page should render a header that is visually narrower or wider than its body column.
+The chapter header is full-bleed (both bars span the window). Page bodies stay
+in the existing `CompassLayout` content column. Do not add a left journey rail.
 
 ### Journey Porthole
 
 Use `src/components/JourneyPorthole.jsx` as the circular lens onto the
 current map station.
 
-- Sizes: 116px for headers, 218px for ceremony cards.
-- Bezel: navy gradient, gold ring, north diamond, glass glint, and inner shadow.
+- Sizes: 100px `corner` (chapter header), 116px `header` (legacy/ceremony support), 218px `ceremony`.
+- Bezel: navy gradient, brass/gold ring, north diamond, glass glint, and inner shadow.
+- Corner variant adds a 5px white outer ring so it straddles the navy bar and the rail.
 - Map background: `journey-base.png`, centered on the current station from the traced trail geometry.
 - Center dot: orange with white border and a soft pulse, disabled under `prefers-reduced-motion`.
 - Station changes transition with `background-position 1300ms cubic-bezier(0.2,0.8,0.2,1)`.

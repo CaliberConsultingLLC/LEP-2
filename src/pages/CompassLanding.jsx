@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ProcessTopRail from '../components/ProcessTopRail';
 import '../styles/compass-landing.css';
 
 /**
@@ -380,11 +381,8 @@ export default function CompassLanding() {
 
   return (
     <div className="cl-page" data-compass-landing>
+      <ProcessTopRail utilityOnly />
       <nav className="cl-nav" aria-label="Primary">
-        <div className="cl-brand">
-          <img src={ASSETS.logo} alt="" />
-          <span className="cl-wordmark">The Compass</span>
-        </div>
         <div className="cl-nav-links">
           {NAV_LINKS.map((link) => (
             <button

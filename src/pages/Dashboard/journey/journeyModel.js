@@ -115,7 +115,7 @@ export const JOURNEY_STATIONS = STATION_META.map((station, index) => {
   };
 });
 
-export const chapterText = (index) => `Chapter ${JOURNEY_ROMAN[index] || JOURNEY_ROMAN[0]} of IX`;
+export const chapterText = (index) => `Chapter ${JOURNEY_ROMAN[Math.min(index, 6)] || JOURNEY_ROMAN[0]} of VII`;
 export const chapterEyebrow = (index) => `${chapterText(index)} · ${JOURNEY_STATIONS[index]?.label || JOURNEY_STATIONS[0].label}`;
 
 /** Same-chapter handoffs that still deserve the map popup. */

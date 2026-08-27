@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { auth, db } from '../firebase';
 
@@ -93,7 +92,11 @@ function CampaignComplete() {
             }),
       }}
     >
-      <ProcessTopRail hideChapterHeader />
+      <ProcessTopRail
+        {...(isSelfCampaign
+          ? { chapterId: 'self', activeStepId: 'self' }
+          : { utilityOnly: true })}
+      />
       <CompassLayout fluid contentMaxWidth={560} afterTopbar>
       <Container maxWidth="sm" sx={{ textAlign: 'center', pt: 0, pb: { xs: 2, md: 3.5 } }}>
         <Box

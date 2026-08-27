@@ -13,9 +13,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { useCairnTheme } from '../config/runtimeFlags';
-import GuideSelector from './GuideSelector';
-import CompassTopbar from './CompassTopbar';
-import ProcessChapterHeader from './ProcessChapterHeader';
+import ChapterHeader from './ChapterHeader';
 
 const PHASES = [
   { id: 'profile', title: 'Profile Creation', icon: AccountCircle, fallbackPath: '/user-info' },
@@ -63,9 +61,9 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
       || Boolean(campaignRecords?.bundleId || campaignRecords?.teamCampaignId || campaignRecords?.selfCampaignId);
     const userKey = String(userInfo?.email || userInfo?.name || userInfo?.uid || 'anonymous').trim() || 'anonymous';
     const currentCampaignId = String(
-      campaignRecords?.teamCampaignId
+      campaignRecords?.bundleId
+      || campaignRecords?.teamCampaignId
       || campaignRecords?.selfCampaignId
-      || campaignRecords?.bundleId
       || '123'
     ).trim();
     const savedPlans = actionPlansByCampaign?.[currentCampaignId]?.[userKey]?.plans;
@@ -281,41 +279,28 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
   );
 }
 
-// On the Cairn (staging) skin the legacy phase rail is replaced by the
-// full Compass topbar (logo + chapter pill + guide selector + avatar).
-// All pages that import ProcessTopRail keep doing so — we just swap
-// what it renders when the theme flag is on.
-function ProcessTopRail(props) {
+function ProcessTopRail({
+  chapterId,
+  activeStepId,
+  chip,
+  stepStatus,
+  onStepSelect,
+  utilityOnly = false,
+  ...legacy
+}) {
   if (useCairnTheme) {
-    if (props.hideChapterHeader) {
-      return <CompassTopbar />;
-    }
-    if (props.embedded) {
-      return (
-        <ProcessChapterHeader
-          compact
-          hideCopy={props.hideChapterCopy}
-          titleOverride={props.titleOverride}
-          subtitleOverride={props.subtitleOverride}
-          metaOverride={props.metaOverride}
-          contentMaxWidth={props.contentMaxWidth}
-        />
-      );
-    }
     return (
-      <>
-        <CompassTopbar />
-        <ProcessChapterHeader
-          hideCopy={props.hideChapterCopy}
-          titleOverride={props.titleOverride}
-          subtitleOverride={props.subtitleOverride}
-          metaOverride={props.metaOverride}
-          contentMaxWidth={props.contentMaxWidth}
-        />
-      </>
+      <ChapterHeader
+        utilityOnly={utilityOnly}
+        chapterId={chapterId}
+        activeStepId={activeStepId}
+        chip={chip}
+        stepStatus={stepStatus}
+        onStepSelect={onStepSelect}
+      />
     );
   }
-  return <ProcessTopRailLegacy {...props} />;
+  return <ProcessTopRailLegacy {...legacy} />;
 }
 
 export default ProcessTopRail;

@@ -361,7 +361,9 @@ function NewCampaignIntro() {
         },
       }}
     >
-      {useCairnTheme ? null : <ProcessTopRail />}
+      {useCairnTheme
+        ? <ProcessTopRail {...(isSelfCampaign ? { chapterId: 'self', activeStepId: 'self' } : { utilityOnly: true })} />
+        : <ProcessTopRail />}
       <Container maxWidth={false} disableGutters sx={{
         py: { xs: 3, md: 5 },
         px: { xs: 2, md: 4 },

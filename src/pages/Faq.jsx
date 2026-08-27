@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import { ExpandMore, HelpOutline } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import ProcessTopRail from '../components/ProcessTopRail';
+import { useCairnTheme } from '../config/runtimeFlags';
 
 const FAQ_ITEMS = [
   {
@@ -85,6 +87,7 @@ function Faq() {
         },
       }}
     >
+      {useCairnTheme && <ProcessTopRail utilityOnly />}
       <Container maxWidth="lg" sx={{ py: 3.5 }}>
         <Paper
           sx={{

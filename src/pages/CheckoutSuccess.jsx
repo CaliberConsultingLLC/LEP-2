@@ -51,7 +51,7 @@ function CheckoutSuccess() {
 
   return (
     <Box sx={{ minHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column' }}>
-      <ProcessTopRail titleOverride="Payment" subtitleOverride="Confirming your year of Compass." metaOverride={null} />
+      <ProcessTopRail utilityOnly />
       <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', px: 2, py: 5 }}>
         <Box sx={{ maxWidth: 480, width: '100%', bgcolor: colors.surface1, border: `1px solid ${colors.sand200}`, borderRadius: radii.lg, boxShadow: shadows.card, p: 4, textAlign: 'center' }}>
           <Typography sx={{ fontFamily: fonts.serif, fontSize: 28, color: colors.navy900, mb: 1.5 }}>

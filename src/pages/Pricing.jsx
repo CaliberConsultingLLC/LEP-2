@@ -12,6 +12,8 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import RemoveRoundedIcon from '@mui/icons-material/RemoveRounded';
 import { useNavigate } from 'react-router-dom';
+import ProcessTopRail from '../components/ProcessTopRail';
+import { useCairnTheme } from '../config/runtimeFlags';
 
 const navySerif = '"Fraunces", Georgia, "Times New Roman", serif';
 const sansBody = '"Manrope", "Inter", system-ui, sans-serif';
@@ -200,7 +202,9 @@ export default function Pricing() {
         fontFamily: sansBody,
       }}
     >
-      {/* ── MINIMAL NAV ── */}
+      {useCairnTheme ? (
+        <ProcessTopRail utilityOnly />
+      ) : (
       <Box
         component="header"
         sx={{
@@ -258,6 +262,7 @@ export default function Pricing() {
           Back
         </Box>
       </Box>
+      )}
 
       {/* ── HERO BAND ── */}
       <Box

@@ -8,6 +8,7 @@ import { buildPasswordResetActionSettings } from '../utils/authActionLinks';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
+import ProcessTopRail from '../components/ProcessTopRail';
 
 function SignIn() {
   const navigate = useNavigate();
@@ -277,12 +278,20 @@ function SignIn() {
           minHeight: '100svh',
           width: '100%',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: 'column',
           bgcolor: colors.sand50,
-          px: 2,
         }}
       >
+        <ProcessTopRail utilityOnly />
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: 2,
+          }}
+        >
         <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center' }}>
           <Box
             sx={{
@@ -366,6 +375,7 @@ function SignIn() {
             </Stack>
           </Box>
         </Container>
+        </Box>
       </Box>
     );
   }

@@ -12,9 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
-import CairnFlowButtons from '../components/CairnFlowButtons';
 import CairnLeftRail from '../components/CairnLeftRail';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
@@ -504,11 +502,6 @@ function TraitSelection() {
           );
         })}
         <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 600, color: selectedTraits.length === 3 ? 'var(--orange, #E07A3F)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
-            {selectedTraits.length} of 3 selected
-          </Typography>
-        </Box>
       </Box>
     );
 
@@ -524,11 +517,9 @@ function TraitSelection() {
       >
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
-            hideChapterCopy
-            contentMaxWidth={1180}
-            titleOverride="Choose three traits"
-            subtitleOverride="Choose three of these five leverage points for your growth campaign — the traits that feel most true, most visible to your team, and most useful for the next stretch."
-            metaOverride={{ label: 'Selected', value: `${selectedTraits.length}/3` }}
+            chapterId="insights"
+            activeStepId="traits"
+            chip={{ variant: 'sequence', label: 'Selected', current: selectedTraits.length, total: 3 }}
           />
         </Box>
         <CompassLayout rightRail={GuideRail} contentMaxWidth={1180} viewportFit afterTopbar>
@@ -728,28 +719,9 @@ function TraitSelection() {
                     >
                       {isActiveSelected ? 'Locked In' : 'Choose This Trait'}
                     </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.sans,
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        color: selectedTraits.length === 3 ? colors.orangeDeep : colors.inkSoft,
-                      }}
-                    >
-                      {selectedTraits.length}/3 selected
-                    </Typography>
                   </Box>
                 </Box>
               </CairnLeftRail>
-
-              <CairnFlowButtons
-                isDark={isDark}
-                backLabel="Summary"
-                nextLabel="Campaign Builder"
-                onBack={() => navigate('/summary')}
-                onNext={handleContinue}
-                nextDisabled={selectedTraits.length !== 3}
-              />
             </Box>
           ) : (
             <Box sx={{
@@ -818,7 +790,11 @@ function TraitSelection() {
             }),
       }}
     >
-      <ProcessTopRail hideChapterCopy contentMaxWidth={1180} />
+      <ProcessTopRail
+        chapterId="insights"
+        activeStepId="traits"
+        chip={{ variant: 'sequence', label: 'Selected', current: 0, total: 3 }}
+      />
       <CompassLayout contentMaxWidth={1180}>
       <Container
         maxWidth={false}

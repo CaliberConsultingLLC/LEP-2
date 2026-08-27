@@ -3,7 +3,6 @@ import { Container, Box, Typography, Button, Stack, LinearProgress } from '@mui/
 import { useNavigate, useLocation } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 
 function CampaignIntro() {
@@ -48,7 +47,11 @@ function CampaignIntro() {
             }),
       }}
     >
-      <ProcessTopRail hideChapterHeader />
+      <ProcessTopRail
+        chapterId="campaign"
+        activeStepId="intro"
+        chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
+      />
       <CompassLayout afterTopbar>
         <Box
           sx={{

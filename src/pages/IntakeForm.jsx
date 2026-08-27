@@ -10,7 +10,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SOCIETAL_NORM_DISPLAY_TEMPLATES } from '../data/intakeContext';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnFlowButtons from '../components/CairnFlowButtons';
 import JourneyPorthole from '../components/JourneyPorthole';
 import { useCairnTheme } from '../config/runtimeFlags';
@@ -1147,13 +1146,21 @@ function IntakeForm() {
       try { return sessionStorage.getItem('journeyCeremonyOpen') === '1'; } catch { return false; }
     })();
     const messageSteps = useCairnTheme
-      ? [0, mindsetIntroStep].filter((step) => !(ceremonyOpen && step === 0))
+      ? []
       : [0, 2, mindsetIntroStep];
     const skipHabitsIntro = useCairnTheme || ceremonyOpen;
     const shouldOpen = messageSteps.includes(currentStep)
       && !(skipHabitsIntro && currentStep === 2);
     setDialogOpen(shouldOpen);
   }, [currentStep, mindsetIntroStep]);
+
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    if (currentStep === 0) setCurrentStep(1);
+    else if (currentStep === 2) setCurrentStep(behaviorStart);
+    else if (currentStep === mindsetIntroStep) setCurrentStep(societalStart);
+    return undefined;
+  }, [currentStep, behaviorStart, mindsetIntroStep, societalStart]);
 
   const buildClarificationPayload = (resolution, extra = {}) => ({
     notice: extra.notice ?? clarification.notice ?? '',
@@ -1593,12 +1600,22 @@ function IntakeForm() {
   })();
   const intakeQuestionTotal = behaviorSet.length + societalNormsQuestions.length;
   const isProfileDetailsStep = useCairnTheme && currentStep === 1;
-  const isClarificationStep = currentStep === clarificationStep;
-  const intakeHeaderMeta = isProfileDetailsStep
-    ? null
-    : isClarificationStep
-      ? { label: 'Pause', value: 'Before the five' }
-      : { label: 'Question', value: `${intakeQuestionNumber} / ${intakeQuestionTotal}` };
+  const intakeActiveStepId = currentStep <= 1
+    ? 'context'
+    : (currentStep >= mindsetIntroStep ? 'insights' : 'habits');
+  const intakeChip = {
+    variant: 'intake',
+    label: 'Question',
+    current: isProfileDetailsStep ? 0 : intakeQuestionNumber,
+    total: intakeQuestionTotal,
+    saved: autosaveStatus.state === 'saved' || autosaveStatus.state === 'idle',
+  };
+
+  const handleChapterStep = (step) => {
+    if (step.id === 'context') setCurrentStep(1);
+    else if (step.id === 'habits') setCurrentStep(behaviorStart);
+    else if (step.id === 'insights') setCurrentStep(societalStart);
+  };
 
   // ---------- UI ----------
   return (
@@ -1634,15 +1651,14 @@ function IntakeForm() {
       }}
     >
       <ProcessTopRail
-        metaOverride={intakeHeaderMeta}
-        titleOverride={isProfileDetailsStep ? 'Your context' : undefined}
-        subtitleOverride={isProfileDetailsStep
-          ? 'Name the context that shapes the leadership work in front of you. These details shape how your guide reads your context. Every leader sits in a different spot — industry, team size, and tenure change the insights you receive.'
-          : undefined}
+        chapterId="behaviors"
+        activeStepId={intakeActiveStepId}
+        chip={intakeChip}
+        onStepSelect={handleChapterStep}
       />
 
-      {/* Message Pop-ups */}
-      {(currentStep === 0 || (!useCairnTheme && currentStep === 2) || currentStep === mindsetIntroStep) && (
+      {/* Message Pop-ups — cairn copy now lives in the chapter drawer */}
+      {!useCairnTheme && (currentStep === 0 || currentStep === 2 || currentStep === mindsetIntroStep) && (
         <MessageDialog
           open={dialogOpen}
           onClose={handleDialogClose}

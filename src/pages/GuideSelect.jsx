@@ -57,9 +57,9 @@ function GuideSelect() {
   return (
     <Box sx={{ minHeight: '100svh', maxHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <ProcessTopRail
-        titleOverride="Your guide"
-        subtitleOverride="Your guide shapes how your insights are delivered and the tone of your leadership journey. Choose the voice that fits you."
-        metaOverride={null}
+        chapterId="profile"
+        activeStepId="guide"
+        chip={{ variant: 'sequence', label: 'Step', current: 2, total: 2 }}
       />
 
       <Box sx={{

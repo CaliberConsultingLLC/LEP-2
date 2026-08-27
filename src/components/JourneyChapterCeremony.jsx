@@ -178,7 +178,7 @@ export default function JourneyChapterCeremony({
       </Box>
     </>
   ) : (
-    <>Chapter {JOURNEY_ROMAN[toIndex]} of IX · {to.label}</>
+    <>Chapter {JOURNEY_ROMAN[Math.min(toIndex, 6)]} of VII · {to.label}</>
   );
   const title = isCompleteBeat ? from.label : to.label;
   const body = isCompleteBeat

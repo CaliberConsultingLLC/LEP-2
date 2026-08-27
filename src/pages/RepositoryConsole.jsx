@@ -128,7 +128,7 @@ function RepositoryConsole() {
         },
       }}
     >
-      <ProcessTopRail titleOverride="Repository Console" />
+      <ProcessTopRail utilityOnly />
 
       <Container maxWidth="xl" sx={{ py: { xs: 3, md: 4 } }}>
         <Stack spacing={2.2}>

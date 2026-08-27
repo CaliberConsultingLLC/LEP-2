@@ -21,7 +21,6 @@ import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { colors } from '../styles/tokens';
@@ -306,8 +305,9 @@ function UserInfo() {
       }}
     >
       <ProcessTopRail
-        titleOverride="Account"
-        subtitleOverride="This creates a login so you can leave and come back. We'll ask for your role and team context next."
+        chapterId="profile"
+        activeStepId="context"
+        chip={{ variant: 'sequence', label: 'Step', current: 1, total: 2 }}
       />
       <CompassLayout>
       <Container

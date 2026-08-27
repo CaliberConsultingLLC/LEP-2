@@ -27,7 +27,6 @@ import CommandCenter from './Dashboard/CommandCenter';
 import ProcessTopRail from '../components/ProcessTopRail';
 import ProcessChapterHeader from '../components/ProcessChapterHeader';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { getCurrentJourneyIndexFromState } from './Dashboard/journey/journeyModel.js';

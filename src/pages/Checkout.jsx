@@ -71,11 +71,7 @@ function Checkout() {
 
   return (
     <Box sx={{ minHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column' }}>
-      <ProcessTopRail
-        titleOverride="Begin Compass"
-        subtitleOverride="One year, one leader. Pay here, then the intake starts."
-        metaOverride={null}
-      />
+      <ProcessTopRail utilityOnly />
       <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', px: 2, py: { xs: 3, md: 5 } }}>
         <Box
           sx={{

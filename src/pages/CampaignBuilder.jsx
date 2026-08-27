@@ -21,7 +21,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import CairnFlowButtons from '../components/CairnFlowButtons';
 import CairnLeftRail from '../components/CairnLeftRail';
@@ -415,6 +414,17 @@ function CampaignBuilder() {
     const keptCount = activeStatements.length - activeStatements.filter((_, sIdx) => (
       dismissedStatements.some((ds) => ds.trait === activeTrait?.trait && ds.index === sIdx)
     )).length;
+    const statementChip = (campaign || []).reduce(
+      (acc, trait) => {
+        const stmts = (Array.isArray(trait?.statements) ? trait.statements : []).slice(0, 5);
+        acc.total += stmts.length;
+        acc.current += stmts.filter((_, index) => (
+          !dismissedStatements.some((ds) => ds.trait === trait?.trait && ds.index === index)
+        )).length;
+        return acc;
+      },
+      { current: 0, total: 0 }
+    );
 
     const RightRail = hidden ? (
       <Box
@@ -697,9 +707,15 @@ function CampaignBuilder() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
-          hideChapterHeader
-          titleOverride="Growth Campaign Builder"
-          subtitleOverride="Review the statements for each selected trait. Keep what feels true; remove anything that misses the mark before you invite your team."
+          chapterId="campaign"
+          activeStepId="build"
+          chip={{ variant: 'sequence', label: 'Statements', current: statementChip.current, total: statementChip.total }}
+          onStepSelect={(step) => {
+            if (step.id === 'verify') {
+              localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
+            }
+            if (step.path) navigate(step.path);
+          }}
         />
         <CompassLayout rightRail={campaign ? GuideRail : null} afterTopbar>
           {error ? (
@@ -1037,7 +1053,11 @@ function CampaignBuilder() {
               }),
         }}
       >
-        <ProcessTopRail hideChapterHeader />
+        <ProcessTopRail
+          chapterId="campaign"
+          activeStepId="build"
+          chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
+        />
         <CompassLayout>
         <Container
           maxWidth={false}

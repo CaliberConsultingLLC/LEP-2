@@ -5,16 +5,19 @@ import { JOURNEY_BASE_SRC, JOURNEY_IMAGE, JOURNEY_STATIONS } from '../pages/Dash
 const SIZE_BY_VARIANT = {
   header: 116,
   ceremony: 218,
+  corner: 100,
 };
 
 const ZOOM_BY_VARIANT = {
   header: 0.38,
   ceremony: 0.46,
+  corner: 0.38,
 };
 
 const PAD_BY_VARIANT = {
   header: 5,
   ceremony: 6,
+  corner: 4,
 };
 
 /**
@@ -33,6 +36,7 @@ export default function JourneyPorthole({
   const diameter = size || SIZE_BY_VARIANT[variant] || SIZE_BY_VARIANT.header;
   const zoom = ZOOM_BY_VARIANT[variant] || ZOOM_BY_VARIANT.header;
   const pad = PAD_BY_VARIANT[variant] || PAD_BY_VARIANT.header;
+  const isCorner = variant === 'corner';
   const contentSize = diameter - pad * 2;
   const bgWidth = JOURNEY_IMAGE.width * zoom;
   const bgHeight = JOURNEY_IMAGE.height * zoom;
@@ -42,6 +46,11 @@ export default function JourneyPorthole({
   const bgX = contentSize / 2 - fx * bgWidth;
   const bgY = contentSize / 2 - fy * bgHeight;
   const dotSize = variant === 'ceremony' ? 12 : 10;
+  const ringInset = variant === 'ceremony' ? '4px' : isCorner ? '3px' : '3.5px';
+  const diamondSize = variant === 'ceremony' ? 9 : 8;
+  const bezelShadow = isCorner
+    ? '0 12px 28px rgba(15,28,46,0.3), inset 0 1px 0 rgba(244,206,161,0.3), 0 0 0 5px var(--dial-node-fill)'
+    : '0 10px 24px rgba(15,28,46,0.28), inset 0 1px 0 rgba(244,206,161,0.3)';
 
   return (
     <Box
@@ -55,15 +64,17 @@ export default function JourneyPorthole({
         borderRadius: '50%',
         padding: `${pad}px`,
         background: 'linear-gradient(155deg, var(--navy-700), var(--navy-950) 70%)',
-        boxShadow: '0 10px 24px rgba(15,28,46,0.28), inset 0 1px 0 rgba(244,206,161,0.3)',
+        boxShadow: bezelShadow,
       }}
     >
       <Box
         sx={{
           position: 'absolute',
-          inset: variant === 'ceremony' ? '4px' : '3.5px',
+          inset: ringInset,
           borderRadius: '50%',
-          border: '2px solid color-mix(in srgb, var(--amber) 75%, var(--orange-deep))',
+          border: isCorner
+            ? '2px solid var(--brass)'
+            : '2px solid color-mix(in srgb, var(--amber) 75%, var(--orange-deep))',
           pointerEvents: 'none',
           zIndex: 2,
         }}
@@ -73,10 +84,10 @@ export default function JourneyPorthole({
           position: 'absolute',
           left: '50%',
           top: variant === 'ceremony' ? '1px' : '0',
-          width: variant === 'ceremony' ? 9 : 8,
-          height: variant === 'ceremony' ? 9 : 8,
+          width: diamondSize,
+          height: diamondSize,
           transform: 'translate(-50%, -50%) rotate(45deg)',
-          background: 'color-mix(in srgb, var(--amber) 75%, var(--orange-deep))',
+          background: isCorner ? 'var(--brass)' : 'color-mix(in srgb, var(--amber) 75%, var(--orange-deep))',
           border: '1.5px solid var(--navy-950)',
           zIndex: 3,
         }}

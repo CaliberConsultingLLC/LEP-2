@@ -153,7 +153,11 @@ function SummarySnapshot() {
         },
       }}
     >
-      <ProcessTopRail hideChapterHeader titleOverride="Leadership Reflection Snapshot" />
+      <ProcessTopRail
+        chapterId="insights"
+        activeStepId="summary"
+        chip={{ variant: 'sequence', label: 'Stage', current: 1, total: 4 }}
+      />
 
       <Container maxWidth="lg" sx={{ pt: TOPBAR_CONTENT_GAP, pb: { xs: 4, md: 5 } }}>
         <Stack spacing={2.4}>

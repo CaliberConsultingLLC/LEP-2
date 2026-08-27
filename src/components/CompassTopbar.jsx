@@ -3,14 +3,8 @@ import { Box, Popover, Stack, Typography } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { auth } from '../firebase';
-import JourneyMapModal from './JourneyMapModal';
 import GuidePickerMenu from './GuidePickerMenu';
-import {
-  chapterText,
-  getJourneyCompletion,
-  getJourneyIndexForLocation,
-  JOURNEY_STATIONS,
-} from '../pages/Dashboard/journey/journeyModel.js';
+import { isStagingHost } from '../config/runtimeFlags';
 import { colors, fonts, radii } from '../styles/tokens';
 
 const parseJson = (raw, fallback) => {
@@ -37,13 +31,13 @@ function GuidePill({ isDark }) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          padding: '7px 14px 7px 10px',
+          padding: '6px 13px 6px 9px',
           borderRadius: radii.pill,
           border: isDark ? '1px solid rgba(244,206,161,0.22)' : '1px solid var(--sand-200)',
-          bgcolor: isDark ? 'rgba(22,42,68,0.9)' : colors.surface1,
+          bgcolor: isDark ? colors.navy800 : colors.surface1,
           fontFamily: fonts.sans,
           fontWeight: 700,
-          fontSize: 12,
+          fontSize: 11.5,
           letterSpacing: '0.04em',
           color: isDark ? colors.amberSoft : colors.navy900,
           transition: 'all 180ms cubic-bezier(0.2,0.8,0.2,1)',
@@ -145,66 +139,11 @@ function ProfilePopover({ anchorEl, open, onClose, isDark, userName, userEmail, 
   );
 }
 
-function MapBanner({ chapterIndex, chapterName, onClick }) {
-  return (
-    <Box
-      component="button"
-      type="button"
-      onClick={onClick}
-      aria-haspopup="dialog"
-      aria-label="Your journey — open the map"
-      sx={{
-        all: 'unset',
-        cursor: 'pointer',
-        position: 'relative',
-        width: 320,
-        height: 46,
-        borderRadius: radii.pill,
-        overflow: 'hidden',
-        border: '1px solid var(--sand-200)',
-        boxShadow: '0 1px 4px rgba(15,28,46,0.06)',
-        transform: 'translateY(0)',
-        transition: 'border-color 180ms cubic-bezier(0.2,0.8,0.2,1), box-shadow 180ms cubic-bezier(0.2,0.8,0.2,1), transform 180ms cubic-bezier(0.2,0.8,0.2,1)',
-        '&:hover': {
-          borderColor: colors.orange,
-          boxShadow: '0 4px 16px rgba(224,122,63,0.2)',
-          transform: 'translateY(-1px)',
-        },
-        '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-        '&:hover .journey-banner-bg': { transform: 'scale(1.08)' },
-      }}
-    >
-      <Box
-        className="journey-banner-bg"
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: 'url(/journey-base.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: '78% 26%',
-          transform: 'scale(1.02)',
-          transition: 'transform 700ms cubic-bezier(0.2,0.8,0.2,1)',
-        }}
-      />
-      <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(16,34,60,0.55), rgba(16,34,60,0.72) 46%, rgba(16,34,60,0.3))' }} />
-      <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(244,206,161,0.85)', lineHeight: 1 }}>
-          {chapterText(chapterIndex)}
-        </Typography>
-        <Typography sx={{ fontFamily: fonts.brand, fontVariant: 'small-caps', fontWeight: 600, fontSize: 14.5, letterSpacing: '-0.035em', color: 'white', lineHeight: 1, whiteSpace: 'nowrap' }}>
-          {chapterName}
-        </Typography>
-      </Box>
-    </Box>
-  );
-}
-
-export default function CompassTopbar() {
+export default function CompassTopbar({ embedded = false }) {
   const location = useLocation();
   const pathname = location.pathname || '';
   const avatarRef = useRef(null);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
   const barDark = true;
   const { hasSelectedGuide } = useGuide();
   const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
@@ -215,10 +154,7 @@ export default function CompassTopbar() {
     || !hasSelectedGuide
     || isCampaignRespondent;
 
-  const { chapterIndex, station, completion, initials, userName, firstName, userEmail, joinedDate } = useMemo(() => {
-    const chapterIndex = getJourneyIndexForLocation(pathname, location.search);
-    const station = JOURNEY_STATIONS[chapterIndex] || JOURNEY_STATIONS[0];
-    const completion = getJourneyCompletion();
+  const { initials, userName, userEmail, joinedDate } = useMemo(() => {
     const userInfo = parseJson(localStorage.getItem('userInfo'), {});
     const name = String(userInfo?.name || auth?.currentUser?.displayName || '').trim();
     const email = String(userInfo?.email || auth?.currentUser?.email || '').trim();
@@ -233,64 +169,73 @@ export default function CompassTopbar() {
       // Keep the profile popover resilient when auth metadata is unavailable.
     }
     return {
-      chapterIndex,
-      station,
-      completion,
       initials,
       userName: name,
-      firstName: name.split(/\s+/)[0] || '',
       userEmail: email,
       joinedDate,
     };
   }, [pathname, location.search]);
 
   const hasAccount = Boolean(userName || userEmail);
-  const atYearStart = chapterIndex === 0 && !completion[1];
+  const envLabel = isStagingHost ? 'STAGING' : (import.meta.env.DEV ? 'DEV' : null);
 
   return (
     <Box
-      component="header"
+      component={embedded ? 'div' : 'header'}
       sx={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 20,
+        position: embedded ? 'relative' : 'sticky',
+        top: embedded ? 'auto' : 0,
+        zIndex: embedded ? 1 : 20,
         width: '100%',
-        height: 80,
+        height: 60,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         px: '28px',
         bgcolor: colors.navy950,
-        borderBottom: '1px solid rgba(244,206,161,0.16)',
         overflow: 'visible',
         flexShrink: 0,
       }}
     >
-      <Box sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
-        <Typography
-          sx={{
-            fontFamily: fonts.brand,
-            fontWeight: 600,
-            fontSize: { xs: 22, sm: 25 },
-            letterSpacing: '-0.045em',
-            fontVariant: 'small-caps',
-            color: colors.amberSoft,
-            lineHeight: 0.95,
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          The Compass
-        </Typography>
-      </Box>
+      <Box sx={{ width: 120, flexShrink: 0 }} aria-hidden />
 
-      <Box sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', zIndex: 1 }}>
-        {hasAccount && !isCampaignRespondent && (
-          <MapBanner chapterIndex={chapterIndex} chapterName={station.label} onClick={() => setMapOpen(true)} />
+      <Typography
+        sx={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontFamily: fonts.brand,
+          fontWeight: 600,
+          fontSize: 23,
+          letterSpacing: '-0.03em',
+          fontVariant: 'small-caps',
+          color: colors.amberSoft,
+          lineHeight: 1,
+          userSelect: 'none',
+          whiteSpace: 'nowrap',
+          zIndex: 1,
+        }}
+      >
+        The Compass
+      </Typography>
+
+      <Stack direction="row" alignItems="center" gap="12px" sx={{ position: 'relative', zIndex: 1, flexShrink: 0, ml: 'auto' }}>
+        {envLabel && (
+          <Typography
+            sx={{
+              fontFamily: fonts.mono,
+              fontSize: 8,
+              fontWeight: 700,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: 'color-mix(in srgb, var(--amber-soft) 50%, transparent)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {envLabel}
+          </Typography>
         )}
-      </Box>
-
-      <Stack direction="row" alignItems="center" gap={1.5} sx={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
         {!isPreGuide && <GuidePill isDark={barDark} />}
         {hasAccount && (
         <Box
@@ -302,8 +247,8 @@ export default function CompassTopbar() {
           sx={{
             all: 'unset',
             cursor: 'pointer',
-            width: 34,
-            height: 34,
+            width: 30,
+            height: 30,
             borderRadius: '50%',
             bgcolor: 'rgba(22,42,68,0.9)',
             border: '1px solid rgba(244,206,161,0.22)',
@@ -312,7 +257,7 @@ export default function CompassTopbar() {
             justifyContent: 'center',
             fontFamily: fonts.serif,
             fontWeight: 700,
-            fontSize: 13,
+            fontSize: 12,
             color: colors.amberSoft,
             flexShrink: 0,
             userSelect: 'none',
@@ -335,15 +280,6 @@ export default function CompassTopbar() {
         userEmail={userEmail}
         joinedDate={joinedDate}
         initials={initials}
-      />
-      <JourneyMapModal
-        open={mapOpen}
-        mode="reference"
-        currentIndex={chapterIndex}
-        firstName={firstName}
-        completion={completion}
-        startOfYear={atYearStart}
-        onClose={() => setMapOpen(false)}
       />
     </Box>
   );

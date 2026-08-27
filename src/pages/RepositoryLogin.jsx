@@ -77,7 +77,7 @@ function RepositoryLogin() {
         },
       }}
     >
-      <ProcessTopRail titleOverride="Repository Login" />
+      <ProcessTopRail utilityOnly />
 
       <Container maxWidth="sm" sx={{ py: { xs: 4, md: 6 } }}>
         <Paper

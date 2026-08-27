@@ -15,7 +15,6 @@ import { useNavigate } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { finishDemoCampaign, isDemoSession } from '../utils/demoMode';
@@ -458,11 +457,9 @@ function CampaignVerify() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
-          hideChapterHeader
-          titleOverride={isDemoSession() ? 'Campaign ready' : 'Self-assessment'}
-          subtitleOverride={isDemoSession()
-            ? 'Sample team answers are mapped onto the campaign you just built.'
-            : 'Rate yourself, then invite the team. One primary action on this page.'}
+          chapterId="campaign"
+          activeStepId="verify"
+          chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
         />
         <CompassLayout afterTopbar>
           <Box
@@ -677,7 +674,11 @@ function CampaignVerify() {
             }),
       }}
     >
-      <ProcessTopRail hideChapterHeader />
+      <ProcessTopRail
+        chapterId="campaign"
+        activeStepId="verify"
+        chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
+      />
       <CompassLayout>
       <Container
         maxWidth={false}

@@ -17,7 +17,6 @@ import { db } from '../firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnFlowButtons from '../components/CairnFlowButtons';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
@@ -453,7 +452,11 @@ function CampaignSurvey() {
   if (loadState === 'loading') {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
-        {useCairnTheme ? <ProcessTopRail hideChapterHeader /> : <ProcessTopRail />}
+        {useCairnTheme
+          ? <ProcessTopRail {...(isSelfCampaign
+            ? { chapterId: 'self', activeStepId: 'self', chip: { variant: 'intake', label: 'Question', current: 1, total: questions.length || 15 } }
+            : { utilityOnly: true })} />
+          : <ProcessTopRail />}
       </Box>
     );
   }
@@ -487,7 +490,7 @@ function CampaignSurvey() {
           },
         }}
       >
-        <ProcessTopRail hideChapterHeader />
+        <ProcessTopRail utilityOnly />
         <Container maxWidth="md" sx={{ py: { xs: 3.5, md: 5.2 } }}>
           <Paper
             sx={{
@@ -524,12 +527,13 @@ function CampaignSurvey() {
     return (
       <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
-          hideChapterHeader
-          titleOverride={isSelfCampaign ? 'Self-Assessment' : 'Team Assessment'}
-          subtitleOverride={isSelfCampaign
-            ? 'These are the same sentences your team will see. You are the leader they describe — rate how you show up, not how you wish you did.'
-            : 'You are here — rate how this leader shows up in each area. Answer from what you experience day to day.'}
-          metaOverride={{ label: 'Question', value: `${currentQuestion + 1} / ${questions.length || 15}` }}
+          {...(isSelfCampaign
+            ? {
+                chapterId: 'self',
+                activeStepId: 'self',
+                chip: { variant: 'intake', label: 'Question', current: currentQuestion + 1, total: questions.length || 15 },
+              }
+            : { utilityOnly: true })}
         />
         <CompassLayout fluid contentMaxWidth={640} afterTopbar>
           <Box sx={{ maxWidth: 640, mx: 'auto', width: '100%', textAlign: 'center' }}>
@@ -542,7 +546,7 @@ function CampaignSurvey() {
               color: colors.orangeDeep,
               mb: 1,
             }}>
-              {traitLabel}{parentLabel ? ` (${parentLabel})` : ''} · Question {currentQuestion + 1} of {questions.length || 15}
+              {traitLabel}{parentLabel ? ` (${parentLabel})` : ''}
             </Typography>
 
             <Typography sx={{

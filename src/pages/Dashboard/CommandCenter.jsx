@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
-import { ArrowForward, LockOutlined } from '@mui/icons-material';
+import { ArrowForward } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../../components/ProcessTopRail';
-import ProcessChapterHeader from '../../components/ProcessChapterHeader';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useGuide } from '../../context/GuideContext';
 import { spokenGuide } from '../../data/guideContent';
@@ -43,19 +42,6 @@ const TOKENS = {
   barTrack: 'color-mix(in srgb, var(--border-soft) 42%, transparent)',
 };
 
-// ============================================================================
-// Tabs
-// ============================================================================
-
-const TABS = [
-  { id: 'today', label: 'Today' },
-  { id: 'signal', label: 'Signal' },
-  { id: 'evidence', label: 'Evidence' },
-  { id: 'practice', label: 'Practice' },
-  { id: 'journey', label: 'Journey' },
-];
-
-// Map any incoming ?tab= value (current or legacy) onto one of our tab ids
 const QUERY_TO_TAB = {
   today: 'today',
   'current-bearing': 'today',
@@ -129,108 +115,6 @@ const guideLine = (season, hasSignal) => {
     ? 'Do not rush to fix the signal before you have understood it. Let the pattern become clear, then choose the practice.'
     : 'This is still a listening season. Stay close to the questions and let the signal gather shape.';
 };
-
-// ============================================================================
-// Persistent Dock
-// ============================================================================
-
-function Dock({ activeTab, onSelect, t, status = {} }) {
-  return (
-    <Box
-      role="navigation"
-      aria-label="Command center"
-      sx={{
-        position: 'sticky',
-        top: 80,
-        zIndex: 12,
-        flexShrink: 0,
-        width: { xs: '100%', md: 220 },
-        alignSelf: { md: 'stretch' },
-        bgcolor: t.dockBg,
-        borderRight: { md: `1px solid ${t.hairline}` },
-        borderBottom: { xs: `1px solid ${t.hairline}`, md: 'none' },
-        boxShadow: shadows.none,
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'row', md: 'column' },
-          alignItems: { xs: 'center', md: 'stretch' },
-          gap: 0.6,
-          px: { xs: 1.5, md: 1.75 },
-          py: { xs: 1, md: 2.4 },
-          overflowX: { xs: 'auto', md: 'visible' },
-        }}
-      >
-        {TABS.map((tab) => {
-          const isActive = tab.id === activeTab;
-          const tabStatus = status[tab.id]; // 'done' | 'locked' | undefined
-          const locked = tabStatus === 'locked';
-          return (
-            <Box
-              key={tab.id}
-              component="button"
-              type="button"
-              onClick={() => onSelect(tab.id)}
-              aria-current={isActive ? 'page' : undefined}
-              aria-disabled={locked || undefined}
-              sx={{
-                all: 'unset',
-                cursor: locked ? 'default' : 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: { xs: 'center', md: 'flex-start' },
-                gap: 0.8,
-                px: { xs: 1.4, md: 1.6 },
-                py: { xs: 0.85, md: 1 },
-                borderRadius: radii.pill,
-                flexShrink: 0,
-                opacity: locked ? 0.45 : 1,
-                color: isActive ? colors.amberSoft : t.inkSoft,
-                bgcolor: isActive ? colors.navy900 : 'transparent',
-                transition: motion.standard,
-                '&:hover': locked ? {} : {
-                  color: isActive ? colors.amberSoft : t.ink,
-                  bgcolor: isActive ? colors.navy900 : colors.sand100,
-                },
-                '&:focus-visible': {
-                  outline: `2px solid ${colors.ringFocus}`,
-                  outlineOffset: 2,
-                },
-              }}
-            >
-              <Typography
-                component="span"
-                sx={{
-                  fontFamily: fonts.sans,
-                  fontSize: 13.5,
-                  fontWeight: isActive ? 700 : 600,
-                  letterSpacing: '0.02em',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {tab.label}
-              </Typography>
-              {tabStatus === 'done' && (
-                <Typography
-                  component="span"
-                  aria-label="Complete"
-                  sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, color: isActive ? colors.amberSoft : colors.green, lineHeight: 1 }}
-                >
-                  ✓
-                </Typography>
-              )}
-              {tabStatus === 'locked' && (
-                <LockOutlined aria-label="Locked" sx={{ fontSize: 13, color: isActive ? colors.amberSoft : t.inkSoft }} />
-              )}
-            </Box>
-          );
-        })}
-      </Box>
-    </Box>
-  );
-}
 
 // ============================================================================
 // Today Landing — the personal Season hero + actionable footer tiles
@@ -805,6 +689,13 @@ export default function CommandCenter() {
         practice: !campaignClosed ? 'locked' : phases.dockStatus.practice,
       };
 
+  const { teamResponses } = useBenchmarkData();
+  const invited = Number(readJson('latestFormData', {})?.teamSize) || Number(readJson('userInfo', {})?.teamSize) || 8;
+  const respondents = teamResponses?.length || 0;
+  const windowOpen = !campaignClosed;
+  const chapterId = windowOpen && activeTab === 'journey' ? 'team' : 'review';
+  const activeStepId = chapterId === 'team' ? 'status' : activeTab;
+
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
   const advancePhase = (phase) => {
@@ -856,92 +747,6 @@ export default function CommandCenter() {
     }
   };
 
-  const chapterIndex = activeTab === 'practice'
-    ? 5
-    : activeTab === 'signal' || activeTab === 'evidence'
-      ? 4
-      : getCurrentJourneyIndexFromState();
-
-  const showJourneyHeader = ['signal', 'evidence', 'practice'].includes(activeTab);
-  const headerTitleOverride = activeTab === 'evidence' ? 'The Evidence' : '';
-  const headerSubtitleOverride = activeTab === 'evidence'
-    ? 'Read the statements behind the signal before deciding what to practice.'
-    : '';
-  const compactHeaderActionSx = {
-    all: 'unset',
-    cursor: 'pointer',
-    ...buttons.outlinedPrimary,
-    minHeight: 28,
-    px: 1.35,
-    py: 0.52,
-    fontSize: 10.2,
-    letterSpacing: '0.06em',
-    borderRadius: '999px',
-    bgcolor: colors.surface1,
-    borderColor: colors.sand300,
-    color: colors.navy900,
-    boxShadow: 'none',
-  };
-
-  const headerMeta = activeTab === 'practice'
-    ? (
-      <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
-        <Box
-          component="button"
-          type="button"
-          onClick={() => phases.startReplay('practice')}
-          sx={compactHeaderActionSx}
-        >
-          ↻ Revise the plans
-        </Box>
-      </Stack>
-    )
-    : activeTab === 'evidence'
-      ? (
-        <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
-          <Box
-            component="button"
-            type="button"
-            onClick={() => phases.startReplay('evidence')}
-            sx={compactHeaderActionSx}
-          >
-            ↻ Walk through again
-          </Box>
-          {!phases.isGated('practice') && (
-            <Box
-              component="button"
-              type="button"
-              onClick={() => goToTab('practice')}
-              sx={compactHeaderActionSx}
-            >
-              Continue to practice →
-            </Box>
-          )}
-        </Stack>
-      )
-      : activeTab === 'signal'
-      ? (
-        <Stack direction="row" spacing={0.8} alignItems="center" justifyContent="center">
-          <Box
-            component="button"
-            type="button"
-            onClick={() => phases.startReplay('signal')}
-            sx={compactHeaderActionSx}
-          >
-            ↻ Walk through again
-          </Box>
-          <Box
-            component="button"
-            type="button"
-            onClick={() => goToTab('evidence')}
-            sx={compactHeaderActionSx}
-          >
-            Review the evidence →
-          </Box>
-        </Stack>
-      )
-      : null;
-
   return (
     <Box
       sx={{
@@ -955,30 +760,20 @@ export default function CommandCenter() {
         flexDirection: 'column',
       }}
     >
-      <ProcessTopRail hideChapterHeader />
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: 'stretch',
-          flex: 1,
-          minHeight: 0,
+      <ProcessTopRail
+        chapterId={chapterId}
+        activeStepId={activeStepId}
+        stepStatus={dockStatus}
+        chip={{
+          variant: 'dashboard',
+          label: 'Responses',
+          current: respondents,
+          total: invited,
+          status: campaignClosed ? 'Signal ready' : 'Listening',
         }}
-      >
-        <Dock activeTab={activeTab} onSelect={goToTab} t={t} status={dockStatus} />
-        <Box sx={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
-          {showJourneyHeader && (
-            <ProcessChapterHeader
-              chapterIndex={chapterIndex}
-              metaOverride={headerMeta}
-              titleOverride={headerTitleOverride}
-              subtitleOverride={headerSubtitleOverride}
-              contentMaxWidth={1180}
-              contentGap={activeTab === 'evidence' ? '12px' : '34px'}
-            />
-          )}
-          {renderActive()}
-        </Box>
+      />
+      <Box sx={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+        {renderActive()}
       </Box>
     </Box>
   );

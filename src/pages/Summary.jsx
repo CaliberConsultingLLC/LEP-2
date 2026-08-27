@@ -19,7 +19,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CompassJourneySidebar from '../components/CompassJourneySidebar';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
 import GuidePickerMenu from '../components/GuidePickerMenu';
@@ -1084,9 +1083,9 @@ function Summary() {
       >
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
-            hideChapterHeader
-            titleOverride="Reflection & Creation"
-            subtitleOverride="Your first internal look — read the trailhead, markers, hazards, and the new trail before you choose what to grow."
+            chapterId="insights"
+            activeStepId="summary"
+            chip={{ variant: 'sequence', label: 'Stage', current: (activeJourneyStep || 0) + 1, total: 4 }}
           />
         </Box>
         <CompassLayout rightRail={RightRail} viewportFit afterTopbar>
@@ -1772,7 +1771,11 @@ function Summary() {
             },
           }),
     }}>
-      <ProcessTopRail hideChapterHeader titleOverride="Leadership Reflection" />
+      <ProcessTopRail
+        chapterId="insights"
+        activeStepId="summary"
+        chip={{ variant: 'sequence', label: 'Stage', current: 1, total: 4 }}
+      />
       <CompassLayout>
       <Container
         maxWidth={false}
