@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../../components/ProcessTopRail';
+import CompassLayout from '../../components/CompassLayout';
 import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../styles/tokens';
 import { useGuide } from '../../context/GuideContext';
 import { spokenGuide } from '../../data/guideContent';
@@ -776,9 +777,9 @@ export default function CommandCenter() {
           status: campaignClosed ? 'Signal ready' : 'Listening',
         }}
       />
-      <Box sx={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
+      <CompassLayout viewportFit>
         {renderActive()}
-      </Box>
+      </CompassLayout>
     </Box>
   );
 }
