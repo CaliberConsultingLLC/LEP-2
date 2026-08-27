@@ -61,6 +61,10 @@ export default async function handler(req, res) {
 
     const body = req.body;
     const { aiSummary, sessionId, selectedTraits } = body;
+    const isRebuild = body?.rebuild === true;
+    const avoidStatements = Array.isArray(body?.avoidStatements)
+      ? body.avoidStatements.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 45)
+      : [];
 
     // Input validation: aiSummary must be a non-empty string
     if (!aiSummary || typeof aiSummary !== 'string' || !aiSummary.trim()) {
@@ -158,15 +162,19 @@ Task:
 - Example good statements: "Clearly explains priorities in team meetings" (team can rate both effort AND effectiveness), "Listens actively before responding" (observable, rateable on both dimensions), "Makes decisions within agreed timeframes" (can rate effort to decide AND effectiveness of decisions)
 - Example bad statements: "Is a good communicator" (too vague), "Tries hard" (can't rate efficacy), "Is effective" (can't rate effort)
 - Trait names should reflect the core trait (e.g., "Communication", "Decision-Making", "Team Development")
+${isRebuild ? `- This is a rebuild. Write a fresh set of statements for the same three traits.
+- Do not repeat or lightly rephrase any of these existing statements:
+${(avoidStatements.length ? avoidStatements : ['(none provided)']).map((s) => `  * ${s}`).join('\n')}
+- Each new statement must be observably different in wording and angle.` : ''}
 - Return ONLY the JSON described above.
 `.trim();
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini', // Aligned with get-ai-summary model
-      max_tokens: 600,      // Sufficient for 3 traits × 5 statements
-      temperature: 0.35,
-      frequency_penalty: 0.2,
-      presence_penalty: 0.0,
+      max_tokens: isRebuild ? 900 : 600,
+      temperature: isRebuild ? 0.7 : 0.35,
+      frequency_penalty: isRebuild ? 0.45 : 0.2,
+      presence_penalty: isRebuild ? 0.25 : 0.0,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

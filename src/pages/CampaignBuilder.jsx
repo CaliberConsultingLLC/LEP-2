@@ -29,7 +29,6 @@ import { useGuide } from '../context/GuideContext';
 import { spokenGuide } from '../data/guideContent';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
-import { seedStagingData } from '../utils/stagingSeed';
 import { demoRequestFields, isDemoSession } from '../utils/demoMode';
 import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
@@ -45,6 +44,7 @@ const parseJson = (raw, fallback) => {
 function CampaignBuilder() {
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRebuilding, setIsRebuilding] = useState(false);
   const [error, setError] = useState(null);
   const [dismissedStatements, setDismissedStatements] = useState([]);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
@@ -295,16 +295,6 @@ function CampaignBuilder() {
 
   const handleRebuildCampaign = () => {
     try {
-      if (useCairnTheme && !isDemoSession()) {
-        seedStagingData();
-        const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
-        setCampaign(cachedCampaign);
-        setDismissedStatements([]);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
-
       const storedSummary = localStorage.getItem('aiSummary');
       if (!storedSummary || storedSummary.trim() === '') {
         setError('No summary found. Please complete the assessment first.');
@@ -320,21 +310,31 @@ function CampaignBuilder() {
         setError('Invalid trait selection data. Please return to the summary page.');
         return;
       }
-      
+
       if (!Array.isArray(selectedTraits) || selectedTraits.length === 0) {
         setError('No traits selected. Please return to the summary page to select traits.');
         return;
       }
 
+      const existingCampaign = normalizeCampaignItems(campaign || []);
+      const avoidStatements = existingCampaign.flatMap((traitItem) => (
+        (Array.isArray(traitItem?.statements) ? traitItem.statements : [])
+          .map((s) => String(s || '').trim())
+          .filter(Boolean)
+      ));
+
       setIsLoading(true);
+      setIsRebuilding(true);
       setError(null);
-      
+
       fetch('/api/get-campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           aiSummary: storedSummary,
           selectedTraits: selectedTraits,
+          rebuild: true,
+          avoidStatements,
           ...demoRequestFields(),
         }),
       })
@@ -354,7 +354,7 @@ function CampaignBuilder() {
             }
             throw new Error(errorMessage);
           }
-          
+
           try {
             return await resp.json();
           } catch (parseError) {
@@ -379,6 +379,7 @@ function CampaignBuilder() {
             setCampaign(campaignData);
             setDismissedStatements([]);
             setError(null);
+            localStorage.setItem('currentCampaign', JSON.stringify(campaignData));
           }
         })
         .catch((err) => {
@@ -388,11 +389,13 @@ function CampaignBuilder() {
         })
         .finally(() => {
           setIsLoading(false);
+          setIsRebuilding(false);
         });
     } catch (err) {
       console.error('Error in handleRebuildCampaign:', err);
       setError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
+      setIsRebuilding(false);
     }
   };
 
@@ -404,8 +407,8 @@ function CampaignBuilder() {
   if (isLoading) {
     return (
       <LoadingScreen
-        title="Generating your leadership campaign..."
-        subtitle="Creating statements aligned to your selected traits."
+        title={isRebuilding ? 'Rebuilding your campaign...' : 'Generating your leadership campaign...'}
+        subtitle={isRebuilding ? 'Writing a fresh set of statements for the traits you chose.' : 'Creating statements aligned to your selected traits.'}
       />
     );
   }
@@ -560,7 +563,7 @@ function CampaignBuilder() {
                       color: colors.ink,
                     }}
                   >
-                    The sentences your team will rate
+                    Review the statements your team will see
                   </Typography>
                   <Typography
                     sx={{
@@ -572,7 +575,7 @@ function CampaignBuilder() {
                       maxWidth: '56ch',
                     }}
                   >
-                    Built from the three traits you chose. Keep what feels fair and useful. Remove anything confusing, unfair, or outside this stretch.
+                    Keep what feels fair and useful. Remove anything confusing, unfair, or outside this stretch.
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: '8px', flexShrink: 0, mt: '24px' }}>

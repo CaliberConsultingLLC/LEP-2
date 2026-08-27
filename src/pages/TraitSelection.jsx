@@ -317,7 +317,7 @@ function TraitSelection() {
                     color: colors.ink,
                   }}
                 >
-                  The three traits your team runs on
+                  Choose the traits you'll focus on
                 </Typography>
                 <Typography
                   sx={{
