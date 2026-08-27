@@ -23,7 +23,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
-import { colors } from '../styles/tokens';
+import { colors, radii } from '../styles/tokens';
 
 function UserInfo() {
   const navigate = useNavigate();
@@ -281,7 +281,7 @@ function UserInfo() {
         width: '100%',
         overflowX: 'hidden',
         ...(useCairnTheme
-              ? { bgcolor: 'var(--sand-50, #FBF7F0)', minHeight: '100svh', overflow: 'hidden' }
+              ? { bgcolor: colors.sand50, display: 'flex', flexDirection: 'column', minHeight: '100svh', height: '100svh', overflow: 'hidden' }
           : {
               '&:before': {
                 content: '""',
@@ -309,23 +309,25 @@ function UserInfo() {
         activeStepId="account"
         chip={{ variant: 'sequence', label: 'Step', current: 1, total: 3 }}
       />
-      <CompassLayout>
+      <CompassLayout contentMaxWidth={880}>
       <Container
         maxWidth={false}
         sx={{
-          py: useCairnTheme ? { xs: 1.5, md: 2 } : { xs: 3, sm: 4 },
+          py: useCairnTheme ? 0 : { xs: 3, sm: 4 },
           px: useCairnTheme ? 0 : { xs: 2, sm: 4 },
           display: 'flex',
           justifyContent: 'center',
-          width: useCairnTheme ? '100%' : '100vw',
+          width: '100%',
+          height: useCairnTheme ? '100%' : 'auto',
+          alignItems: useCairnTheme ? 'center' : 'flex-start',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: useCairnTheme ? 680 : 880, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%', maxWidth: useCairnTheme ? '100%' : 880, display: 'flex', justifyContent: 'center' }}>
           <Card
             sx={{
               width: '100%',
-              maxWidth: useCairnTheme ? 600 : 600,
-              borderRadius: useCairnTheme ? '18px' : 3,
+              maxWidth: useCairnTheme ? '100%' : 600,
+              borderRadius: useCairnTheme ? radii.lg : 3,
               border: useCairnTheme
                 ? isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)'
                 : '1px solid rgba(255,255,255,0.14)',
@@ -338,7 +340,7 @@ function UserInfo() {
               overflow: 'hidden',
             }}
           >
-          <CardContent sx={{ p: useCairnTheme ? { xs: 2, md: 2.4 } : { xs: 3, sm: 4 } }}>
+          <CardContent sx={{ p: useCairnTheme ? { xs: 3, md: 4.5 } : { xs: 3, sm: 4 } }}>
             <Typography
               sx={{
                 fontFamily: useCairnTheme ? '"Montserrat", sans-serif' : 'Gemunu Libre, sans-serif',
@@ -643,7 +645,7 @@ function UserInfo() {
                   },
                 }}
               >
-                {isSubmitting ? 'Saving...' : 'Continue to your context'}
+                {isSubmitting ? 'Saving...' : 'Continue to your guide'}
               </Button>
             </Stack>
           </CardContent>
