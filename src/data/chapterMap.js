@@ -77,10 +77,32 @@ export const CHAPTERS = [
     arriveHint: 'Pick three traits, then review the statements your team will actually rate.',
     steps: [
       {
-        id: 'summary',
-        label: 'Summary',
-        path: '/summary',
-        whatHappens: ['Four stages, read in order', 'Written from your own answers', 'Nothing to choose yet'],
+        id: 'trailhead',
+        label: 'Trailhead',
+        shortLabel: 'Trailhead',
+        path: '/summary?stage=trailhead',
+        whatHappens: ['Current-state mirror', 'Written from your own answers', 'Nothing to choose yet'],
+      },
+      {
+        id: 'markers',
+        label: 'Trail Markers',
+        shortLabel: 'Markers',
+        path: '/summary?stage=markers',
+        whatHappens: ['Recurring moments', 'Patterns your team already feels'],
+      },
+      {
+        id: 'hazards',
+        label: 'Future Hazards',
+        shortLabel: 'Hazards',
+        path: '/summary?stage=hazards',
+        whatHappens: ['Preventable costs', 'What this may cost if left unmanaged'],
+      },
+      {
+        id: 'new-trail',
+        label: 'A New Trail',
+        shortLabel: 'New Trail',
+        path: '/summary?stage=new-trail',
+        whatHappens: ['Growth leverage', 'Where to build forward'],
       },
     ],
   },
@@ -244,7 +266,12 @@ export function resolveFromLocation(pathname = '', search = '') {
     if (step === '3') return { chapterId: 'behaviors', activeStepId: 'insights' };
     return { chapterId: 'behaviors', activeStepId: 'habits' };
   }
-  if (pathname.startsWith('/summary')) return { chapterId: 'reflect', activeStepId: 'summary' };
+  if (pathname.startsWith('/summary-static')) return { chapterId: 'reflect', activeStepId: 'trailhead' };
+  if (pathname.startsWith('/summary')) {
+    const reflectStages = ['trailhead', 'markers', 'hazards', 'new-trail'];
+    const active = reflectStages.includes(stage) ? stage : 'trailhead';
+    return { chapterId: 'reflect', activeStepId: active };
+  }
   if (pathname.startsWith('/trait-selection')) return { chapterId: 'campaign', activeStepId: 'traits' };
   if (pathname.startsWith('/campaign-intro')) return { chapterId: 'campaign', activeStepId: 'builder' };
   if (pathname.startsWith('/campaign-builder')) return { chapterId: 'campaign', activeStepId: 'builder' };

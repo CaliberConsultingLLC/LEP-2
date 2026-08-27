@@ -1595,7 +1595,7 @@ function IntakeForm() {
       ['aiSummary', 'focusAreas', 'trailheadHighlights', 'aiCampaign'].forEach((key) => {
         try { localStorage.removeItem(key); } catch { /* ignore */ }
       });
-      navigate('/summary', { state: { formData: updated, liveIntake: true } });
+      navigate('/summary?stage=trailhead', { state: { formData: updated, liveIntake: true } });
     } catch (e) {
       console.error('Submit failed', e);
       clarificationSubmitLockRef.current = false;

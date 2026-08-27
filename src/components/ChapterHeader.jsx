@@ -491,7 +491,7 @@ export default function ChapterHeader({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {slimTabs ? shortLabel(step.label) : step.label}
+                    {slimTabs ? (step.shortLabel || shortLabel(step.label)) : step.label}
                   </Typography>
                   {locked && (
                     <LockOutlined aria-label="Locked" sx={{ fontSize: 10, color: colors.inkSoft }} />

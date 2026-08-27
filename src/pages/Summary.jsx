@@ -21,7 +21,6 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
-import GuidePickerMenu from '../components/GuidePickerMenu';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -39,8 +38,15 @@ import { getSummaryBriefing } from '../data/guideBriefings';
 
 function Summary() {
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const location = useLocation();
+  const { state } = location;
   const formDataFromRoute = state?.formData || {};
+  const REFLECT_STAGES = ['trailhead', 'markers', 'hazards', 'new-trail'];
+  const stageIndexFromSearch = (search) => {
+    const stage = String(new URLSearchParams(search || '').get('stage') || '').toLowerCase();
+    const idx = REFLECT_STAGES.indexOf(stage);
+    return idx >= 0 ? idx : 0;
+  };
 
   const [summaryData, setSummaryData] = useState(null);
   const [aiSummary, setAiSummary] = useState('');
@@ -55,9 +61,8 @@ function Summary() {
   const [summariesByGuide, setSummariesByGuide] = useState({});
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState('');
-  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
+  const [activeJourneyStep, setActiveJourneyStep] = useState(() => stageIndexFromSearch(typeof window === 'undefined' ? '' : window.location.search));
   const [briefingOpen, setBriefingOpen] = useState(false);
-  const [guideMenuAnchor, setGuideMenuAnchor] = useState(null);
   const activeRunIdRef = useRef(0);
   const [isDark] = useDarkMode();
   const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
@@ -67,6 +72,25 @@ function Summary() {
     setSuppress(true);
     return () => setSuppress(false);
   }, [setSuppress, useCairnTheme]);
+
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    const idx = stageIndexFromSearch(location.search);
+    setActiveJourneyStep(idx);
+    const params = new URLSearchParams(location.search || '');
+    if (!params.get('stage')) {
+      navigate(`/summary?stage=${REFLECT_STAGES[idx]}`, { replace: true, state: location.state });
+    }
+    return undefined;
+  }, [location.search, navigate]);
+
+  const goToJourneyStep = (idx) => {
+    const next = Math.max(0, Math.min(REFLECT_STAGES.length - 1, Number(idx) || 0));
+    setActiveJourneyStep(next);
+    if (useCairnTheme) {
+      navigate(`/summary?stage=${REFLECT_STAGES[next]}`, { replace: true, state: location.state });
+    }
+  };
 
   const persistSummaryCache = async ({ data, guideId, text, areas, highlights, summaries }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
@@ -843,7 +867,6 @@ function Summary() {
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
   if (useCairnTheme) {
-    const ROMAN = ['I', 'II', 'III', 'IV'];
     const cairnJourneyStages = journeyStages.map((stage) => {
       if (stage.id === 'trailhead') {
         return { ...stage, label: 'Trailhead', title: 'Reflecting on Current Reality', subtitle: 'Mirror The Current Signal', icon: OutlinedFlag };
@@ -866,13 +889,6 @@ function Summary() {
       return stage;
     });
     const activeStage = cairnJourneyStages[activeJourneyStep] || cairnJourneyStages[0];
-
-    // Read guide persona for sidebar footer
-    let guideName = 'Mentor';
-    try {
-      const g = JSON.parse(localStorage.getItem('cairnGuide') || '{}');
-      if (g?.personaId) guideName = g.personaId.charAt(0).toUpperCase() + g.personaId.slice(1);
-    } catch { /* ignore */ }
 
     const firstName = userName ? userName.split(' ')[0] : '';
 
@@ -995,11 +1011,11 @@ function Summary() {
     };
     const getBackTarget = () => {
       if (activeJourneyStep === 0) return { label: 'Intake', action: () => navigate('/form?stage=intake') };
-      return { label: cairnJourneyStages[activeJourneyStep - 1]?.label || 'Back', action: () => setActiveJourneyStep((s) => Math.max(0, s - 1)) };
+      return { label: cairnJourneyStages[activeJourneyStep - 1]?.label || 'Back', action: () => goToJourneyStep(activeJourneyStep - 1) };
     };
     const getNextTarget = () => {
       if (activeJourneyStep === cairnJourneyStages.length - 1) return { label: 'Traits', action: () => navigate('/trait-selection') };
-      return { label: cairnJourneyStages[activeJourneyStep + 1]?.label || 'Next', action: () => setActiveJourneyStep((s) => Math.min(cairnJourneyStages.length - 1, s + 1)) };
+      return { label: cairnJourneyStages[activeJourneyStep + 1]?.label || 'Next', action: () => goToJourneyStep(activeJourneyStep + 1) };
     };
     const backTarget = getBackTarget();
     const nextTarget = getNextTarget();
@@ -1022,12 +1038,6 @@ function Summary() {
       markers: { wash: 'rgba(224,122,63,0.08)', accent: colors.orange, roman: 'II' },
       hazards: { wash: 'rgba(192,97,42,0.08)', accent: colors.orangeDeep, roman: 'III' },
       'new-trail': { wash: 'rgba(47,133,90,0.08)', accent: colors.green, roman: 'IV' },
-    };
-    const RAIL_KICKERS = {
-      trailhead: 'Current-state mirror',
-      markers: 'Recurring moments',
-      hazards: 'Preventable costs',
-      'new-trail': 'Growth leverage',
     };
     const activeVisual = STAGE_VISUAL[activeStage.id] || STAGE_VISUAL.trailhead;
     const stageBodyText = (
@@ -1084,8 +1094,12 @@ function Summary() {
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
             chapterId="reflect"
-            activeStepId="summary"
+            activeStepId={currentStageId}
             chip={{ variant: 'sequence', label: 'Stage', current: (activeJourneyStep || 0) + 1, total: 4 }}
+            onStepSelect={(step) => {
+              const idx = REFLECT_STAGES.indexOf(step.id);
+              if (idx >= 0) goToJourneyStep(idx);
+            }}
           />
         </Box>
         <CompassLayout rightRail={RightRail} viewportFit afterTopbar>
@@ -1097,215 +1111,20 @@ function Summary() {
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                gap: '24px',
+                justifyContent: 'center',
                 alignItems: 'flex-start',
                 height: { md: '100%' },
                 maxHeight: { md: '100%' },
                 overflow: { xs: 'auto', md: 'visible' },
                 pr: { md: '12px' },
-                '@keyframes nodePulse': {
-                  '0%': { transform: 'scale(0.85)', opacity: 0.6 },
-                  '70%': { transform: 'scale(1.55)', opacity: 0 },
-                  '100%': { transform: 'scale(1.55)', opacity: 0 },
-                },
               }}
             >
               <Box
-                component="nav"
-                aria-label="Your reflection trail"
                 sx={{
-                  width: { xs: '100%', md: 232 },
-                  flexShrink: 0,
-                  alignSelf: 'flex-start',
-                  pt: '18px',
-                  pl: '14px',
-                  bgcolor: 'transparent',
-                  border: 'none',
-                  boxShadow: 'none',
-                  overflow: 'visible',
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: fonts.mono,
-                    fontSize: '9.5px',
-                    fontWeight: 700,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    color: colors.navy500,
-                    mb: '22px',
-                  }}
-                >
-                  Your reflection trail
-                </Typography>
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
-                  {cairnJourneyStages.map((stage, idx) => {
-                    const active = idx === activeJourneyStep;
-                    const isLast = idx === cairnJourneyStages.length - 1;
-                    return (
-                      <Box
-                        key={stage.id}
-                        component="button"
-                        type="button"
-                        onClick={() => setActiveJourneyStep(idx)}
-                        aria-current={active ? 'page' : undefined}
-                        sx={{
-                          all: 'unset',
-                          cursor: 'pointer',
-                          boxSizing: 'border-box',
-                          position: 'relative',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          width: '100%',
-                          '&:focus-visible': {
-                            outline: `3px solid ${colors.orange}`,
-                            outlineOffset: 4,
-                            borderRadius: radii.sm,
-                          },
-                        }}
-                      >
-                        {!isLast && (
-                          <Box
-                            aria-hidden
-                            sx={{
-                              position: 'absolute',
-                              left: 16,
-                              top: 38,
-                              bottom: -28,
-                              borderLeft: `2px dashed ${colors.sand300}`,
-                              pointerEvents: 'none',
-                            }}
-                          />
-                        )}
-                        <Box
-                          sx={{
-                            position: 'relative',
-                            width: 34,
-                            height: 34,
-                            flexShrink: 0,
-                            borderRadius: '50%',
-                            bgcolor: active ? colors.orange : colors.surface1,
-                            border: active ? `2px solid ${colors.orange}` : `2px solid ${colors.sand300}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            zIndex: 1,
-                          }}
-                        >
-                          {active && (
-                            <Box
-                              aria-hidden
-                              sx={{
-                                position: 'absolute',
-                                inset: -7,
-                                borderRadius: '50%',
-                                border: `2px solid ${colors.orange}`,
-                                animation: 'nodePulse 2.4s ease-out infinite',
-                                '@media (prefers-reduced-motion: reduce)': {
-                                  animation: 'none',
-                                  opacity: 0.35,
-                                },
-                              }}
-                            />
-                          )}
-                          <Typography
-                            sx={{
-                              fontFamily: fonts.serif,
-                              fontSize: 13,
-                              fontWeight: 600,
-                              lineHeight: 1,
-                              color: active ? colors.surface1 : colors.inkSoft,
-                              position: 'relative',
-                              zIndex: 1,
-                            }}
-                          >
-                            {ROMAN[idx]}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ minWidth: 0, pt: 0.15 }}>
-                          <Typography
-                            sx={{
-                              fontFamily: fonts.sans,
-                              fontSize: '13.5px',
-                              fontWeight: active ? 800 : 650,
-                              lineHeight: 1.2,
-                              color: active ? colors.navy900 : colors.inkSoft,
-                            }}
-                          >
-                            {stage.label}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: fonts.sans,
-                              fontSize: '10.5px',
-                              lineHeight: 1.3,
-                              mt: 0.25,
-                              color: colors.navy300,
-                            }}
-                          >
-                            {RAIL_KICKERS[stage.id] || stage.subtitle}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    );
-                  })}
-                </Box>
-
-                <Box sx={{ mt: '24px', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colors.orange, flexShrink: 0 }} />
-                  <Typography sx={{ fontFamily: fonts.sans, fontSize: '11.5px', color: colors.inkSoft }}>
-                    Guide: <strong>{guideName}</strong>
-                  </Typography>
-                </Box>
-
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={(event) => setGuideMenuAnchor(event.currentTarget)}
-                  sx={{
-                    all: 'unset',
-                    boxSizing: 'border-box',
-                    cursor: 'pointer',
-                    mt: '16px',
-                    width: '100%',
-                    minHeight: 36,
-                    px: '12px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: radii.pill,
-                    border: `1.5px solid ${colors.navy900}`,
-                    bgcolor: colors.navy900,
-                    color: colors.amberSoft,
-                    fontFamily: fonts.sans,
-                    fontWeight: 700,
-                    fontSize: '12px',
-                    letterSpacing: '0.02em',
-                    lineHeight: 1.2,
-                    textAlign: 'center',
-                    '&:hover': { bgcolor: colors.navy800 },
-                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                  }}
-                >
-                  Hear another guide
-                </Box>
-                <GuidePickerMenu
-                  open={Boolean(guideMenuAnchor)}
-                  anchorEl={guideMenuAnchor}
-                  onClose={() => setGuideMenuAnchor(null)}
-                  isDark={isDark}
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  flex: 1,
+                  width: '100%',
+                  maxWidth: 800,
                   minWidth: 0,
                   alignSelf: 'flex-start',
-                  width: '100%',
                   maxHeight: { md: '100%' },
                   position: 'relative',
                   mb: '14px',
@@ -1773,7 +1592,7 @@ function Summary() {
     }}>
       <ProcessTopRail
         chapterId="reflect"
-        activeStepId="summary"
+        activeStepId="trailhead"
         chip={{ variant: 'sequence', label: 'Stage', current: 1, total: 4 }}
       />
       <CompassLayout>

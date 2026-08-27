@@ -47,7 +47,7 @@ utility bar only.
 
 ```text
 BAR 1 · navy 60px          THE COMPASS          STAGING  Guide  AR
-BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary                    [chip]
+BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Trailhead · Markers · Hazards · New Trail   [chip]
                      100px porthole straddles both bars (top:-38px, 5px white ring)
 ```
 
@@ -62,6 +62,9 @@ BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary                    [
   **of VII**. "What happens here" hangs off the active step, not the chapter.
   Chapter popups fire only when `chapterId` changes (complete → begin next).
   Tab changes inside a chapter do not popup.
+  Chapter III tabs are the four reflection stages (Trailhead, Trail Markers,
+  Future Hazards, A New Trail) via `/summary?stage=`. The summary card is
+  centered in the body; do not restore a left reflection rail.
 - Porthole: `JourneyPorthole` `variant="corner"` — 100px, 4px navy bezel, 2px
   brass inner ring, amber diamond at 12 o'clock, 5px white outer ring. Clicking
   it or the chapter name opens the drawer.
