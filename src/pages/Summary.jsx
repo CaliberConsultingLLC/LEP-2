@@ -1097,7 +1097,7 @@ function Summary() {
                 position: 'relative',
                 width: '100%',
                 overflow: 'visible',
-                minHeight: { md: 560, lg: 640 },
+                pl: { md: 28, lg: 36, xl: 42 },
               }}
             >
               <Box
@@ -1122,13 +1122,13 @@ function Summary() {
                   '&:after': {
                     content: '""',
                     position: 'absolute',
-                    right: -9,
+                    left: -9,
                     top: '46%',
                     width: 18,
                     height: 18,
                     bgcolor: colors.surface1,
-                    borderRight: `1px solid ${colors.sand200}`,
-                    borderTop: `1px solid ${colors.sand200}`,
+                    borderLeft: `1px solid ${colors.sand200}`,
+                    borderBottom: `1px solid ${colors.sand200}`,
                     transform: 'rotate(45deg)',
                     zIndex: 2,
                     display: { xs: 'none', md: 'block' },
@@ -1521,30 +1521,27 @@ function Summary() {
                   </Box>
                 </Box>
               </Box>
-              <Box
-                component="img"
-                src={persona.poses.read || persona.poses.idle}
-                alt={`${persona.name} delivering your reflection`}
-                draggable={false}
-                sx={{
-                  display: { xs: 'block', md: 'block' },
-                  position: { xs: 'relative', md: 'absolute' },
-                  right: { md: -12, lg: -28, xl: -40 },
-                  top: { md: '50%' },
-                  width: { xs: 240, sm: 280, md: 520, lg: 600, xl: 640 },
-                  maxWidth: { xs: 280, md: 'none' },
-                  mx: { xs: 'auto', md: 0 },
-                  mt: { xs: -1, md: 0 },
-                  height: 'auto',
-                  transform: { xs: 'scaleX(-1)', md: 'translateY(-50%) scaleX(-1)' },
-                  transformOrigin: 'center center',
-                  zIndex: 1,
-                  pointerEvents: 'none',
-                }}
-              />
             </Box>
           )}
         </CompassLayout>
+        <Box
+          component="img"
+          src={persona.poses.read || persona.poses.idle}
+          alt={`${persona.name} delivering your reflection`}
+          draggable={false}
+          sx={{
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            width: { xs: 240, sm: 300, md: 480, lg: 580, xl: 640 },
+            height: 'auto',
+            display: 'block',
+            transform: 'scaleX(-1)',
+            transformOrigin: 'center bottom',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
         <SummaryBriefingModal
           open={briefingOpen}
           persona={persona}
