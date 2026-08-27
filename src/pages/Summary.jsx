@@ -19,10 +19,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import CairnGuidePanel from '../components/CairnGuidePanel';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
 import { useCairnTheme } from '../config/runtimeFlags';
-import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
@@ -64,8 +62,7 @@ function Summary() {
   const [activeJourneyStep, setActiveJourneyStep] = useState(() => stageIndexFromSearch(typeof window === 'undefined' ? '' : window.location.search));
   const [briefingOpen, setBriefingOpen] = useState(false);
   const activeRunIdRef = useRef(0);
-  const [isDark] = useDarkMode();
-  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
+  const { persona, personaId, setSuppress, setGuideStep } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -1020,19 +1017,6 @@ function Summary() {
     const backTarget = getBackTarget();
     const nextTarget = getNextTarget();
 
-    const RightRail = (
-      <CairnGuidePanel
-        persona={persona}
-        hidden={hidden}
-        setHidden={setHidden}
-        toggleHidden={toggleHidden}
-        isDark={isDark}
-        presenceOnly
-        commentary=""
-        owlPose={persona.poses.read || persona.poses.idle}
-      />
-    );
-
     const STAGE_VISUAL = {
       trailhead: { wash: 'rgba(94,145,176,0.10)', accent: colors.navy400, roman: 'I' },
       markers: { wash: 'rgba(224,122,63,0.08)', accent: colors.orange, roman: 'II' },
@@ -1084,8 +1068,8 @@ function Summary() {
     return (
       <Box
         sx={{
-          height: '100svh',
-          overflow: 'hidden',
+          minHeight: '100svh',
+          overflowX: 'hidden',
           bgcolor: colors.sand50,
           display: 'flex',
           flexDirection: 'column',
@@ -1102,7 +1086,7 @@ function Summary() {
             }}
           />
         </Box>
-        <CompassLayout rightRail={RightRail} viewportFit afterTopbar>
+        <CompassLayout fluid>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -1112,20 +1096,19 @@ function Summary() {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                alignItems: 'flex-start',
-                height: { md: '100%' },
-                maxHeight: { md: '100%' },
-                overflow: { xs: 'auto', md: 'visible' },
-                pr: { md: '12px' },
+                alignItems: 'center',
+                flexWrap: { xs: 'wrap', md: 'nowrap' },
+                gap: { xs: 1, md: 0 },
+                width: '100%',
+                overflow: 'visible',
               }}
             >
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: 800,
+                  maxWidth: 960,
                   minWidth: 0,
-                  alignSelf: 'flex-start',
-                  maxHeight: { md: '100%' },
+                  flex: '1 1 640px',
                   position: 'relative',
                   mb: '14px',
                   border: `1px solid ${colors.sand200}`,
@@ -1134,7 +1117,7 @@ function Summary() {
                   overflow: 'visible',
                   bgcolor: colors.surface1,
                   background: `linear-gradient(180deg, ${activeVisual.wash} 0%, rgba(255,255,255,0) 46%), ${colors.surface1}`,
-                  px: { xs: '22px', md: '36px' },
+                  px: { xs: '22px', md: '40px' },
                   pt: { xs: '28px', md: '32px' },
                   pb: '20px',
                   display: 'flex',
@@ -1143,7 +1126,7 @@ function Summary() {
                     content: '""',
                     position: 'absolute',
                     right: -9,
-                    bottom: 28,
+                    top: '46%',
                     width: 18,
                     height: 18,
                     bgcolor: colors.surface1,
@@ -1151,6 +1134,7 @@ function Summary() {
                     borderTop: `1px solid ${colors.sand200}`,
                     transform: 'rotate(45deg)',
                     zIndex: 2,
+                    display: { xs: 'none', md: 'block' },
                   },
                 }}
               >
@@ -1177,14 +1161,11 @@ function Summary() {
                   sx={{
                     position: 'relative',
                     zIndex: 1,
-                    maxWidth: 720,
+                    maxWidth: 864,
                     width: '100%',
                     mx: 'auto',
                     display: 'flex',
                     flexDirection: 'column',
-                    minHeight: 0,
-                    maxHeight: '100%',
-                    overflow: 'hidden',
                   }}
                 >
                   <Typography
@@ -1258,7 +1239,7 @@ function Summary() {
 
                   {activeStage.id === 'trailhead' && (
                     trailheadDisplay ? (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0, overflow: 'hidden' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         <Typography sx={bodyType}>
                           {renderParagraphWithTooltips(trailheadDisplay)}
                         </Typography>
@@ -1270,7 +1251,7 @@ function Summary() {
                               flexWrap: 'nowrap',
                               gap: '14px',
                               width: '100%',
-                              alignItems: 'stretch',
+                              alignItems: 'flex-start',
                             }}
                           >
                             {[
@@ -1335,7 +1316,7 @@ function Summary() {
                   )}
 
                   {situationStage && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, minHeight: 0, overflow: 'hidden' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                       {situationStage.reflection ? (
                         <Typography sx={bodyType}>
                           {renderParagraphWithTooltips(
@@ -1351,7 +1332,7 @@ function Summary() {
                             flexWrap: 'nowrap',
                             gap: '14px',
                             width: '100%',
-                            alignItems: 'stretch',
+                            alignItems: 'flex-start',
                           }}
                         >
                           {situationStage.situations.slice(0, 2).map((situation, idx) => (
@@ -1403,7 +1384,7 @@ function Summary() {
                   )}
 
                   {activeStage.id === 'new-trail' && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75, minHeight: 0, overflow: 'hidden' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
                       {newTrailIntro ? (
                         <Typography sx={bodyType}>
                           {renderParagraphWithTooltips(splitSentences(newTrailIntro).slice(0, 10).join(' '))}
@@ -1423,11 +1404,10 @@ function Summary() {
                             <Tooltip key={fa.id || `lev-${idx}`} title={fa.subTraitDefinition || fa.traitDefinition || ''} arrow placement="top">
                               <Box
                                 sx={{
-                                  width: 196,
+                                  width: 235,
                                   boxSizing: 'border-box',
-                                  flex: '0 0 196px',
-                                  bgcolor: '#FFFFFF',
-                                  backgroundColor: '#FFFFFF',
+                                  flex: '0 0 235px',
+                                  bgcolor: colors.surface1,
                                   backgroundImage: 'none',
                                   border: `1.5px solid ${colors.navy400}`,
                                   opacity: 1,
@@ -1543,6 +1523,32 @@ function Summary() {
                     </Box>
                   </Box>
                 </Box>
+              </Box>
+              <Box
+                sx={{
+                  flex: '0 0 auto',
+                  width: { xs: 220, sm: 280, md: 420, lg: 560, xl: 640 },
+                  maxWidth: { xs: '58%', md: 'none' },
+                  ml: { xs: 0, md: -1.5, lg: -3 },
+                  mr: { xs: 0, md: -3, lg: -6 },
+                  alignSelf: { xs: 'center', md: 'center' },
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                }}
+              >
+                <Box
+                  component="img"
+                  src={persona.poses.read || persona.poses.idle}
+                  alt={`${persona.name} delivering your reflection`}
+                  draggable={false}
+                  sx={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    transform: 'scaleX(-1)',
+                    transformOrigin: 'center bottom',
+                  }}
+                />
               </Box>
             </Box>
           )}
