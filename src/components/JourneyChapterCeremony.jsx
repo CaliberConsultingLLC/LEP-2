@@ -257,68 +257,57 @@ export default function JourneyChapterCeremony({
       </svg>
 
       <Box
-        // Desktop hitch: a 620px slot stays centered. The inner wrapper grows
-        // the owl panel to the right and translates left by half that width, so
-        // the original cream card slides open and the combined shape stays
-        // in the middle.
+        // Center with left/top 50% + translate(-50%) so a 620→870 width
+        // transition moves both edges. The cream card rides left as the owl
+        // panel opens, and the combined shape stays in the middle.
+        data-ceremony-shell=""
+        data-phase={phase}
         onClick={(event) => event.stopPropagation()}
         sx={{
-          position: 'relative',
-          width: 'min(620px, calc(100vw - 32px))',
-          height: 'auto',
+          display: 'flex',
+          overflow: 'hidden',
+          borderRadius: radii.xl,
+          boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
+          boxSizing: 'border-box',
+          width: 'min(100%, 620px)',
+          flexDirection: 'column',
           [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
-            width: CARD_W,
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            flexDirection: 'row',
+            flexShrink: 0,
             height: CARD_H,
+            width: panelOpen ? CARD_W + PANEL_W : CARD_W,
+            transition: reducedMotion
+              ? 'none'
+              : `width 660ms ${PANEL_EASE}`,
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            transition: 'none',
           },
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            overflow: 'hidden',
-            borderRadius: radii.xl,
-            boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
-            [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              height: CARD_H,
-              width: panelOpen ? CARD_W + PANEL_W : CARD_W,
-              transform: panelOpen ? `translateX(-${PANEL_W / 2}px)` : 'translateX(0)',
-              transition: reducedMotion
-                ? 'none'
-                : `width 660ms ${PANEL_EASE}, transform 660ms ${PANEL_EASE}`,
-            },
-            [`@media (max-width: ${MOBILE_MAX}px)`]: {
-              flexDirection: 'column',
-              width: '100%',
-              transform: 'none',
-            },
-            '@media (prefers-reduced-motion: reduce)': {
-              transition: 'none',
-            },
-          }}
-        >
-          <CeremonyCard
-            index={portholeIndex}
-            focus={focus}
-            walking={phase === 'walk'}
-            arrived={panelOpen}
-            reducedMotion={reducedMotion}
-            eyebrow={eyebrow}
-            title={title}
-            guideLine={panelOpen ? guideLine : null}
-            button={button}
-            buttonDisabled={buttonDisabled}
-            onClick={onButton}
-          />
-          <GuidePanel
-            open={panelOpen}
-            reducedMotion={reducedMotion}
-            guideId={guideId}
-            guideName={guide?.name || 'Mentor'}
-          />
-        </Box>
+        <CeremonyCard
+          index={portholeIndex}
+          focus={focus}
+          walking={phase === 'walk'}
+          arrived={panelOpen}
+          reducedMotion={reducedMotion}
+          eyebrow={eyebrow}
+          title={title}
+          guideLine={panelOpen ? guideLine : null}
+          button={button}
+          buttonDisabled={buttonDisabled}
+          onClick={onButton}
+        />
+        <GuidePanel
+          open={panelOpen}
+          reducedMotion={reducedMotion}
+          guideId={guideId}
+          guideName={guide?.name || 'Mentor'}
+        />
       </Box>
     </Box>,
     document.body,
