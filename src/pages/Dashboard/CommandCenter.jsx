@@ -365,13 +365,13 @@ function PlanFocalCard({ traitLabel, behavior, current, goal, onClick, ready }) 
           : {}),
       }}
     >
-      <Typography sx={{ ...type.eyebrow, color: behavior ? colors.orangeDeep : undefined, mb: 0.6 }}>
+      <Typography sx={{ ...type.eyebrow, color: behavior ? colors.orangeDeep : undefined, mb: 0.6, letterSpacing: '0.12em' }}>
         Your Action Plan
       </Typography>
       {behavior ? (
         <>
           {traitLabel ? (
-            <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5, mb: 0.6 }}>
+            <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5, mb: 0.6, letterSpacing: '0.12em', whiteSpace: 'normal' }}>
               {traitLabel}
             </Typography>
           ) : null}
