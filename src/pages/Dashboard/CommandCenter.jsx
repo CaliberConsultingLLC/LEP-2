@@ -14,6 +14,7 @@ import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
 import { getDebriefScope, useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
+import { deriveTraitRoles } from './cc/debriefContent.js';
 import GatePage from './cc/GatePage.jsx';
 import { isDemoSession } from '../../utils/demoMode';
 
@@ -85,35 +86,14 @@ const seasonInterpretation = (season) =>
     ? 'Your team has reflected the signal back. Now the work is to turn one insight into visible practice.'
     : 'The listening window is still forming the signal. Your work is to stay open, steady, and ready to understand what comes back.';
 
-const seasonPrompts = {
-  Embarking: [
-    'What would make your next practice visible enough for your team to feel it?',
-    'Where is one small behavior asking for more consistency from you?',
-    'What is the difference between understanding the signal and living it?',
-  ],
-  Understanding: [
-    'What might your team be trying to say before they have the perfect words for it?',
-    'What would change if you listened first, before preparing your defense?',
-    'Where are you being invited to understand instead of explain?',
-  ],
-};
-
-const seasonPrompt = (season, seed = '') => {
-  const bank = seasonPrompts[season] || seasonPrompts.Understanding;
-  const sum = String(seed || season)
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return bank[sum % bank.length];
-};
-
 const guideLine = (season, hasSignal) => {
   if (season === 'Embarking') {
     return hasSignal
-      ? 'You are not starting over. You are carrying the signal into practice now - one visible behavior, held long enough for the team to recognize it.'
+      ? 'The signal, the evidence, and the plan belong in one view now. Hold one visible behavior long enough for the team to recognize it.'
       : 'Begin with one behavior. The journey is built from small, kept commitments.';
   }
   return hasSignal
-    ? 'Do not rush to fix the signal before you have understood it. Let the pattern become clear, then choose the practice.'
+    ? 'Do not rush to fix the signal before you have understood it. Let the pattern become clear, then choose the practice — it stays here with the reading.'
     : 'This is still a listening season. Stay close to the questions and let the signal gather shape.';
 };
 
@@ -367,30 +347,88 @@ function EvidenceFocalCard({ statement, onClick }) {
   );
 }
 
-function SitFocalCard({ prompt }) {
+function PlanFocalCard({ traitLabel, behavior, current, goal, onClick, ready }) {
+  const interactive = typeof onClick === 'function';
   return (
     <Box
+      component={interactive ? 'button' : 'div'}
+      type={interactive ? 'button' : undefined}
+      onClick={onClick}
       sx={{
-        ...focalCardSx(false),
-        background: 'linear-gradient(150deg, var(--sand-50), var(--surface-1))',
+        ...focalCardSx(interactive),
+        ...(behavior
+          ? {
+              background:
+                'linear-gradient(150deg, color-mix(in srgb, var(--amber-soft) 18%, var(--surface-1)), var(--surface-1))',
+              borderColor: colors.orange,
+            }
+          : {}),
       }}
     >
-      <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, mb: 1 }}>Sit with this</Typography>
-      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-        <Typography sx={{ ...type.sectionTitle, fontStyle: 'italic', fontSize: { xs: 21, md: 23 }, lineHeight: 1.28 }}>
-          {prompt}
-        </Typography>
-      </Box>
+      <Typography sx={{ ...type.eyebrow, color: behavior ? colors.orangeDeep : undefined, mb: 0.6 }}>
+        Your Action Plan
+      </Typography>
+      {behavior ? (
+        <>
+          {traitLabel ? (
+            <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5, mb: 0.6 }}>
+              {traitLabel}
+            </Typography>
+          ) : null}
+          <Typography
+            sx={{
+              fontFamily: fonts.serif,
+              fontStyle: 'italic',
+              fontSize: { xs: 16, md: 17 },
+              lineHeight: 1.3,
+              color: colors.textPrimary,
+              flex: 1,
+            }}
+          >
+            “{behavior}”
+          </Typography>
+          {Number.isFinite(current) && Number.isFinite(goal) ? (
+            <Typography sx={{ fontFamily: fonts.mono, fontSize: 12, fontWeight: 700, color: colors.textSecondary, mt: 1.2 }}>
+              {Math.round(current)} → {Math.round(goal)}
+            </Typography>
+          ) : null}
+          <Stack direction="row" alignItems="center" spacing={0.6} sx={{ mt: 0.8 }}>
+            <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.orange }}>
+              Open Practice
+            </Typography>
+            <ArrowForward sx={{ fontSize: 14, color: colors.orange }} />
+          </Stack>
+        </>
+      ) : ready ? (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Typography sx={{ ...type.sectionTitle, fontStyle: 'normal', fontSize: 20 }}>Set this week’s practice</Typography>
+          <Typography sx={{ ...type.bodyMuted, mt: 0.6 }}>
+            One visible behavior, held here with the signal.
+          </Typography>
+          {interactive && (
+            <Stack direction="row" alignItems="center" spacing={0.6} sx={{ mt: 1.2 }}>
+              <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.orange }}>
+                Open Practice
+              </Typography>
+              <ArrowForward sx={{ fontSize: 14, color: colors.orange }} />
+            </Stack>
+          )}
+        </Box>
+      ) : (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Typography sx={{ ...type.sectionTitle, fontStyle: 'normal', fontSize: 20 }}>Plan pending</Typography>
+          <Typography sx={{ ...type.bodyMuted, mt: 0.6 }}>
+            The action plan opens here after you verify the evidence.
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }
 
 function TodayLanding({ t, onNavigate }) {
   const userInfo = readJson('userInfo', {});
-  const focusAreas = readJson('focusAreas', []);
-  const selectedTraits = readJson('selectedTraits', []);
   const campaignRecords = readJson('campaignRecords', {});
-  const actionPlansByCampaign = readJson('actionPlansByCampaign', {});
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
   const { rows } = useBenchmarkData();
 
@@ -407,23 +445,34 @@ function TodayLanding({ t, onNavigate }) {
     campaignRecords?.teamCampaignId ||
     campaignRecords?.selfCampaignId ||
     '123';
-  const plans = actionPlansByCampaign?.[campaignKey]?.[userKey]?.plans || {};
-  const planEntries = Object.entries(plans || {}).flatMap(([trait, subtraits]) =>
-    Object.entries(subtraits || {}).map(([subTrait, plan]) => ({ trait, subTrait, plan }))
-  );
-  const planCount = planEntries.filter(({ plan }) =>
-    String(plan?.commitment || plan?.guidedAnswers?.behaviorCommitment || '').trim()
-  ).length;
-  const primaryFocus =
-    focusAreas?.find?.((area) => selectedTraits?.includes(area.id)) || focusAreas?.[0] || null;
-  const focusLabel = primaryFocus?.subTraitName || primaryFocus?.traitName || primaryFocus?.name || '';
 
-  const promptSeed = `${campaignKey}:${season}:${focusLabel}:${planCount}`;
-  const sitPrompt = seasonPrompt(season, promptSeed);
+  const debriefDone = readJson(`${getDebriefScope()}_done`, {});
+  const evidenceOpen = Boolean(teamCampaignClosed && debriefDone?.signal);
+  const practiceOpen = Boolean(debriefDone?.evidence);
+
+  const roles = deriveTraitRoles(rows);
+  const edgeRow = roles.edge;
+  const edgePlan = edgeRow
+    ? readJson(`practiceStudio_${campaignKey}_${userKey}_${edgeRow.trait}`, null)
+    : null;
+  const planBehavior = String(edgePlan?.branchBehavior || '').trim();
+  const planCount = (roles.ordered || []).filter((row) => {
+    const plan = readJson(`practiceStudio_${campaignKey}_${userKey}_${row.trait}`, null);
+    return String(plan?.branchBehavior || '').trim();
+  }).length;
+  const planCurrent = edgeRow ? Math.round(edgeRow.team.lepScore) : null;
+  const planGoal = Number.isFinite(edgePlan?.commitGoal)
+    ? edgePlan.commitGoal
+    : Number.isFinite(planCurrent)
+      ? Math.min(95, planCurrent + 8)
+      : null;
+
   const nextBestStep = teamCampaignClosed
     ? planCount > 0
-      ? 'Return to the signal and choose what still needs practice.'
-      : 'Choose the one behavior your team should be able to feel next.'
+      ? 'Hold today’s practice where you can see the signal that asked for it.'
+      : practiceOpen
+        ? 'Turn the reading into one visible behavior. The plan lives here with the signal.'
+        : 'Read the signal and the evidence. Your action plan stays in this same chapter.'
     : 'Let the listening window do its work, then come back to read the pattern.';
 
   useEffect(() => {
@@ -470,12 +519,9 @@ function TodayLanding({ t, onNavigate }) {
 
   const journeyCompletion = getJourneyCompletion();
   const journeyCurrentIndex = journeyIndex;
-  const debriefDone = readJson(`${getDebriefScope()}_done`, {});
-  const evidenceOpen = Boolean(teamCampaignClosed && debriefDone?.signal);
-  const practiceOpen = Boolean(debriefDone?.evidence);
 
   return (
-    <Box sx={{ maxWidth: 1180, mx: 'auto', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+    <Box sx={{ maxWidth: 1180, mx: 'auto', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'auto' }}>
       <Box
         sx={{
           display: 'grid',
@@ -594,7 +640,14 @@ function TodayLanding({ t, onNavigate }) {
           onClick={() => onNavigate('signal')}
         />
         <EvidenceFocalCard statement={lowestStatement} onClick={evidenceOpen ? () => onNavigate('evidence') : undefined} />
-        <SitFocalCard prompt={sitPrompt} />
+        <PlanFocalCard
+          traitLabel={edgeRow ? (edgeRow.subTrait || edgeRow.trait) : ''}
+          behavior={planBehavior}
+          current={planCurrent}
+          goal={planGoal}
+          ready={practiceOpen}
+          onClick={practiceOpen ? () => onNavigate('practice') : undefined}
+        />
       </Box>
     </Box>
   );
@@ -696,10 +749,10 @@ export default function CommandCenter() {
   const windowOpen = !campaignClosed;
   const chapterId = windowOpen && activeTab === 'journey'
     ? 'assessments'
-    : (activeTab === 'practice' || (!windowOpen && activeTab === 'journey') ? 'action' : 'review');
+    : (activeTab === 'journey' ? 'action' : 'review');
   const activeStepId = chapterId === 'assessments'
     ? 'team'
-    : (chapterId === 'action' ? (activeTab === 'practice' ? 'practice' : 'journey') : (['today', 'signal', 'evidence'].includes(activeTab) ? activeTab : 'today'));
+    : (chapterId === 'action' ? 'journey' : (['today', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today'));
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.

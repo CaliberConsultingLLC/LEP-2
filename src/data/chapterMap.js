@@ -165,16 +165,16 @@ export const CHAPTERS = [
     num: 'VI',
     name: 'Review & Act',
     purpose:
-      'This is the deeper review. Read what came back, trait by trait, then the statements behind it, before you commit to a practice.',
+      'This is the place you come back to. The signal, the evidence, and your action plan live here together — the whole of today in one sitting.',
     completeBlurb:
-      'You walked Signal and Evidence. The pattern is clear enough to choose one practice your team can feel.',
-    arriveHint: 'Turn one insight into a practice — not a list of goals. One behavior your team should notice.',
+      'You have a reading and a practice. Keep them together until the next check-in tells you whether it is landing.',
+    arriveHint: 'The map holds the year. Today holds the work in front of you.',
     steps: [
       {
         id: 'today',
         label: 'Today',
         path: '/dashboard?tab=today',
-        whatHappens: ['Where you are this week', 'One habit to mark'],
+        whatHappens: ['The signal, the evidence, and your plan', 'Where you land when you log in'],
       },
       {
         id: 'signal',
@@ -190,18 +190,6 @@ export const CHAPTERS = [
         gated: true,
         whatHappens: ['Every statement behind the signal', 'Sourced, not styled', 'Opens Practice when read'],
       },
-    ],
-  },
-  {
-    id: 'action',
-    num: 'VII',
-    name: 'Action',
-    purpose:
-      'Turn the reading into one visible practice, then keep the map in view so you know where you are in the year.',
-    completeBlurb:
-      'You committed to a practice. The next reading will tell you whether it is landing.',
-    arriveHint: 'Keep it small enough to fit a normal week. The map holds the rest.',
-    steps: [
       {
         id: 'practice',
         label: 'Practice',
@@ -209,6 +197,18 @@ export const CHAPTERS = [
         gated: true,
         whatHappens: ['One visible behavior per trait', 'Small enough to hold', 'Held until the next check-in'],
       },
+    ],
+  },
+  {
+    id: 'action',
+    num: 'VII',
+    name: 'Journey',
+    purpose:
+      'The year map — where you have been, and what still sits ahead. The daily work stays on Today.',
+    completeBlurb:
+      'You know where you are in the year. Come back to Today for the signal, the evidence, and the plan.',
+    arriveHint: 'Keep the map in view. The work itself lives on Today.',
+    steps: [
       {
         id: 'journey',
         label: 'Journey',
@@ -219,7 +219,7 @@ export const CHAPTERS = [
   },
 ];
 
-const REVIEW_TABS = ['today', 'signal', 'evidence'];
+const REVIEW_TABS = ['today', 'signal', 'evidence', 'practice'];
 
 export const chapterById = (id) => CHAPTERS.find((c) => c.id === id);
 export const chapterByStep = (stepId) =>
@@ -281,7 +281,6 @@ export function resolveFromLocation(pathname = '', search = '') {
   }
   if (pathname.startsWith('/campaign/')) return { chapterId: 'assessments', activeStepId: 'self' };
   if (pathname.startsWith('/dashboard')) {
-    if (tab === 'practice') return { chapterId: 'action', activeStepId: 'practice' };
     if (tab === 'journey') {
       if (!teamWindowClosed()) return { chapterId: 'assessments', activeStepId: 'team' };
       return { chapterId: 'action', activeStepId: 'journey' };
