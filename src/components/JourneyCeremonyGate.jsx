@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import JourneyChapterCeremony from './JourneyChapterCeremony';
-import { readJourneyJson } from '../pages/Dashboard/journey/journeyModel.js';
 import {
   chapterById,
   chapterIndexOf,
@@ -38,8 +37,6 @@ export default function JourneyCeremonyGate() {
   const previousChapterId = useRef(null);
   const suppressInitialFlow = useRef(true);
   const ceremonyOpenRef = useRef(false);
-  const userInfo = readJourneyJson('userInfo', {});
-  const firstName = String(userInfo?.name || '').trim().split(/\s+/)[0] || '';
 
   useEffect(() => {
     const current = resolveFromLocation(location.pathname, location.search);
@@ -78,10 +75,8 @@ export default function JourneyCeremonyGate() {
       seenKey: toId,
       copy: {
         fromLabel: fromChapter?.name || 'Previous chapter',
-        completeBlurb: fromChapter?.completeBlurb || '',
         toLabel: toChapter?.name || 'Next chapter',
-        blurb: toChapter?.purpose || '',
-        arriveHint: toChapter?.arriveHint || '',
+        toChapterId: toId,
       },
       key: `${fromId}-${toId}-${Date.now()}`,
     });
@@ -95,7 +90,6 @@ export default function JourneyCeremonyGate() {
       toIndex={ceremony?.toIndex || 1}
       copy={ceremony?.copy || null}
       skipWalk={false}
-      firstName={firstName}
       onDone={() => {
         markSeen(ceremony?.seenKey);
         ceremonyOpenRef.current = false;

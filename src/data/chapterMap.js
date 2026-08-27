@@ -1,9 +1,9 @@
 /**
  * Canonical chapter map for the Compass chapter header.
  *
- * chapter.purpose        → drawer column 1, and the "begin" side of a chapter popup.
- * chapter.completeBlurb  → "complete" side of the popup when leaving this chapter.
- * chapter.arriveHint     → one-line "next" hint on the begin card.
+ * chapter.purpose        → drawer column 1.
+ * chapter.completeBlurb  → kept for other surfaces; the chapter ceremony no longer uses it.
+ * chapter.arriveHint     → kept for other surfaces; the chapter ceremony no longer uses it.
  * step.whatHappens       → drawer column 2, scoped to the ACTIVE STEP.
  *
  * Numbering is of VII. Popups fire only when chapterId changes, not on tab changes.

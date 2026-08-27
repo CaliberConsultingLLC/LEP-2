@@ -2,12 +2,31 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { Box, Button, Typography } from '@mui/material';
 import JourneyPorthole from './JourneyPorthole';
+import { useGuide } from '../context/GuideContext';
+import {
+  getGuideChapterLine,
+  resolveCeremonyStationKey,
+} from '../data/guideChapterLines';
+import {
+  DEFAULT_GUIDE_ID,
+  SELECTABLE_GUIDE_PERSONAS,
+  getPersona,
+} from '../data/guidePersonas';
 import { COMPASS_TRAIL } from '../pages/Dashboard/journey/trail-data.js';
 import {
   JOURNEY_ROMAN,
   JOURNEY_STATIONS,
+  chapterText,
 } from '../pages/Dashboard/journey/journeyModel.js';
-import { buttons, colors, fonts, radii } from '../styles/tokens';
+import { buttons, colors, fonts, radii, radiiPx } from '../styles/tokens';
+
+const CARD_W = 620;
+const CARD_H = 320;
+const PANEL_W = 250;
+const PORTHOLE = 236;
+const MOBILE_PANEL_H = 180;
+const MOBILE_MAX = 639;
+const PANEL_EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
 
 function segmentPathD(points, k = 0.85) {
   if (!points.length) return '';
@@ -26,11 +45,27 @@ function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+function readStoredGuideId() {
+  if (typeof window === 'undefined') return '';
+  try {
+    const id = String(window.localStorage.getItem('selectedGuideId') || '').trim();
+    if (SELECTABLE_GUIDE_PERSONAS.some((p) => p.id === id)) return id;
+  } catch {
+    /* ignore */
+  }
+  return '';
+}
+
+function resolveActiveGuideId(personaId) {
+  if (SELECTABLE_GUIDE_PERSONAS.some((p) => p.id === personaId)) return personaId;
+  return readStoredGuideId() || DEFAULT_GUIDE_ID;
+}
+
 /**
  * Two-beat chapter handoff that stays on one card:
- * 1) Complete — celebrate the finished station
+ * 1) Complete — map, chapter line, title, button
  * 2) Walk — porthole pans along the trail with the pulse fixed at center
- * 3) Begin — same card swaps to the next chapter + "Let's get started"
+ * 3) Begin — same card swaps copy; a guide panel grows from the right edge
  */
 export default function JourneyChapterCeremony({
   open,
@@ -49,20 +84,20 @@ export default function JourneyChapterCeremony({
   const reducedMotion = useMemo(() => (
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   ), []);
+  const { personaId } = useGuide();
+  const guideId = resolveActiveGuideId(personaId);
+  const guide = getPersona(guideId);
 
   const fromStation = JOURNEY_STATIONS[fromIndex] || JOURNEY_STATIONS[0];
   const toStation = JOURNEY_STATIONS[toIndex] || JOURNEY_STATIONS[Math.min(fromIndex + 1, JOURNEY_STATIONS.length - 1)];
-  const from = {
-    ...fromStation,
-    label: copy?.fromLabel || fromStation.label,
-    completeBlurb: copy?.completeBlurb || fromStation.completeBlurb,
-  };
-  const to = {
-    ...toStation,
-    label: copy?.toLabel || toStation.label,
-    blurb: copy?.blurb || toStation.blurb,
-    arriveHint: copy?.arriveHint || toStation.arriveHint,
-  };
+  const fromLabel = copy?.fromLabel || fromStation.label;
+  const toLabel = copy?.toLabel || toStation.label;
+  const arriveStationKey = resolveCeremonyStationKey({
+    stationKey: copy?.toStationKey,
+    chapterId: copy?.toChapterId,
+    index: toIndex,
+  });
+  const guideLine = getGuideChapterLine(arriveStationKey, guideId);
   const shouldSkipWalk = Boolean(skipWalk || fromIndex === toIndex);
   const segmentPoints = useMemo(() => {
     const start = COMPASS_TRAIL.STATION_POINT_INDICES[fromIndex] || 0;
@@ -95,9 +130,9 @@ export default function JourneyChapterCeremony({
     if (!open) return undefined;
     openedAtRef.current = Date.now();
     setPhase('complete');
-    setFocus({ x: from.x, y: from.y });
+    setFocus({ x: fromStation.x, y: fromStation.y });
     return clearAsync;
-  }, [clearAsync, open, from.x, from.y, fromIndex]);
+  }, [clearAsync, open, fromStation.x, fromStation.y, fromIndex]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -116,13 +151,13 @@ export default function JourneyChapterCeremony({
   const playWalk = () => {
     const path = pathRef.current;
     if (!path) {
-      setFocus({ x: to.x, y: to.y });
+      setFocus({ x: toStation.x, y: toStation.y });
       setPhase('begin');
       return;
     }
     const total = path.getTotalLength();
     if (!total) {
-      setFocus({ x: to.x, y: to.y });
+      setFocus({ x: toStation.x, y: toStation.y });
       setPhase('begin');
       return;
     }
@@ -140,7 +175,7 @@ export default function JourneyChapterCeremony({
       if (t < 1) {
         frame.current = window.requestAnimationFrame(tick);
       } else {
-        setFocus({ x: to.x, y: to.y });
+        setFocus({ x: toStation.x, y: toStation.y });
         after(280, () => setPhase('begin'));
       }
     };
@@ -150,7 +185,7 @@ export default function JourneyChapterCeremony({
   const continueFromComplete = () => {
     if (phase !== 'complete') return;
     if (shouldSkipWalk || reducedMotion) {
-      setFocus({ x: to.x, y: to.y });
+      setFocus({ x: toStation.x, y: toStation.y });
       setPhase('begin');
       return;
     }
@@ -168,24 +203,22 @@ export default function JourneyChapterCeremony({
   if (!open || phase === 'idle' || typeof document === 'undefined') return null;
 
   const isCompleteBeat = phase === 'complete' || phase === 'walk';
+  const panelOpen = phase === 'begin';
   const portholeIndex = isCompleteBeat ? fromIndex : toIndex;
   const eyebrow = isCompleteBeat ? (
     <>
       Chapter {JOURNEY_ROMAN[fromIndex]}
       {' · '}
-      <Box component="span" sx={{ color: colors.green, fontWeight: 800, fontSize: '1.15em' }}>
+      <Box component="span" sx={{ color: colors.green, fontWeight: 800 }}>
         Complete ✓
       </Box>
     </>
   ) : (
-    <>Chapter {JOURNEY_ROMAN[Math.min(toIndex, 6)]} of VII · {to.label}</>
+    chapterText(toIndex)
   );
-  const title = isCompleteBeat ? from.label : to.label;
-  const body = isCompleteBeat
-    ? (from.completeBlurb || `You just completed ${from.label}. Here’s what you accomplished on this stretch of the trail.`)
-    : (to.blurb || to.subtitle);
+  const title = isCompleteBeat ? fromLabel : toLabel;
   const button = isCompleteBeat
-    ? (phase === 'walk' ? 'On the trail…' : `Continue to ${to.label}`)
+    ? (phase === 'walk' ? 'On the trail…' : "I'm Finished")
     : "Let's get started";
   const buttonDisabled = phase === 'walk';
   const onButton = isCompleteBeat
@@ -222,18 +255,58 @@ export default function JourneyChapterCeremony({
         <path ref={pathRef} d={pathD} fill="none" stroke="none" />
       </svg>
 
-      <CeremonyCard
-        index={portholeIndex}
-        focus={focus}
-        walking={phase === 'walk'}
-        eyebrow={eyebrow}
-        title={title}
-        body={body}
-        nextHint={isCompleteBeat ? (to.arriveHint || to.subtitle || to.blurb) : null}
-        button={button}
-        buttonDisabled={buttonDisabled}
-        onClick={onButton}
-      />
+      <Box
+        // Desktop: 620px anchor stays centered; the panel grows out of the right edge.
+        onClick={(event) => event.stopPropagation()}
+        sx={{
+          position: 'relative',
+          width: 'min(620px, calc(100vw - 32px))',
+          height: 'auto',
+          [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
+            width: CARD_W,
+            height: CARD_H,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            overflow: 'hidden',
+            borderRadius: radii.xl,
+            boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
+            [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              height: CARD_H,
+            },
+            [`@media (max-width: ${MOBILE_MAX}px)`]: {
+              flexDirection: 'column',
+              width: '100%',
+            },
+          }}
+        >
+          <CeremonyCard
+            index={portholeIndex}
+            focus={focus}
+            walking={phase === 'walk'}
+            arrived={panelOpen}
+            reducedMotion={reducedMotion}
+            eyebrow={eyebrow}
+            title={title}
+            guideLine={panelOpen ? guideLine : null}
+            button={button}
+            buttonDisabled={buttonDisabled}
+            onClick={onButton}
+          />
+          <GuidePanel
+            open={panelOpen}
+            reducedMotion={reducedMotion}
+            guideId={guideId}
+            guideName={guide?.name || 'Mentor'}
+          />
+        </Box>
+      </Box>
     </Box>,
     document.body,
   );
@@ -243,28 +316,45 @@ function CeremonyCard({
   index,
   focus,
   walking,
+  arrived,
+  reducedMotion,
   eyebrow,
   title,
-  body,
-  nextHint,
+  guideLine,
   button,
   buttonDisabled,
   onClick,
 }) {
   return (
     <Box
-      onClick={(event) => event.stopPropagation()}
       sx={{
-        width: 'min(600px, calc(100vw - 32px))',
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: 'border-box',
+        flexShrink: 0,
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: '218px 1fr' },
-        gap: { xs: 2.4, sm: 3 },
+        gridTemplateColumns: `${PORTHOLE}px 1fr`,
+        gap: '40px',
         alignItems: 'center',
         bgcolor: colors.sand50,
         border: '1px solid var(--sand-200)',
-        borderRadius: radii.xl,
-        boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
-        p: { xs: 2.4, sm: 3 },
+        borderRadius: arrived
+          ? `${radiiPx.xl}px 0 0 ${radiiPx.xl}px`
+          : radii.xl,
+        p: '26px 30px 26px 26px',
+        [`@media (max-width: ${MOBILE_MAX}px)`]: {
+          width: '100%',
+          height: 'auto',
+          minHeight: CARD_H,
+          gridTemplateColumns: '1fr',
+          justifyItems: 'center',
+          textAlign: 'center',
+          gap: '24px',
+          p: '24px 22px',
+          borderRadius: arrived
+            ? `${radiiPx.xl}px ${radiiPx.xl}px 0 0`
+            : radii.xl,
+        },
       }}
     >
       <JourneyPorthole
@@ -274,72 +364,183 @@ function CeremonyCard({
         focusY={focus?.y}
         instant={walking}
       />
-      <Box>
-        <Typography
+      <Box
+        sx={{
+          minWidth: 0,
+          width: '100%',
+          [`@media (max-width: ${MOBILE_MAX}px)`]: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          },
+        }}
+      >
+        <Box
+          key={arrived ? 'arrive' : 'complete'}
           sx={{
-            fontFamily: fonts.mono,
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: colors.orangeDeep,
-            mb: 1,
-            lineHeight: 1.35,
+            ...(arrived && !reducedMotion ? {
+              animation: 'ceremonyArriveText 520ms ease 280ms both',
+              '@keyframes ceremonyArriveText': {
+                from: { opacity: 0, transform: 'translateY(8px)' },
+                to: { opacity: 1, transform: 'translateY(0)' },
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                animation: 'none',
+              },
+            } : {}),
           }}
         >
-          {eyebrow}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: fonts.serif,
-            fontSize: { xs: 28, sm: 32 },
-            fontWeight: 600,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
-            color: colors.ink,
-            mb: 1,
-          }}
-        >
-          {title}
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: fonts.serif,
-            fontStyle: 'italic',
-            fontSize: 15.5,
-            fontWeight: 500,
-            lineHeight: 1.45,
-            color: colors.inkSoft,
-            mb: nextHint ? 1.2 : 2.4,
-          }}
-        >
-          {body}
-        </Typography>
-        {nextHint && (
           <Typography
             sx={{
-              fontFamily: fonts.sans,
-              fontSize: 13,
-              fontWeight: 600,
-              lineHeight: 1.45,
-              color: colors.inkSoft,
-              mb: 2.4,
+              fontFamily: fonts.mono,
+              fontSize: 11.5,
+              fontWeight: 800,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: colors.orangeDeep,
+              mb: 1,
+              lineHeight: 1.35,
             }}
           >
-            Next: {nextHint}
+            {eyebrow}
           </Typography>
-        )}
+          <Typography
+            sx={{
+              fontFamily: fonts.serif,
+              fontSize: 31,
+              fontWeight: 600,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: colors.ink,
+              mb: guideLine ? 1.2 : 2,
+            }}
+          >
+            {title}
+          </Typography>
+          {guideLine ? (
+            <Typography
+              sx={{
+                fontFamily: fonts.serif,
+                fontStyle: 'italic',
+                fontSize: 15.5,
+                fontWeight: 500,
+                lineHeight: 1.45,
+                color: colors.inkSoft,
+                maxWidth: 300,
+                mb: 2.2,
+              }}
+            >
+              {guideLine}
+            </Typography>
+          ) : null}
+        </Box>
         <Button
           variant="contained"
           onClick={onClick}
           disabled={buttonDisabled}
           sx={{
             ...buttons.primary,
-            opacity: buttonDisabled ? 0.72 : 1,
+            opacity: buttonDisabled ? 0.6 : 1,
+            '&.Mui-disabled': {
+              opacity: 0.6,
+              color: colors.amberSoft,
+              bgcolor: colors.navy900,
+            },
           }}
         >
           {button}
         </Button>
+      </Box>
+    </Box>
+  );
+}
+
+function GuidePanel({ open, reducedMotion, guideId, guideName }) {
+  const portraitSrc = `/landing/alt/${guideId}-alt.png`;
+  return (
+    <Box
+      aria-hidden={!open}
+      sx={{
+        position: 'relative',
+        minWidth: 0,
+        flexShrink: 0,
+        overflow: 'hidden',
+        height: CARD_H,
+        width: open ? PANEL_W : 0,
+        opacity: open ? 1 : 0,
+        bgcolor: colors.navy900,
+        transition: reducedMotion
+          ? 'none'
+          : `width 660ms ${PANEL_EASE}, opacity 380ms ${PANEL_EASE} 140ms`,
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
+        },
+        [`@media (max-width: ${MOBILE_MAX}px)`]: {
+          width: '100%',
+          height: open ? MOBILE_PANEL_H : 0,
+          transition: reducedMotion
+            ? 'none'
+            : `height 660ms ${PANEL_EASE}, opacity 380ms ${PANEL_EASE} 140ms`,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: PANEL_W,
+          height: '100%',
+          overflow: 'hidden',
+          bgcolor: colors.navy900,
+          boxShadow: 'inset 18px 0 34px -18px rgba(4,9,26,0.8)',
+          [`@media (max-width: ${MOBILE_MAX}px)`]: {
+            width: '100%',
+          },
+        }}
+      >
+        <Box
+          component="img"
+          src={portraitSrc}
+          alt=""
+          sx={{
+            position: 'absolute',
+            left: '50%',
+            top: '-8%',
+            transform: 'translateX(-50%)',
+            width: '210%',
+            maxWidth: 'none',
+            height: 'auto',
+            display: 'block',
+            pointerEvents: 'none',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, rgba(16,34,60,0) 48%, rgba(16,34,60,0.6) 78%, rgba(9,16,31,0.96) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <Typography
+          sx={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: '16px',
+            zIndex: 1,
+            textAlign: 'center',
+            fontFamily: fonts.mono,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: colors.amberSoft,
+          }}
+        >
+          — {guideName}
+        </Typography>
       </Box>
     </Box>
   );

@@ -4,7 +4,7 @@ import { JOURNEY_BASE_SRC, JOURNEY_IMAGE, JOURNEY_STATIONS } from '../pages/Dash
 
 const SIZE_BY_VARIANT = {
   header: 116,
-  ceremony: 218,
+  ceremony: 236,
   corner: 100,
 };
 
