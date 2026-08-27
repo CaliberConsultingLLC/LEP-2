@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
@@ -285,12 +284,12 @@ function TraitSelection() {
               sx={{
                 ...surfaces.card,
                 boxSizing: 'border-box',
-                height: '100%',
+                height: 'auto',
                 minHeight: 0,
-                p: '26px 28px',
+                p: '26px 28px 16px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '18px',
+                gap: '14px',
                 overflow: 'hidden',
               }}
             >
@@ -306,7 +305,7 @@ function TraitSelection() {
                     mb: '7px',
                   }}
                 >
-                  Step 1 · Choose three
+                  Trait Selection
                 </Typography>
                 <Typography
                   sx={{
@@ -318,7 +317,7 @@ function TraitSelection() {
                     color: colors.ink,
                   }}
                 >
-                  The three traits your year runs on
+                  The three traits your team runs on
                 </Typography>
                 <Typography
                   sx={{
@@ -339,8 +338,6 @@ function TraitSelection() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
-                  flex: 1,
-                  minHeight: 0,
                 }}
               >
                 {focusAreas.map((focusArea, idx) => {
@@ -370,7 +367,7 @@ function TraitSelection() {
                         alignItems: 'center',
                         gap: '18px',
                         px: '16px',
-                        py: '7px',
+                        py: '9px',
                         borderRadius: radii.md,
                         bgcolor: isSelected
                           ? 'color-mix(in srgb, var(--green) 6%, var(--surface-1))'
@@ -489,7 +486,7 @@ function TraitSelection() {
                               lineHeight: 1.4,
                               color: colors.ink,
                               display: '-webkit-box',
-                              WebkitLineClamp: 2,
+                              WebkitLineClamp: 3,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
                             }}
@@ -518,7 +515,7 @@ function TraitSelection() {
                               lineHeight: 1.4,
                               color: colors.ink,
                               display: '-webkit-box',
-                              WebkitLineClamp: 2,
+                              WebkitLineClamp: 3,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
                             }}
@@ -566,66 +563,31 @@ function TraitSelection() {
                 <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkSoft }}>
                   {`${selectedCountLabel} of three selected. Swap any of them before you build.`}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                  <Typography
-                    sx={{
-                      fontFamily: '"Montserrat", sans-serif',
-                      fontWeight: 800,
-                      fontSize: 13,
-                      color: colors.inkSoft,
-                    }}
-                  >
-                    Reflection
-                  </Typography>
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={() => navigate('/summary')}
-                    aria-label="Back to reflection"
-                    sx={{
-                      all: 'unset',
-                      boxSizing: 'border-box',
-                      cursor: 'pointer',
-                      width: 38,
-                      height: 38,
-                      borderRadius: radii.circle,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: `1.5px solid ${colors.sand300}`,
-                      color: colors.inkSoft,
-                      '&:hover': { borderColor: colors.orange, color: colors.navy900 },
-                      '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                    }}
-                  >
-                    <ChevronLeftIcon sx={{ fontSize: 19 }} />
-                  </Box>
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={handleContinue}
-                    disabled={selectedTraits.length !== 3}
-                    sx={{
-                      all: 'unset',
-                      boxSizing: 'border-box',
-                      cursor: selectedTraits.length !== 3 ? 'default' : 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      px: '24px',
-                      py: '12px',
-                      borderRadius: radii.pill,
-                      bgcolor: selectedTraits.length !== 3 ? colors.sand200 : colors.navy900,
-                      color: selectedTraits.length !== 3 ? colors.inkSoft : colors.amberSoft,
-                      fontFamily: fonts.sans,
-                      fontWeight: 800,
-                      fontSize: 13.5,
-                      boxShadow: selectedTraits.length !== 3 ? 'none' : shadows.buttonPrimary,
-                      '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                    }}
-                  >
-                    Build the campaign
-                  </Box>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={handleContinue}
+                  disabled={selectedTraits.length !== 3}
+                  sx={{
+                    all: 'unset',
+                    boxSizing: 'border-box',
+                    cursor: selectedTraits.length !== 3 ? 'default' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    px: '24px',
+                    py: '12px',
+                    borderRadius: radii.pill,
+                    bgcolor: selectedTraits.length !== 3 ? colors.sand200 : colors.navy900,
+                    color: selectedTraits.length !== 3 ? colors.inkSoft : colors.amberSoft,
+                    fontFamily: fonts.sans,
+                    fontWeight: 800,
+                    fontSize: 13.5,
+                    boxShadow: selectedTraits.length !== 3 ? 'none' : shadows.buttonPrimary,
+                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                  }}
+                >
+                  Build the campaign
                 </Box>
               </Box>
             </Box>

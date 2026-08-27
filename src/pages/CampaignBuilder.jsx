@@ -518,12 +518,12 @@ function CampaignBuilder() {
               sx={{
                 ...surfaces.card,
                 boxSizing: 'border-box',
-                height: '100%',
+                height: 'auto',
                 minHeight: 0,
-                p: '26px 28px',
+                p: '26px 28px 16px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '18px',
+                gap: '14px',
                 overflow: 'hidden',
               }}
             >
@@ -548,7 +548,7 @@ function CampaignBuilder() {
                       mb: '7px',
                     }}
                   >
-                    Step 2 · Verify the questions
+                    Campaign Builder
                   </Typography>
                   <Typography
                     sx={{
@@ -572,7 +572,7 @@ function CampaignBuilder() {
                       maxWidth: '56ch',
                     }}
                   >
-                    Keep what feels fair and useful. Remove anything confusing, unfair, or outside this stretch. Your team sees only what you keep.
+                    Built from the three traits you chose. Keep what feels fair and useful. Remove anything confusing, unfair, or outside this stretch.
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: '8px', flexShrink: 0, mt: '24px' }}>
@@ -619,8 +619,6 @@ function CampaignBuilder() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '9px',
-                  flex: 1,
-                  minHeight: 0,
                 }}
               >
                 {activeStatements.map((stmt, sIdx) => {
