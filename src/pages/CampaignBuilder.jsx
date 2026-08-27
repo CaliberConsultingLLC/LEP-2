@@ -17,14 +17,12 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
-import CairnFlowButtons from '../components/CairnFlowButtons';
-import CairnLeftRail from '../components/CairnLeftRail';
-import CampaignStageHeader, { stageType } from '../components/CampaignStageCopy';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -414,7 +412,6 @@ function CampaignBuilder() {
 
   // ── Cairn theme render ──────────────────────────────────────────────────────
   if (useCairnTheme) {
-    const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
     const activeTrait = campaign ? campaign[expandedTrait] : null;
     const activeTraitInfo = selectedTraitInfo[expandedTrait] || {};
     const activeStatements = activeTrait
@@ -442,175 +439,6 @@ function CampaignBuilder() {
         return acc;
       },
       { current: 0, total: 0 }
-    );
-
-    const RightRail = hidden ? (
-      <Box
-        component="button"
-        type="button"
-        onClick={() => setHidden(false)}
-        aria-label={`Show ${persona.name} guide`}
-        sx={{
-          all: 'unset',
-          cursor: 'pointer',
-          position: 'fixed',
-          right: 0,
-          bottom: 32,
-          zIndex: 1200,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          padding: '10px 14px 10px 16px',
-          borderRadius: '14px 0 0 14px',
-          background: 'var(--navy-900, #10223C)',
-          color: 'var(--amber-soft, #F4CEA1)',
-          boxShadow: '0 12px 28px rgba(15,28,46,0.28)',
-          fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-          fontSize: 10.5,
-          fontWeight: 700,
-          letterSpacing: '0.14em',
-          textTransform: 'uppercase',
-          transition: 'transform 180ms cubic-bezier(.2,.8,.2,1)',
-          '&:hover': { transform: 'translateX(-3px)' },
-          '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
-        }}
-      >
-        <Box
-          component="img"
-          src={persona.poses.idle}
-          alt=""
-          aria-hidden
-          sx={{
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            objectPosition: 'top center',
-            border: '2px solid var(--amber-soft, #F4CEA1)',
-            background: 'var(--navy-800, #162A44)',
-          }}
-        />
-        Guide
-      </Box>
-    ) : (
-      <Stack
-        spacing={1.5}
-        sx={{
-          position: 'fixed',
-          right: { md: 16, lg: 24 },
-          bottom: 0,
-          zIndex: 1100,
-          width: 'clamp(250px, 25vw, 350px)',
-          alignItems: 'stretch',
-          pointerEvents: 'none',
-        }}
-      >
-        <Box sx={{
-          position: 'relative',
-          bgcolor: isDark ? 'rgba(8,16,28,0.68)' : 'rgba(255,255,255,0.76)',
-          borderRadius: '18px',
-          border: isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
-          boxShadow: isDark ? '0 16px 42px rgba(0,0,0,0.34)' : '0 14px 32px rgba(15,28,46,0.08)',
-          p: 2.25,
-          pointerEvents: 'auto',
-          '&:after': {
-            content: '""',
-            position: 'absolute',
-            right: 78,
-            bottom: -10,
-            width: 18,
-            height: 18,
-            bgcolor: isDark ? 'rgba(8,16,28,0.68)' : 'rgba(255,255,255,0.76)',
-            borderRight: isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
-            borderBottom: isDark ? '1px solid rgba(244,206,161,0.16)' : '1px solid var(--sand-200, #E8DBC3)',
-            transform: 'rotate(45deg)',
-          },
-        }}>
-          <Box
-            component="button"
-            type="button"
-            onClick={toggleHidden}
-            aria-label="Hide guide"
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              width: 20,
-              height: 20,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)',
-              fontFamily: '"Manrope", sans-serif',
-              fontSize: 14,
-              lineHeight: 1,
-              fontWeight: 600,
-              transition: 'background 140ms',
-              '&:hover': { background: isDark ? 'rgba(244,206,161,0.1)' : 'var(--sand-100, #F4ECDD)' },
-              '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
-            }}
-          >
-            ×
-          </Box>
-          <Typography sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.64rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--orange-deep, #C0612A)', mb: 1.5 }}>
-            Guide notes
-          </Typography>
-          <Typography sx={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: '0.95rem', lineHeight: 1.6, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 1.8 }}>
-            "Keep scope small enough that it fits inside a normal week. If it needs heroics, shrink it."
-          </Typography>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', mb: 1 }}>
-            Your control
-          </Typography>
-          {[
-            ['Draft prompts', 'These are testable feedback prompts, not conclusions.'],
-            ['Curate before sending', 'Remove anything that would not produce fair, useful feedback.'],
-            ['Verify when ready', 'The campaign only moves forward after your review.'],
-          ].map(([title, body]) => (
-            <Box key={title} sx={{ display: 'flex', gap: 1.15, mb: 1.75 }}>
-              <Box sx={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                bgcolor: 'rgba(224,122,63,0.12)',
-                border: '1px solid rgba(224,122,63,0.24)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>
-                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 800, fontSize: '0.8rem', color: 'var(--orange, #E07A3F)' }}>✓</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center', maxWidth: 760, mx: 'auto' }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.82rem', fontWeight: 800, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.3 }}>
-                  {title}
-                </Typography>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', lineHeight: 1.5, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)', mt: 0.25 }}>
-                  {body}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
-          <Box sx={{ mt: 1.6, pt: 1.5, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }}>
-            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.85rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75 }}>
-              Active set
-            </Typography>
-            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', lineHeight: 1.55, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
-              {keptCount} of {activeStatements.length || 0} prompts kept for this focus area.
-            </Typography>
-          </Box>
-        </Box>
-        <Box
-          component="img"
-          src={persona.poses.lantern || persona.poses.page || persona.poses.idle}
-          alt={`${persona.name} guide`}
-          sx={{ width: '100%', height: 'auto', alignSelf: 'center', objectFit: 'contain', objectPosition: 'bottom right', pointerEvents: 'auto', cursor: 'pointer' }}
-          onClick={toggleHidden}
-          draggable={false}
-        />
-      </Stack>
     );
 
     const GuideRail = (
@@ -663,65 +491,6 @@ function CampaignBuilder() {
       </CairnGuidePanel>
     );
 
-    const NavSidebar = (
-      <Box sx={{
-        bgcolor: isDark ? 'var(--surface-2, #0f1c2e)' : 'white', borderRadius: '16px',
-        border: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.06)',
-        overflow: 'hidden', position: 'sticky', top: 96,
-      }}>
-        {(campaign || []).map((traitItem, idx) => {
-          const info = selectedTraitInfo[idx] || {};
-          const label = info.subTraitName || info.coreTraitName || traitItem.trait || `Trait ${idx + 1}`;
-          const sub = info.subTraitName ? info.coreTraitName : null;
-          const active = idx === expandedTrait;
-          return (
-            <Box
-              key={`nav-${idx}`}
-              component="button"
-              type="button"
-              onClick={() => setExpandedTrait(idx)}
-              sx={{
-                all: 'unset', cursor: 'pointer',
-                display: 'flex', alignItems: 'flex-start', gap: 1.5,
-                px: 2, py: 1.5, width: '100%', boxSizing: 'border-box',
-                bgcolor: active ? 'var(--navy-900, #10223C)' : 'transparent',
-                transition: '140ms',
-                '&:hover': { bgcolor: active ? 'var(--navy-800, #162A44)' : 'var(--sand-50, #FBF7F0)' },
-                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: -3 },
-              }}
-            >
-              <Box sx={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0, mt: '2px',
-                bgcolor: active ? 'rgba(255,255,255,0.15)' : 'var(--sand-100, #F3EAD8)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 700, fontSize: '0.72rem', color: active ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)' }}>
-                  {ROMAN[idx]}
-                </Typography>
-              </Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.88rem', lineHeight: 1.2, color: active ? 'var(--amber-soft, #F4CEA1)' : isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' }}>
-                  {label}
-                </Typography>
-                {sub && (
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.71rem', lineHeight: 1.3, mt: 0.3, color: active ? 'rgba(244,206,161,0.72)' : isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)' }}>
-                    {sub}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          );
-        })}
-        <Box sx={{ borderTop: isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)', mx: 2, mt: 0.5 }} />
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.75rem', color: isDark ? 'var(--ink-soft, #a89880)' : 'var(--ink-soft, #44566C)', lineHeight: 1.5, fontStyle: 'italic' }}>
-            Review each trait, then verify or rebuild.
-          </Typography>
-        </Box>
-      </Box>
-    );
-
     return (
       <Box sx={{ height: '100svh', bgcolor: 'var(--sand-50, #FBF7F0)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <ProcessTopRail
@@ -745,179 +514,283 @@ function CampaignBuilder() {
               </Box>
             </Box>
           ) : campaign && activeTrait ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.35, height: { md: '100%' }, maxHeight: { md: '100%' }, minHeight: 0, overflow: 'hidden' }}>
-              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch' }}>
-              <CairnLeftRail
-                isDark={isDark}
-                railLabel="Campaign traits"
-                tabs={(campaign || []).map((traitItem, idx) => {
-                  const info = selectedTraitInfo[idx] || {};
-                  return {
-                    id: `trait-${idx}`,
-                    label: info.subTraitName || info.coreTraitName || traitItem.trait || `Focus ${idx + 1}`,
-                    subtitle: info.coreTraitName || 'Growth focus',
-                    number: String(idx + 1),
-                    selected: true,
-                  };
-                })}
-                activeId={`trait-${expandedTrait}`}
-                onChange={(id) => {
-                  const idx = Number(String(id).replace('trait-', ''));
-                  if (Number.isFinite(idx)) setExpandedTrait(idx);
+            <Box
+              sx={{
+                ...surfaces.card,
+                boxSizing: 'border-box',
+                height: '100%',
+                minHeight: 0,
+                p: '26px 28px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '18px',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: '32px',
+                  flexShrink: 0,
                 }}
               >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1.6,
-                    width: '100%',
-                    height: '100%',
-                    minHeight: 0,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Box sx={{ flexShrink: 0 }}>
-                    <CampaignStageHeader
-                      eyebrow={`Trait ${CAMPAIGN_ROMAN[expandedTrait] || expandedTrait + 1}`}
-                      title={activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
-                      subtitle={`Influence · ${activeTraitInfo.coreTraitName || 'Growth campaign'}`}
-                      meta={`${persona.name} · Review statements`}
-                    />
-                    <Typography sx={stageType.body}>
-                      Keep what feels fair and useful. Remove anything confusing, unfair, or outside this growth campaign.
-                      {' '}
-                      {keptCount}
-                      /
-                      {activeStatements.length}
-                      {' '}
-                      statements kept for this trait.
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%', flex: 1, minHeight: 0, overflow: 'auto' }}>
-                    {activeStatements.map((stmt, sIdx) => {
-                      const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
-                      return (
-                        <Box
-                          key={`stmt-${sIdx}`}
-                          sx={{
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1fr) auto' },
-                            alignItems: 'center',
-                            gap: 1.15,
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              ...surfaces.cardInner,
-                              bgcolor: isDismissed
-                                ? (isDark ? 'rgba(192,97,42,0.1)' : 'color-mix(in srgb, var(--orange-deep) 8%, var(--sand-50))')
-                                : (isDark ? 'rgba(255,255,255,0.03)' : colors.sand50),
-                              borderColor: isDismissed
-                                ? 'color-mix(in srgb, var(--orange-deep) 34%, transparent)'
-                                : undefined,
-                              px: { xs: 1.6, md: 1.9 },
-                              py: { xs: 1.3, md: 1.5 },
-                              textAlign: 'left',
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                ...stageType.statement,
-                                color: isDismissed ? colors.inkSoft : (isDark ? colors.ink : colors.navy900),
-                                textDecoration: isDismissed ? 'line-through' : 'none',
-                                opacity: isDismissed ? 0.72 : 1,
-                              }}
-                            >
-                              {stmt}
-                            </Typography>
-                          </Box>
-                          <Box
-                            component="button"
-                            type="button"
-                            onClick={() => handleStatementDismiss(activeTrait.trait, sIdx, !isDismissed)}
-                            sx={{
-                              all: 'unset',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              minWidth: 92,
-                              px: 1.7,
-                              py: 0.85,
-                              borderRadius: radii.pill,
-                              bgcolor: isDismissed ? colors.green : 'color-mix(in srgb, var(--orange) 14%, transparent)',
-                              border: isDismissed
-                                ? `1px solid color-mix(in srgb, var(--green) 35%, transparent)`
-                                : `1px solid color-mix(in srgb, var(--orange) 32%, transparent)`,
-                              color: isDismissed ? colors.surface1 : colors.orangeDeep,
-                              fontFamily: fonts.sans,
-                              fontWeight: 800,
-                              fontSize: '0.74rem',
-                              boxShadow: isDismissed ? shadows.buttonSecondary : shadows.none,
-                              transition: '180ms ease',
-                              '&:hover': { transform: 'translateY(-1px)' },
-                              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                            }}
-                          >
-                            {isDismissed ? 'Restore' : 'Remove'}
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                  </Box>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.mono,
+                      fontWeight: 700,
+                      fontSize: 10.2,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      color: colors.orangeDeep,
+                      mb: '7px',
+                    }}
+                  >
+                    Step 2 · Verify the questions
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.serif,
+                      fontWeight: 500,
+                      fontSize: 28,
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.1,
+                      color: colors.ink,
+                    }}
+                  >
+                    The sentences your team will rate
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.sans,
+                      fontSize: 13.5,
+                      lineHeight: 1.55,
+                      color: colors.inkSoft,
+                      mt: '6px',
+                      maxWidth: '56ch',
+                    }}
+                  >
+                    Keep what feels fair and useful. Remove anything confusing, unfair, or outside this stretch. Your team sees only what you keep.
+                  </Typography>
                 </Box>
-              </CairnLeftRail>
+                <Box sx={{ display: 'flex', gap: '8px', flexShrink: 0, mt: '24px' }}>
+                  {(campaign || []).map((traitItem, idx) => {
+                    const info = selectedTraitInfo[idx] || {};
+                    const label = info.subTraitName || info.coreTraitName || traitItem.trait || `Trait ${idx + 1}`;
+                    const isActive = idx === expandedTrait;
+                    return (
+                      <Box
+                        key={`trait-pill-${idx}`}
+                        component="button"
+                        type="button"
+                        onClick={() => setExpandedTrait(idx)}
+                        sx={{
+                          all: 'unset',
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          px: '18px',
+                          py: '11px',
+                          borderRadius: radii.md,
+                          whiteSpace: 'nowrap',
+                          fontFamily: fonts.sans,
+                          fontWeight: 700,
+                          fontSize: 13.5,
+                          lineHeight: 1.2,
+                          bgcolor: isActive ? colors.navy900 : colors.surface1,
+                          color: isActive ? colors.amberSoft : colors.navy900,
+                          border: isActive ? `1px solid ${colors.navy900}` : `1px solid ${colors.sand200}`,
+                          boxShadow: isActive ? shadows.buttonPrimary : 'none',
+                          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                        }}
+                      >
+                        {label}
+                      </Box>
+                    );
+                  })}
+                </Box>
               </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 0.5 }}>
-                <CairnFlowButtons
-                  isDark={isDark}
-                  backLabel="Traits"
-                  nextLabel="Verify Campaign"
-                  onBack={() => navigate('/trait-selection')}
-                  onNext={() => {
-                    localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
-                    navigate('/campaign-verify');
-                  }}
-                  middleAction={(
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '9px',
+                  flex: 1,
+                  minHeight: 0,
+                }}
+              >
+                {activeStatements.map((stmt, sIdx) => {
+                  const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
+                  return (
                     <Box
-                      component="button"
-                      type="button"
-                      onClick={handleRebuildCampaign}
+                      key={`stmt-${sIdx}`}
                       sx={{
-                        all: 'unset',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
+                        boxSizing: 'border-box',
+                        display: 'grid',
+                        gridTemplateColumns: '30px 1fr 108px',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        minHeight: 38,
-                        px: { xs: 1.6, sm: 2.3 },
-                        borderRadius: radii.pill,
-                        bgcolor: isDark ? 'rgba(244,206,161,0.08)' : 'rgba(255,255,255,0.78)',
-                        border: isDark ? '1.5px solid rgba(244,206,161,0.22)' : '1.5px solid var(--sand-300, #C9B99A)',
-                        color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
-                        fontFamily: '"Montserrat", sans-serif',
-                        fontWeight: 900,
-                        fontSize: '0.78rem',
-                        boxShadow: '0 1px 4px rgba(15,28,46,0.06)',
-                        transition: '180ms ease',
-                        '&:hover': {
-                          borderColor: 'var(--orange, #E07A3F)',
-                          transform: 'translateY(-1px)',
-                        },
-                        '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.38)', outlineOffset: 2 },
+                        gap: '16px',
+                        px: '16px',
+                        py: '14px',
+                        borderRadius: radii.md,
+                        bgcolor: isDismissed
+                          ? 'color-mix(in srgb, var(--orange-deep) 7%, var(--sand-50))'
+                          : colors.sand50,
+                        border: isDismissed
+                          ? '1px solid color-mix(in srgb, var(--orange-deep) 32%, transparent)'
+                          : `1px solid ${colors.sand200}`,
                       }}
                     >
-                      Rebuild Campaign
+                      <Typography
+                        sx={{
+                          fontFamily: fonts.mono,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: isDismissed ? colors.orangeDeep : colors.inkSoft,
+                        }}
+                      >
+                        {sIdx + 1}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: fonts.sans,
+                          fontSize: 15,
+                          lineHeight: 1.45,
+                          fontWeight: 600,
+                          color: isDismissed ? colors.inkSoft : colors.navy900,
+                          textDecoration: isDismissed ? 'line-through' : 'none',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {stmt}
+                      </Typography>
+                      <Box
+                        component="button"
+                        type="button"
+                        onClick={() => handleStatementDismiss(activeTrait.trait, sIdx, !isDismissed)}
+                        sx={{
+                          all: 'unset',
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          py: '8px',
+                          px: 0,
+                          width: '100%',
+                          borderRadius: radii.pill,
+                          fontFamily: fonts.sans,
+                          fontWeight: 800,
+                          fontSize: 11.8,
+                          bgcolor: isDismissed ? colors.green : 'rgba(224,122,63,0.12)',
+                          border: isDismissed ? `1px solid ${colors.green}` : '1px solid rgba(224,122,63,0.32)',
+                          color: isDismissed ? '#fff' : colors.orangeDeep,
+                          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                        }}
+                      >
+                        {isDismissed ? 'Restore' : 'Remove'}
+                      </Box>
                     </Box>
-                  )}
-                />
-                <Typography sx={{ ...stageType.eyebrow, color: colors.inkSoft, textAlign: 'center' }}>
-                  Focus {expandedTrait + 1} of {(campaign || []).length}
-                </Typography>
+                  );
+                })}
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderTop: `1px solid ${colors.sand200}`,
+                  pt: '14px',
+                  flexShrink: 0,
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkSoft }}>
+                  {`${statementChip.current} of ${statementChip.total} statements kept across three traits.`}
+                  {' '}
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={handleRebuildCampaign}
+                    sx={{
+                      all: 'unset',
+                      cursor: 'pointer',
+                      color: colors.orangeDeep,
+                      fontWeight: 700,
+                      '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                    }}
+                  >
+                    Rebuild campaign
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: '"Montserrat", sans-serif',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      color: colors.inkSoft,
+                    }}
+                  >
+                    Traits
+                  </Typography>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => navigate('/trait-selection')}
+                    aria-label="Back to traits"
+                    sx={{
+                      all: 'unset',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      width: 38,
+                      height: 38,
+                      borderRadius: radii.circle,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `1.5px solid ${colors.sand300}`,
+                      color: colors.inkSoft,
+                      '&:hover': { borderColor: colors.orange, color: colors.navy900 },
+                      '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                    }}
+                  >
+                    <ChevronLeftIcon sx={{ fontSize: 19 }} />
+                  </Box>
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => {
+                      localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
+                      navigate('/campaign-verify');
+                    }}
+                    sx={{
+                      all: 'unset',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      px: '24px',
+                      py: '12px',
+                      borderRadius: radii.pill,
+                      bgcolor: colors.navy900,
+                      color: colors.amberSoft,
+                      fontFamily: fonts.sans,
+                      fontWeight: 800,
+                      fontSize: 13.5,
+                      boxShadow: shadows.buttonPrimary,
+                      '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                    }}
+                  >
+                    Review & send
+                  </Box>
+                </Box>
               </Box>
             </Box>
           ) : (
