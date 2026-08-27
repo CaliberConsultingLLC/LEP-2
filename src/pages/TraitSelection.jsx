@@ -220,12 +220,13 @@ function TraitSelection() {
         String(activeFocus?.example || '')
           .replace(/^Likely team signal:\s*/i, '')
           .replace(/^Team signal:\s*/i, ''),
+        Array.isArray(activeSubTrait?.examples) ? activeSubTrait.examples[0] : '',
         trailMarker
           .replace(/^Likely team signal:\s*/i, '')
           .replace(/^Team signal:\s*/i, ''),
         activeFocus ? buildPositiveIntent(activeFocus) : '',
       ],
-      3,
+      4,
       'The team feels this gap in daily work. Naming it now makes the campaign specific instead of generic.',
     );
     const riskText = uniqueSentences(
@@ -240,7 +241,7 @@ function TraitSelection() {
       'Team confidence and execution consistency erode if this pattern stays unaddressed.',
     );
     const payoffText = takeSentences(
-      activeFocus?.impact || activeSubTrait?.impact || impact,
+      activeSubTrait?.impact || activeFocus?.impact || impact,
       3,
       'Trust, alignment, and execution quality improve when this pattern is practiced on purpose.',
     );
@@ -582,7 +583,7 @@ function TraitSelection() {
                 overflow: 'hidden',
               }}
             >
-              <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
+              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch' }}>
               <CairnLeftRail
                 isDark={isDark}
                 railLabel="Traits"

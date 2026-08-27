@@ -47,6 +47,8 @@ function CompassLayout({
           minWidth: 0,
           height: viewportFit ? '100%' : 'auto',
           minHeight: 0,
+          display: viewportFit ? 'flex' : 'block',
+          flexDirection: 'column',
           overflow: viewportFit ? 'hidden' : 'visible',
         }}
       >

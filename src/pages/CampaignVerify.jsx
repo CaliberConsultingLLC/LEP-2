@@ -241,6 +241,32 @@ function CampaignVerify() {
             selfCampaignId,
           };
           localStorage.setItem('localCampaignDocs', JSON.stringify(localCampaignDocs));
+        } else if (allowStagingPersistenceBypass && !auth?.currentUser) {
+          selfCampaignId = `stg-self-${bundleId}`;
+          teamCampaignId = `stg-team-${bundleId}`;
+          const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
+          localCampaignDocs[selfCampaignId] = {
+            userInfo,
+            ownerId,
+            ownerUid: userInfo?.uid || null,
+            bundleId,
+            campaignType: 'self',
+            campaign: selfCampaign,
+            password: selfPasswordGenerated,
+            createdAt: new Date().toISOString(),
+          };
+          localCampaignDocs[teamCampaignId] = {
+            userInfo,
+            ownerId,
+            ownerUid: userInfo?.uid || null,
+            bundleId,
+            campaignType: 'team',
+            campaign: campaignData,
+            password: teamPasswordGenerated,
+            createdAt: new Date().toISOString(),
+            selfCampaignId,
+          };
+          localStorage.setItem('localCampaignDocs', JSON.stringify(localCampaignDocs));
         } else {
           try {
           const selfDocRef = await addDoc(collection(db, 'campaigns'), {

@@ -33,9 +33,9 @@ export default function CairnLeftRail({
         flexDirection: { xs: 'column', md: 'row' },
         alignItems: 'stretch',
         width: '100%',
-        height: { md: '100%' },
-        minHeight: { md: 0 },
         flex: 1,
+        minHeight: { md: 0 },
+        height: { md: '100%' },
         ...surfaces.card,
         border: `1px solid ${contentSelected ? selectedBorder : border}`,
         bgcolor: colors.surface1,
@@ -47,10 +47,12 @@ export default function CairnLeftRail({
         component="nav"
         aria-label={railLabel || 'Section index'}
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'row', md: 'column' },
-          flexShrink: 0,
+          display: { xs: 'flex', md: 'grid' },
+          flexDirection: { xs: 'row', md: undefined },
+          gridTemplateRows: { md: `repeat(${Math.max(tabCount, 1)}, minmax(0, 1fr))` },
+          flex: { xs: '0 0 auto', md: `0 0 ${compactRail ? 228 : 248}px` },
           width: { xs: '100%', md: compactRail ? 228 : 248 },
+          height: { md: '100%' },
           alignSelf: 'stretch',
           borderRight: { md: `1px solid ${border}` },
           borderBottom: { xs: `1px solid ${border}`, md: 'none' },
@@ -72,7 +74,12 @@ export default function CairnLeftRail({
               onClick={() => onChange?.(tab.id)}
               aria-current={active ? 'page' : undefined}
               sx={{
-                all: 'unset',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                margin: 0,
+                border: 0,
+                font: 'inherit',
+                textAlign: 'inherit',
                 cursor: 'pointer',
                 boxSizing: 'border-box',
                 display: 'flex',
@@ -80,14 +87,15 @@ export default function CairnLeftRail({
                 gap: compactRail ? 1.4 : 1.25,
                 width: { xs: 'auto', md: '100%' },
                 minWidth: { xs: 168, md: 0 },
-                flex: { xs: '0 0 auto', md: 1 },
+                flexGrow: { xs: 0, md: 1 },
+                flexShrink: { xs: 0, md: 1 },
+                flexBasis: { xs: 'auto', md: 0 },
                 minHeight: {
                   xs: 52,
-                  md: compactRail ? 96 : 72,
+                  md: compactRail ? 88 : 0,
                 },
                 px: compactRail ? 1.7 : 1.45,
                 py: compactRail ? 1.5 : 1.2,
-                flexShrink: 0,
                 bgcolor: active ? colors.navy900 : 'transparent',
                 color: active ? colors.amberSoft : (isDark ? colors.ink : colors.navy900),
                 borderBottom: {
@@ -98,6 +106,8 @@ export default function CairnLeftRail({
                   xs: last ? 'none' : `1px solid ${active ? colors.navy800 : border}`,
                   md: 'none',
                 },
+                position: 'relative',
+                zIndex: active ? 2 : 1,
                 transition: 'background-color 160ms ease, color 160ms ease',
                 '&:hover': {
                   bgcolor: active
@@ -108,6 +118,16 @@ export default function CairnLeftRail({
                   outline: `3px solid ${colors.ringFocus}`,
                   outlineOffset: -3,
                 },
+                '&::after': active ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  right: -1,
+                  bottom: 0,
+                  width: 2,
+                  bgcolor: colors.navy900,
+                  display: { xs: 'none', md: 'block' },
+                } : { content: 'none' },
               }}
             >
               <Box
