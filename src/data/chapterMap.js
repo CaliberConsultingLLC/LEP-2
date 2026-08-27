@@ -24,7 +24,8 @@ export const CHAPTERS = [
     steps: [
       {
         id: 'account',
-        label: 'Your Account',
+        label: 'Account Creation',
+        shortLabel: 'Account',
         path: '/user-info',
         whatHappens: ['Name, email, password', 'A login, not a score', 'You can sign back in later'],
       },

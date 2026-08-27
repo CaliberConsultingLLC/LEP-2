@@ -1086,7 +1086,7 @@ function Summary() {
             }}
           />
         </Box>
-        <CompassLayout fluid>
+        <CompassLayout fluid allowBleed>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -1094,22 +1094,19 @@ function Summary() {
           ) : (
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexWrap: { xs: 'wrap', md: 'nowrap' },
-                gap: { xs: 1, md: 0 },
+                position: 'relative',
                 width: '100%',
                 overflow: 'visible',
+                pl: { md: 28, lg: 36, xl: 42 },
               }}
             >
               <Box
                 sx={{
                   width: '100%',
                   maxWidth: 960,
-                  minWidth: 0,
-                  flex: '1 1 640px',
+                  mx: 'auto',
                   position: 'relative',
+                  zIndex: 2,
                   mb: '14px',
                   border: `1px solid ${colors.sand200}`,
                   borderRadius: radii.lg,
@@ -1125,13 +1122,13 @@ function Summary() {
                   '&:after': {
                     content: '""',
                     position: 'absolute',
-                    right: -9,
+                    left: -9,
                     top: '46%',
                     width: 18,
                     height: 18,
                     bgcolor: colors.surface1,
-                    borderRight: `1px solid ${colors.sand200}`,
-                    borderTop: `1px solid ${colors.sand200}`,
+                    borderLeft: `1px solid ${colors.sand200}`,
+                    borderBottom: `1px solid ${colors.sand200}`,
                     transform: 'rotate(45deg)',
                     zIndex: 2,
                     display: { xs: 'none', md: 'block' },
@@ -1524,35 +1521,27 @@ function Summary() {
                   </Box>
                 </Box>
               </Box>
-              <Box
-                sx={{
-                  flex: '0 0 auto',
-                  width: { xs: 220, sm: 280, md: 420, lg: 560, xl: 640 },
-                  maxWidth: { xs: '58%', md: 'none' },
-                  ml: { xs: 0, md: -1.5, lg: -3 },
-                  mr: { xs: 0, md: -3, lg: -6 },
-                  alignSelf: { xs: 'center', md: 'center' },
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                }}
-              >
-                <Box
-                  component="img"
-                  src={persona.poses.read || persona.poses.idle}
-                  alt={`${persona.name} delivering your reflection`}
-                  draggable={false}
-                  sx={{
-                    width: '100%',
-                    height: 'auto',
-                    display: 'block',
-                    transform: 'scaleX(-1)',
-                    transformOrigin: 'center bottom',
-                  }}
-                />
-              </Box>
             </Box>
           )}
         </CompassLayout>
+        <Box
+          component="img"
+          src={persona.poses.read || persona.poses.idle}
+          alt={`${persona.name} delivering your reflection`}
+          draggable={false}
+          sx={{
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            width: { xs: 240, sm: 300, md: 480, lg: 580, xl: 640 },
+            height: 'auto',
+            display: 'block',
+            transform: 'scaleX(-1)',
+            transformOrigin: 'center bottom',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
         <SummaryBriefingModal
           open={briefingOpen}
           persona={persona}

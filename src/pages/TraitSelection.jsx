@@ -14,9 +14,12 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import CairnLeftRail from '../components/CairnLeftRail';
+import CairnFlowButtons from '../components/CairnFlowButtons';
+import CampaignStageHeader, { stageType } from '../components/CampaignStageCopy';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
+import { spokenGuide } from '../data/guideContent';
 import traitSystem from '../data/traitSystem';
 import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
@@ -27,7 +30,7 @@ function TraitSelection() {
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [focusAreas, setFocusAreas] = useState([]);
   const [loadError, setLoadError] = useState('');
-  const { persona, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
+  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -50,18 +53,28 @@ function TraitSelection() {
     return /[.!?]$/.test(text) ? text : `${text}.`;
   };
 
-  const compactText = (value, maxLength = 120) => {
-    const text = String(value || '').replace(/\s+/g, ' ').trim();
-    if (text.length <= maxLength) return text;
-    return `${text.slice(0, maxLength).replace(/\s+\S*$/, '')}...`;
-  };
-
-  /** Prefer one full sentence for decision cards — never chop mid-phrase by word count. */
-  const firstSentence = (value, fallback = '') => {
+  const takeSentences = (value, max = 3, fallback = '') => {
     const text = String(value || '').replace(/\s+/g, ' ').trim();
     if (!text) return fallback;
-    const match = text.match(/^[^.!?]+[.!?]?/);
-    return String(match ? match[0] : text).trim();
+    const parts = text.match(/[^.!?]+[.!?]?/g) || [text];
+    return parts
+      .map((part) => sentenceCase(part))
+      .filter(Boolean)
+      .slice(0, max)
+      .join(' ');
+  };
+
+  const uniqueSentences = (values, max = 3, fallback = '') => {
+    const seen = new Set();
+    const out = [];
+    values.forEach((value) => {
+      const text = sentenceCase(value);
+      const key = text.toLowerCase();
+      if (!text || seen.has(key)) return;
+      seen.add(key);
+      out.push(text);
+    });
+    return out.slice(0, max).join(' ') || fallback;
   };
 
   const buildTrailMarker = (focusArea) => {
@@ -191,30 +204,63 @@ function TraitSelection() {
     const trailMarker = activeFocus ? buildTrailMarker(activeFocus) : '';
     const hazard = activeFocus ? buildHazard(activeFocus) : '';
     const impact = activeFocus ? buildImpactPreview(activeFocus) : '';
-    const activeDefinition = firstSentence(
-      activeFocus?.subTraitDefinition
+    const underuse = Array.isArray(activeSubTrait?.riskSignals?.underuse) ? activeSubTrait.riskSignals.underuse : [];
+    const activeDefinition = takeSentences(
+      activeSubTrait?.longDescription
+        || activeFocus?.subTraitDefinition
         || activeSubTrait?.definition
         || activeSubTrait?.shortDescription
         || '',
+      3,
       'A leadership pattern worth choosing with intention.',
     );
-    const whyYou = firstSentence(activeFocus?.whyYou || '', '');
-    const contextText = firstSentence(
-      trailMarker
-        .replace(/^Likely team signal:\s*/i, '')
-        .replace(/^Team signal:\s*/i, ''),
-      'The team feels this gap in daily work.',
+    const whyYou = takeSentences(activeFocus?.whyYou || '', 2, '');
+    const contextText = uniqueSentences(
+      [
+        String(activeFocus?.example || '')
+          .replace(/^Likely team signal:\s*/i, '')
+          .replace(/^Team signal:\s*/i, ''),
+        Array.isArray(activeSubTrait?.examples) ? activeSubTrait.examples[0] : '',
+        trailMarker
+          .replace(/^Likely team signal:\s*/i, '')
+          .replace(/^Team signal:\s*/i, ''),
+        activeFocus ? buildPositiveIntent(activeFocus) : '',
+      ],
+      4,
+      'The team feels this gap in daily work. Naming it now makes the campaign specific instead of generic.',
     );
-    const riskText = firstSentence(
-      String(hazard || '')
-        .replace(/\s+if this subtrait remains underdeveloped\.?/i, '')
-        .replace(/\s+if this focus remains underdeveloped\.?/i, ''),
-      'Team confidence and execution consistency erode.',
+    const riskText = uniqueSentences(
+      [
+        String(hazard || '')
+          .replace(/\s+if this subtrait remains underdeveloped\.?/i, '')
+          .replace(/\s+if this focus remains underdeveloped\.?/i, ''),
+        underuse[0],
+        underuse[1],
+      ],
+      3,
+      'Team confidence and execution consistency erode if this pattern stays unaddressed.',
     );
-    const payoffText = firstSentence(
-      impact,
-      'Trust, alignment, and execution quality improve.',
+    const payoffText = takeSentences(
+      activeSubTrait?.impact || activeFocus?.impact || impact,
+      3,
+      'Trust, alignment, and execution quality improve when this pattern is practiced on purpose.',
     );
+    const guideLine = spokenGuide(
+      personaId,
+      'traitSelection',
+      selectedTraits.length === 3
+        ? 'selected-3'
+        : selectedTraits.length === 2
+          ? 'selected-2'
+          : selectedTraits.length === 1
+            ? 'selected-1'
+            : 'focus-trait',
+      "If you're drawn to all of them, start with the one that's been on your mind the longest.",
+      'think',
+    );
+    const guideCommentary = activeFocus
+      ? `${guideLine.text} ${activeFocus.subTraitName} is the ${String(activeFocus.traitName || 'leadership').toLowerCase()} pattern in front of you — would the people you lead actually feel it if you grew this one?`
+      : guideLine.text;
     const handleToggleActive = () => {
       if (!activeFocus) return;
       if (isActiveSelected) {
@@ -398,8 +444,8 @@ function TraitSelection() {
         setHidden={setHidden}
         toggleHidden={toggleHidden}
         isDark={isDark}
-        commentary="If you're drawn to all of them, start with the one that's been on your mind the longest."
-        owlPose={persona.poses.think || persona.poses.idle}
+        commentary={guideCommentary}
+        owlPose={persona.poses[guideLine.pose] || persona.poses.think || persona.poses.idle}
       >
         <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', mb: 1 }}>
           How to choose
@@ -533,9 +579,11 @@ function TraitSelection() {
                 gap: 1.35,
                 height: { md: '100%' },
                 maxHeight: { md: '100%' },
+                minHeight: 0,
                 overflow: 'hidden',
               }}
             >
+              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch' }}>
               <CairnLeftRail
                 isDark={isDark}
                 railLabel="Traits"
@@ -557,70 +605,32 @@ function TraitSelection() {
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 1.5,
-                    maxWidth: 720,
-                    mx: 'auto',
+                    gap: 1.6,
                     width: '100%',
+                    height: '100%',
                     minHeight: 0,
                     overflow: 'hidden',
                   }}
                 >
-                  <Box sx={{ width: '100%', minHeight: 0 }}>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.serif,
-                        fontWeight: 700,
-                        fontSize: { xs: '1.55rem', md: '1.85rem' },
-                        lineHeight: 1.12,
-                        color: isDark ? colors.ink : colors.navy900,
-                        mb: 0.35,
-                      }}
-                    >
-                      {`Trait ${activeIndex + 1}: ${activeFocus.subTraitName}`}
-                    </Typography>
-                    <Box
-                      aria-hidden
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 1.15,
-                        my: '10px',
-                      }}
-                    >
-                      <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />
-                      <Box sx={{ color: colors.orange, fontSize: 8, lineHeight: 1, opacity: 0.9 }}>◆</Box>
-                      <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.sans,
-                        fontSize: { xs: '0.9rem', md: '0.96rem' },
-                        lineHeight: 1.55,
-                        color: isDark ? colors.ink : colors.ink,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
+                  <Box sx={{ flexShrink: 0 }}>
+                    <CampaignStageHeader
+                      eyebrow={`Trait ${['I', 'II', 'III', 'IV', 'V'][activeIndex] || activeIndex + 1}`}
+                      title={activeFocus.subTraitName}
+                      subtitle={`Influence · ${activeFocus.traitName}`}
+                      meta={`${persona.name} · Choose 3`}
+                    />
+                    <Typography sx={stageType.body}>
                       {activeDefinition}
                     </Typography>
                     {whyYou ? (
                       <Typography
                         sx={{
-                          mt: 1,
-                          fontFamily: fonts.serif,
-                          fontStyle: 'italic',
-                          fontSize: { xs: '0.84rem', md: '0.9rem' },
-                          lineHeight: 1.45,
+                          ...stageType.subtitle,
+                          textAlign: 'left',
+                          mx: 0,
+                          mt: 1.1,
+                          maxWidth: 'none',
                           color: isDark ? colors.inkSoft : colors.navy700,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
                         }}
                       >
                         {`From your summary: ${whyYou}`}
@@ -632,9 +642,11 @@ function TraitSelection() {
                     sx={{
                       display: 'grid',
                       gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
-                      gap: 1.15,
+                      gap: 1.25,
                       width: '100%',
                       alignItems: 'stretch',
+                      flex: 1,
+                      minHeight: 0,
                     }}
                   >
                     {[
@@ -647,40 +659,29 @@ function TraitSelection() {
                         sx={{
                           ...surfaces.cardInner,
                           bgcolor: isDark ? 'rgba(255,255,255,0.03)' : colors.sand50,
-                          px: { xs: 1.4, md: 1.5 },
-                          py: { xs: 1.25, md: 1.35 },
-                          minHeight: { md: 118 },
-                          textAlign: 'center',
+                          px: { xs: 1.5, md: 1.75 },
+                          py: { xs: 1.4, md: 1.6 },
+                          minHeight: 0,
+                          height: '100%',
+                          textAlign: 'left',
                           display: 'flex',
                           flexDirection: 'column',
-                          justifyContent: 'center',
-                          overflow: 'hidden',
+                          overflow: 'auto',
                         }}
                       >
                         <Typography
                           sx={{
-                            fontFamily: fonts.mono,
-                            fontWeight: 700,
-                            fontSize: '0.64rem',
-                            letterSpacing: '0.12em',
-                            textTransform: 'uppercase',
+                            ...stageType.cardLabel,
                             color: item.accent,
-                            mb: 0.75,
-                            flexShrink: 0,
                           }}
                         >
                           {item.label}
                         </Typography>
                         <Typography
                           sx={{
-                            fontFamily: fonts.sans,
-                            fontSize: { xs: '0.84rem', md: '0.88rem' },
-                            lineHeight: 1.4,
+                            ...stageType.cardBody,
+                            flex: 1,
                             color: isDark ? colors.ink : colors.navy900,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
                           }}
                         >
                           {item.body}
@@ -689,7 +690,7 @@ function TraitSelection() {
                     ))}
                   </Box>
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.85, pt: 0.5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.85, pt: 0.25, flexShrink: 0 }}>
                     <Box
                       component="button"
                       type="button"
@@ -722,6 +723,17 @@ function TraitSelection() {
                   </Box>
                 </Box>
               </CairnLeftRail>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                <CairnFlowButtons
+                  isDark={isDark}
+                  backLabel="Summary"
+                  nextLabel={selectedTraits.length === 3 ? 'Build Campaign' : `Select ${3 - selectedTraits.length} more`}
+                  onBack={() => navigate('/summary?stage=new-trail')}
+                  onNext={handleContinue}
+                  nextDisabled={selectedTraits.length !== 3}
+                />
+              </Box>
             </Box>
           ) : (
             <Box sx={{

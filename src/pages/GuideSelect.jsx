@@ -1,18 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Typography, Stack } from '@mui/material';
+import { Box, Button, Typography, Stack } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
+import CompassLayout from '../components/CompassLayout';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { colors, fonts, radii } from '../styles/tokens';
+import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
 
 function GuideSelect() {
   const navigate = useNavigate();
   const { personaId, setPersona, hasSelectedGuide } = useGuide();
-  const [isDark] = useDarkMode();
   const guides = SELECTABLE_GUIDE_PERSONAS;
   const initialIndex = Math.max(0, guides.findIndex((p) => p.id === personaId && hasSelectedGuide));
   const [activeIndex, setActiveIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
@@ -53,242 +52,204 @@ function GuideSelect() {
     handleSelectIndex(next);
   };
 
+  const chevronSx = {
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    cursor: 'pointer',
+    position: 'absolute',
+    zIndex: 4,
+    width: 40,
+    height: 40,
+    borderRadius: radii.circle,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: `1.5px solid ${colors.sand300}`,
+    bgcolor: colors.surface1,
+    color: colors.inkSoft,
+    '&:hover': { borderColor: colors.orange, color: colors.navy900 },
+    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+  };
+
   return (
-    <Box sx={{ minHeight: '100svh', maxHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <Box sx={{
+      minHeight: '100svh',
+      maxHeight: '100svh',
+      bgcolor: colors.sand50,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
       <ProcessTopRail
         chapterId="profile"
         activeStepId="guide"
         chip={{ variant: 'sequence', label: 'Step', current: 2, total: 3 }}
       />
 
-      <Box sx={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        px: { xs: 3, md: 6, lg: 8 },
-        pt: { xs: 2.5, md: 3 },
-        pb: { xs: 2.5, md: 3 },
-        minHeight: 0,
-      }}>
-        {/* Horizontal carousel — 3 visible, center selected */}
+      <CompassLayout viewportFit contentMaxWidth={1180}>
         <Box sx={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: 1180,
-          height: { xs: 480, md: 560 },
+          height: '100%',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          mb: { xs: 1.5, md: 2 },
+          minHeight: 0,
         }}>
-          <Box
-            component="button"
-            type="button"
-            aria-label="Previous guide"
-            onClick={() => step(-1)}
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              position: 'absolute',
-              left: { xs: 0, md: 8 },
-              zIndex: 4,
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: isDark ? '1.5px solid rgba(244,206,161,0.26)' : `1.5px solid ${colors.sand300}`,
-              bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.85)',
-              color: isDark ? colors.amberSoft : colors.inkSoft,
-              '&:hover': { borderColor: colors.orange, color: colors.navy900 },
-            }}
-          >
-            <ChevronLeftIcon />
+          <Box sx={{ textAlign: 'center', mb: { xs: 1.5, md: 2 }, flexShrink: 0, px: 1 }}>
+            <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
+            <Typography sx={{ ...type.question, mb: 0.75 }}>Choose your guide</Typography>
+            <Typography sx={{ ...type.subtitle, mx: 'auto' }}>
+              This is the voice that walks the rest of Compass with you. Pick the one that already sounds like how you think.
+            </Typography>
           </Box>
 
           <Box sx={{
             position: 'relative',
             width: '100%',
-            height: '100%',
+            flexShrink: 0,
+            height: { xs: 360, md: 400 },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            perspective: '1200px',
+            mb: { xs: 1.5, md: 2 },
           }}>
-            {visible.map(({ persona, slot, index }) => {
-              const isCenter = slot === 'center';
-              const selected = personaId === persona.id;
-              return (
-                <Box
-                  key={`${persona.id}-${slot}`}
-                  component="button"
-                  type="button"
-                  onClick={() => handleSelectIndex(index)}
-                  sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    position: 'absolute',
-                    // ~25% larger than prior 240/280 center and 170/210 side tiles
-                    width: isCenter ? { xs: 340, md: 400 } : { xs: 220, md: 270 },
-                    transform: isCenter
-                      ? 'translateX(0) scale(1)'
-                      : slot === 'left'
-                        ? 'translateX(-112%) scale(0.78)'
-                        : 'translateX(112%) scale(0.78)',
-                    opacity: isCenter ? 1 : 0.42,
-                    filter: isCenter ? 'none' : 'saturate(0.7)',
-                    zIndex: isCenter ? 3 : 1,
-                    transition: 'transform 320ms cubic-bezier(.2,.8,.2,1), opacity 280ms ease, filter 280ms ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: radii.lg,
-                    border: `2px solid ${selected ? persona.accent : isDark ? 'rgba(244,206,161,0.14)' : colors.sand200}`,
-                    bgcolor: isCenter
-                      ? (isDark ? 'rgba(255,255,255,0.06)' : '#fff')
-                      : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.7)'),
-                    boxShadow: isCenter
-                      ? `0 20px 56px ${persona.accent}38`
-                      : '0 8px 24px rgba(15,28,46,0.08)',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Box sx={{ height: 5, bgcolor: persona.accent, width: '100%', flexShrink: 0 }} />
-                  <Box sx={{
-                    height: { xs: isCenter ? 248 : 160, md: isCenter ? 300 : 180 },
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    justifyContent: 'center',
-                    bgcolor: `${persona.accent}12`,
-                    position: 'relative',
-                    px: 2,
-                    pt: 1.5,
-                  }}>
-                    <Box
-                      component="img"
-                      src={persona.poses.greet || persona.poses.idle}
-                      alt={persona.name}
-                      sx={{
-                        height: { xs: isCenter ? 232 : 148, md: isCenter ? 284 : 168 },
-                        objectFit: 'contain',
-                        objectPosition: 'bottom',
-                        display: 'block',
-                      }}
-                    />
-                  </Box>
-                  <Box sx={{ p: isCenter ? '14px 16px 12px' : '10px 12px 10px', textAlign: 'center' }}>
-                    <Typography sx={{
-                      fontFamily: fonts.sans,
-                      fontWeight: 800,
-                      fontSize: isCenter ? { xs: '1.35rem', md: '1.55rem' } : '0.95rem',
-                      color: isDark ? colors.ink : colors.navy900,
-                      mb: 0.35,
-                    }}>
-                      {persona.name}
-                    </Typography>
-                    {isCenter && (
-                      <>
-                        <Typography sx={{
-                          fontFamily: fonts.sans,
-                          fontWeight: 600,
-                          fontSize: '0.84rem',
-                          color: persona.accent,
-                          fontStyle: 'italic',
-                          lineHeight: 1.35,
-                          mb: 0.45,
-                        }}>
-                          {persona.tagline}
-                        </Typography>
-                        <Typography sx={{
-                          fontFamily: fonts.sans,
-                          fontSize: '0.74rem',
-                          color: isDark ? 'rgba(240,233,222,0.58)' : colors.inkSoft,
-                          lineHeight: 1.4,
-                        }}>
-                          {persona.voice}
-                        </Typography>
-                      </>
-                    )}
-                  </Box>
-                </Box>
-              );
-            })}
-          </Box>
+            <Box
+              component="button"
+              type="button"
+              aria-label="Previous guide"
+              onClick={() => step(-1)}
+              sx={{ ...chevronSx, left: { xs: 0, md: 8 } }}
+            >
+              <ChevronLeftIcon />
+            </Box>
 
-          <Box
-            component="button"
-            type="button"
-            aria-label="Next guide"
-            onClick={() => step(1)}
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              position: 'absolute',
-              right: { xs: 0, md: 8 },
-              zIndex: 4,
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              display: 'inline-flex',
+            <Box sx={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: isDark ? '1.5px solid rgba(244,206,161,0.26)' : `1.5px solid ${colors.sand300}`,
-              bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.85)',
-              color: isDark ? colors.amberSoft : colors.inkSoft,
-              '&:hover': { borderColor: colors.orange, color: colors.navy900 },
-            }}
-          >
-            <ChevronRightIcon />
+              perspective: '1200px',
+            }}>
+              {visible.map(({ persona, slot, index }) => {
+                const isCenter = slot === 'center';
+                const selected = personaId === persona.id;
+                return (
+                  <Box
+                    key={`${persona.id}-${slot}`}
+                    component="button"
+                    type="button"
+                    onClick={() => handleSelectIndex(index)}
+                    sx={{
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      cursor: 'pointer',
+                      position: 'absolute',
+                      width: isCenter ? { xs: 280, md: 320 } : { xs: 180, md: 220 },
+                      transform: isCenter
+                        ? 'translateX(0) scale(1)'
+                        : slot === 'left'
+                          ? 'translateX(-112%) scale(0.78)'
+                          : 'translateX(112%) scale(0.78)',
+                      opacity: isCenter ? 1 : 0.42,
+                      filter: isCenter ? 'none' : 'saturate(0.7)',
+                      zIndex: isCenter ? 3 : 1,
+                      transition: 'transform 320ms cubic-bezier(.2,.8,.2,1), opacity 280ms ease, filter 280ms ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      textAlign: 'inherit',
+                      color: 'inherit',
+                      p: 0,
+                      ...(isCenter ? surfaces.card : surfaces.cardFlat),
+                      borderRadius: radii.lg,
+                      border: `2px solid ${selected ? persona.accent : colors.sand200}`,
+                      boxShadow: isCenter ? shadows.card : shadows.none,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Box sx={{ height: 5, bgcolor: persona.accent, width: '100%', flexShrink: 0 }} />
+                    <Box sx={{
+                      height: { xs: isCenter ? 176 : 116, md: isCenter ? 208 : 136 },
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      bgcolor: colors.surface2,
+                      position: 'relative',
+                      px: 2,
+                      pt: 1.5,
+                    }}>
+                      <Box
+                        component="img"
+                        src={persona.poses.greet || persona.poses.idle}
+                        alt={persona.name}
+                        sx={{
+                          height: { xs: isCenter ? 164 : 104, md: isCenter ? 196 : 124 },
+                          objectFit: 'contain',
+                          objectPosition: 'bottom',
+                          display: 'block',
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ p: isCenter ? '14px 16px 12px' : '10px 12px 10px', textAlign: 'center' }}>
+                      <Typography sx={{
+                        fontFamily: fonts.serif,
+                        fontWeight: 500,
+                        fontSize: isCenter ? { xs: 20, md: 22 } : 15,
+                        letterSpacing: '-0.02em',
+                        color: colors.ink,
+                        mb: isCenter ? 0.5 : 0,
+                      }}>
+                        {persona.name}
+                      </Typography>
+                      {isCenter && (
+                        <>
+                          <Typography sx={{
+                            ...type.body,
+                            fontStyle: 'italic',
+                            color: colors.inkSoft,
+                            mb: 0.5,
+                          }}>
+                            {persona.tagline}
+                          </Typography>
+                          <Typography sx={type.bodyMuted}>
+                            {persona.voice}
+                          </Typography>
+                        </>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+
+            <Box
+              component="button"
+              type="button"
+              aria-label="Next guide"
+              onClick={() => step(1)}
+              sx={{ ...chevronSx, right: { xs: 0, md: 8 } }}
+            >
+              <ChevronRightIcon />
+            </Box>
           </Box>
+
+          <Stack spacing={1.25} alignItems="center" sx={{ flexShrink: 0 }}>
+            <Button
+              onClick={handleBegin}
+              disabled={!canBegin}
+              sx={{
+                ...buttons.primary,
+                opacity: canBegin ? 1 : 0.5,
+              }}
+            >
+              Continue with {active.name}
+            </Button>
+            <Typography sx={{ ...type.bodyMuted, textAlign: 'center' }}>
+              You can change your guide at any time after you begin.
+            </Typography>
+          </Stack>
         </Box>
-
-        <Stack spacing={1.5} alignItems="center">
-          <Box
-            component="button"
-            type="button"
-            onClick={handleBegin}
-            disabled={!canBegin}
-            sx={{
-              all: 'unset',
-              cursor: !canBegin ? 'default' : 'pointer',
-              opacity: !canBegin ? 0.5 : 1,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              px: '36px',
-              py: '12px',
-              borderRadius: 999,
-              bgcolor: colors.navy900,
-              color: colors.amberSoft,
-              fontFamily: fonts.sans,
-              fontWeight: 800,
-              fontSize: '0.94rem',
-              letterSpacing: '0.02em',
-              boxShadow: '0 10px 32px rgba(16,34,60,0.28)',
-              transition: 'all 220ms ease',
-              '&:hover': !canBegin ? {} : {
-                bgcolor: colors.navy800,
-                transform: 'translateY(-2px)',
-                boxShadow: '0 16px 40px rgba(16,34,60,0.38)',
-              },
-            }}
-          >
-            Continue with {active.name}
-            <Box component="span" sx={{ fontSize: '1.2rem', lineHeight: 1 }}>→</Box>
-          </Box>
-
-          <Typography sx={{
-            fontFamily: fonts.sans,
-            fontSize: '0.74rem',
-            color: isDark ? 'rgba(240,233,222,0.5)' : colors.inkSoft,
-            opacity: 0.7,
-          }}>
-            You can change your guide at any time after you begin.
-          </Typography>
-        </Stack>
-      </Box>
+      </CompassLayout>
     </Box>
   );
 }

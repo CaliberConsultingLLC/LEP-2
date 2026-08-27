@@ -18,7 +18,8 @@ import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { finishDemoCampaign, isDemoSession } from '../utils/demoMode';
-import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
+import { buttons, colors, fonts, radii, surfaces } from '../styles/tokens';
+import CampaignStageHeader, { stageType } from '../components/CampaignStageCopy';
 import {
   TrendingUp,
   ContentCopy,
@@ -217,6 +218,32 @@ function CampaignVerify() {
         if (isDemoSession()) {
           selfCampaignId = `demo-self-${bundleId}`;
           teamCampaignId = `demo-team-${bundleId}`;
+          const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
+          localCampaignDocs[selfCampaignId] = {
+            userInfo,
+            ownerId,
+            ownerUid: userInfo?.uid || null,
+            bundleId,
+            campaignType: 'self',
+            campaign: selfCampaign,
+            password: selfPasswordGenerated,
+            createdAt: new Date().toISOString(),
+          };
+          localCampaignDocs[teamCampaignId] = {
+            userInfo,
+            ownerId,
+            ownerUid: userInfo?.uid || null,
+            bundleId,
+            campaignType: 'team',
+            campaign: campaignData,
+            password: teamPasswordGenerated,
+            createdAt: new Date().toISOString(),
+            selfCampaignId,
+          };
+          localStorage.setItem('localCampaignDocs', JSON.stringify(localCampaignDocs));
+        } else if (allowStagingPersistenceBypass && !auth?.currentUser) {
+          selfCampaignId = `stg-self-${bundleId}`;
+          teamCampaignId = `stg-team-${bundleId}`;
           const localCampaignDocs = JSON.parse(localStorage.getItem('localCampaignDocs') || '{}');
           localCampaignDocs[selfCampaignId] = {
             userInfo,
@@ -440,11 +467,11 @@ function CampaignVerify() {
         sx={{
           all: 'unset', cursor: 'pointer',
           display: 'inline-flex', alignItems: 'center', gap: '6px',
-          px: '14px', py: '8px', borderRadius: 999,
-          border: '1px solid var(--sand-200, #E8DBC3)',
-          bgcolor: copied[type] ? 'var(--navy-900, #10223C)' : 'white',
-          color: copied[type] ? 'var(--amber-soft, #F4CEA1)' : 'var(--ink-soft, #44566C)',
-          fontFamily: '"Manrope", sans-serif', fontWeight: 600, fontSize: '0.8rem',
+          px: '14px', py: '8px',           borderRadius: radii.pill,
+          border: `1px solid ${colors.sand200}`,
+          bgcolor: copied[type] ? colors.navy900 : colors.surface1,
+          color: copied[type] ? colors.amberSoft : colors.inkSoft,
+          fontFamily: fonts.sans, fontWeight: 600, fontSize: '0.8rem',
           transition: '200ms ease',
           '&:hover': { bgcolor: 'var(--sand-50, #FBF7F0)' },
           '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 2 },
@@ -466,8 +493,7 @@ function CampaignVerify() {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
+              alignItems: 'stretch',
               gap: 2,
               width: '100%',
               maxWidth: 640,
@@ -475,22 +501,21 @@ function CampaignVerify() {
             }}
           >
             <Box sx={{ width: '100%' }}>
-              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: { xs: 28, md: 34 }, lineHeight: 1.1, letterSpacing: '-0.03em', color: colors.navy900, mb: 0.75 }}>
-                {isDemoSession() ? 'Your campaign is ready' : 'Self-assessment'}
-              </Typography>
-              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.95rem', color: colors.inkSoft, lineHeight: 1.6 }}>
-                {isDemoSession()
-                  ? 'We filled in sample team answers against the statements you just generated so Signal, Evidence, Practice, and Journey are open. Nothing here is a live team survey.'
+              <CampaignStageHeader
+                eyebrow="Review & Send"
+                title={isDemoSession() ? 'Your campaign is ready' : 'Self-assessment'}
+                subtitle={isDemoSession()
+                  ? 'Sample team answers are in so Signal, Evidence, Practice, and Journey are open. Nothing here is a live team survey.'
                   : 'Rate yourself on the same statements your team will see, then invite them. Do not share the self-assessment link with your team.'}
-              </Typography>
+              />
             </Box>
 
             {error && <Alert severity="error" sx={{ fontFamily: fonts.sans, width: '100%', textAlign: 'left' }}>{error}</Alert>}
 
             {isDemoSession() ? (
               <Box sx={{ ...surfaces.card, p: { xs: 2.5, md: 3 }, width: '100%', textAlign: 'left' }}>
-                <Typography sx={{ ...type.eyebrow, mb: 1 }}>Demo dashboard</Typography>
-                <Typography sx={{ ...type.body, mb: 2.5 }}>
+                <Typography sx={{ ...stageType.cardLabel }}>Demo dashboard</Typography>
+                <Typography sx={{ ...stageType.body, mb: 2.5 }}>
                   Open the rooms and walk the prompting output on this campaign. Exit from the banner whenever you are done.
                 </Typography>
                 <Box
@@ -514,16 +539,16 @@ function CampaignVerify() {
             ) : (
               <>
             {/* Self campaign card */}
-            <Box sx={{ bgcolor: 'white', borderRadius: '16px', border: '1px solid var(--sand-200, #E8DBC3)', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', p: { xs: 2, md: 2.25 }, width: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: 1.5 }}>
-                <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: 'var(--orange, #E07A3F)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>1</Typography>
+            <Box sx={{ ...surfaces.card, p: { xs: 2.25, md: 2.75 }, width: '100%', textAlign: 'left' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
+                <Box sx={{ width: 30, height: 30, borderRadius: radii.circle, bgcolor: colors.orange, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ color: colors.surface1, fontWeight: 700, fontSize: '0.9rem' }}>1</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'left' }}>
-                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                  <Typography sx={{ ...stageType.statement, fontSize: 18, lineHeight: 1.2 }}>
                     Self-assessment
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)' }}>
+                  <Typography sx={stageType.cardBody}>
                     Rate yourself on the same statements your team will see.
                   </Typography>
                 </Box>
@@ -535,25 +560,20 @@ function CampaignVerify() {
                 sx={{
                   all: 'unset', cursor: 'pointer',
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  px: '20px', py: '11px', borderRadius: 999, mb: 1.75,
-                  bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)',
-                  fontFamily: '"Montserrat", sans-serif', fontWeight: 700, fontSize: '0.88rem',
-                  boxShadow: '0 6px 20px rgba(16,34,60,0.22)',
-                  transition: '180ms ease',
-                  '&:hover': { bgcolor: 'var(--navy-800, #162A44)', transform: 'translateY(-1px)' },
-                  '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.4)', outlineOffset: 3 },
+                  ...buttons.primary,
+                  mb: 1.75,
                 }}
               >
                 <TrendingUp sx={{ fontSize: 17 }} />
                 Start self-assessment
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, ...surfaces.cardInner, bgcolor: colors.sand50, textAlign: 'left' }}>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>
+                  <Typography sx={{ ...stageType.cardLabel, mb: 0.3, color: colors.inkSoft }}>
                     For you, not for your team
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Typography sx={{ ...stageType.cardBody, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selfCampaignLink || 'Generating…'}
                   </Typography>
                 </Box>
@@ -578,22 +598,21 @@ function CampaignVerify() {
 
             {/* Team campaign card */}
             <Box sx={{
-              bgcolor: 'white', borderRadius: '16px',
-              border: `1px solid ${selfCompleted ? 'var(--sand-200, #E8DBC3)' : 'var(--sand-100, #F3EAD8)'}`,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-              p: { xs: 2, md: 2.25 },
+              ...surfaces.card,
+              p: { xs: 2.25, md: 2.75 },
               width: '100%',
+              textAlign: 'left',
               opacity: selfCompleted ? 1 : 0.65,
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.25, mb: 1.5 }}>
-                <Box sx={{ width: 30, height: 30, borderRadius: '50%', bgcolor: selfCompleted ? 'var(--green, #2F855A)' : 'var(--sand-200, #E8DBC3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Typography sx={{ color: selfCompleted ? '#fff' : 'var(--ink-soft, #44566C)', fontWeight: 700, fontSize: '0.9rem' }}>2</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
+                <Box sx={{ width: 30, height: 30, borderRadius: radii.circle, bgcolor: selfCompleted ? colors.green : colors.sand200, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Typography sx={{ color: selfCompleted ? colors.surface1 : colors.inkSoft, fontWeight: 700, fontSize: '0.9rem' }}>2</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'left' }}>
-                  <Typography sx={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--navy-900, #10223C)', lineHeight: 1.2 }}>
+                  <Typography sx={{ ...stageType.statement, fontSize: 18, lineHeight: 1.2 }}>
                     Team invite {selfCompleted ? '(Unlocked)' : '(Locked)'}
                   </Typography>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--ink-soft, #44566C)' }}>
+                  <Typography sx={stageType.cardBody}>
                     {selfCompleted
                       ? 'Share this link with your team. It is a different link than the one above.'
                       : 'This unlocks after you finish your self-assessment.'}
@@ -603,24 +622,24 @@ function CampaignVerify() {
 
               {selfCompleted ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.15 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, ...surfaces.cardInner, bgcolor: colors.sand50, textAlign: 'left' }}>
                     <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Link</Typography>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamCampaignLink}</Typography>
+                      <Typography sx={{ ...stageType.cardLabel, mb: 0.3, color: colors.inkSoft }}>Team Link</Typography>
+                      <Typography sx={{ ...stageType.cardBody, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamCampaignLink}</Typography>
                     </Box>
                     <CopyButton text={teamCampaignLink} type="teamLink" label="Copy Link" />
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-50, #FBF7F0)', border: '1px solid var(--sand-200, #E8DBC3)', textAlign: 'left' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, p: 1.5, ...surfaces.cardInner, bgcolor: colors.sand50, textAlign: 'left' }}>
                     <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 700, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-soft, #44566C)', mb: 0.3 }}>Team Password</Typography>
-                      <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', color: 'var(--navy-900, #10223C)' }}>{teamCampaignPassword}</Typography>
+                      <Typography sx={{ ...stageType.cardLabel, mb: 0.3, color: colors.inkSoft }}>Team Password</Typography>
+                      <Typography sx={stageType.cardBody}>{teamCampaignPassword}</Typography>
                     </Box>
                     <CopyButton text={teamCampaignPassword} type="teamPassword" label="Copy" />
                   </Box>
                 </Box>
               ) : (
-                <Box sx={{ p: 1.5, borderRadius: '10px', bgcolor: 'var(--sand-100, #F3EAD8)', border: '1px solid var(--sand-200, #E8DBC3)' }}>
-                  <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.84rem', color: 'var(--ink-soft, #44566C)', fontStyle: 'italic' }}>
+                <Box sx={{ p: 1.5, ...surfaces.cardInner, bgcolor: colors.sand100 }}>
+                  <Typography sx={{ ...stageType.subtitle, textAlign: 'left', mx: 0 }}>
                     Finish your self-assessment first. The team link stays locked until then.
                   </Typography>
                 </Box>
@@ -631,7 +650,7 @@ function CampaignVerify() {
 
             {!isDemoSession() && (
             <Box sx={{ px: 1 }}>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', color: 'var(--ink-soft, #44566C)' }}>
+              <Typography sx={stageType.cardBody}>
                 Dashboard sign-in: <strong>{userEmail || '—'}</strong> · Use your account password.
               </Typography>
             </Box>

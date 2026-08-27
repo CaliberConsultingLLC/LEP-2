@@ -24,9 +24,11 @@ import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
 import CairnFlowButtons from '../components/CairnFlowButtons';
 import CairnLeftRail from '../components/CairnLeftRail';
+import CampaignStageHeader, { stageType } from '../components/CampaignStageCopy';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
+import { spokenGuide } from '../data/guideContent';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { seedStagingData } from '../utils/stagingSeed';
@@ -51,7 +53,7 @@ function CampaignBuilder() {
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
   const [expandedTrait, setExpandedTrait] = useState(0);
   const [isDark] = useDarkMode();
-  const { persona, hidden, toggleHidden, setHidden, setSuppress } = useGuide();
+  const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,6 +63,13 @@ function CampaignBuilder() {
     setHidden(true);
     return () => setSuppress(false);
   }, [setSuppress, setHidden, useCairnTheme]);
+
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    const key = (campaign || []).length ? 'curating' : 'default';
+    setGuideStep(key);
+    return () => setGuideStep('default');
+  }, [campaign, setGuideStep]);
 
   useEffect(() => {
     // Load selectedTraits first
@@ -414,6 +423,15 @@ function CampaignBuilder() {
     const keptCount = activeStatements.length - activeStatements.filter((_, sIdx) => (
       dismissedStatements.some((ds) => ds.trait === activeTrait?.trait && ds.index === sIdx)
     )).length;
+    const guideLine = spokenGuide(
+      personaId,
+      'campaignBuilder',
+      keptCount > 0 ? 'curating' : 'default',
+      'Keep scope small enough that it fits inside a normal week. If it needs heroics, shrink it.',
+      'page',
+    );
+    const activeName = activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait?.trait || 'this focus';
+    const guideCommentary = `${guideLine.text} Read the ${activeName} statements as if you had to answer them yourself.`;
     const statementChip = (campaign || []).reduce(
       (acc, trait) => {
         const stmts = (Array.isArray(trait?.statements) ? trait.statements : []).slice(0, 5);
@@ -602,8 +620,8 @@ function CampaignBuilder() {
         setHidden={setHidden}
         toggleHidden={toggleHidden}
         isDark={isDark}
-        commentary="Keep scope small enough that it fits inside a normal week. If it needs heroics, shrink it."
-        owlPose={persona.poses.lantern || persona.poses.page || persona.poses.idle}
+        commentary={guideCommentary}
+        owlPose={persona.poses[guideLine.pose] || persona.poses.lantern || persona.poses.page || persona.poses.idle}
       >
         {[
           ['Draft prompts', 'These are testable feedback prompts, not conclusions.'],
@@ -727,7 +745,8 @@ function CampaignBuilder() {
               </Box>
             </Box>
           ) : campaign && activeTrait ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.05, height: { md: '100%' }, minHeight: 0, overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.35, height: { md: '100%' }, maxHeight: { md: '100%' }, minHeight: 0, overflow: 'hidden' }}>
+              <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch' }}>
               <CairnLeftRail
                 isDark={isDark}
                 railLabel="Campaign traits"
@@ -751,84 +770,32 @@ function CampaignBuilder() {
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    gap: 2,
-                    maxWidth: 760,
-                    mx: 'auto',
+                    gap: 1.6,
                     width: '100%',
+                    height: '100%',
+                    minHeight: 0,
+                    overflow: 'hidden',
                   }}
                 >
-                  <Box sx={{ width: '100%' }}>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.mono,
-                        fontWeight: 700,
-                        fontSize: '0.68rem',
-                        letterSpacing: '0.14em',
-                        textTransform: 'uppercase',
-                        color: colors.orangeDeep,
-                        mb: 1,
-                      }}
-                    >
-                      {`Trait ${expandedTrait + 1}`}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.serif,
-                        fontWeight: 700,
-                        fontSize: { xs: '1.55rem', md: '1.9rem' },
-                        lineHeight: 1.12,
-                        color: isDark ? colors.ink : colors.navy900,
-                        mb: 0.65,
-                      }}
-                    >
-                      {activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.serif,
-                        fontStyle: 'italic',
-                        fontSize: { xs: '0.98rem', md: '1.05rem' },
-                        lineHeight: 1.4,
-                        color: isDark ? colors.ink : colors.navy700,
-                      }}
-                    >
-                      Review statements your team may rate
-                    </Typography>
-                    <Box
-                      aria-hidden
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 1.15,
-                        my: '14px',
-                      }}
-                    >
-                      <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />
-                      <Box sx={{ color: colors.orange, fontSize: 8, lineHeight: 1, opacity: 0.9 }}>◆</Box>
-                      <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.sans,
-                        fontSize: '0.92rem',
-                        lineHeight: 1.55,
-                        color: colors.inkSoft,
-                      }}
-                    >
+                  <Box sx={{ flexShrink: 0 }}>
+                    <CampaignStageHeader
+                      eyebrow={`Trait ${CAMPAIGN_ROMAN[expandedTrait] || expandedTrait + 1}`}
+                      title={activeTraitInfo.subTraitName || activeTraitInfo.coreTraitName || activeTrait.trait}
+                      subtitle={`Influence · ${activeTraitInfo.coreTraitName || 'Growth campaign'}`}
+                      meta={`${persona.name} · Review statements`}
+                    />
+                    <Typography sx={stageType.body}>
                       Keep what feels fair and useful. Remove anything confusing, unfair, or outside this growth campaign.
                       {' '}
                       {keptCount}
                       /
                       {activeStatements.length}
                       {' '}
-                      statements kept.
+                      statements kept for this trait.
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1, width: '100%' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%', flex: 1, minHeight: 0, overflow: 'auto' }}>
                     {activeStatements.map((stmt, sIdx) => {
                       const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
                       return (
@@ -839,6 +806,7 @@ function CampaignBuilder() {
                             gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1fr) auto' },
                             alignItems: 'center',
                             gap: 1.15,
+                            flexShrink: 0,
                           }}
                         >
                           <Box
@@ -850,17 +818,14 @@ function CampaignBuilder() {
                               borderColor: isDismissed
                                 ? 'color-mix(in srgb, var(--orange-deep) 34%, transparent)'
                                 : undefined,
-                              px: { xs: 1.5, md: 1.75 },
-                              py: { xs: 1.2, md: 1.35 },
-                              textAlign: 'center',
+                              px: { xs: 1.6, md: 1.9 },
+                              py: { xs: 1.3, md: 1.5 },
+                              textAlign: 'left',
                             }}
                           >
                             <Typography
                               sx={{
-                                fontFamily: fonts.sans,
-                                fontSize: { xs: '0.86rem', md: '0.95rem' },
-                                lineHeight: 1.45,
-                                fontWeight: 650,
+                                ...stageType.statement,
                                 color: isDismissed ? colors.inkSoft : (isDark ? colors.ink : colors.navy900),
                                 textDecoration: isDismissed ? 'line-through' : 'none',
                                 opacity: isDismissed ? 0.72 : 1,
@@ -905,6 +870,7 @@ function CampaignBuilder() {
                   </Box>
                 </Box>
               </CairnLeftRail>
+              </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pt: 0.5 }}>
                 <CairnFlowButtons
@@ -929,7 +895,7 @@ function CampaignBuilder() {
                         justifyContent: 'center',
                         minHeight: 38,
                         px: { xs: 1.6, sm: 2.3 },
-                        borderRadius: 999,
+                        borderRadius: radii.pill,
                         bgcolor: isDark ? 'rgba(244,206,161,0.08)' : 'rgba(255,255,255,0.78)',
                         border: isDark ? '1.5px solid rgba(244,206,161,0.22)' : '1.5px solid var(--sand-300, #C9B99A)',
                         color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
@@ -949,14 +915,7 @@ function CampaignBuilder() {
                     </Box>
                   )}
                 />
-                <Typography sx={{
-                  fontFamily: '"JetBrains Mono", monospace',
-                  fontSize: '0.65rem',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: 'var(--ink-soft, #44566C)',
-                  textAlign: 'center',
-                }}>
+                <Typography sx={{ ...stageType.eyebrow, color: colors.inkSoft, textAlign: 'center' }}>
                   Focus {expandedTrait + 1} of {(campaign || []).length}
                 </Typography>
               </Box>

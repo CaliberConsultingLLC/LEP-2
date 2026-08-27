@@ -248,12 +248,13 @@ html[data-theme='cairn'] .MuiChip-filledSuccess {
 
 /* --- Inputs --- */
 html[data-theme='cairn'] .MuiOutlinedInput-root {
-  border-radius: var(--cairn-radius-md);
+  border-radius: var(--cairn-radius-sm);
   background-color: #ffffff;
   font-family: 'Manrope', 'Inter', sans-serif;
 }
 html[data-theme='cairn'] .MuiOutlinedInput-notchedOutline {
   border-color: var(--sand-200);
+  border-radius: var(--cairn-radius-sm);
 }
 html[data-theme='cairn'] .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
   border-color: var(--navy-500);

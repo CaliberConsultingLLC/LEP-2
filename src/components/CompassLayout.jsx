@@ -14,6 +14,7 @@ function CompassLayout({
   viewportFit = false,
   fluid = false,
   flushTop = false,
+  allowBleed = false,
 }) {
   if (!useCairnTheme) {
     return children;
@@ -33,7 +34,7 @@ function CompassLayout({
         px: CONTENT_PX,
         pt: flushTop ? 0 : STAGE_PT,
         pb: flushTop ? 0 : STAGE_PB,
-        overflowX: 'hidden',
+        overflowX: allowBleed ? 'visible' : 'hidden',
         overflowY: viewportFit ? 'hidden' : 'auto',
         minHeight: viewportFit ? 0 : 'calc(100svh - 138px)',
       }}
@@ -46,6 +47,8 @@ function CompassLayout({
           minWidth: 0,
           height: viewportFit ? '100%' : 'auto',
           minHeight: 0,
+          display: viewportFit ? 'flex' : 'block',
+          flexDirection: 'column',
           overflow: viewportFit ? 'hidden' : 'visible',
         }}
       >
