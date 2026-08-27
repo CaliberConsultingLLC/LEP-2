@@ -48,7 +48,7 @@ const PAGE_GROUPS = [
       { label: 'VI - Today', path: '/dashboard?tab=today' },
       { label: 'VI - Signal', path: '/dashboard?tab=signal' },
       { label: 'VI - Evidence', path: '/dashboard?tab=evidence' },
-      { label: 'VII - Practice', path: '/dashboard?tab=practice' },
+      { label: 'VI - Practice', path: '/dashboard?tab=practice' },
       { label: 'VII - Journey', path: '/dashboard?tab=journey' },
     ],
   },

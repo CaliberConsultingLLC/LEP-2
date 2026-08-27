@@ -18,7 +18,7 @@ import { useCairnTheme } from '../config/runtimeFlags';
 const FAQ_ITEMS = [
   {
     q: 'What do I get from the first sitting?',
-    a: 'A written reflection of how you lead, three traits to grow, a self-assessment, and a team survey on the same statements. That sitting opens the year on the dashboard: Signal, Evidence, then one practice.',
+    a: 'A written reflection of how you lead, three traits to grow, a self-assessment, and a team survey on the same statements. That sitting opens the year on the dashboard: the signal, the evidence, and your action plan together.',
   },
   {
     q: 'What is the Signal?',
