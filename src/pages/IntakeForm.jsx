@@ -1162,6 +1162,21 @@ function IntakeForm() {
     return undefined;
   }, [currentStep, behaviorStart, mindsetIntroStep, societalStart]);
 
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    const params = new URLSearchParams(location.search || '');
+    const stage = String(params.get('stage') || '').toLowerCase();
+    const step = String(params.get('step') || '');
+    if (stage === 'profile' || step === '1') {
+      if (currentStep !== 1) setCurrentStep(1);
+    } else if (step === '3') {
+      if (currentStep < societalStart) setCurrentStep(societalStart);
+    } else if (stage === 'intake' || step === '2') {
+      if (currentStep < behaviorStart) setCurrentStep(behaviorStart);
+    }
+    return undefined;
+  }, [location.search, behaviorStart, societalStart, useCairnTheme, currentStep]);
+
   const buildClarificationPayload = (resolution, extra = {}) => ({
     notice: extra.notice ?? clarification.notice ?? '',
     questions: extra.questions ?? clarification.questions ?? [],
@@ -1414,7 +1429,11 @@ function IntakeForm() {
           };
           syncLocalIntakeState(nextDraft);
           localStorage.setItem('cairn_profile_details_complete', 'true');
-          navigate('/guide-select');
+          if (isDemoSession() || isIntakeUnlocked()) {
+            navigate('/form?stage=intake');
+          } else {
+            navigate('/pay');
+          }
           return;
         }
 
@@ -1600,21 +1619,38 @@ function IntakeForm() {
   })();
   const intakeQuestionTotal = behaviorSet.length + societalNormsQuestions.length;
   const isProfileDetailsStep = useCairnTheme && currentStep === 1;
-  const intakeActiveStepId = currentStep <= 1
+  const intakeActiveStepId = isProfileDetailsStep
     ? 'context'
     : (currentStep >= mindsetIntroStep ? 'insights' : 'habits');
-  const intakeChip = {
-    variant: 'intake',
-    label: 'Question',
-    current: isProfileDetailsStep ? 0 : intakeQuestionNumber,
-    total: intakeQuestionTotal,
-    saved: autosaveStatus.state === 'saved' || autosaveStatus.state === 'idle',
-  };
+  const intakeChip = isProfileDetailsStep
+    ? { variant: 'sequence', label: 'Step', current: 3, total: 3 }
+    : {
+        variant: 'intake',
+        label: 'Question',
+        current: intakeQuestionNumber,
+        total: intakeQuestionTotal,
+        saved: autosaveStatus.state === 'saved' || autosaveStatus.state === 'idle',
+      };
 
   const handleChapterStep = (step) => {
-    if (step.id === 'context') setCurrentStep(1);
-    else if (step.id === 'habits') setCurrentStep(behaviorStart);
-    else if (step.id === 'insights') setCurrentStep(societalStart);
+    if (step.id === 'account' || step.id === 'guide') {
+      if (step.path) navigate(step.path);
+      return;
+    }
+    if (step.id === 'context') {
+      navigate('/form?stage=profile');
+      setCurrentStep(1);
+      return;
+    }
+    if (step.id === 'habits') {
+      navigate('/form?stage=intake');
+      setCurrentStep(behaviorStart);
+      return;
+    }
+    if (step.id === 'insights') {
+      navigate('/form?step=3');
+      setCurrentStep(societalStart);
+    }
   };
 
   // ---------- UI ----------
@@ -1651,7 +1687,7 @@ function IntakeForm() {
       }}
     >
       <ProcessTopRail
-        chapterId="behaviors"
+        chapterId={isProfileDetailsStep ? 'profile' : 'behaviors'}
         activeStepId={intakeActiveStepId}
         chip={intakeChip}
         onStepSelect={handleChapterStep}

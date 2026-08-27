@@ -1,13 +1,12 @@
 /**
  * Canonical chapter map for the Compass chapter header.
  *
- * chapter.purpose  → drawer column 1 ("What this chapter is for"), one or two sentences.
- * step.whatHappens → drawer column 2 ("What happens here"), scoped to the ACTIVE STEP.
- *                    Short fragments, not sentences. 2-3 per step, no period.
- *                    They tell the leader what this screen is, not what the chapter is.
+ * chapter.purpose        → drawer column 1, and the "begin" side of a chapter popup.
+ * chapter.completeBlurb  → "complete" side of the popup when leaving this chapter.
+ * chapter.arriveHint     → one-line "next" hint on the begin card.
+ * step.whatHappens       → drawer column 2, scoped to the ACTIVE STEP.
  *
- * Single source of truth for chapter numbers, names, step lists, and drawer copy.
- * Numbering is of VII.
+ * Numbering is of VII. Popups fire only when chapterId changes, not on tab changes.
  */
 
 export const CHAPTER_TOTAL = 7;
@@ -16,15 +15,18 @@ export const CHAPTERS = [
   {
     id: 'profile',
     num: 'I',
-    name: 'Profile Creation',
+    name: 'Leader Profile',
     purpose:
-      'The Compass reads your context before it reads your leadership. These details shape every insight that follows.',
+      'Building your leader profile: who you are as a leader. Account, guide, then the role and industry that shape every later reading.',
+    completeBlurb:
+      'Your account is set, you chose a guide, and your context is in. Nothing has been scored yet — that is next.',
+    arriveHint: 'About 32 questions on how you actually lead. Answer as you normally show up, not as you wish you did.',
     steps: [
       {
-        id: 'context',
-        label: 'Your Context',
+        id: 'account',
+        label: 'Your Account',
         path: '/user-info',
-        whatHappens: ['Industry, team size, tenure', 'Context, not scoring', 'Editable later'],
+        whatHappens: ['Name, email, password', 'A login, not a score', 'You can sign back in later'],
       },
       {
         id: 'guide',
@@ -32,25 +34,28 @@ export const CHAPTERS = [
         path: '/guide-select',
         whatHappens: ['Six voices, one pick', 'Gut answer', 'Swappable any time'],
       },
+      {
+        id: 'context',
+        label: 'Your Context',
+        path: '/form?stage=profile',
+        whatHappens: ['Industry, role, tenure', 'Context, not scoring', 'Shapes how your guide reads you'],
+      },
     ],
   },
   {
     id: 'behaviors',
     num: 'II',
-    name: 'Behaviors & Instincts',
+    name: 'Daily Leadership Behaviors',
     purpose:
       'These questions are about how you normally lead day to day, not who you wish you were. They are the raw material every later chapter reads from.',
+    completeBlurb:
+      'You finished the intake — how you actually lead, not a type. Those answers are what the reflection is built from.',
+    arriveHint: 'Your written reflection is ready. Read it in four short parts. Nothing to choose yet.',
     steps: [
-      {
-        id: 'context',
-        label: 'Your Context',
-        path: '/form?step=1',
-        whatHappens: ['A few details about your role', 'Shapes how your guide reads you'],
-      },
       {
         id: 'habits',
         label: 'Daily Leadership Habits',
-        path: '/form?step=2',
+        path: '/form?stage=intake',
         whatHappens: ['32 questions, one at a time', 'Never-to-Always scale', 'Your normal behavior, not your best day'],
       },
       {
@@ -62,11 +67,14 @@ export const CHAPTERS = [
     ],
   },
   {
-    id: 'insights',
+    id: 'reflect',
     num: 'III',
-    name: 'Leadership Reflection',
+    name: 'Reflect and Digest',
     purpose:
-      'Your answers have been read back to you as a reflection. This chapter turns that reading into a decision: the three traits your next campaign will measure.',
+      'Your answers have been read back to you as a reflection. Sit with it long enough to recognize yourself before you build anything.',
+    completeBlurb:
+      'You have the writeup from your intake. Next you choose the traits and language your year will run on.',
+    arriveHint: 'Pick three traits, then review the statements your team will actually rate.',
     steps: [
       {
         id: 'summary',
@@ -74,6 +82,18 @@ export const CHAPTERS = [
         path: '/summary',
         whatHappens: ['Four stages, read in order', 'Written from your own answers', 'Nothing to choose yet'],
       },
+    ],
+  },
+  {
+    id: 'campaign',
+    num: 'IV',
+    name: 'Growth Campaign',
+    purpose:
+      'A growth campaign is the set of statements your team will answer. Choose the three traits, shape the language, then send.',
+    completeBlurb:
+      'You chose the traits and locked the sentences. Next you rate yourself on the same statements, then invite the team.',
+    arriveHint: 'Rate yourself first on the same sentences your team will see. About five minutes.',
+    steps: [
       {
         id: 'traits',
         label: 'Trait Selection',
@@ -84,28 +104,25 @@ export const CHAPTERS = [
         id: 'builder',
         label: 'Campaign Builder',
         path: '/campaign-builder',
-        whatHappens: ['Statements written per trait', 'Your edits, your language', 'Sends when you approve'],
+        whatHappens: ['Statements written per trait', 'Your edits, your language', 'Keep what feels fair'],
+      },
+      {
+        id: 'verify',
+        label: 'Review & Send',
+        path: '/campaign-verify',
+        whatHappens: ['Last look before it sends', 'Then you answer first', 'Team link unlocks after that'],
       },
     ],
   },
   {
-    id: 'campaign',
-    num: 'IV',
-    name: 'Campaign Creation',
-    purpose:
-      'A campaign is the set of statements your team will answer. This chapter is where you approve the language before anyone sees it.',
-    steps: [
-      { id: 'intro', label: 'Campaign Intro', path: '/campaign-intro', whatHappens: ['What your team will see', 'No edits here'] },
-      { id: 'build', label: 'Build Statements', path: '/campaign-builder', whatHappens: ['Statements per trait', 'Edit anything that sounds off'] },
-      { id: 'verify', label: 'Review & Send', path: '/campaign-verify', whatHappens: ['Who is invited', 'How long the window stays open', 'Last look before it sends'] },
-    ],
-  },
-  {
-    id: 'self',
+    id: 'assessments',
     num: 'V',
-    name: 'Self-Assess',
+    name: 'Self and Team Assessments',
     purpose:
-      'You answer the same statements your team is answering. The difference between the two readings is the most useful number in the tool.',
+      'You answer the same statements your team will answer. Then you keep the window open long enough for everyone else.',
+    completeBlurb:
+      'Your benchmark is in and the team has had a chance to answer. The first signal is a reading, not a verdict.',
+    arriveHint: 'Sit with Signal first, then Evidence. Those two rooms explain the numbers before you choose a practice.',
     steps: [
       {
         id: 'self',
@@ -113,27 +130,30 @@ export const CHAPTERS = [
         path: '/campaign/self',
         whatHappens: ['The same statements your team sees', 'Answered before you see theirs', 'Private, shown only as a comparison'],
       },
-    ],
-  },
-  {
-    id: 'team',
-    num: 'VI',
-    name: 'Team Assess',
-    purpose:
-      'This chapter belongs to your team. Your only job is to keep the window open long enough for everyone to answer.',
-    steps: [
-      { id: 'status', label: 'Response Status', path: '/dashboard?tab=journey', whatHappens: ['Counts only, no answers', 'Reminders you can send'] },
-      { id: 'close', label: 'Close the Window', path: '/dashboard?tab=journey', whatHappens: ['Closing opens the reading', 'Partial results are a sketch'] },
+      {
+        id: 'team',
+        label: 'Team Assessment',
+        path: '/dashboard?tab=journey',
+        whatHappens: ['Counts only, no answers', 'A different link than yours', 'Closing opens the reading'],
+      },
     ],
   },
   {
     id: 'review',
-    num: 'VII',
+    num: 'VI',
     name: 'Review & Act',
     purpose:
-      'Your team has answered on the traits you chose. This chapter is where you understand what came back, check it against the statements behind it, and decide what you will practice.',
+      'This is the deeper review. Read what came back, trait by trait, then the statements behind it, before you commit to a practice.',
+    completeBlurb:
+      'You walked Signal and Evidence. The pattern is clear enough to choose one practice your team can feel.',
+    arriveHint: 'Turn one insight into a practice — not a list of goals. One behavior your team should notice.',
     steps: [
-      { id: 'today', label: 'Today', path: '/dashboard?tab=today', whatHappens: ['Where you are this week', 'One habit to mark'] },
+      {
+        id: 'today',
+        label: 'Today',
+        path: '/dashboard?tab=today',
+        whatHappens: ['Where you are this week', 'One habit to mark'],
+      },
       {
         id: 'signal',
         label: 'Signal',
@@ -148,6 +168,18 @@ export const CHAPTERS = [
         gated: true,
         whatHappens: ['Every statement behind the signal', 'Sourced, not styled', 'Opens Practice when read'],
       },
+    ],
+  },
+  {
+    id: 'action',
+    num: 'VII',
+    name: 'Action',
+    purpose:
+      'Turn the reading into one visible practice, then keep the map in view so you know where you are in the year.',
+    completeBlurb:
+      'You committed to a practice. The next reading will tell you whether it is landing.',
+    arriveHint: 'Keep it small enough to fit a normal week. The map holds the rest.',
+    steps: [
       {
         id: 'practice',
         label: 'Practice',
@@ -155,12 +187,17 @@ export const CHAPTERS = [
         gated: true,
         whatHappens: ['One visible behavior per trait', 'Small enough to hold', 'Held until the next check-in'],
       },
-      { id: 'journey', label: 'Journey', path: '/dashboard?tab=journey', whatHappens: ['The whole map', 'Where you have been'] },
+      {
+        id: 'journey',
+        label: 'Journey',
+        path: '/dashboard?tab=journey',
+        whatHappens: ['The whole map', 'Where you have been'],
+      },
     ],
   },
 ];
 
-const DASHBOARD_TABS = ['today', 'signal', 'evidence', 'practice', 'journey'];
+const REVIEW_TABS = ['today', 'signal', 'evidence'];
 
 export const chapterById = (id) => CHAPTERS.find((c) => c.id === id);
 export const chapterByStep = (stepId) =>
@@ -172,27 +209,57 @@ export const chapterIndexOf = (id) => {
   return index < 0 ? 0 : index;
 };
 
+function teamWindowClosed() {
+  try {
+    const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+    if (String(records?.teamCampaignClosed || '').toLowerCase() === 'true') return true;
+  } catch {
+    /* ignore */
+  }
+  return localStorage.getItem('teamCampaignClosed') === 'true';
+}
+
+function selfAssessmentComplete() {
+  try {
+    const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
+    const selfId = String(records?.selfCampaignId || '').trim();
+    if (selfId && localStorage.getItem(`selfCampaignCompleted_${selfId}`) === 'true') return true;
+    if (records?.selfCompleted) return true;
+  } catch {
+    /* ignore */
+  }
+  return localStorage.getItem('selfCampaignCompleted') === 'true';
+}
+
 export function resolveFromLocation(pathname = '', search = '') {
   const params = new URLSearchParams(search || '');
   const tab = String(params.get('tab') || '').trim().toLowerCase();
   const step = String(params.get('step') || '').trim();
   const stage = String(params.get('stage') || '').trim().toLowerCase();
 
-  if (pathname.startsWith('/user-info')) return { chapterId: 'profile', activeStepId: 'context' };
+  if (pathname.startsWith('/user-info')) return { chapterId: 'profile', activeStepId: 'account' };
   if (pathname.startsWith('/guide-select')) return { chapterId: 'profile', activeStepId: 'guide' };
   if (pathname.startsWith('/form')) {
-    if (step === '1' || stage === 'profile') return { chapterId: 'behaviors', activeStepId: 'context' };
+    if (step === '1' || stage === 'profile') return { chapterId: 'profile', activeStepId: 'context' };
     if (step === '3') return { chapterId: 'behaviors', activeStepId: 'insights' };
     return { chapterId: 'behaviors', activeStepId: 'habits' };
   }
-  if (pathname.startsWith('/summary')) return { chapterId: 'insights', activeStepId: 'summary' };
-  if (pathname.startsWith('/trait-selection')) return { chapterId: 'insights', activeStepId: 'traits' };
-  if (pathname.startsWith('/campaign-intro')) return { chapterId: 'campaign', activeStepId: 'intro' };
-  if (pathname.startsWith('/campaign-builder')) return { chapterId: 'campaign', activeStepId: 'build' };
-  if (pathname.startsWith('/campaign-verify')) return { chapterId: 'campaign', activeStepId: 'verify' };
-  if (pathname.startsWith('/campaign/')) return { chapterId: 'self', activeStepId: 'self' };
+  if (pathname.startsWith('/summary')) return { chapterId: 'reflect', activeStepId: 'summary' };
+  if (pathname.startsWith('/trait-selection')) return { chapterId: 'campaign', activeStepId: 'traits' };
+  if (pathname.startsWith('/campaign-intro')) return { chapterId: 'campaign', activeStepId: 'builder' };
+  if (pathname.startsWith('/campaign-builder')) return { chapterId: 'campaign', activeStepId: 'builder' };
+  if (pathname.startsWith('/campaign-verify')) {
+    if (selfAssessmentComplete()) return { chapterId: 'assessments', activeStepId: 'team' };
+    return { chapterId: 'campaign', activeStepId: 'verify' };
+  }
+  if (pathname.startsWith('/campaign/')) return { chapterId: 'assessments', activeStepId: 'self' };
   if (pathname.startsWith('/dashboard')) {
-    const active = DASHBOARD_TABS.includes(tab) ? tab : 'today';
+    if (tab === 'practice') return { chapterId: 'action', activeStepId: 'practice' };
+    if (tab === 'journey') {
+      if (!teamWindowClosed()) return { chapterId: 'assessments', activeStepId: 'team' };
+      return { chapterId: 'action', activeStepId: 'journey' };
+    }
+    const active = REVIEW_TABS.includes(tab) ? tab : 'today';
     return { chapterId: 'review', activeStepId: active };
   }
   return null;

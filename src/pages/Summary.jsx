@@ -1083,7 +1083,7 @@ function Summary() {
       >
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
-            chapterId="insights"
+            chapterId="reflect"
             activeStepId="summary"
             chip={{ variant: 'sequence', label: 'Stage', current: (activeJourneyStep || 0) + 1, total: 4 }}
           />
@@ -1772,7 +1772,7 @@ function Summary() {
           }),
     }}>
       <ProcessTopRail
-        chapterId="insights"
+        chapterId="reflect"
         activeStepId="summary"
         chip={{ variant: 'sequence', label: 'Stage', current: 1, total: 4 }}
       />

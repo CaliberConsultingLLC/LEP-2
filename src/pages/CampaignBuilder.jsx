@@ -708,7 +708,7 @@ function CampaignBuilder() {
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
           chapterId="campaign"
-          activeStepId="build"
+          activeStepId="builder"
           chip={{ variant: 'sequence', label: 'Statements', current: statementChip.current, total: statementChip.total }}
           onStepSelect={(step) => {
             if (step.id === 'verify') {
@@ -1055,7 +1055,7 @@ function CampaignBuilder() {
       >
         <ProcessTopRail
           chapterId="campaign"
-          activeStepId="build"
+          activeStepId="builder"
           chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
         />
         <CompassLayout>

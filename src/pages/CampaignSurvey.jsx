@@ -454,7 +454,7 @@ function CampaignSurvey() {
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
         {useCairnTheme
           ? <ProcessTopRail {...(isSelfCampaign
-            ? { chapterId: 'self', activeStepId: 'self', chip: { variant: 'intake', label: 'Question', current: 1, total: questions.length || 15 } }
+            ? { chapterId: 'assessments', activeStepId: 'self', chip: { variant: 'intake', label: 'Question', current: 1, total: questions.length || 15 } }
             : { utilityOnly: true })} />
           : <ProcessTopRail />}
       </Box>
@@ -529,7 +529,7 @@ function CampaignSurvey() {
         <ProcessTopRail
           {...(isSelfCampaign
             ? {
-                chapterId: 'self',
+                chapterId: 'assessments',
                 activeStepId: 'self',
                 chip: { variant: 'intake', label: 'Question', current: currentQuestion + 1, total: questions.length || 15 },
               }

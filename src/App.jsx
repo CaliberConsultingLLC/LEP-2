@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import NotFound from './pages/NotFound';
 import Home from './pages/Home';
 import UserInfo from './pages/UserInfo';
@@ -7,7 +7,6 @@ import IntakeForm from './pages/IntakeForm';
 import Summary from './pages/Summary';
 import SummarySnapshot from './pages/SummarySnapshot';
 import TraitSelection from './pages/TraitSelection';
-import CampaignIntro from './pages/CampaignIntro';
 import CampaignBuilder from './pages/CampaignBuilder';
 import CampaignVerify from './pages/CampaignVerify';
 import NewCampaignIntro from './pages/NewCampaignIntro';
@@ -72,7 +71,7 @@ function AppRoutes() {
       <Route path="/summary" element={<Summary />} />
       <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />
       <Route path="/trait-selection" element={<TraitSelection />} />
-      <Route path="/campaign-intro" element={<CampaignIntro />} />
+      <Route path="/campaign-intro" element={<Navigate to="/campaign-builder" replace />} />
       <Route path="/campaign-builder" element={<CampaignBuilder />} />
       <Route path="/campaign-verify" element={<CampaignVerify />} />
       <Route path="/campaign/:id" element={<NewCampaignIntro />} />

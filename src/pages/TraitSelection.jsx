@@ -517,7 +517,7 @@ function TraitSelection() {
       >
         <Box sx={{ flexShrink: 0 }}>
           <ProcessTopRail
-            chapterId="insights"
+            chapterId="campaign"
             activeStepId="traits"
             chip={{ variant: 'sequence', label: 'Selected', current: selectedTraits.length, total: 3 }}
           />
@@ -791,7 +791,7 @@ function TraitSelection() {
       }}
     >
       <ProcessTopRail
-        chapterId="insights"
+        chapterId="campaign"
         activeStepId="traits"
         chip={{ variant: 'sequence', label: 'Selected', current: 0, total: 3 }}
       />

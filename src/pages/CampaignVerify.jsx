@@ -457,8 +457,8 @@ function CampaignVerify() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
         <ProcessTopRail
-          chapterId="campaign"
-          activeStepId="verify"
+          chapterId={selfCompleted ? 'assessments' : 'campaign'}
+          activeStepId={selfCompleted ? 'team' : 'verify'}
           chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
         />
         <CompassLayout afterTopbar>
@@ -675,8 +675,8 @@ function CampaignVerify() {
       }}
     >
       <ProcessTopRail
-        chapterId="campaign"
-        activeStepId="verify"
+        chapterId={selfCompleted ? 'assessments' : 'campaign'}
+        activeStepId={selfCompleted ? 'team' : 'verify'}
         chip={{ variant: 'sequence', label: 'Statements', current: 0, total: 0 }}
       />
       <CompassLayout>

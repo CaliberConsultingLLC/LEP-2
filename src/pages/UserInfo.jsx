@@ -260,7 +260,7 @@ function UserInfo() {
         localStorage.removeItem('cairn_profile_details_complete');
         // Fresh journey — allow chapter transition popups again.
         localStorage.removeItem('journeyCeremonySeen');
-        navigate('/form?stage=profile');
+        navigate('/guide-select');
       } else {
         navigate('/form');
       }
@@ -306,8 +306,8 @@ function UserInfo() {
     >
       <ProcessTopRail
         chapterId="profile"
-        activeStepId="context"
-        chip={{ variant: 'sequence', label: 'Step', current: 1, total: 2 }}
+        activeStepId="account"
+        chip={{ variant: 'sequence', label: 'Step', current: 1, total: 3 }}
       />
       <CompassLayout>
       <Container

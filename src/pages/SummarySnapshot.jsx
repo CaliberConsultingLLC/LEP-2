@@ -154,7 +154,7 @@ function SummarySnapshot() {
       }}
     >
       <ProcessTopRail
-        chapterId="insights"
+        chapterId="reflect"
         activeStepId="summary"
         chip={{ variant: 'sequence', label: 'Stage', current: 1, total: 4 }}
       />

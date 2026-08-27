@@ -47,7 +47,7 @@ utility bar only.
 
 ```text
 BAR 1 · navy 60px          THE COMPASS          STAGING  Guide  AR
-BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary  Trait Selection  Campaign  [chip]
+BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary                    [chip]
                      100px porthole straddles both bars (top:-38px, 5px white ring)
 ```
 
@@ -60,6 +60,8 @@ BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary  Trait Selection  Ca
   34px sand divider, step tabs, `flex:1`, one status chip.
 - Copy, numbers, and step lists live in `src/data/chapterMap.js`. Numbering is
   **of VII**. "What happens here" hangs off the active step, not the chapter.
+  Chapter popups fire only when `chapterId` changes (complete → begin next).
+  Tab changes inside a chapter do not popup.
 - Porthole: `JourneyPorthole` `variant="corner"` — 100px, 4px navy bezel, 2px
   brass inner ring, amber diamond at 12 o'clock, 5px white outer ring. Clicking
   it or the chapter name opens the drawer.

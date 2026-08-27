@@ -693,8 +693,12 @@ export default function CommandCenter() {
   const invited = Number(readJson('latestFormData', {})?.teamSize) || Number(readJson('userInfo', {})?.teamSize) || 8;
   const respondents = teamResponses?.length || 0;
   const windowOpen = !campaignClosed;
-  const chapterId = windowOpen && activeTab === 'journey' ? 'team' : 'review';
-  const activeStepId = chapterId === 'team' ? 'status' : activeTab;
+  const chapterId = windowOpen && activeTab === 'journey'
+    ? 'assessments'
+    : (activeTab === 'practice' || (!windowOpen && activeTab === 'journey') ? 'action' : 'review');
+  const activeStepId = chapterId === 'assessments'
+    ? 'team'
+    : (chapterId === 'action' ? (activeTab === 'practice' ? 'practice' : 'journey') : (['today', 'signal', 'evidence'].includes(activeTab) ? activeTab : 'today'));
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.

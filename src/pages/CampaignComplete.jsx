@@ -94,7 +94,7 @@ function CampaignComplete() {
     >
       <ProcessTopRail
         {...(isSelfCampaign
-          ? { chapterId: 'self', activeStepId: 'self' }
+          ? { chapterId: 'assessments', activeStepId: 'self' }
           : { utilityOnly: true })}
       />
       <CompassLayout fluid contentMaxWidth={560} afterTopbar>

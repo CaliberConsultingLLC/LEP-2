@@ -8,7 +8,6 @@ import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { colors, fonts, radii } from '../styles/tokens';
-import { isDemoSession } from '../utils/demoMode';
 
 function GuideSelect() {
   const navigate = useNavigate();
@@ -46,7 +45,7 @@ function GuideSelect() {
 
   const handleBegin = () => {
     if (!canBegin) return;
-    navigate(isDemoSession() ? '/form?stage=intake' : '/pay');
+    navigate('/form?stage=profile');
   };
 
   const step = (delta) => {
@@ -59,7 +58,7 @@ function GuideSelect() {
       <ProcessTopRail
         chapterId="profile"
         activeStepId="guide"
-        chip={{ variant: 'sequence', label: 'Step', current: 2, total: 2 }}
+        chip={{ variant: 'sequence', label: 'Step', current: 2, total: 3 }}
       />
 
       <Box sx={{
