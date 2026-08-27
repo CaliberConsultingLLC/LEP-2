@@ -273,7 +273,7 @@ export default function JourneyChapterCeremony({
           flexDirection: 'column',
           [`@media (min-width: ${MOBILE_MAX + 1}px)`]: {
             position: 'absolute',
-            left: '50%',
+            left: '50vw',
             top: '50%',
             transform: 'translate(-50%, -50%)',
             flexDirection: 'row',
