@@ -2,6 +2,8 @@ import React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { buttons, colors, fonts, motion, radii, shadows, type } from '../../../styles/tokens';
 import { fmtGap, gapOf } from './debriefContent.js';
+import MetricHint from '../../../components/MetricHint';
+import { SCORE_HINTS } from '../../../data/scoreGlossary';
 
 // ----------------------------------------------------------------------------
 // Shared UI for the Signal / Evidence / Practice walkthroughs and snapshots.
@@ -323,9 +325,12 @@ const cardResetSx = {
 };
 
 function ScoreBar({ label, value, fillColor }) {
+  const hint = label === 'Effort' ? SCORE_HINTS.effort : SCORE_HINTS.efficacy;
   return (
     <Stack direction="row" alignItems="center" spacing={1.2} sx={{ mb: 0.9 }}>
-      <Typography sx={{ ...type.monoLabel, width: 60, flexShrink: 0 }}>{label}</Typography>
+      <Typography sx={{ ...type.monoLabel, width: 60, flexShrink: 0 }}>
+        <MetricHint title={hint} underline>{label}</MetricHint>
+      </Typography>
       <Box sx={{ flex: 1, height: 7, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
         <Box
           sx={{
@@ -402,9 +407,11 @@ export function TraitScoresPanel({ rows, highlightKey = null, onSelect = null, c
                     transition: 'font-size 320ms ease',
                   }}
                 >
-                  {Math.round(r.team.lepScore)}
+                  <MetricHint title={SCORE_HINTS.compass}>{Math.round(r.team.lepScore)}</MetricHint>
                 </Typography>
-                <Typography sx={{ ...type.monoLabel }}>Compass</Typography>
+                <Typography sx={{ ...type.monoLabel }}>
+                  <MetricHint title={SCORE_HINTS.compass} underline>Compass</MetricHint>
+                </Typography>
               </Stack>
             </Stack>
             <ScoreBar label="Efficacy" value={r.team.efficacy} fillColor={colors.navy500} />
@@ -424,9 +431,12 @@ const GAP_SCALE = 30;
 
 function DivergeBar({ label, gap }) {
   const w = Math.min(50, (Math.abs(gap) / GAP_SCALE) * 50);
+  const hint = label === 'Effort' ? SCORE_HINTS.effort : SCORE_HINTS.efficacy;
   return (
     <Stack direction="row" alignItems="center" spacing={1.2} sx={{ mb: 0.9 }}>
-      <Typography sx={{ ...type.monoLabel, width: 60, flexShrink: 0 }}>{label}</Typography>
+      <Typography sx={{ ...type.monoLabel, width: 60, flexShrink: 0 }}>
+        <MetricHint title={hint} underline>{label}</MetricHint>
+      </Typography>
       <Box sx={{ flex: 1, height: 7, borderRadius: radii.pill, bgcolor: colors.sand100, position: 'relative' }}>
         <Box sx={{ position: 'absolute', left: '50%', top: -2, bottom: -2, width: '1.5px', bgcolor: colors.sand300 }} />
         <Box

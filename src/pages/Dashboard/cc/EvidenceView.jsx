@@ -6,6 +6,8 @@ import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import EvidenceQuadrant, { EvidenceModeBar } from './EvidenceQuadrant.jsx';
 import { metricLabel, perceptionGap, scoresFor, zoneFor } from './evidenceDial.js';
+import MetricHint from '../../../components/MetricHint';
+import { hintForMetricLabel, SCORE_HINTS } from '../../../data/scoreGlossary';
 import {
   ChapterEyebrow,
   Headline,
@@ -22,9 +24,9 @@ import traitSystem from '../../../data/traitSystem.js';
 function EvIntroPage({ rows, respondents }) {
   const totalStatements = rows.length * 5;
   const stats = [
-    ...(respondents > 0 ? [{ n: respondents, label: 'Teammates heard' }] : []),
-    { n: totalStatements, label: 'Statements rated' },
-    { n: rows.length, label: 'Traits measured' },
+    ...(respondents > 0 ? [{ n: respondents, label: 'Teammates heard', hint: SCORE_HINTS.teammatesHeard }] : []),
+    { n: totalStatements, label: 'Statements rated', hint: SCORE_HINTS.statementsRated },
+    { n: rows.length, label: 'Traits measured', hint: SCORE_HINTS.traitsMeasured },
   ];
   return (
     <Box sx={{ textAlign: 'center', maxWidth: 660, mx: 'auto' }}>
@@ -47,9 +49,11 @@ function EvIntroPage({ rows, respondents }) {
                 color: colors.textPrimary,
               }}
             >
-              {s.n}
+              <MetricHint title={s.hint}>{s.n}</MetricHint>
             </Typography>
-            <Typography sx={{ ...type.monoLabel, mt: 1 }}>{s.label}</Typography>
+            <Typography sx={{ ...type.monoLabel, mt: 1 }}>
+              <MetricHint title={s.hint} underline>{s.label}</MetricHint>
+            </Typography>
           </Box>
         ))}
       </Stack>
@@ -122,6 +126,7 @@ function ScoreCell({ label, value, note, variant, gapSign }) {
   const negative = isGap && gapSign < 0;
   const allSelf = variant === 'allSelf';
   const selectedTeam = variant === 'selectedTeam';
+  const hint = hintForMetricLabel(label);
   let bgcolor = colors.surface1;
   let valueColor = colors.ink;
   let labelColor = colors.inkSoft;
@@ -152,7 +157,7 @@ function ScoreCell({ label, value, note, variant, gapSign }) {
           color: labelColor,
         }}
       >
-        {label}
+        <MetricHint title={hint} underline>{label}</MetricHint>
       </Typography>
       <Typography
         sx={{
@@ -166,7 +171,7 @@ function ScoreCell({ label, value, note, variant, gapSign }) {
           color: valueColor,
         }}
       >
-        {isGap ? fmtSigned(value) : value}
+        <MetricHint title={hint}>{isGap ? fmtSigned(value) : value}</MetricHint>
       </Typography>
       <Typography
         sx={{

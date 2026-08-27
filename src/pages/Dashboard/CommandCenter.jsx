@@ -17,6 +17,8 @@ import { getDebriefScope, useDebriefPhases, PHASE_ORDER } from './cc/phaseState.
 import { deriveTraitRoles } from './cc/debriefContent.js';
 import GatePage from './cc/GatePage.jsx';
 import { isDemoSession } from '../../utils/demoMode';
+import MetricHint from '../../components/MetricHint';
+import { SCORE_HINTS } from '../../data/scoreGlossary';
 
 // ============================================================================
 // Tokens — thin page aliases over the canonical Cairn system.
@@ -268,7 +270,7 @@ function SignalFocalCard({ traitLabel, score, onClick }) {
                 color: colors.orange,
               }}
             >
-              {score}
+              <MetricHint title={SCORE_HINTS.compass}>{score}</MetricHint>
             </Typography>
           </Box>
           <Typography sx={{ ...type.sectionTitle, fontStyle: 'normal', fontSize: 19, lineHeight: 1.15 }}>
@@ -322,15 +324,19 @@ function EvidenceFocalCard({ statement, onClick }) {
           </Typography>
           <Stack direction="row" spacing={2.4} sx={{ mt: 1.4 }}>
             <Box>
-              <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5 }}>Efficacy</Typography>
+              <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5 }}>
+                <MetricHint title={SCORE_HINTS.efficacy} underline>Efficacy</MetricHint>
+              </Typography>
               <Typography sx={{ fontFamily: fonts.mono, fontSize: 22, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.1 }}>
-                {Math.round(statement.efficacy)}
+                <MetricHint title={SCORE_HINTS.efficacy}>{Math.round(statement.efficacy)}</MetricHint>
               </Typography>
             </Box>
             <Box>
-              <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5 }}>Effort</Typography>
+              <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5 }}>
+                <MetricHint title={SCORE_HINTS.effort} underline>Effort</MetricHint>
+              </Typography>
               <Typography sx={{ fontFamily: fonts.mono, fontSize: 22, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.1 }}>
-                {Math.round(statement.effort)}
+                <MetricHint title={SCORE_HINTS.effort}>{Math.round(statement.effort)}</MetricHint>
               </Typography>
             </Box>
           </Stack>

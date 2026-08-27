@@ -151,7 +151,7 @@ aliases (`textPrimary`, `textSecondary`) so dark mode flips automatically.
 | `navy800`         | `#162A44`                    | Primary action hover                      |
 | `amberSoft`       | `#F4CEA1`                    | Primary action **text**, AppBar text       |
 | `orange`          | `#E07A3F`                    | Secondary action, accent ink              |
-| `orangeDeep`      | `#C0612A`                    | Eyebrow text, link, focused input label   |
+| `orangeDeep`      | `#C0612A`                    | Eyebrow text, link                        |
 | `efficacyBlue`    | `#2B6BA8`                    | Efficacy-mode dial chrome (not navy)      |
 | `gapNegative`     | `#B4321F`                    | Perception gap when team − self is < 0    |
 | `gapPositive`     | `#2F6B4F`                    | Perception gap when team − self is ≥ 0    |
@@ -169,6 +169,9 @@ aliases (`textPrimary`, `textSecondary`) so dark mode flips automatically.
 
 **Rule:** Never write a hex literal in a component. Use the token. The same
 component will then look correct in dark mode without any conditional.
+
+Outlined text fields keep a **1px** `navy-500` border on focus. Do not bump
+width to 2px or switch the ring to orange — that paints a second inner border.
 
 ### Shadows (`tokens.shadows`)
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { guideImage } from '../data/guideArt';
+import { SUPPORT_EMAIL, SUPPORT_MAILTO, DOCUMENTS_PATH, FAQ_PATH } from '../data/supportLinks';
 import '../styles/compass-landing.css';
 
 /**
@@ -25,9 +27,9 @@ const WAYPOINTS = [
     title: 'Waypoint I — Uncover',
     pos: { left: '11%', bottom: '15%' },
     does:
-      'A 15-minute intake on how you lead under real conditions — the decisions you face, the pressure you carry, how your team hears you. Not a personality quiz.',
+      'A 15-minute intake on how you actually lead — decisions, pressure, how your team hears you. Not a personality quiz. Not a course.',
     gets:
-      'Your written reflection: 3–4 pages of AI-drawn insight on how you actually lead — your instincts, your blind spots, what each one costs you. Instant, private, yours alone.',
+      'The start of your IDP: a private written reflection on how you lead, and what that costs the people around you.',
   },
   {
     pin: 'II · REFLECT',
@@ -35,9 +37,9 @@ const WAYPOINTS = [
     title: 'Waypoint II — Reflect',
     pos: { left: '39%', bottom: '21%' },
     does:
-      'The reflection surfaces five growth traits calibrated to you — each named, defined, and tied to a moment from your own intake.',
+      'You read that reflection and choose three growth traits — the ones that would change the most for the people you lead.',
     gets:
-      'You choose the three traits your year runs on. Not assigned — chosen. That decision shapes every check-in that follows.',
+      'A focused year, not a catalog. Those three traits shape the survey, the dashboard, and the practice.',
   },
   {
     pin: 'III · CALIBRATE',
@@ -45,9 +47,9 @@ const WAYPOINTS = [
     title: 'Waypoint III — Calibrate',
     pos: { left: '61%', bottom: '39%' },
     does:
-      'Your team answers a 5-minute survey on observable behaviors — the same traits, seen from the other side of the table. Fully anonymous to you.',
+      'Your team rates the same observable behaviors. Five minutes. Anonymous to you. Aggregate only.',
     gets:
-      'Your perception-gap map: how you see it laid against how they experience it, every gap named. Aggregate only, never individuals.',
+      'How you see it next to how they experience it. That gap is the growth edge — never who said what.',
   },
   {
     pin: 'IV · EMBARK',
@@ -55,9 +57,9 @@ const WAYPOINTS = [
     title: 'Waypoint IV — Embark',
     pos: { right: '5%', top: '10%' },
     does:
-      'A year-long campaign on your three traits: your team recalibrates at months 3 and 9, you re-assess at month 9, and your guide won’t let it drift.',
+      'You practice those traits for a year. The team recalibrates; you re-assess; the plan updates. A guide stays with you.',
     gets:
-      'A living action plan revised after every calibration, a dashboard of the whole journey, and — twelve months on — change your team can feel.',
+      'A living IDP: signal, evidence, and one visible practice your team can actually feel.',
   },
 ];
 
@@ -90,8 +92,8 @@ const GUIDES = [
   {
     id: 'mentor',
     name: 'Mentor',
-    img: '/guides/mentor.png',
-    alt: '/landing/alt/mentor-alt.png',
+    img: guideImage('mentor', 'idle'),
+    crop: guideImage('mentor', 'idle'),
     accent: '#2F4A5C',
     tagline: 'Warm. Grounded. Asks the quiet questions.',
     quip: 'The quietest person in the meeting usually holds the most accurate map of it.',
@@ -101,8 +103,8 @@ const GUIDES = [
   {
     id: 'catalyst',
     name: 'Catalyst',
-    img: '/guides/catalyst.png',
-    alt: '/landing/alt/catalyst-alt.png',
+    img: guideImage('catalyst', 'idle'),
+    crop: guideImage('catalyst', 'idle'),
     accent: '#B8532C',
     tagline: 'Energetic. Optimistic. Ships first drafts fast.',
     quip: 'Teams don’t follow the plan. They follow whoever moves first.',
@@ -111,8 +113,8 @@ const GUIDES = [
   {
     id: 'challenger',
     name: 'Challenger',
-    img: '/guides/challenger.png',
-    alt: '/landing/alt/challenger-alt.png',
+    img: guideImage('challenger', 'idle'),
+    crop: guideImage('challenger', 'idle'),
     accent: '#5A3C66',
     tagline: 'Direct. Honest. Won’t let you hide.',
     quip: 'If nobody disagreed with you this month, you weren’t agreed with. You were managed.',
@@ -121,8 +123,8 @@ const GUIDES = [
   {
     id: 'bestFriend',
     name: 'Best Friend',
-    img: '/guides/best-friend.png',
-    alt: '/landing/alt/bestFriend-alt.png',
+    img: guideImage('bestFriend', 'idle'),
+    crop: guideImage('bestFriend', 'idle'),
     accent: '#1E6B75',
     tagline: 'Loyal. Easy company. Says the hard thing kindly.',
     quip: 'Nobody quits the company. They quit the Tuesday version of their boss.',
@@ -132,8 +134,8 @@ const GUIDES = [
   {
     id: 'mother',
     name: 'Mother',
-    img: '/guides/mother.png',
-    alt: '/landing/alt/mother-alt.png',
+    img: guideImage('mother', 'idle'),
+    crop: guideImage('mother', 'idle'),
     accent: '#C47A6A',
     tagline: 'Steady care. Warm accountability.',
     quip: 'A team can only be as honest as its leader is unhurried.',
@@ -142,8 +144,8 @@ const GUIDES = [
   {
     id: 'roaster',
     name: 'Roaster',
-    img: '/guides/roaster.png',
-    alt: '/landing/alt/roaster-alt.png',
+    img: guideImage('roaster', 'idle'),
+    crop: guideImage('roaster', 'idle'),
     accent: '#A33A32',
     tagline: 'Sharp humor. Cuts through the spin.',
     quip: 'Everyone says they want feedback. What they want is applause with footnotes.',
@@ -401,16 +403,17 @@ export default function CompassLanding() {
       </nav>
 
       <header className="cl-hero">
-        <span className="cl-eyebrow">NOT A COURSE. NOT A COACH. AN EXPEDITION.</span>
+        <span className="cl-eyebrow">AN AI-POWERED INDEPENDENT DEVELOPMENT PLAN</span>
         <h1>
-          Leaders don&apos;t follow paths.
+          This is your IDP.
           <br />
-          <em className="cl-gold">They set them.</em>
+          <em className="cl-gold">How you improve as a leader.</em>
         </h1>
         <p className="cl-hero-sub">
-          Borrowed playbooks are still someone else&apos;s trail. Compass asks your team —
-          anonymously — how you actually lead, then gives you a map, a guide, and a year to set a
-          path of your own.
+          Not a course. Not a coach. Not a personality quiz. Compass is an independent
+          development plan built around how you actually lead — you answer, your team
+          answers anonymously, and you spend a year practicing the traits that would
+          change the most for the people you lead.
         </p>
         <div className="cl-hero-cta">
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
@@ -628,7 +631,7 @@ export default function CompassLanding() {
 
             <div className="cl-panel-rail">
               <div className="cl-rail-portrait">
-                <img src={guide.alt} alt={guide.name} />
+                <img src={guide.crop} alt={guide.name} />
               </div>
               <div className="cl-rail-quote">
                 <p>&ldquo;{railQuote}&rdquo;</p>
@@ -725,11 +728,13 @@ export default function CompassLanding() {
           </p>
           <p className="cl-org-contact">
             Questions:{' '}
-            <a href="mailto:hello@northstarpartners.org">hello@northstarpartners.org</a>
+            <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>
           </p>
           <p className="cl-org-legal">
-            © {new Date().getFullYear()} North Star Partners. All rights reserved. Terms of Use and
-            Privacy Policy apply when you create an account.
+            © {new Date().getFullYear()} North Star Partners. All rights reserved.{' '}
+            <a href={DOCUMENTS_PATH}>Terms of Use</a> and <a href={`${DOCUMENTS_PATH}#privacy`}>Privacy Policy</a>
+            {' '}apply when you create an account.{' '}
+            <a href={FAQ_PATH}>FAQ</a>
           </p>
         </div>
       </footer>

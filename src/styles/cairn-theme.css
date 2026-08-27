@@ -255,20 +255,35 @@ html[data-theme='cairn'] .MuiOutlinedInput-root {
 html[data-theme='cairn'] .MuiOutlinedInput-notchedOutline {
   border-color: var(--sand-200);
   border-radius: var(--cairn-radius-sm);
+  border-width: 1px;
 }
 html[data-theme='cairn'] .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
   border-color: var(--navy-500);
 }
 html[data-theme='cairn'] .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: var(--orange);
-  border-width: 2px;
+  border-color: var(--navy-500);
+  border-width: 1px !important;
+}
+html[data-theme='cairn'] .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: none;
 }
 html[data-theme='cairn'] .MuiInputLabel-root {
   font-family: 'Manrope', 'Inter', sans-serif;
   color: var(--ink-soft);
 }
 html[data-theme='cairn'] .MuiInputLabel-root.Mui-focused {
-  color: var(--orange-deep);
+  color: var(--navy-500);
+}
+
+/* Autofill must not paint a second inner ring or orange wash. */
+html[data-theme='cairn'] .MuiOutlinedInput-input:-webkit-autofill,
+html[data-theme='cairn'] .MuiOutlinedInput-input:-webkit-autofill:hover,
+html[data-theme='cairn'] .MuiOutlinedInput-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 99999s ease-out;
 }
 
 /* --- Tabs --- */
@@ -482,8 +497,21 @@ html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-root {
 html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-notchedOutline {
   border-color: rgba(244, 206, 161, 0.2);
 }
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(244, 206, 161, 0.55);
+  border-width: 1px;
+}
 html[data-theme='cairn'][data-dark='true'] .MuiInputLabel-root {
   color: #a89880;
+}
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-input:-webkit-autofill,
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-input:-webkit-autofill:hover,
+html[data-theme='cairn'][data-dark='true'] .MuiOutlinedInput-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f0e9de;
+  caret-color: #f0e9de;
+  box-shadow: 0 0 0 1000px #0f1c2e inset;
+  -webkit-box-shadow: 0 0 0 1000px #0f1c2e inset;
 }
 
 /* Alerts */

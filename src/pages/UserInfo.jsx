@@ -24,6 +24,7 @@ import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
+import { legalParagraphs } from '../data/legalDocs';
 
 const cairnLabelSx = {
   ...type.body,
@@ -660,11 +661,13 @@ function UserInfo() {
       </Container>
 
       <Dialog open={openDialog === 'terms'} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>Terms of Use</DialogTitle>
+        <DialogTitle sx={{ fontFamily: useCairnTheme ? fonts.serif : 'Gemunu Libre, sans-serif' }}>Terms of Use</DialogTitle>
         <DialogContent dividers>
-          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', lineHeight: 1.6 }}>
-            By using Compass, you agree to use the platform for lawful professional development purposes, keep your access credentials secure, and avoid misuse of generated guidance. Compass provides decision support and reflection tools; final leadership decisions remain your responsibility.
-          </Typography>
+          {legalParagraphs('terms').map((para) => (
+            <Typography key={para} sx={{ fontFamily: useCairnTheme ? fonts.sans : 'Gemunu Libre, sans-serif', lineHeight: 1.6, mb: 1.2 }}>
+              {para}
+            </Typography>
+          ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog}>Close</Button>
@@ -673,11 +676,13 @@ function UserInfo() {
       </Dialog>
 
       <Dialog open={openDialog === 'privacy'} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontFamily: 'Gemunu Libre, sans-serif' }}>Privacy Policy</DialogTitle>
+        <DialogTitle sx={{ fontFamily: useCairnTheme ? fonts.serif : 'Gemunu Libre, sans-serif' }}>Privacy Policy</DialogTitle>
         <DialogContent dividers>
-          <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', lineHeight: 1.6 }}>
-            Compass collects profile and assessment data to personalize your experience and improve product quality. Data is protected and is not shared with other users or company leadership/HR without explicit authorization, except where required by applicable law.
-          </Typography>
+          {legalParagraphs('privacy').map((para) => (
+            <Typography key={para} sx={{ fontFamily: useCairnTheme ? fonts.sans : 'Gemunu Libre, sans-serif', lineHeight: 1.6, mb: 1.2 }}>
+              {para}
+            </Typography>
+          ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDialog}>Close</Button>

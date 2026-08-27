@@ -17,6 +17,8 @@ import {
   WalkArrow,
   WalkthroughStage,
 } from './debriefUi.jsx';
+import MetricHint from '../../../components/MetricHint';
+import { SCORE_HINTS } from '../../../data/scoreGlossary';
 import {
   buildGapStories,
   buildTraitStories,
@@ -93,7 +95,9 @@ function ThresholdPage({ firstName, respondents, invited, overallCompass }) {
         lightly. Patterns matter more than any one number.
       </Prose>
       <Stack alignItems="center" spacing={0.8} sx={{ mt: 4.5, mb: 1.2 }}>
-        <Typography sx={{ ...type.monoLabel }}>Compass · all traits</Typography>
+        <Typography sx={{ ...type.monoLabel }}>
+          <MetricHint title={SCORE_HINTS.compass} underline>Compass · all traits</MetricHint>
+        </Typography>
         <Typography
           sx={{
             fontFamily: fonts.serif,
@@ -104,7 +108,7 @@ function ThresholdPage({ firstName, respondents, invited, overallCompass }) {
             color: colors.orange,
           }}
         >
-          {overallCompass}
+          <MetricHint title={SCORE_HINTS.compass}>{overallCompass}</MetricHint>
         </Typography>
         <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary, maxWidth: 420, textAlign: 'center' }}>
           Average team score across all of your traits, on a 0–100 scale. Higher means those behaviors are landing more clearly. One number can't hold a team's experience — the next pages tell you what it's made of.

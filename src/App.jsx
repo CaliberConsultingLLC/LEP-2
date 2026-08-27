@@ -15,6 +15,7 @@ import CampaignComplete from './pages/CampaignComplete';
 import Dashboard from './pages/Dashboard';
 import DesignSystem from './pages/DesignSystem';
 import Faq from './pages/Faq';
+import Documents from './pages/Documents';
 import DevSkipOne from './pages/DevSkipOne';
 import DevSkipTwo from './pages/DevSkipTwo'
 import DevSkipAssessments from './pages/DevSkipAssessments';
@@ -37,7 +38,7 @@ import JourneyCeremonyGate from './components/JourneyCeremonyGate';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
 import { isDemoSession } from './utils/demoMode';
 
-const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success', '/demo'];
+const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success', '/demo', '/faq', '/documents'];
 
 function RouteAwareGuide() {
   const { pathname } = useLocation();
@@ -81,6 +82,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       {useCairnTheme && <Route path="/design" element={<DesignSystem />} />}
       <Route path="/faq" element={<Faq />} />
+      <Route path="/documents" element={<Documents />} />
       <Route path="/pricing" element={<Pricing />} />
       {showDevTools && <Route path="/dev-skip-1" element={<DevSkipOne />} />}
       {showDevTools && <Route path="/dev-skip-two" element={<DevSkipTwo />} />}

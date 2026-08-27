@@ -12,6 +12,7 @@ import {
   SELECTABLE_GUIDE_PERSONAS,
   getPersona,
 } from '../data/guidePersonas';
+import { guideImage } from '../data/guideArt';
 import { COMPASS_TRAIL } from '../pages/Dashboard/journey/trail-data.js';
 import {
   JOURNEY_ROMAN,
@@ -458,7 +459,7 @@ function CeremonyCard({
 }
 
 function GuidePanel({ open, reducedMotion, guideId, guideName }) {
-  const portraitSrc = `/landing/alt/${guideId}-alt.png`;
+  const portraitSrc = guideImage(guideId, 'idle');
   return (
     <Box
       aria-hidden={!open}
@@ -508,9 +509,9 @@ function GuidePanel({ open, reducedMotion, guideId, guideName }) {
           sx={{
             position: 'absolute',
             left: '50%',
-            top: '-8%',
+            top: '-6%',
             transform: 'translateX(-50%)',
-            width: '210%',
+            width: '240%',
             maxWidth: 'none',
             height: 'auto',
             display: 'block',

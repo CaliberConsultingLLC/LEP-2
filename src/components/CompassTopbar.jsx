@@ -1,10 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Box, Popover, Stack, Typography } from '@mui/material';
-import { useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { auth } from '../firebase';
 import GuidePickerMenu from './GuidePickerMenu';
 import { isStagingHost } from '../config/runtimeFlags';
+import { DOCUMENTS_PATH, FAQ_PATH, SUPPORT_MAILTO } from '../data/supportLinks';
 import { colors, fonts, radii } from '../styles/tokens';
 
 const parseJson = (raw, fallback) => {
@@ -81,7 +82,7 @@ function ProfilePopover({ anchorEl, open, onClose, isDark, userName, userEmail, 
         paper: {
           sx: {
             mt: 1,
-            width: 248,
+            width: 260,
             borderRadius: radii.lg,
             border: isDark ? '1px solid rgba(244,206,161,0.2)' : '1px solid var(--sand-200)',
             boxShadow: '0 18px 48px rgba(15,28,46,0.14)',
@@ -130,10 +131,54 @@ function ProfilePopover({ anchorEl, open, onClose, isDark, userName, userEmail, 
           {userEmail || '—'}
         </Typography>
       </Box>
-      <Box sx={{ px: '20px', py: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.inkSoft }}>
+      <Box sx={{ px: '20px', py: '12px', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '2px' }}>
+        <Typography sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: colors.inkSoft, textAlign: 'center', mb: '8px' }}>
           Joined {joinedDate}
         </Typography>
+        {[
+          { to: FAQ_PATH, label: 'FAQ' },
+          { to: DOCUMENTS_PATH, label: 'Documents' },
+        ].map((item) => (
+          <Box
+            key={item.to}
+            component={RouterLink}
+            to={item.to}
+            onClick={onClose}
+            sx={{
+              fontFamily: fonts.sans,
+              fontSize: 13.5,
+              fontWeight: 700,
+              color: isDark ? colors.amberSoft : colors.navy900,
+              textDecoration: 'none',
+              textAlign: 'center',
+              py: '8px',
+              borderRadius: radii.pill,
+              '&:hover': { bgcolor: isDark ? 'rgba(244,206,161,0.08)' : colors.sand50 },
+              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+            }}
+          >
+            {item.label}
+          </Box>
+        ))}
+        <Box
+          component="a"
+          href={SUPPORT_MAILTO}
+          onClick={onClose}
+          sx={{
+            fontFamily: fonts.sans,
+            fontSize: 13.5,
+            fontWeight: 700,
+            color: isDark ? colors.amberSoft : colors.navy900,
+            textDecoration: 'none',
+            textAlign: 'center',
+            py: '8px',
+            borderRadius: radii.pill,
+            '&:hover': { bgcolor: isDark ? 'rgba(244,206,161,0.08)' : colors.sand50 },
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+          }}
+        >
+          Contact support
+        </Box>
       </Box>
     </Popover>
   );

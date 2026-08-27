@@ -1,28 +1,28 @@
 import React from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Paper,
-  Stack,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Button,
-} from '@mui/material';
-import { ExpandMore, HelpOutline } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { Box, Stack, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { useCairnTheme } from '../config/runtimeFlags';
+import CompassLayout from '../components/CompassLayout';
+import { DOCUMENTS_PATH, SUPPORT_EMAIL, SUPPORT_MAILTO } from '../data/supportLinks';
+import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
 
 const FAQ_ITEMS = [
+  {
+    q: 'What is Compass?',
+    a: 'An AI-powered independent development plan (IDP). It is how you improve as a leader — not a course, not a coach, and not a personality quiz.',
+  },
   {
     q: 'What do I get from the first sitting?',
     a: 'A written reflection of how you lead, three traits to grow, a self-assessment, and a team survey on the same statements. That sitting opens the year on the dashboard: the signal, the evidence, and your action plan together.',
   },
   {
+    q: 'What is the Compass score?',
+    a: 'The combined reading of how a behavior is landing. Higher means the team sees it more clearly. It is a pattern across statements, not a verdict or a personality score.',
+  },
+  {
     q: 'What is the Signal?',
-    a: 'After your team answers, Signal is the reading of how those traits are landing. It is a pattern across the statements, not a verdict or a personality score.',
+    a: 'After your team answers, Signal is the reading of how those traits are landing. It is a pattern across the statements, not a verdict.',
   },
   {
     q: 'What is the difference between Effort and Efficacy?',
@@ -56,118 +56,70 @@ const FAQ_ITEMS = [
     q: 'How do I know the year is working?',
     a: 'Look for a clearer Signal on the traits you chose, a smaller gap between Effort and Efficacy, and a practice your team can name without a slide deck.',
   },
+  {
+    q: 'How do I get help?',
+    a: `Email ${SUPPORT_EMAIL}. Include the email on your account and what you were doing. We cannot tell you who said what on the team survey.`,
+  },
 ];
 
 function Faq() {
-  const navigate = useNavigate();
-
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        width: '100vw',
-        position: 'relative',
-        overflowX: 'hidden',
-        '&:before': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -2,
-          backgroundImage: 'url(/LEP2.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        },
-        '&:after': {
-          content: '""',
-          position: 'fixed',
-          inset: 0,
-          zIndex: -1,
-          background: 'radial-gradient(1200px 800px at 20% 20%, rgba(0,0,0,0.25), rgba(0,0,0,0.55))',
-        },
-      }}
-    >
-      {useCairnTheme && <ProcessTopRail utilityOnly />}
-      <Container maxWidth="lg" sx={{ py: 3.5 }}>
-        <Paper
-          sx={{
-            p: { xs: 2, md: 2.8 },
-            borderRadius: 3,
-            border: '1px solid rgba(255,255,255,0.26)',
-            background: 'linear-gradient(160deg, rgba(255,255,255,0.95), rgba(236,242,252,0.9))',
-            boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
-          }}
-        >
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.2 }}>
-            <Stack direction="row" spacing={1.2} alignItems="center">
-              <HelpOutline sx={{ color: 'primary.main' }} />
-              <Typography
-                sx={{
-                  fontFamily: 'Gemunu Libre, sans-serif',
-                  fontSize: { xs: '1.45rem', md: '1.7rem' },
-                  fontWeight: 800,
-                  color: 'text.primary',
-                }}
-              >
-                Help & FAQ
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/')}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', textTransform: 'none' }}
-              >
-                Return to Compass
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/dashboard')}
-                sx={{ fontFamily: 'Gemunu Libre, sans-serif', textTransform: 'none' }}
-              >
-                Dashboard
-              </Button>
-            </Stack>
-          </Stack>
-
-          <Typography
-            sx={{
-              fontFamily: 'Gemunu Libre, sans-serif',
-              fontSize: '0.98rem',
-              color: 'text.secondary',
-              mb: 2,
-            }}
-          >
-            Answers to the most common questions about campaigns, score interpretation, and next-step decisions.
+    <Box sx={{ minHeight: '100vh', bgcolor: colors.surface2 }}>
+      <ProcessTopRail utilityOnly />
+      <CompassLayout>
+        <Box sx={{ ...surfaces.card, p: { xs: 2.4, md: 3.4 }, maxWidth: 720, mx: 'auto' }}>
+          <Typography sx={{ ...type.eyebrow, mb: 1 }}>Help</Typography>
+          <Typography sx={{ ...type.lead, mb: 1.2 }}>FAQ</Typography>
+          <Typography sx={{ ...type.bodyMuted, mb: 2.4 }}>
+            Short answers on what Compass is, how scores work, and what your team sees.
           </Typography>
+
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ rowGap: 1, mb: 2.4 }}>
+            <Box
+              component={RouterLink}
+              to={DOCUMENTS_PATH}
+              sx={{ ...buttons.outlinedPrimary, textDecoration: 'none', fontSize: 12.5, py: '8px', px: '14px' }}
+            >
+              Documents
+            </Box>
+            <Box
+              component="a"
+              href={SUPPORT_MAILTO}
+              sx={{ ...buttons.outlinedPrimary, textDecoration: 'none', fontSize: 12.5, py: '8px', px: '14px' }}
+            >
+              Email support
+            </Box>
+          </Stack>
 
           <Stack spacing={1.1}>
             {FAQ_ITEMS.map((item) => (
               <Accordion
                 key={item.q}
                 disableGutters
+                elevation={0}
                 sx={{
-                  borderRadius: '12px !important',
-                  border: '1px solid rgba(69,112,137,0.24)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                  borderRadius: `${radii.md} !important`,
+                  border: `1px solid ${colors.sand200}`,
+                  bgcolor: colors.surface1,
+                  boxShadow: 'none',
                   '&:before': { display: 'none' },
                 }}
               >
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1.02rem', fontWeight: 700 }}>
+                <AccordionSummary expandIcon={<ExpandMore sx={{ color: colors.orangeDeep }} />}>
+                  <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, fontWeight: 700, color: colors.textPrimary }}>
                     {item.q}
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.98rem', color: 'text.secondary', lineHeight: 1.6 }}>
+                  <Typography sx={{ ...type.body, color: colors.textSecondary }}>
                     {item.a}
                   </Typography>
                 </AccordionDetails>
               </Accordion>
             ))}
           </Stack>
-        </Paper>
-      </Container>
+        </Box>
+      </CompassLayout>
     </Box>
   );
 }

@@ -229,8 +229,18 @@ const cairnMuiTheme = createTheme({
           borderRadius: 14,
           backgroundColor: '#FFFFFF',
           fontFamily: '"Manrope", "Inter", sans-serif',
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#3F647B',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#3F647B',
+            borderWidth: 1,
+          },
         },
-        notchedOutline: { borderColor: '#E8DBC3' },
+        notchedOutline: {
+          borderColor: '#E8DBC3',
+          borderWidth: 1,
+        },
       },
     },
     MuiTooltip: {

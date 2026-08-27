@@ -1027,13 +1027,17 @@ html:has([data-compass-landing]) {
 }
 
 .cl-rail-portrait img {
-  width: 135%;
+  width: 100%;
+  height: 140%;
   max-width: none;
-  height: auto;
-  margin: -16px 0 0 -17.5%;
+  object-fit: cover;
+  object-position: 50% 8%;
+  margin: -8% 0 0;
   display: block;
-  -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+  transform: scale(1.85);
+  transform-origin: 50% 12%;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5));
 }
 
@@ -1110,10 +1114,12 @@ html:has([data-compass-landing]) {
 }
 
 .cl-guide-index-face img {
-  width: 100%;
-  height: 100%;
+  width: 180%;
+  height: auto;
+  max-width: none;
   object-fit: cover;
-  object-position: top center;
+  object-position: 50% 8%;
+  margin: -18% 0 0 -40%;
   display: block;
 }
 
