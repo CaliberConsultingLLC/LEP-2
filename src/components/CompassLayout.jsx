@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { useCairnTheme } from '../config/runtimeFlags';
-import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX } from './layoutConstants';
+import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX, STAGE_PT, STAGE_PB } from './layoutConstants';
 
 // Layout wrapper for the Cairn (staging) theme.
-// The chapter header is ~138px. This stage fills what is left, pads it, and
-// centers the content column. Production renders children with no wrapper.
+// Same top inset on every chapter page. Content starts there — not optically
+// centered in the leftover viewport. Production renders children with no wrapper.
 function CompassLayout({
   children,
   sidebar = null,
@@ -28,10 +28,11 @@ function CompassLayout({
         width: '100%',
         display: 'flex',
         justifyContent: 'center',
-        alignItems: viewportFit ? 'stretch' : 'flex-start',
+        alignItems: 'flex-start',
         boxSizing: 'border-box',
         px: CONTENT_PX,
-        py: flushTop ? 0 : { xs: 3, md: 5 },
+        pt: flushTop ? 0 : STAGE_PT,
+        pb: flushTop ? 0 : STAGE_PB,
         overflowX: 'hidden',
         overflowY: viewportFit ? 'hidden' : 'auto',
         minHeight: viewportFit ? 0 : 'calc(100svh - 138px)',
@@ -43,7 +44,6 @@ function CompassLayout({
           width: '100%',
           maxWidth: fluid ? '100%' : contentMaxWidth,
           minWidth: 0,
-          my: viewportFit ? 0 : 'auto',
           height: viewportFit ? '100%' : 'auto',
           minHeight: 0,
           overflow: viewportFit ? 'hidden' : 'visible',

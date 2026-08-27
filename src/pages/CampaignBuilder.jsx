@@ -705,7 +705,7 @@ function CampaignBuilder() {
     );
 
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)', overflowX: 'hidden' }}>
+      <Box sx={{ height: '100svh', bgcolor: 'var(--sand-50, #FBF7F0)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <ProcessTopRail
           chapterId="campaign"
           activeStepId="builder"
@@ -717,7 +717,7 @@ function CampaignBuilder() {
             if (step.path) navigate(step.path);
           }}
         />
-        <CompassLayout rightRail={campaign ? GuideRail : null} afterTopbar>
+        <CompassLayout rightRail={campaign ? GuideRail : null} viewportFit>
           {error ? (
             <Box>
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -727,7 +727,7 @@ function CampaignBuilder() {
               </Box>
             </Box>
           ) : campaign && activeTrait ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.05 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.05, height: { md: '100%' }, minHeight: 0, overflow: 'hidden' }}>
               <CairnLeftRail
                 isDark={isDark}
                 railLabel="Campaign traits"

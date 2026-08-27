@@ -475,20 +475,20 @@ function TodayLanding({ t, onNavigate }) {
   const practiceOpen = Boolean(debriefDone?.evidence);
 
   return (
-    <Box sx={{ maxWidth: 1180, mx: 'auto', px: { xs: 2.4, md: 4 }, py: { xs: 4, md: 5 } }}>
+    <Box sx={{ maxWidth: 1180, mx: 'auto', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
       <Box
         sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.05fr) 390px' },
           gap: { xs: 2.6, md: 4 },
           alignItems: 'stretch',
-          mb: { xs: 2.6, md: 3.2 },
+          mb: { xs: 1.8, md: 2.2 },
         }}
       >
         <Box
           sx={{
             ...surfaces.card,
-            p: { xs: 2.6, md: 4 },
+            p: { xs: 2.4, md: 3.2 },
             overflow: 'hidden',
             position: 'relative',
             background:
@@ -532,7 +532,7 @@ function TodayLanding({ t, onNavigate }) {
               lineHeight: 1,
               color: t.ink,
               maxWidth: 720,
-              mb: 1.6,
+              mb: 1.2,
             }}
           >
             {name || 'Leader'}, you are in Chapter {chapter},{' '}
@@ -542,7 +542,7 @@ function TodayLanding({ t, onNavigate }) {
             .
           </Typography>
 
-          <Typography sx={{ ...type.italicBody, fontSize: { xs: 17, md: 20 }, maxWidth: 720, color: t.inkSoft, mb: 3 }}>
+          <Typography sx={{ ...type.italicBody, fontSize: { xs: 17, md: 20 }, maxWidth: 720, color: t.inkSoft, mb: 2 }}>
             Season: {season} · {journeyIndex + 1} of {JOURNEY_CHAPTER_COUNT}. {seasonInterpretation(season)}
           </Typography>
 
@@ -551,7 +551,7 @@ function TodayLanding({ t, onNavigate }) {
               borderLeft: `2px solid ${colors.orange}`,
               pl: 2.4,
               py: 0.8,
-              mb: 3,
+              mb: 2,
               maxWidth: 680,
             }}
           >
@@ -756,11 +756,11 @@ export default function CommandCenter() {
     <Box
       sx={{
         position: 'relative',
-        minHeight: '100vh',
+        height: '100svh',
         width: '100%',
         bgcolor: t.bg,
         color: t.ink,
-        overflowX: 'hidden',
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}

@@ -266,7 +266,8 @@ export function WalkthroughStage({ chapters, idx, setIdx, children, hideSideArro
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        minHeight: { md: 'calc(100vh - 220px)' },
+        minHeight: 0,
+        height: { md: '100%' },
         gap: hideSideArrows ? 0 : { xs: 1, md: 1.5 },
         px: { xs: 0.5, md: 0 },
       }}
@@ -537,7 +538,7 @@ export function GapScoresPanel({ rows, highlightKey, onSelect }) {
 // ---------------------------------------------------------------------------
 export function SnapshotShell({ children }) {
   return (
-    <Box component="main" sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 0, pt: 0.4, pb: 5.5 }}>
+    <Box component="main" sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 0, pt: 0, pb: 0 }}>
       {children}
     </Box>
   );

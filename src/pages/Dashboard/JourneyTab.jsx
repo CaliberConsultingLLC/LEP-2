@@ -348,7 +348,7 @@ export default function JourneyTab() {
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 
   return (
-    <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, pt: 1.4, pb: 2 }}>
+    <Box sx={{ maxWidth: 1240, mx: 'auto', width: '100%', height: '100%', overflow: 'hidden' }}>
       {/* Header */}
       <Box sx={{ mb: 1.2 }}>
         <Typography sx={{ ...eyebrow(colors.orangeDeep), mb: 0.4 }}>

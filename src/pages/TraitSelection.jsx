@@ -508,7 +508,7 @@ function TraitSelection() {
     return (
       <Box
         sx={{
-          height: '100vh',
+          height: '100svh',
           overflow: 'hidden',
           bgcolor: 'var(--sand-50, #FBF7F0)',
           display: 'flex',

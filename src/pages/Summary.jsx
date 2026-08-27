@@ -1084,7 +1084,7 @@ function Summary() {
     return (
       <Box
         sx={{
-          height: '100vh',
+          height: '100svh',
           overflow: 'hidden',
           bgcolor: colors.sand50,
           display: 'flex',

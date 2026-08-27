@@ -66,9 +66,10 @@ function GuideSelect() {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         px: { xs: 3, md: 6, lg: 8 },
-        py: { xs: 3, md: 5 },
+        pt: { xs: 2.5, md: 3 },
+        pb: { xs: 2.5, md: 3 },
         minHeight: 0,
       }}>
         {/* Horizontal carousel — 3 visible, center selected */}
