@@ -118,7 +118,7 @@ export function StatusChip({
       )}
       {variant === 'dashboard' && status && (
         <>
-          <Box sx={{ width: 1, height: 14, bgcolor: colors.sand200 }} aria-hidden />
+          <Box sx={{ width: '1px', height: 14, bgcolor: colors.sand200 }} aria-hidden />
           <Typography
             component="span"
             sx={{
@@ -402,7 +402,7 @@ export default function ChapterHeader({
           </Typography>
         </Box>
 
-        <Box sx={{ width: 1, height: 34, bgcolor: colors.sand200, mx: '22px', flexShrink: 0 }} aria-hidden />
+        <Box sx={{ width: '1px', height: 34, bgcolor: colors.sand200, mx: '22px', flexShrink: 0 }} aria-hidden />
 
         {compact ? (
           <Box
