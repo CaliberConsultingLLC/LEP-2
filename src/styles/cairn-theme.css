@@ -560,3 +560,15 @@ html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h3,
 html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h4 {
   color: inherit !important;
 }
+
+/* Chapter header: kill OS button face so step tabs stay transparent.
+   Do not set `border` or `box-shadow` here — tabs paint the active underline
+   with an inset shadow, and the map card needs its own border. */
+html[data-theme='cairn'] .chapter-header-control {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+}

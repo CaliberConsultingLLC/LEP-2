@@ -83,6 +83,8 @@ BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Summary  Trait Selection  Ca
 - Below 1180px: drop step numerals; shorten tab labels to the first word.
 - Below 900px: replace the tab row with `Step n of m` (opens the drawer);
   porthole 72px, `top:-26px`, rail padding-left 108px.
+- Step tabs never `flex-shrink`. Native button chrome is stripped (`appearance: none`,
+  transparent face) so the numbered labels stay visible and the chip stays on the right.
 
 #### Reduced motion
 

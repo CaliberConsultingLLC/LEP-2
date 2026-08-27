@@ -23,6 +23,24 @@ const parseJson = (raw, fallback) => {
 
 const shortLabel = (label = '') => String(label).trim().split(/\s+/)[0] || label;
 
+/* Beat native <button> chrome. `all: unset` does not win on Windows browsers. */
+const unstyledButton = {
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  MozAppearance: 'none',
+  backgroundColor: 'transparent',
+  backgroundImage: 'none',
+  border: 'none',
+  boxShadow: 'none',
+  margin: 0,
+  padding: 0,
+  font: 'inherit',
+  color: 'inherit',
+  lineHeight: 'inherit',
+  textAlign: 'inherit',
+  '&::-moz-focus-inner': { border: 0, padding: 0 },
+};
+
 export function StatusChip({
   variant = 'sequence',
   label = '',
@@ -181,9 +199,9 @@ export default function ChapterHeader({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const compact = useMediaQuery('(max-width:900px)');
-  const slimTabs = useMediaQuery('(max-width:1180px)');
-  const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const compact = useMediaQuery('(max-width:900px)', { noSsr: true });
+  const slimTabs = useMediaQuery('(max-width:1180px)', { noSsr: true });
+  const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)', { noSsr: true });
 
   const inferred = useMemo(
     () => resolveFromLocation(location.pathname, location.search),
@@ -308,8 +326,9 @@ export default function ChapterHeader({
           aria-expanded={drawerOpen}
           aria-controls="chapter-overview"
           aria-label="Open chapter overview"
+          className="chapter-header-control"
           sx={{
-            all: 'unset',
+            ...unstyledButton,
             position: 'absolute',
             left: 28,
             top: portholeTop,
@@ -330,8 +349,9 @@ export default function ChapterHeader({
           onClick={() => toggleDrawer(chapterBtnRef)}
           aria-expanded={drawerOpen}
           aria-controls="chapter-overview"
+          className="chapter-header-control"
           sx={{
-            all: 'unset',
+            ...unstyledButton,
             cursor: 'pointer',
             display: 'flex',
             flexDirection: 'column',
@@ -392,9 +412,11 @@ export default function ChapterHeader({
             onClick={() => toggleDrawer(mobileStepRef)}
             aria-expanded={drawerOpen}
             aria-controls="chapter-overview"
+            className="chapter-header-control"
             sx={{
-              all: 'unset',
+              ...unstyledButton,
               cursor: 'pointer',
+              flexShrink: 0,
               fontFamily: fonts.sans,
               fontSize: 13.5,
               fontWeight: 700,
@@ -405,7 +427,7 @@ export default function ChapterHeader({
             {`Step ${activeIndex + 1} of ${steps.length}`}
           </Box>
         ) : (
-          <Box sx={{ display: 'flex', alignItems: 'center', height: 78, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', height: 78, flexShrink: 0 }}>
             {steps.map((step, index) => {
               const status = stepState(step, index, activeIndex, stepStatus);
               const locked = status === 'locked';
@@ -416,21 +438,24 @@ export default function ChapterHeader({
                   key={step.id}
                   component="button"
                   type="button"
+                  className="chapter-header-control"
                   disabled={locked}
                   aria-current={active ? 'step' : undefined}
                   aria-disabled={locked || undefined}
                   onClick={() => handleStepClick(step, status)}
                   sx={{
-                    all: 'unset',
+                    ...unstyledButton,
                     boxSizing: 'border-box',
                     display: 'flex',
                     alignItems: 'center',
                     gap: locked ? '7px' : '9px',
                     padding: '0 18px',
                     height: 78,
+                    flexShrink: 0,
                     cursor: locked ? 'not-allowed' : 'pointer',
                     opacity: locked ? 0.45 : active ? 1 : 0.6,
-                    borderBottom: active ? `2px solid ${colors.orange}` : '2px solid transparent',
+                    borderRadius: 0,
+                    boxShadow: active ? `inset 0 -2px 0 ${colors.orange}` : 'none',
                     '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: -4 },
                   }}
                 >
@@ -477,7 +502,7 @@ export default function ChapterHeader({
           </Box>
         )}
 
-        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: 1, minWidth: 12 }} />
         {renderChip(chip)}
       </Box>
 
@@ -619,11 +644,13 @@ export default function ChapterHeader({
                 onClick={() => setMapOpen(true)}
                 aria-haspopup="dialog"
                 aria-label="Review the map"
+                className="chapter-header-control"
                 sx={{
-                  all: 'unset',
+                  ...unstyledButton,
                   cursor: 'pointer',
                   position: 'relative',
                   height: 112,
+                  width: '100%',
                   borderRadius: radii.sm,
                   overflow: 'hidden',
                   border: '1px solid rgba(244,206,161,0.22)',
