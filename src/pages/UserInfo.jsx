@@ -23,7 +23,30 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
-import { colors, radii } from '../styles/tokens';
+import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
+
+const cairnLabelSx = {
+  ...type.body,
+  fontWeight: 600,
+  fontSize: 13,
+  color: colors.inkSoft,
+  display: 'block',
+  mb: 0.75,
+  textAlign: 'left',
+};
+
+const cairnInputSx = {
+  '& .MuiInputBase-input': {
+    textAlign: 'left',
+    py: 1.15,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+  },
+  '& .MuiOutlinedInput-root': {
+    bgcolor: colors.surface1,
+    borderRadius: radii.md,
+  },
+};
 
 function UserInfo() {
   const navigate = useNavigate();
@@ -309,7 +332,7 @@ function UserInfo() {
         activeStepId="account"
         chip={{ variant: 'sequence', label: 'Step', current: 1, total: 3 }}
       />
-      <CompassLayout contentMaxWidth={880}>
+      <CompassLayout contentMaxWidth={720}>
       <Container
         maxWidth={false}
         sx={{
@@ -319,51 +342,58 @@ function UserInfo() {
           justifyContent: 'center',
           width: '100%',
           height: useCairnTheme ? '100%' : 'auto',
-          alignItems: useCairnTheme ? 'center' : 'flex-start',
+          alignItems: 'flex-start',
         }}
       >
         <Box sx={{ width: '100%', maxWidth: useCairnTheme ? '100%' : 880, display: 'flex', justifyContent: 'center' }}>
           <Card
-            sx={{
+            sx={useCairnTheme
+              ? { width: '100%', ...surfaces.card, overflow: 'hidden' }
+              : {
               width: '100%',
-              maxWidth: useCairnTheme ? '100%' : 600,
-              borderRadius: useCairnTheme ? radii.lg : 3,
-              border: useCairnTheme
-                ? isDark ? '1px solid rgba(244,206,161,0.14)' : '1px solid var(--sand-200, #E8DBC3)'
-                : '1px solid rgba(255,255,255,0.14)',
-              background: useCairnTheme
-                ? isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.88)'
-                : 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
-              boxShadow: useCairnTheme
-                ? isDark ? '0 10px 32px rgba(0,0,0,0.34)' : '0 12px 34px rgba(15,28,46,0.08)'
-                : '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
+              maxWidth: 600,
+              borderRadius: 3,
+              border: '1px solid rgba(255,255,255,0.14)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.4)',
               overflow: 'hidden',
             }}
           >
-          <CardContent sx={{ p: useCairnTheme ? { xs: 3, md: 4.5 } : { xs: 3, sm: 4 } }}>
+          <CardContent sx={{ p: useCairnTheme ? { xs: 3, md: 4 } : { xs: 3, sm: 4 } }}>
+            {useCairnTheme ? (
+              <Box sx={{ textAlign: 'center', mb: 2.5 }}>
+                <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
+                <Typography sx={{ ...type.question, mb: 0.75 }}>Account creation</Typography>
+                <Typography sx={{ ...type.subtitle, mx: 'auto' }}>
+                  Name, email, and password — this is a login, not your leadership situation yet.
+                </Typography>
+              </Box>
+            ) : (
+            <>
             <Typography
               sx={{
-                fontFamily: useCairnTheme ? '"Montserrat", sans-serif' : 'Gemunu Libre, sans-serif',
-                fontSize: useCairnTheme ? { xs: '1.65rem', md: '1.95rem' } : '2rem',
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: '2rem',
                 fontWeight: 800,
-                mb: useCairnTheme ? 0.75 : 2,
+                mb: 2,
                 textAlign: 'center',
-                color: useCairnTheme ? isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)' : 'text.primary',
               }}
             >
               Your account
             </Typography>
             <Typography
               sx={{
-                fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
-                fontSize: useCairnTheme ? '0.9rem' : '1rem',
-                mb: useCairnTheme ? 1.6 : 1.2,
+                fontFamily: 'Gemunu Libre, sans-serif',
+                fontSize: '1rem',
+                mb: 1.2,
                 textAlign: 'center',
-                color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.64)' : 'var(--ink-soft, #44566C)' : 'text.secondary',
+                color: 'text.secondary',
               }}
             >
               Name, email, and password — this is a login, not your leadership situation yet.
             </Typography>
+            </>
+            )}
             {!useCairnTheme && <Alert severity="info" sx={{ mb: 3, fontFamily: 'Gemunu Libre, sans-serif' }}>
               Compass does not share your profile information or assessment results with other users or company leadership/HR without explicit authorization.
             </Alert>}
@@ -373,16 +403,14 @@ function UserInfo() {
               <Box>
                 <Typography
                   component="label"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
-                    fontSize: useCairnTheme ? '0.78rem' : '1rem',
+                  sx={useCairnTheme ? cairnLabelSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
                     display: 'block',
-                    mb: useCairnTheme ? 0.45 : 1,
-                    color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' : 'text.primary',
+                    mb: 1,
+                    color: 'text.primary',
                     fontWeight: 800,
                     textAlign: 'center',
-                    letterSpacing: useCairnTheme ? '0.08em' : 0,
-                    textTransform: useCairnTheme ? 'uppercase' : 'none',
                   }}
                 >
                   Name
@@ -396,17 +424,14 @@ function UserInfo() {
                   fullWidth
                   variant="outlined"
                   placeholder="Enter your name"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
+                  sx={useCairnTheme ? cairnInputSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
                     '& .MuiInputBase-input': {
                       textAlign: 'center',
-                      py: useCairnTheme ? 1.05 : undefined,
-                      color: useCairnTheme && isDark ? 'var(--ink, #f0e9de)' : undefined,
                     },
                     '& .MuiOutlinedInput-root': {
-                      bgcolor: useCairnTheme ? isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.9)' : 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: useCairnTheme ? '12px' : undefined,
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
                   }}
                 />
@@ -415,16 +440,14 @@ function UserInfo() {
               <Box>
                 <Typography
                   component="label"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
-                    fontSize: useCairnTheme ? '0.78rem' : '1rem',
+                  sx={useCairnTheme ? cairnLabelSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
                     display: 'block',
-                    mb: useCairnTheme ? 0.45 : 1,
-                    color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' : 'text.primary',
+                    mb: 1,
+                    color: 'text.primary',
                     fontWeight: 800,
                     textAlign: 'center',
-                    letterSpacing: useCairnTheme ? '0.08em' : 0,
-                    textTransform: useCairnTheme ? 'uppercase' : 'none',
                   }}
                 >
                   Email
@@ -438,17 +461,14 @@ function UserInfo() {
                   fullWidth
                   variant="outlined"
                   placeholder="Enter your email"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
+                  sx={useCairnTheme ? cairnInputSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
                     '& .MuiInputBase-input': {
                       textAlign: 'center',
-                      py: useCairnTheme ? 1.05 : undefined,
-                      color: useCairnTheme && isDark ? 'var(--ink, #f0e9de)' : undefined,
                     },
                     '& .MuiOutlinedInput-root': {
-                      bgcolor: useCairnTheme ? isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.9)' : 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: useCairnTheme ? '12px' : undefined,
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
                   }}
                 />
@@ -459,19 +479,17 @@ function UserInfo() {
               <Box>
                 <Typography
                   component="label"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
-                    fontSize: useCairnTheme ? '0.78rem' : '1rem',
+                  sx={useCairnTheme ? cairnLabelSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
                     display: 'block',
-                    mb: useCairnTheme ? 0.45 : 1,
-                    color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' : 'text.primary',
+                    mb: 1,
+                    color: 'text.primary',
                     fontWeight: 800,
                     textAlign: 'center',
-                    letterSpacing: useCairnTheme ? '0.08em' : 0,
-                    textTransform: useCairnTheme ? 'uppercase' : 'none',
                   }}
                 >
-                  Create Password
+                  Create password
                 </Typography>
                 <TextField
                   type="password"
@@ -482,21 +500,18 @@ function UserInfo() {
                   fullWidth
                   variant="outlined"
                   placeholder="Create a password"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
+                  sx={useCairnTheme ? cairnInputSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
                     '& .MuiInputBase-input': {
                       textAlign: 'center',
-                      py: useCairnTheme ? 1.05 : undefined,
-                      color: useCairnTheme && isDark ? 'var(--ink, #f0e9de)' : undefined,
                     },
                     '& .MuiOutlinedInput-root': {
-                      bgcolor: useCairnTheme ? isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.9)' : 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: useCairnTheme ? '12px' : undefined,
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
                   }}
                 />
-                <Typography sx={{ mt: 0.45, fontSize: useCairnTheme ? '0.72rem' : '0.8rem', color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.5)' : 'var(--ink-soft, #44566C)' : 'text.secondary', textAlign: 'center' }}>
+                <Typography sx={{ mt: 0.45, fontSize: useCairnTheme ? 12 : '0.8rem', fontFamily: fonts.sans, color: useCairnTheme ? colors.inkSoft : 'text.secondary', textAlign: useCairnTheme ? 'left' : 'center' }}>
                   Minimum 10 characters with uppercase, lowercase, and a number.
                 </Typography>
               </Box>
@@ -504,19 +519,17 @@ function UserInfo() {
               <Box>
                 <Typography
                   component="label"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
-                    fontSize: useCairnTheme ? '0.78rem' : '1rem',
+                  sx={useCairnTheme ? cairnLabelSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
+                    fontSize: '1rem',
                     display: 'block',
-                    mb: useCairnTheme ? 0.45 : 1,
-                    color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' : 'text.primary',
+                    mb: 1,
+                    color: 'text.primary',
                     fontWeight: 800,
                     textAlign: 'center',
-                    letterSpacing: useCairnTheme ? '0.08em' : 0,
-                    textTransform: useCairnTheme ? 'uppercase' : 'none',
                   }}
                 >
-                  Confirm Password
+                  Confirm password
                 </Typography>
                 <TextField
                   type="password"
@@ -527,24 +540,21 @@ function UserInfo() {
                   fullWidth
                   variant="outlined"
                   placeholder="Confirm password"
-                  sx={{
-                    fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
+                  sx={useCairnTheme ? cairnInputSx : {
+                    fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
                     '& .MuiInputBase-input': {
                       textAlign: 'center',
-                      py: useCairnTheme ? 1.05 : undefined,
-                      color: useCairnTheme && isDark ? 'var(--ink, #f0e9de)' : undefined,
                     },
                     '& .MuiOutlinedInput-root': {
-                      bgcolor: useCairnTheme ? isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.9)' : 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: useCairnTheme ? '12px' : undefined,
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
                     },
                   }}
                 />
               </Box>
               </Box>
 
-              <Stack spacing={0.55} sx={{ alignItems: 'center', pt: useCairnTheme ? 0.2 : 0 }}>
+              <Stack spacing={0.55} sx={{ alignItems: useCairnTheme ? 'flex-start' : 'center', pt: useCairnTheme ? 0.4 : 0 }}>
                 {[
                   {
                     name: 'agreeTerms',
@@ -566,7 +576,7 @@ function UserInfo() {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifyContent: useCairnTheme ? 'flex-start' : 'center',
                       gap: 0.85,
                       width: '100%',
                     }}
@@ -627,22 +637,15 @@ function UserInfo() {
                 size="large"
                 onClick={handleContinue}
                 disabled={isSubmitting}
-                sx={{
-                  fontFamily: useCairnTheme ? '"Montserrat", sans-serif' : 'Gemunu Libre, sans-serif',
-                  fontSize: useCairnTheme ? '0.92rem' : '1.1rem',
+                sx={useCairnTheme
+                  ? { ...buttons.primary, alignSelf: 'flex-start', mt: 0.5 }
+                  : {
+                  fontFamily: 'Gemunu Libre, sans-serif',
+                  fontSize: '1.1rem',
                   fontWeight: 800,
                   px: 4,
-                  py: useCairnTheme ? 1.05 : 1.5,
-                  mt: useCairnTheme ? 0.4 : 2,
-                  borderRadius: useCairnTheme ? 999 : undefined,
-                  bgcolor: useCairnTheme ? colors.navy900 : undefined,
-                  color: useCairnTheme ? colors.amberSoft : undefined,
-                  '&:hover': useCairnTheme ? { bgcolor: colors.navy800 } : undefined,
-                  '&:disabled': {
-                    opacity: 0.5,
-                    color: useCairnTheme ? colors.amberSoft : undefined,
-                    bgcolor: useCairnTheme ? colors.navy900 : undefined,
-                  },
+                  py: 1.5,
+                  mt: 2,
                 }}
               >
                 {isSubmitting ? 'Saving...' : 'Continue to your guide'}

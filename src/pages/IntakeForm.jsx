@@ -17,7 +17,7 @@ import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import { auth, db } from '../firebase';
-import { colors, fonts, radii, type } from '../styles/tokens';
+import { colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
 import { demoRequestFields, isDemoSession } from '../utils/demoMode';
 
@@ -124,17 +124,15 @@ const PageContainer = ({ children }) => (
 
 // Centered card with natural width (never full-bleed).
 // In cairn mode renders without card chrome so content floats on the background.
-const SectionCard = ({ children, narrow = false }) => {
+const SectionCard = ({ children, narrow = false, maxWidth: maxWidthProp }) => {
+  const maxWidth = maxWidthProp || (narrow ? 748 : 1180);
   if (useCairnTheme) {
     return (
-      <MemoBox sx={{ width: '100%', maxWidth: narrow ? 748 : 1180, mx: 'auto' }}>
+      <MemoBox sx={{ width: '100%', maxWidth, mx: 'auto' }}>
         <Box
           sx={{
             width: '100%',
-            bgcolor: 'var(--surface-1)',
-            border: '1px solid var(--sand-200)',
-            borderRadius: 'var(--cairn-radius-lg)',
-            boxShadow: '0 18px 40px rgba(15, 28, 46, 0.06)',
+            ...surfaces.card,
             px: { xs: 2.4, md: 4 },
             py: { xs: 2.4, md: 3.5 },
           }}
@@ -150,7 +148,7 @@ const SectionCard = ({ children, narrow = false }) => {
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: narrow ? 748 : 1180,
+          maxWidth,
           borderRadius: 3,
           border: '1px solid rgba(255,255,255,0.14)',
           background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86))',
@@ -163,6 +161,39 @@ const SectionCard = ({ children, narrow = false }) => {
     </MemoBox>
   );
 };
+
+const contextFieldSx = {
+  '& .MuiInputBase-input': {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    py: 1.15,
+    textAlign: 'left',
+  },
+  '& .MuiOutlinedInput-root': {
+    borderRadius: radii.md,
+    bgcolor: colors.surface1,
+  },
+};
+
+const ContextField = ({ label, children }) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', minWidth: 0 }}>
+    <Typography
+      component="label"
+      sx={{
+        ...type.body,
+        fontWeight: 600,
+        fontSize: 13,
+        color: colors.inkSoft,
+        display: 'block',
+        mb: 0.75,
+        textAlign: 'left',
+      }}
+    >
+      {label}
+    </Typography>
+    {children}
+  </Box>
+);
 
 // Warning label icon component - Standardized American road signs
 const WarningLabelIcon = ({ type }) => {
@@ -1749,22 +1780,146 @@ function IntakeForm() {
           </Alert>
         )}
         {/* Profile Details (Step 1) */}
-        {currentStep === 1 && (
+        {currentStep === 1 && useCairnTheme && (
+          <SectionCard maxWidth={840}>
+            <Box sx={{ width: '100%' }}>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
+                <Typography sx={{ ...type.question, mb: 0.75 }}>Your context</Typography>
+                <Typography sx={{ ...type.subtitle, mx: 'auto' }}>
+                  Industry, tenure, and team — the situation this reading is built from, not a score.
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 2 }}>
+                <ContextField label="Year born">
+                  <MemoTextField
+                    value={formData.birthYear || ''}
+                    onChange={(e) => handleChange('birthYear', String(e.target.value || '').replace(/[^\d]/g, '').slice(0, 4))}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    placeholder="e.g. 1985"
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+                <ContextField label="Industry">
+                  <MemoTextField
+                    value={formData.industry || ''}
+                    onChange={(e) => handleChange('industry', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    placeholder="Industry"
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+                <ContextField label="Department">
+                  <MemoTextField
+                    value={formData.department || ''}
+                    onChange={(e) => handleChange('department', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    placeholder="Department"
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <ContextField label="Job title">
+                  <MemoTextField
+                    value={formData.role || ''}
+                    onChange={(e) => handleChange('role', e.target.value)}
+                    fullWidth
+                    size="small"
+                    variant="outlined"
+                    placeholder="Current role"
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <ContextField label="What your team is responsible for">
+                  <MemoTextField
+                    value={formData.responsibilities || ''}
+                    onChange={(e) => handleChange('responsibilities', e.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    variant="outlined"
+                    placeholder="Team scope and primary responsibilities"
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 1 }}>
+                <ContextField label="Team size">
+                  <MemoTextField
+                    value={formData.teamSize ?? ''}
+                    onChange={(e) => handleChange('teamSize', String(e.target.value || '').replace(/[^\d]/g, ''))}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+                <ContextField label="Years in current role">
+                  <MemoTextField
+                    value={formData.leadershipExperience ?? ''}
+                    onChange={(e) => handleChange('leadershipExperience', String(e.target.value || '').replace(/[^\d]/g, ''))}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+                <ContextField label="Years in leadership">
+                  <MemoTextField
+                    value={formData.careerExperience ?? ''}
+                    onChange={(e) => handleChange('careerExperience', String(e.target.value || '').replace(/[^\d]/g, ''))}
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                    sx={contextFieldSx}
+                  />
+                </ContextField>
+              </Box>
+
+              <Box sx={{ width: '100%', pt: 2 }}>
+                <CairnFlowButtons
+                  isDark={isDark}
+                  backLabel="Back"
+                  nextLabel="Next"
+                  onBack={() => navigate('/guide-select')}
+                  onNext={handleNext}
+                  nextDisabled={!isProfileValid()}
+                />
+              </Box>
+            </Box>
+          </SectionCard>
+        )}
+        {currentStep === 1 && !useCairnTheme && (
           <SectionCard narrow={true}>
             <Stack spacing={1.8} alignItems="center" textAlign="center" sx={{ width: '100%', maxWidth: 640, mx: 'auto' }}>
-              {!useCairnTheme && (
-                <Typography sx={{
-                  fontFamily: 'inherit',
-                  fontStyle: 'normal',
-                  fontWeight: 800,
-                  fontSize: { xs: '1.5rem', md: '1.5rem' },
-                  lineHeight: 1.35,
-                  mb: 0.2,
-                  textAlign: 'center',
-                }}>
-                  Your context
-                </Typography>
-              )}
+              <Typography sx={{
+                fontFamily: 'inherit',
+                fontStyle: 'normal',
+                fontWeight: 800,
+                fontSize: { xs: '1.5rem', md: '1.5rem' },
+                lineHeight: 1.35,
+                mb: 0.2,
+                textAlign: 'center',
+              }}>
+                Your context
+              </Typography>
 
               <Box
                 sx={{
@@ -1924,39 +2079,26 @@ function IntakeForm() {
                 </Grid>
               </Box>
 
-              {useCairnTheme ? (
-                <Box sx={{ width: '100%', pt: 1.2 }}>
-                  <CairnFlowButtons
-                    isDark={isDark}
-                    backLabel="Back"
-                    nextLabel="Next"
-                    onBack={() => navigate('/user-info')}
-                    onNext={handleNext}
-                    nextDisabled={!isProfileValid()}
-                  />
-                </Box>
-              ) : (
-                <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 0.4 }}>
-                  <MemoButton variant="outlined" onClick={() => setCurrentStep(0)} sx={{ minWidth: 86 }}>Back</MemoButton>
-                  <MemoButton
-                    variant="contained"
-                    onClick={handleNext}
-                    disabled={!isProfileValid()}
-                    sx={{
-                      minWidth: 120,
-                      py: 1,
-                      ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
-                      '@keyframes pulse': {
-                        '0%': { transform: 'scale(1)' },
-                        '50%': { transform: 'scale(1.04)' },
-                        '100%': { transform: 'scale(1)' },
-                      },
-                    }}
-                  >
-                    Next
-                  </MemoButton>
-                </Stack>
-              )}
+              <Stack direction="row" spacing={2} justifyContent="center" sx={{ pt: 0.4 }}>
+                <MemoButton variant="outlined" onClick={() => setCurrentStep(0)} sx={{ minWidth: 86 }}>Back</MemoButton>
+                <MemoButton
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={!isProfileValid()}
+                  sx={{
+                    minWidth: 120,
+                    py: 1,
+                    ...(stepJustValidated && { animation: 'pulse 420ms ease' }),
+                    '@keyframes pulse': {
+                      '0%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.04)' },
+                      '100%': { transform: 'scale(1)' },
+                    },
+                  }}
+                >
+                  Next
+                </MemoButton>
+              </Stack>
             </Stack>
           </SectionCard>
         )}
