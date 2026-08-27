@@ -65,6 +65,8 @@ BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Trailhead · Markers · Haza
   Chapter III tabs are the four reflection stages (Trailhead, Trail Markers,
   Future Hazards, A New Trail) via `/summary?stage=`. The summary card is
   centered in the body; do not restore a left reflection rail.
+  Chapter VI (Review & Act) holds Today, Signal, Evidence, and Practice as one
+  residual dashboard. Chapter VII is the year Journey map — not the daily plan.
 - Porthole: `JourneyPorthole` `variant="corner"` — 100px, 4px navy bezel, 2px
   brass inner ring, amber diamond at 12 o'clock, 5px white outer ring. Clicking
   it or the chapter name opens the drawer.
