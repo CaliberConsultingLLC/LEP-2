@@ -75,6 +75,9 @@
     },
     "api/get-repository-data.js": {
       "maxDuration": 30
+    },
+    "api/get-results-analysis.js": {
+      "maxDuration": 60
     }
   }
 }
