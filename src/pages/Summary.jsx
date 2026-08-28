@@ -31,6 +31,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
+import { setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing } from '../data/guideBriefings';
 
@@ -342,6 +343,50 @@ function Summary() {
     }
   };
 
+  // Generates the guide's line for every post-intake screen, in all six voices,
+  // from the insight map. Non-blocking: until it lands (or if it fails outright)
+  // every screen keeps showing the canned copy it shows today.
+  const runGuideLinesPrefetch = async (insightMap, runId) => {
+    if (!insightMap?.evidence?.leadershipMirror) return;
+    try {
+      const resp = await fetchWithTimeout('/api/get-guide-lines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ insightProfile: insightMap, ...demoRequestFields() }),
+      }, 120000);
+      if (!resp.ok) return;
+      const payload = await resp.json();
+      if (activeRunIdRef.current !== runId) return;
+      if (!payload?.linesByGuide || !Object.keys(payload.linesByGuide).length) return;
+
+      setGeneratedGuideLines(payload.linesByGuide, {
+        schemaVersion: payload.schemaVersion,
+        model: payload.model,
+        basedOnResults: payload.basedOnResults,
+      });
+
+      const uid = String(auth?.currentUser?.uid || '').trim();
+      if (uid) {
+        await setDoc(
+          doc(db, 'responses', uid),
+          {
+            guideLines: {
+              linesByGuide: payload.linesByGuide,
+              schemaVersion: payload.schemaVersion || 1,
+              model: payload.model || '',
+              basedOnResults: Boolean(payload.basedOnResults),
+              coverage: payload.coverage || {},
+              savedAt: new Date().toISOString(),
+            },
+          },
+          { merge: true }
+        );
+      }
+    } catch (err) {
+      console.warn('Guide line prefetch failed:', err?.name || err?.message || err);
+    }
+  };
+
   // Fetches the five guides that were not rendered on the first request,
   // reusing the insight map so the facts stay identical across voices.
   const runRemainingGuidesPrefetch = async (data, insightMap, haveGuideIds, runId) => {
@@ -513,6 +558,7 @@ function Summary() {
         Object.keys(map),
         runId
       );
+      runGuideLinesPrefetch(payload?.insightMap || null, runId);
     } catch (e) {
       if (activeRunIdRef.current !== runId) return;
       const isTimeout = e?.name === 'AbortError';
