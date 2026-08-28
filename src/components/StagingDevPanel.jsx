@@ -141,15 +141,26 @@ function StagingDevPanel() {
     }
 
     setRegenBusy(true);
-    setFlash('Generating live summary…');
+    setFlash('Generating live summary… (all six voices, ~3 min)');
     try {
       localStorage.setItem('selectedAgent', voiceId);
       localStorage.setItem('selectedGuideId', voiceId);
-      const res = await fetch('/api/get-ai-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...payload, guideId: voiceId, selectedAgent: voiceId }),
-      });
+      // This panel asks for all six voices in one request, so it runs longer
+      // than the Summary page's two-phase flow. Without a timeout a stalled
+      // request spins forever with no way to tell it failed.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 280000);
+      let res;
+      try {
+        res = await fetch('/api/get-ai-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ ...payload, guideId: voiceId, selectedAgent: voiceId }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
         throw new Error(`HTTP ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ''}`);

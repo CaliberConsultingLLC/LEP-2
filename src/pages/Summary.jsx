@@ -53,6 +53,10 @@ function Summary() {
   const [aiCampaign, setAiCampaign] = useState(null); // AI-generated campaign traits
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Generation genuinely takes ~2 minutes. Without a moving readout an honest
+  // wait is indistinguishable from a hang, and people reload — which starts the
+  // whole thing over.
+  const [loadingSeconds, setLoadingSeconds] = useState(0);
   const [selectedTraits, setSelectedTraits] = useState([]);
   const [userName, setUserName] = useState('');
   const [focusAreas, setFocusAreas] = useState([]);
@@ -82,6 +86,16 @@ function Summary() {
     }
     return undefined;
   }, [location.search, navigate]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadingSeconds(0);
+      return undefined;
+    }
+    const started = Date.now();
+    const id = setInterval(() => setLoadingSeconds(Math.round((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [isLoading]);
 
   const goToJourneyStep = (idx) => {
     const next = Math.max(0, Math.min(REFLECT_STAGES.length - 1, Number(idx) || 0));
@@ -353,7 +367,7 @@ function Summary() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ insightProfile: insightMap, ...demoRequestFields() }),
-      }, 120000);
+      }, 280000);
       if (!resp.ok) return;
       const payload = await resp.json();
       if (activeRunIdRef.current !== runId) return;
@@ -397,7 +411,7 @@ function Summary() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ ...data, guideIds: missing, insightMap, ...demoRequestFields() }),
-      }, 90000);
+      }, 280000);
       if (!resp.ok) return;
       const payload = await resp.json();
       if (activeRunIdRef.current !== runId) return;
@@ -433,7 +447,7 @@ function Summary() {
           insightMap: insightMap || null,
           ...demoRequestFields(),
         }),
-      }, 20000);
+      }, 60000);
 
       if (!campaignResp.ok) return;
       const campaignData = await campaignResp.json();
@@ -495,7 +509,7 @@ function Summary() {
           guideIds: [baseGuide],
           ...demoRequestFields(),
         }),
-      }, 90000);
+      }, 280000);
 
       if (!summaryResp.ok) {
         let details = '';
@@ -551,14 +565,12 @@ function Summary() {
       // Unblock UI immediately after summary returns.
       setIsLoading(false);
       // Continue campaign generation in background to improve perceived responsiveness.
-      runCampaignPrefetch(text, data, runId, payload?.insightMap || null);
-      runRemainingGuidesPrefetch(
-        data,
-        payload?.insightMap || null,
-        Object.keys(map),
-        runId
-      );
-      runGuideLinesPrefetch(payload?.insightMap || null, runId);
+      runCampaignPrefetch(text, data, runId, payload?.insightMap || null)
+        .catch((e) => console.warn('Campaign prefetch rejected:', e?.name || e?.message || e));
+      runRemainingGuidesPrefetch(data, payload?.insightMap || null, Object.keys(map), runId)
+        .catch((e) => console.warn('Guide prefetch rejected:', e?.name || e?.message || e));
+      runGuideLinesPrefetch(payload?.insightMap || null, runId)
+        .catch((e) => console.warn('Guide line prefetch rejected:', e?.name || e?.message || e));
     } catch (e) {
       if (activeRunIdRef.current !== runId) return;
       const isTimeout = e?.name === 'AbortError';
@@ -990,10 +1002,16 @@ function Summary() {
   };
 
   if (isLoading) {
+    const stage = loadingSeconds < 20
+      ? 'Reading everything you told us.'
+      : loadingSeconds < 75
+        ? 'Finding the patterns that run across your answers.'
+        : 'Writing your Trailhead in your guide’s voice.';
     return (
       <LoadingScreen
         title="Generating your leadership summary..."
-        subtitle="We are synthesizing insights and aligning your focus traits."
+        subtitle={stage}
+        hint={`This usually takes about two minutes. ${loadingSeconds}s elapsed — please don’t refresh.`}
       />
     );
   }
