@@ -75,7 +75,7 @@ function buildFocusTraitCatalog() {
  * implementation cost tokens in six prompts and invited the model to read a
  * duplicate as independent corroboration.
  */
-function normalizeInsightMap(raw) {
+export function normalizeInsightMap(raw) {
   const src = raw && typeof raw === 'object' ? raw : {};
   const ev = src.evidence && typeof src.evidence === 'object' ? src.evidence : {};
   const text = (v) => String(v || '').replace(/\s+/g, ' ').trim();
@@ -151,7 +151,7 @@ function normalizeInsightMap(raw) {
  * would be written from nothing, which is exactly the silent failure the
  * previous implementation shipped as a 200.
  */
-function insightMapProblems(map) {
+export function insightMapProblems(map) {
   const problems = [];
   const ev = map?.evidence || {};
   const seeds = map?.rendering?.spokenSeeds || {};
@@ -319,10 +319,28 @@ async function runExtraction(body) {
     user: buildInsightExtractionUserPrompt(body),
     schema: INSIGHT_MAP_SCHEMA,
     maxTokens: EXTRACTION_MAX_TOKENS,
-    effort: 'medium',
+    effort: 'high',
     thinking: true,
   });
   return normalizeInsightMap(data);
+}
+
+/**
+ * A follow-up request for the remaining guides must reuse the map from the
+ * first request. Re-extracting would produce a different map, and the six
+ * guides would no longer be speaking the same facts — which is the entire
+ * premise of the persona architecture.
+ *
+ * The map arrives from the client, so it is re-validated here rather than
+ * trusted. It only ever contains that user's own generated content.
+ */
+function rehydrateInsightMap(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const normalized = normalizeInsightMap(raw);
+  if (insightMapProblems(normalized).length) return null;
+  if (raw.generatedAt) normalized.generatedAt = String(raw.generatedAt);
+  if (raw.model) normalized.model = String(raw.model);
+  return normalized;
 }
 
 /**
@@ -407,31 +425,39 @@ export default async function handler(req, res) {
     const body = req.body || {};
     const selectedGuideId = resolveGuideVoiceId(body.guideId || body.selectedAgent);
 
-    // Extraction gets its own retry. It is the pass that cannot be recovered
-    // from — a thin map poisons all six narratives downstream.
-    let insightMap = null;
-    let extractionProblems = [];
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      try {
-        const candidate = await runExtraction(body);
-        extractionProblems = insightMapProblems(candidate);
-        if (!extractionProblems.length) {
-          insightMap = candidate;
-          break;
-        }
-        insightMap = candidate;
-      } catch (err) {
-        extractionProblems = [err?.message || 'extraction failed'];
-        insightMap = null;
-      }
-    }
+    // Which guides to render this request. Omitted means all six (the dev
+    // panels rely on that). The Summary page splits it: the selected guide
+    // first so the Trailhead lands fast, then the remaining five in the
+    // background, reusing the map returned by the first call.
+    const requestedGuides = Array.isArray(body.guideIds) && body.guideIds.length
+      ? [...new Set(body.guideIds.map(resolveGuideVoiceId))]
+      : GUIDE_VOICE_IDS;
 
-    if (!insightMap || extractionProblems.length) {
-      console.error('Insight extraction failed:', extractionProblems);
-      return res.status(502).json({
-        error: 'Could not build a usable insight map from this intake.',
-        details: extractionProblems,
-      });
+    let insightMap = rehydrateInsightMap(body.insightMap);
+
+    // Extraction gets its own retry. It is the pass that cannot be recovered
+    // from — a thin map poisons every narrative downstream.
+    if (!insightMap) {
+      let extractionProblems = [];
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const candidate = await runExtraction(body);
+          extractionProblems = insightMapProblems(candidate);
+          insightMap = candidate;
+          if (!extractionProblems.length) break;
+        } catch (err) {
+          extractionProblems = [err?.message || 'extraction failed'];
+          insightMap = null;
+        }
+      }
+
+      if (!insightMap || extractionProblems.length) {
+        console.error('Insight extraction failed:', extractionProblems);
+        return res.status(502).json({
+          error: 'Could not build a usable insight map from this intake.',
+          details: extractionProblems,
+        });
+      }
     }
 
     const focusAreas = buildFocusAreas(body, insightMap);
@@ -440,12 +466,12 @@ export default async function handler(req, res) {
     const narrativeArgs = { insightMap, focusAreas, contextSnapshot, spokenSeeds };
 
     const settled = await Promise.allSettled(
-      GUIDE_VOICE_IDS.map((guideId) => generateGuideNarrativeWithRetry({ guideId, ...narrativeArgs }))
+      requestedGuides.map((guideId) => generateGuideNarrativeWithRetry({ guideId, ...narrativeArgs }))
     );
 
     const summariesByGuide = {};
     settled.forEach((result, index) => {
-      const guideId = GUIDE_VOICE_IDS[index];
+      const guideId = requestedGuides[index];
       if (result.status === 'fulfilled' && result.value?.trailhead) {
         summariesByGuide[guideId] = result.value;
       } else if (result.status === 'rejected') {
@@ -455,7 +481,7 @@ export default async function handler(req, res) {
 
     const selectedSummary =
       summariesByGuide[selectedGuideId] ||
-      summariesByGuide[GUIDE_VOICE_IDS.find((id) => summariesByGuide[id])] ||
+      summariesByGuide[requestedGuides.find((id) => summariesByGuide[id])] ||
       null;
     if (!selectedSummary) {
       return res.status(502).json({ error: 'Summary generation returned no usable narrative.' });
@@ -465,7 +491,8 @@ export default async function handler(req, res) {
       aiSummary: flattenGuideSummary(selectedSummary),
       summariesByGuide,
       selectedGuideId,
-      missingGuides: GUIDE_VOICE_IDS.filter((id) => !summariesByGuide[id]),
+      requestedGuides,
+      missingGuides: requestedGuides.filter((id) => !summariesByGuide[id]),
       focusAreas,
       trailheadHighlights: buildTrailheadHighlights(insightMap),
       insightMap,

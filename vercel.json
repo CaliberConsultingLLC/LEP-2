@@ -50,7 +50,7 @@
   ],
   "functions": {
     "api/get-ai-summary.js": {
-      "maxDuration": 300
+      "maxDuration": 60
     },
     "api/get-ai-reflection.js": {
       "maxDuration": 60

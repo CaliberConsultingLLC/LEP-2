@@ -342,6 +342,40 @@ function Summary() {
     }
   };
 
+  // Fetches the five guides that were not rendered on the first request,
+  // reusing the insight map so the facts stay identical across voices.
+  const runRemainingGuidesPrefetch = async (data, insightMap, haveGuideIds, runId) => {
+    const missing = GUIDE_VOICE_IDS.filter((id) => !haveGuideIds.includes(id));
+    if (!insightMap || !missing.length) return;
+    try {
+      const resp = await fetchWithTimeout('/api/get-ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ...data, guideIds: missing, insightMap, ...demoRequestFields() }),
+      }, 90000);
+      if (!resp.ok) return;
+      const payload = await resp.json();
+      if (activeRunIdRef.current !== runId) return;
+
+      const extra = payload?.summariesByGuide && typeof payload.summariesByGuide === 'object'
+        ? payload.summariesByGuide
+        : {};
+      if (!Object.keys(extra).length) return;
+
+      setSummariesByGuide((prev) => {
+        const merged = { ...prev, ...extra };
+        try {
+          localStorage.setItem('summariesByGuide', JSON.stringify(merged));
+        } catch { /* non-fatal */ }
+        return merged;
+      });
+    } catch (err) {
+      // Non-blocking: the selected guide already rendered. Switching to an
+      // unfetched guide simply falls back to the one that is present.
+      console.warn('Background guide prefetch failed:', err?.name || err?.message || err);
+    }
+  };
+
   const runCampaignPrefetch = async (text, data, runId, insightMap = null) => {
     if (!text) return;
     try {
@@ -402,11 +436,20 @@ function Summary() {
       );
       setSelectedAgent(baseGuide);
 
-      // 3) request all six guide narratives from one insight map
+      // 3) Build the insight map and the selected guide's narrative only. The
+      //    other five are fetched in the background below, reusing this map so
+      //    every guide speaks identical facts. Splitting it keeps the Trailhead
+      //    wait short and the function well inside its duration limit.
       const summaryResp = await fetchWithTimeout('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...data, guideId: baseGuide, selectedAgent: baseGuide, ...demoRequestFields() }),
+        body: JSON.stringify({
+          ...data,
+          guideId: baseGuide,
+          selectedAgent: baseGuide,
+          guideIds: [baseGuide],
+          ...demoRequestFields(),
+        }),
       }, 90000);
 
       if (!summaryResp.ok) {
@@ -464,6 +507,12 @@ function Summary() {
       setIsLoading(false);
       // Continue campaign generation in background to improve perceived responsiveness.
       runCampaignPrefetch(text, data, runId, payload?.insightMap || null);
+      runRemainingGuidesPrefetch(
+        data,
+        payload?.insightMap || null,
+        Object.keys(map),
+        runId
+      );
     } catch (e) {
       if (activeRunIdRef.current !== runId) return;
       const isTimeout = e?.name === 'AbortError';
