@@ -15,6 +15,10 @@ export const NARRATIVE_MODEL = process.env.COMPASS_NARRATIVE_MODEL || 'claude-so
 // Short-form classification and single-paragraph interpretation.
 export const SHORT_FORM_MODEL = process.env.COMPASS_SHORT_FORM_MODEL || 'claude-haiku-4-5';
 
+// Reasoning depth for the extraction pass. Tunable without a deploy so the
+// quality-versus-latency tradeoff can be measured against real intakes.
+export const EXTRACTION_EFFORT = process.env.COMPASS_EXTRACTION_EFFORT || 'high';
+
 let cachedClient = null;
 
 export class MissingApiKeyError extends Error {

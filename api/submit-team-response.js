@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     if (String(data?.campaignType || '') !== 'team') {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    if (Boolean(data?.surveyClosed)) {
+    if (data?.surveyClosed) {
       return res.status(409).json({ error: 'Survey closed' });
     }
 

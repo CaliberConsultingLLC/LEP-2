@@ -23,6 +23,7 @@ import {
   buildSummaryNarrativeUserPrompt,
 } from './promptBuilder.js';
 import {
+  EXTRACTION_EFFORT,
   EXTRACTION_MODEL,
   NARRATIVE_MODEL,
   buildCachedSystem,
@@ -336,7 +337,7 @@ async function runExtraction(body) {
     user: buildInsightExtractionUserPrompt(body),
     schema: INSIGHT_MAP_SCHEMA,
     maxTokens: EXTRACTION_MAX_TOKENS,
-    effort: 'high',
+    effort: EXTRACTION_EFFORT,
     thinking: true,
   });
   return normalizeInsightMap(data);

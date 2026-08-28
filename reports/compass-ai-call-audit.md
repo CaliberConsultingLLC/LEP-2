@@ -1,5 +1,44 @@
 # Compass AI Call Audit — Inventory + Summary Prompt Assessment
 
+> **STATUS AS OF 2026-08-28 — much of this report is now historical.**
+>
+> Everything below describes the OpenAI-era pipeline as it stood on 2026-08-27.
+> It has since been rebuilt. Read it as the diagnosis that motivated the work,
+> not as a description of the current system.
+>
+> **Fixed:**
+> - Finding 1 (extraction truncating into an empty map that shipped as a 200) —
+>   the pipeline moved to Anthropic structured outputs with a hard validity gate
+>   and an extraction retry. An unusable map now returns 502 instead of six
+>   confident narratives written from nothing.
+> - Finding 2 (length spec contradicting the fixtures) — resolved in the other
+>   direction from what this report recommended. The product owner wanted MORE
+>   substance, so the ambitious lengths were kept and the "keep writing until you
+>   hit them" padding instruction was replaced with coverage requirements.
+> - Finding 3 (padding fallbacks) — removed. Thin beats regenerate with specific
+>   feedback rather than having seeds concatenated onto them.
+> - Finding 4 (gate that could not detect failure) — replaced.
+> - Finding 5 (latency) — the summary now splits into a fast first request plus a
+>   background one, and the function ceiling moved to 300s.
+> - Finding 6 (prompt waste) — alias fields, indentation, and the raw body dump
+>   are gone; prompts are ordered for cache hits.
+> - Finding 7 (structured→flat→structured round-trip) — Summary.jsx now renders
+>   from the structured object.
+>
+> **Not what this report predicted:** probing the deployed endpoint with an empty
+> `{}` body returned a complete six-guide profile of a leader who supplied no
+> data. Extraction had NOT truncated — there was simply no input validation at
+> all, which this report never flagged. Now gated on a minimum signal count.
+>
+> **Measured since:** extraction at `high` effort runs ~145s, `medium` ~128s with
+> no observed quality difference in map cardinality; `high` was kept. Two live
+> runs across different intake profiles produced identical map structure and
+> Trailhead length, which is the consistency question this report was written to
+> answer.
+>
+> Current implementation lives on the `claude-port-insight-map` branch.
+
+
 Date: 2026-08-27
 Scope: every place in Compass where a model is asked to produce output that costs tokens.
 Environment audited: `compass-staging` (Vercel project `prj_mthR81CrjAbpODQb0M3I0snc8quF`), host `staging.northstarpartners.org`.
