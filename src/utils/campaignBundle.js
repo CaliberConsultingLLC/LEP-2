@@ -357,3 +357,28 @@ export async function ensureCampaignBundle({ lock = false } = {}) {
 export function readCampaignRecords() {
   return parseJson(localStorage.getItem('campaignRecords'), {});
 }
+
+export function readLocalCampaignDoc(id) {
+  const campaignId = String(id || '').trim();
+  if (!campaignId) return null;
+  const cached = parseJson(localStorage.getItem(`campaign_${campaignId}`), null);
+  if (cached && cached.campaignType) return cached;
+  const docs = parseJson(localStorage.getItem('localCampaignDocs'), {});
+  const local = docs?.[campaignId];
+  if (local && local.campaignType) return local;
+  const records = parseJson(localStorage.getItem('campaignRecords'), {});
+  if (String(records?.teamCampaignId || '').trim() !== campaignId) return null;
+  return {
+    campaignType: 'team',
+    campaign: normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), [])),
+    password: records.teamCampaignPassword || '',
+    accessToken: allowStagingPersistenceBypass ? 'stage-team-token' : '',
+    userInfo: parseJson(localStorage.getItem('userInfo'), {}),
+    ownerId: records.ownerId || null,
+    ownerUid: records.ownerUid || null,
+    bundleId: records.bundleId || null,
+    surveyClosed: false,
+    selfCampaignId: records.selfCampaignId || '',
+    teamCampaignId: campaignId,
+  };
+}

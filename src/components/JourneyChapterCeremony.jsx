@@ -208,7 +208,7 @@ export default function JourneyChapterCeremony({
   const portholeIndex = isCompleteBeat ? fromIndex : toIndex;
   const fromRoman = copy?.fromNum || JOURNEY_ROMAN[fromIndex];
   const toRoman = copy?.toNum || JOURNEY_ROMAN[toIndex];
-  const totalRoman = copy?.totalRoman || 'VIII';
+  const totalRoman = copy?.totalRoman || 'VII';
   const eyebrow = isCompleteBeat ? (
     <>
       Chapter {fromRoman}

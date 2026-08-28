@@ -457,7 +457,10 @@ export function resolveRouteKey(pathname = '', search = '') {
   if (p.startsWith('/campaign-intro'))       return 'campaignIntro';
   if (p.startsWith('/campaign-builder'))     return 'campaignBuilder';
   if (p.startsWith('/campaign-verify'))      return 'campaignVerify';
-  if (p.startsWith('/self-assessment'))      return 'selfAssessment';
+  if (p.startsWith('/self-assessment')) {
+    if (String(qs.get('step') || '').toLowerCase() === 'invite') return 'teamAssessment';
+    return 'selfAssessment';
+  }
   if (p.startsWith('/team-assessment'))      return 'teamAssessment';
   if (p.startsWith('/campaign/') && p.endsWith('/complete')) return 'campaignComplete';
   if (p.startsWith('/campaign/'))            return 'campaignRun';

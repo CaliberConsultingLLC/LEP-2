@@ -3,7 +3,7 @@
  * on the arrive beat. Mindset for the phase they are entering — not a task list.
  *
  * Station keys match JOURNEY_STATIONS in journeyModel.js.
- * Header chapter ids (of VIII) map onto those keys via CHAPTER_ID_TO_STATION_KEY.
+ * Header chapter ids (of VII) map onto those keys via CHAPTER_ID_TO_STATION_KEY.
  * Missing guide ids fall back to mentor, same as guideBriefings.js.
  */
 
@@ -25,7 +25,6 @@ export const CHAPTER_ID_TO_STATION_KEY = {
   reflect: 'campaign',
   campaign: 'campaign',
   self: 'assessment',
-  team: 'team',
   assessments: 'assessment',
   review: 'reflect',
   action: 'action',

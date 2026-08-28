@@ -7,6 +7,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { selfAssessmentComplete } from '../data/chapterMap';
+import { readLocalCampaignDoc } from '../utils/campaignBundle';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 function NewCampaignIntro() {
@@ -47,7 +48,7 @@ function NewCampaignIntro() {
       try {
         const cachedCampaign = parseJson(localStorage.getItem(`campaign_${id}`), {});
         const cachedType = String(cachedCampaign?.campaignType || '').toLowerCase();
-        if (cachedType === 'self' && cachedCampaign?.campaignType) {
+        if ((cachedType === 'self' || cachedType === 'team') && cachedCampaign?.campaignType) {
           setSurveyClosed(Boolean(cachedCampaign?.surveyClosed));
           const normalizedCached = {
             ...cachedCampaign,
@@ -95,6 +96,18 @@ function NewCampaignIntro() {
         }
 
         if (loaded || !isMounted) return;
+
+        const localCampaign = readLocalCampaignDoc(id);
+        if (localCampaign && String(localCampaign.campaignType || '').toLowerCase() === 'team') {
+          if (isMounted) {
+            setSurveyClosed(Boolean(localCampaign?.surveyClosed));
+            setCampaignData({
+              ...localCampaign,
+              campaign: normalizeCampaignItems(localCampaign?.campaign),
+            });
+          }
+          return;
+        }
 
         try {
           const docRef = doc(db, 'campaigns', id);
@@ -204,6 +217,29 @@ function NewCampaignIntro() {
             return;
           }
           if (verifyResponse.status === 404) {
+            const localTeam = readLocalCampaignDoc(id);
+            if (
+              localTeam
+              && String(localTeam.campaignType || '').toLowerCase() === 'team'
+              && String(localTeam.password || '') === enteredPassword
+            ) {
+              const normalizedLocal = {
+                ...localTeam,
+                campaign: normalizeCampaignItems(localTeam?.campaign),
+                accessToken: String(localTeam?.accessToken || 'stage-team-token'),
+              };
+              if (!isCampaignReady(normalizedLocal.campaign)) {
+                alert('Campaign is not ready yet. Please try again shortly.');
+                return;
+              }
+              localStorage.setItem(`campaign_${id}`, JSON.stringify(normalizedLocal));
+              localStorage.setItem(`teamCampaignAccess_${id}`, 'granted');
+              setCampaignData(normalizedLocal);
+              setIsNavigating(true);
+              navigate(`/campaign/${id}/survey`, { replace: true });
+              setTimeout(() => setIsNavigating(false), 100);
+              return;
+            }
             setPasswordError('Campaign not found.');
             return;
           }

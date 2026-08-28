@@ -56,17 +56,17 @@ BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Trailhead · Markers · Haza
   Right cluster is env label, Guide pill, avatar. The wordmark must not shift
   when the right cluster grows.
 - Chapter rail: white, `padding: 0 28px 0 152px`, `border-bottom: 1px solid --sand-200`.
-  Left: chapter block (eyebrow `CHAPTER n OF VIII`, Fraunces 21px name). Then a
+  Left: chapter block (eyebrow `CHAPTER n OF VII`, Fraunces 21px name). Then a
   34px sand divider, step tabs, `flex:1`, one status chip.
 - Copy, numbers, and step lists live in `src/data/chapterMap.js`. Numbering is
-  **of VIII**. "What happens here" hangs off the active step, not the chapter.
+  **of VII**. "What happens here" hangs off the active step, not the chapter.
   Chapter popups fire only when `chapterId` changes (complete → begin next).
   Tab changes inside a chapter do not popup.
   Chapter III tabs are the four reflection stages (Trailhead, Trail Markers,
   Future Hazards, A New Trail) via `/summary?stage=`. The summary card is
   centered in the body; do not restore a left reflection rail.
-  Chapter VII (Review & Act) holds Today, Signal, Evidence, and Practice as one
-  residual dashboard. Chapter VIII is the year Journey map — not the daily plan.
+  Chapter VI (Review & Act) holds Today, Signal, Evidence, and Practice as one
+  residual dashboard. Chapter VII is the year Journey map — not the daily plan.
 - Porthole: `JourneyPorthole` `variant="corner"` — 100px, 4px navy bezel, 2px
   brass inner ring, amber diamond at 12 o'clock, 5px white outer ring. Clicking
   it or the chapter name opens the drawer.

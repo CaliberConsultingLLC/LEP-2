@@ -85,7 +85,7 @@ function CampaignComplete() {
               <Box
                 component="button"
                 type="button"
-                onClick={() => navigate('/team-assessment')}
+                onClick={() => navigate('/self-assessment?step=invite')}
                 sx={{
                   all: 'unset',
                   cursor: 'pointer',
@@ -93,7 +93,7 @@ function CampaignComplete() {
                   borderRadius: radii.pill,
                 }}
               >
-                Team Assessment
+                Team Invite
               </Box>
             </Box>
           </Box>
@@ -168,10 +168,10 @@ function CampaignComplete() {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => navigate(isSelfCampaign ? '/team-assessment' : '/')}
+              onClick={() => navigate(isSelfCampaign ? '/self-assessment?step=invite' : '/')}
               sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', px: 4, py: 1, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
             >
-              {isSelfCampaign ? 'Team Assessment' : 'Return to Home'}
+              {isSelfCampaign ? 'Team Invite' : 'Return to Home'}
             </Button>
           </Stack>
         </Box>

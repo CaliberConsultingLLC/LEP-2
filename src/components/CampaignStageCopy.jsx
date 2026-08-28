@@ -48,7 +48,7 @@ export const stageType = {
   },
 };
 
-export function StageDiamond() {
+export function StageDiamond({ compact = false }) {
   return (
     <Box
       aria-hidden
@@ -57,7 +57,7 @@ export function StageDiamond() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 1.15,
-        my: '14px',
+        my: compact ? '8px' : '14px',
       }}
     >
       <Box sx={{ width: 56, borderTop: `1px solid ${colors.orange}`, opacity: 0.7 }} />

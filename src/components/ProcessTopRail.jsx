@@ -6,7 +6,6 @@ import {
   Insights,
   BuildCircle,
   SelfImprovement,
-  Groups,
   FactCheck,
   HomeRounded,
 } from '@mui/icons-material';
@@ -21,7 +20,6 @@ const PHASES = [
   { id: 'insights', title: 'Leadership Reflection', icon: Insights, fallbackPath: '/summary' },
   { id: 'campaign', title: 'Campaign Creation', icon: BuildCircle, fallbackPath: '/campaign-builder' },
   { id: 'self', title: 'Self-Assess', icon: SelfImprovement, fallbackPath: null },
-  { id: 'team', title: 'Team Assess', icon: Groups, fallbackPath: null },
   { id: 'review', title: 'Review & Act', icon: FactCheck, fallbackPath: '/dashboard' },
 ];
 
@@ -49,7 +47,6 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
     const selfComplete = selfCampaignId
       ? localStorage.getItem(`selfCampaignCompleted_${selfCampaignId}`) === 'true' || Boolean(campaignRecords?.selfCompleted)
       : localStorage.getItem('selfCampaignCompleted') === 'true';
-    const teamComplete = localStorage.getItem('teamCampaignCompleted') === 'true';
 
     const selfPath = campaignRecords?.selfCampaignId
       ? `/campaign/${campaignRecords.selfCampaignId}`
@@ -86,7 +83,6 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
       insights: insightsComplete,
       campaign: campaignComplete,
       self: selfComplete,
-      team: teamComplete,
       review: reviewComplete,
     };
 
@@ -98,16 +94,8 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
       if (pathname.startsWith('/campaign-builder') || pathname.startsWith('/campaign-intro')) return 'campaign';
       if (pathname.startsWith('/campaign-verify')) return 'campaign';
       if (pathname.startsWith('/self-assessment')) return 'self';
-      if (pathname.startsWith('/team-assessment')) return 'team';
-      if (pathname.startsWith('/campaign/')) {
-        const match = pathname.match(/^\/campaign\/([^/]+)/);
-        const campaignId = match?.[1];
-        const campaignFromStorage = campaignId
-          ? parseJson(localStorage.getItem(`campaign_${campaignId}`), {})
-          : {};
-        const isSelfType = campaignFromStorage?.campaignType === 'self';
-        return isSelfType ? 'self' : 'team';
-      }
+      if (pathname.startsWith('/team-assessment')) return 'self';
+      if (pathname.startsWith('/campaign/')) return 'self';
       if (pathname.startsWith('/dashboard') || pathname.startsWith('/sign-in')) return 'review';
       return null;
     };
@@ -124,7 +112,6 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
       insights: '/summary',
       campaign: '/campaign-builder',
       self: selfPath || '/self-assessment',
-      team: '/team-assessment',
       review: '/dashboard?tab=growth-plan',
     };
 

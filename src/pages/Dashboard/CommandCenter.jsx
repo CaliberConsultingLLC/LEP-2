@@ -752,13 +752,10 @@ export default function CommandCenter() {
   const { teamResponses } = useBenchmarkData();
   const invited = Number(readJson('latestFormData', {})?.teamSize) || Number(readJson('userInfo', {})?.teamSize) || 8;
   const respondents = teamResponses?.length || 0;
-  const windowOpen = !campaignClosed;
-  const chapterId = windowOpen && activeTab === 'journey'
-    ? 'team'
-    : (activeTab === 'journey' ? 'action' : 'review');
-  const activeStepId = chapterId === 'team'
-    ? 'invite'
-    : (chapterId === 'action' ? 'journey' : (['today', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today'));
+  const chapterId = activeTab === 'journey' ? 'action' : 'review';
+  const activeStepId = chapterId === 'action'
+    ? 'journey'
+    : (['today', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today');
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
