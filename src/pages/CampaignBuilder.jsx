@@ -46,7 +46,8 @@ function CampaignBuilder() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRebuilding, setIsRebuilding] = useState(false);
   const [error, setError] = useState(null);
-  const [dismissedStatements, setDismissedStatements] = useState([]);
+  const [dismissalHistory, setDismissalHistory] = useState(() => parseJson(localStorage.getItem('statementDismissals'), []));
+  const [regeneratingStatement, setRegeneratingStatement] = useState(null);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
   const [expandedTrait, setExpandedTrait] = useState(0);
@@ -285,11 +286,79 @@ function CampaignBuilder() {
       });
   }, [navigate, location.state]);
 
-  const handleStatementDismiss = (trait, index, checked) => {
-    if (checked) {
-      setDismissedStatements((prev) => [...prev, { trait, index }]);
-    } else {
-      setDismissedStatements((prev) => prev.filter((ds) => !(ds.trait === trait && ds.index === index)));
+  // Dismissing a statement replaces it in place rather than marking it.
+  //
+  // Marking was the old behavior and it was a lie: the row tinted, a counter
+  // moved, and the statement still went out to the team, because the campaign
+  // written on the way to verify was never filtered. Swapping the text in the
+  // campaign array means whatever gets saved is already correct.
+  //
+  // What a leader rejects is signal, so the dismissal history is kept and sent
+  // with each request — the replacement takes a different angle instead of
+  // rephrasing something they already turned down.
+  const handleStatementDismiss = async (trait, index) => {
+    if (regeneratingStatement) return;
+    const traitIndex = (campaign || []).findIndex((t) => t?.trait === trait);
+    if (traitIndex < 0) return;
+    const statements = Array.isArray(campaign[traitIndex]?.statements) ? campaign[traitIndex].statements : [];
+    const dismissed = String(statements[index] || '').trim();
+    if (!dismissed) return;
+
+    const info = selectedTraitInfo[traitIndex] || {};
+    const historyForTrait = dismissalHistory.filter((d) => d.trait === trait).map((d) => d.statement);
+
+    setRegeneratingStatement({ trait, index });
+    setError(null);
+    try {
+      const focusAreas = parseJson(localStorage.getItem('focusAreas'), []);
+      const insightProfile = parseJson(localStorage.getItem('insightProfile'), null);
+      const focus = (Array.isArray(insightProfile?.focusRecommendations) ? insightProfile.focusRecommendations : [])
+        .find((f) => String(f?.subTraitName || '').toLowerCase() === String(info.subTraitName || '').toLowerCase())
+        || (Array.isArray(focusAreas) ? focusAreas[traitIndex] : null)
+        || null;
+
+      const resp = await fetch('/api/regenerate-statement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          traitName: info.coreTraitName || trait,
+          subTraitName: info.subTraitName || '',
+          dismissedStatement: dismissed,
+          keptStatements: statements.filter((_, i) => i !== index),
+          previouslyDismissed: historyForTrait,
+          focus,
+          ...demoRequestFields(),
+        }),
+      });
+
+      if (!resp.ok) throw new Error(`Replacement failed (${resp.status})`);
+      const data = await resp.json();
+      const replacement = String(data?.statement || '').trim();
+      if (!replacement) throw new Error('No replacement returned');
+
+      setCampaign((prev) => {
+        if (!Array.isArray(prev)) return prev;
+        const next = prev.map((t, i) => (
+          i === traitIndex
+            ? { ...t, statements: t.statements.map((st, si) => (si === index ? replacement : st)) }
+            : t
+        ));
+        localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(next)));
+        return next;
+      });
+
+      setDismissalHistory((prev) => {
+        const next = [...prev, { trait, statement: dismissed, replacedWith: replacement, at: new Date().toISOString() }];
+        try {
+          localStorage.setItem('statementDismissals', JSON.stringify(next));
+        } catch { /* non-fatal */ }
+        return next;
+      });
+    } catch (err) {
+      console.warn('Statement replacement failed:', err?.message || err);
+      setError('Could not swap that statement out. It is still in the campaign — try again in a moment.');
+    } finally {
+      setRegeneratingStatement(null);
     }
   };
 
@@ -377,7 +446,8 @@ function CampaignBuilder() {
             setError('No campaign data was generated. Please try again.');
           } else {
             setCampaign(campaignData);
-            setDismissedStatements([]);
+            setDismissalHistory([]);
+            try { localStorage.removeItem('statementDismissals'); } catch { /* non-fatal */ }
             setError(null);
             localStorage.setItem('currentCampaign', JSON.stringify(campaignData));
           }
@@ -420,13 +490,13 @@ function CampaignBuilder() {
     const activeStatements = activeTrait
       ? (Array.isArray(activeTrait.statements) ? activeTrait.statements : []).map((s) => String(s || '').trim()).filter(Boolean).slice(0, 5)
       : [];
-    const keptCount = activeStatements.length - activeStatements.filter((_, sIdx) => (
-      dismissedStatements.some((ds) => ds.trait === activeTrait?.trait && ds.index === sIdx)
-    )).length;
+    // Dismissal now replaces a statement rather than removing it, so every
+    // statement on screen is live. "Curating" means they have swapped at least one.
+    const swappedThisTrait = dismissalHistory.filter((d) => d.trait === activeTrait?.trait).length;
     const guideLine = spokenGuide(
       personaId,
       'campaignBuilder',
-      keptCount > 0 ? 'curating' : 'default',
+      swappedThisTrait > 0 ? 'curating' : 'default',
       'Keep scope small enough that it fits inside a normal week. If it needs heroics, shrink it.',
       'page',
     );
@@ -436,9 +506,7 @@ function CampaignBuilder() {
       (acc, trait) => {
         const stmts = (Array.isArray(trait?.statements) ? trait.statements : []).slice(0, 5);
         acc.total += stmts.length;
-        acc.current += stmts.filter((_, index) => (
-          !dismissedStatements.some((ds) => ds.trait === trait?.trait && ds.index === index)
-        )).length;
+        acc.current += stmts.length;
         return acc;
       },
       { current: 0, total: 0 }
@@ -488,7 +556,8 @@ function CampaignBuilder() {
             Active set
           </Typography>
           <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.5, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
-            {keptCount} of {activeStatements.length || 0} prompts kept for this focus area.
+            {activeStatements.length || 0} prompts in this focus area
+            {swappedThisTrait > 0 ? `, ${swappedThisTrait} swapped out.` : '.'}
           </Typography>
         </Box>
       </CairnGuidePanel>
@@ -625,9 +694,10 @@ function CampaignBuilder() {
                 }}
               >
                 {activeStatements.map((stmt, sIdx) => {
-                  const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
-                  const isKept = !isDismissed;
-                  const toggleKept = () => handleStatementDismiss(activeTrait.trait, sIdx, isKept);
+                  const isSwapping = regeneratingStatement?.trait === activeTrait.trait
+                    && regeneratingStatement?.index === sIdx;
+                  const isKept = !isSwapping;
+                  const toggleKept = () => handleStatementDismiss(activeTrait.trait, sIdx);
                   return (
                     <Box
                       key={`stmt-${sIdx}`}
@@ -1091,17 +1161,17 @@ function CampaignBuilder() {
                                     '&:hover': { bgcolor: 'rgba(224,122,63,0.08)' },
                                   }}
                                 >
-                                  <Checkbox
-                                    checked={dismissedStatements.some(
-                                      (ds) => ds.trait === traitItem.trait && ds.index === sIdx
-                                    )}
-                                    onChange={(e) =>
-                                      handleStatementDismiss(traitItem.trait, sIdx, e.target.checked)
-                                    }
-                                    color="error"
+                                  <Button
+                                    onClick={() => handleStatementDismiss(traitItem.trait, sIdx)}
+                                    disabled={Boolean(regeneratingStatement)}
                                     size="small"
-                                    sx={{ p: 0.25 }}
-                                  />
+                                    sx={{ minWidth: 0, px: 1, fontSize: '0.72rem' }}
+                                  >
+                                    {regeneratingStatement?.trait === traitItem.trait
+                                      && regeneratingStatement?.index === sIdx
+                                      ? '…'
+                                      : 'Swap'}
+                                  </Button>
                                   <Typography
                                     sx={{
                                       fontFamily: 'Gemunu Libre, sans-serif',
