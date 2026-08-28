@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProcessTopRail from '../../components/ProcessTopRail';
@@ -20,6 +20,12 @@ import GatePage from './cc/GatePage.jsx';
 import { isDemoSession } from '../../utils/demoMode';
 import MetricHint from '../../components/MetricHint';
 import { SCORE_HINTS } from '../../data/scoreGlossary';
+import {
+  LOCK_CONFIRM_PHRASE,
+  TEAM_WINDOW_CHANGED_EVENT,
+  lockTeamCampaignWindow,
+  parseExpectedTeamCount,
+} from '../../utils/lockTeamCampaign';
 
 // ============================================================================
 // Tokens — thin page aliases over the canonical Cairn system.
@@ -244,21 +250,82 @@ const focalCardSx = (interactive) => ({
     : {}),
 });
 
-function SignalFocalCard({ traitLabel, score, onClick }) {
+function SignalFocalCard({
+  traitLabel,
+  score,
+  onClick,
+  listening,
+  respondents,
+  invited,
+  onLockIn,
+  lockBusy,
+}) {
+  const interactive = !listening && typeof onClick === 'function';
   return (
     <Box
-      component="button"
-      type="button"
-      onClick={onClick}
+      component={interactive ? 'button' : 'div'}
+      type={interactive ? 'button' : undefined}
+      onClick={interactive ? onClick : undefined}
       sx={{
-        ...focalCardSx(true),
+        ...focalCardSx(interactive),
         background:
           'linear-gradient(150deg, color-mix(in srgb, var(--amber-soft) 22%, var(--surface-1)), var(--surface-1))',
         borderColor: colors.orange,
       }}
     >
       <Typography sx={{ ...type.eyebrow, color: colors.orangeDeep, mb: 0.4 }}>Read the Signal</Typography>
-      {traitLabel ? (
+      {listening ? (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <Typography
+            sx={{
+              fontFamily: fonts.serif,
+              fontWeight: 600,
+              fontSize: { xs: 48, md: 56 },
+              lineHeight: 0.95,
+              letterSpacing: '-0.04em',
+              color: colors.orange,
+            }}
+          >
+            {respondents}
+            <Box component="span" sx={{ fontSize: { xs: 22, md: 26 }, color: colors.inkSoft, fontWeight: 500 }}>
+              {' / '}{invited}
+            </Box>
+          </Typography>
+          <Typography sx={{ ...type.sectionTitle, fontStyle: 'normal', fontSize: 18, lineHeight: 1.2, mt: 0.8 }}>
+            {respondents >= invited && invited > 0 ? 'Responses complete' : 'Responses in'}
+          </Typography>
+          <Typography sx={{ ...type.bodyMuted, mt: 0.45 }}>
+            {respondents >= invited && invited > 0
+              ? 'Everyone you selected has answered. Lock in to calculate the reading.'
+              : 'Lock in when you are ready — even if you end the window early.'}
+          </Typography>
+          <Box
+            component="button"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onLockIn?.();
+            }}
+            disabled={lockBusy}
+            sx={{
+              all: 'unset',
+              boxSizing: 'border-box',
+              cursor: lockBusy ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              alignSelf: 'flex-start',
+              mt: 1.4,
+              ...buttons.primary,
+              borderRadius: radii.pill,
+              opacity: lockBusy ? 0.65 : 1,
+            }}
+          >
+            {lockBusy ? 'Locking in…' : 'Lock In'}
+          </Box>
+        </Box>
+      ) : traitLabel ? (
         <>
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
             <Typography
@@ -433,13 +500,15 @@ function PlanFocalCard({ traitLabel, behavior, current, goal, onClick, ready }) 
   );
 }
 
-function TodayLanding({ t, onNavigate }) {
+function TodayLanding({ t, onNavigate, teamCampaignClosed, respondents = 0, invited = 8, rows = [] }) {
   const userInfo = readJson('userInfo', {});
   const campaignRecords = readJson('campaignRecords', {});
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
-  const { rows } = useBenchmarkData();
+  const [lockOpen, setLockOpen] = useState(false);
+  const [lockPhrase, setLockPhrase] = useState('');
+  const [lockBusy, setLockBusy] = useState(false);
+  const [lockError, setLockError] = useState('');
 
-  const teamCampaignClosed = String(campaignRecords?.teamCampaignClosed || '').toLowerCase() === 'true';
   const season = teamCampaignClosed ? 'Embarking' : 'Understanding';
   const journeyIndex = getCurrentJourneyIndexFromState();
   const station = JOURNEY_STATIONS[journeyIndex] || JOURNEY_STATIONS[0];
@@ -526,6 +595,22 @@ function TodayLanding({ t, onNavigate }) {
 
   const journeyCompletion = getJourneyCompletion();
   const journeyCurrentIndex = journeyIndex;
+
+  const confirmLock = async () => {
+    if (lockPhrase.trim() !== LOCK_CONFIRM_PHRASE || lockBusy) return;
+    setLockBusy(true);
+    setLockError('');
+    try {
+      await lockTeamCampaignWindow();
+      setLockOpen(false);
+      setLockPhrase('');
+      onNavigate('signal');
+    } catch (err) {
+      setLockError(err?.message || 'Could not lock the assessment. Please try again.');
+    } finally {
+      setLockBusy(false);
+    }
+  };
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'auto' }}>
@@ -644,9 +729,18 @@ function TodayLanding({ t, onNavigate }) {
         <SignalFocalCard
           traitLabel={signalTraitLabel}
           score={signalScore}
+          listening={!teamCampaignClosed}
+          respondents={respondents}
+          invited={invited}
+          onLockIn={() => {
+            setLockPhrase('');
+            setLockError('');
+            setLockOpen(true);
+          }}
+          lockBusy={lockBusy}
           onClick={() => onNavigate('signal')}
         />
-        <EvidenceFocalCard statement={lowestStatement} onClick={evidenceOpen ? () => onNavigate('evidence') : undefined} />
+        <EvidenceFocalCard statement={teamCampaignClosed ? lowestStatement : null} onClick={evidenceOpen ? () => onNavigate('evidence') : undefined} />
         <PlanFocalCard
           traitLabel={edgeRow ? (edgeRow.subTrait || edgeRow.trait) : ''}
           behavior={planBehavior}
@@ -656,6 +750,83 @@ function TodayLanding({ t, onNavigate }) {
           onClick={practiceOpen ? () => onNavigate('practice') : undefined}
         />
       </Box>
+
+      <Dialog
+        open={lockOpen}
+        onClose={() => (lockBusy ? null : setLockOpen(false))}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            ...surfaces.card,
+            borderRadius: radii.lg,
+            p: { xs: 0.5, md: 1 },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: 24, color: colors.ink, pb: 0.5 }}>
+          Lock in this assessment?
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.6, color: colors.ink, mb: 1.5 }}>
+            This is irreversible. Once you lock this in, results will be calculated and you will not be able to add any additional feedback.
+          </Typography>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.55, color: colors.inkSoft, mb: 1.5 }}>
+            {respondents} of {invited} responses are in. Type <b>{LOCK_CONFIRM_PHRASE}</b> to continue.
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            value={lockPhrase}
+            onChange={(e) => setLockPhrase(e.target.value)}
+            disabled={lockBusy}
+            label={`Type "${LOCK_CONFIRM_PHRASE}"`}
+            inputProps={{ spellCheck: 'false' }}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: radii.sm, bgcolor: colors.surface1 },
+              '& .MuiInputBase-input': { fontFamily: fonts.sans, fontSize: 15 },
+            }}
+          />
+          {lockError ? (
+            <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.gapNegative, mt: 1 }}>
+              {lockError}
+            </Typography>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Box
+            component="button"
+            type="button"
+            disabled={lockBusy}
+            onClick={() => setLockOpen(false)}
+            sx={{
+              all: 'unset',
+              boxSizing: 'border-box',
+              cursor: lockBusy ? 'not-allowed' : 'pointer',
+              ...buttons.outlinedPrimary,
+              borderRadius: radii.pill,
+            }}
+          >
+            Cancel
+          </Box>
+          <Box
+            component="button"
+            type="button"
+            disabled={lockBusy || lockPhrase.trim() !== LOCK_CONFIRM_PHRASE}
+            onClick={confirmLock}
+            sx={{
+              all: 'unset',
+              boxSizing: 'border-box',
+              cursor: (lockBusy || lockPhrase.trim() !== LOCK_CONFIRM_PHRASE) ? 'not-allowed' : 'pointer',
+              ...buttons.primary,
+              borderRadius: radii.pill,
+              opacity: (lockBusy || lockPhrase.trim() !== LOCK_CONFIRM_PHRASE) ? 0.55 : 1,
+            }}
+          >
+            {lockBusy ? 'Locking in…' : 'Lock In'}
+          </Box>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -735,7 +906,17 @@ export default function CommandCenter() {
 
   // Signal → Evidence → Practice journey state (gating, snapshots, dock badges)
   const phases = useDebriefPhases();
-  const campaignClosed = String(readJson('campaignRecords', {})?.teamCampaignClosed || '').toLowerCase() === 'true';
+  const [teamWindowClosed, setTeamWindowClosed] = useState(
+    () => String(readJson('campaignRecords', {})?.teamCampaignClosed || '').toLowerCase() === 'true'
+  );
+  useEffect(() => {
+    const sync = () => {
+      setTeamWindowClosed(String(readJson('campaignRecords', {})?.teamCampaignClosed || '').toLowerCase() === 'true');
+    };
+    window.addEventListener(TEAM_WINDOW_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(TEAM_WINDOW_CHANGED_EVENT, sync);
+  }, []);
+  const campaignClosed = teamWindowClosed;
   const demoSession = isDemoSession();
   const dockStatus = demoSession
     ? {
@@ -752,13 +933,18 @@ export default function CommandCenter() {
 
   const {
     teamResponses,
+    liveResponseCount,
     rows: benchmarkRows,
     loaded: benchmarkLoaded,
     hasTeamData,
     hasSelfData,
   } = useBenchmarkData();
-  const invited = Number(readJson('latestFormData', {})?.teamSize) || Number(readJson('userInfo', {})?.teamSize) || 8;
-  const respondents = teamResponses?.length || 0;
+  const invited = parseExpectedTeamCount(
+    readJson('latestFormData', {})?.teamSize ?? readJson('userInfo', {})?.teamSize
+  );
+  const respondents = campaignClosed
+    ? (teamResponses?.length || liveResponseCount || 0)
+    : (liveResponseCount || 0);
 
   // Scores the intake predictions against real team data and re-voices the
   // dashboard screens off the result. Runs once per distinct result set and
@@ -822,7 +1008,7 @@ export default function CommandCenter() {
         return <JourneyTab t={t} />;
       case 'today':
       default:
-        return <TodayLanding t={t} onNavigate={goToTab} />;
+        return <TodayLanding t={t} onNavigate={goToTab} teamCampaignClosed={campaignClosed} respondents={respondents} invited={invited} rows={benchmarkRows} />;
     }
   };
 

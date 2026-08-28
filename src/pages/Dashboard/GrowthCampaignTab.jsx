@@ -16,9 +16,10 @@ import {
 import { Launch, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, deleteField, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useFakeDashboardData } from '../../config/runtimeFlags';
+import { LOCK_CONFIRM_PHRASE, lockTeamCampaignWindow, reopenTeamCampaignWindow } from '../../utils/lockTeamCampaign';
 
 const parseJson = (raw, fallback = null) => {
   try {
@@ -281,47 +282,13 @@ function GrowthCampaignTab() {
   };
 
   const confirmCloseSurvey = async () => {
-    const ownerUid = String(auth?.currentUser?.uid || '').trim();
-    if (!ownerUid || !activeTeamCampaignId) return;
     if (isClosingSurvey) return;
-    if (closeConfirmText.trim() !== 'Confirm Close') return;
+    if (closeConfirmText.trim() !== LOCK_CONFIRM_PHRASE) return;
 
     setIsClosingSurvey(true);
-
-    const closedAt = new Date().toISOString();
-    const nextCampaignRecords = {
-      ...campaignRecords,
-      teamCampaignClosed: true,
-      teamCampaignClosedAt: closedAt,
-    };
-    setCampaignRecords(nextCampaignRecords);
-    localStorage.setItem('campaignRecords', JSON.stringify(nextCampaignRecords));
-    localStorage.setItem('teamCampaignCompleted', 'true');
-
     try {
-      await setDoc(
-        doc(db, 'responses', ownerUid),
-        {
-          ownerUid,
-          campaignBundle: {
-            campaignRecords: {
-              teamCampaignId: activeTeamCampaignId,
-              teamCampaignClosed: true,
-              teamCampaignClosedAt: closedAt,
-            },
-            savedAt: closedAt,
-          },
-        },
-        { merge: true }
-      );
-      await setDoc(
-        doc(db, 'campaigns', activeTeamCampaignId),
-        {
-          surveyClosed: true,
-          surveyClosedAt: closedAt,
-        },
-        { merge: true }
-      );
+      const nextCampaignRecords = await lockTeamCampaignWindow();
+      setCampaignRecords(nextCampaignRecords);
     } catch (err) {
       console.warn('Unable to persist close-survey state:', err);
     } finally {
@@ -331,44 +298,13 @@ function GrowthCampaignTab() {
   };
 
   const handleReopenSurvey = async () => {
-    const ownerUid = String(auth?.currentUser?.uid || '').trim();
-    if (!ownerUid || !activeTeamCampaignId) return;
     const confirmed = window.confirm(
       'Reopen this team survey? Team members will be able to submit responses again until you close it.'
     );
     if (!confirmed) return;
-
-    const reopenedAt = new Date().toISOString();
-    const nextCampaignRecords = { ...campaignRecords, teamCampaignClosed: false };
-    delete nextCampaignRecords.teamCampaignClosedAt;
-    setCampaignRecords(nextCampaignRecords);
-    localStorage.setItem('campaignRecords', JSON.stringify(nextCampaignRecords));
-    localStorage.setItem('teamCampaignCompleted', 'false');
-
     try {
-      await setDoc(
-        doc(db, 'responses', ownerUid),
-        {
-          ownerUid,
-          campaignBundle: {
-            campaignRecords: {
-              teamCampaignId: activeTeamCampaignId,
-              teamCampaignClosed: false,
-              teamCampaignClosedAt: deleteField(),
-            },
-            savedAt: reopenedAt,
-          },
-        },
-        { merge: true }
-      );
-      await setDoc(
-        doc(db, 'campaigns', activeTeamCampaignId),
-        {
-          surveyClosed: false,
-          surveyClosedAt: deleteField(),
-        },
-        { merge: true }
-      );
+      const nextCampaignRecords = await reopenTeamCampaignWindow();
+      setCampaignRecords(nextCampaignRecords);
     } catch (err) {
       console.warn('Unable to persist reopen-survey state:', err);
     }
@@ -764,13 +700,13 @@ function GrowthCampaignTab() {
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', color: 'text.secondary', lineHeight: 1.6 }}>
-            Closing locks the team link immediately. No new feedback can be submitted until you reopen it. Close only when you’re satisfied with the response count. To proceed, type <b>Confirm Close</b> below.
+            Closing locks the team link immediately. This is irreversible: results will be calculated and no additional feedback can be added. To proceed, type <b>{LOCK_CONFIRM_PHRASE}</b> below.
           </Typography>
           <TextField
             autoFocus
             fullWidth
             margin="normal"
-            label='Type "Confirm Close"'
+            label={`Type "${LOCK_CONFIRM_PHRASE}"`}
             value={closeConfirmText}
             onChange={(e) => setCloseConfirmText(e.target.value)}
             disabled={isClosingSurvey}
@@ -788,7 +724,7 @@ function GrowthCampaignTab() {
           </Button>
           <Button
             onClick={confirmCloseSurvey}
-            disabled={isClosingSurvey || closeConfirmText.trim() !== 'Confirm Close'}
+            disabled={isClosingSurvey || closeConfirmText.trim() !== LOCK_CONFIRM_PHRASE}
             variant="contained"
             sx={{ textTransform: 'none' }}
           >

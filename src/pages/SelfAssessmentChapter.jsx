@@ -12,6 +12,17 @@ import {
 import { readCampaignRecords } from '../utils/campaignBundle';
 import { buttons, colors, fonts, radii, surfaces } from '../styles/tokens';
 
+const ctaSx = {
+  all: 'unset',
+  boxSizing: 'border-box',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  ...buttons.primary,
+  borderRadius: radii.pill,
+};
+
 const INFO_POINTS = [
   {
     title: 'You first',
@@ -68,19 +79,22 @@ function CopyRow({ label, value, copied, onCopy }) {
         disabled={!value}
         sx={{
           all: 'unset',
+          boxSizing: 'border-box',
           cursor: value ? 'pointer' : 'not-allowed',
           display: 'inline-flex',
           alignItems: 'center',
-          px: '14px',
-          py: '8px',
+          justifyContent: 'center',
+          ...buttons.outlinedPrimary,
           borderRadius: radii.pill,
-          border: `1px solid ${colors.sand200}`,
-          bgcolor: copied ? colors.navy900 : colors.surface1,
-          color: copied ? colors.amberSoft : colors.inkSoft,
-          fontFamily: fonts.sans,
-          fontWeight: 600,
-          fontSize: '0.8rem',
+          px: '18px',
+          py: '10px',
+          minHeight: 38,
+          fontSize: 12,
+          opacity: value ? 1 : 0.55,
           flexShrink: 0,
+          bgcolor: copied ? colors.navy900 : colors.surface1,
+          color: copied ? colors.amberSoft : colors.navy900,
+          border: copied ? `1px solid ${colors.navy900}` : `1px solid ${colors.navy500}`,
         }}
       >
         {copied ? '✓ Copied' : 'Copy'}
@@ -187,17 +201,13 @@ function SelfAssessmentChapter() {
               <Typography sx={stageType.cardBody}>
                 Next you send a different link to your team. Compass will never email them for you — that manual step is how their answers stay anonymous.
               </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.75 }}>
               <Box
                 component="button"
                 type="button"
                 onClick={goInvite}
-                sx={{
-                  all: 'unset',
-                  cursor: 'pointer',
-                  mt: 2.25,
-                  ...buttons.primary,
-                  borderRadius: radii.pill,
-                }}
+                sx={ctaSx}
               >
                 Team Invite
               </Box>
@@ -232,7 +242,7 @@ function SelfAssessmentChapter() {
               <Typography sx={{ ...stageType.body, fontSize: 14.5, mb: 1.75 }}>
                 This is not the link you just used. Copy both, then send them yourself — email, Slack, a printed card. Compass will not track who opened it and cannot match an answer to a name.
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.1, mb: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.1 }}>
                 <CopyRow
                   label="Team link"
                   value={link}
@@ -246,21 +256,18 @@ function SelfAssessmentChapter() {
                   onCopy={() => copy(password, 'password')}
                 />
               </Box>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1.75, gap: 1.25 }}>
               <Box
                 component="button"
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                sx={{
-                  all: 'unset',
-                  cursor: 'pointer',
-                  ...buttons.outlinedPrimary,
-                  borderRadius: radii.pill,
-                }}
+                sx={ctaSx}
               >
-                Continue to dashboard
+                Continue to Dashboard
               </Box>
-              <Typography sx={{ ...stageType.cardBody, mt: 1.5, color: colors.inkSoft }}>
-                Keep the window open until enough of your team has answered. Closing it opens Signal.
+              <Typography sx={{ ...stageType.cardBody, color: colors.inkSoft, textAlign: 'center', maxWidth: '46ch' }}>
+                Keep the window open until enough of your team has answered. You can lock it in from Today when you are ready.
               </Typography>
             </Box>
           </Box>
@@ -328,11 +335,9 @@ function SelfAssessmentChapter() {
               onClick={complete ? goInvite : beginSelf}
               disabled={!complete && !selfId}
               sx={{
-                all: 'unset',
+                ...ctaSx,
                 cursor: (!complete && !selfId) ? 'not-allowed' : 'pointer',
                 opacity: (!complete && !selfId) ? 0.65 : 1,
-                ...buttons.primary,
-                borderRadius: radii.pill,
               }}
             >
               {complete ? 'Team Invite' : 'Begin your assessment'}

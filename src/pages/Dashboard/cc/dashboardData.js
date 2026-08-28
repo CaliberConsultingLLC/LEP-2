@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, db } from '../../../firebase';
 import fakeData from '../../../data/fakeData.js';
 import { useFakeDashboardData } from '../../../config/runtimeFlags';
 import { isDemoSession } from '../../../utils/demoMode';
+import { TEAM_WINDOW_CHANGED_EVENT } from '../../../utils/lockTeamCampaign';
 import {
   calculateCampaignTraitMetrics,
   getDashboardCampaignRows,
@@ -146,10 +147,20 @@ export function useBenchmarkData() {
     useFakeDashboardData ? fakeData.responses : []
   );
   const [selfResponses, setSelfResponses] = useState([]);
+  const [liveResponseCount, setLiveResponseCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [windowTick, setWindowTick] = useState(0);
+
+  useEffect(() => {
+    const onChanged = () => setWindowTick((n) => n + 1);
+    window.addEventListener(TEAM_WINDOW_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(TEAM_WINDOW_CHANGED_EVENT, onChanged);
+  }, []);
 
   useEffect(() => {
     let active = true;
+    let unsub = null;
+
     const load = async () => {
       try {
         const nextRows = getDashboardCampaignRows();
@@ -165,8 +176,34 @@ export function useBenchmarkData() {
           if (active) {
             setTeamResponses([]);
             setSelfResponses([]);
-            setLoaded(true);
           }
+          if (!teamCampaignId || !ownerUid) {
+            if (active) {
+              setLiveResponseCount(0);
+              setLoaded(true);
+            }
+            return;
+          }
+          const listenQuery = query(
+            collection(db, 'surveyResponses'),
+            where('campaignId', '==', teamCampaignId),
+            where('ownerUid', '==', ownerUid)
+          );
+          unsub = onSnapshot(
+            listenQuery,
+            (snap) => {
+              if (!active) return;
+              setLiveResponseCount(snap.docs.filter((d) => d.data()?.ratings).length);
+              setLoaded(true);
+            },
+            (err) => {
+              console.warn('useBenchmarkData: live count failed', err);
+              if (active) {
+                setLiveResponseCount(0);
+                setLoaded(true);
+              }
+            }
+          );
           return;
         }
 
@@ -176,6 +213,7 @@ export function useBenchmarkData() {
           const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, rowsForSynth);
           setTeamResponses(spreadTeam);
           setSelfResponses(synthesizeSelfResponses(spreadTeam, rowsForSynth));
+          setLiveResponseCount(spreadTeam.length);
           setLoaded(true);
         };
 
@@ -185,6 +223,7 @@ export function useBenchmarkData() {
             else {
               setTeamResponses([]);
               setSelfResponses([]);
+              setLiveResponseCount(0);
               setLoaded(true);
             }
           }
@@ -214,6 +253,7 @@ export function useBenchmarkData() {
         const selfDocs = selfSnap.docs.map((d) => d.data()).filter((d) => d?.ratings);
 
         if (!active) return;
+        setLiveResponseCount(teamDocs.length);
         if (teamDocs.length) {
           setTeamResponses(teamDocs);
           setSelfResponses(selfDocs.length ? selfDocs : []);
@@ -232,6 +272,7 @@ export function useBenchmarkData() {
         if (active) {
           setTeamResponses([]);
           setSelfResponses([]);
+          setLiveResponseCount(0);
           setLoaded(true);
         }
       }
@@ -239,8 +280,9 @@ export function useBenchmarkData() {
     load();
     return () => {
       active = false;
+      if (unsub) unsub();
     };
-  }, []);
+  }, [windowTick]);
 
   const teamMetrics = useMemo(
     () => calculateCampaignTraitMetrics(campaignRows, teamResponses),
@@ -298,6 +340,7 @@ export function useBenchmarkData() {
     hasTeamData,
     selfDataSource,
     teamResponses,
+    liveResponseCount,
     selfResponses,
     teamMetrics: teamMetrics?.traitData || {},
     selfMetrics: selfMetrics?.traitData || {},
