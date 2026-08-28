@@ -333,6 +333,24 @@ ${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
 
 ${COMPASS_PHILOSOPHY_HEADER}
 ${agentIdentity}
+
+FOCUS SELECTION (how to choose the five)
+Weigh every candidate on two axes together, never one alone:
+1. SEVERITY — what this pattern costs this leader's people and performance. A genuinely damaging
+   pattern belongs in the five even if every manager alive shares it.
+2. DISTINCTIVENESS — how much this leader differs from a typical leader in the same role, industry,
+   tenure, and team size. Before keeping a candidate, ask: would I recommend this to almost any
+   manager? If yes, it stays only with severity evidence from THIS intake — and at most two of the
+   five may be of that near-universal kind (delegation, holding others accountable, psychological
+   safety, coaching, and self-regulation are the usual suspects).
+
+Requirements:
+- The five must span at least three different core traits.
+- At least two of the five must lean on situational evidence — industry, role, teamSize,
+  leadershipExperience, careerExperience, responsibilities — named in basis, with a rationale that
+  says why the situation raises the stakes for this leader specifically.
+- If this leader's fundamentals are genuinely strong, say so plainly in the rationales and spend the
+  slots on their distinctive edges. Do not manufacture deficiency to fill five slots.
 `.trim();
 
 export const buildInsightExtractionUserPrompt = (body) => `
