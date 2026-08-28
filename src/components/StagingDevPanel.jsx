@@ -3,6 +3,7 @@ import { Box, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { GUIDE_VOICE_IDS, getGuideVoice } from '../data/guideVoices';
 import { seedStagingData, clearStagingData, STAGING_SELF_ID, STAGING_TEAM_ID } from '../utils/stagingSeed';
+import { STAGING_PERSONAS } from '../data/stagingPersonas';
 
 const PAGE_GROUPS = [
   {
@@ -127,7 +128,11 @@ function StagingDevPanel() {
     setTimeout(() => setFlash(''), 3000);
   };
 
-  const handleRegenerateSummary = async () => {
+  // Without an override this regenerates whatever intake is in localStorage —
+  // which on staging is always the same seeded Alex Rivera, so repeated presses
+  // return near-identical summaries. The persona button exists to vary the
+  // actual input rather than rerolling the same leader.
+  const handleRegenerateSummary = async (personaOverride = null) => {
     if (regenBusy) return;
     let payload = readStagingIntakePayload();
     if (!payload) {
@@ -140,8 +145,22 @@ function StagingDevPanel() {
       return;
     }
 
+    if (personaOverride?.data) {
+      // Keep the seeded identity (name, email, uid) so auth and Firestore
+      // paths keep working; replace the leadership content wholesale.
+      payload = {
+        ...payload,
+        ...personaOverride.data,
+        name: payload.name,
+        email: payload.email,
+      };
+      localStorage.setItem('latestFormData', JSON.stringify(payload));
+    }
+
     setRegenBusy(true);
-    setFlash('Generating live summary… (all six voices, ~3 min)');
+    setFlash(personaOverride
+      ? `Generating as ${personaOverride.label.split(' · ')[0]}… (~3 min)`
+      : 'Generating live summary… (all six voices, ~3 min)');
     try {
       localStorage.setItem('selectedAgent', voiceId);
       localStorage.setItem('selectedGuideId', voiceId);
@@ -343,7 +362,7 @@ function StagingDevPanel() {
             <Box
               component="button"
               type="button"
-              onClick={handleRegenerateSummary}
+              onClick={() => handleRegenerateSummary(null)}
               disabled={regenBusy}
               sx={{
                 ...utilBtnSx,
@@ -356,6 +375,28 @@ function StagingDevPanel() {
               }}
             >
               {regenBusy ? 'Generating…' : '↻ Regenerate live summary'}
+            </Box>
+            <Box
+              component="button"
+              type="button"
+              onClick={() => {
+                const idx = (Number(localStorage.getItem('stagingPersonaIdx') || '-1') + 1) % STAGING_PERSONAS.length;
+                localStorage.setItem('stagingPersonaIdx', String(idx));
+                handleRegenerateSummary(STAGING_PERSONAS[idx]);
+              }}
+              disabled={regenBusy}
+              title={STAGING_PERSONAS.map((persona, i) => `${i + 1}. ${persona.label}`).join('\n')}
+              sx={{
+                ...utilBtnSx,
+                color: 'var(--amber-soft, #F4CEA1)',
+                bgcolor: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(244,206,161,0.35)',
+                opacity: regenBusy ? 0.7 : 1,
+                cursor: regenBusy ? 'wait' : 'pointer',
+                '&:hover': regenBusy ? {} : { bgcolor: 'rgba(255,255,255,0.12)' },
+              }}
+            >
+              {regenBusy ? 'Generating…' : '🎲 Next persona → regenerate'}
             </Box>
           </Stack>
 

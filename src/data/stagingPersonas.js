@@ -1,0 +1,148 @@
+// Rotating test personas for the staging panel's live-summary button.
+//
+// The button reads latestFormData, and the staging seed always plants the same
+// Alex Rivera intake — so pressing regenerate three times ran the same leader
+// through the pipeline three times and returned near-identical summaries.
+// Correct behavior, useless for exercising range.
+//
+// Each persona here is a coherent leader with a distinct failure mode, using
+// the real intake option strings so the coverage map scores them like genuine
+// submissions. Name, email, and uid are NOT set — the panel merges these over
+// the seeded identity so auth and Firestore paths keep working.
+
+export const STAGING_PERSONAS = [
+  {
+    id: 'ops-controller',
+    label: 'Ops controller · plans everything, re-explains everything',
+    data: {
+      role: 'Operations Manager', industry: 'Oil & Gas Services', department: 'Operations',
+      birthYear: '1986', teamSize: '12', leadershipExperience: '6', careerExperience: '18',
+      responsibilities: 'Field crew scheduling, safety compliance, budget ownership for three districts',
+      resourcePick: 'Time',
+      projectApproach: 'Create a detailed plan to guide the team.',
+      energyDrains: ['Repeating myself to ensure understanding', 'Following up when someone misses a commitment'],
+      crisisResponse: ['Jump in directly to handle the most critical aspects myself.'],
+      pushbackFeeling: ['Energized'],
+      roleModelTrait: 'made decisions',
+      warningLabel: 'Warning: Moves fast—keep up!',
+      leaderFuel: ['Turning chaos into quality'],
+      proudMoment: 'We rebuilt the turnaround schedule in 48 hours after a supplier failure and nobody got hurt. I stayed on nights with the crew and we hit the window.',
+      visibilityComfort: 'I can handle it but prefer smaller settings.',
+      decisionPace: 'The Fix',
+      teamPerception: 'Set clear expectations, an owner, and a check-in date to close the gap.',
+      societalResponses: [7, 4, 8, 6, 9, 3, 5, 8, 6, 7],
+    },
+  },
+  {
+    id: 'clinical-absorber',
+    label: 'Clinical director · absorbs everything, says nothing',
+    data: {
+      role: 'Clinical Director', industry: 'Healthcare', department: 'Patient Services',
+      birthYear: '1974', teamSize: '38', leadershipExperience: '14', careerExperience: '27',
+      responsibilities: 'Three units, credentialing, quality metrics, and the on-call rotation',
+      resourcePick: 'Expectations',
+      projectApproach: 'Gather the team for a collaborative brainstorming session.',
+      energyDrains: ['Balancing differing expectations from stakeholders', 'Mediating conflicts within the team'],
+      crisisResponse: ["Clarify what is known, what's open, and what's next."],
+      pushbackFeeling: ['Curious'],
+      roleModelTrait: 'developed their team',
+      warningLabel: 'Fragile: Avoid too much pushback',
+      leaderFuel: ['Hearing the team say they learned something'],
+      proudMoment: 'I kept a unit intact through eighteen months of understaffing. Two people who wanted to quit are still here and one of them now runs nights.',
+      visibilityComfort: 'I prefer to lead behind the scenes.',
+      decisionPace: 'The Feedback',
+      teamPerception: 'Observe for patterns and gather context before taking action.',
+      societalResponses: [3, 8, 5, 9, 4, 7, 6, 5, 9, 4],
+    },
+  },
+  {
+    id: 'new-eng-lead',
+    label: 'New eng lead · does the hard part personally',
+    data: {
+      role: 'Engineering Lead', industry: 'Software', department: 'Platform',
+      birthYear: '1996', teamSize: '5', leadershipExperience: '1', careerExperience: '7',
+      responsibilities: 'Platform reliability, on-call, and the roadmap nobody else owns',
+      resourcePick: 'Scope',
+      projectApproach: 'Dive into the most challenging aspect to lead by example.',
+      energyDrains: ['Meetings with limited or no outcomes', 'Navigating frequent changes in priorities'],
+      crisisResponse: ['Jump in directly to handle the most critical aspects myself.'],
+      pushbackFeeling: ['Defensive'],
+      roleModelTrait: 'communicated',
+      warningLabel: 'Deer Crossing: May jump into your lane',
+      leaderFuel: ['Solving a problem no one else could'],
+      proudMoment: 'I handed off the deploy pipeline I built and did not touch it for a quarter. It got better without me.',
+      visibilityComfort: 'I prefer to lead behind the scenes.',
+      decisionPace: 'The Fix',
+      teamPerception: 'Reassign tasks or adjust their responsibilities to better fit their strengths.',
+      societalResponses: [8, 6, 4, 5, 9, 8, 3, 7, 5, 6],
+    },
+  },
+  {
+    id: 'retail-enforcer',
+    label: 'District manager · my way, eleven stores',
+    data: {
+      role: 'District Manager', industry: 'Retail', department: 'Store Operations',
+      birthYear: '1989', teamSize: '84', leadershipExperience: '5', careerExperience: '12',
+      responsibilities: 'Eleven stores, shrink, staffing, seasonal hiring',
+      resourcePick: 'Expectations',
+      projectApproach: 'Focus on identifying and mitigating the biggest risks.',
+      energyDrains: ['Following up when someone misses a commitment', 'Meetings with limited or no outcomes'],
+      crisisResponse: ['Delegate ownership to team members while providing support from the sidelines.'],
+      pushbackFeeling: ['Slightly defensive'],
+      roleModelTrait: 'balanced priorities',
+      warningLabel: 'Wrong Way: My way or the highway',
+      leaderFuel: ['Closing out a tough project completely'],
+      proudMoment: 'Took the worst store in the region to second in eight months.',
+      visibilityComfort: 'I thrive in the spotlight.',
+      decisionPace: 'The Standard',
+      teamPerception: 'Name the gap in a private conversation and reset the expectation.',
+      societalResponses: [9, 3, 8, 4, 3, 5, 8, 7, 4, 3],
+    },
+  },
+  {
+    id: 'veteran-plant',
+    label: 'Plant supervisor · 22 years, calm, set in his ways',
+    data: {
+      role: 'Plant Supervisor', industry: 'Manufacturing', department: 'Production',
+      birthYear: '1965', teamSize: '54', leadershipExperience: '22', careerExperience: '38',
+      responsibilities: 'Two shifts, throughput, safety, union relationship',
+      resourcePick: 'Time',
+      projectApproach: 'Create a detailed plan to guide the team.',
+      energyDrains: ['Navigating frequent changes in priorities'],
+      crisisResponse: ['Maintain composure and provide clear, decisive direction to the team.'],
+      pushbackFeeling: ['Energized'],
+      roleModelTrait: 'handled challenges',
+      warningLabel: 'Winding Road: Comfortable moving before the path is clear',
+      leaderFuel: ['Turning chaos into quality'],
+      proudMoment: 'Ran 400 days without a lost-time incident on a line that used to average four a year.',
+      visibilityComfort: "I don't think much about it either way.",
+      decisionPace: 'The Standard',
+      teamPerception: 'Set clear expectations, an owner, and a check-in date to close the gap.',
+      societalResponses: [8, 5, 9, 6, 4, 4, 7, 8, 5, 3],
+    },
+  },
+  {
+    id: 'hype-director',
+    label: 'Fitness director · all momentum, nothing lands twice',
+    data: {
+      role: 'Regional Fitness Director', industry: 'Fitness', department: 'Club Operations',
+      birthYear: '1991', teamSize: '95', leadershipExperience: '6', careerExperience: '13',
+      responsibilities: 'Nine clubs, trainer certification, member retention, payroll',
+      resourcePick: 'Budget',
+      projectApproach: 'Distribute ownership with clear check-ins and criteria.',
+      energyDrains: ['Meetings with limited or no outcomes'],
+      crisisResponse: ['Immediately gather the team to collaborate on potential solutions.'],
+      pushbackFeeling: ['Energized'],
+      roleModelTrait: 'inspired others',
+      warningLabel: 'Warning: Moves fast—keep up!',
+      leaderFuel: ['Seeing the team gel and succeed together'],
+      proudMoment: 'Cut trainer turnover from 70% to 30% in a year.',
+      visibilityComfort: 'I thrive in the spotlight.',
+      decisionPace: 'The Fix',
+      teamPerception: 'Set clear expectations, an owner, and a check-in date to close the gap.',
+      societalResponses: [7, 6, 7, 7, 8, 9, 5, 5, 7, 6],
+    },
+  },
+];
+
+export default STAGING_PERSONAS;
