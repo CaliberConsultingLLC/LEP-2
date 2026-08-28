@@ -22,26 +22,27 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
-import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { legalParagraphs } from '../data/legalDocs';
 
 const cairnLabelSx = {
   ...type.body,
   fontWeight: 600,
-  fontSize: 13,
-  color: colors.inkSoft,
+  fontSize: 14,
+  color: colors.ink,
   display: 'block',
   mb: 0.75,
-  textAlign: 'center',
+  textAlign: 'left',
 };
 
 const cairnInputSx = {
   '& .MuiInputBase-input': {
-    textAlign: 'center',
-    py: 1.15,
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: 15,
+    lineHeight: 1.45,
+    py: 1.25,
+    textAlign: 'left',
+    color: colors.ink,
   },
   '& .MuiOutlinedInput-root': {
     bgcolor: colors.surface1,
@@ -74,7 +75,6 @@ function UserInfo() {
     setUserInfo((prev) => ({ ...prev, [field]: true }));
     setOpenDialog(null);
   };
-  const [isDark] = useDarkMode();
 
   const mapFirebaseAuthError = (code) => {
     switch (code) {
@@ -336,7 +336,7 @@ function UserInfo() {
         activeStepId="account"
         chip={{ variant: 'sequence', label: 'Step', current: 1, total: 3 }}
       />
-      <CompassLayout contentMaxWidth={720}>
+      <CompassLayout>
       <Container
         maxWidth={false}
         sx={{
@@ -349,7 +349,7 @@ function UserInfo() {
           alignItems: 'flex-start',
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: useCairnTheme ? '100%' : 880, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%', maxWidth: useCairnTheme ? 840 : 880, display: 'flex', justifyContent: 'center', mx: 'auto' }}>
           <Card
             sx={useCairnTheme
               ? { width: '100%', ...surfaces.card, overflow: 'hidden' }
@@ -363,12 +363,12 @@ function UserInfo() {
               overflow: 'hidden',
             }}
           >
-          <CardContent sx={{ p: useCairnTheme ? { xs: 3, md: 4 } : { xs: 3, sm: 4 } }}>
+          <CardContent sx={{ p: useCairnTheme ? { xs: 2.4, md: 4 } : { xs: 3, sm: 4 } }}>
             {useCairnTheme ? (
-              <Box sx={{ textAlign: 'center', mb: 2.5 }}>
+              <Box sx={{ textAlign: 'center', mb: 3.5 }}>
                 <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
-                <Typography sx={{ ...type.question, mb: 0.75 }}>Account creation</Typography>
-                <Typography sx={{ ...type.subtitle, mx: 'auto' }}>
+                <Typography sx={{ ...type.question, fontSize: 24, mb: 0.85 }}>Account Creation</Typography>
+                <Typography sx={{ ...type.body, mx: 'auto', maxWidth: '52ch', color: colors.inkSoft }}>
                   Name, email, and password — this is a login, not your leadership situation yet.
                 </Typography>
               </Box>
@@ -402,8 +402,8 @@ function UserInfo() {
               Compass does not share your profile information or assessment results with other users or company leadership/HR without explicit authorization.
             </Alert>}
 
-            <Stack spacing={useCairnTheme ? 1.35 : 3} sx={useCairnTheme ? { alignItems: 'center', textAlign: 'center' } : undefined}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: useCairnTheme ? 1.15 : 3, width: '100%' }}>
+            <Stack spacing={useCairnTheme ? 2.5 : 3} sx={useCairnTheme ? { alignItems: 'stretch', textAlign: 'left' } : undefined}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: useCairnTheme ? { xs: '1fr', sm: '1fr 1fr' } : '1fr', gap: useCairnTheme ? 2 : 3, width: '100%' }}>
               <Box>
                 <Typography
                   component="label"
@@ -427,7 +427,7 @@ function UserInfo() {
                   required
                   fullWidth
                   variant="outlined"
-                  placeholder="Enter your name"
+                  placeholder={useCairnTheme ? undefined : 'Enter your name'}
                   sx={useCairnTheme ? cairnInputSx : {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
@@ -464,7 +464,7 @@ function UserInfo() {
                   required
                   fullWidth
                   variant="outlined"
-                  placeholder="Enter your email"
+                  placeholder={useCairnTheme ? undefined : 'Enter your email'}
                   sx={useCairnTheme ? cairnInputSx : {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
@@ -479,7 +479,7 @@ function UserInfo() {
               </Box>
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: useCairnTheme ? 1.15 : 3, width: '100%' }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: useCairnTheme ? { xs: '1fr', sm: '1fr 1fr' } : '1fr', gap: useCairnTheme ? 2 : 3, width: '100%' }}>
               <Box>
                 <Typography
                   component="label"
@@ -503,7 +503,7 @@ function UserInfo() {
                   required
                   fullWidth
                   variant="outlined"
-                  placeholder="Create a password"
+                  placeholder={useCairnTheme ? undefined : 'Create a password'}
                   sx={useCairnTheme ? cairnInputSx : {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
@@ -515,7 +515,7 @@ function UserInfo() {
                     },
                   }}
                 />
-                <Typography sx={{ mt: 0.45, fontSize: useCairnTheme ? 12 : '0.8rem', fontFamily: fonts.sans, color: useCairnTheme ? colors.inkSoft : 'text.secondary', textAlign: 'center' }}>
+                <Typography sx={{ mt: 0.45, fontSize: useCairnTheme ? 12 : '0.8rem', fontFamily: fonts.sans, color: useCairnTheme ? colors.inkSoft : 'text.secondary', textAlign: useCairnTheme ? 'left' : 'center' }}>
                   Minimum 10 characters with uppercase, lowercase, and a number.
                 </Typography>
               </Box>
@@ -543,7 +543,7 @@ function UserInfo() {
                   required
                   fullWidth
                   variant="outlined"
-                  placeholder="Confirm password"
+                  placeholder={useCairnTheme ? undefined : 'Confirm password'}
                   sx={useCairnTheme ? cairnInputSx : {
                     fontFamily: 'Gemunu Libre, sans-serif',
                     fontSize: '1rem',
@@ -558,7 +558,7 @@ function UserInfo() {
               </Box>
               </Box>
 
-              <Stack spacing={0.55} sx={{ alignItems: 'center', pt: useCairnTheme ? 0.4 : 0 }}>
+              <Stack spacing={0.55} sx={{ alignItems: useCairnTheme ? 'flex-start' : 'center', pt: useCairnTheme ? 0.4 : 0 }}>
                 {[
                   {
                     name: 'agreeTerms',
@@ -580,7 +580,7 @@ function UserInfo() {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifyContent: useCairnTheme ? 'flex-start' : 'center',
                       gap: 0.85,
                       width: '100%',
                     }}
@@ -593,8 +593,8 @@ function UserInfo() {
                       size={useCairnTheme ? 'small' : 'medium'}
                       sx={{
                         p: 0,
-                        color: useCairnTheme ? 'var(--orange, #E07A3F)' : undefined,
-                        '&.Mui-checked': { color: useCairnTheme ? 'var(--orange, #E07A3F)' : undefined },
+                        color: useCairnTheme ? colors.orange : undefined,
+                        '&.Mui-checked': { color: useCairnTheme ? colors.orange : undefined },
                       }}
                     />
                     <Typography
@@ -602,7 +602,7 @@ function UserInfo() {
                       sx={{
                         fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif',
                         fontSize: useCairnTheme ? '0.84rem' : '0.94rem',
-                        color: useCairnTheme ? isDark ? 'rgba(240,233,222,0.74)' : 'var(--ink-soft, #44566C)' : undefined,
+                        color: useCairnTheme ? colors.inkSoft : undefined,
                         lineHeight: 1.35,
                         whiteSpace: 'nowrap',
                       }}
@@ -615,7 +615,7 @@ function UserInfo() {
                         sx={{
                           all: 'unset',
                           cursor: 'pointer',
-                          color: useCairnTheme ? 'var(--orange, #E07A3F)' : 'primary.main',
+                          color: useCairnTheme ? colors.orange : 'primary.main',
                           fontWeight: 800,
                           textDecoration: 'underline',
                           textUnderlineOffset: '2px',

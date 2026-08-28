@@ -185,7 +185,7 @@ function buildYearOptions(minYear, maxYear) {
 }
 
 const BIRTH_YEAR_OPTIONS = buildYearOptions(1945, CONTEXT_YEAR - 18);
-const TEAM_SIZE_OPTIONS = buildCountOptions(50, { min: 1 });
+const TEAM_SIZE_OPTIONS = buildCountOptions(15, { min: 1 });
 const YEARS_OPTIONS = buildCountOptions(40, { min: 0, unit: { one: 'year', many: 'years' } });
 
 function optionsWithCurrent(options, current) {
@@ -1891,10 +1891,7 @@ function IntakeForm() {
             <Box sx={{ width: '100%' }}>
               <Box sx={{ textAlign: 'center', mb: 3.5 }}>
                 <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
-                <Typography sx={{ ...type.question, mb: 0.85 }}>Your context</Typography>
-                <Typography sx={{ ...type.subtitle, mx: 'auto', mb: 1.1 }}>
-                  Industry, role, and team — the situation this reading is built from, not a score.
-                </Typography>
+                <Typography sx={{ ...type.question, fontSize: 24, mb: 0.85 }}>Your Context</Typography>
                 <Typography sx={{ ...type.body, mx: 'auto', maxWidth: '52ch', color: colors.inkSoft }}>
                   These answers are not scored. They give the Compass enough about your setting that the insights and growth plan stay pertinent to how you actually lead.
                 </Typography>
