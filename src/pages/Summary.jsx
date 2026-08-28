@@ -31,6 +31,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
+import { setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing } from '../data/guideBriefings';
 
@@ -90,7 +91,7 @@ function Summary() {
     }
   };
 
-  const persistSummaryCache = async ({ data, guideId, text, areas, highlights, summaries }) => {
+  const persistSummaryCache = async ({ data, guideId, text, areas, highlights, summaries, insightMap }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
     if (!uid || !text) return;
     const savedAt = new Date().toISOString();
@@ -116,10 +117,22 @@ function Summary() {
           selectedAgent: guideId || 'mentor',
           savedAt,
         },
+        // Durable, voice-independent leadership profile. Kept outside
+        // summaryCache because it outlives any narrative regeneration and is
+        // read by campaign generation, dashboard interpretation, and future
+        // campaign-over-campaign comparison.
+        ...(insightMap ? { insightProfile: { ...insightMap, savedAt } } : {}),
       },
       { merge: true }
     );
     localStorage.setItem('summarySavedAt', savedAt);
+    if (insightMap) {
+      try {
+        localStorage.setItem('insightProfile', JSON.stringify(insightMap));
+      } catch {
+        // Non-fatal: Firestore holds the durable copy.
+      }
+    }
   };
 
   // Generate focus areas based on intake data (instead of random)
@@ -330,13 +343,96 @@ function Summary() {
     }
   };
 
-  const runCampaignPrefetch = async (text, data, runId) => {
+  // Generates the guide's line for every post-intake screen, in all six voices,
+  // from the insight map. Non-blocking: until it lands (or if it fails outright)
+  // every screen keeps showing the canned copy it shows today.
+  const runGuideLinesPrefetch = async (insightMap, runId) => {
+    if (!insightMap?.evidence?.leadershipMirror) return;
+    try {
+      const resp = await fetchWithTimeout('/api/get-guide-lines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ insightProfile: insightMap, ...demoRequestFields() }),
+      }, 120000);
+      if (!resp.ok) return;
+      const payload = await resp.json();
+      if (activeRunIdRef.current !== runId) return;
+      if (!payload?.linesByGuide || !Object.keys(payload.linesByGuide).length) return;
+
+      setGeneratedGuideLines(payload.linesByGuide, {
+        schemaVersion: payload.schemaVersion,
+        model: payload.model,
+        basedOnResults: payload.basedOnResults,
+      });
+
+      const uid = String(auth?.currentUser?.uid || '').trim();
+      if (uid) {
+        await setDoc(
+          doc(db, 'responses', uid),
+          {
+            guideLines: {
+              linesByGuide: payload.linesByGuide,
+              schemaVersion: payload.schemaVersion || 1,
+              model: payload.model || '',
+              basedOnResults: Boolean(payload.basedOnResults),
+              coverage: payload.coverage || {},
+              savedAt: new Date().toISOString(),
+            },
+          },
+          { merge: true }
+        );
+      }
+    } catch (err) {
+      console.warn('Guide line prefetch failed:', err?.name || err?.message || err);
+    }
+  };
+
+  // Fetches the five guides that were not rendered on the first request,
+  // reusing the insight map so the facts stay identical across voices.
+  const runRemainingGuidesPrefetch = async (data, insightMap, haveGuideIds, runId) => {
+    const missing = GUIDE_VOICE_IDS.filter((id) => !haveGuideIds.includes(id));
+    if (!insightMap || !missing.length) return;
+    try {
+      const resp = await fetchWithTimeout('/api/get-ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ ...data, guideIds: missing, insightMap, ...demoRequestFields() }),
+      }, 90000);
+      if (!resp.ok) return;
+      const payload = await resp.json();
+      if (activeRunIdRef.current !== runId) return;
+
+      const extra = payload?.summariesByGuide && typeof payload.summariesByGuide === 'object'
+        ? payload.summariesByGuide
+        : {};
+      if (!Object.keys(extra).length) return;
+
+      setSummariesByGuide((prev) => {
+        const merged = { ...prev, ...extra };
+        try {
+          localStorage.setItem('summariesByGuide', JSON.stringify(merged));
+        } catch { /* non-fatal */ }
+        return merged;
+      });
+    } catch (err) {
+      // Non-blocking: the selected guide already rendered. Switching to an
+      // unfetched guide simply falls back to the one that is present.
+      console.warn('Background guide prefetch failed:', err?.name || err?.message || err);
+    }
+  };
+
+  const runCampaignPrefetch = async (text, data, runId, insightMap = null) => {
     if (!text) return;
     try {
       const campaignResp = await fetchWithTimeout('/api/get-campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null, ...demoRequestFields() }),
+        body: JSON.stringify({
+          aiSummary: text,
+          sessionId: data?.sessionId || null,
+          insightMap: insightMap || null,
+          ...demoRequestFields(),
+        }),
       }, 20000);
 
       if (!campaignResp.ok) return;
@@ -385,11 +481,20 @@ function Summary() {
       );
       setSelectedAgent(baseGuide);
 
-      // 3) request all six guide narratives from one insight map
+      // 3) Build the insight map and the selected guide's narrative only. The
+      //    other five are fetched in the background below, reusing this map so
+      //    every guide speaks identical facts. Splitting it keeps the Trailhead
+      //    wait short and the function well inside its duration limit.
       const summaryResp = await fetchWithTimeout('/api/get-ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...data, guideId: baseGuide, selectedAgent: baseGuide, ...demoRequestFields() }),
+        body: JSON.stringify({
+          ...data,
+          guideId: baseGuide,
+          selectedAgent: baseGuide,
+          guideIds: [baseGuide],
+          ...demoRequestFields(),
+        }),
       }, 90000);
 
       if (!summaryResp.ok) {
@@ -437,6 +542,7 @@ function Summary() {
             areas: Array.isArray(payload?.focusAreas) ? payload.focusAreas : focusAreas,
             highlights,
             summaries: map,
+            insightMap: payload?.insightMap || null,
           });
         } catch (persistErr) {
           console.warn('Failed to cache summary to Firestore:', persistErr);
@@ -445,7 +551,14 @@ function Summary() {
       // Unblock UI immediately after summary returns.
       setIsLoading(false);
       // Continue campaign generation in background to improve perceived responsiveness.
-      runCampaignPrefetch(text, data, runId);
+      runCampaignPrefetch(text, data, runId, payload?.insightMap || null);
+      runRemainingGuidesPrefetch(
+        data,
+        payload?.insightMap || null,
+        Object.keys(map),
+        runId
+      );
+      runGuideLinesPrefetch(payload?.insightMap || null, runId);
     } catch (e) {
       if (activeRunIdRef.current !== runId) return;
       const isTimeout = e?.name === 'AbortError';
@@ -655,11 +768,33 @@ function Summary() {
     return result;
   };
 
-  const summarySections = (aiSummary || '')
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .slice(0, 4);
+  // Rendered from the structured guide summary rather than by re-splitting the
+  // flattened string. Splitting on blank lines dropped empty beats instead of
+  // leaving a gap, which shifted every later section under the wrong heading.
+  // This always returns exactly four positionally-stable entries.
+  const activeGuideSummary = useMemo(
+    () => pickGuideSummary(summariesByGuide, selectedAgent || personaId, aiSummary).summary,
+    [summariesByGuide, selectedAgent, personaId, aiSummary]
+  );
+
+  const summarySections = useMemo(() => {
+    const stage = (framing, examples) =>
+      [
+        String(framing || '').trim(),
+        ...(Array.isArray(examples) ? examples : [])
+          .filter(Boolean)
+          .map((line) => `EXAMPLE: ${line}`),
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+    return [
+      String(activeGuideSummary?.trailhead || '').trim(),
+      stage(activeGuideSummary?.markers?.framing, activeGuideSummary?.markers?.examples),
+      stage(activeGuideSummary?.hazards?.framing, activeGuideSummary?.hazards?.examples),
+      String(activeGuideSummary?.newTrail || '').trim(),
+    ];
+  }, [activeGuideSummary]);
 
   const journeyStages = useMemo(
     () => ([
@@ -1615,7 +1750,7 @@ function Summary() {
                 overflow: 'visible',
               }}
             >
-              {summarySections.length ? (
+              {summarySections.some(Boolean) ? (
                 <Stack spacing={2}>
                   <Paper
                     sx={{

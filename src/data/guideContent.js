@@ -6,6 +6,7 @@
 // back to that persona's page default — never another guide's voice.
 
 import { GUIDE_STEPS } from './guideCopy.generated.js';
+import { getGeneratedGuideLine } from './generatedGuideLines.js';
 
 const PERSONA_IDS = ['mentor', 'catalyst', 'challenger', 'bestFriend', 'mother', 'roaster'];
 
@@ -508,15 +509,33 @@ function legacyLine(routeKey, personaId) {
   };
 }
 
-/** Spoken line for one route + step. Blank step cells fall back to that guide's page default — never another persona. */
+/**
+ * Spoken line for one route + step.
+ *
+ * Resolution order:
+ *   1. A personalized line generated from this leader's insight map, if one
+ *      exists for this exact screen. Only the text is taken — pose and cta stay
+ *      with the canned entry, since those are art direction, not content.
+ *   2. The canned line for this screen.
+ *   3. That guide's page default — never another persona's voice.
+ *
+ * A missing generated line is the normal case before intake completes, so the
+ * fallback chain is the load-bearing part, not an error path.
+ */
 export function getGuideLine(personaId, routeKey, stepKey = 'default') {
   const persona = PERSONA_IDS.includes(personaId) ? personaId : 'mentor';
   const step = String(stepKey || 'default').trim() || 'default';
-  return pickPersonaLine(GUIDE_STEPS[`${routeKey}::${step}`], persona)
+
+  const canned = pickPersonaLine(GUIDE_STEPS[`${routeKey}::${step}`], persona)
     || pickPersonaLine(GUIDE_STEPS[`${routeKey}::default`], persona)
     || pickPersonaLine(GUIDE_STEPS['default::default'], persona)
     || legacyLine(routeKey, persona)
     || { text: '', pose: 'idle', cta: 'Okay', title: 'Guide' };
+
+  const generated = getGeneratedGuideLine(persona, `${routeKey}::${step}`)
+    || getGeneratedGuideLine(persona, `${routeKey}::default`);
+
+  return generated ? { ...canned, text: generated } : canned;
 }
 
 export function spokenGuide(personaId, routeKey, stepKey, fallbackText = '', fallbackPose = 'idle') {

@@ -71,9 +71,9 @@ export default function SummaryBriefingModal({
         onClick={(event) => event.stopPropagation()}
         sx={{
           position: 'fixed',
-          left: { xs: 12, sm: 20, md: 56, lg: 92, xl: 120 },
-          bottom: { xs: 168, sm: 210, md: 300, lg: 360, xl: 400 },
-          width: { xs: 'min(340px, calc(100vw - 24px))', sm: 340, md: 360 },
+          left: { xs: 16, sm: 24, md: 544, lg: 652, xl: 728 },
+          bottom: { xs: 256, sm: 320, md: 190, lg: 220, xl: 240 },
+          width: { xs: 'min(340px, calc(100vw - 32px))', sm: 340, md: 360 },
           zIndex: 2,
         }}
       >
@@ -90,15 +90,21 @@ export default function SummaryBriefingModal({
             '&:after': {
               content: '""',
               position: 'absolute',
-              left: { xs: 28, md: 40 },
-              bottom: -8,
+              left: -8,
+              bottom: { xs: 28, md: 40 },
               width: 16,
               height: 16,
               bgcolor: bubbleBg,
               borderBottom: bubbleBorder,
-              borderRight: bubbleBorder,
+              borderLeft: bubbleBorder,
               transform: 'rotate(45deg)',
               zIndex: 1,
+              '@media (max-width: 899px)': {
+                left: 36,
+                bottom: -8,
+                borderLeft: 'none',
+                borderRight: bubbleBorder,
+              },
             },
           }}
         >

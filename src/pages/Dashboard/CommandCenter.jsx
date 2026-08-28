@@ -13,6 +13,7 @@ import SignalView from './cc/SignalView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
+import { useResultsIntelligence } from './cc/useResultsIntelligence.js';
 import { getDebriefScope, useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
 import { deriveTraitRoles } from './cc/debriefContent.js';
 import GatePage from './cc/GatePage.jsx';
@@ -749,9 +750,26 @@ export default function CommandCenter() {
         practice: !campaignClosed ? 'locked' : phases.dockStatus.practice,
       };
 
-  const { teamResponses } = useBenchmarkData();
+  const {
+    teamResponses,
+    rows: benchmarkRows,
+    loaded: benchmarkLoaded,
+    hasTeamData,
+    hasSelfData,
+  } = useBenchmarkData();
   const invited = Number(readJson('latestFormData', {})?.teamSize) || Number(readJson('userInfo', {})?.teamSize) || 8;
   const respondents = teamResponses?.length || 0;
+
+  // Scores the intake predictions against real team data and re-voices the
+  // dashboard screens off the result. Runs once per distinct result set and
+  // caches; a plain revisit costs nothing.
+  useResultsIntelligence({
+    rows: benchmarkRows,
+    loaded: benchmarkLoaded,
+    hasTeamData,
+    hasSelfData,
+    responseCount: respondents,
+  });
   const chapterId = activeTab === 'journey' ? 'action' : 'review';
   const activeStepId = chapterId === 'action'
     ? 'journey'

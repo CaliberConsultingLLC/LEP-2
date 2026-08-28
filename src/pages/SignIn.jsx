@@ -9,6 +9,7 @@ import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 import ProcessTopRail from '../components/ProcessTopRail';
+import { clearGeneratedGuideLines, setGeneratedGuideLines } from '../data/generatedGuideLines';
 
 function SignIn() {
   const navigate = useNavigate();
@@ -73,6 +74,18 @@ function SignIn() {
     };
     const summaryCache = responseData?.summaryCache || {};
     const campaignBundle = responseData?.campaignBundle || {};
+
+    // Personalized guide lines follow the account, not the browser. Without this
+    // a returning user on a new device silently drops back to the canned copy.
+    if (responseData?.guideLines?.linesByGuide) {
+      setGeneratedGuideLines(responseData.guideLines.linesByGuide, {
+        schemaVersion: responseData.guideLines.schemaVersion,
+        model: responseData.guideLines.model,
+        basedOnResults: responseData.guideLines.basedOnResults,
+      });
+    } else {
+      clearGeneratedGuideLines();
+    }
 
     if (intakeDraft) {
       localStorage.setItem('intakeDraft', JSON.stringify(intakeDraft));
@@ -191,6 +204,7 @@ function SignIn() {
             localStorage.removeItem('selectedGuideId');
             localStorage.removeItem('summarySavedAt');
             localStorage.removeItem('focusAreas');
+            clearGeneratedGuideLines();
             clearLocalCampaignState();
           }
         }
