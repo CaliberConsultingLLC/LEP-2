@@ -39,7 +39,6 @@ function traitCardMeta(item, index) {
   return {
     coreName: core?.name || item?.traitName || item?.trait || `Trait ${index + 1}`,
     subName: sub?.name || item?.title || item?.subTrait || '',
-    blurb: String(sub?.shortDescription || sub?.definition || core?.description || '').trim(),
     statements: Array.isArray(item?.statements) ? item.statements.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 5) : [],
   };
 }
@@ -75,9 +74,7 @@ function CampaignVerify() {
     }
   };
 
-  const ctaLabel = locked
-    ? 'Continue to Self-Assessment'
-    : (locking ? 'Locking in…' : 'Lock in my Growth Campaign');
+  const ctaLabel = locking ? 'Locking in…' : 'Lock in My Growth Campaign';
 
   if (useCairnTheme) {
     return (
@@ -108,19 +105,25 @@ function CampaignVerify() {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
-                gap: { xs: 2.5, md: 3 },
+                columnGap: { xs: 2.5, md: 3 },
+                rowGap: { xs: 2.5, md: 0 },
                 alignItems: 'stretch',
               }}
             >
-              {cards.map((card, index) => (
+              {cards.map((card, index) => {
+                const parentName = card.subName && card.coreName && card.subName !== card.coreName
+                  ? card.coreName
+                  : '';
+                return (
                 <Box
                   key={`${card.coreName}-${card.subName}-${index}`}
                   sx={{
                     ...surfaces.card,
                     p: { xs: 3, md: 3.5 },
-                    display: 'flex',
+                    display: { xs: 'flex', md: 'grid' },
                     flexDirection: 'column',
-                    minHeight: { md: '100%' },
+                    gridTemplateRows: { md: 'subgrid' },
+                    gridRow: { md: 'span 8' },
                     textAlign: 'left',
                   }}
                 >
@@ -130,60 +133,73 @@ function CampaignVerify() {
                       fontWeight: 800,
                       fontSize: 15,
                       lineHeight: 1.2,
-                      color: colors.navy900,
-                      mb: 0.4,
+                      color: colors.ink,
                     }}
                   >
                     {card.subName || card.coreName}
                   </Typography>
-                  {card.subName && card.coreName && card.subName !== card.coreName && (
-                    <Typography sx={{ ...stageType.cardBody, color: colors.inkSoft, mb: 1.25 }}>
-                      {card.coreName}
-                    </Typography>
-                  )}
-                  {card.blurb ? (
-                    <Typography sx={{ ...stageType.cardBody, mb: 2, color: colors.navy800 }}>
-                      {card.blurb}
-                    </Typography>
-                  ) : null}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.1, mt: 'auto' }}>
-                    {card.statements.map((statement, sIdx) => (
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.serif,
+                      fontStyle: 'italic',
+                      fontWeight: 500,
+                      fontSize: 14,
+                      lineHeight: 1.35,
+                      color: colors.inkSoft,
+                      mt: 0.45,
+                      minHeight: '1.35em',
+                    }}
+                  >
+                    {parentName || '\u00A0'}
+                  </Typography>
+                  <Box
+                    aria-hidden
+                    sx={{
+                      width: '100%',
+                      height: '2px',
+                      bgcolor: colors.orange,
+                      mt: 1.35,
+                      mb: 0.5,
+                    }}
+                  />
+                  {Array.from({ length: 5 }, (_, sIdx) => card.statements[sIdx] || '').map((statement, sIdx) => (
+                    <Box
+                      key={`${index}-${sIdx}`}
+                      sx={{
+                        display: 'flex',
+                        gap: 1.15,
+                        alignItems: 'flex-start',
+                        pt: 1.5,
+                      }}
+                    >
                       <Box
-                        key={`${index}-${sIdx}`}
                         sx={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: radii.circle,
+                          flexShrink: 0,
+                          mt: '1px',
+                          bgcolor: colors.sand100,
+                          border: `1px solid ${colors.sand200}`,
                           display: 'flex',
-                          gap: 1.15,
-                          alignItems: 'flex-start',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontFamily: fonts.mono,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: colors.orangeDeep,
                         }}
                       >
-                        <Box
-                          sx={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: radii.circle,
-                            flexShrink: 0,
-                            mt: '1px',
-                            bgcolor: colors.sand100,
-                            border: `1px solid ${colors.sand200}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontFamily: fonts.mono,
-                            fontSize: 10,
-                            fontWeight: 700,
-                            color: colors.orangeDeep,
-                          }}
-                        >
-                          {sIdx + 1}
-                        </Box>
-                        <Typography sx={{ ...stageType.cardBody, flex: 1 }}>
-                          {statement}
-                        </Typography>
+                        {sIdx + 1}
                       </Box>
-                    ))}
-                  </Box>
+                      <Typography sx={{ ...stageType.cardBody, flex: 1, color: colors.ink }}>
+                        {statement}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Box>
-              ))}
+                );
+              })}
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3.25, mb: 2 }}>
