@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ProcessTopRail from '../components/ProcessTopRail';
 import { guideImage } from '../data/guideArt';
 import { SUPPORT_EMAIL, SUPPORT_MAILTO, DOCUMENTS_PATH, FAQ_PATH } from '../data/supportLinks';
 import '../styles/compass-landing.css';
@@ -21,46 +20,36 @@ const ASSETS = {
 };
 
 const WAYPOINTS = [
-  {
-    pin: 'I · UNCOVER',
-    time: '15 MIN',
-    title: 'Waypoint I — Uncover',
-    pos: { left: '11%', bottom: '15%' },
-    does:
-      'A 15-minute intake on how you actually lead — decisions, pressure, how your team hears you. Not a personality quiz. Not a course.',
-    gets:
-      'The start of your IDP: a private written reflection on how you lead, and what that costs the people around you.',
-  },
-  {
-    pin: 'II · REFLECT',
-    time: 'INSTANT',
-    title: 'Waypoint II — Reflect',
-    pos: { left: '39%', bottom: '21%' },
-    does:
-      'You read that reflection and choose three growth traits — the ones that would change the most for the people you lead.',
-    gets:
-      'A focused year, not a catalog. Those three traits shape the survey, the dashboard, and the practice.',
-  },
-  {
-    pin: 'III · CALIBRATE',
-    time: '5 MIN',
-    title: 'Waypoint III — Calibrate',
-    pos: { left: '61%', bottom: '39%' },
-    does:
-      'Your team rates the same observable behaviors. Five minutes. Anonymous to you. Aggregate only.',
-    gets:
-      'How you see it next to how they experience it. That gap is the growth edge — never who said what.',
-  },
-  {
-    pin: 'IV · EMBARK',
-    time: '1 YEAR',
-    title: 'Waypoint IV — Embark',
-    pos: { right: '5%', top: '10%' },
-    does:
-      'You practice those traits for a year. The team recalibrates; you re-assess; the plan updates. A guide stays with you.',
-    gets:
-      'A living IDP: signal, evidence, and one visible practice your team can actually feel.',
-  },
+  { num: 'I',    name: 'Profile',             pin: 'PROFILE',            time: '10 MIN',    pos: { left: '13.7%', top: '86.5%' },
+    happens: ['Create your account', 'Choose your guide', 'Give your leader context'],
+    gets: 'Your account is set, your guide is chosen, and your context is in. Nothing has been scored yet — that is next.' },
+  { num: 'II',   name: 'Behaviors',           pin: 'BEHAVIORS',          time: '15 MIN',    pos: { left: '29.4%', top: '72.4%' },
+    happens: ['A short intake on how you actually lead', 'Answered as you normally show up, not your best day'],
+    gets: 'The raw material every later chapter reads from — how you actually lead, not a type.' },
+  { num: 'III',  name: 'Reflection',          pin: 'REFLECTION',         time: '20 MIN',    pos: { left: '42.5%', top: '85.5%' },
+    happens: ['Your answers come back as a written reflection', 'Read it in four short parts'],
+    gets: 'A current-state mirror. Sit with it long enough to recognize yourself before you build anything.' },
+  { num: 'IV',   name: 'Growth Campaign',     pin: 'GROWTH CAMPAIGN',    time: '15 MIN',    pos: { left: '50.5%', top: '76.5%' },
+    happens: ['Choose three growth traits', 'Shape the statements your team will rate'],
+    gets: 'The campaign your year runs on: three traits, fifteen statements, in language you would stand behind.' },
+  { num: 'V',    name: 'Calibrate',           pin: 'CALIBRATE',          time: '10 MIN',    pos: { left: '59%',   top: '71.5%' },
+    happens: ['Rate yourself first', 'Invite your team to answer anonymously'],
+    gets: 'Your benchmark is in and the team has a way to answer. Closing the window opens the first reading — a signal, not a verdict.' },
+  { num: 'VI',   name: 'Review & Reflect',    pin: 'REVIEW & REFLECT',   time: '1 SITTING', pos: { left: '76.5%', top: '57%' },
+    happens: ['Read the team\u2019s signal next to your own', 'See where their read differs from yours'],
+    gets: 'A first honest reading of how the team experiences you, next to how you see yourself.' },
+  { num: 'VII',  name: 'Action Plan',         pin: 'ACTION PLAN',        time: '30 MIN',    pos: { left: '82%',   top: '47%' },
+    happens: ['Build a one-page action plan', 'One visible practice per trait'],
+    gets: 'A one-page plan you live, not log into — held until the next check-in tells you whether it is landing.' },
+  { num: 'VIII', name: 'Check-in Assessment', pin: 'CHECK-IN',           time: 'MONTH 3',   pos: { left: '86%',   top: '31.9%' },
+    happens: ['Your team calibrates again', 'The new signal lands next to the first'],
+    gets: 'A growth line, not a snapshot: whether the practice is landing where the team can feel it.' },
+  { num: 'IX',   name: 'Revise Action Plan',  pin: 'REVISE PLAN',        time: '20 MIN',    pos: { left: '84.5%', top: '22.8%' },
+    happens: ['Keep what landed, rewrite what did not', 'Revised with your guide alongside'],
+    gets: 'A sharper plan for the back half of the year, built on evidence instead of intention.' },
+  { num: 'X',    name: 'Final Assessment',    pin: 'FINAL',              time: 'MONTH 9',   pos: { left: '83.8%', top: '14.5%' },
+    happens: ['A final self-assessment and team calibration', 'The year read back to you'],
+    gets: 'The arc of the year in one place — where you started, what changed, and what your team can now feel.' },
 ];
 
 const PILLARS = [
@@ -292,7 +281,7 @@ const PRIVACY_TERMS = [
 ];
 
 const NAV_LINKS = [
-  { label: 'Your route', id: 'cl-route' },
+  { label: 'Your path', id: 'cl-route' },
   { label: 'Your guide', id: 'cl-guide' },
   { label: 'Your growth', id: 'cl-growth' },
   { label: 'Pricing', id: 'cl-pricing' },
@@ -383,8 +372,11 @@ export default function CompassLanding() {
 
   return (
     <div className="cl-page" data-compass-landing>
-      <ProcessTopRail utilityOnly />
       <nav className="cl-nav" aria-label="Primary">
+        <div className="cl-brand">
+          <img src={ASSETS.logo} alt="Compass logo" />
+          <span className="cl-wordmark">The Compass</span>
+        </div>
         <div className="cl-nav-links">
           {NAV_LINKS.map((link) => (
             <button
@@ -403,17 +395,24 @@ export default function CompassLanding() {
       </nav>
 
       <header className="cl-hero">
-        <span className="cl-eyebrow">AN AI-POWERED INDEPENDENT DEVELOPMENT PLAN</span>
+        <span className="cl-eyebrow">AN AI-POWERED INDIVIDUAL DEVELOPMENT PLAN</span>
         <h1>
-          This is your IDP.
+          Leaders don&rsquo;t follow paths.
           <br />
-          <em className="cl-gold">How you improve as a leader.</em>
+          <em className="cl-gold">They set them.</em>
         </h1>
-        <p className="cl-hero-sub">
-          Not a course. Not a coach. Not a personality quiz. Compass is an independent
-          development plan built around how you actually lead — you answer, your team
-          answers anonymously, and you spend a year practicing the traits that would
-          change the most for the people you lead.
+        <p className="cl-hero-sub clx-lede">Not a course. Not a coach. Not a personality quiz.</p>
+        <p className="cl-hero-sub clx-body">
+          The Compass is an <strong>Individual Development Plan</strong> built around how you
+          actually lead — you answer, your team answers anonymously, and you spend a year
+          practicing the traits that would change the most for the people you lead.
+        </p>
+        <p className="cl-hero-sub clx-body clx-pillars-line">
+          <strong>
+            <span>Your <em>Path</em>.</span>
+            <span>Your <em>Guide</em>.</span>
+            <span>Your <em>Growth</em>.</span>
+          </strong>
         </p>
         <div className="cl-hero-cta">
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
@@ -422,33 +421,38 @@ export default function CompassLanding() {
         </div>
       </header>
 
-      <section className="cl-section cl-route" id="cl-route" aria-label="Your route">
-        <SectionRule label="YOUR ROUTE" />
+      <section className="cl-section cl-route" id="cl-route" aria-label="Your path">
+        <SectionRule label="YOUR PATH" />
         <h2>
-          Four waypoints. <em>Your pace.</em>
+          Build a personalized growth plan. <em>At your pace.</em>
         </h2>
         <div className="cl-map">
           <img src={ASSETS.mountains} alt="Mountain route map" />
+          <div className="clx-curl is-left" aria-hidden="true" />
+          <div className="clx-curl is-right" aria-hidden="true" />
           {WAYPOINTS.map((point, i) => (
             <button
-              key={point.pin}
+              key={point.num}
               type="button"
               className={`cl-pin${i === waypoint ? ' is-active' : ''}`}
               style={point.pos}
               aria-pressed={i === waypoint}
               onClick={() => setWaypoint(i)}
             >
-              {point.pin}
+              <span className="clx-pin-num">{point.num}</span>
+              <span className="clx-pin-label">{point.pin}</span>
             </button>
           ))}
           <div className="cl-journal">
             <div className="cl-journal-head">
-              <span className="cl-kicker">FIELD JOURNAL</span>
+              <span className="cl-kicker">CHAPTER {wp.num}</span>
               <span className="cl-journal-time">{wp.time}</span>
             </div>
-            <h3>{wp.title}</h3>
-            <span className="cl-journal-label">WHAT YOU DO</span>
-            <p>{wp.does}</p>
+            <h3>{wp.name}</h3>
+            <span className="cl-journal-label">WHAT HAPPENS</span>
+            <ul className="clx-bullets">
+              {wp.happens.map((line) => <li key={line}>{line}</li>)}
+            </ul>
             <span className="cl-journal-label ember">WHAT YOU WALK AWAY WITH</span>
             <p>{wp.gets}</p>
           </div>
@@ -713,9 +717,6 @@ export default function CompassLanding() {
           <br />
           <em>until you set it.</em>
         </h2>
-        <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
-          Begin your expedition →
-        </button>
       </section>
 
       <footer className="cl-org-footer">

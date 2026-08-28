@@ -209,6 +209,33 @@ html:has([data-compass-landing]) {
   color: rgba(255, 248, 240, 0.82);
 }
 
+.cl-hero-sub.clx-lede {
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(255, 248, 240, 0.92);
+}
+
+.cl-hero-sub.clx-body {
+  margin-top: 30px;
+}
+
+.cl-hero-sub.clx-body strong {
+  font-weight: 800;
+  color: #FFF8F0;
+}
+
+.clx-pillars-line strong {
+  display: inline-flex;
+  gap: 26px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.clx-pillars-line strong em {
+  font-style: normal;
+  color: var(--cl-ember);
+}
+
 .cl-hero-cta {
   display: flex;
   justify-content: center;
@@ -272,8 +299,8 @@ html:has([data-compass-landing]) {
   position: relative;
   max-width: 1000px;
   margin: 0 auto;
-  border: 1px solid var(--cl-hairline);
-  border-radius: 10px;
+  border: 0;
+  border-radius: 6px;
   overflow: hidden;
 }
 
@@ -282,9 +309,35 @@ html:has([data-compass-landing]) {
   display: block;
 }
 
+.clx-curl {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 52px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.clx-curl.is-left {
+  left: 0;
+  background: linear-gradient(90deg, #6e5636 0px, #a98b58 5px, #e9d9b0 13px, #f9f0d7 19px, #cdb488 26px, rgba(74, 56, 32, 0.34) 32px, rgba(74, 56, 32, 0.14) 40px, rgba(74, 56, 32, 0) 52px);
+  border-radius: 5px 0 0 5px;
+}
+
+.clx-curl.is-right {
+  right: 0;
+  background: linear-gradient(270deg, #6e5636 0px, #a98b58 5px, #e9d9b0 13px, #f9f0d7 19px, #cdb488 26px, rgba(74, 56, 32, 0.34) 32px, rgba(74, 56, 32, 0.14) 40px, rgba(74, 56, 32, 0) 52px);
+  border-radius: 0 5px 5px 0;
+}
+
 .cl-pin {
   position: absolute;
-  padding: 9px 16px;
+  transform: translate(-17px, -50%);
+  white-space: nowrap;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 4px;
   border-radius: 999px;
   font: inherit;
   font-size: 12px;
@@ -302,16 +355,47 @@ html:has([data-compass-landing]) {
 }
 
 .cl-page .cl-pin.is-active {
+  z-index: 4;
   background: var(--cl-ember);
   border-color: var(--cl-gold);
   color: #fff;
   box-shadow: 0 0 24px rgba(224, 122, 63, 0.7);
 }
 
+.clx-pin-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--cl-gold);
+  color: #14294A;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.clx-pin-label {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  transition: max-width 0.3s ease, opacity 0.25s ease, margin 0.3s ease;
+}
+
+.cl-pin.is-active .clx-pin-label {
+  max-width: 220px;
+  opacity: 1;
+  margin: 0 12px 0 9px;
+}
+
 .cl-journal {
   position: absolute;
   top: 20px;
-  left: 20px;
+  left: 76px;
+  z-index: 4;
   width: 340px;
   background: var(--cl-parchment);
   color: var(--cl-ink);
@@ -366,6 +450,21 @@ html:has([data-compass-landing]) {
 
 .cl-journal p:last-child {
   margin-bottom: 0;
+}
+
+.clx-bullets {
+  margin: 5px 0 14px;
+  padding: 0 0 0 17px;
+}
+
+.clx-bullets li {
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 3px 0;
+}
+
+.clx-bullets li::marker {
+  color: var(--cl-ember-deep);
 }
 
 /* ------------------------------------------------------------- pillars --- */
