@@ -19,6 +19,11 @@ export const SHORT_FORM_MODEL = process.env.COMPASS_SHORT_FORM_MODEL || 'claude-
 // quality-versus-latency tradeoff can be measured against real intakes.
 export const EXTRACTION_EFFORT = process.env.COMPASS_EXTRACTION_EFFORT || 'high';
 
+// Output ceiling for the extraction pass, thinking tokens included. Richer
+// intake input pushes this up — a coverage-v2 trial blew a 12k ceiling on 4 of
+// 20 profiles — so it is tunable alongside effort.
+export const EXTRACTION_MAX_TOKENS = Number(process.env.COMPASS_EXTRACTION_MAX_TOKENS || 20000);
+
 let cachedClient = null;
 
 export class MissingApiKeyError extends Error {

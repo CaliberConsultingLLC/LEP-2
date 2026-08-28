@@ -24,6 +24,7 @@ import {
 } from './promptBuilder.js';
 import {
   EXTRACTION_EFFORT,
+  EXTRACTION_MAX_TOKENS,
   EXTRACTION_MODEL,
   NARRATIVE_MODEL,
   buildCachedSystem,
@@ -51,7 +52,6 @@ export const INSIGHT_MAP_SCHEMA_VERSION = 2;
 
 // Token ceilings. Thinking tokens count against these, so both leave headroom
 // for reasoning plus the answer. These are the hard cost bound per request.
-const EXTRACTION_MAX_TOKENS = 12000;
 const NARRATIVE_MAX_TOKENS = 4000;
 
 let cachedAgentIdentity = '';
