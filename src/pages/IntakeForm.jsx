@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useMemo, useRef } from 'react';
 import {
   Container, Box, Typography, TextField, Slider, Button, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
-  Card, CardContent, CardActions, Grid, Alert
+  Card, CardContent, CardActions, Grid, Alert, MenuItem
 } from '@mui/material';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -162,13 +162,39 @@ const SectionCard = ({ children, narrow = false, maxWidth: maxWidthProp }) => {
   );
 };
 
-const contextFieldSx = {
-  '& .MuiInputBase-input': {
-    fontFamily: fonts.sans,
-    fontSize: 14,
-    py: 1.15,
-    textAlign: 'center',
-  },
+const CONTEXT_YEAR = new Date().getFullYear();
+
+function buildCountOptions(max, { min = 0, plusAtMax = true, unit } = {}) {
+  const options = [];
+  for (let n = min; n <= max; n += 1) {
+    const stem = plusAtMax && n === max ? `${n}+` : String(n);
+    const label = unit
+      ? `${stem} ${n === 1 ? unit.one : unit.many}`
+      : stem;
+    options.push({ value: String(n), label });
+  }
+  return options;
+}
+
+function buildYearOptions(minYear, maxYear) {
+  const options = [];
+  for (let y = maxYear; y >= minYear; y -= 1) {
+    options.push({ value: String(y), label: String(y) });
+  }
+  return options;
+}
+
+const BIRTH_YEAR_OPTIONS = buildYearOptions(1945, CONTEXT_YEAR - 18);
+const TEAM_SIZE_OPTIONS = buildCountOptions(50, { min: 1 });
+const YEARS_OPTIONS = buildCountOptions(40, { min: 0, unit: { one: 'year', many: 'years' } });
+
+function optionsWithCurrent(options, current) {
+  const value = String(current ?? '').trim();
+  if (!value || options.some((item) => item.value === value)) return options;
+  return [{ value, label: value }, ...options];
+}
+
+const contextFieldBaseSx = {
   '& .MuiOutlinedInput-root': {
     borderRadius: radii.sm,
     bgcolor: colors.surface1,
@@ -178,19 +204,46 @@ const contextFieldSx = {
   },
 };
 
-const ContextField = ({ label, children }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', minWidth: 0 }}>
+const contextFieldSx = {
+  ...contextFieldBaseSx,
+  '& .MuiInputBase-input': {
+    fontFamily: fonts.sans,
+    fontSize: 15,
+    lineHeight: 1.45,
+    py: 1.25,
+    textAlign: 'left',
+    color: colors.ink,
+  },
+};
+
+const contextSelectSx = {
+  ...contextFieldBaseSx,
+  '& .MuiInputBase-input': {
+    fontFamily: fonts.sans,
+    fontSize: 15,
+    lineHeight: 1.45,
+    py: 1.25,
+    textAlign: 'center',
+    color: colors.ink,
+    fontVariantNumeric: 'tabular-nums',
+  },
+};
+
+const ContextField = ({ label, htmlFor, children, labelMinHeight }) => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: '100%', minWidth: 0 }}>
     <Typography
       component="label"
+      htmlFor={htmlFor}
       sx={{
         ...type.body,
         fontWeight: 600,
-        fontSize: 13,
-        color: colors.inkSoft,
+        fontSize: 14,
+        color: colors.ink,
         display: 'block',
         mb: 0.75,
-        textAlign: 'center',
+        textAlign: 'left',
         width: '100%',
+        minHeight: labelMinHeight,
       }}
     >
       {label}
@@ -198,6 +251,55 @@ const ContextField = ({ label, children }) => (
     {children}
   </Box>
 );
+
+const ContextSelect = ({ id, value, onChange, options, ariaLabel }) => {
+  const resolved = optionsWithCurrent(options, value);
+  const selected = String(value ?? '').trim();
+  return (
+    <MemoTextField
+      id={id}
+      select
+      value={selected}
+      onChange={(e) => onChange(e.target.value)}
+      fullWidth
+      variant="outlined"
+      size="small"
+      sx={contextSelectSx}
+      inputProps={{ 'aria-label': ariaLabel }}
+      SelectProps={{
+        displayEmpty: true,
+        renderValue: (val) => {
+          if (!val) return '\u00A0';
+          return resolved.find((item) => item.value === String(val))?.label || String(val);
+        },
+        MenuProps: {
+          PaperProps: {
+            sx: {
+              maxHeight: 280,
+              bgcolor: colors.surface1,
+              color: colors.ink,
+              '& .MuiMenuItem-root': {
+                fontFamily: fonts.sans,
+                fontSize: 15,
+                color: colors.ink,
+                justifyContent: 'center',
+              },
+            },
+          },
+        },
+      }}
+    >
+      <MenuItem value="" sx={{ display: 'none' }}>
+        {'\u00A0'}
+      </MenuItem>
+      {resolved.map((item) => (
+        <MenuItem key={item.value} value={item.value}>
+          {item.label}
+        </MenuItem>
+      ))}
+    </MemoTextField>
+  );
+};
 
 // Warning label icon component - Standardized American road signs
 const WarningLabelIcon = ({ type }) => {
@@ -1786,118 +1888,115 @@ function IntakeForm() {
         {/* Profile Details (Step 1) */}
         {currentStep === 1 && useCairnTheme && (
           <SectionCard maxWidth={840}>
-            <Box sx={{ width: '100%', textAlign: 'center' }}>
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Box sx={{ width: '100%' }}>
+              <Box sx={{ textAlign: 'center', mb: 3.5 }}>
                 <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
-                <Typography sx={{ ...type.question, mb: 0.75 }}>Your context</Typography>
-                <Typography sx={{ ...type.subtitle, mx: 'auto' }}>
-                  Industry, tenure, and team — the situation this reading is built from, not a score.
+                <Typography sx={{ ...type.question, mb: 0.85 }}>Your context</Typography>
+                <Typography sx={{ ...type.subtitle, mx: 'auto', mb: 1.1 }}>
+                  Industry, role, and team — the situation this reading is built from, not a score.
+                </Typography>
+                <Typography sx={{ ...type.body, mx: 'auto', maxWidth: '52ch', color: colors.inkSoft }}>
+                  These answers are not scored. They give the Compass enough about your setting that the insights and growth plan stay pertinent to how you actually lead.
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 2 }}>
-                <ContextField label="Year born">
-                  <MemoTextField
-                    value={formData.birthYear || ''}
-                    onChange={(e) => handleChange('birthYear', String(e.target.value || '').replace(/[^\d]/g, '').slice(0, 4))}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    placeholder="e.g. 1985"
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-                <ContextField label="Industry">
-                  <MemoTextField
-                    value={formData.industry || ''}
-                    onChange={(e) => handleChange('industry', e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    placeholder="Industry"
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-                <ContextField label="Department">
-                  <MemoTextField
-                    value={formData.department || ''}
-                    onChange={(e) => handleChange('department', e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    placeholder="Department"
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, textAlign: 'left' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
+                  <ContextField label="Industry" htmlFor="context-industry">
+                    <MemoTextField
+                      id="context-industry"
+                      value={formData.industry || ''}
+                      onChange={(e) => handleChange('industry', e.target.value)}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      sx={contextFieldSx}
+                    />
+                  </ContextField>
+                  <ContextField label="Department" htmlFor="context-department">
+                    <MemoTextField
+                      id="context-department"
+                      value={formData.department || ''}
+                      onChange={(e) => handleChange('department', e.target.value)}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      sx={contextFieldSx}
+                    />
+                  </ContextField>
+                  <ContextField label="Job title" htmlFor="context-job-title">
+                    <MemoTextField
+                      id="context-job-title"
+                      value={formData.role || ''}
+                      onChange={(e) => handleChange('role', e.target.value)}
+                      fullWidth
+                      size="small"
+                      variant="outlined"
+                      sx={contextFieldSx}
+                    />
+                  </ContextField>
+                </Box>
 
-              <Box sx={{ mb: 2 }}>
-                <ContextField label="Job title">
+                <ContextField label="What is your team responsible for?" htmlFor="context-responsibilities">
                   <MemoTextField
-                    value={formData.role || ''}
-                    onChange={(e) => handleChange('role', e.target.value)}
-                    fullWidth
-                    size="small"
-                    variant="outlined"
-                    placeholder="Current role"
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-              </Box>
-
-              <Box sx={{ mb: 2 }}>
-                <ContextField label="What your team is responsible for">
-                  <MemoTextField
+                    id="context-responsibilities"
                     value={formData.responsibilities || ''}
                     onChange={(e) => handleChange('responsibilities', e.target.value)}
                     fullWidth
                     multiline
-                    minRows={2}
+                    minRows={3}
                     variant="outlined"
-                    placeholder="Team scope and primary responsibilities"
                     sx={contextFieldSx}
                   />
                 </ContextField>
+
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gap: 2,
+                  }}
+                >
+                  <ContextField label="Year born" htmlFor="context-birth-year">
+                    <ContextSelect
+                      id="context-birth-year"
+                      ariaLabel="Year born"
+                      value={formData.birthYear}
+                      onChange={(next) => handleChange('birthYear', next)}
+                      options={BIRTH_YEAR_OPTIONS}
+                    />
+                  </ContextField>
+                  <ContextField label="Team size" htmlFor="context-team-size">
+                    <ContextSelect
+                      id="context-team-size"
+                      ariaLabel="Team size"
+                      value={formData.teamSize}
+                      onChange={(next) => handleChange('teamSize', next)}
+                      options={TEAM_SIZE_OPTIONS}
+                    />
+                  </ContextField>
+                  <ContextField label="Years in leadership" htmlFor="context-years-leadership">
+                    <ContextSelect
+                      id="context-years-leadership"
+                      ariaLabel="Years in leadership"
+                      value={formData.careerExperience}
+                      onChange={(next) => handleChange('careerExperience', next)}
+                      options={YEARS_OPTIONS}
+                    />
+                  </ContextField>
+                  <ContextField label="Current role" htmlFor="context-current-role">
+                    <ContextSelect
+                      id="context-current-role"
+                      ariaLabel="Current role"
+                      value={formData.leadershipExperience}
+                      onChange={(next) => handleChange('leadershipExperience', next)}
+                      options={YEARS_OPTIONS}
+                    />
+                  </ContextField>
+                </Box>
               </Box>
 
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 1 }}>
-                <ContextField label="Team size">
-                  <MemoTextField
-                    value={formData.teamSize ?? ''}
-                    onChange={(e) => handleChange('teamSize', String(e.target.value || '').replace(/[^\d]/g, ''))}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-                <ContextField label="Years in current role">
-                  <MemoTextField
-                    value={formData.leadershipExperience ?? ''}
-                    onChange={(e) => handleChange('leadershipExperience', String(e.target.value || '').replace(/[^\d]/g, ''))}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-                <ContextField label="Years in leadership">
-                  <MemoTextField
-                    value={formData.careerExperience ?? ''}
-                    onChange={(e) => handleChange('careerExperience', String(e.target.value || '').replace(/[^\d]/g, ''))}
-                    fullWidth
-                    variant="outlined"
-                    size="small"
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                    sx={contextFieldSx}
-                  />
-                </ContextField>
-              </Box>
-
-              <Box sx={{ width: '100%', pt: 2 }}>
+              <Box sx={{ width: '100%', pt: 3 }}>
                 <CairnFlowButtons
                   isDark={isDark}
                   backLabel="Back"
