@@ -90,7 +90,7 @@ function Summary() {
     }
   };
 
-  const persistSummaryCache = async ({ data, guideId, text, areas, highlights, summaries }) => {
+  const persistSummaryCache = async ({ data, guideId, text, areas, highlights, summaries, insightMap }) => {
     const uid = String(auth?.currentUser?.uid || '').trim();
     if (!uid || !text) return;
     const savedAt = new Date().toISOString();
@@ -116,10 +116,22 @@ function Summary() {
           selectedAgent: guideId || 'mentor',
           savedAt,
         },
+        // Durable, voice-independent leadership profile. Kept outside
+        // summaryCache because it outlives any narrative regeneration and is
+        // read by campaign generation, dashboard interpretation, and future
+        // campaign-over-campaign comparison.
+        ...(insightMap ? { insightProfile: { ...insightMap, savedAt } } : {}),
       },
       { merge: true }
     );
     localStorage.setItem('summarySavedAt', savedAt);
+    if (insightMap) {
+      try {
+        localStorage.setItem('insightProfile', JSON.stringify(insightMap));
+      } catch {
+        // Non-fatal: Firestore holds the durable copy.
+      }
+    }
   };
 
   // Generate focus areas based on intake data (instead of random)
@@ -330,13 +342,18 @@ function Summary() {
     }
   };
 
-  const runCampaignPrefetch = async (text, data, runId) => {
+  const runCampaignPrefetch = async (text, data, runId, insightMap = null) => {
     if (!text) return;
     try {
       const campaignResp = await fetchWithTimeout('/api/get-campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ aiSummary: text, sessionId: data?.sessionId || null, ...demoRequestFields() }),
+        body: JSON.stringify({
+          aiSummary: text,
+          sessionId: data?.sessionId || null,
+          insightMap: insightMap || null,
+          ...demoRequestFields(),
+        }),
       }, 20000);
 
       if (!campaignResp.ok) return;
@@ -437,6 +454,7 @@ function Summary() {
             areas: Array.isArray(payload?.focusAreas) ? payload.focusAreas : focusAreas,
             highlights,
             summaries: map,
+            insightMap: payload?.insightMap || null,
           });
         } catch (persistErr) {
           console.warn('Failed to cache summary to Firestore:', persistErr);
@@ -445,7 +463,7 @@ function Summary() {
       // Unblock UI immediately after summary returns.
       setIsLoading(false);
       // Continue campaign generation in background to improve perceived responsiveness.
-      runCampaignPrefetch(text, data, runId);
+      runCampaignPrefetch(text, data, runId, payload?.insightMap || null);
     } catch (e) {
       if (activeRunIdRef.current !== runId) return;
       const isTimeout = e?.name === 'AbortError';
@@ -655,11 +673,33 @@ function Summary() {
     return result;
   };
 
-  const summarySections = (aiSummary || '')
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .slice(0, 4);
+  // Rendered from the structured guide summary rather than by re-splitting the
+  // flattened string. Splitting on blank lines dropped empty beats instead of
+  // leaving a gap, which shifted every later section under the wrong heading.
+  // This always returns exactly four positionally-stable entries.
+  const activeGuideSummary = useMemo(
+    () => pickGuideSummary(summariesByGuide, selectedAgent || personaId, aiSummary).summary,
+    [summariesByGuide, selectedAgent, personaId, aiSummary]
+  );
+
+  const summarySections = useMemo(() => {
+    const stage = (framing, examples) =>
+      [
+        String(framing || '').trim(),
+        ...(Array.isArray(examples) ? examples : [])
+          .filter(Boolean)
+          .map((line) => `EXAMPLE: ${line}`),
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+    return [
+      String(activeGuideSummary?.trailhead || '').trim(),
+      stage(activeGuideSummary?.markers?.framing, activeGuideSummary?.markers?.examples),
+      stage(activeGuideSummary?.hazards?.framing, activeGuideSummary?.hazards?.examples),
+      String(activeGuideSummary?.newTrail || '').trim(),
+    ];
+  }, [activeGuideSummary]);
 
   const journeyStages = useMemo(
     () => ([
@@ -1615,7 +1655,7 @@ function Summary() {
                 overflow: 'visible',
               }}
             >
-              {summarySections.length ? (
+              {summarySections.some(Boolean) ? (
                 <Stack spacing={2}>
                   <Paper
                     sx={{

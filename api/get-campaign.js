@@ -1,24 +1,37 @@
 // /api/get-campaign.js
-import { OpenAI } from 'openai';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { NARRATIVE_MODEL, createJson, hasAnthropicKey } from './_anthropic.js';
 
 // --- helpers ---------------------------------------------------------------
-function safeParseJSON(maybeJSON) {
-  try {
-    return JSON.parse(maybeJSON);
-  } catch {
-    // try to extract first JSON object/array from the text
-    const match = maybeJSON.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-    if (!match) return null;
-    try {
-      return JSON.parse(match[1]);
-    } catch {
-      return null;
-    }
-  }
-}
+const CAMPAIGN_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['campaign'],
+  properties: {
+    campaign: {
+      type: 'array',
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['trait', 'statements'],
+        properties: {
+          trait: { type: 'string', description: 'The core trait name, e.g. "Communication".' },
+          statements: {
+            type: 'array',
+            minItems: 5,
+            maxItems: 5,
+            items: {
+              type: 'string',
+              description: 'An observable leader behavior the team can rate on both effort and efficacy. At most 140 characters.',
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 function normalizeCampaign(data) {
   // Expect: { campaign: [ { trait: string, statements: string[5] }, x3 ] }
@@ -54,6 +67,12 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Too many requests' });
   }
 
+  if (!hasAnthropicKey()) {
+    return res.status(503).json({
+      error: 'Campaign generation is not configured. ANTHROPIC_API_KEY is missing from this environment.',
+    });
+  }
+
   try {
     if (!ensureJsonObjectBody(req, res)) {
       return;
@@ -61,6 +80,10 @@ export default async function handler(req, res) {
 
     const body = req.body;
     const { aiSummary, sessionId, selectedTraits } = body;
+    // Optional. When the caller supplies the persisted insight map, statements
+    // are grounded in structured evidence rather than inferred back out of the
+    // flattened narrative prose.
+    const insightMap = body?.insightMap && typeof body.insightMap === 'object' ? body.insightMap : null;
     const isRebuild = body?.rebuild === true;
     const avoidStatements = Array.isArray(body?.avoidStatements)
       ? body.avoidStatements.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 45)
@@ -149,7 +172,18 @@ Here is the leader's 4-paragraph summary for context:
 ---
 ${String(aiSummary).trim()}
 ---
-
+${insightMap ? `
+Structured evidence for this leader (prefer this over the prose above when they overlap).
+Each focus area carries a prediction about how this team will rate the behavior — write statements
+that would actually let that prediction be checked:
+---
+${JSON.stringify({
+    coreTensions: insightMap?.evidence?.coreTensions || [],
+    blindSpots: insightMap?.evidence?.blindSpots || [],
+    focusRecommendations: insightMap?.focusRecommendations || [],
+  })}
+---
+` : ''}
 Task:
 - Generate exactly 3 traits matching the selected focus areas above.
 - For each trait, create 5 team-facing survey statements that are:
@@ -169,23 +203,15 @@ ${(avoidStatements.length ? avoidStatements : ['(none provided)']).map((s) => ` 
 - Return ONLY the JSON described above.
 `.trim();
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Aligned with get-ai-summary model
-      max_tokens: isRebuild ? 900 : 600,
-      temperature: isRebuild ? 0.7 : 0.35,
-      frequency_penalty: isRebuild ? 0.45 : 0.2,
-      presence_penalty: isRebuild ? 0.25 : 0.0,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
+    const { data: parsed } = await createJson({
+      model: NARRATIVE_MODEL,
+      system: systemPrompt,
+      user: userPrompt,
+      schema: CAMPAIGN_SCHEMA,
+      maxTokens: isRebuild ? 3000 : 2400,
+      effort: 'low',
+      thinking: false,
     });
-
-    const raw = completion?.choices?.[0]?.message?.content || '';
-    const parsed = safeParseJSON(raw);
-    if (!parsed) {
-      return res.status(502).json({ error: 'Malformed model output' });
-    }
 
     const normalized = normalizeCampaign(parsed);
 
