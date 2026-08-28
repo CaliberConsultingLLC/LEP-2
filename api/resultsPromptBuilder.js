@@ -65,8 +65,6 @@ export const RESULTS_ANALYSIS_SCHEMA = {
     },
     predictionScorecard: {
       type: 'array',
-      minItems: 0,
-      maxItems: 6,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -82,8 +80,6 @@ export const RESULTS_ANALYSIS_SCHEMA = {
     },
     statementFindings: {
       type: 'array',
-      minItems: 1,
-      maxItems: 30,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -97,8 +93,6 @@ export const RESULTS_ANALYSIS_SCHEMA = {
     },
     traitRollups: {
       type: 'array',
-      minItems: 1,
-      maxItems: 6,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -112,8 +106,6 @@ export const RESULTS_ANALYSIS_SCHEMA = {
     },
     crossCuttingPatterns: {
       type: 'array',
-      minItems: 0,
-      maxItems: 4,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -121,15 +113,13 @@ export const RESULTS_ANALYSIS_SCHEMA = {
         properties: {
           id: { type: 'string', description: 'A short stable slug, e.g. "pattern-1".' },
           pattern: { type: 'string' },
-          appearsIn: { type: 'array', minItems: 2, maxItems: 8, items: { type: 'string' }, description: 'Statement or trait ids where this shows up.' },
+          appearsIn: { type: 'array', items: { type: 'string' }, description: 'Statement or trait ids where this shows up.' },
           implication: { type: 'string', description: '2-3 sentences on what it costs.' },
         },
       },
     },
     openQuestions: {
       type: 'array',
-      minItems: 0,
-      maxItems: 3,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -187,8 +177,6 @@ export const RESULTS_VOICE_SCHEMA = {
   properties: {
     items: {
       type: 'array',
-      minItems: 1,
-      maxItems: 45,
       items: {
         type: 'object',
         additionalProperties: false,

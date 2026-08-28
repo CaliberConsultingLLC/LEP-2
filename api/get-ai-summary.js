@@ -83,15 +83,29 @@ export function normalizeInsightMap(raw) {
   const ev = src.evidence && typeof src.evidence === 'object' ? src.evidence : {};
   const text = (v) => String(v || '').replace(/\s+/g, ' ').trim();
   const list = (v) => (Array.isArray(v) ? v.map(text).filter(Boolean) : []);
-  const entries = (v, impactKey) =>
-    (Array.isArray(v) ? v : []).map((item) => ({
-      label: text(item?.label),
-      observations: (Array.isArray(item?.observations) ? item.observations : []).map((o) => ({
-        observation: text(o?.observation),
-        sourceSignals: list(o?.sourceSignals),
-      })),
-      [impactKey]: text(item?.[impactKey]),
-    }));
+
+  // Signal lists arrive comma-joined because the API will not compile a grammar
+  // with arrays of signal names repeated across this many nested shapes.
+  const signals = (v) =>
+    Array.isArray(v)
+      ? list(v)
+      : String(v || '').split(',').map((x) => x.trim()).filter(Boolean);
+
+  // The model returns one merged `findings` array for the same reason. It is
+  // split back into the three named arrays here, so the persisted shape and
+  // every downstream consumer stay exactly as they were.
+  const rawFindings = Array.isArray(ev.findings) ? ev.findings : [];
+  const byKind = (kind, impactKey) =>
+    rawFindings
+      .filter((f) => text(f?.kind).toLowerCase() === kind.toLowerCase())
+      .map((f) => ({
+        label: text(f?.label),
+        observations: (Array.isArray(f?.observations) ? f.observations : []).map((o) => ({
+          observation: text(o?.observation),
+          sourceSignals: signals(o?.sourceSignals),
+        })),
+        [impactKey]: text(f?.implication),
+      }));
 
   const seeds = src?.rendering?.spokenSeeds || {};
 
@@ -110,14 +124,14 @@ export function normalizeInsightMap(raw) {
       teamLikelyFeels: list(ev.teamLikelyFeels),
       overuses: list(ev.overuses),
       avoids: list(ev.avoids),
-      coreStrengths: entries(ev.coreStrengths, 'implication'),
-      coreTensions: entries(ev.coreTensions, 'implication'),
-      blindSpots: entries(ev.blindSpots, 'teamImpact'),
+      coreStrengths: byKind('strength', 'implication'),
+      coreTensions: byKind('tension', 'implication'),
+      blindSpots: byKind('blindSpot', 'teamImpact'),
       contradictions: (Array.isArray(ev.contradictions) ? ev.contradictions : []).map((c) => ({
         tension: text(c?.tension),
         cause: text(c?.cause),
         effect: text(c?.effect),
-        sourceSignals: list(c?.sourceSignals),
+        sourceSignals: signals(c?.sourceSignals),
       })),
       trajectory: {
         bestCase: text(ev?.trajectory?.bestCase),
@@ -130,7 +144,7 @@ export function normalizeInsightMap(raw) {
       rationale: text(f?.rationale),
       selfSignal: text(f?.selfSignal),
       predictedTeamRead: text(f?.predictedTeamRead),
-      basis: list(f?.basis),
+      basis: signals(f?.basis),
       confidence: text(f?.confidence).toLowerCase() || 'medium',
       ifWrong: text(f?.ifWrong),
     })),

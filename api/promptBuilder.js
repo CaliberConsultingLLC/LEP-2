@@ -141,8 +141,6 @@ export { MINIMUM_SIGNAL_FIELDS };
  */
 const observationList = {
   type: 'array',
-  minItems: 2,
-  maxItems: 3,
   items: {
     type: 'object',
     additionalProperties: false,
@@ -154,10 +152,8 @@ const observationList = {
       },
       sourceSignals: {
         type: 'array',
-        minItems: 1,
-        maxItems: 4,
-        items: { type: 'string', enum: SIGNAL_VOCABULARY },
-        description: 'Which intake signals this observation is drawn from.',
+        items: { type: 'string' },
+        description: 'Which intake signal names this observation is drawn from. Use names from the SIGNAL VOCABULARY.',
       },
     },
   },
@@ -175,7 +171,7 @@ export const INSIGHT_MAP_SCHEMA = {
         'leadershipMirror', 'protectivePattern', 'pressurePattern', 'peopleImpact',
         'performanceImpact', 'hiddenTradeoff', 'futureRiskIfUnchanged',
         'teamLikelyFeels', 'overuses', 'avoids',
-        'coreStrengths', 'coreTensions', 'blindSpots', 'contradictions', 'trajectory',
+        'findings', 'contradictions', 'trajectory',
       ],
       properties: {
         leadershipMirror: { type: 'string', description: '4-6 sentences. Identity-level mirror with enough texture to feel specific.' },
@@ -185,47 +181,28 @@ export const INSIGHT_MAP_SCHEMA = {
         performanceImpact: { type: 'string', description: '2-3 sentences. Likely performance-level impact.' },
         hiddenTradeoff: { type: 'string', description: '2-3 sentences. What this approach protects and what it costs.' },
         futureRiskIfUnchanged: { type: 'string', description: '4-6 sentences. Downside trajectory if people stay.' },
-        teamLikelyFeels: { type: 'array', minItems: 3, maxItems: 5, items: { type: 'string' } },
-        overuses: { type: 'array', minItems: 3, maxItems: 5, items: { type: 'string' } },
-        avoids: { type: 'array', minItems: 3, maxItems: 5, items: { type: 'string' } },
-        coreStrengths: {
-          type: 'array', minItems: 3, maxItems: 5,
+        teamLikelyFeels: { type: 'array', items: { type: 'string' } },
+        overuses: { type: 'array', items: { type: 'string' } },
+        avoids: { type: 'array', items: { type: 'string' } },
+        findings: {
+          type: 'array',
+          description: 'Strengths, tensions, and blind spots in one list. The three kinds are merged because the API refuses to compile a grammar with three near-identical nested array shapes.',
           items: {
             type: 'object', additionalProperties: false,
-            required: ['label', 'observations', 'implication'],
+            required: ['kind', 'label', 'observations', 'implication'],
             properties: {
+              kind: { type: 'string', enum: ['strength', 'tension', 'blindSpot'] },
               label: { type: 'string' },
               observations: observationList,
-              implication: { type: 'string', description: '2-3 sentences on what this causes downstream.' },
-            },
-          },
-        },
-        coreTensions: {
-          type: 'array', minItems: 3, maxItems: 5,
-          items: {
-            type: 'object', additionalProperties: false,
-            required: ['label', 'observations', 'implication'],
-            properties: {
-              label: { type: 'string' },
-              observations: observationList,
-              implication: { type: 'string', description: '2-3 sentences on what this causes downstream.' },
-            },
-          },
-        },
-        blindSpots: {
-          type: 'array', minItems: 3, maxItems: 5,
-          items: {
-            type: 'object', additionalProperties: false,
-            required: ['label', 'observations', 'teamImpact'],
-            properties: {
-              label: { type: 'string' },
-              observations: observationList,
-              teamImpact: { type: 'string', description: '2-3 sentences on how the team experiences this.' },
+              implication: {
+                type: 'string',
+                description: '2-3 sentences. For a strength or tension, what it causes downstream. For a blind spot, how the team experiences it.',
+              },
             },
           },
         },
         contradictions: {
-          type: 'array', minItems: 2, maxItems: 3,
+          type: 'array',
           items: {
             type: 'object', additionalProperties: false,
             required: ['tension', 'cause', 'effect', 'sourceSignals'],
@@ -233,7 +210,7 @@ export const INSIGHT_MAP_SCHEMA = {
               tension: { type: 'string' },
               cause: { type: 'string' },
               effect: { type: 'string' },
-              sourceSignals: { type: 'array', minItems: 2, maxItems: 4, items: { type: 'string', enum: SIGNAL_VOCABULARY } },
+              sourceSignals: { type: 'string', description: 'Comma-separated signal names from the SIGNAL VOCABULARY.' },
             },
           },
         },
@@ -248,7 +225,7 @@ export const INSIGHT_MAP_SCHEMA = {
       },
     },
     focusRecommendations: {
-      type: 'array', minItems: 5, maxItems: 5,
+      type: 'array',
       description: 'The five growth sub-traits, each carrying a falsifiable prediction about how this leader\'s team will rate them.',
       items: {
         type: 'object', additionalProperties: false,
@@ -262,7 +239,7 @@ export const INSIGHT_MAP_SCHEMA = {
             type: 'string',
             description: 'A specific, checkable prediction about how the team will rate effort vs efficacy on this behavior.',
           },
-          basis: { type: 'array', minItems: 2, maxItems: 4, items: { type: 'string', enum: SIGNAL_VOCABULARY } },
+          basis: { type: 'string', description: 'Comma-separated signal names from the SIGNAL VOCABULARY.' },
           confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
           ifWrong: { type: 'string', description: 'What it would mean about this leader if the team data contradicts the prediction.' },
         },
@@ -280,11 +257,11 @@ export const INSIGHT_MAP_SCHEMA = {
             clearestAsset: { type: 'string', description: '2-3 sentences naming the clearest leadership asset.' },
             coreTension: { type: 'string', description: '2-3 sentences naming the core tension without solving it.' },
             markerMoments: {
-              type: 'array', minItems: 2, maxItems: 2,
+              type: 'array',
               items: { type: 'string', description: 'A vivid, concrete, present-tense scene the leader can already recognize.' },
             },
             hazardIfStay: {
-              type: 'array', minItems: 2, maxItems: 2,
+              type: 'array',
               items: {
                 type: 'string',
                 description: 'Paired 1:1 with markerMoments. Year-later behavior of people who STAY — never quitting, resigning, leaving, attrition, or turnover.',
@@ -295,7 +272,7 @@ export const INSIGHT_MAP_SCHEMA = {
       },
     },
     openQuestions: {
-      type: 'array', minItems: 0, maxItems: 3,
+      type: 'array',
       description: 'Where the read is genuinely uncertain. Replaces a confidence rating with something actionable.',
       items: {
         type: 'object', additionalProperties: false,
@@ -328,6 +305,15 @@ ${EVIDENCE_RUBRIC}
 
 ${CLARIFICATION_RULES}
 
+REQUIRED COUNTS (the schema cannot enforce these — you must)
+- evidence.findings: 9 to 15 entries total — at least 3 of each kind (strength, tension, blindSpot).
+- evidence.teamLikelyFeels, overuses, avoids: 3 to 5 each.
+- evidence.contradictions: 2 or 3.
+- Every observations array: 2 or 3 entries, each naming at least 2 comma-separated sourceSignals.
+- focusRecommendations: exactly 5, each naming at least 2 comma-separated signals in basis.
+- rendering.spokenSeeds.markerMoments: exactly 2. hazardIfStay: exactly 2, paired 1:1 with them.
+- openQuestions: 0 to 3. Only where the read is genuinely uncertain.
+
 DEPTH
 Write to the top of each field's stated range when the evidence supports it. Thin, clipped fields make the
 downstream product generic. But do not manufacture texture you cannot source — that is what openQuestions is for.
@@ -336,6 +322,9 @@ HAZARD CONSTRAINT
 rendering.spokenSeeds.hazardIfStay describes how people who STAY change their behavior: withholding, over-asking,
 self-protection, quiet workarounds, slowed ownership, political caution, compliance without candor.
 Never quitting, resigning, leaving, attrition, or turnover. Each hazard pairs 1:1 with the marker moment at the same index.
+
+SIGNAL VOCABULARY (use these exact names in sourceSignals and basis)
+${SIGNAL_VOCABULARY.join(', ')}
 
 VALID FOCUS SUBTRAITS
 Use exact names from this catalog and no others:
@@ -370,7 +359,7 @@ export const GUIDE_NARRATIVE_SCHEMA = {
       required: ['framing', 'examples'],
       properties: {
         framing: { type: 'string', description: '5-7 spoken sentences.' },
-        examples: { type: 'array', minItems: 2, maxItems: 2, items: { type: 'string' } },
+        examples: { type: 'array', items: { type: 'string' } },
       },
     },
     hazards: {
@@ -378,7 +367,7 @@ export const GUIDE_NARRATIVE_SCHEMA = {
       required: ['framing', 'examples'],
       properties: {
         framing: { type: 'string', description: '5-7 spoken sentences.' },
-        examples: { type: 'array', minItems: 2, maxItems: 2, items: { type: 'string' } },
+        examples: { type: 'array', items: { type: 'string' } },
       },
     },
     newTrail: { type: 'string', description: '7-10 spoken sentences.' },
