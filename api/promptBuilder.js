@@ -330,7 +330,6 @@ VALID FOCUS SUBTRAITS
 Use exact names from this catalog and no others:
 ${Array.isArray(traitCatalog) ? traitCatalog.join(', ') : ''}
 
-Prefer "Decision Quality & Pace" when decision timing or quality is the opportunity.
 
 ${COMPASS_PHILOSOPHY_HEADER}
 ${agentIdentity}

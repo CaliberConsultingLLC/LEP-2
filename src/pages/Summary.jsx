@@ -1002,16 +1002,27 @@ function Summary() {
   };
 
   if (isLoading) {
-    const stage = loadingSeconds < 20
-      ? 'Reading everything you told us.'
-      : loadingSeconds < 75
-        ? 'Finding the patterns that run across your answers.'
-        : 'Writing your Trailhead in your guide’s voice.';
+    // Generation genuinely runs about three minutes. The wait is the product
+    // working, so the screen narrates the actual stages rather than spinning —
+    // a motionless spinner reads as broken, and the natural response is to
+    // refresh, which throws the work away and starts over.
+    const STAGES = [
+      { at: 0, text: 'Reading everything you told us.' },
+      { at: 18, text: 'Setting your answers against each other, looking for where they disagree.' },
+      { at: 42, text: 'Finding the patterns that run underneath the individual answers.' },
+      { at: 72, text: 'Working out what this costs the people around you.' },
+      { at: 105, text: 'Choosing the five places where change would matter most.' },
+      { at: 132, text: 'Committing to what we think your team will say about you.' },
+      { at: 158, text: 'Putting it into your guide’s voice.' },
+      { at: 190, text: 'Nearly there — the last part is worth the wait.' },
+    ];
+    const stage = STAGES.filter((s2) => loadingSeconds >= s2.at).pop() || STAGES[0];
+    const stageIndex = STAGES.indexOf(stage);
     return (
       <LoadingScreen
-        title="Generating your leadership summary..."
-        subtitle={stage}
-        hint={`This usually takes about two minutes. ${loadingSeconds}s elapsed — please don’t refresh.`}
+        title="Building your Compass..."
+        subtitle={stage.text}
+        hint={`Step ${stageIndex + 1} of ${STAGES.length} · ${loadingSeconds}s · This takes about three minutes. Please don’t refresh.`}
       />
     );
   }
