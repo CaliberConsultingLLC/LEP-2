@@ -339,7 +339,7 @@ function StageHeader({ title, traitIndex, traitCount, onNextTrait, mode, onModeC
   );
 }
 
-function AllStatementList({ statements, mode, onSelect }) {
+function AllStatementList({ statements, onSelect }) {
   return (
     <Box sx={{ mt: '22px' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 2, mb: '4px' }}>
@@ -353,7 +353,7 @@ function AllStatementList({ statements, mode, onSelect }) {
             color: colors.inkSoft,
           }}
         >
-          All five statements · Pick one to focus
+          Trait statements
         </Typography>
         <Typography
           sx={{
@@ -366,12 +366,11 @@ function AllStatementList({ statements, mode, onSelect }) {
             flexShrink: 0,
           }}
         >
-          {metricLabel(mode)}
+          <MetricHint title={SCORE_HINTS.compass} underline>Compass score</MetricHint>
         </Typography>
       </Box>
       {statements.map((statement, idx) => {
         const zone = zoneFor(statement.effort, statement.efficacy);
-        const score = scoresFor(statement, mode).team;
         return (
           <Box
             key={idx}
@@ -410,7 +409,7 @@ function AllStatementList({ statements, mode, onSelect }) {
                 color: zone.ink,
               }}
             >
-              {score}
+              <MetricHint title={SCORE_HINTS.compass}>{statement.compass}</MetricHint>
             </Typography>
           </Box>
         );
@@ -469,7 +468,7 @@ function StagePanels({
           {isAll ? (
             <>
               <ScoreCells team={avgs.team} self={avgs.self} all mode={mode} />
-              <AllStatementList statements={statements} mode={mode} onSelect={onSelect} />
+              <AllStatementList statements={statements} onSelect={onSelect} />
             </>
           ) : (
             active && (
@@ -531,22 +530,13 @@ function StagePanels({
 // Trait exhibit chapter — same explorer format as Evidence snapshot
 // ---------------------------------------------------------------------------
 function EvTraitPage({ row, traitIndex = 0, traitCount = 1, onNextTrait }) {
-  const lowestIdx = useMemo(() => {
-    const statements = mapRowStatements(row);
-    if (!statements.length) return 0;
-    let minIdx = 0;
-    statements.forEach((s, i) => {
-      if (s.compass < statements[minIdx].compass) minIdx = i;
-    });
-    return minIdx;
-  }, [row]);
-  const [selected, setSelected] = useState(lowestIdx);
+  const [selected, setSelected] = useState('all');
   const [mode, setMode] = useState('map');
 
   useEffect(() => {
-    setSelected(lowestIdx);
+    setSelected('all');
     setMode('map');
-  }, [lowestIdx, row]);
+  }, [row]);
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto' }}>
@@ -769,22 +759,13 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 function EvidenceSnapshot({ orderedRows }) {
   const [traitIdx, setTraitIdx] = useState(0);
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
-  const statements = useMemo(() => mapRowStatements(row), [row]);
-  const lowestIdx = useMemo(() => {
-    if (!statements.length) return 0;
-    let minIdx = 0;
-    statements.forEach((s, i) => {
-      if (s.compass < statements[minIdx].compass) minIdx = i;
-    });
-    return minIdx;
-  }, [statements]);
-  const [selected, setSelected] = useState(lowestIdx);
+  const [selected, setSelected] = useState('all');
   const [mode, setMode] = useState('map');
 
   useEffect(() => {
-    setSelected(lowestIdx);
+    setSelected('all');
     setMode('map');
-  }, [traitIdx, lowestIdx]);
+  }, [traitIdx, row]);
 
   return (
     <SnapshotShell>
@@ -924,6 +905,7 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
       {chapter.id === 'ev-intro' && <EvIntroPage rows={orderedRows} respondents={respondents} />}
       {chapter.row && (
         <EvTraitPage
+          key={chapter.row.trait}
           row={chapter.row}
           traitIndex={Math.max(0, orderedRows.findIndex((r) => r.trait === chapter.row.trait))}
           traitCount={orderedRows.length}
