@@ -98,6 +98,39 @@ export function buildIntakeProjection(body = {}) {
   };
 }
 
+// Fields that carry real behavioral signal. Demographics alone (role, industry,
+// team size) describe a job, not a leader, so they are deliberately excluded.
+const SIGNAL_BEARING_FIELDS = [
+  'responsibilities', 'resourcePick', 'projectApproach', 'energyDrains',
+  'crisisResponse', 'pushbackFeeling', 'roleModelTrait', 'warningLabel',
+  'leaderFuel', 'proudMoment', 'behaviorDichotomies', 'visibilityComfort',
+  'decisionPace', 'teamPerception', 'societalInstincts',
+];
+
+const MINIMUM_SIGNAL_FIELDS = 6;
+
+/**
+ * Counts how many signal-bearing intake fields actually have content.
+ *
+ * Without this, an empty or near-empty body still produces a confident,
+ * fully-formed leadership profile — the model will happily invent a leader from
+ * nothing, and every downstream gate passes because the shape is valid. Shape
+ * validation cannot catch fabrication; only refusing to ask can.
+ */
+export function intakeSignalCount(projection = {}) {
+  return SIGNAL_BEARING_FIELDS.reduce((count, key) => {
+    const value = projection[key];
+    if (Array.isArray(value)) return count + (value.length ? 1 : 0);
+    return count + (String(value ?? '').trim() ? 1 : 0);
+  }, 0);
+}
+
+export function intakeIsSufficient(projection = {}) {
+  return intakeSignalCount(projection) >= MINIMUM_SIGNAL_FIELDS;
+}
+
+export { MINIMUM_SIGNAL_FIELDS };
+
 /**
  * JSON Schema for the insight map, enforced by the API. A truncated or
  * malformed map is structurally impossible with this in place.

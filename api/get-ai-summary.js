@@ -13,8 +13,11 @@ import path from 'path';
 import {
   INSIGHT_MAP_SCHEMA,
   GUIDE_NARRATIVE_SCHEMA,
+  MINIMUM_SIGNAL_FIELDS,
   buildInsightExtractionSystemPrompt,
   buildInsightExtractionUserPrompt,
+  buildIntakeProjection,
+  intakeSignalCount,
   buildNarrativeSystemPrefix,
   buildNarrativeVoiceSuffix,
   buildSummaryNarrativeUserPrompt,
@@ -423,6 +426,18 @@ export default async function handler(req, res) {
   try {
     if (!ensureJsonObjectBody(req, res)) return;
     const body = req.body || {};
+
+    // Refuse to profile a leader who supplied nothing. Every structural gate
+    // downstream checks shape, and a fabricated map has perfectly valid shape —
+    // so this is the only place fabrication can be caught.
+    const signalCount = intakeSignalCount(buildIntakeProjection(body));
+    if (signalCount < MINIMUM_SIGNAL_FIELDS) {
+      return res.status(400).json({
+        error: 'Not enough intake data to build a summary.',
+        details: [`Found ${signalCount} of the ${MINIMUM_SIGNAL_FIELDS} behavioral signals required.`],
+      });
+    }
+
     const selectedGuideId = resolveGuideVoiceId(body.guideId || body.selectedAgent);
 
     // Which guides to render this request. Omitted means all six (the dev
