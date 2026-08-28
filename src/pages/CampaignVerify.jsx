@@ -77,7 +77,7 @@ function CampaignVerify() {
 
   const ctaLabel = locked
     ? 'Continue to Self-Assessment'
-    : (locking ? 'Locking in…' : 'Lock in my growth campaign');
+    : (locking ? 'Locking in…' : 'Lock in my Growth Campaign');
 
   if (useCairnTheme) {
     return (
@@ -90,8 +90,8 @@ function CampaignVerify() {
         <CompassLayout afterTopbar>
           <Box sx={{ width: '100%', maxWidth: 1120, mx: 'auto' }}>
             <CampaignStageHeader
-              eyebrow="Review"
-              title="Own this growth campaign"
+              eyebrow="Growth Campaign"
+              title="Review and Submit"
               subtitle="Three traits. Fifteen statements. If this is the work you will put in front of your team, lock it in."
             />
 
@@ -108,7 +108,7 @@ function CampaignVerify() {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
-                gap: { xs: 2, md: 2.25 },
+                gap: { xs: 2.5, md: 3 },
                 alignItems: 'stretch',
               }}
             >
@@ -117,26 +117,32 @@ function CampaignVerify() {
                   key={`${card.coreName}-${card.subName}-${index}`}
                   sx={{
                     ...surfaces.card,
-                    p: { xs: 2.25, md: 2.5 },
+                    p: { xs: 3, md: 3.5 },
                     display: 'flex',
                     flexDirection: 'column',
                     minHeight: { md: '100%' },
                     textAlign: 'left',
                   }}
                 >
-                  <Typography sx={{ ...stageType.cardLabel, mb: 0.6 }}>
-                    Trait {index + 1} of 3
-                  </Typography>
-                  <Typography sx={{ ...stageType.statement, fontSize: 20, lineHeight: 1.2, mb: 0.4 }}>
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.sans,
+                      fontWeight: 800,
+                      fontSize: 15,
+                      lineHeight: 1.2,
+                      color: colors.navy900,
+                      mb: 0.4,
+                    }}
+                  >
                     {card.subName || card.coreName}
                   </Typography>
                   {card.subName && card.coreName && card.subName !== card.coreName && (
-                    <Typography sx={{ ...stageType.cardBody, color: colors.inkSoft, mb: 1 }}>
+                    <Typography sx={{ ...stageType.cardBody, color: colors.inkSoft, mb: 1.25 }}>
                       {card.coreName}
                     </Typography>
                   )}
                   {card.blurb ? (
-                    <Typography sx={{ ...stageType.cardBody, mb: 1.75, color: colors.navy800 }}>
+                    <Typography sx={{ ...stageType.cardBody, mb: 2, color: colors.navy800 }}>
                       {card.blurb}
                     </Typography>
                   ) : null}

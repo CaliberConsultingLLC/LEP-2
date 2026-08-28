@@ -28,7 +28,7 @@ const PAGE_GROUPS = [
     pages: [
       { label: 'IV - Trait Selection', path: '/trait-selection' },
       { label: 'IV - Campaign Builder', path: '/campaign-builder' },
-      { label: 'IV - Review', path: '/campaign-verify' },
+      { label: 'IV - Review and Submit', path: '/campaign-verify' },
     ],
   },
   {

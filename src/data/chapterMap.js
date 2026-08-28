@@ -132,7 +132,7 @@ export const CHAPTERS = [
       },
       {
         id: 'verify',
-        label: 'Review',
+        label: 'Review and Submit',
         path: '/campaign-verify',
         whatHappens: ['Three traits, fifteen statements', 'Last look before you own it', 'Locking starts the assessments'],
       },

@@ -621,49 +621,73 @@ function CampaignBuilder() {
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '9px',
+                  gap: '8px',
                 }}
               >
                 {activeStatements.map((stmt, sIdx) => {
                   const isDismissed = dismissedStatements.some((ds) => ds.trait === activeTrait.trait && ds.index === sIdx);
+                  const isKept = !isDismissed;
+                  const toggleKept = () => handleStatementDismiss(activeTrait.trait, sIdx, isKept);
                   return (
                     <Box
                       key={`stmt-${sIdx}`}
                       sx={{
                         boxSizing: 'border-box',
                         display: 'grid',
-                        gridTemplateColumns: '30px 1fr 108px',
+                        gridTemplateColumns: '34px 1fr 116px',
                         alignItems: 'center',
-                        gap: '16px',
+                        gap: '18px',
                         px: '16px',
-                        py: '14px',
+                        py: '12px',
                         borderRadius: radii.md,
-                        bgcolor: isDismissed
-                          ? 'color-mix(in srgb, var(--orange-deep) 7%, var(--sand-50))'
-                          : colors.sand50,
-                        border: isDismissed
-                          ? '1px solid color-mix(in srgb, var(--orange-deep) 32%, transparent)'
-                          : `1px solid ${colors.sand200}`,
+                        bgcolor: isKept
+                          ? colors.sand50
+                          : 'color-mix(in srgb, var(--orange-deep) 7%, var(--sand-50))',
+                        border: isKept
+                          ? `1px solid ${colors.sand200}`
+                          : '1px solid color-mix(in srgb, var(--orange-deep) 32%, transparent)',
                       }}
                     >
-                      <Typography
+                      <Box
+                        component="button"
+                        type="button"
+                        onClick={toggleKept}
+                        role="checkbox"
+                        aria-checked={isKept}
+                        aria-label={isKept ? `Keep statement ${sIdx + 1}` : `Include statement ${sIdx + 1}`}
                         sx={{
-                          fontFamily: fonts.mono,
-                          fontSize: 11,
+                          appearance: 'none',
+                          border: 'none',
+                          p: 0,
+                          m: 0,
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                          width: 30,
+                          height: 30,
+                          borderRadius: radii.circle,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: isKept ? colors.green : colors.sand200,
+                          color: colors.sand50,
+                          fontFamily: fonts.serif,
                           fontWeight: 700,
-                          color: isDismissed ? colors.orangeDeep : colors.inkSoft,
+                          fontSize: 12.5,
+                          lineHeight: 1,
+                          flexShrink: 0,
+                          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
                         }}
                       >
-                        {sIdx + 1}
-                      </Typography>
+                        {isKept ? '✓' : ''}
+                      </Box>
                       <Typography
                         sx={{
                           fontFamily: fonts.sans,
+                          fontWeight: 800,
                           fontSize: 15,
-                          lineHeight: 1.45,
-                          fontWeight: 600,
-                          color: isDismissed ? colors.inkSoft : colors.navy900,
-                          textDecoration: isDismissed ? 'line-through' : 'none',
+                          lineHeight: 1.35,
+                          color: isKept ? colors.navy900 : colors.inkSoft,
+                          textDecoration: isKept ? 'none' : 'line-through',
                           textAlign: 'left',
                         }}
                       >
@@ -672,7 +696,7 @@ function CampaignBuilder() {
                       <Box
                         component="button"
                         type="button"
-                        onClick={() => handleStatementDismiss(activeTrait.trait, sIdx, !isDismissed)}
+                        onClick={toggleKept}
                         sx={{
                           all: 'unset',
                           boxSizing: 'border-box',
@@ -680,20 +704,20 @@ function CampaignBuilder() {
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          py: '8px',
+                          py: '9px',
                           px: 0,
-                          width: '100%',
                           borderRadius: radii.pill,
+                          bgcolor: isKept ? colors.surface1 : colors.orangeDeep,
+                          border: isKept ? `1px solid ${colors.sand300}` : `1px solid ${colors.orangeDeep}`,
+                          color: isKept ? colors.navy900 : colors.sand50,
                           fontFamily: fonts.sans,
                           fontWeight: 800,
-                          fontSize: 11.8,
-                          bgcolor: isDismissed ? colors.green : 'rgba(224,122,63,0.12)',
-                          border: isDismissed ? `1px solid ${colors.green}` : '1px solid rgba(224,122,63,0.32)',
-                          color: isDismissed ? '#fff' : colors.orangeDeep,
+                          fontSize: 12,
+                          width: '100%',
                           '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
                         }}
                       >
-                        {isDismissed ? 'Restore' : 'Remove'}
+                        {isKept ? 'Remove' : 'Restore'}
                       </Box>
                     </Box>
                   );
