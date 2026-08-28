@@ -78,6 +78,9 @@
     },
     "api/get-results-analysis.js": {
       "maxDuration": 300
+    },
+    "api/get-guide-lines.js": {
+      "maxDuration": 300
     }
   }
 }
