@@ -70,6 +70,7 @@ export const NEW_QUESTIONS = [
   {
     id: 'a2',
     prompt: 'You got something wrong and the team saw it. What actually happens next?',
+    format: 'open',
     targets: ['personalAccountability', 'transparency', 'integrity'],
     signals: [
       { coreId: 'accountability', subId: 'personalAccountability', weight: 1.6 },
@@ -80,6 +81,16 @@ export const NEW_QUESTIONS = [
   {
     id: 'a3',
     prompt: 'Someone on your team misses a commitment for the second time. What do you do?',
+    format: 'choice',
+    options: [
+      'Name it directly in private and reset the expectation with a date.',
+      'Ask what got in the way before assuming anything.',
+      'Quietly take the work back and handle it myself.',
+      'Tighten the process so it cannot slip again.',
+      'Escalate it — my manager or HR needs to know.',
+      'Let it slide, but factor it into how much I trust them.',
+      'Address it in front of the team so the standard is clear to everyone.',
+    ],
     targets: ['holdingOthersAccountable', 'reliability', 'feedback'],
     signals: [
       { coreId: 'accountability', subId: 'holdingOthersAccountable', weight: 1.5 },
@@ -90,6 +101,16 @@ export const NEW_QUESTIONS = [
   {
     id: 'c1',
     prompt: 'Direction changes above you and the reason is not explained. What do you do first?',
+    format: 'choice',
+    options: [
+      'Ask for the reasoning before I pass anything down.',
+      'Translate it into a plan and give my team the best why I can.',
+      'Pass it along as-is — the reasoning is not mine to invent.',
+      'Push back through channels until the reason is explained.',
+      'Re-plan everything privately before telling anyone.',
+      'Keep running the old direction until someone makes me stop.',
+      'Adapt fast and move — reasons catch up later.',
+    ],
     targets: ['changeLeadership', 'adaptability'],
     signals: [
       { coreId: 'changeAdaptability', subId: 'changeLeadership', weight: 1.6 },
@@ -99,6 +120,7 @@ export const NEW_QUESTIONS = [
   {
     id: 'c2',
     prompt: 'Something your team tried did not work. What happens to that idea afterwards?',
+    format: 'open',
     targets: ['innovation', 'learningAgility', 'organizationalLearning'],
     signals: [
       { coreId: 'changeAdaptability', subId: 'innovation', weight: 1.4 },
@@ -109,6 +131,16 @@ export const NEW_QUESTIONS = [
   {
     id: 'e1',
     prompt: 'A date you committed to is going to slip. When and how does anyone find out?',
+    format: 'choice',
+    options: [
+      'I flag it the moment I know, with a revised plan attached.',
+      'I say something near the date, once I am certain how bad it is.',
+      'I add hours or people and make the date happen somehow.',
+      'I quietly cut scope so the date holds.',
+      'I renegotiate what done means.',
+      'The date passes, then I explain.',
+      'My dates do not slip — I pad them so they cannot.',
+    ],
     targets: ['deadlineManagement', 'transparency'],
     signals: [
       { coreId: 'execution', subId: 'deadlineManagement', weight: 1.6 },
@@ -118,6 +150,16 @@ export const NEW_QUESTIONS = [
   {
     id: 'x1',
     prompt: 'You need something from a team you do not manage and they are not moving. What works for you?',
+    format: 'choice',
+    options: [
+      'Build the relationship first and ask later.',
+      'Make the case with data and business impact.',
+      'Trade something they need.',
+      'Escalate to someone with authority over both of us.',
+      'Go around them to whoever will say yes.',
+      'Make it easy — do part of their work for them.',
+      'Create visibility — public status has a way of moving people.',
+    ],
     targets: ['crossFunctionalCollaboration', 'stakeholderManagement'],
     signals: [
       { coreId: 'collaboration', subId: 'crossFunctionalCollaboration', weight: 1.6 },
@@ -127,6 +169,16 @@ export const NEW_QUESTIONS = [
   {
     id: 'x2',
     prompt: 'You have to change a mind that outranks you. How do you actually go about it?',
+    format: 'choice',
+    options: [
+      'Bring data and let it speak.',
+      'Pre-wire allies one conversation at a time.',
+      'Ask questions until they arrive at it themselves.',
+      'Make the case head-on in the room.',
+      'Show a working result instead of arguing.',
+      'Put it in writing and let them sit with it.',
+      'Mostly I do not — I execute their call and revisit later.',
+    ],
     targets: ['influence', 'stakeholderConsideration'],
     signals: [
       { coreId: 'communication', subId: 'influence', weight: 1.6 },
@@ -136,6 +188,16 @@ export const NEW_QUESTIONS = [
   {
     id: 's1',
     prompt: 'The same problem has now come back three times. What is your first move?',
+    format: 'choice',
+    options: [
+      'Map the system that keeps producing it before touching anything.',
+      'Go watch it happen where it happens.',
+      'Ask the people closest to it what they see.',
+      'Fix it again, better this time.',
+      'Add a check or automation so it gets caught.',
+      'Look at who keeps being involved.',
+      'Rebuild the process from scratch.',
+    ],
     targets: ['systemsThinking', 'patternRecognition', 'processImprovement'],
     signals: [
       { coreId: 'strategicThinking', subId: 'systemsThinking', weight: 1.5 },
