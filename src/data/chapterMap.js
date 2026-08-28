@@ -141,12 +141,12 @@ export const CHAPTERS = [
   {
     id: 'self',
     num: 'V',
-    name: 'Self-Assessment',
+    name: 'Campaign Assessment',
     purpose:
       'You answer the same fifteen statements first, then send a different link to your team. Compass never emails them — that is how the answers stay anonymous.',
     completeBlurb:
       'Your benchmark is in and the team has a way to answer. Closing the window opens the first reading — a signal, not a verdict.',
-    arriveHint: 'Read how this works, rate yourself, then send the team invite. The self-assessment locks when you finish.',
+    arriveHint: 'Read how this works, rate yourself, then send the team invite. Your assessment locks when you finish.',
     steps: [
       {
         id: 'info',
@@ -156,7 +156,7 @@ export const CHAPTERS = [
       },
       {
         id: 'self',
-        label: 'Self-Assessment',
+        label: 'Your Assessment',
         path: '/self-assessment?step=self',
         whatHappens: ['The same fifteen statements', 'Answered before you see theirs', 'Locks when you finish'],
       },
@@ -229,7 +229,7 @@ export const CHAPTERS = [
 
 /**
  * Header chapters sit on the year-map trail. Growth Campaign shares the
- * reflection/creation node; Self-Assessment sits on the next node so you
+ * reflection/creation node; Campaign Assessment sits on the next node so you
  * take it right after the campaign is built.
  */
 export const CHAPTER_STATION_INDEX = {

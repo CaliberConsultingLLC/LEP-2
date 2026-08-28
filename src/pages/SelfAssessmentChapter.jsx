@@ -91,7 +91,7 @@ function CopyRow({ label, value, copied, onCopy }) {
 
 function CompactHeader({ eyebrow, title, subtitle }) {
   return (
-    <Box sx={{ width: '100%', textAlign: 'center', mb: 1.1 }}>
+    <Box sx={{ width: '100%', textAlign: 'center', mb: 1.1, pt: { xs: 1.5, md: 2 } }}>
       <Typography sx={{ ...stageType.eyebrow, mb: 0.5 }}>{eyebrow}</Typography>
       <Typography sx={{ ...stageType.title, fontSize: { xs: 22, md: 24 }, mb: subtitle ? 0.35 : 0 }}>
         {title}
@@ -176,10 +176,10 @@ function SelfAssessmentChapter() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
         {rail('self', { variant: 'sequence', label: 'Statements', current: 15, total: 15 })}
-        <CompassLayout afterTopbar flushTop>
+        <CompassLayout afterTopbar>
           <Box sx={{ width: '100%', maxWidth: 640, mx: 'auto' }}>
             <CompactHeader
-              eyebrow="Self-Assessment"
+              eyebrow="Campaign Assessment"
               title="Your benchmark is locked"
               subtitle="You already answered the fifteen statements. That reading stays private and cannot be retaken."
             />
@@ -211,7 +211,7 @@ function SelfAssessmentChapter() {
   if (step === 'self' && !complete) {
     return (
       <LoadingScreen
-        title="Opening your self-assessment..."
+        title="Opening your assessment..."
         subtitle="The same fifteen statements you just locked in."
       />
     );
@@ -221,7 +221,7 @@ function SelfAssessmentChapter() {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
         {rail('invite')}
-        <CompassLayout afterTopbar flushTop>
+        <CompassLayout afterTopbar>
           <Box sx={{ width: '100%', maxWidth: 640, mx: 'auto' }}>
             <CompactHeader
               eyebrow="Team Invite"
@@ -272,7 +272,7 @@ function SelfAssessmentChapter() {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
       {rail('info')}
-      <CompassLayout afterTopbar flushTop>
+      <CompassLayout afterTopbar>
         <Box sx={{ width: '100%', maxWidth: 680, mx: 'auto' }}>
           <CompactHeader
             eyebrow="Information"
@@ -335,7 +335,7 @@ function SelfAssessmentChapter() {
                 borderRadius: radii.pill,
               }}
             >
-              {complete ? 'Team Invite' : 'Begin self-assessment'}
+              {complete ? 'Team Invite' : 'Begin your assessment'}
             </Box>
           </Box>
         </Box>

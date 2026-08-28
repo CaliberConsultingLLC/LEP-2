@@ -74,7 +74,7 @@ function CampaignComplete() {
         <CompassLayout afterTopbar>
           <Box sx={{ width: '100%', maxWidth: 640, mx: 'auto' }}>
             <CampaignStageHeader
-              eyebrow="Self-Assessment"
+              eyebrow="Campaign Assessment"
               title="Your benchmark is locked"
               subtitle="You cannot go back in. Next you send a different link to the people who see you lead."
             />

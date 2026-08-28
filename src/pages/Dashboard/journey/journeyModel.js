@@ -41,8 +41,8 @@ const STATION_META = [
   },
   {
     key: 'assessment',
-    label: 'Self-Assessment',
-    title: 'Self-Assessment',
+    label: 'Campaign Assessment',
+    title: 'Campaign Assessment',
     subtitle: 'Rate yourself first, then invite your team with a different link you send by hand.',
     kind: 'assessment',
     campaign: 'team',

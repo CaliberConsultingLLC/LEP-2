@@ -105,8 +105,7 @@ function CampaignVerify() {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
-                columnGap: { xs: 2.5, md: 3 },
-                rowGap: { xs: 2.5, md: 0 },
+                gap: { xs: 2.5, md: 3 },
                 alignItems: 'stretch',
               }}
             >
@@ -120,10 +119,9 @@ function CampaignVerify() {
                   sx={{
                     ...surfaces.card,
                     p: { xs: 3, md: 3.5 },
-                    display: { xs: 'flex', md: 'grid' },
+                    display: 'flex',
                     flexDirection: 'column',
-                    gridTemplateRows: { md: 'subgrid' },
-                    gridRow: { md: 'span 8' },
+                    height: '100%',
                     textAlign: 'left',
                   }}
                 >
@@ -155,48 +153,56 @@ function CampaignVerify() {
                   <Box
                     aria-hidden
                     sx={{
+                      flexShrink: 0,
                       width: '100%',
                       height: '2px',
                       bgcolor: colors.orange,
                       mt: 1.35,
-                      mb: 0.5,
+                      mb: 1.5,
                     }}
                   />
-                  {Array.from({ length: 5 }, (_, sIdx) => card.statements[sIdx] || '').map((statement, sIdx) => (
-                    <Box
-                      key={`${index}-${sIdx}`}
-                      sx={{
-                        display: 'flex',
-                        gap: 1.15,
-                        alignItems: 'flex-start',
-                        pt: 1.5,
-                      }}
-                    >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1.5,
+                    }}
+                  >
+                    {card.statements.map((statement, sIdx) => (
                       <Box
+                        key={`${index}-${sIdx}`}
                         sx={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: radii.circle,
-                          flexShrink: 0,
-                          mt: '1px',
-                          bgcolor: colors.sand100,
-                          border: `1px solid ${colors.sand200}`,
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontFamily: fonts.mono,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: colors.orangeDeep,
+                          gap: 1.15,
+                          alignItems: 'flex-start',
                         }}
                       >
-                        {sIdx + 1}
+                        <Box
+                          sx={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: radii.circle,
+                            flexShrink: 0,
+                            mt: '1px',
+                            bgcolor: colors.sand100,
+                            border: `1px solid ${colors.sand200}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontFamily: fonts.mono,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: colors.orangeDeep,
+                          }}
+                        >
+                          {sIdx + 1}
+                        </Box>
+                        <Typography sx={{ ...stageType.cardBody, flex: 1, color: colors.ink }}>
+                          {statement}
+                        </Typography>
                       </Box>
-                      <Typography sx={{ ...stageType.cardBody, flex: 1, color: colors.ink }}>
-                        {statement}
-                      </Typography>
-                    </Box>
-                  ))}
+                    ))}
+                  </Box>
                 </Box>
                 );
               })}

@@ -32,7 +32,7 @@ const PAGE_GROUPS = [
     ],
   },
   {
-    label: 'Self-Assessment',
+    label: 'Campaign Assessment',
     pages: [
       { label: 'V - Information', path: '/self-assessment' },
       { label: 'V - Self Survey', path: `/campaign/${STAGING_SELF_ID}/survey` },
