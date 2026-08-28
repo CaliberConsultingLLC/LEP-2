@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, Typography } from '@mui/material';
 import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
+import { SUMMARY_BRIEFING_Z, SUMMARY_GUIDE_OWL_SX } from './summaryGuideLayout';
 
 export default function SummaryBriefingModal({
   open,
@@ -10,6 +11,21 @@ export default function SummaryBriefingModal({
   text,
   onDone,
 }) {
+  const ctaRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const id = window.setTimeout(() => ctaRef.current?.focus?.(), 40);
+    const onKey = (event) => {
+      if (event.key === 'Escape') onDone?.();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onDone]);
+
   if (!open || typeof document === 'undefined') return null;
 
   const pose = persona?.poses?.read || persona?.poses?.idle;
@@ -26,47 +42,61 @@ export default function SummaryBriefingModal({
       sx={{
         position: 'fixed',
         inset: 0,
-        zIndex: 10040,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'rgba(9,16,31,0.5)',
-        backdropFilter: 'blur(4px)',
-        p: 2,
+        zIndex: SUMMARY_BRIEFING_Z,
       }}
     >
       <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          bgcolor: 'rgba(9,16,31,0.5)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}
+      />
+      <Box
+        component="img"
+        src={pose}
+        alt=""
+        aria-hidden
+        draggable={false}
+        sx={{
+          ...SUMMARY_GUIDE_OWL_SX,
+          zIndex: 1,
+          filter: 'drop-shadow(0 16px 36px rgba(9,16,31,0.28))',
+        }}
+      />
+      <Box
         onClick={(event) => event.stopPropagation()}
         sx={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'flex-end',
-          maxWidth: '100%',
+          position: 'fixed',
+          left: { xs: 12, sm: 20, md: 56, lg: 92, xl: 120 },
+          bottom: { xs: 168, sm: 210, md: 300, lg: 360, xl: 400 },
+          width: { xs: 'min(340px, calc(100vw - 24px))', sm: 340, md: 360 },
+          zIndex: 2,
         }}
       >
         <Box
           sx={{
             position: 'relative',
-            width: { xs: 'min(280px, calc(100vw - 168px))', sm: 320, md: 340 },
-            flexShrink: 0,
             bgcolor: bubbleBg,
             border: bubbleBorder,
             borderRadius: radii.lg,
             boxShadow: shadows.overlay,
             px: { xs: '20px', md: '24px' },
-            pt: { xs: '24px', md: '26px' },
-            pb: '20px',
-            mb: '12px',
+            pt: { xs: '22px', md: '24px' },
+            pb: '18px',
             '&:after': {
               content: '""',
               position: 'absolute',
-              right: -8,
-              bottom: 36,
+              left: { xs: 28, md: 40 },
+              bottom: -8,
               width: 16,
               height: 16,
               bgcolor: bubbleBg,
+              borderBottom: bubbleBorder,
               borderRight: bubbleBorder,
-              borderTop: bubbleBorder,
               transform: 'rotate(45deg)',
               zIndex: 1,
             },
@@ -100,6 +130,7 @@ export default function SummaryBriefingModal({
             {text}
           </Typography>
           <Box
+            ref={ctaRef}
             component="button"
             type="button"
             onClick={onDone}
@@ -113,22 +144,6 @@ export default function SummaryBriefingModal({
             {cta}
           </Box>
         </Box>
-
-        <Box
-          component="img"
-          src={pose}
-          alt=""
-          aria-hidden
-          sx={{
-            width: { xs: 180, sm: 220, md: 248 },
-            height: 'auto',
-            ml: { xs: '-12px', md: '-16px' },
-            mb: '-6px',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            zIndex: 2,
-          }}
-        />
       </Box>
     </Box>,
     document.body

@@ -20,6 +20,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
+import { SUMMARY_GUIDE_OWL_SX } from '../components/summaryGuideLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
@@ -1530,16 +1531,9 @@ function Summary() {
           alt={`${persona.name} delivering your reflection`}
           draggable={false}
           sx={{
-            position: 'fixed',
-            left: 0,
-            bottom: 0,
-            width: { xs: 240, sm: 300, md: 480, lg: 580, xl: 640 },
-            height: 'auto',
-            display: 'block',
-            transform: 'scaleX(-1)',
-            transformOrigin: 'center bottom',
+            ...SUMMARY_GUIDE_OWL_SX,
             zIndex: 1,
-            pointerEvents: 'none',
+            visibility: briefingOpen ? 'hidden' : 'visible',
           }}
         />
         <SummaryBriefingModal
