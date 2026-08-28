@@ -754,10 +754,10 @@ export default function CommandCenter() {
   const respondents = teamResponses?.length || 0;
   const windowOpen = !campaignClosed;
   const chapterId = windowOpen && activeTab === 'journey'
-    ? 'assessments'
-    : (activeTab === 'journey' ? 'action' : 'review');
-  const activeStepId = chapterId === 'assessments'
     ? 'team'
+    : (activeTab === 'journey' ? 'action' : 'review');
+  const activeStepId = chapterId === 'team'
+    ? 'invite'
     : (chapterId === 'action' ? 'journey' : (['today', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today'));
 
   // Marks the phase complete and carries the user through the door to the

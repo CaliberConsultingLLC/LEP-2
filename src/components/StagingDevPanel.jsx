@@ -28,28 +28,33 @@ const PAGE_GROUPS = [
     pages: [
       { label: 'IV - Trait Selection', path: '/trait-selection' },
       { label: 'IV - Campaign Builder', path: '/campaign-builder' },
-      { label: 'IV - Review & Send', path: '/campaign-verify' },
+      { label: 'IV - Review', path: '/campaign-verify' },
     ],
   },
   {
-    label: 'Assessments',
+    label: 'Self-Assessment',
     pages: [
-      { label: 'V - Self Intro', path: `/campaign/${STAGING_SELF_ID}` },
+      { label: 'V - Information', path: '/self-assessment' },
       { label: 'V - Self Survey', path: `/campaign/${STAGING_SELF_ID}/survey` },
       { label: 'V - Self Complete', path: `/campaign/${STAGING_SELF_ID}/complete` },
-      { label: 'V - Team Intro', path: `/campaign/${STAGING_TEAM_ID}` },
-      { label: 'V - Team Survey', path: `/campaign/${STAGING_TEAM_ID}/survey` },
-      { label: 'V - Team Complete', path: `/campaign/${STAGING_TEAM_ID}/complete` },
+    ],
+  },
+  {
+    label: 'Team Assessment',
+    pages: [
+      { label: 'VI - Team Invite', path: '/team-assessment' },
+      { label: 'VI - Team Intro', path: `/campaign/${STAGING_TEAM_ID}` },
+      { label: 'VI - Team Survey', path: `/campaign/${STAGING_TEAM_ID}/survey` },
     ],
   },
   {
     label: 'Command Center',
     pages: [
-      { label: 'VI - Today', path: '/dashboard?tab=today' },
-      { label: 'VI - Signal', path: '/dashboard?tab=signal' },
-      { label: 'VI - Evidence', path: '/dashboard?tab=evidence' },
-      { label: 'VI - Practice', path: '/dashboard?tab=practice' },
-      { label: 'VII - Journey', path: '/dashboard?tab=journey' },
+      { label: 'VII - Today', path: '/dashboard?tab=today' },
+      { label: 'VII - Signal', path: '/dashboard?tab=signal' },
+      { label: 'VII - Evidence', path: '/dashboard?tab=evidence' },
+      { label: 'VII - Practice', path: '/dashboard?tab=practice' },
+      { label: 'VIII - Journey', path: '/dashboard?tab=journey' },
     ],
   },
 ];

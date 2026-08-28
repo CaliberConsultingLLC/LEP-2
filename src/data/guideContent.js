@@ -152,18 +152,50 @@ export const GUIDE_CONTENT = {
 
   // ── Campaign verify / launch ─────────────────────────────────────────────
   campaignVerify: {
-    title: 'Confirming your setup',
+    title: 'Locking in the campaign',
     mentor: [
-      { text: 'Last look before you invite anyone. Read like you\'re the person opening that email.', pose: 'read', cta: 'Reading' },
-      { text: 'If something feels off, fix it now. Your team will take their cue from how this lands.', pose: 'map', cta: 'Checking' },
+      { text: 'Read these like you will have to live them. If this is the work, lock it in.', pose: 'read', cta: 'Reading' },
+      { text: 'Three traits, fifteen statements. Own them before anyone else sees them.', pose: 'map', cta: 'Checking' },
     ],
     catalyst: [
-      { text: 'Looks right? Ship it. You can edit messaging later — it\'s not chiseled in stone.', pose: 'pointUp', cta: 'Ship' },
-      { text: 'Done is better than perfect here. Your team will appreciate the directness.', pose: 'plain', cta: 'Launching' },
+      { text: 'If it feels true, lock it. You can still lead after you commit.', pose: 'pointUp', cta: 'Lock it' },
+      { text: 'Done is better than perfect here. The owning is the point.', pose: 'plain', cta: 'Locking' },
     ],
     challenger: [
-      { text: 'If it feels mushy, rewrite the behavior before you send this to humans.', pose: 'sign', cta: 'Okay' },
+      { text: 'If it feels mushy, go back. Do not lock a campaign you will not stand behind.', pose: 'sign', cta: 'Okay' },
       { text: 'One honest sentence is worth more than a paragraph of careful hedging.', pose: 'armsCross', cta: 'Got it' },
+    ],
+  },
+
+  selfAssessment: {
+    title: 'You go first',
+    mentor: [
+      { text: 'Read how this works. You answer first, then you send a different link by hand.', pose: 'page', cta: 'Reading' },
+      { text: 'Anonymity is the design, not a slogan. That is why you distribute it yourself.', pose: 'lantern', cta: 'Okay' },
+    ],
+    catalyst: [
+      { text: 'You first, then them. Do not skip the explanation — it is the why behind the send.', pose: 'point', cta: 'Got it' },
+      { text: 'Five minutes, one pass, then it locks. Keep moving.', pose: 'pointUp', cta: 'Going' },
+    ],
+    challenger: [
+      { text: 'If you already know what they will say, still answer honestly. The gap is the work.', pose: 'armsCross', cta: 'Fine' },
+      { text: 'You send it yourself so nobody can claim we tracked them. That is the deal.', pose: 'sign', cta: 'Understood' },
+    ],
+  },
+
+  teamAssessment: {
+    title: 'Invite the team',
+    mentor: [
+      { text: 'Different link. Different password. You send it. That is how names stay off the page.', pose: 'map', cta: 'Sending' },
+      { text: 'Do not share the self-assessment. This invite is the only thing they should open.', pose: 'page', cta: 'Got it' },
+    ],
+    catalyst: [
+      { text: 'Copy, send, done. Do not wait for the perfect moment — the window is the work.', pose: 'pointUp', cta: 'Sending' },
+      { text: 'The people who see you lead are the ones who should answer. Send it to them.', pose: 'point', cta: 'Okay' },
+    ],
+    challenger: [
+      { text: 'If you only send it to the people who like you, you already know the result is fake.', pose: 'armsCross', cta: 'Fine' },
+      { text: 'Hand them the password. Then wait. Do not hover.', pose: 'sign', cta: 'Noted' },
     ],
   },
 
@@ -425,6 +457,8 @@ export function resolveRouteKey(pathname = '', search = '') {
   if (p.startsWith('/campaign-intro'))       return 'campaignIntro';
   if (p.startsWith('/campaign-builder'))     return 'campaignBuilder';
   if (p.startsWith('/campaign-verify'))      return 'campaignVerify';
+  if (p.startsWith('/self-assessment'))      return 'selfAssessment';
+  if (p.startsWith('/team-assessment'))      return 'teamAssessment';
   if (p.startsWith('/campaign/') && p.endsWith('/complete')) return 'campaignComplete';
   if (p.startsWith('/campaign/'))            return 'campaignRun';
   if (p.startsWith('/faq'))                  return 'faq';

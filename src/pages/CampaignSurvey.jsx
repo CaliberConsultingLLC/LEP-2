@@ -22,6 +22,7 @@ import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { selfAssessmentComplete } from '../data/chapterMap';
 import { useStepNav } from '../context/StepNavContext';
 import { useGuide } from '../context/GuideContext';
 import { colors, fonts, radii } from '../styles/tokens';
@@ -112,6 +113,11 @@ function CampaignSurvey() {
 
       if (campaignType === 'self' && ready) {
         if (cancelled) return;
+        const alreadyDone = localStorage.getItem(`selfCampaignCompleted_${id}`) === 'true' || selfAssessmentComplete();
+        if (alreadyDone) {
+          navigate('/self-assessment?step=self', { replace: true });
+          return;
+        }
         applyCampaign(campaignData);
         setLoadState('ready');
         return;
@@ -454,7 +460,7 @@ function CampaignSurvey() {
       <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
         {useCairnTheme
           ? <ProcessTopRail {...(isSelfCampaign
-            ? { chapterId: 'assessments', activeStepId: 'self', chip: { variant: 'intake', label: 'Question', current: 1, total: questions.length || 15 } }
+            ? { chapterId: 'self', activeStepId: 'self', chip: { variant: 'intake', label: 'Question', current: 1, total: questions.length || 15 } }
             : { utilityOnly: true })} />
           : <ProcessTopRail />}
       </Box>
@@ -529,7 +535,7 @@ function CampaignSurvey() {
         <ProcessTopRail
           {...(isSelfCampaign
             ? {
-                chapterId: 'assessments',
+                chapterId: 'self',
                 activeStepId: 'self',
                 chip: { variant: 'intake', label: 'Question', current: currentQuestion + 1, total: questions.length || 15 },
               }

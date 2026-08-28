@@ -13,7 +13,7 @@ export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
-export const STAGING_SEED_VERSION = '2026-08-17-guide-voices-v2';
+export const STAGING_SEED_VERSION = '2026-08-27-chapter-eight-v1';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
@@ -252,6 +252,7 @@ export function seedStagingData() {
     teamCampaignLink: `${window.location.origin}/campaign/${STAGING_TEAM_ID}`,
     teamCampaignPassword: 'STAGE002',
     selfCompleted: false,
+    campaignLocked: false,
     teamCampaignClosed: false,
     createdAt: now,
     savedAt: now,

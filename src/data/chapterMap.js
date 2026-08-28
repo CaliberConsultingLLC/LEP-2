@@ -6,10 +6,11 @@
  * chapter.arriveHint     → kept for other surfaces; the chapter ceremony no longer uses it.
  * step.whatHappens       → drawer column 2, scoped to the ACTIVE STEP.
  *
- * Numbering is of VII. Popups fire only when chapterId changes, not on tab changes.
+ * Numbering is of VIII. Popups fire only when chapterId changes, not on tab changes.
  */
 
-export const CHAPTER_TOTAL = 7;
+export const CHAPTER_TOTAL = 8;
+export const CHAPTER_TOTAL_ROMAN = 'VIII';
 
 export const CHAPTERS = [
   {
@@ -112,10 +113,10 @@ export const CHAPTERS = [
     num: 'IV',
     name: 'Growth Campaign',
     purpose:
-      'A growth campaign is the set of statements your team will answer. Choose the three traits, shape the language, then send.',
+      'A growth campaign is the set of statements your team will answer. Choose the three traits, shape the language, then lock it in.',
     completeBlurb:
       'You chose the traits and locked the sentences. Next you rate yourself on the same statements, then invite the team.',
-    arriveHint: 'Rate yourself first on the same sentences your team will see. About five minutes.',
+    arriveHint: 'Read the three traits and fifteen statements. If this is the campaign you will own, lock it in.',
     steps: [
       {
         id: 'traits',
@@ -131,39 +132,57 @@ export const CHAPTERS = [
       },
       {
         id: 'verify',
-        label: 'Review & Send',
+        label: 'Review',
         path: '/campaign-verify',
-        whatHappens: ['Last look before it sends', 'Then you answer first', 'Team link unlocks after that'],
+        whatHappens: ['Three traits, fifteen statements', 'Last look before you own it', 'Locking starts the assessments'],
       },
     ],
   },
   {
-    id: 'assessments',
+    id: 'self',
     num: 'V',
-    name: 'Self and Team Assessments',
+    name: 'Self-Assessment',
     purpose:
-      'You answer the same statements your team will answer. Then you keep the window open long enough for everyone else.',
+      'You answer the same fifteen statements first. That private benchmark is what later readings compare against — then the team gets a different link.',
     completeBlurb:
-      'Your benchmark is in and the team has had a chance to answer. The first signal is a reading, not a verdict.',
-    arriveHint: 'Sit with Signal first, then Evidence. Those two rooms explain the numbers before you choose a practice.',
+      'Your benchmark is in. It is locked. Next you send a different link to the people who see you lead.',
+    arriveHint: 'Read how this works, then rate yourself. Once you finish, you cannot go back in.',
     steps: [
+      {
+        id: 'info',
+        label: 'Information',
+        path: '/self-assessment',
+        whatHappens: ['How this part works', 'You first, then the team', 'Manual send, full anonymity'],
+      },
       {
         id: 'self',
         label: 'Self-Assessment',
-        path: '/campaign/self',
-        whatHappens: ['The same statements your team sees', 'Answered before you see theirs', 'Private, shown only as a comparison'],
+        path: '/self-assessment?step=self',
+        whatHappens: ['The same fifteen statements', 'Answered before you see theirs', 'Locks when you finish'],
       },
+    ],
+  },
+  {
+    id: 'team',
+    num: 'VI',
+    name: 'Team Assessment',
+    purpose:
+      'You send one link and one password yourself. Compass never emails your team, which is how the answers can stay anonymous.',
+    completeBlurb:
+      'The team has had a chance to answer. Closing the window opens the first reading — a signal, not a verdict.',
+    arriveHint: 'Copy the team link and password. Send them yourself. You will see counts, never names.',
+    steps: [
       {
-        id: 'team',
-        label: 'Team Assessment',
-        path: '/dashboard?tab=journey',
-        whatHappens: ['Counts only, no answers', 'A different link than yours', 'Closing opens the reading'],
+        id: 'invite',
+        label: 'Team Invite',
+        path: '/team-assessment',
+        whatHappens: ['A different link than yours', 'You distribute it by hand', 'No tracking, no names'],
       },
     ],
   },
   {
     id: 'review',
-    num: 'VI',
+    num: 'VII',
     name: 'Review & Act',
     purpose:
       'This is the place you come back to. The signal, the evidence, and your action plan live here together — the whole of today in one sitting.',
@@ -202,7 +221,7 @@ export const CHAPTERS = [
   },
   {
     id: 'action',
-    num: 'VII',
+    num: 'VIII',
     name: 'Journey',
     purpose:
       'The year map — where you have been, and what still sits ahead. The daily work stays on Today.',
@@ -220,6 +239,22 @@ export const CHAPTERS = [
   },
 ];
 
+/**
+ * Header chapters sit on the year-map trail. Growth Campaign shares the
+ * reflection/creation node; Self-Assessment and Team Assessment share the
+ * next node so the assessment sits immediately after the campaign is built.
+ */
+export const CHAPTER_STATION_INDEX = {
+  profile: 0,
+  behaviors: 1,
+  reflect: 2,
+  campaign: 2,
+  self: 3,
+  team: 3,
+  review: 4,
+  action: 5,
+};
+
 const REVIEW_TABS = ['today', 'signal', 'evidence', 'practice'];
 
 export const chapterById = (id) => CHAPTERS.find((c) => c.id === id);
@@ -231,27 +266,42 @@ export const chapterIndexOf = (id) => {
   const index = CHAPTERS.findIndex((c) => c.id === id);
   return index < 0 ? 0 : index;
 };
+export const stationIndexForChapter = (id) => {
+  if (id && Number.isInteger(CHAPTER_STATION_INDEX[id])) return CHAPTER_STATION_INDEX[id];
+  return chapterIndexOf(id);
+};
 
-function teamWindowClosed() {
+function parseRecords() {
   try {
-    const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
-    if (String(records?.teamCampaignClosed || '').toLowerCase() === 'true') return true;
+    return JSON.parse(localStorage.getItem('campaignRecords') || '{}');
   } catch {
-    /* ignore */
+    return {};
   }
+}
+
+export function teamWindowClosed() {
+  const records = parseRecords();
+  if (String(records?.teamCampaignClosed || '').toLowerCase() === 'true') return true;
   return localStorage.getItem('teamCampaignClosed') === 'true';
 }
 
-function selfAssessmentComplete() {
-  try {
-    const records = JSON.parse(localStorage.getItem('campaignRecords') || '{}');
-    const selfId = String(records?.selfCampaignId || '').trim();
-    if (selfId && localStorage.getItem(`selfCampaignCompleted_${selfId}`) === 'true') return true;
-    if (records?.selfCompleted) return true;
-  } catch {
-    /* ignore */
-  }
+export function selfAssessmentComplete() {
+  const records = parseRecords();
+  const selfId = String(records?.selfCampaignId || '').trim();
+  if (selfId && localStorage.getItem(`selfCampaignCompleted_${selfId}`) === 'true') return true;
+  if (records?.selfCompleted) return true;
   return localStorage.getItem('selfCampaignCompleted') === 'true';
+}
+
+export function campaignIsLocked() {
+  const records = parseRecords();
+  if (records?.campaignLocked) return true;
+  return localStorage.getItem('campaignLocked') === 'true';
+}
+
+export function getSelfCampaignId() {
+  const records = parseRecords();
+  return String(records?.selfCampaignId || '').trim();
 }
 
 export function resolveFromLocation(pathname = '', search = '') {
@@ -276,14 +326,15 @@ export function resolveFromLocation(pathname = '', search = '') {
   if (pathname.startsWith('/trait-selection')) return { chapterId: 'campaign', activeStepId: 'traits' };
   if (pathname.startsWith('/campaign-intro')) return { chapterId: 'campaign', activeStepId: 'builder' };
   if (pathname.startsWith('/campaign-builder')) return { chapterId: 'campaign', activeStepId: 'builder' };
-  if (pathname.startsWith('/campaign-verify')) {
-    if (selfAssessmentComplete()) return { chapterId: 'assessments', activeStepId: 'team' };
-    return { chapterId: 'campaign', activeStepId: 'verify' };
+  if (pathname.startsWith('/campaign-verify')) return { chapterId: 'campaign', activeStepId: 'verify' };
+  if (pathname.startsWith('/self-assessment')) {
+    return { chapterId: 'self', activeStepId: step === 'self' ? 'self' : 'info' };
   }
-  if (pathname.startsWith('/campaign/')) return { chapterId: 'assessments', activeStepId: 'self' };
+  if (pathname.startsWith('/team-assessment')) return { chapterId: 'team', activeStepId: 'invite' };
+  if (pathname.startsWith('/campaign/')) return { chapterId: 'self', activeStepId: 'self' };
   if (pathname.startsWith('/dashboard')) {
     if (tab === 'journey') {
-      if (!teamWindowClosed()) return { chapterId: 'assessments', activeStepId: 'team' };
+      if (!teamWindowClosed()) return { chapterId: 'team', activeStepId: 'invite' };
       return { chapterId: 'action', activeStepId: 'journey' };
     }
     const active = REVIEW_TABS.includes(tab) ? tab : 'today';

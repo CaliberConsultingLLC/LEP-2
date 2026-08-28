@@ -7,10 +7,11 @@ import JourneyPorthole from './JourneyPorthole';
 import JourneyMapModal from './JourneyMapModal';
 import { auth } from '../firebase';
 import {
-  CHAPTER_TOTAL,
+  CHAPTER_TOTAL_ROMAN,
   chapterById,
   chapterIndexOf,
   resolveFromLocation,
+  stationIndexForChapter,
 } from '../data/chapterMap';
 import {
   getJourneyCompletion,
@@ -214,6 +215,7 @@ export default function ChapterHeader({
   const activeIndex = Math.max(0, steps.findIndex((s) => s.id === activeStepId));
   const activeStep = steps[activeIndex] || steps[0];
   const chapterIndex = chapterIndexOf(chapterId);
+  const stationIndex = stationIndexForChapter(chapterId);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
@@ -339,7 +341,7 @@ export default function ChapterHeader({
             '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
           }}
         >
-          <JourneyPorthole variant="corner" size={portholeSize} chapterIndex={chapterIndex} />
+          <JourneyPorthole variant="corner" size={portholeSize} chapterIndex={stationIndex} />
         </Box>
 
         <Box
@@ -373,7 +375,7 @@ export default function ChapterHeader({
               color: colors.orangeDeep,
             }}
           >
-            {`Chapter ${chapter.num} of ${romanTotal(CHAPTER_TOTAL)}`}
+            {`Chapter ${chapter.num} of ${CHAPTER_TOTAL_ROMAN}`}
             <Box
               component="span"
               aria-hidden
@@ -636,7 +638,7 @@ export default function ChapterHeader({
                   color: 'color-mix(in srgb, var(--amber-soft) 60%, transparent)',
                 }}
               >
-                {`Chapter ${chapter.num} of ${romanTotal(CHAPTER_TOTAL)}`}
+                {`Chapter ${chapter.num} of ${CHAPTER_TOTAL_ROMAN}`}
               </Typography>
               <Box
                 component="button"
@@ -697,7 +699,7 @@ export default function ChapterHeader({
       <JourneyMapModal
         open={mapOpen}
         mode="reference"
-        currentIndex={chapterIndex}
+        currentIndex={stationIndex}
         firstName={firstName}
         completion={completion}
         startOfYear={atYearStart}
@@ -705,9 +707,4 @@ export default function ChapterHeader({
       />
     </Box>
   );
-}
-
-function romanTotal(total) {
-  const map = { 7: 'VII', 9: 'IX' };
-  return map[total] || String(total);
 }

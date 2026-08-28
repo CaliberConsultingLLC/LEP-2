@@ -9,6 +9,8 @@ import SummarySnapshot from './pages/SummarySnapshot';
 import TraitSelection from './pages/TraitSelection';
 import CampaignBuilder from './pages/CampaignBuilder';
 import CampaignVerify from './pages/CampaignVerify';
+import SelfAssessmentChapter from './pages/SelfAssessmentChapter';
+import TeamAssessmentChapter from './pages/TeamAssessmentChapter';
 import NewCampaignIntro from './pages/NewCampaignIntro';
 import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
@@ -75,6 +77,8 @@ function AppRoutes() {
       <Route path="/campaign-intro" element={<Navigate to="/campaign-builder" replace />} />
       <Route path="/campaign-builder" element={<CampaignBuilder />} />
       <Route path="/campaign-verify" element={<CampaignVerify />} />
+      <Route path="/self-assessment" element={<SelfAssessmentChapter />} />
+      <Route path="/team-assessment" element={<TeamAssessmentChapter />} />
       <Route path="/campaign/:id" element={<NewCampaignIntro />} />
       <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
       <Route path="/campaign/:id/complete" element={<CampaignComplete />} />

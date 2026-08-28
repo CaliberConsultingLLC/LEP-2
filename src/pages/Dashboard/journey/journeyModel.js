@@ -41,14 +41,14 @@ const STATION_META = [
   },
   {
     key: 'assessment',
-    label: 'Self & Team Assessment',
+    label: 'Self-Assessment',
     title: 'Self-Assessment',
-    subtitle: 'Invite the first clear reading of how your leadership is landing — from you, then from your team.',
+    subtitle: 'Rate yourself first, then invite your team with a different link you send by hand.',
     kind: 'assessment',
     campaign: 'team',
     blurb: 'Rate yourself first on the same statements your team will see. Then invite them. Effort is how much you try this; Efficacy is how well it lands.',
-    completeBlurb: 'You rated yourself and your team has had a chance to answer. The first signal is in — a reading, not a verdict.',
-    arriveHint: 'Sit with Signal first, then Evidence. Those two rooms explain the numbers before you choose a practice.',
+    completeBlurb: 'You rated yourself. Next you send a separate link — by hand — so the team reading stays anonymous.',
+    arriveHint: 'You go first on the same fifteen statements. Then you invite the team with a different link.',
   },
   {
     key: 'reflect',
@@ -176,10 +176,10 @@ export const FLOW_HANDOFFS = [
     fromIndex: 2,
     toIndex: 2,
     fromLabel: 'Campaign statements',
-    completeBlurb: 'The sentences are set. Next you rate yourself, then send a different link to your team.',
-    toLabel: 'Self-assessment, then invite',
-    blurb: 'Start your self-assessment first — the same statements your team will see. After that, the team link unlocks. Do not share the self-assessment link with your team.',
-    arriveHint: 'One primary action: start the self-assessment. Copy the team link only after that is done.',
+    completeBlurb: 'The sentences are set. Next you lock the campaign, then rate yourself on the same statements.',
+    toLabel: 'Review and lock in',
+    blurb: 'Read the three traits and fifteen statements. If this is the campaign you will own, lock it in.',
+    arriveHint: 'Locking in starts the self-assessment. The team link comes after that.',
   },
   {
     id: 'intro-to-verify',
@@ -188,10 +188,10 @@ export const FLOW_HANDOFFS = [
     fromIndex: 2,
     toIndex: 2,
     fromLabel: 'Campaign statements',
-    completeBlurb: 'The sentences are set. Next you rate yourself, then send a different link to your team.',
-    toLabel: 'Self-assessment, then invite',
-    blurb: 'Start your self-assessment first — the same statements your team will see. After that, the team link unlocks. Do not share the self-assessment link with your team.',
-    arriveHint: 'One primary action: start the self-assessment. Copy the team link only after that is done.',
+    completeBlurb: 'The sentences are set. Next you lock the campaign, then rate yourself on the same statements.',
+    toLabel: 'Review and lock in',
+    blurb: 'Read the three traits and fifteen statements. If this is the campaign you will own, lock it in.',
+    arriveHint: 'Locking in starts the self-assessment. The team link comes after that.',
   },
   {
     id: 'guide-to-pay',
@@ -337,7 +337,7 @@ export function getJourneyIndexForLocation(pathname = '', search = '') {
   // Chapter II — behaviors & instincts (intake)
   if (path.startsWith('/form')) return 1;
 
-  // Chapter III — reflection & creation (summary → traits → campaign)
+  // Growth campaign lives on the reflection/creation node.
   if (
     path.startsWith('/summary')
     || path.startsWith('/trait-selection')
@@ -346,8 +346,12 @@ export function getJourneyIndexForLocation(pathname = '', search = '') {
     || path.startsWith('/campaign-verify')
   ) return 2;
 
-  // Chapter IV — self & team assessment
-  if (path.startsWith('/campaign/')) return 3;
+  // Self-assessment and team invite share the next node, right after the campaign.
+  if (
+    path.startsWith('/self-assessment')
+    || path.startsWith('/team-assessment')
+    || path.startsWith('/campaign/')
+  ) return 3;
 
   if (path.startsWith('/dashboard')) {
     // Chapter VI — action plan / practice
@@ -373,7 +377,9 @@ export function getHeaderMetaForLocation(pathname = '', search = '') {
     const traitCount = currentCampaign.length || selectedTraits.length || 0;
     return { label: 'Traits', current: traitCount, total: 3, value: `${traitCount}/3` };
   }
-  if (pathname.startsWith('/campaign-verify')) return { label: 'Invites', value: 'Ready' };
+  if (pathname.startsWith('/campaign-verify')) return { label: 'Review', value: 'Ready' };
+  if (pathname.startsWith('/self-assessment')) return { label: 'Assessment', value: 'Yours' };
+  if (pathname.startsWith('/team-assessment')) return { label: 'Invite', value: 'Team' };
   if (pathname.startsWith('/campaign/')) return { label: 'Assessment', value: 'Live' };
   if (pathname.startsWith('/dashboard')) {
     if (['growth-plan', 'plan', 'practice'].includes(tab)) return { label: 'Practice', value: 'Active' };

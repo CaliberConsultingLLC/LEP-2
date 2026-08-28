@@ -96,7 +96,9 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
       if (pathname.startsWith('/summary')) return 'insights';
       if (pathname.startsWith('/trait-selection')) return 'campaign';
       if (pathname.startsWith('/campaign-builder') || pathname.startsWith('/campaign-intro')) return 'campaign';
-      if (pathname.startsWith('/campaign-verify')) return 'self';
+      if (pathname.startsWith('/campaign-verify')) return 'campaign';
+      if (pathname.startsWith('/self-assessment')) return 'self';
+      if (pathname.startsWith('/team-assessment')) return 'team';
       if (pathname.startsWith('/campaign/')) {
         const match = pathname.match(/^\/campaign\/([^/]+)/);
         const campaignId = match?.[1];
@@ -121,8 +123,8 @@ function ProcessTopRailLegacy({ sticky = true, embedded = false, showBrand = tru
       behaviors: '/form',
       insights: '/summary',
       campaign: '/campaign-builder',
-      self: selfPath,
-      team: '/dashboard?tab=campaign-details',
+      self: selfPath || '/self-assessment',
+      team: '/team-assessment',
       review: '/dashboard?tab=growth-plan',
     };
 

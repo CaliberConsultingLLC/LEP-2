@@ -6,6 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { selfAssessmentComplete } from '../data/chapterMap';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 function NewCampaignIntro() {
@@ -150,6 +151,10 @@ function NewCampaignIntro() {
   useEffect(() => {
     if (!campaignData || !isSelfCampaign || isNavigating) return;
     if (!hasUsableCampaign) return;
+    if (selfAssessmentComplete()) {
+      navigate('/self-assessment?step=self', { replace: true });
+      return;
+    }
     localStorage.setItem(`campaign_${id}`, JSON.stringify(campaignData));
     setIsNavigating(true);
     navigate(`/campaign/${id}/survey`, { replace: true });
@@ -362,7 +367,7 @@ function NewCampaignIntro() {
       }}
     >
       {useCairnTheme
-        ? <ProcessTopRail {...(isSelfCampaign ? { chapterId: 'assessments', activeStepId: 'self' } : { utilityOnly: true })} />
+        ? <ProcessTopRail {...(isSelfCampaign ? { chapterId: 'self', activeStepId: 'self' } : { utilityOnly: true })} />
         : <ProcessTopRail />}
       <Container maxWidth={false} disableGutters sx={{
         py: { xs: 3, md: 5 },

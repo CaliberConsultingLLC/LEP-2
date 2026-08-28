@@ -17,7 +17,6 @@ import { COMPASS_TRAIL } from '../pages/Dashboard/journey/trail-data.js';
 import {
   JOURNEY_ROMAN,
   JOURNEY_STATIONS,
-  chapterText,
 } from '../pages/Dashboard/journey/journeyModel.js';
 import { buttons, colors, fonts, radii, radiiPx } from '../styles/tokens';
 
@@ -207,16 +206,19 @@ export default function JourneyChapterCeremony({
   const isCompleteBeat = phase === 'complete' || phase === 'walk';
   const panelOpen = phase === 'begin';
   const portholeIndex = isCompleteBeat ? fromIndex : toIndex;
+  const fromRoman = copy?.fromNum || JOURNEY_ROMAN[fromIndex];
+  const toRoman = copy?.toNum || JOURNEY_ROMAN[toIndex];
+  const totalRoman = copy?.totalRoman || 'VIII';
   const eyebrow = isCompleteBeat ? (
     <>
-      Chapter {JOURNEY_ROMAN[fromIndex]}
+      Chapter {fromRoman}
       {' · '}
       <Box component="span" sx={{ color: colors.green, fontWeight: 800 }}>
         Complete ✓
       </Box>
     </>
   ) : (
-    chapterText(toIndex)
+    `Chapter ${toRoman} of ${totalRoman}`
   );
   const title = isCompleteBeat ? fromLabel : toLabel;
   const button = isCompleteBeat

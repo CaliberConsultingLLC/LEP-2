@@ -3,7 +3,7 @@
  * on the arrive beat. Mindset for the phase they are entering — not a task list.
  *
  * Station keys match JOURNEY_STATIONS in journeyModel.js.
- * Header chapter ids (of VII) map onto those keys via CHAPTER_ID_TO_STATION_KEY.
+ * Header chapter ids (of VIII) map onto those keys via CHAPTER_ID_TO_STATION_KEY.
  * Missing guide ids fall back to mentor, same as guideBriefings.js.
  */
 
@@ -24,6 +24,8 @@ export const CHAPTER_ID_TO_STATION_KEY = {
   behaviors: 'behaviors',
   reflect: 'campaign',
   campaign: 'campaign',
+  self: 'assessment',
+  team: 'team',
   assessments: 'assessment',
   review: 'reflect',
   action: 'action',
@@ -61,6 +63,14 @@ export const GUIDE_CHAPTER_LINES = {
     bestFriend: 'You go first, then the people who actually see you. I will sit with you when it comes back.',
     mother: 'You will rate yourself, then invite the people who live with your leadership. That takes courage, and I am here.',
     roaster: 'You fill it out, then they do. If you already rehearsed their answers, congratulations — you already know.',
+  },
+  team: {
+    mentor: 'This link is how they see you. Hand it to them yourself — anonymity is the point, not a loophole.',
+    catalyst: 'Copy the link, send it, then wait. Do not hover. The reading comes back as a pattern, not a roster.',
+    challenger: 'If you only send it to the people who already like you, you already know the result is fake.',
+    bestFriend: 'Different link than yours. Send it to the people who actually see you lead. I will sit with what comes back.',
+    mother: 'You send it by hand so no one is tracked. That is care for them, and for the truth of the reading.',
+    roaster: 'You are the mailroom now. Send the password. Then resist the urge to ask who finished.',
   },
   reflect: {
     mentor: 'The numbers are not the story. Sit with Signal, then Evidence, until the pattern has a face.',

@@ -789,7 +789,7 @@ function CampaignBuilder() {
                       '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
                     }}
                   >
-                    Review & send
+                    Review campaign
                   </Box>
                 </Box>
               </Box>
@@ -1118,7 +1118,7 @@ function CampaignBuilder() {
                     }}
                     sx={{ fontFamily: 'Gemunu Libre, sans-serif', fontSize: '0.875rem', px: 2, py: 0.75 }}
                   >
-                    Verify Campaign
+                    Review Campaign
                   </Button>
                 </Stack>
 

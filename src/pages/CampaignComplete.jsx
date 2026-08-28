@@ -4,8 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { doc, setDoc } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
+import CampaignStageHeader, { stageType } from '../components/CampaignStageCopy';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { auth, db } from '../firebase';
+import { buttons, radii, surfaces } from '../styles/tokens';
 
 function CampaignComplete() {
   const { id } = useParams();
@@ -61,6 +63,45 @@ function CampaignComplete() {
     });
   }, [id, isSelfCampaign]);
 
+  if (useCairnTheme && isSelfCampaign) {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'var(--sand-50, #FBF7F0)' }}>
+        <ProcessTopRail
+          chapterId="self"
+          activeStepId="self"
+          stepStatus={{ self: 'done' }}
+        />
+        <CompassLayout afterTopbar>
+          <Box sx={{ width: '100%', maxWidth: 640, mx: 'auto' }}>
+            <CampaignStageHeader
+              eyebrow="Self-Assessment"
+              title="Your benchmark is locked"
+              subtitle="You cannot go back in. Next you send a different link to the people who see you lead."
+            />
+            <Box sx={{ ...surfaces.card, p: { xs: 2.5, md: 3 }, textAlign: 'left' }}>
+              <Typography sx={{ ...stageType.body, mb: 2.5 }}>
+                Compass will hold this reading as your private comparison point. Your team never sees these answers. You send their invite yourself so the return stays anonymous.
+              </Typography>
+              <Box
+                component="button"
+                type="button"
+                onClick={() => navigate('/team-assessment')}
+                sx={{
+                  all: 'unset',
+                  cursor: 'pointer',
+                  ...buttons.primary,
+                  borderRadius: radii.pill,
+                }}
+              >
+                Team Assessment
+              </Box>
+            </Box>
+          </Box>
+        </CompassLayout>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -94,7 +135,7 @@ function CampaignComplete() {
     >
       <ProcessTopRail
         {...(isSelfCampaign
-          ? { chapterId: 'assessments', activeStepId: 'self' }
+          ? { chapterId: 'self', activeStepId: 'self', stepStatus: { self: 'done' } }
           : { utilityOnly: true })}
       />
       <CompassLayout fluid contentMaxWidth={560} afterTopbar>
@@ -116,7 +157,7 @@ function CampaignComplete() {
           <Stack spacing={2} alignItems="stretch">
             <Typography sx={{ fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Poppins, sans-serif', fontSize: '1.125rem', mb: 2 }}>
               {isSelfCampaign
-                ? 'Your personal benchmark is now saved separately from team responses. Next, return to the transition page to unlock and share your team campaign link.'
+                ? 'Your personal benchmark is saved and locked. You cannot retake it. Next, send a different link to your team — by hand — so their answers stay anonymous.'
                 : 'Your feedback is in. Once everyone has answered and the leader closes the survey, they will see the pattern — never individual names.'}
             </Typography>
             <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', mb: 2, color: 'text.secondary' }}>
@@ -127,10 +168,10 @@ function CampaignComplete() {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => navigate(isSelfCampaign ? '/campaign-verify' : '/')}
+              onClick={() => navigate(isSelfCampaign ? '/team-assessment' : '/')}
               sx={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem', px: 4, py: 1, bgcolor: '#457089', '&:hover': { bgcolor: '#375d78' } }}
             >
-              {isSelfCampaign ? 'Unlock Team Campaign Link' : 'Return to Home'}
+              {isSelfCampaign ? 'Team Assessment' : 'Return to Home'}
             </Button>
           </Stack>
         </Box>
