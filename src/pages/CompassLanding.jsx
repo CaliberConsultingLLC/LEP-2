@@ -372,6 +372,7 @@ export default function CompassLanding() {
 
   return (
     <div className="cl-page" data-compass-landing>
+      <div className="cl-first">
       <nav className="cl-nav" aria-label="Primary">
         <div className="cl-brand">
           <img src={ASSETS.logo} alt="Compass logo" />
@@ -395,6 +396,7 @@ export default function CompassLanding() {
       </nav>
 
       <header className="cl-hero">
+        <div className="cl-hero-copy">
         <span className="cl-eyebrow">AN AI-POWERED INDIVIDUAL DEVELOPMENT PLAN</span>
         <h1>
           Leaders don&rsquo;t follow paths.
@@ -409,17 +411,17 @@ export default function CompassLanding() {
         </p>
         <p className="cl-hero-sub clx-body clx-pillars-line">
           <strong>
-            <span>Your <em>Path</em>.</span>
-            <span>Your <em>Guide</em>.</span>
-            <span>Your <em>Growth</em>.</span>
+            Your <em>Path</em>, Your <em>Guide</em>, Your <em>Growth</em>
           </strong>
         </p>
+        </div>
         <div className="cl-hero-cta">
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
             Walk the expedition ↓
           </button>
         </div>
       </header>
+      </div>
 
       <section className="cl-section cl-route" id="cl-route" aria-label="Your path">
         <SectionRule label="YOUR PATH" />
@@ -456,6 +458,11 @@ export default function CompassLanding() {
             <span className="cl-journal-label ember">WHAT YOU WALK AWAY WITH</span>
             <p>{wp.gets}</p>
           </div>
+        </div>
+        <div className="cl-next-cta">
+          <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-guide')}>
+            Meet your guide ↓
+          </button>
         </div>
       </section>
 
@@ -512,6 +519,11 @@ export default function CompassLanding() {
             </div>
             <p className="cl-guide-detail-pitch">&ldquo;{guide.pitch}&rdquo;</p>
           </div>
+        </div>
+        <div className="cl-next-cta">
+          <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-growth')}>
+            How will I grow? ↓
+          </button>
         </div>
       </section>
 

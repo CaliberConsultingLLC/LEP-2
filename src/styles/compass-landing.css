@@ -156,18 +156,38 @@ html:has([data-compass-landing]) {
   border-color: var(--cl-gold);
 }
 
+/* ----------------------------------------------------------- first screen --- */
+
+.cl-first {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ---------------------------------------------------------------- hero --- */
 
 .cl-hero {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 88px 24px 36px;
+  padding: 12px 24px 0;
   width: 100%;
   max-width: none;
   margin: 0;
   box-sizing: border-box;
+}
+
+.cl-hero-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
 }
 
 .cl-eyebrow {
@@ -224,13 +244,6 @@ html:has([data-compass-landing]) {
   color: #FFF8F0;
 }
 
-.clx-pillars-line strong {
-  display: inline-flex;
-  gap: 26px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
 .clx-pillars-line strong em {
   font-style: normal;
   color: var(--cl-ember);
@@ -239,7 +252,15 @@ html:has([data-compass-landing]) {
 .cl-hero-cta {
   display: flex;
   justify-content: center;
-  margin-top: 34px;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 28px 0 40px;
+}
+
+.cl-next-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
 }
 
 /* -------------------------------------------------------- section head --- */
@@ -247,6 +268,7 @@ html:has([data-compass-landing]) {
 .cl-section {
   max-width: var(--cl-max);
   margin: 0 auto;
+  scroll-margin-top: 16px;
 }
 
 .cl-rule {
@@ -1449,7 +1471,7 @@ html:has([data-compass-landing]) {
 @media (max-width: 1180px) {
   .cl-page { --cl-gutter: 40px; }
   .cl-nav { padding: 20px 40px; }
-  .cl-hero { padding: 72px 40px 32px; }
+  .cl-hero { padding: 8px 40px 0; }
   .cl-page .cl-hero h1 { font-size: 54px; }
   .cl-pillars { padding-left: var(--cl-gutter); padding-right: var(--cl-gutter); }
   .cl-guide-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1463,7 +1485,8 @@ html:has([data-compass-landing]) {
   .cl-nav-links { gap: 18px; flex-wrap: wrap; }
   .cl-nav-link { font-size: 12px; }
 
-  .cl-hero { padding: 56px 24px 28px; }
+  .cl-hero { padding: 4px 24px 0; }
+  .cl-hero-cta { padding: 20px 0 28px; }
   .cl-page .cl-hero h1 { font-size: 40px; }
   .cl-hero-sub { font-size: 17px; }
   .cl-eyebrow { font-size: 11px; letter-spacing: 0.2em; padding-left: 0.2em; }
