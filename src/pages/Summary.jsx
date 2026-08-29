@@ -1,5 +1,6 @@
 // src/pages/Summary.jsx
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import GuidePickerMenu from '../components/GuidePickerMenu';
 import {
   Container,
   Box,
@@ -64,10 +65,15 @@ function Summary() {
   const showInlineTraitSelection = false;
   const [summariesByGuide, setSummariesByGuide] = useState({});
   const [agentMenuAnchor, setAgentMenuAnchor] = useState(null);
+  const [hearGuideOpen, setHearGuideOpen] = useState(false);
+  const [guideSwitchPending, setGuideSwitchPending] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState('');
   const [activeJourneyStep, setActiveJourneyStep] = useState(() => stageIndexFromSearch(typeof window === 'undefined' ? '' : window.location.search));
   const [briefingOpen, setBriefingOpen] = useState(false);
   const activeRunIdRef = useRef(0);
+  const summariesByGuideRef = useRef({});
+  const hearGuideBtnRef = useRef(null);
+  const guideFetchRef = useRef(null);
   const { persona, personaId, setSuppress, setGuideStep } = useGuide();
 
   useEffect(() => {
@@ -334,8 +340,11 @@ function Summary() {
     name: getGuideVoice(id).name,
   }));
 
-  const applyGuideVoice = (map, guideId, fallbackText = '') => {
-    const picked = pickGuideSummary(map, guideId, fallbackText);
+  const applyGuideVoice = (map, guideId, fallbackText = '', { allowFallback = true } = {}) => {
+    const id = resolveGuideVoiceId(guideId);
+    if (!allowFallback && map && typeof map === 'object' && !map[id]) return null;
+    const picked = pickGuideSummary(map, guideId, allowFallback ? fallbackText : '');
+    if (!allowFallback && picked.id !== id) return null;
     const flat = flattenGuideSummary(picked.summary);
     if (flat) {
       setAiSummary(flat);
@@ -423,14 +432,15 @@ function Summary() {
 
       setSummariesByGuide((prev) => {
         const merged = { ...prev, ...extra };
+        summariesByGuideRef.current = merged;
         try {
           localStorage.setItem('summariesByGuide', JSON.stringify(merged));
         } catch { /* non-fatal */ }
         return merged;
       });
     } catch (err) {
-      // Non-blocking: the selected guide already rendered. Switching to an
-      // unfetched guide simply falls back to the one that is present.
+      // Non-blocking: the selected guide already rendered. A missing voice is
+      // fetched on demand when the user switches guides.
       console.warn('Background guide prefetch failed:', err?.name || err?.message || err);
     }
   };
@@ -527,6 +537,7 @@ function Summary() {
       const map = payload?.summariesByGuide && typeof payload.summariesByGuide === 'object'
         ? payload.summariesByGuide
         : {};
+      summariesByGuideRef.current = map;
       setSummariesByGuide(map);
       if (Object.keys(map).length) {
         localStorage.setItem('summariesByGuide', JSON.stringify(map));
@@ -609,8 +620,11 @@ function Summary() {
         try {
           const cachedMap = JSON.parse(localStorage.getItem('summariesByGuide') || '{}');
           if (cachedMap && typeof cachedMap === 'object') {
+            summariesByGuideRef.current = cachedMap;
             setSummariesByGuide(cachedMap);
-            applyGuideVoice(cachedMap, personaId, cachedSummary);
+            applyGuideVoice(cachedMap, personaId, cachedSummary, {
+              allowFallback: Boolean(cachedMap[resolveGuideVoiceId(personaId)]),
+            });
           }
         } catch { /* ignore */ }
         try {
@@ -630,12 +644,94 @@ function Summary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const mapReady = Object.keys(summariesByGuide || {}).length > 0;
+
   useEffect(() => {
-    if (!summariesByGuide || !Object.keys(summariesByGuide).length) return;
-    applyGuideVoice(summariesByGuide, personaId, aiSummary);
-    // Swap only — do not regenerate.
+    summariesByGuideRef.current = summariesByGuide;
+    const id = resolveGuideVoiceId(personaId);
+    if (id && summariesByGuide?.[id]) {
+      applyGuideVoice(summariesByGuide, id, '', { allowFallback: false });
+      setGuideSwitchPending(false);
+    }
+  }, [summariesByGuide, personaId]);
+
+  // If the selected guide's voice is missing, fetch that one voice. Never fall
+  // back to another guide's prose — that is why the top-right switch looked broken.
+  useEffect(() => {
+    const id = resolveGuideVoiceId(personaId);
+    if (!id || !mapReady) return undefined;
+    const map = summariesByGuideRef.current || {};
+    if (map[id]) {
+      applyGuideVoice(map, id, '', { allowFallback: false });
+      setGuideSwitchPending(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    guideFetchRef.current = id;
+    setGuideSwitchPending(true);
+
+    (async () => {
+      try {
+        let data = summaryData;
+        if (!data || !Object.keys(data).length) {
+          try {
+            data = JSON.parse(localStorage.getItem('latestFormData') || '{}');
+          } catch {
+            data = {};
+          }
+        }
+        let insightMap = null;
+        try {
+          insightMap = JSON.parse(localStorage.getItem('insightProfile') || 'null');
+        } catch {
+          insightMap = null;
+        }
+        if (!data || !Object.keys(data).length) return;
+
+        const resp = await fetchWithTimeout('/api/get-ai-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            ...data,
+            guideId: id,
+            selectedAgent: id,
+            guideIds: [id],
+            ...(insightMap ? { insightMap } : {}),
+            ...demoRequestFields(),
+          }),
+        }, 280000);
+        if (!resp.ok || cancelled) return;
+        const payload = await resp.json();
+        if (cancelled) return;
+        const extra = payload?.summariesByGuide && typeof payload.summariesByGuide === 'object'
+          ? payload.summariesByGuide
+          : {};
+        if (!extra[id] && payload?.aiSummary) extra[id] = payload.aiSummary;
+        if (!extra[id]) return;
+
+        const merged = { ...summariesByGuideRef.current, ...extra };
+        summariesByGuideRef.current = merged;
+        try {
+          localStorage.setItem('summariesByGuide', JSON.stringify(merged));
+        } catch { /* ignore */ }
+        setSummariesByGuide(merged);
+        applyGuideVoice(merged, id, '', { allowFallback: false });
+      } catch (err) {
+        console.warn('Guide voice fetch failed:', err?.name || err?.message || err);
+      } finally {
+        if (!cancelled) {
+          setGuideSwitchPending(false);
+          if (guideFetchRef.current === id) guideFetchRef.current = null;
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [personaId]);
+  }, [personaId, mapReady]);
 
   const currentStageId = ['trailhead', 'markers', 'hazards', 'new-trail'][activeJourneyStep] || 'trailhead';
   const briefingFirstName = userName ? userName.split(' ')[0] : '';
@@ -692,8 +788,8 @@ function Summary() {
   const handleAgentMenuSelect = async (agentId) => {
     closeAgentMenu();
     if (!agentId) return;
-    if (summariesByGuide[agentId] || Object.keys(summariesByGuide).length) {
-      applyGuideVoice(summariesByGuide, agentId, aiSummary);
+    if (summariesByGuide[agentId]) {
+      applyGuideVoice(summariesByGuide, agentId, '', { allowFallback: false });
       return;
     }
     setSelectedAgent(agentId);
@@ -880,6 +976,32 @@ function Summary() {
     }
     if (last < raw.length) parts.push(raw.slice(last));
     return parts.length ? parts : raw;
+  };
+
+  const renderSentenceParagraphs = (text, sx) => {
+    const sentences = String(text || '')
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!sentences.length) return null;
+    const paras = [];
+    for (let i = 0; i < sentences.length; i += 2) {
+      paras.push(sentences.slice(i, i + 2));
+    }
+    return paras.map((group, i) => {
+      const [lead, ...rest] = group;
+      return (
+        <Typography key={`sp-${i}`} sx={{ ...sx, mt: i ? 1.05 : 0 }}>
+          <strong>{renderParagraphWithTooltips(lead)}</strong>
+          {rest.length ? (
+            <>
+              {' '}
+              {renderParagraphWithTooltips(rest.join(' '))}
+            </>
+          ) : null}
+        </Typography>
+      );
+    });
   };
 
   const renderNarrativeWithBullets = (text) => {
@@ -1217,7 +1339,6 @@ function Summary() {
       return splitSentences(stageBodyText)
         .map(stripLeadingListMarker)
         .filter(Boolean)
-        .slice(0, 10)
         .join(' ');
     })();
     const trailheadDisplay = String(stageBodyText || '').trim();
@@ -1225,8 +1346,8 @@ function Summary() {
 
     const bodyType = {
       fontFamily: fonts.sans,
-      fontSize: 16,
-      lineHeight: 1.7,
+      fontSize: 'clamp(12.5px, 1.45vh, 14.5px)',
+      lineHeight: 1.55,
       color: colors.ink,
       textAlign: 'left',
       '& strong, & b': { fontWeight: 800, color: colors.navy900 },
@@ -1237,8 +1358,8 @@ function Summary() {
     return (
       <Box
         sx={{
-          minHeight: '100svh',
-          overflowX: 'hidden',
+          height: '100svh',
+          overflow: 'hidden',
           bgcolor: colors.sand50,
           display: 'flex',
           flexDirection: 'column',
@@ -1255,7 +1376,8 @@ function Summary() {
             }}
           />
         </Box>
-        <CompassLayout fluid allowBleed>
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <CompassLayout fluid allowBleed viewportFit flushTop>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>
@@ -1265,7 +1387,11 @@ function Summary() {
               sx={{
                 position: 'relative',
                 width: '100%',
-                overflow: 'visible',
+                height: '100%',
+                minHeight: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
                 pl: { md: 28, lg: 36, xl: 42 },
               }}
             >
@@ -1276,16 +1402,17 @@ function Summary() {
                   mx: 'auto',
                   position: 'relative',
                   zIndex: 2,
-                  mb: '14px',
+                  flex: 1,
+                  minHeight: 0,
                   border: `1px solid ${colors.sand200}`,
                   borderRadius: radii.lg,
                   boxShadow: shadows.card,
-                  overflow: 'visible',
+                  overflow: 'hidden',
                   bgcolor: colors.surface1,
                   background: `linear-gradient(180deg, ${activeVisual.wash} 0%, rgba(255,255,255,0) 46%), ${colors.surface1}`,
-                  px: { xs: '22px', md: '40px' },
-                  pt: { xs: '28px', md: '32px' },
-                  pb: '20px',
+                  px: { xs: '18px', md: '32px' },
+                  pt: { xs: '16px', md: '18px' },
+                  pb: '14px',
                   display: 'flex',
                   flexDirection: 'column',
                   '&:after': {
@@ -1330,8 +1457,11 @@ function Summary() {
                     maxWidth: 864,
                     width: '100%',
                     mx: 'auto',
+                    flex: 1,
+                    minHeight: 0,
                     display: 'flex',
                     flexDirection: 'column',
+                    overflow: 'hidden',
                   }}
                 >
                   <Typography
@@ -1343,7 +1473,8 @@ function Summary() {
                       textTransform: 'uppercase',
                       color: colors.orangeDeep,
                       textAlign: 'center',
-                      mb: 1.1,
+                      mb: 0.6,
+                      flexShrink: 0,
                     }}
                   >
                     {`PART ${activeVisual.roman}`}
@@ -1353,12 +1484,13 @@ function Summary() {
                     sx={{
                       fontFamily: fonts.serif,
                       fontWeight: 500,
-                      fontSize: 30,
+                      fontSize: 26,
                       letterSpacing: '-0.02em',
-                      lineHeight: 1.15,
+                      lineHeight: 1.12,
                       color: colors.navy900,
                       textAlign: 'center',
-                      mb: 0.65,
+                      mb: 0.4,
+                      flexShrink: 0,
                     }}
                   >
                     {activeStage.label}
@@ -1368,11 +1500,12 @@ function Summary() {
                     sx={{
                       fontFamily: fonts.serif,
                       fontStyle: 'italic',
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: 500,
                       color: colors.inkSoft,
                       textAlign: 'center',
-                      lineHeight: 1.4,
+                      lineHeight: 1.35,
+                      flexShrink: 0,
                     }}
                   >
                     {activeStage.title}
@@ -1381,8 +1514,9 @@ function Summary() {
                     sx={{
                       ...type.eyebrow,
                       textAlign: 'center',
-                      mt: 0.85,
+                      mt: 0.5,
                       color: colors.navy500,
+                      flexShrink: 0,
                     }}
                   >
                     {`${persona.name} · ${activeStage.label}`}
@@ -1395,7 +1529,8 @@ function Summary() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 1.15,
-                      my: '14px',
+                      my: '10px',
+                      flexShrink: 0,
                     }}
                   >
                     <Box sx={{ width: 56, borderTop: `1px solid ${activeVisual.accent}`, opacity: 0.7 }} />
@@ -1403,21 +1538,21 @@ function Summary() {
                     <Box sx={{ width: 56, borderTop: `1px solid ${activeVisual.accent}`, opacity: 0.7 }} />
                   </Box>
 
+                  <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   {activeStage.id === 'trailhead' && (
                     trailheadDisplay ? (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(trailheadDisplay)}
-                        </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.1, minHeight: 0 }}>
+                        {renderSentenceParagraphs(trailheadDisplay, bodyType)}
                         {(trailheadHighlights?.strength?.text || trailheadHighlights?.focus?.text) && (
                           <Box
                             sx={{
                               display: 'flex',
                               flexDirection: 'row',
                               flexWrap: 'nowrap',
-                              gap: '14px',
+                              gap: '10px',
                               width: '100%',
                               alignItems: 'flex-start',
+                              flexShrink: 0,
                             }}
                           >
                             {[
@@ -1436,8 +1571,8 @@ function Summary() {
                                   bgcolor: colors.surface1,
                                   border: `1px solid ${colors.sand200}`,
                                   borderRadius: radii.md,
-                                  px: '16px',
-                                  py: '16px',
+                                  px: '12px',
+                                  py: '10px',
                                   display: 'flex',
                                   flexDirection: 'column',
                                   alignItems: 'center',
@@ -1448,10 +1583,10 @@ function Summary() {
                                 <Typography
                                   sx={{
                                     fontFamily: fonts.mono,
-                                    fontSize: 11,
+                                    fontSize: 10,
                                     fontWeight: 700,
                                     color: colors.orangeDeep,
-                                    mb: 0.75,
+                                    mb: 0.5,
                                     letterSpacing: '0.08em',
                                     textTransform: 'uppercase',
                                   }}
@@ -1461,8 +1596,8 @@ function Summary() {
                                 <Typography
                                   sx={{
                                     fontFamily: fonts.sans,
-                                    fontSize: '13.5px',
-                                    lineHeight: 1.55,
+                                    fontSize: '12.5px',
+                                    lineHeight: 1.45,
                                     color: colors.ink,
                                     textAlign: 'center',
                                   }}
@@ -1482,23 +1617,20 @@ function Summary() {
                   )}
 
                   {situationStage && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                      {situationStage.reflection ? (
-                        <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(
-                            splitSentences(situationStage.reflection).slice(0, 7).join(' ')
-                          )}
-                        </Typography>
-                      ) : null}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.1, minHeight: 0 }}>
+                      {situationStage.reflection
+                        ? renderSentenceParagraphs(situationStage.reflection, bodyType)
+                        : null}
                       {situationStage.situations.length > 0 && (
                         <Box
                           sx={{
                             display: 'flex',
                             flexDirection: 'row',
                             flexWrap: 'nowrap',
-                            gap: '14px',
+                            gap: '10px',
                             width: '100%',
                             alignItems: 'flex-start',
+                            flexShrink: 0,
                           }}
                         >
                           {situationStage.situations.slice(0, 2).map((situation, idx) => (
@@ -1510,8 +1642,8 @@ function Summary() {
                                 bgcolor: colors.surface1,
                                 border: `1px solid ${colors.sand200}`,
                                 borderRadius: radii.md,
-                                px: '16px',
-                                py: '16px',
+                                px: '12px',
+                                py: '10px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
@@ -1522,10 +1654,10 @@ function Summary() {
                               <Typography
                                 sx={{
                                   fontFamily: fonts.mono,
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: 700,
                                   color: colors.orangeDeep,
-                                  mb: 0.85,
+                                  mb: 0.5,
                                   letterSpacing: '0.06em',
                                 }}
                               >
@@ -1534,8 +1666,8 @@ function Summary() {
                               <Typography
                                 sx={{
                                   fontFamily: fonts.sans,
-                                  fontSize: '14px',
-                                  lineHeight: 1.55,
+                                  fontSize: '13px',
+                                  lineHeight: 1.45,
                                   color: colors.ink,
                                   textAlign: 'center',
                                 }}
@@ -1550,52 +1682,50 @@ function Summary() {
                   )}
 
                   {activeStage.id === 'new-trail' && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-                      {newTrailIntro ? (
-                        <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(splitSentences(newTrailIntro).slice(0, 10).join(' '))}
-                        </Typography>
-                      ) : null}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.1, minHeight: 0 }}>
+                      {newTrailIntro ? renderSentenceParagraphs(newTrailIntro, bodyType) : null}
                       {leverageCards.length > 0 && (
                         <Box
                           sx={{
                             display: 'flex',
-                            flexWrap: 'wrap',
+                            flexWrap: 'nowrap',
                             justifyContent: 'center',
-                            gap: '14px',
+                            gap: '8px',
                             width: '100%',
+                            flexShrink: 0,
                           }}
                         >
                           {leverageCards.map((fa, idx) => (
                             <Tooltip key={fa.id || `lev-${idx}`} title={fa.subTraitDefinition || fa.traitDefinition || ''} arrow placement="top">
                               <Box
                                 sx={{
-                                  width: 235,
+                                  flex: '1 1 0',
+                                  minWidth: 0,
+                                  maxWidth: 168,
                                   boxSizing: 'border-box',
-                                  flex: '0 0 235px',
                                   bgcolor: colors.surface1,
                                   backgroundImage: 'none',
                                   border: `1.5px solid ${colors.navy400}`,
                                   opacity: 1,
                                   borderRadius: radii.md,
-                                  px: '16px',
-                                  py: '16px',
+                                  px: '8px',
+                                  py: '8px',
                                   boxShadow: shadows.none,
                                   display: 'flex',
                                   flexDirection: 'column',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   textAlign: 'center',
-                                  minHeight: 96,
+                                  minHeight: 64,
                                 }}
                               >
                                 <Typography
                                   sx={{
                                     fontFamily: fonts.sans,
                                     fontWeight: 800,
-                                    fontSize: '13.5px',
+                                    fontSize: '12px',
                                     color: colors.navy900,
-                                    lineHeight: 1.3,
+                                    lineHeight: 1.25,
                                     textAlign: 'center',
                                   }}
                                 >
@@ -1604,10 +1734,10 @@ function Summary() {
                                 <Typography
                                   sx={{
                                     fontFamily: fonts.sans,
-                                    fontSize: '11.5px',
+                                    fontSize: '10.5px',
                                     color: colors.inkSoft,
-                                    lineHeight: 1.4,
-                                    mt: 0.45,
+                                    lineHeight: 1.3,
+                                    mt: 0.3,
                                     textAlign: 'center',
                                   }}
                                 >
@@ -1620,11 +1750,42 @@ function Summary() {
                       )}
                     </Box>
                   )}
+                  </Box>
 
                   <Box
                     sx={{
-                      mt: '18px',
-                      pt: '14px',
+                      mt: '10px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Button
+                      ref={hearGuideBtnRef}
+                      type="button"
+                      disabled={guideSwitchPending}
+                      onClick={() => setHearGuideOpen(true)}
+                      sx={{
+                        ...buttons.outlinedPrimary,
+                        minHeight: 34,
+                        py: '6px',
+                        px: '16px',
+                        fontSize: 12,
+                      }}
+                    >
+                      {guideSwitchPending ? `Loading ${persona.name}…` : 'Hear from a different guide'}
+                    </Button>
+                    <GuidePickerMenu
+                      open={hearGuideOpen}
+                      anchorEl={hearGuideBtnRef.current}
+                      onClose={() => setHearGuideOpen(false)}
+                    />
+                  </Box>
+
+                  <Box
+                    sx={{
+                      mt: '10px',
+                      pt: '10px',
                       borderTop: `1px solid ${colors.sand100}`,
                       display: 'flex',
                       alignItems: 'center',
@@ -1693,6 +1854,7 @@ function Summary() {
             </Box>
           )}
         </CompassLayout>
+        </Box>
         <Box
           component="img"
           src={persona.poses.read || persona.poses.idle}
