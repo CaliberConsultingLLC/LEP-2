@@ -102,7 +102,6 @@ function StagingDevPanel() {
     } catch { /* ignore */ }
     return 'mentor';
   });
-  const [regenBusy, setRegenBusy] = useState(false);
 
   const go = (path) => {
     navigate(path);
@@ -128,12 +127,12 @@ function StagingDevPanel() {
     setTimeout(() => setFlash(''), 3000);
   };
 
-  // Without an override this regenerates whatever intake is in localStorage —
-  // which on staging is always the same seeded Alex Rivera, so repeated presses
-  // return near-identical summaries. The persona button exists to vary the
-  // actual input rather than rerolling the same leader.
-  const handleRegenerateSummary = async (personaOverride = null) => {
-    if (regenBusy) return;
+  // Both regenerate paths now go through /summary itself, the same door a real
+  // user walks through after intake: the narrated loading screen, the two-phase
+  // generation (selected guide first, five in background), and every
+  // persistence path. The panel used to fetch here directly, which skipped all
+  // of that and showed nothing but a corner flash for three minutes.
+  const handleRegenerateSummary = (personaOverride = null) => {
     let payload = readStagingIntakePayload();
     if (!payload) {
       seedStagingData();
@@ -154,68 +153,28 @@ function StagingDevPanel() {
         name: payload.name,
         email: payload.email,
       };
-      localStorage.setItem('latestFormData', JSON.stringify(payload));
     }
+    payload = { ...payload, guideId: voiceId, selectedAgent: voiceId };
+    localStorage.setItem('latestFormData', JSON.stringify(payload));
 
-    setRegenBusy(true);
-    setFlash(personaOverride
-      ? `Generating as ${personaOverride.label.split(' · ')[0]}… (~3 min)`
-      : 'Generating live summary… (all six voices, ~3 min)');
+    // The picked voice must survive the full page load — Summary resolves its
+    // guide through GuideContext, which reads this key on mount.
+    localStorage.setItem('selectedAgent', voiceId);
+    localStorage.setItem('selectedGuideId', voiceId);
     try {
-      localStorage.setItem('selectedAgent', voiceId);
-      localStorage.setItem('selectedGuideId', voiceId);
-      // This panel asks for all six voices in one request, so it runs longer
-      // than the Summary page's two-phase flow. Without a timeout a stalled
-      // request spins forever with no way to tell it failed.
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 280000);
-      let res;
-      try {
-        res = await fetch('/api/get-ai-summary', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ ...payload, guideId: voiceId, selectedAgent: voiceId }),
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '');
-        throw new Error(`HTTP ${res.status}${errText ? `: ${errText.slice(0, 120)}` : ''}`);
-      }
-      const json = await res.json();
-      const text = String(json?.aiSummary || '').trim();
-      if (!text) throw new Error('Empty summary returned');
+      const guideState = JSON.parse(localStorage.getItem('cairnGuide') || '{}');
+      localStorage.setItem('cairnGuide', JSON.stringify({ ...guideState, personaId: voiceId, selected: true }));
+    } catch { /* ignore */ }
 
-      localStorage.setItem('aiSummary', text);
-      if (json?.summariesByGuide && typeof json.summariesByGuide === 'object') {
-        localStorage.setItem('summariesByGuide', JSON.stringify(json.summariesByGuide));
-      }
-      if (json?.selectedGuideId) {
-        localStorage.setItem('selectedGuideId', json.selectedGuideId);
-      }
-      if (Array.isArray(json?.focusAreas) && json.focusAreas.length) {
-        localStorage.setItem('focusAreas', JSON.stringify(json.focusAreas));
-      }
-      if (json?.trailheadHighlights) {
-        localStorage.setItem('trailheadHighlights', JSON.stringify(json.trailheadHighlights));
-      } else {
-        localStorage.removeItem('trailheadHighlights');
-      }
-      localStorage.setItem('summarySavedAt', new Date().toISOString());
+    // Clear the cached summary so the page generates instead of replaying.
+    ['aiSummary', 'summariesByGuide', 'focusAreas', 'trailheadHighlights', 'summarySavedAt'].forEach((key) => {
+      localStorage.removeItem(key);
+    });
 
-      setFlash('Live summary ready ✓');
-      setTimeout(() => {
-        window.location.assign('/summary');
-      }, 400);
-    } catch (err) {
-      console.error('[StageNavigator] regenerate summary failed:', err);
-      setFlash(`Regen failed: ${err?.message || 'error'}`);
-      setTimeout(() => setFlash(''), 4000);
-    } finally {
-      setRegenBusy(false);
-    }
+    // Full page load on purpose: GuideContext re-reads its storage, and the
+    // regen flag tells Summary this is a live run rather than the static
+    // staging review path.
+    window.location.assign('/summary?stage=trailhead&regen=live');
   };
 
   return (
@@ -334,7 +293,6 @@ function StagingDevPanel() {
             <Box
               component="select"
               value={voiceId}
-              disabled={regenBusy}
               onChange={(e) => setVoiceId(e.target.value)}
               aria-label="Summary guide voice"
               sx={{
@@ -350,7 +308,7 @@ function StagingDevPanel() {
                 px: '8px',
                 py: '7px',
                 outline: 'none',
-                cursor: regenBusy ? 'wait' : 'pointer',
+                cursor: 'pointer',
               }}
             >
               {SUMMARY_VOICES.map((voice) => (
@@ -363,18 +321,16 @@ function StagingDevPanel() {
               component="button"
               type="button"
               onClick={() => handleRegenerateSummary(null)}
-              disabled={regenBusy}
               sx={{
                 ...utilBtnSx,
                 color: 'var(--navy-900, #10223C)',
-                bgcolor: regenBusy ? 'rgba(244,206,161,0.55)' : 'var(--amber-soft, #F4CEA1)',
+                bgcolor: 'var(--amber-soft, #F4CEA1)',
                 border: '1px solid rgba(244,206,161,0.55)',
-                opacity: regenBusy ? 0.85 : 1,
-                cursor: regenBusy ? 'wait' : 'pointer',
-                '&:hover': regenBusy ? {} : { filter: 'brightness(1.05)' },
+                cursor: 'pointer',
+                '&:hover': { filter: 'brightness(1.05)' },
               }}
             >
-              {regenBusy ? 'Generating…' : '↻ Regenerate live summary'}
+              ↻ Regenerate live summary
             </Box>
             <Box
               component="button"
@@ -384,19 +340,17 @@ function StagingDevPanel() {
                 localStorage.setItem('stagingPersonaIdx', String(idx));
                 handleRegenerateSummary(STAGING_PERSONAS[idx]);
               }}
-              disabled={regenBusy}
               title={STAGING_PERSONAS.map((persona, i) => `${i + 1}. ${persona.label}`).join('\n')}
               sx={{
                 ...utilBtnSx,
                 color: 'var(--amber-soft, #F4CEA1)',
                 bgcolor: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(244,206,161,0.35)',
-                opacity: regenBusy ? 0.7 : 1,
-                cursor: regenBusy ? 'wait' : 'pointer',
-                '&:hover': regenBusy ? {} : { bgcolor: 'rgba(255,255,255,0.12)' },
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
               }}
             >
-              {regenBusy ? 'Generating…' : '🎲 Next persona → regenerate'}
+              🎲 Next persona → regenerate
             </Box>
           </Stack>
 

@@ -587,8 +587,12 @@ function Summary() {
   useEffect(() => {
     // Cairn/staging is a static review path: never regenerate the summary or
     // prefetch a live campaign unless this page is running outside Cairn.
+    // regen=live comes from the staging panel, which does a full page load so
+    // GuideContext re-reads the picked voice — route state cannot survive that.
+    const regenRequested = new URLSearchParams(location.search || '').get('regen') === 'live';
     const liveFromIntake = Boolean(
       state?.liveIntake
+      || regenRequested
       || formDataFromRoute?.intakeClarification
       || (formDataFromRoute?.societalResponses && state?.formData)
     );
