@@ -680,6 +680,20 @@ export default function CompassLanding() {
           What you get. <em>And what you pay.</em>
         </h2>
 
+        {/* What you get, then what you pay — the section heading covers both,
+            so the cards carry no heading of their own. */}
+        <div className="cl-offering">
+          <div className="cl-growth-grid">
+            {GROWTH.map((card) => (
+              <div className="cl-growth-card" key={card.title}>
+                <span className="cl-growth-card-kicker">{card.kicker}</span>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="cl-price-card">
           <span className="cl-price-kicker">INTRODUCTORY PRICE · FIRST SET OF USERS</span>
           <div className="cl-price-row">
@@ -694,22 +708,6 @@ export default function CompassLanding() {
           <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
             Begin your expedition — $250
           </button>
-        </div>
-
-        {/* Sits under the price as a reminder of what the $250 actually buys. */}
-        <div className="cl-offering">
-          <h2>
-            Everything you get. <em>Nothing behind a tier.</em>
-          </h2>
-          <div className="cl-growth-grid">
-            {GROWTH.map((card) => (
-              <div className="cl-growth-card" key={card.title}>
-                <span className="cl-growth-card-kicker">{card.kicker}</span>
-                <h3>{card.title}</h3>
-                <p>{card.body}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Reframed from "the privacy contract" — same terms, stated as a promise. */}

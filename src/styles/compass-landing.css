@@ -1336,7 +1336,7 @@ html:has([data-compass-landing]) {
 
 .cl-price-card {
   max-width: 640px;
-  margin: 0 auto;
+  margin: 48px auto 0;
   background: rgba(4, 9, 26, 0.35);
   border: 1px solid rgba(224, 122, 63, 0.5);
   border-radius: 12px;
@@ -1404,12 +1404,7 @@ html:has([data-compass-landing]) {
    and left-aligned cards rather than inheriting the closing CTA's. */
 .cl-offering {
   max-width: var(--cl-max);
-  margin: 64px auto 0;
-}
-
-.cl-page .cl-close .cl-offering h2 {
-  font-size: 40px;
-  margin: 0 0 40px;
+  margin: 0 auto;
 }
 
 .cl-offering .cl-growth-grid {
@@ -1550,7 +1545,6 @@ html:has([data-compass-landing]) {
   .cl-price-card { padding: 32px 24px; }
   .cl-price-now { font-size: 52px; }
   .cl-page .cl-close .cl-close-title { font-size: 32px; margin-top: 48px; }
-  .cl-page .cl-close .cl-offering h2 { font-size: 30px; margin-top: 0; }
 }
 
 @media (max-width: 560px) {
