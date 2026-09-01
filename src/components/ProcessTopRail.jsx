@@ -275,6 +275,8 @@ function ProcessTopRail({
   stepStatus,
   onStepSelect,
   utilityOnly = false,
+  steps = null,
+  backAction = null,
   ...legacy
 }) {
   if (useCairnTheme) {
@@ -286,6 +288,8 @@ function ProcessTopRail({
         chip={chip}
         stepStatus={stepStatus}
         onStepSelect={onStepSelect}
+        steps={steps}
+        backAction={backAction}
       />
     );
   }

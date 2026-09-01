@@ -956,6 +956,31 @@ export default function CommandCenter() {
     hasSelfData,
     responseCount: respondents,
   });
+  // Drill-down: inside Evidence the rail stops being the dashboard's tab strip
+  // and becomes this page's trait switcher, with a way back up. Trait state
+  // lives here so the rail and the page cannot disagree about which is open.
+  const evidenceTraits = useMemo(
+    () => deriveTraitRoles(benchmarkRows).ordered || [],
+    [benchmarkRows]
+  );
+  const [evidenceTraitIdx, setEvidenceTraitIdx] = useState(0);
+  useEffect(() => {
+    if (evidenceTraitIdx > 0 && evidenceTraitIdx >= evidenceTraits.length) {
+      setEvidenceTraitIdx(0);
+    }
+  }, [evidenceTraits.length, evidenceTraitIdx]);
+
+  const isDrilledIn = activeTab === 'evidence' && evidenceTraits.length > 0;
+  const drillSteps = isDrilledIn
+    ? evidenceTraits.map((r, i) => ({
+        id: `trait-${i}`,
+        label: r.subTrait || r.trait || `Trait ${i + 1}`,
+      }))
+    : null;
+  const drillBack = isDrilledIn
+    ? { label: 'Back to Dashboard', onClick: () => goToTab('today') }
+    : null;
+
   const chapterId = activeTab === 'journey' ? 'action' : 'review';
   const activeStepId = chapterId === 'action'
     ? 'journey'
@@ -993,6 +1018,8 @@ export default function CommandCenter() {
             selectedAgent={selectedAgent}
             phases={phases}
             onAdvancePhase={() => advancePhase('evidence')}
+            traitIndex={evidenceTraitIdx}
+            onTraitChange={setEvidenceTraitIdx}
           />
         );
       case 'practice':
@@ -1027,8 +1054,13 @@ export default function CommandCenter() {
     >
       <ProcessTopRail
         chapterId={chapterId}
-        activeStepId={activeStepId}
-        stepStatus={dockStatus}
+        activeStepId={isDrilledIn ? `trait-${evidenceTraitIdx}` : activeStepId}
+        stepStatus={isDrilledIn ? {} : dockStatus}
+        steps={drillSteps}
+        backAction={drillBack}
+        onStepSelect={isDrilledIn
+          ? (step) => setEvidenceTraitIdx(Number(String(step.id).split('-')[1]) || 0)
+          : undefined}
         chip={{
           variant: 'dashboard',
           label: 'Responses',

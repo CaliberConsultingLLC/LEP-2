@@ -756,8 +756,10 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows }) {
-  const [traitIdx, setTraitIdx] = useState(0);
+function EvidenceSnapshot({ orderedRows, traitIndex, onTraitChange }) {
+  const [localIdx, setLocalIdx] = useState(0);
+  const traitIdx = Number.isFinite(traitIndex) ? traitIndex : localIdx;
+  const setTraitIdx = onTraitChange || setLocalIdx;
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
   const [selected, setSelected] = useState('all');
   const [mode, setMode] = useState('map');
@@ -777,7 +779,7 @@ function EvidenceSnapshot({ orderedRows }) {
         onModeChange={setMode}
         traitIndex={traitIdx}
         traitCount={orderedRows.length}
-        onNextTrait={() => setTraitIdx((p) => (p + 1) % orderedRows.length)}
+        onNextTrait={() => setTraitIdx((traitIdx + 1) % orderedRows.length)}
       />
     </SnapshotShell>
   );
@@ -815,7 +817,7 @@ const EVIDENCE_GUIDE = {
   snapshot: 'The receipts keep. Come back any time a claim needs checking — or walk the room again.',
 };
 
-export default function EvidenceView({ t, phases, onAdvancePhase }) {
+export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex, onTraitChange }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
@@ -896,6 +898,8 @@ export default function EvidenceView({ t, phases, onAdvancePhase }) {
     return (
       <EvidenceSnapshot
         orderedRows={orderedRows}
+        traitIndex={traitIndex}
+        onTraitChange={onTraitChange}
       />
     );
   }

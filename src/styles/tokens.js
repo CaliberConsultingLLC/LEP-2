@@ -315,8 +315,15 @@ export const surfaces = {
 // `&&&` raises these to (0,3,0) so the token wins wherever it is used, on a
 // bare button element or a MUI one, without every call site remembering to
 // pass a matching `variant`.
+//
+// Asserting only the ink is not enough, and asserting only the ink is actively
+// worse than asserting neither. `buttons.secondary` on an outlined button hit
+// `.MuiButton-outlinedPrimary { background-color: transparent }`, which wiped
+// the orange fill while the guarded white ink came through — white on white,
+// on the Sign In page. A token that declares a fill has to defend both halves
+// of the pair or it can be taken apart.
 // ----------------------------------------------------------------------------
-const buttonInk = (color) => ({ '&&&': { color } });
+const buttonSkin = (backgroundColor, color) => ({ '&&&': { backgroundColor, color } });
 
 export const buttons = {
   primary: {
@@ -332,7 +339,7 @@ export const buttons = {
     borderRadius: radii.pill,
     bgcolor: colors.navy900,
     color: colors.amberSoft,
-    ...buttonInk(colors.amberSoft),
+    ...buttonSkin(colors.navy900, colors.amberSoft),
     boxShadow: shadows.buttonPrimary,
     transition: motion.standard,
     '&:hover': {
@@ -358,7 +365,7 @@ export const buttons = {
     borderRadius: radii.pill,
     bgcolor: colors.orange,
     color: 'white',
-    ...buttonInk('white'),
+    ...buttonSkin(colors.orange, 'white'),
     boxShadow: shadows.buttonSecondary,
     transition: motion.standard,
     '&:hover': { bgcolor: colors.orangeDeep },
@@ -380,7 +387,7 @@ export const buttons = {
     borderRadius: radii.pill,
     bgcolor: 'transparent',
     color: colors.navy900,
-    ...buttonInk(colors.navy900),
+    ...buttonSkin('transparent', colors.navy900),
     border: `1px solid ${colors.navy500}`,
     boxShadow: shadows.none,
     transition: motion.standard,

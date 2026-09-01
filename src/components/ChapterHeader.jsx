@@ -197,6 +197,13 @@ export default function ChapterHeader({
   stepStatus = {},
   onStepSelect,
   utilityOnly = false,
+  // Drill-down mode. A page that owns a sub-selection — Evidence and its three
+  // traits — hands the rail its own steps plus a way back out, and the rail
+  // becomes that page's switcher instead of the chapter's tab strip. The
+  // chapter's own steps are unreachable while drilled in; `backAction` is the
+  // way up, which is why it renders as a distinct control rather than a step.
+  steps: stepsProp = null,
+  backAction = null,
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -211,7 +218,7 @@ export default function ChapterHeader({
   const chapterId = chapterIdProp || inferred?.chapterId;
   const activeStepId = activeStepIdProp || inferred?.activeStepId;
   const chapter = chapterById(chapterId);
-  const steps = chapter?.steps || [];
+  const steps = stepsProp || chapter?.steps || [];
   const activeIndex = Math.max(0, steps.findIndex((s) => s.id === activeStepId));
   const activeStep = steps[activeIndex] || steps[0];
   const chapterIndex = chapterIndexOf(chapterId);
@@ -405,6 +412,43 @@ export default function ChapterHeader({
         </Box>
 
         <Box sx={{ width: '1px', height: 34, bgcolor: colors.sand200, mx: '22px', flexShrink: 0 }} aria-hidden />
+
+        {/* The way up, out of a drill-down. Deliberately not a step: it moves
+            you to a different level rather than sideways within one, so it
+            carries the orange the steps only get when active. */}
+        {backAction ? (
+          <Box
+            component="button"
+            type="button"
+            className="chapter-header-control"
+            onClick={backAction.onClick}
+            sx={{
+              ...unstyledButton,
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '0 16px',
+              height: 78,
+              flexShrink: 0,
+              cursor: 'pointer',
+              fontFamily: fonts.sans,
+              fontSize: 13,
+              fontWeight: 700,
+              color: colors.orangeDeep,
+              whiteSpace: 'nowrap',
+              transition: 'color 140ms',
+              '&:hover': { color: colors.orange },
+              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: -4 },
+            }}
+          >
+            <Box component="span" aria-hidden sx={{ fontSize: 15, lineHeight: 1 }}>←</Box>
+            {backAction.label || 'Back to Dashboard'}
+          </Box>
+        ) : null}
+        {backAction ? (
+          <Box sx={{ width: '1px', height: 34, bgcolor: colors.sand200, mr: '18px', flexShrink: 0 }} aria-hidden />
+        ) : null}
 
         {compact ? (
           <Box
