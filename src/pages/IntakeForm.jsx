@@ -12,7 +12,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnFlowButtons from '../components/CairnFlowButtons';
 import JourneyPorthole from '../components/JourneyPorthole';
-import { useCairnTheme } from '../config/runtimeFlags';
+import { allowPersistenceBypass, useCairnTheme } from '../config/runtimeFlags';
 import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -750,11 +750,6 @@ function IntakeForm() {
   const autosaveReadyRef = useRef(false);
   const authUidRef = useRef('');
   const lastDraftJsonRef = useRef('');
-  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
-  const isStagingRuntime =
-    stagingHost.includes('staging.northstarpartners.org') ||
-    stagingHost.includes('compass-staging');
-  const allowStagingPersistenceBypass = useCairnTheme || isStagingRuntime;
 
   useEffect(() => {
     const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
@@ -1014,6 +1009,7 @@ function IntakeForm() {
         'Balancing differing expectations from stakeholders',
       ],
       limit: 3,
+      minSelections: 3,
     },
     {
       id: 'crisisResponse',
@@ -1494,7 +1490,7 @@ function IntakeForm() {
         const code = String(persistErr?.code || '').toLowerCase();
         const message = String(persistErr?.message || '').toLowerCase();
         const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
-        if (allowStagingPersistenceBypass && isPermissionErr) {
+        if (allowPersistenceBypass && isPermissionErr) {
           console.warn('[IntakeForm] Draft autosave bypassed Firestore permission error.');
           setAutosaveStatus({
             state: 'saved',
@@ -1523,7 +1519,6 @@ function IntakeForm() {
     clarificationAnswers,
     societalQuestionIndex,
     totalSteps,
-    allowStagingPersistenceBypass,
   ]);
 
 
@@ -1746,7 +1741,7 @@ function IntakeForm() {
         const code = String(persistErr?.code || '').toLowerCase();
         const message = String(persistErr?.message || '').toLowerCase();
         const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
-        if (!(allowStagingPersistenceBypass && isPermissionErr)) {
+        if (!(allowPersistenceBypass && isPermissionErr)) {
           throw persistErr;
         }
         console.warn('[IntakeForm] Staging submit bypassed Firestore permission error.');

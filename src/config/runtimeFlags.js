@@ -66,13 +66,51 @@ const isDemoRuntime = (() => {
   }
 })();
 
-// Enable the Cairn visual skin when on the staging host, or when explicitly
-// requested via `?theme=cairn` (useful for previewing on other hosts).
-// Production host (app.northstarpartners.org) never enables this.
+// The Cairn build IS the product. This used to be host-gated — off on
+// app.northstarpartners.org, on everywhere else — which meant pointing the
+// real domain at this codebase would have silently served the abandoned
+// legacy skin instead of the app. The default is now inverted: Cairn renders
+// on every host, and the legacy skin survives only behind an explicit opt-in
+// so the old pages stay reachable for comparison until they are deleted.
+//
+// Opt back into legacy with `?theme=legacy` on any URL, or VITE_LEGACY_SKIN=true.
+//
+// This flag is the SKIN AND NOTHING ELSE. It used to also stand in for "we are
+// on staging, so skip auth and let Firestore writes fail quietly", which meant
+// the new design could not ship without shipping an open dashboard alongside
+// it. Those two are now `allowAuthBypass` and `allowPersistenceBypass` below,
+// and each can be turned off on its own.
 export const useCairnTheme = (() => {
-  if (isProductionHost) return false;
-  if (isStagingHost) return true;
-  if (isDemoRuntime) return true;
   const override = normalize(getQueryParam('theme'));
-  return override === 'cairn';
+  if (override === 'legacy') return false;
+  if (isTrue(import.meta.env.VITE_LEGACY_SKIN)) return false;
+  return true;
 })();
+
+// Reads a tri-state env var: unset falls back to `fallback`, anything else is
+// an explicit true/false. Lets a bypass be switched off without code changes.
+const boolEnv = (raw, fallback) => {
+  const value = normalize(raw);
+  if (value === '') return fallback;
+  return value === 'true' || value === '1' || value === 'yes';
+};
+
+// Both bypasses default to today's behaviour so the current staging QA loop
+// keeps working, and both are hard-off on the production host regardless of
+// what the environment says.
+//
+// To rehearse production on staging — real login, real Firestore writes, real
+// campaign tokens — set these to "false" and reload:
+//   VITE_ALLOW_AUTH_BYPASS=false
+//   VITE_ALLOW_PERSISTENCE_BYPASS=false
+
+// Lets `ProtectedRoute` hand out the dashboard with no Firebase user.
+export const allowAuthBypass = isProductionHost
+  ? false
+  : boolEnv(import.meta.env.VITE_ALLOW_AUTH_BYPASS, isStagingHost || isDemoRuntime);
+
+// Lets intake and campaign writes swallow Firestore permission errors and
+// hand out placeholder campaign access tokens instead of signed ones.
+export const allowPersistenceBypass = isProductionHost
+  ? false
+  : boolEnv(import.meta.env.VITE_ALLOW_PERSISTENCE_BYPASS, isStagingHost || isDemoRuntime);

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lep2-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "lep2-vite-alt",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5199", "--strictPort"],
+      "port": 5199
+    }
+  ]
+}

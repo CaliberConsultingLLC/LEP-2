@@ -1,6 +1,6 @@
 import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { useCairnTheme } from '../config/runtimeFlags';
+import { allowPersistenceBypass } from '../config/runtimeFlags';
 import { isDemoSession } from './demoMode';
 import { isCampaignReady, normalizeCampaignItems } from './campaignState';
 
@@ -54,11 +54,6 @@ export const buildCampaignSignature = (campaign) => {
   return JSON.stringify(normalized);
 };
 
-const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
-const isStagingRuntime =
-  stagingHost.includes('staging.northstarpartners.org')
-  || stagingHost.includes('compass-staging');
-const allowStagingPersistenceBypass = useCairnTheme || isStagingRuntime;
 
 const buildCampaignLinks = (origin, records) => ({
   selfLink: `${origin}/campaign/${records.selfCampaignId}`,
@@ -162,13 +157,13 @@ const cacheCampaignDocs = ({
     campaignType: 'team',
     campaign: campaignData,
     password: teamPasswordGenerated,
-    accessToken: allowStagingPersistenceBypass ? 'stage-team-token' : '',
+    accessToken: allowPersistenceBypass ? 'stage-team-token' : '',
     selfCampaignId,
     teamCampaignId,
     surveyClosed: false,
     createdAt: new Date().toISOString(),
   }));
-  if (allowStagingPersistenceBypass) {
+  if (allowPersistenceBypass) {
     localStorage.setItem(`teamCampaignAccess_${teamCampaignId}`, 'granted');
   }
 };
@@ -254,7 +249,7 @@ export async function ensureCampaignBundle({ lock = false } = {}) {
       selfPasswordGenerated,
       teamPasswordGenerated,
     });
-  } else if (allowStagingPersistenceBypass && !auth?.currentUser) {
+  } else if (allowPersistenceBypass && !auth?.currentUser) {
     selfCampaignId = `stg-self-${bundleId}`;
     teamCampaignId = `stg-team-${bundleId}`;
     writeLocalCampaignDocs({
@@ -298,7 +293,7 @@ export async function ensureCampaignBundle({ lock = false } = {}) {
       const code = String(persistErr?.code || '').toLowerCase();
       const message = String(persistErr?.message || '').toLowerCase();
       const isPermissionErr = code.includes('permission-denied') || message.includes('insufficient permissions');
-      if (!(allowStagingPersistenceBypass && isPermissionErr)) throw persistErr;
+      if (!(allowPersistenceBypass && isPermissionErr)) throw persistErr;
 
       selfCampaignId = `stg-self-${bundleId}`;
       teamCampaignId = `stg-team-${bundleId}`;
@@ -372,7 +367,7 @@ export function readLocalCampaignDoc(id) {
     campaignType: 'team',
     campaign: normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), [])),
     password: records.teamCampaignPassword || '',
-    accessToken: allowStagingPersistenceBypass ? 'stage-team-token' : '',
+    accessToken: allowPersistenceBypass ? 'stage-team-token' : '',
     userInfo: parseJson(localStorage.getItem('userInfo'), {}),
     ownerId: records.ownerId || null,
     ownerUid: records.ownerUid || null,

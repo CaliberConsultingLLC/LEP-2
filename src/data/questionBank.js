@@ -97,6 +97,7 @@ export const questionBank = {
       prompt: 'Which three situations would you most prefer to minimize throughout the day?',
       type: 'multi-select',
       limit: 3,
+      minSelections: 3,
       options: [
         'Repeating myself to ensure understanding',
         "Addressing a team member's inconsistent contributions",

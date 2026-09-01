@@ -3,7 +3,7 @@
  *
  * The CSS file remains the SINGLE SOURCE OF TRUTH for the design system.
  * This file exists so React components written in MUI's `sx` prop can
- * reference named constants instead of typing `'var(--cairn-radius-lg)'`
+ * reference named constants instead of typing `'var(--cairn-radius-lg, 20px)'`
  * inline everywhere. Values are CSS-var strings so light/dark switching
  * (handled by cairn-theme.css's `[data-dark="true"]` overrides) flows
  * through automatically — JS never has to know which mode is active.
@@ -21,11 +21,11 @@
 // Radii — matches --cairn-radius-* in cairn-theme.css
 // ----------------------------------------------------------------------------
 export const radii = {
-  sm: 'var(--cairn-radius-sm)',
-  md: 'var(--cairn-radius-md)',
-  lg: 'var(--cairn-radius-lg)',
-  xl: 'var(--cairn-radius-xl)',
-  pill: 'var(--cairn-radius-pill)',
+  sm: 'var(--cairn-radius-sm, 10px)',
+  md: 'var(--cairn-radius-md, 14px)',
+  lg: 'var(--cairn-radius-lg, 20px)',
+  xl: 'var(--cairn-radius-xl, 24px)',
+  pill: 'var(--cairn-radius-pill, 999px)',
   circle: '50%',
 };
 
@@ -44,53 +44,53 @@ export const radiiPx = {
 // these vars under `data-dark="true"`) works without any JS conditional.
 // ----------------------------------------------------------------------------
 export const colors = {
-  navy950: 'var(--navy-950)',
-  navy900: 'var(--navy-900)',
-  navy800: 'var(--navy-800)',
-  navy700: 'var(--navy-700)',
-  navy600: 'var(--navy-600)',
-  navy500: 'var(--navy-500)',
-  navy400: 'var(--navy-400)',
-  navy300: 'var(--navy-300)',
+  navy950: 'var(--navy-950, #09101f)',
+  navy900: 'var(--navy-900, #10223c)',
+  navy800: 'var(--navy-800, #162a44)',
+  navy700: 'var(--navy-700, #1e3a5c)',
+  navy600: 'var(--navy-600, #2b4a6f)',
+  navy500: 'var(--navy-500, #3f647b)',
+  navy400: 'var(--navy-400, #5e91b0)',
+  navy300: 'var(--navy-300, #8fb3cd)',
 
-  amber: 'var(--amber)',
-  amberSoft: 'var(--amber-soft)',
-  orange: 'var(--orange)',
-  orangeDeep: 'var(--orange-deep)',
-  green: 'var(--green)',
-  greenSoft: 'var(--green-soft)',
-  efficacyBlue: 'var(--efficacy-blue)',
-  gapNegative: 'var(--gap-negative)',
-  gapPositive: 'var(--gap-positive)',
-  gapNegativeTint: 'var(--gap-negative-tint)',
-  gapPositiveTint: 'var(--gap-positive-tint)',
-  effortTrack: 'var(--effort-track)',
-  efficacyTrack: 'var(--efficacy-track)',
-  compassNodeGlow: 'var(--compass-node-glow)',
-  brass: 'var(--brass)',
-  dialFace: 'var(--dial-face)',
-  dialNodeFill: 'var(--dial-node-fill)',
-  dialBezelHi: 'var(--dial-bezel-hi)',
-  dialBezelLo: 'var(--dial-bezel-lo)',
-  dialArrowStart: 'var(--dial-arrow-start)',
-  dialArrowEnd: 'var(--dial-arrow-end)',
-  zoneHonedTint: 'var(--zone-honed-tint)',
-  zoneHonedInk: 'var(--zone-honed-ink)',
-  zoneOfftargetTint: 'var(--zone-offtarget-tint)',
-  zoneNaturalTint: 'var(--zone-natural-tint)',
-  zoneMissingTint: 'var(--zone-missing-tint)',
-  dialEffortFace: 'var(--dial-effort-face)',
-  dialEfficacyFace: 'var(--dial-efficacy-face)',
-  dialAxis: 'var(--dial-axis)',
-  dialHub: 'var(--dial-hub)',
+  amber: 'var(--amber, #ecc94b)',
+  amberSoft: 'var(--amber-soft, #f4cea1)',
+  orange: 'var(--orange, #e07a3f)',
+  orangeDeep: 'var(--orange-deep, #c0612a)',
+  green: 'var(--green, #2f855a)',
+  greenSoft: 'var(--green-soft, #6f9a83)',
+  efficacyBlue: 'var(--efficacy-blue, #2b6ba8)',
+  gapNegative: 'var(--gap-negative, #b4321f)',
+  gapPositive: 'var(--gap-positive, #2f6b4f)',
+  gapNegativeTint: 'var(--gap-negative-tint, rgba(180, 50, 31, 0.07))',
+  gapPositiveTint: 'var(--gap-positive-tint, rgba(47, 107, 79, 0.07))',
+  effortTrack: 'var(--effort-track, rgba(224, 122, 63, 0.20))',
+  efficacyTrack: 'var(--efficacy-track, rgba(43, 107, 168, 0.20))',
+  compassNodeGlow: 'var(--compass-node-glow, rgba(16, 34, 60, 0.10))',
+  brass: 'var(--brass, color-mix(in srgb, #ecc94b 75%, #c0612a))',
+  dialFace: 'var(--dial-face, #f4ecdd)',
+  dialNodeFill: 'var(--dial-node-fill, #ffffff)',
+  dialBezelHi: 'var(--dial-bezel-hi, #223d66)',
+  dialBezelLo: 'var(--dial-bezel-lo, #0a1424)',
+  dialArrowStart: 'var(--dial-arrow-start, #f0c396)',
+  dialArrowEnd: 'var(--dial-arrow-end, #c0793f)',
+  zoneHonedTint: 'var(--zone-honed-tint, rgba(236, 201, 75, 0.22))',
+  zoneHonedInk: 'var(--zone-honed-ink, #8a6a13)',
+  zoneOfftargetTint: 'var(--zone-offtarget-tint, rgba(224, 122, 63, 0.14))',
+  zoneNaturalTint: 'var(--zone-natural-tint, rgba(143, 179, 205, 0.16))',
+  zoneMissingTint: 'var(--zone-missing-tint, rgba(15, 28, 46, 0.05))',
+  dialEffortFace: 'var(--dial-effort-face, linear-gradient(45deg, #ffffff 6%, rgba(224, 122, 63, 0.12) 42%, rgba(224, 122, 63, 0.52) 100%))',
+  dialEfficacyFace: 'var(--dial-efficacy-face, linear-gradient(315deg, #ffffff 6%, rgba(43, 107, 168, 0.12) 42%, rgba(43, 107, 168, 0.58) 100%))',
+  dialAxis: 'var(--dial-axis, rgba(15, 28, 46, 0.14))',
+  dialHub: 'var(--dial-hub, rgba(15, 28, 46, 0.22))',
 
-  sand50: 'var(--sand-50)',
-  sand100: 'var(--sand-100)',
-  sand200: 'var(--sand-200)',
-  sand300: 'var(--sand-300)',
+  sand50: 'var(--sand-50, #fbf7f0)',
+  sand100: 'var(--sand-100, #f4ecdd)',
+  sand200: 'var(--sand-200, #e8dbc3)',
+  sand300: 'var(--sand-300, #d1bc93)',
 
-  ink: 'var(--ink)',
-  inkSoft: 'var(--ink-soft)',
+  ink: 'var(--ink, #0f1c2e)',
+  inkSoft: 'var(--ink-soft, #44566c)',
 
   surface1: 'var(--surface-1)',
   surface2: 'var(--surface-2)',
@@ -123,9 +123,9 @@ export const shadows = {
 // Hairlines / borders
 // ----------------------------------------------------------------------------
 export const hairlines = {
-  default: '1px solid var(--sand-200)',
+  default: '1px solid var(--sand-200, #e8dbc3)',
   soft: '1px solid rgba(15, 28, 46, 0.06)',
-  rule: '1px solid var(--sand-200)',
+  rule: '1px solid var(--sand-200, #e8dbc3)',
 };
 
 // ----------------------------------------------------------------------------
@@ -267,7 +267,7 @@ export const type = {
 // Motion
 // ----------------------------------------------------------------------------
 export const motion = {
-  standard: 'var(--cairn-motion)',
+  standard: 'var(--cairn-motion, 180ms cubic-bezier(0.2, 0.8, 0.2, 1))',
 };
 
 // ----------------------------------------------------------------------------
