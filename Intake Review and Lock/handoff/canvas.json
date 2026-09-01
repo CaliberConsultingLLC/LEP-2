@@ -1,0 +1,31 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 1000, "title": "Review & Lock — the page", "is_interactive": true },
+    { "file": "Mobile.dc.html", "x": 1560, "y": 0, "w": 390, "h": 844, "title": "Phone — arrival" },
+    { "file": "MobileOpen.dc.html", "x": 2030, "y": 0, "w": 390, "h": 844, "title": "Phone — chapter open" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -300,
+      "w": 700,
+      "text": "REVIEW & LOCK — replaces the reflection moment\n\nArrives closed: five chapters, no scrolling. The whole page fits the viewport, sign-off included.\n\nEach chapter is a verification unit. Verify opens every question in it — never a partial peek. Read it, hit \"Looks right\", it seals green and collapses. Five of five unlocks the button at the bottom."
+    },
+    {
+      "id": "interaction",
+      "x": 760,
+      "y": -300,
+      "w": 680,
+      "text": "This artboard is live — click it.\n\n· Verify on any chapter opens all its questions\n· Every question is its own card, with a rule between what was asked and what was answered\n· Edit opens that one question; saving drops the chapter back to unverified so it has to be read again\n· Lock it in stays inert until all five are verified\n· Lock → the owl asks once → it locks and rolls straight into the Chapter III reflection handoff"
+    },
+    {
+      "id": "phones",
+      "x": 1560,
+      "y": -300,
+      "w": 860,
+      "text": "Same rule on the phone: everything fits 390 × 844 on arrival. Open a chapter and each question stacks — asked on top, answered below a rule, Edit as a 44px target."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

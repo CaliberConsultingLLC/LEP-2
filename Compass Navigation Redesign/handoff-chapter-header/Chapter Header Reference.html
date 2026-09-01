@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compass Chapter Header — pixel reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-950:#09101f; --navy-900:#10223c; --navy-800:#162a44; --navy-700:#1e3a5c;
+  --amber-soft:#f4cea1; --amber-ring:#dfb64a; --orange:#e07a3f; --orange-deep:#c0612a; --green:#2f855a;
+  --sand-50:#fbf7f0; --sand-100:#f4ecdd; --sand-200:#e8dbc3; --sand-300:#d1bc93;
+  --ink:#0f1c2e; --ink-soft:#44566c; --ink-mute:#8a7a63;
+  --font-serif:"Fraunces",Georgia,serif; --font-sans:"Manrope","Inter",sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,monospace; --font-brand:"Cinzel",Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#efe9df;font-family:var(--font-sans);color:var(--ink);-webkit-font-smoothing:antialiased;padding:40px}
+@keyframes phPulse{0%{transform:scale(.9);opacity:.55}70%{transform:scale(1.7);opacity:0}100%{transform:scale(1.7);opacity:0}}
+@keyframes dropIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+h1{font-family:var(--font-serif);font-weight:500;font-size:26px;letter-spacing:-.02em;margin-bottom:6px}
+.lede{font-size:13px;line-height:1.6;color:rgba(15,28,46,.6);max-width:88ch;margin-bottom:30px}
+.caption{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(15,28,46,.5);margin:0 0 8px}
+.frame{width:1440px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.07);overflow:hidden;margin-bottom:34px}
+.page{width:1440px;background:var(--sand-50);display:flex;flex-direction:column}
+
+/* ---- bar 1 · navy utility bar ---- */
+.utility{height:60px;flex-shrink:0;position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--navy-950)}
+.utility .spacer{width:120px}
+.wordmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--font-brand);font-weight:600;font-size:23px;letter-spacing:-.03em;font-variant:small-caps;color:var(--amber-soft);line-height:1;white-space:nowrap}
+.utility-right{display:flex;align-items:center;gap:12px}
+.env{font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:.16em;color:rgba(244,206,161,.5)}
+.guide-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 13px 6px 9px;border-radius:999px;border:1px solid rgba(244,206,161,.22);background:rgba(22,42,68,.9);font-weight:700;font-size:11.5px;letter-spacing:.04em;color:var(--amber-soft);cursor:pointer}
+.guide-dot{width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.55),#b4321f 55%,rgba(0,0,0,.18));border:1.5px solid rgba(15,28,46,.2)}
+.avatar{width:30px;height:30px;border-radius:50%;background:rgba(22,42,68,.9);border:1px solid rgba(244,206,161,.22);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-weight:700;font-size:12px;color:var(--amber-soft)}
+
+/* ---- bar 2 · chapter rail ---- */
+.rail{height:78px;flex-shrink:0;position:relative;z-index:3;display:flex;align-items:center;padding:0 28px 0 152px;background:#fff;border-bottom:1px solid var(--sand-200);overflow:visible}
+.porthole{position:absolute;left:28px;top:-38px;width:100px;height:100px;border-radius:50%;padding:4px;background:linear-gradient(155deg,var(--navy-700),var(--navy-950) 70%);box-shadow:0 12px 28px rgba(15,28,46,.3),inset 0 1px 0 rgba(244,206,161,.3),0 0 0 5px #fff;cursor:pointer}
+.porthole .ring{position:absolute;inset:3px;border-radius:50%;border:2px solid var(--amber-ring);z-index:2}
+.porthole .diamond{position:absolute;left:50%;top:0;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:var(--amber-ring);border:1.5px solid var(--navy-950);z-index:3}
+.porthole .lens{width:92px;height:92px;border-radius:50%;overflow:hidden;position:relative;background-image:url(assets/journey-base.png);background-size:583.68px 389.12px;background-position:-268.6px -238.2px;box-shadow:inset 0 0 20px rgba(15,28,46,.42)}
+.porthole .glint{position:absolute;inset:0;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.4) 0 38%,transparent 40%)}
+.porthole .you{position:absolute;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:var(--orange);border:2px solid #fff;box-shadow:0 3px 10px rgba(15,28,46,.3)}
+.porthole .you::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:2px solid var(--orange);opacity:.5;animation:phPulse 2.4s ease-out infinite}
+
+.chapter-block{all:unset;display:flex;flex-direction:column;gap:3px;cursor:pointer;flex-shrink:0}
+.chapter-eyebrow{display:flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--orange-deep)}
+.caret{font-size:10px;line-height:1;color:var(--ink-mute)}
+.caret.open{color:var(--orange)}
+.chapter-name{font-family:var(--font-serif);font-weight:500;font-size:21px;letter-spacing:-.02em;line-height:1;color:var(--ink);white-space:nowrap}
+.rail-divider{width:1px;height:34px;background:var(--sand-200);margin:0 22px}
+
+.tabs{display:flex;align-items:center;height:78px}
+.tab{all:unset;display:flex;align-items:center;gap:9px;padding:0 18px;cursor:pointer;opacity:.6}
+.tab.active{height:78px;box-sizing:border-box;border-bottom:2px solid var(--orange);opacity:1}
+.tab.locked{opacity:.45;cursor:not-allowed;gap:7px}
+.num{width:18px;height:18px;border-radius:50%;border:1px solid var(--sand-300);color:var(--ink-mute);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:8.5px;font-weight:700;flex-shrink:0}
+.num.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.num.done{background:var(--green);border-color:var(--green);color:#fff;font-family:var(--font-sans);font-size:9px}
+.tab-label{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.tab.active .tab-label{font-weight:700;color:var(--ink)}
+.lock{font-size:10px;color:var(--ink-mute)}
+.grow{flex:1}
+
+.chip{display:flex;align-items:center;gap:10px;padding:7px 14px;border-radius:999px;background:var(--sand-50);border:1px solid var(--sand-200)}
+.chip-label{font-family:var(--font-mono);font-size:8.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute)}
+.chip-val{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--ink)}
+.chip-sep{width:1px;height:14px;background:var(--sand-200)}
+.chip-ok{font-size:11.5px;font-weight:700;color:var(--green)}
+.track{display:flex;gap:4px}
+.track i{width:8px;height:8px;border-radius:50%;border:1px solid var(--sand-300)}
+.track i.on{background:var(--orange);border-color:var(--orange)}
+.bar{width:92px;height:5px;border-radius:999px;background:#f0e4cd;overflow:hidden}
+.bar span{display:block;height:5px;background:var(--orange)}
+
+/* ---- drawer ---- */
+.body-area{position:relative;height:230px;background:var(--sand-50)}
+.drawer{position:absolute;left:0;right:0;top:0;z-index:5;background:var(--navy-950);border-bottom:1px solid rgba(244,206,161,.2);box-shadow:0 24px 48px rgba(9,16,31,.3);animation:dropIn 240ms cubic-bezier(.2,.8,.2,1) both}
+.drawer-grid{padding:26px 44px 30px 152px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 272px;gap:40px;align-items:start}
+.d-eyebrow{font-family:var(--font-mono);font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:11px}
+.d-eyebrow.muted{font-size:9px;color:rgba(244,206,161,.6);margin-bottom:12px}
+.purpose{font-family:var(--font-serif);font-style:italic;font-weight:400;font-size:15.5px;line-height:1.55;color:#e8ddce;max-width:46ch}
+.col-2{border-left:1px solid rgba(244,206,161,.14);padding-left:30px}
+.list{display:flex;flex-direction:column;gap:9px}
+.row{display:flex;gap:10px;align-items:flex-start}
+.row i{width:5px;height:5px;border-radius:50%;background:var(--orange);margin-top:6px;flex-shrink:0}
+.row p{font-size:13px;font-weight:500;line-height:1.45;color:#f0e9de}
+.meta{margin-top:14px;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,206,161,.5)}
+.col-3{border-left:1px solid rgba(244,206,161,.14);padding-left:30px;display:flex;flex-direction:column;gap:12px}
+.map{position:relative;height:112px;border-radius:12px;overflow:hidden;border:1px solid rgba(244,206,161,.22);cursor:pointer}
+.map .img{position:absolute;inset:0;background-image:url(assets/journey-base.png);background-size:cover;background-position:44% 62%}
+.map .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,16,31,.1),rgba(9,16,31,.82))}
+.map .cap{position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--amber-soft)}
+.ghost{padding:34px 0 0;display:flex;justify-content:center}
+.ghost div{width:1186px;height:150px;border-radius:16px;border:1px dashed var(--sand-300);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute)}
+.notes{width:1440px;font-size:13px;line-height:1.65;color:rgba(15,28,46,.66);margin-bottom:40px}
+.notes h2{font-family:var(--font-serif);font-weight:500;font-size:18px;margin:22px 0 8px;color:var(--ink)}
+.notes li{margin-left:18px;margin-bottom:4px}
+code{font-family:var(--font-mono);font-size:11.5px;background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<h1>Compass chapter header — pixel reference</h1>
+<p class="lede">Design reference, not shippable code. Two bars, corner porthole, chapter steps as tabs, one status chip, and the three-column chapter drawer. Every value maps to a token in <code>cairn-theme.css</code>. Measurements are annotated in <code>README.md</code>.</p>
+
+<p class="caption">1 · Header at rest — sequence page (Chapter III, Trait Selection)</p>
+<div class="frame"><div class="page">
+  <div class="utility">
+    <div class="spacer"></div>
+    <div class="wordmark">The Compass</div>
+    <div class="utility-right">
+      <div class="env">STAGING · CAIRN</div>
+      <div class="guide-pill"><div class="guide-dot"></div>Guide</div>
+      <div class="avatar">AR</div>
+    </div>
+  </div>
+  <div class="rail">
+    <div class="porthole"><div class="ring"></div><div class="diamond"></div><div class="lens"><div class="glint"></div><div class="you"></div></div></div>
+    <button class="chapter-block">
+      <div class="chapter-eyebrow">Chapter III of VII <span class="caret">▾</span></div>
+      <div class="chapter-name">Leadership Reflection</div>
+    </button>
+    <div class="rail-divider"></div>
+    <div class="tabs">
+      <button class="tab"><span class="num done">✓</span><span class="tab-label">Summary</span></button>
+      <button class="tab active"><span class="num on">2</span><span class="tab-label">Trait Selection</span></button>
+      <button class="tab"><span class="num">3</span><span class="tab-label">Campaign Builder</span></button>
+    </div>
+    <div class="grow"></div>
+    <div class="chip">
+      <span class="chip-label">Selected</span>
+      <span class="track"><i></i><i></i><i></i></span>
+      <span class="chip-val">0 / 3</span>
+    </div>
+  </div>
+  <div class="body-area"><div class="ghost"><div>page content column · unchanged</div></div></div>
+</div></div>
+
+<p class="caption">2 · Drawer open — purpose · what happens here · review the map</p>
+<div class="frame"><div class="page">
+  <div class="utility">
+    <div class="spacer"></div>
+    <div class="wordmark">The Compass</div>
+    <div class="utility-right">
+      <div class="env">STAGING · CAIRN</div>
+      <div class="guide-pill"><div class="guide-dot"></div>Guide</div>
+      <div class="avatar">AR</div>
+    </div>
+  </div>
+  <div class="rail">
+    <div class="porthole"><div class="ring"></div><div class="diamond"></div><div class="lens"><div class="glint"></div><div class="you"></div></div></div>
+    <button class="chapter-block" aria-expanded="true">
+      <div class="chapter-eyebrow">Chapter III of VII <span class="caret open">▴</span></div>
+      <div class="chapter-name">Leadership Reflection</div>
+    </button>
+    <div class="rail-divider"></div>
+    <div class="tabs">
+      <button class="tab"><span class="num done">✓</span><span class="tab-label">Summary</span></button>
+      <button class="tab active"><span class="num on">2</span><span class="tab-label">Trait Selection</span></button>
+      <button class="tab"><span class="num">3</span><span class="tab-label">Campaign Builder</span></button>
+    </div>
+    <div class="grow"></div>
+    <div class="chip"><span class="chip-label">Selected</span><span class="track"><i></i><i></i><i></i></span><span class="chip-val">0 / 3</span></div>
+  </div>
+  <div class="body-area">
+    <div class="drawer" role="region" aria-label="Chapter overview">
+      <div class="drawer-grid">
+        <div>
+          <div class="d-eyebrow">What this chapter is for</div>
+          <div class="purpose">Your answers have been read back to you as a reflection. This chapter turns that reading into a decision: the three traits your next campaign will measure.</div>
+        </div>
+        <div class="col-2">
+          <div class="d-eyebrow muted">What happens here</div>
+          <div class="list">
+            <div class="row"><i></i><p>Three traits from the reflection</p></div>
+            <div class="row"><i></i><p>One at a time</p></div>
+            <div class="row"><i></i><p>Changeable until you build</p></div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="d-eyebrow muted">Chapter III of VII</div>
+          <div class="map"><div class="img"></div><div class="scrim"></div><div class="cap">Review the map</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<p class="caption">3 · Chip variants and tab states</p>
+<div class="frame"><div class="page">
+  <div class="rail" style="border-top:1px solid var(--sand-200);padding-left:28px">
+    <div class="tabs">
+      <button class="tab"><span class="num done">✓</span><span class="tab-label">Completed</span></button>
+      <button class="tab active"><span class="num on">2</span><span class="tab-label">Active</span></button>
+      <button class="tab"><span class="num">3</span><span class="tab-label">Upcoming</span></button>
+      <button class="tab locked"><span class="num">4</span><span class="tab-label">Practice</span><span class="lock">🔒</span></button>
+    </div>
+    <div class="grow"></div>
+    <div class="chip"><span class="chip-label">Responses</span><span class="chip-val">7 / 8</span><span class="chip-sep"></span><span class="chip-ok">Signal ready</span></div>
+    <div style="width:12px"></div>
+    <div class="chip"><span class="chip-label">Question</span><span class="chip-val">14 / 32</span><span class="bar"><span style="width:44%"></span></span><span style="font-size:11px;font-weight:600;color:var(--ink-mute)">Saved</span></div>
+    <div style="width:12px"></div>
+    <div class="chip"><span class="chip-label">Stage</span><span class="track"><i class="on"></i><i></i><i></i><i></i></span><span class="chip-val">1 / 4</span></div>
+  </div>
+  <div class="body-area" style="height:70px"></div>
+</div></div>
+
+<div class="notes">
+  <h2>Reading this file</h2>
+  <ul>
+    <li>Class names here are for the reference only — ship the header as <code>ChapterHeader.jsx</code> with MUI <code>sx</code> and existing tokens.</li>
+    <li>Bar 1 is 60px, bar 2 is 78px, the porthole is 100px at <code>left:28px; top:-38px</code>, and the rail reserves <code>padding-left:152px</code> for it.</li>
+    <li>The drawer grid shares the rail's 152px left inset so purpose text lines up under the chapter name.</li>
+    <li>The drawer has no buttons. The map card is the only clickable element besides closing.</li>
+    <li>Column 2 is scoped to the ACTIVE STEP and written as short fragments — it changes when the selected tab changes. No time estimates.</li>
+    <li>Copy comes from <code>chapterMap.js</code>: <code>chapter.purpose</code> for column 1, <code>step.whatHappens</code> for column 2.</li>
+  </ul>
+</div>
+
+</body>
+</html>

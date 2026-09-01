@@ -299,7 +299,25 @@ export const surfaces = {
 
 // ----------------------------------------------------------------------------
 // Buttons — composable sx fragments matching cairn-theme.css MuiButton rules
+//
+// On a plain `<Box component="button">` these apply as written. On a MUI
+// `<Button>` they do not, and the reason is specificity: an sx prop compiles to
+// a single emotion class (0,1,0), while cairn-theme.css targets buttons as
+// `html[data-theme='cairn'] .MuiButton-textPrimary` (0,2,1). The stylesheet
+// wins on any property both of them set.
+//
+// That is not theoretical. `<Button sx={buttons.primary}>` with no `variant`
+// prop is a text-variant button, so the stylesheet forced `color: navy-900`
+// while `bgcolor` — which no stylesheet rule sets — came through from sx. The
+// result was navy text on a navy fill: a button with an invisible label, which
+// is what shipped on /guide-select.
+//
+// `&&&` raises these to (0,3,0) so the token wins wherever it is used, on a
+// bare button element or a MUI one, without every call site remembering to
+// pass a matching `variant`.
 // ----------------------------------------------------------------------------
+const buttonInk = (color) => ({ '&&&': { color } });
+
 export const buttons = {
   primary: {
     fontFamily: FONT_SANS,
@@ -314,6 +332,7 @@ export const buttons = {
     borderRadius: radii.pill,
     bgcolor: colors.navy900,
     color: colors.amberSoft,
+    ...buttonInk(colors.amberSoft),
     boxShadow: shadows.buttonPrimary,
     transition: motion.standard,
     '&:hover': {
@@ -339,6 +358,7 @@ export const buttons = {
     borderRadius: radii.pill,
     bgcolor: colors.orange,
     color: 'white',
+    ...buttonInk('white'),
     boxShadow: shadows.buttonSecondary,
     transition: motion.standard,
     '&:hover': { bgcolor: colors.orangeDeep },
@@ -360,6 +380,7 @@ export const buttons = {
     borderRadius: radii.pill,
     bgcolor: 'transparent',
     color: colors.navy900,
+    ...buttonInk(colors.navy900),
     border: `1px solid ${colors.navy500}`,
     boxShadow: shadows.none,
     transition: motion.standard,

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Manrope:wght@400..800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet"><style>
+body{margin:0;background:#f0eee9;font-family:'Manrope',system-ui,sans-serif}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 'Manrope',system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:center;gap:8px;font:400 11px/1.3 'Manrope',system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{max-width:100%;border-radius:8px;overflow:hidden}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:22px 0 0;font:12px/1.5 'Manrope',system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.dv-replay{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid rgba(0,0,0,.18);background:transparent;color:rgba(0,0,0,.6);cursor:pointer}
+.dv-replay:hover{background:rgba(0,0,0,.06)}
+a{color:#c0612a}a:hover{color:#e07a3f}
+@keyframes phPulse{0%{transform:scale(.9);opacity:.55}70%{transform:scale(1.7);opacity:0}100%{transform:scale(1.7);opacity:0}}
+</style></helmet>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Tight card, guide panel expands right — from <a class="dv-oid" href="#1b">1b</a></span></div>
+<div class="dv-opts">
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Complete = map, chapter, title, button. Click and the box grows a guide panel: zoomed owl only, words stay in the card<button class="dv-replay" onClick="{{ replayD }}">Replay</button></div>
+<div class="dv-card" style="width:1000px;height:560px;position:relative;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#12283f,#09101f 70%)">
+<div style="position:absolute;inset:0;background:rgba(9,16,31,.5)"></div>
+<div style="position:relative;display:flex;border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(9,16,31,.45)">
+  <div style="width:620px;height:320px;box-sizing:border-box;display:grid;grid-template-columns:236px 1fr;gap:40px;align-items:center;background:#fbf7f0;border:1px solid #e8dbc3;padding:26px 30px 26px 26px">
+    <div style="width:236px;height:236px;flex-shrink:0;position:relative;border-radius:50%;padding:6px;background:linear-gradient(155deg,#1e3a5c,#09101f 70%);box-shadow:0 10px 24px rgba(15,28,46,.28),inset 0 1px 0 rgba(244,206,161,.3)">
+      <div style="position:absolute;inset:4px;border-radius:50%;border:2px solid #e1af43;z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:50%;top:1px;width:9px;height:9px;transform:translate(-50%,-50%) rotate(45deg);background:#e1af43;border:1.5px solid #09101f;z-index:3"></div>
+      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;box-shadow:inset 0 0 22px rgba(15,28,46,.38)">
+        <div style="{{ discD }}"></div>
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.42) 0 38%,transparent 40%);pointer-events:none"></div>
+        <div style="position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#e07a3f;border:2.5px solid #fff;box-shadow:0 3px 12px rgba(15,28,46,.32);z-index:4"></div>
+        <div style="{{ pulse }}"></div>
+      </div>
+    </div>
+    <div>
+      <sc-if value="{{ dDone }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:baseline;gap:7px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#c0612a;margin-bottom:8px">
+          <span>Chapter IV</span><span>·</span><span style="color:#2f855a;font-weight:800">Complete ✓</span>
+        </div>
+        <h2 style="margin:0 0 22px;font-family:'Fraunces',Georgia,serif;font-size:31px;font-weight:600;line-height:1.1;letter-spacing:-.02em;color:#0f1c2e">Self &amp; Team Assessment</h2>
+      </sc-if>
+      <sc-if value="{{ dNext }}" hint-placeholder-val="{{ false }}">
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#c0612a;margin-bottom:8px">Chapter V of VII</div>
+        <h2 style="margin:0 0 14px;font-family:'Fraunces',Georgia,serif;font-size:31px;font-weight:600;line-height:1.1;letter-spacing:-.02em;color:#0f1c2e">Review &amp; Reflect</h2>
+        <div style="{{ quoteD }}">
+          <p style="margin:0;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:15.5px;font-weight:500;line-height:1.45;color:#44566c">&ldquo;You are about to see your leadership through someone else&rsquo;s eyes. What lands here is not a verdict — it is the distance between what you intend and what they feel.&rdquo;</p>
+        </div>
+      </sc-if>
+      <button onClick="{{ nextD }}" style="{{ btnD }}">{{ btnLabelD }}</button>
+    </div>
+  </div>
+  <div style="{{ railD }}">
+    <div style="position:absolute;left:0;top:0;width:250px;height:100%;overflow:hidden;background:#10223C">
+      <img src="assets/guides/mentor-alt.png" alt="Mentor" style="position:absolute;left:50%;top:-8%;transform:translateX(-50%);width:210%;max-width:none;display:block">
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,34,60,0) 48%,rgba(16,34,60,.6) 78%,rgba(9,16,31,.96) 100%)"></div>
+      <div style="position:absolute;inset:0;box-shadow:inset 18px 0 34px -18px rgba(4,9,26,.8)"></div>
+      <span style="position:absolute;left:0;right:0;bottom:16px;text-align:center;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#F4CEA1">— Mentor</span>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+<p class="dv-next">Try next: &ldquo;crop the owl tighter on the eyes&rdquo; · &ldquo;write the guide line for all nine chapters&rdquo; · &ldquo;let the panel push out from behind the card instead of unfolding&rdquo;</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Chapter handoff — guide speaks on arrival</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Guide sidecar — navy rail slides out of the card, owl zoom + quote (closest to the landing rail)<button class="dv-replay" onClick="{{ replayA }}">Replay</button></div>
+<div class="dv-card" style="width:1000px;height:620px;position:relative;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#12283f,#09101f 70%)">
+<div style="position:absolute;inset:0;background:rgba(9,16,31,.5)"></div>
+<div style="position:relative;display:flex;border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(9,16,31,.45)">
+  <div style="width:620px;height:440px;box-sizing:border-box;display:grid;grid-template-columns:218px 1fr;gap:26px;align-items:center;background:#fbf7f0;border:1px solid #e8dbc3;padding:28px">
+    <div style="width:218px;height:218px;flex-shrink:0;position:relative;border-radius:50%;padding:6px;background:linear-gradient(155deg,#1e3a5c,#09101f 70%);box-shadow:0 10px 24px rgba(15,28,46,.28),inset 0 1px 0 rgba(244,206,161,.3)">
+      <div style="position:absolute;inset:4px;border-radius:50%;border:2px solid #e1af43;z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:50%;top:1px;width:9px;height:9px;transform:translate(-50%,-50%) rotate(45deg);background:#e1af43;border:1.5px solid #09101f;z-index:3"></div>
+      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;box-shadow:inset 0 0 22px rgba(15,28,46,.38)">
+        <div style="{{ discA }}"></div>
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.42) 0 38%,transparent 40%);pointer-events:none"></div>
+        <div style="position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#e07a3f;border:2.5px solid #fff;box-shadow:0 3px 12px rgba(15,28,46,.32);z-index:4"></div>
+        <div style="{{ pulse }}"></div>
+      </div>
+    </div>
+    <div>
+      <sc-if value="{{ aDone }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:baseline;gap:7px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#c0612a;margin-bottom:10px">
+          <span>Chapter IV</span><span>·</span><span style="color:#2f855a;font-weight:800;font-size:1.15em">Complete ✓</span>
+        </div>
+        <h2 style="margin:0 0 22px;font-family:'Fraunces',Georgia,serif;font-size:32px;font-weight:600;line-height:1.12;letter-spacing:-.02em;color:#0f1c2e">Self &amp; Team Assessment</h2>
+      </sc-if>
+      <sc-if value="{{ aNext }}" hint-placeholder-val="{{ false }}">
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#c0612a;margin-bottom:10px">Chapter V of VII</div>
+        <h2 style="margin:0 0 22px;font-family:'Fraunces',Georgia,serif;font-size:32px;font-weight:600;line-height:1.12;letter-spacing:-.02em;color:#0f1c2e">Review &amp; Reflect</h2>
+      </sc-if>
+      <button onClick="{{ nextA }}" style="{{ btnA }}">{{ btnLabelA }}</button>
+    </div>
+  </div>
+  <div style="{{ railA }}">
+    <div style="position:absolute;left:0;top:0;width:272px;height:100%;display:flex;flex-direction:column">
+    <div style="height:258px;overflow:hidden;flex-shrink:0;position:relative">
+      <img src="assets/guides/mentor-alt.png" alt="Mentor" style="width:135%;max-width:none;height:auto;margin:-14px 0 0 -17.5%;display:block;filter:drop-shadow(0 10px 22px rgba(0,0,0,.5))">
+      <div style="position:absolute;inset:auto 0 0 0;height:80px;background:linear-gradient(180deg,rgba(16,34,60,0),#10223c)"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;padding:4px 26px 30px;flex:1;justify-content:center;text-align:center">
+      <p style="margin:0;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:16px;line-height:1.5;color:#FFF8F0">&ldquo;Nine people just told you what it is like to be led by you. Read it like weather, not a verdict.&rdquo;</p>
+      <p style="margin:0;font-family:'Manrope',sans-serif;font-size:12.5px;line-height:1.55;color:rgba(255,248,240,.66)">You do not have to fix anything this week. You only have to look.</p>
+      <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9.5px;font-weight:700;letter-spacing:.14em;color:#F4CEA1">— MENTOR</span>
+    </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Night card — dark ceremony, guide walks in full-height from the right<button class="dv-replay" onClick="{{ replayB }}">Replay</button></div>
+<div class="dv-card" style="width:1000px;height:620px;position:relative;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#1b3350,#09101f 70%)">
+<div style="position:absolute;inset:0;background:rgba(4,9,26,.55)"></div>
+<div style="position:relative;width:860px;height:404px;border-radius:24px;overflow:hidden;background:linear-gradient(115deg,#10223c 0%,#0d1c33 52%,#09101f 100%);border:1px solid rgba(244,206,161,.2);box-shadow:0 40px 90px rgba(4,9,26,.6)">
+  <div style="position:absolute;inset:0;background:radial-gradient(60% 50% at 18% 12%,rgba(99,147,170,.18),transparent 70%)"></div>
+  <div style="{{ portraitB }}">
+    <img src="assets/guides/mentor.png" alt="Mentor" style="height:100%;width:auto;display:block;filter:drop-shadow(-14px 14px 40px rgba(4,9,26,.75))">
+  </div>
+  <div style="position:relative;height:100%;box-sizing:border-box;display:grid;grid-template-columns:200px 1fr;gap:30px;align-items:center;padding:30px 34px">
+    <div style="width:200px;height:200px;flex-shrink:0;position:relative;border-radius:50%;padding:6px;background:linear-gradient(155deg,#2b4a6f,#09101f 70%);box-shadow:0 14px 30px rgba(4,9,26,.55),inset 0 1px 0 rgba(244,206,161,.3)">
+      <div style="position:absolute;inset:4px;border-radius:50%;border:2px solid #e1af43;z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:50%;top:1px;width:9px;height:9px;transform:translate(-50%,-50%) rotate(45deg);background:#e1af43;border:1.5px solid #09101f;z-index:3"></div>
+      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;box-shadow:inset 0 0 22px rgba(4,9,26,.5)">
+        <div style="{{ discB }}"></div>
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.32) 0 38%,transparent 40%);pointer-events:none"></div>
+        <div style="position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:50%;background:#e07a3f;border:2.5px solid #fff;box-shadow:0 3px 12px rgba(4,9,26,.5);z-index:4"></div>
+        <div style="{{ pulse }}"></div>
+      </div>
+    </div>
+    <div style="max-width:330px">
+      <sc-if value="{{ bDone }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:baseline;gap:7px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#F4CEA1;margin-bottom:12px">
+          <span>Chapter IV</span><span>·</span><span style="color:#6f9a83;font-size:1.15em">Complete ✓</span>
+        </div>
+        <h2 style="margin:0 0 24px;font-family:'Fraunces',Georgia,serif;font-size:36px;font-weight:300;line-height:1.1;letter-spacing:-.02em;color:#FFF8F0">Self &amp; Team Assessment</h2>
+      </sc-if>
+      <sc-if value="{{ bNext }}" hint-placeholder-val="{{ false }}">
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#F4CEA1;margin-bottom:12px">Chapter V of VII</div>
+        <h2 style="margin:0 0 20px;font-family:'Fraunces',Georgia,serif;font-size:36px;font-weight:300;line-height:1.1;letter-spacing:-.02em;color:#FFF8F0">Review &amp; Reflect</h2>
+        <div style="{{ quoteB }}">
+          <p style="margin:0 0 8px;font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:16px;line-height:1.5;color:#FFF8F0">&ldquo;Read it like weather, not a verdict. The pattern matters more than any one number.&rdquo;</p>
+          <span style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9.5px;font-weight:700;letter-spacing:.14em;color:#F4CEA1">— MENTOR</span>
+        </div>
+      </sc-if>
+      <button onClick="{{ nextB }}" style="{{ btnB }}">{{ btnLabelB }}</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Margin note — guide detaches beside the card, medallion + staggered beats<button class="dv-replay" onClick="{{ replayC }}">Replay</button></div>
+<div class="dv-card" style="width:1060px;height:620px;position:relative;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#12283f,#09101f 70%)">
+<div style="position:absolute;inset:0;background:rgba(9,16,31,.5)"></div>
+<div style="position:relative;display:flex;align-items:stretch;gap:18px">
+  <div style="width:560px;display:grid;grid-template-columns:170px 1fr;gap:24px;align-items:center;background:#fbf7f0;border:1px solid #e8dbc3;border-radius:24px;padding:26px;box-shadow:0 40px 90px rgba(9,16,31,.45)">
+    <div style="width:170px;height:170px;flex-shrink:0;position:relative;border-radius:50%;padding:5px;background:linear-gradient(155deg,#1e3a5c,#09101f 70%);box-shadow:0 10px 24px rgba(15,28,46,.28),inset 0 1px 0 rgba(244,206,161,.3)">
+      <div style="position:absolute;inset:3.5px;border-radius:50%;border:2px solid #e1af43;z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:50%;top:0;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:#e1af43;border:1.5px solid #09101f;z-index:3"></div>
+      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;box-shadow:inset 0 0 22px rgba(15,28,46,.38)">
+        <div style="{{ discC }}"></div>
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.42) 0 38%,transparent 40%);pointer-events:none"></div>
+        <div style="position:absolute;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#e07a3f;border:2px solid #fff;box-shadow:0 3px 12px rgba(15,28,46,.32);z-index:4"></div>
+        <div style="{{ pulse }}"></div>
+      </div>
+    </div>
+    <div>
+      <sc-if value="{{ cDone }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:baseline;gap:7px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#c0612a;margin-bottom:9px">
+          <span>Chapter IV</span><span>·</span><span style="color:#2f855a;font-size:1.15em">Complete ✓</span>
+        </div>
+        <h2 style="margin:0 0 20px;font-family:'Fraunces',Georgia,serif;font-size:29px;font-weight:600;line-height:1.12;letter-spacing:-.02em;color:#0f1c2e">Self &amp; Team Assessment</h2>
+      </sc-if>
+      <sc-if value="{{ cNext }}" hint-placeholder-val="{{ false }}">
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#c0612a;margin-bottom:9px">Chapter V of VII</div>
+        <h2 style="margin:0 0 20px;font-family:'Fraunces',Georgia,serif;font-size:29px;font-weight:600;line-height:1.12;letter-spacing:-.02em;color:#0f1c2e">Review &amp; Reflect</h2>
+      </sc-if>
+      <button onClick="{{ nextC }}" style="{{ btnC }}">{{ btnLabelC }}</button>
+    </div>
+  </div>
+  <div style="{{ asideC }}">
+    <div style="position:absolute;left:-7px;top:96px;width:14px;height:14px;transform:rotate(45deg);background:#10223c;border-left:1px solid rgba(244,206,161,.25);border-bottom:1px solid rgba(244,206,161,.25)"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <span style="width:62px;height:62px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#0d1c33;border:2px solid #e1af43;display:block;position:relative">
+        <img src="assets/guides/mentor.png" alt="Mentor" style="position:absolute;width:230%;left:-64%;top:-8%;max-width:none">
+      </span>
+      <div>
+        <div style="font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:400;color:#FFF8F0;line-height:1.1">Mentor</div>
+        <div style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#F4CEA1;margin-top:4px">Your guide</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <p style="{{ beat1 }}">&ldquo;Nine people just told you what it is like to be led by you.&rdquo;</p>
+      <p style="{{ beat2 }}">&ldquo;Read it like weather, not a verdict. Look for the line that repeats, not the number that stings.&rdquo;</p>
+      <p style="{{ beat3 }}">You do not have to fix anything this week. You only have to look.</p>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: &ldquo;keep <a class="dv-oid" href="#1a">1a</a> but make the guide speak before the map settles&rdquo; · &ldquo;take <a class="dv-oid" href="#1c">1c</a>&rsquo;s medallion into <a class="dv-oid" href="#1b">1b</a>&rdquo; · &ldquo;show all nine chapters&rsquo; guide lines&rdquo;</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;walkMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2000,&quot;min&quot;:800,&quot;max&quot;:4000,&quot;step&quot;:100,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;pulse&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+const PTS=[[913,729],[942.1,724.8],[968.5,717.2],[996.8,709.2],[1025.8,702.7],[1047.1,696.4],[1059.9,680.5],[1053,670.3],[1046.7,643.2],[1050.1,639.3],[1057.7,633.8],[1071.5,626.6],[1091,619],[1117,612.2],[1141.7,606.3],[1162.6,598.1],[1173.7,587],[1177,582]];
+const W=1536,H=1024;
+const LENS=(()=>{const a=[0];for(let i=1;i<PTS.length;i++)a.push(a[i-1]+Math.hypot(PTS[i][0]-PTS[i-1][0],PTS[i][1]-PTS[i-1][1]));return a;})();
+const TOTAL=LENS[LENS.length-1];
+const START={x:PTS[0][0]/W,y:PTS[0][1]/H};
+const END={x:PTS[PTS.length-1][0]/W,y:PTS[PTS.length-1][1]/H};
+function pointAt(t){const d=TOTAL*t;let i=1;while(i<LENS.length-1&&LENS[i]<d)i++;const a=PTS[i-1],b=PTS[i],seg=(LENS[i]-LENS[i-1])||1,u=Math.min(1,Math.max(0,(d-LENS[i-1])/seg));return{x:(a[0]+(b[0]-a[0])*u)/W,y:(a[1]+(b[1]-a[1])*u)/H};}
+const ease=(t)=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+
+class Component extends DCLogic {
+  state={pa:'done',fa:START,pb:'done',fb:START,pc:'done',fc:START,pd:'done',fd:START};
+  frames={};
+
+  componentWillUnmount(){Object.values(this.frames).forEach((f)=>clearInterval(f));}
+
+  disc(f,size,pad,zoom,instant){
+    const bw=W*zoom,bh=H*zoom,c=(size-pad*2)/2;
+    return{position:'absolute',inset:0,backgroundImage:'url(assets/journey-base.png)',backgroundSize:bw.toFixed(1)+'px '+bh.toFixed(1)+'px',backgroundPosition:(c-f.x*bw).toFixed(1)+'px '+(c-f.y*bh).toFixed(1)+'px',transition:instant?'none':'background-position 900ms cubic-bezier(0.2,0.8,0.2,1)'};
+  }
+
+  walk(k){
+    const dur=this.props.walkMs??2000;
+    const pk='p'+k,fk='f'+k;
+    if(this.state[pk]==='walk')return;
+    this.setState({[pk]:'walk'});
+    const t0=Date.now();
+    const id=setInterval(()=>{
+      const t=Math.min(1,(Date.now()-t0)/dur);
+      this.setState({[fk]:pointAt(ease(t))});
+      if(t>=1){clearInterval(id);this.frames[k]=null;setTimeout(()=>this.setState({[pk]:'next'}),240);}
+    },28);
+    this.frames[k]=id;
+  }
+
+  reset(k){
+    if(this.frames[k])clearInterval(this.frames[k]);
+    this.setState({['p'+k]:'done',['f'+k]:START});
+  }
+
+  btn(k,dark){
+    const walking=this.state['p'+k]==='walk';
+    return{fontFamily:"'Manrope',sans-serif",fontWeight:700,fontSize:13,letterSpacing:'.04em',textTransform:'none',padding:'12px 22px',minHeight:42,border:dark?'1px solid rgba(244,206,161,.35)':'none',borderRadius:999,background:dark?'#F4CEA1':'#10223c',color:dark?'#10223c':'#f4cea1',boxShadow:'0 8px 20px rgba(15,28,46,.18)',cursor:walking?'default':'pointer',opacity:walking?.6:1,transition:'all 220ms ease'};
+  }
+
+  label(k){return this.state['p'+k]==='walk'?'On the trail…':(this.state['p'+k]==='done'?"I'm Finished":"Let's get started");}
+
+  renderVals(){
+    const s=this.state;
+    const revealed=(k)=>s['p'+k]==='next';
+    const quoteFont={margin:0,fontFamily:"'Fraunces',Georgia,serif",fontStyle:'italic',fontSize:15,lineHeight:1.5,color:'#FFF8F0'};
+    const beat=(i,on)=>({...(i===3?{...quoteFont,fontStyle:'normal',fontFamily:"'Manrope',sans-serif",fontSize:12.5,color:'rgba(255,248,240,.66)',lineHeight:1.55}:quoteFont),opacity:on?1:0,transform:on?'translateY(0)':'translateY(10px)',transition:'opacity 520ms ease '+(160+i*140)+'ms, transform 520ms cubic-bezier(.2,.8,.2,1) '+(160+i*140)+'ms'});
+    return {
+      discA:this.disc(s.fa,218,6,.46,s.pa==='walk'),
+      discB:this.disc(s.fb,200,6,.46,s.pb==='walk'),
+      discC:this.disc(s.fc,170,5,.46,s.pc==='walk'),
+      discD:this.disc(s.fd,236,6,.46,s.pd==='walk'),
+      dDone:s.pd!=='next',dNext:s.pd==='next',
+      btnD:this.btn('d'),btnLabelD:this.label('d'),
+      nextD:()=>{s.pd==='done'?this.walk('d'):(s.pd==='next'&&this.reset('d'));},
+      replayD:()=>this.reset('d'),
+      railD:{width:revealed('d')?250:0,minWidth:0,height:320,position:'relative',opacity:revealed('d')?1:0,flexShrink:0,overflow:'hidden',background:'#10223C',transition:'width 660ms cubic-bezier(.2,.8,.2,1), opacity 380ms ease 140ms'},
+      quoteD:{maxWidth:300,marginBottom:18,opacity:revealed('d')?1:0,transform:revealed('d')?'translateY(0)':'translateY(8px)',transition:'opacity 520ms ease 280ms, transform 520ms ease 280ms'},
+      pulse:{position:'absolute',left:'50%',top:'50%',width:26,height:26,marginLeft:-13,marginTop:-13,borderRadius:'50%',border:'2px solid #e07a3f',opacity:.55,zIndex:3,animation:(this.props.pulse??true)?'phPulse 2.4s ease-out infinite':'none',pointerEvents:'none'},
+      aDone:s.pa!=='next',aNext:s.pa==='next',
+      bDone:s.pb!=='next',bNext:s.pb==='next',
+      cDone:s.pc!=='next',cNext:s.pc==='next',
+      btnA:this.btn('a'),btnB:this.btn('b',true),btnC:this.btn('c'),
+      btnLabelA:this.label('a'),btnLabelB:this.label('b'),btnLabelC:this.label('c'),
+      nextA:()=>{s.pa==='done'?this.walk('a'):(s.pa==='next'&&this.reset('a'));},
+      nextB:()=>{s.pb==='done'?this.walk('b'):(s.pb==='next'&&this.reset('b'));},
+      nextC:()=>{s.pc==='done'?this.walk('c'):(s.pc==='next'&&this.reset('c'));},
+      replayA:()=>this.reset('a'),replayB:()=>this.reset('b'),replayC:()=>this.reset('c'),
+      railA:{width:revealed('a')?272:0,minWidth:0,height:440,position:'relative',opacity:revealed('a')?1:0,flexShrink:0,overflow:'hidden',background:'#10223C',textAlign:'center',transition:'width 640ms cubic-bezier(.2,.8,.2,1), opacity 420ms ease 160ms'},
+      portraitB:{position:'absolute',right:revealed('b')?0:-90,bottom:0,top:26,opacity:revealed('b')?1:0,transition:'right 720ms cubic-bezier(.2,.8,.2,1), opacity 520ms ease',pointerEvents:'none',display:'flex',alignItems:'flex-end'},
+      quoteB:{maxWidth:300,opacity:revealed('b')?1:0,transform:revealed('b')?'translateY(0)':'translateY(8px)',transition:'opacity 520ms ease 300ms, transform 520ms ease 300ms',marginBottom:22},
+      asideC:{position:'relative',width:300,alignSelf:'stretch',background:'linear-gradient(170deg,#10223c,#0b1830)',border:'1px solid rgba(244,206,161,.25)',borderRadius:20,padding:'26px 24px',boxShadow:'0 40px 90px rgba(9,16,31,.5)',opacity:revealed('c')?1:0,transform:revealed('c')?'translateX(0) scale(1)':'translateX(-26px) scale(.97)',transition:'opacity 420ms ease, transform 620ms cubic-bezier(.2,.8,.2,1)'},
+      beat1:beat(1,revealed('c')),beat2:beat(2,revealed('c')),beat3:beat(3,revealed('c')),
+    };
+  }
+}
+</script>
+</body>
+</html>

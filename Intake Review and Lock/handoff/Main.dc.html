@@ -1,0 +1,707 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=JetBrains+Mono:wght@400;600;700;800&family=Manrope:wght@400..800&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #fbf7f0; font-family: 'Manrope', 'Segoe UI', sans-serif; color: #0f1c2e; -webkit-font-smoothing: antialiased; }
+    a { color: #c0612a; text-decoration: none; }
+    a:hover { color: #e07a3f; }
+    .scroll { scrollbar-width: thin; scrollbar-color: #d1bc93 transparent; }
+    .scroll::-webkit-scrollbar { width: 10px; }
+    .scroll::-webkit-scrollbar-thumb { background: #e0d0b0; border-radius: 999px; border: 3px solid #fbf7f0; }
+    .qcard:hover { border-color: #d1bc93; box-shadow: 0 4px 14px rgba(15,28,46,.05); }
+    .qcard:hover .edit-btn { border-color: #d1bc93; color: #0f1c2e; }
+    .edit-btn:hover { border-color: #e07a3f; color: #10223c; background: #fbf7f0; }
+    .vbtn:hover { transform: translateY(-1px); }
+    .opt:hover { border-color: #3f647b; background: #fbf7f0; }
+    .ghost:hover { color: #10223c; border-color: #3f647b; }
+    .lockcta:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(224,122,63,.36); }
+    .navycta:hover { background: #162a44; transform: translateY(-1px); }
+    @keyframes flashIn { 0% { background: rgba(224,122,63,.14); } 100% { background: #ffffff; } }
+    .flash { animation: flashIn 1900ms ease-out 1; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 1000px; background: #fbf7f0; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+  <!-- ============ CHAPTER HEADER ============ -->
+  <div style="flex-shrink: 0; position: relative; z-index: 3;">
+    <div style="width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; padding: 0 28px; background: #09101f; box-sizing: border-box; position: relative;">
+      <div style="font-family: 'Cinzel', Georgia, serif; font-weight: 600; font-size: 23px; letter-spacing: -.03em; font-variant: small-caps; color: #f4cea1; line-height: 1;">The Compass</div>
+      <div style="position: absolute; right: 28px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 12px;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px 6px 9px; border-radius: 999px; border: 1px solid rgba(244,206,161,.22); background: #162a44; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; color: #f4cea1;">
+          <span style="width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), #6f9a83 55%, rgba(0,0,0,.18)); border: 1.5px solid rgba(15,28,46,.2);"></span>Guide
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: #1e3a5c; border: 1px solid rgba(244,206,161,.26); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 13px; color: #f4cea1;">DM</div>
+      </div>
+    </div>
+
+    <div style="position: relative; height: 78px; display: flex; align-items: center; padding: 0 28px 0 152px; background: #ffffff; border-bottom: 1px solid #e8dbc3; box-sizing: border-box;">
+      <div style="position: absolute; left: 28px; top: -38px; z-index: 3; width: 100px; height: 100px; border-radius: 50%; padding: 4px; box-sizing: border-box; background: linear-gradient(155deg, #1e3a5c, #09101f 70%); box-shadow: 0 12px 28px rgba(15,28,46,.3), inset 0 1px 0 rgba(244,206,161,.3), 0 0 0 5px #ffffff;">
+        <div style="position: absolute; inset: 3px; border-radius: 50%; border: 2px solid #e1af43; z-index: 2; pointer-events: none;"></div>
+        <div style="position: absolute; left: 50%; top: 0; width: 8px; height: 8px; transform: translate(-50%,-50%) rotate(45deg); background: #e1af43; border: 1.5px solid #09101f; z-index: 3;"></div>
+        <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; position: relative; background-image: url('journey-base.jpg'); background-size: 583.7px 389.1px; background-position: -128.4px -232.6px; box-shadow: inset 0 0 22px rgba(15,28,46,.38);">
+          <div style="position: absolute; inset: 0; background: radial-gradient(circle at 32% 24%, rgba(255,255,255,.42) 0 38%, transparent 40%);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; transform: translate(-50%,-50%); border-radius: 50%; background: #e07a3f; border: 2px solid #fff; box-shadow: 0 3px 12px rgba(15,28,46,.32);"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 3px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #c0612a;">Chapter II of VII<span style="font-size: 10px; line-height: 1; color: #44566c;">&#9662;</span></div>
+        <div style="font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 21px; letter-spacing: -.02em; line-height: 1; color: #0f1c2e; white-space: nowrap;">Behaviors &amp; Instincts</div>
+      </div>
+
+      <div style="width: 1px; height: 34px; background: #e8dbc3; margin: 0 22px; flex-shrink: 0;"></div>
+
+      <div style="display: flex; align-items: center; height: 78px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 9px; padding: 0 18px; height: 78px; opacity: .6;">
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #2f855a; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 800;">&#10003;</span>
+          <span style="font-size: 13.5px; font-weight: 600; color: #0f1c2e;">Your Context</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 0 18px; height: 78px; opacity: .6;">
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #2f855a; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 800;">&#10003;</span>
+          <span style="font-size: 13.5px; font-weight: 600; color: #0f1c2e;">Daily Leadership Habits</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 0 18px; height: 78px; opacity: .6;">
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #2f855a; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 800;">&#10003;</span>
+          <span style="font-size: 13.5px; font-weight: 600; color: #0f1c2e;">Leadership Insights</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 9px; padding: 0 18px; height: 78px; box-shadow: inset 0 -2px 0 #e07a3f;">
+          <span style="width: 18px; height: 18px; border-radius: 50%; background: #e07a3f; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 800;">4</span>
+          <span style="font-size: 13.5px; font-weight: 700; color: #0f1c2e;">Review &amp; Lock</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EDIT BAR ============ -->
+  <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-shrink: 0; width: 100%; background: #f4ecdd; border-bottom: 1px solid #e8dbc3; box-sizing: border-box; padding: 0 64px;">
+      <div style="max-width: 1180px; margin: 0 auto; height: 50px; display: flex; align-items: center; justify-content: space-between;">
+        <button onClick="{{ backToReview }}" class="ghost" style="all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: .04em; color: #44566c;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+          Back to review
+        </button>
+        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #44566c;">Changing one answer &#183; re-verifies that chapter</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SCROLL AREA ============ -->
+  <div class="scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 0 64px 44px; box-sizing: border-box;">
+    <div style="max-width: 1180px; margin: 0 auto;">
+
+      <!-- ---------- REVIEW ---------- -->
+      <sc-if value="{{ isReview }}" hint-placeholder-val="{{ true }}">
+        <div>
+
+          <div style="padding: 30px 0 24px; display: flex; flex-direction: column; align-items: center; gap: 11px; text-align: center;">
+            <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #c0612a;">The last look</div>
+            <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 32px; font-weight: 500; letter-spacing: -.02em; line-height: 1.12; color: #0f1c2e;">Read it back before it locks.</h1>
+            <p style="margin: 0; max-width: 66ch; font-size: 14px; line-height: 1.58; color: #44566c; text-wrap: pretty;">Five stretches of the intake. Open one, read what you actually said, and mark it right. When all five are verified you can lock the whole thing in.</p>
+          </div>
+
+          <!-- LEDGER -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <sc-for list="{{ groups }}" as="grp" hint-placeholder-count="5">
+              <div style="background: #ffffff; border: 1px solid {{ grp.cardBorder }}; border-radius: 18px; box-shadow: 0 14px 34px rgba(15,28,46,.05); overflow: hidden;">
+
+                <div style="display: flex; align-items: center; gap: 16px; padding: 17px 22px 17px 26px;">
+                  <span style="width: 26px; height: 26px; border-radius: 50%; background: {{ grp.dotBg }}; border: 1px solid {{ grp.dotBorder }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; font-weight: 800; color: {{ grp.dotInk }};">{{ grp.dotLabel }}</span>
+                  <span style="display: flex; flex-direction: column; gap: 3px;">
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #c0612a;">{{ grp.kicker }}</span>
+                    <span style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; font-style: italic; color: #0f1c2e; line-height: 1.1;">{{ grp.title }}</span>
+                  </span>
+                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; letter-spacing: .1em; color: #44566c; padding: 4px 10px; border-radius: 999px; background: #fbf7f0; border: 1px solid #e8dbc3; white-space: nowrap;">{{ grp.count }}</span>
+                  <span style="flex-grow: 1;"></span>
+                  <sc-if value="{{ grp.showVerify }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ grp.toggle }}" class="vbtn" style="all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 1px solid {{ grp.btnBorder }}; background: {{ grp.btnBg }}; color: {{ grp.btnInk }}; font-size: 13px; font-weight: 800; letter-spacing: .03em; box-shadow: {{ grp.btnShadow }}; transition: 180ms cubic-bezier(.2,.8,.2,1);">
+                      <span style="line-height: 1;">{{ grp.btnLabel }}</span>
+                      <sc-if value="{{ grp.iconCheck }}" hint-placeholder-val="{{ false }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                      </sc-if>
+                      <sc-if value="{{ grp.iconChev }}" hint-placeholder-val="{{ true }}">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+                      </sc-if>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{ grp.showSeal }}" hint-placeholder-val="{{ false }}">
+                    <span style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(244,206,161,.3); background: #10223c; color: #f4cea1; font-size: 12.5px; font-weight: 800; letter-spacing: .03em;">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      Locked
+                    </span>
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ grp.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="background: #fbf7f0; border-top: 1px solid #eee3cf; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                    <sc-for list="{{ grp.rows }}" as="row" hint-placeholder-count="3">
+                      <div class="{{ row.cardClass }}" style="background: #ffffff; border: 1px solid #eadfc9; border-radius: 12px; padding: 15px 18px; display: grid; grid-template-columns: 26px minmax(0,0.78fr) minmax(0,1fr) 76px; gap: 16px; align-items: start; transition: 180ms cubic-bezier(.2,.8,.2,1);">
+
+                        <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10.5px; font-weight: 800; color: #d1bc93; line-height: 1.5; padding-top: 1px;">{{ row.num }}</div>
+
+                        <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0;">
+                          <sc-if value="{{ row.hasTheme }}" hint-placeholder-val="{{ true }}">
+                            <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 8.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #9d8e79;">{{ row.theme }}</div>
+                          </sc-if>
+                          <div style="font-family: 'Fraunces', Georgia, serif; font-size: 14.5px; font-weight: 500; line-height: 1.38; color: #0f1c2e; text-wrap: pretty;">{{ row.prompt }}</div>
+                        </div>
+
+                        <div style="min-width: 0; border-left: 1px solid #eadfc9; padding-left: 22px; align-self: stretch;">
+                          <sc-if value="{{ row.tPlain }}" hint-placeholder-val="{{ true }}">
+                            <div>
+                              <div style="display: flex; gap: 9px; align-items: baseline;">
+                                <span style="width: 5px; height: 5px; border-radius: 50%; background: #e07a3f; flex-shrink: 0; transform: translateY(-2px);"></span>
+                                <span style="font-size: 13.5px; font-weight: 600; line-height: 1.5; color: #0f1c2e;">{{ row.value }}</span>
+                              </div>
+                              <sc-if value="{{ row.hasNote }}" hint-placeholder-val="{{ false }}">
+                                <div style="margin-top: 5px; padding-left: 14px; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 12.5px; line-height: 1.5; color: #44566c;">{{ row.note }}</div>
+                              </sc-if>
+                            </div>
+                          </sc-if>
+
+                          <sc-if value="{{ row.tChips }}" hint-placeholder-val="{{ false }}">
+                            <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+                              <sc-for list="{{ row.chips }}" as="chip" hint-placeholder-count="3">
+                                <span style="display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 999px; background: #fbf7f0; border: 1px solid #e8dbc3; font-size: 12.5px; font-weight: 600; color: #0f1c2e; line-height: 1.35;">{{ chip.label }}</span>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+
+                          <sc-if value="{{ row.tRank }}" hint-placeholder-val="{{ false }}">
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                              <sc-for list="{{ row.ranked }}" as="rk" hint-placeholder-count="4">
+                                <div style="display: grid; grid-template-columns: 16px minmax(0,1fr); gap: 8px; align-items: baseline;">
+                                  <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; color: {{ rk.tone }};">{{ rk.n }}</span>
+                                  <span style="font-size: 12.5px; font-weight: {{ rk.weight }}; line-height: 1.42; color: {{ rk.ink }};">{{ rk.label }}</span>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+
+                          <sc-if value="{{ row.tSliders }}" hint-placeholder-val="{{ false }}">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                              <sc-for list="{{ row.sliders }}" as="sl" hint-placeholder-count="3">
+                                <div style="display: grid; grid-template-columns: minmax(0,1fr) 92px minmax(0,1fr); gap: 10px; align-items: center;">
+                                  <span style="font-size: 10.5px; font-weight: 600; text-align: right; color: {{ sl.leftInk }}; line-height: 1.3;">{{ sl.left }}</span>
+                                  <span style="position: relative; height: 3px; border-radius: 999px; background: #e8dbc3; display: block;">
+                                    <span style="position: absolute; top: 50%; left: {{ sl.pct }}; width: 9px; height: 9px; border-radius: 50%; background: #e07a3f; border: 1.5px solid #fff; box-shadow: 0 1px 4px rgba(15,28,46,.28); transform: translate(-50%,-50%);"></span>
+                                  </span>
+                                  <span style="font-size: 10.5px; font-weight: 600; color: {{ sl.rightInk }}; line-height: 1.3;">{{ sl.right }}</span>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+
+                          <sc-if value="{{ row.tText }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-family: 'Fraunces', Georgia, serif; font-size: 13.5px; font-style: italic; font-weight: 400; line-height: 1.58; color: #0f1c2e; text-wrap: pretty;">{{ row.value }}</div>
+                          </sc-if>
+
+                          <sc-if value="{{ row.tScale }}" hint-placeholder-val="{{ false }}">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                              <span style="display: flex; gap: 3px; flex-shrink: 0;">
+                                <sc-for list="{{ row.dots }}" as="d" hint-placeholder-count="10">
+                                  <span style="width: 7px; height: 7px; border-radius: 50%; background: {{ d.fill }}; border: 1px solid {{ d.stroke }};"></span>
+                                </sc-for>
+                              </span>
+                              <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c0612a; white-space: nowrap;">{{ row.value }}</span>
+                            </div>
+                          </sc-if>
+
+                          <sc-if value="{{ row.tGuide }}" hint-placeholder-val="{{ false }}">
+                            <div style="display: flex; align-items: center; gap: 11px;">
+                              <span style="width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), #6f9a83 55%, rgba(0,0,0,.18)); border: 1.5px solid rgba(15,28,46,.2); flex-shrink: 0;"></span>
+                              <span style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 13.5px; font-weight: 700; color: #0f1c2e;">{{ row.value }}</span>
+                                <span style="font-size: 11.5px; color: #44566c;">{{ row.note }}</span>
+                              </span>
+                            </div>
+                          </sc-if>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; align-items: flex-start;">
+                          <sc-if value="{{ row.editable }}" hint-placeholder-val="{{ true }}">
+                            <button onClick="{{ row.edit }}" class="edit-btn" style="all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; border: 1px solid #f0e6d5; background: #ffffff; font-size: 11.5px; font-weight: 700; letter-spacing: .03em; color: #9d8e79; transition: 180ms cubic-bezier(.2,.8,.2,1);">
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                              Edit
+                            </button>
+                          </sc-if>
+                        </div>
+                      </div>
+                    </sc-for>
+
+                    <sc-if value="{{ grp.showFooterVerify }}" hint-placeholder-val="{{ true }}">
+                      <div style="display: flex; justify-content: center; padding: 6px 0 2px;">
+                        <button onClick="{{ grp.toggle }}" class="vbtn" style="all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 24px; border-radius: 999px; background: #e07a3f; color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: .03em; box-shadow: 0 8px 22px rgba(224,122,63,.28); transition: 180ms cubic-bezier(.2,.8,.2,1);">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                          That is right &mdash; verify {{ grp.shortTitle }}
+                        </button>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- SIGN-OFF -->
+          <sc-if value="{{ notLocked }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top: 22px; border-radius: 18px; background: linear-gradient(158deg, #16304f 0%, #09101f 76%); border: 1px solid rgba(244,206,161,.18); box-shadow: 0 22px 50px rgba(9,16,31,.26); overflow: hidden;">
+              <div style="height: 3px; background: linear-gradient(90deg, #c0612a, #e1af43 46%, rgba(225,175,67,0) 100%);"></div>
+              <div style="display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 44px; padding: 24px 30px 26px; align-items: center;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #e1af43;">The sign-off</div>
+                  <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 24px; font-weight: 500; letter-spacing: -.018em; line-height: 1.15; color: #f0e9de;">This becomes the record.</h2>
+                  <p style="margin: 0; max-width: 62ch; font-size: 13px; line-height: 1.6; color: #8fb3cd; text-wrap: pretty;">Your reflection, the three traits you build the year on, and every score after are read from these answers. Once you lock it in they cannot be changed &mdash; not by you, and not by us.</p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; align-items: stretch;">
+                  <div style="display: flex; align-items: center; gap: 9px; justify-content: center;">
+                    <span style="display: flex; gap: 4px;">
+                      <sc-for list="{{ pips }}" as="p" hint-placeholder-count="5">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ p.fill }}; border: 1px solid {{ p.stroke }};"></span>
+                      </sc-for>
+                    </span>
+                    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: {{ gate.counterInk }};">{{ gate.counter }}</span>
+                  </div>
+                  <button onClick="{{ openConfirm }}" class="lockcta" style="all: unset; box-sizing: border-box; cursor: pointer; text-align: center; padding: 15px 22px; border-radius: 999px; background: {{ gate.ctaBg }}; color: {{ gate.ctaInk }}; font-size: 14px; font-weight: 800; letter-spacing: .04em; box-shadow: {{ gate.ctaShadow }}; transition: 180ms cubic-bezier(.2,.8,.2,1);">Lock it in</button>
+                  <p style="margin: 2px 2px 0; text-align: center; font-size: 11px; line-height: 1.5; color: #5e91b0;">{{ gate.hint }}</p>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- LOCKED -->
+          <sc-if value="{{ isLocked }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top: 22px; border-radius: 18px; background: linear-gradient(158deg, #16304f 0%, #09101f 76%); border: 1px solid rgba(244,206,161,.18); box-shadow: 0 22px 50px rgba(9,16,31,.26); overflow: hidden;">
+              <div style="height: 3px; background: linear-gradient(90deg, #1e3a5c, #e1af43 46%, rgba(225,175,67,0) 100%);"></div>
+              <div style="display: grid; grid-template-columns: 56px minmax(0,1fr) 260px; gap: 22px; padding: 24px 30px 26px; align-items: center;">
+                <span style="width: 56px; height: 56px; border-radius: 50%; background: rgba(244,206,161,.08); border: 1px solid rgba(225,175,67,.34); display: flex; align-items: center; justify-content: center;">
+                  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#e1af43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9.5px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #e1af43;">Locked &#183; 1 September 2026, 1:42 PM</div>
+                  <div style="font-family: 'Fraunces', Georgia, serif; font-size: 23px; font-weight: 500; letter-spacing: -.015em; color: #f0e9de;">Your intake is closed.</div>
+                  <div style="font-size: 12.5px; line-height: 1.55; color: #8fb3cd; max-width: 62ch;">Nothing above can change from here. You can open this page any time to read exactly what you said.</div>
+                </div>
+                <button onClick="{{ reopenReflect }}" class="lockcta" style="all: unset; box-sizing: border-box; cursor: pointer; text-align: center; padding: 15px 22px; border-radius: 999px; background: #e07a3f; color: #ffffff; font-size: 13.5px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 8px 24px rgba(224,122,63,.3); transition: 180ms cubic-bezier(.2,.8,.2,1);">Read your reflection</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ---------- EDIT ---------- -->
+      <sc-if value="{{ isEditing }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 40px 0 40px; display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 100%; max-width: 840px; background: #ffffff; border: 1px solid #e8dbc3; border-radius: 20px; box-shadow: 0 18px 40px rgba(15,28,46,.06); padding: 32px 40px 34px; box-sizing: border-box;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 17px; text-align: center;">
+              <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #44566c;">{{ editRow.theme }}</div>
+              <div style="font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 500; line-height: 1.4; letter-spacing: -.01em; color: #0f1c2e; max-width: 56ch;">{{ editRow.prompt }}</div>
+              <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #c0612a; margin-top: -6px;">{{ editRow.requirement }}</div>
+
+              <sc-if value="{{ editRow.hasOptions }}" hint-placeholder-val="{{ true }}">
+                <div style="width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; margin-top: 2px;">
+                  <sc-for list="{{ editRow.options }}" as="opt" hint-placeholder-count="6">
+                    <button onClick="{{ opt.pick }}" class="{{ opt.cls }}" style="all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 54px; padding: 12px 20px; border-radius: 10px; border: 1px solid {{ opt.border }}; background: {{ opt.bg }}; font-size: 14px; font-weight: {{ opt.weight }}; letter-spacing: .01em; color: {{ opt.ink }}; line-height: 1.4; transition: 200ms ease;">{{ opt.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ editRow.isText }}" hint-placeholder-val="{{ false }}">
+                <div style="width: 100%; text-align: left; background: #fbf7f0; border: 1px solid #e8dbc3; border-radius: 14px; padding: 16px 18px; box-sizing: border-box; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 14.5px; line-height: 1.6; color: #0f1c2e; min-height: 120px;">{{ editRow.value }}</div>
+              </sc-if>
+
+              <sc-if value="{{ editRow.isFrozen }}" hint-placeholder-val="{{ false }}">
+                <div style="width: 100%; text-align: left; background: #fbf7f0; border: 1px dashed #d1bc93; border-radius: 14px; padding: 16px 18px; box-sizing: border-box; font-size: 13px; line-height: 1.6; color: #44566c;">This question&rsquo;s own control &mdash; drag-to-rank, or the six scales &mdash; opens here exactly as it did in the flow. Shown flat in this prototype.</div>
+              </sc-if>
+
+              <div style="display: flex; align-items: center; gap: 16px; margin-top: 10px;">
+                <button onClick="{{ backToReview }}" class="ghost" style="all: unset; box-sizing: border-box; cursor: pointer; padding: 13px 24px; border-radius: 999px; border: 1px solid #3f647b; color: #10223c; font-size: 13px; font-weight: 700; letter-spacing: .04em; transition: 180ms cubic-bezier(.2,.8,.2,1);">Discard change</button>
+                <button onClick="{{ saveAndReturn }}" class="navycta" style="all: unset; box-sizing: border-box; cursor: pointer; padding: 13px 26px; border-radius: 999px; background: #10223c; color: #f4cea1; font-size: 13px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 8px 20px rgba(15,28,46,.18); transition: 180ms cubic-bezier(.2,.8,.2,1);">Save and return</button>
+              </div>
+            </div>
+          </div>
+          <p style="margin: 18px 0 0; font-size: 12.5px; color: #44566c;">Saving drops that chapter back to unverified &mdash; you read it again before it locks.</p>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- ============ CEREMONY POPUP ============ -->
+  <sc-if value="{{ popupOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 40; background: rgba(9,16,31,.62); display: flex; align-items: center; justify-content: center;">
+      <div style="display: flex; border-radius: 24px; overflow: hidden; box-shadow: 0 40px 90px rgba(9,16,31,.5);">
+
+        <div style="width: 620px; height: 320px; box-sizing: border-box; background: #fbf7f0; border: 1px solid #e8dbc3; border-right: none; padding: 34px 36px; display: flex; flex-direction: column; justify-content: center; gap: 14px;">
+
+          <sc-if value="{{ isConfirmBeat }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #c0612a;">The sign-off</div>
+              <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 500; letter-spacing: -.02em; line-height: 1.12; color: #0f1c2e;">This becomes the record.</h2>
+              <p style="margin: 0; max-width: 46ch; font-size: 13.5px; line-height: 1.6; color: #44566c;">Everything after this &mdash; your reflection, your traits, your campaign &mdash; is read from the answers you just verified. They cannot be changed again.</p>
+              <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px;">
+                <button onClick="{{ doLock }}" class="lockcta" style="all: unset; box-sizing: border-box; cursor: pointer; padding: 14px 28px; border-radius: 999px; background: #e07a3f; color: #ffffff; font-size: 14px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 8px 24px rgba(224,122,63,.3); transition: 180ms cubic-bezier(.2,.8,.2,1);">Lock it in</button>
+                <button onClick="{{ closePopup }}" class="ghost" style="all: unset; box-sizing: border-box; cursor: pointer; padding: 14px 22px; border-radius: 999px; border: 1px solid #d1bc93; color: #44566c; font-size: 13px; font-weight: 700; letter-spacing: .04em; transition: 180ms cubic-bezier(.2,.8,.2,1);">Keep reading</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isReflectBeat }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 13px;">
+              <div style="display: flex; align-items: baseline; gap: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;">
+                <span style="color: #c0612a;">Chapter II</span><span style="color: #44566c;">&#183;</span><span style="color: #2f855a;">Locked &#10003;</span>
+              </div>
+              <h2 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 500; letter-spacing: -.02em; line-height: 1.12; color: #0f1c2e;">Reflect and Digest</h2>
+              <div style="border-left: 2px solid #e1af43; padding-left: 16px;">
+                <p style="margin: 0; max-width: 44ch; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 15.5px; font-weight: 500; line-height: 1.45; color: #44566c;">&ldquo;I have what you told me. Now I will tell you what I see &mdash; in four short parts. Nothing to choose yet. Just read it slowly enough to recognise yourself.&rdquo;</p>
+              </div>
+              <div style="margin-top: 6px;">
+                <button onClick="{{ closePopup }}" class="navycta" style="all: unset; box-sizing: border-box; cursor: pointer; padding: 14px 28px; border-radius: 999px; background: #10223c; color: #f4cea1; font-size: 14px; font-weight: 800; letter-spacing: .04em; box-shadow: 0 8px 20px rgba(15,28,46,.18); transition: 180ms cubic-bezier(.2,.8,.2,1);">Read your reflection</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="width: 250px; height: 320px; position: relative; overflow: hidden; background: #10223C; flex-shrink: 0;">
+          <img src="mentor-alt.webp" alt="The Mentor" style="position: absolute; left: 50%; top: -6%; transform: translateX(-50%); width: 200%; max-width: none; display: block;">
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,34,60,0) 48%, rgba(16,34,60,.6) 78%, rgba(9,16,31,.96) 100%);"></div>
+          <div style="position: absolute; inset: 0; box-shadow: inset 18px 0 34px -18px rgba(4,9,26,.8);"></div>
+          <span style="position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #F4CEA1;">&mdash; Mentor</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"startExpanded":{"editor":"boolean","default":false,"section":"Behavior"},"$preview":{"width":1440,"height":1000}}'>
+var SCALE = ['Never','Rarely','Seldom','Occasionally','Sometimes','Often','Usually','Frequently','Almost Always','Always'];
+
+var DATA = [
+  { id: 'context', kicker: 'Chapter I', title: 'Your Context', short: 'context', rows: [
+    { k: 'industry', prompt: 'Industry', type: 'field', req: 'Short answer', a: 'Energy services' },
+    { k: 'department', prompt: 'Department', type: 'field', req: 'Short answer', a: 'Field Operations' },
+    { k: 'role', prompt: 'Job title', type: 'field', req: 'Short answer', a: 'Regional Operations Manager' },
+    { k: 'responsibilities', prompt: 'What is your team responsible for?', type: 'text', req: 'Open response', a: 'Six completion crews across two basins — scheduling, equipment uptime, crew safety, and the customer relationship on every pad we touch.' },
+    { k: 'teamSize', prompt: 'Team size', type: 'field', req: 'Short answer', a: '8 direct reports · 46 total' },
+    { k: 'tenure', prompt: 'Years leading people', type: 'field', req: 'Short answer', a: '11' }
+  ]},
+
+  { id: 'habits', kicker: 'Chapter II', title: 'Daily Leadership Habits', short: 'these seventeen', rows: [
+    { k: 'resourcePick', theme: 'The Quick Pick', prompt: 'When resources are tight, which do you usually adjust first?', type: 'choice', req: 'Choose 1',
+      options: ['Time','Budget','Expectations','Scope'], a: 'Scope' },
+    { k: 'projectApproach', theme: 'The Team Puzzle', prompt: 'You are given a complex project with a tight deadline. Choose the action you would most likely take first.', type: 'choice', req: 'Choose 1',
+      options: ['Create a detailed plan to guide the team.','Dive into the most challenging aspect to lead by example.','Gather the team for a collaborative brainstorming session.','Focus on identifying and mitigating the biggest risks.','Distribute ownership with clear check-ins and criteria.','Ask clarifying questions before diving in.'],
+      a: 'Distribute ownership with clear check-ins and criteria.' },
+    { k: 'directionChange', theme: 'The Direction Change', prompt: 'Direction changes above you and the reason is not explained. What do you do first?', type: 'choice', req: 'Choose 1',
+      options: ['Translate it into a plan and give my team the best why I can.','Pass it along as-is — the reasoning is not mine to invent.','Push back through channels until the reason is explained.','Re-plan everything privately before telling anyone.','Keep running the old direction until someone makes me stop.','Adapt fast and move — reasons catch up later.'],
+      a: 'Translate it into a plan and give my team the best why I can.' },
+    { k: 'slippingDate', theme: 'The Slipping Date', prompt: 'A date you committed to is going to slip. When and how does anyone find out?', type: 'choice', req: 'Choose 1',
+      options: ['I flag it the moment I know, with a revised plan attached.','I say something near the date, once I am certain how bad it is.','I add hours or people and make the date happen somehow.','I quietly cut scope so the date holds.','I renegotiate what done means.','The date passes, then I explain.'],
+      a: 'I say something near the date, once I am certain how bad it is.' },
+    { k: 'energyDrains', theme: 'The Energy Drain', prompt: 'Which three situations would you most prefer to minimize throughout the day?', type: 'multi', req: 'Choose 3 of 8',
+      options: ['Repeating myself to ensure understanding','Following up when someone misses a commitment','Decoding unspoken concerns from the team','Navigating frequent changes in priorities','Meetings with limited or no outcomes','Mediating conflicts within the team','Pursuing goals that lack clear direction','Balancing differing expectations from stakeholders'],
+      a: ['Following up when someone misses a commitment','Meetings with limited or no outcomes','Pursuing goals that lack clear direction'] },
+    { k: 'crisisResponse', theme: 'The Fire Drill', prompt: 'A crisis hits your team unexpectedly. Rank the following responses.', type: 'rank', req: 'Rank all — drag to order',
+      a: ['Clarify what is known, what is open, and what is next.','Maintain composure and provide clear, decisive direction to the team.','Immediately gather the team to collaborate on potential solutions.','Jump in directly to handle the most critical aspects myself.','Delegate ownership to team members while providing support from the sidelines.'] },
+    { k: 'uphillPitch', theme: 'The Uphill Pitch', prompt: 'You have to change a mind that outranks you. How do you actually go about it?', type: 'rank', req: 'Rank all — top is most like you, bottom is least',
+      a: ['Let the evidence make the case — data, or a working result.','Pre-wire allies one conversation at a time.','Make the case head-on in the room.','Put it in writing and let them sit with it.','Ask questions until they arrive at it themselves.','Mostly I do not — I execute their call and revisit later.'] },
+    { k: 'leaderFuel', theme: 'The Leader’s Fuel', prompt: 'Rank the following outcomes that energize you most.', type: 'rank', req: 'Rank all — drag to order',
+      a: ['Turning chaos into quality','Closing out a tough project completely','Seeing the team gel and succeed together','My team getting the recognition it deserves','Hearing the team say they learned something','Solving a problem no one else could'] },
+    { k: 'stalledAsk', theme: 'The Stalled Ask', prompt: 'You need help from a team you do not manage and they are not moving. What two options describe your approach?', type: 'multi', req: 'Choose 2 of 8',
+      options: ['Make the case with data and business impact.','Trade something they need.','Escalate to someone with authority over both of us.','Leverage a current relationship on that team to find a yes.','Make it easy — do part of their work for them.','Create visibility — public status has a way of moving people.','Schedule a one-on-one with this team’s leader to revisit the topic.','Go around this team and seek help elsewhere.'],
+      a: ['Make the case with data and business impact.','Leverage a current relationship on that team to find a yes.'] },
+    { k: 'recurringProblem', theme: 'The Boomerang', prompt: 'The same problem keeps occurring. What two actions would help the most?', type: 'multi', req: 'Choose 2 of 8',
+      options: ['Map the system that keeps producing it before touching anything.','Go watch it happen where it happens.','Ask the people closest to it what they see.','Fix it again, better this time.','Add a check or automation so it gets caught.','Look at who keeps being involved.','Rebuild the process from scratch.','Pull the record on every past occurrence and look for what they share.'],
+      a: ['Go watch it happen where it happens.','Ask the people closest to it what they see.'] },
+    { k: 'pushbackFeeling', theme: 'The Pushback Moment', prompt: 'When someone challenges your judgment or pushes back on your plan, what do you feel in the moment?', type: 'multi', req: 'Choose all that apply',
+      options: ['Defensive','Frustrated','Curious','Dismissive','Apprehensive','Motivated','Insecure','Irritated','Open','Doubtful','Calm','Competitive','Humbled','Surprised','Relieved','Proud','Confused','Nothing'],
+      a: ['Curious','Irritated','Competitive','Open'] },
+    { k: 'roleModelTrait', theme: 'The Role Model', prompt: 'Think of a leader you admire and complete this sentence.', type: 'choice', req: 'Choose 1',
+      options: ['communicated','made decisions','thought strategically','executed and followed through','developed their team','shaped culture','built relationships','handled challenges','inspired others','balanced priorities'],
+      a: 'developed their team',
+      note: '“I wish how they developed their team came more naturally to me.”' },
+    { k: 'warningLabel', theme: 'The Warning Label', prompt: 'If your leadership style had a warning label, what would it be?', type: 'choice', req: 'Choose 1',
+      options: ['Caution: May keep polishing past the finish line','Warning: Moves fast—keep up!','Winding Road: Comfortable moving before the path is clear','Flammable: Sparks fly under pressure','Fragile: Avoid too much pushback','Falling Rocks: Tendency to over-delegate','Deer Crossing: May jump into your lane','Wrong Way: My way or the highway'],
+      a: 'Warning: Moves fast—keep up!' },
+    { k: 'visibilityComfort', theme: 'The Spotlight', prompt: 'How comfortable are you leading in high-visibility situations?', type: 'choice', req: 'Choose 1',
+      options: ['I thrive in the spotlight.','I can handle it but prefer smaller settings.','I do not think much about it either way.','I prefer to lead behind the scenes.'],
+      a: 'I can handle it but prefer smaller settings.' },
+    { k: 'decisionPace', theme: 'The Lesson Loop', prompt: 'When something goes wrong, what do you prioritize?', type: 'choice', req: 'Choose 1',
+      options: ['The Fix','The Feedback','The Standard'], a: 'The Fix', note: 'Get things back on track' },
+    { k: 'teamPerception', theme: 'The Performance Check', prompt: 'When a team member is not meeting expectations, what do you do first?', type: 'choice', req: 'Choose 1',
+      options: ['Name the gap in a private conversation and reset the expectation.','Observe for patterns and gather context before taking action.','Provide support and resources, then confirm the new bar together.','Reassign tasks or adjust their responsibilities to better fit their strengths.','Set clear expectations, an owner, and a check-in date to close the gap.','Involve HR or escalate to higher management for guidance.'],
+      a: 'Set clear expectations, an owner, and a check-in date to close the gap.' },
+    { k: 'behaviorDichotomies', theme: 'The Balance Line', prompt: 'Where you most naturally fit on each scale.', type: 'sliders', req: 'Six scales',
+      sliders: [
+        { left: 'Prone to listen', right: 'Prone to speak', v: 7 },
+        { left: 'Critical', right: 'Encouraging', v: 6 },
+        { left: 'Detail-oriented', right: 'Big-picture-oriented', v: 8 },
+        { left: 'Directive', right: 'Empowering', v: 4 },
+        { left: 'Clarity before moving', right: 'Move while clarity forms', v: 8 },
+        { left: 'Thorough communicator', right: 'Concise communicator', v: 3 }
+      ] }
+  ]},
+
+  { id: 'stories', kicker: 'Chapter II', title: 'Your Stories', short: 'your stories', rows: [
+    { k: 'honestRewind', theme: 'The Honest Rewind', prompt: 'You got something wrong and the team saw it. What actually happens next?', type: 'text', req: 'Open response',
+      a: 'I say it out loud in the next stand-up — what I called wrong and what it cost us. I do not dress it up. Then I ask the two people closest to the work what they would have done, because usually one of them saw it coming and did not think they could say so. That part matters more to me than the apology.' },
+    { k: 'proudMoment', theme: 'The Highlight Reel', prompt: 'Consider a significant team accomplishment and describe how your contribution made it possible.', type: 'text', req: 'Open response',
+      a: 'We took a pad from 19 days to 12 without adding a crew. My part was not the plan — a night-shift supervisor built that. My part was killing three reports and two standing meetings so he had the room to run it, and then holding the line when corporate wanted them back.' },
+    { k: 'shelvedIdea', theme: 'The Shelved Idea', prompt: 'Something your team tried did not work. What happens to that idea afterwards?', type: 'text', req: 'Open response',
+      a: 'Honestly, most of the time it just goes quiet. We move on to the next thing and nobody writes down why it failed. I know that is the wrong answer. The one time we did keep it, we pulled it back out eighteen months later and it worked, because the thing that broke it the first time was gone.' }
+  ]},
+
+  { id: 'insights', kicker: 'Chapter II', title: 'Leadership Insights', short: 'the ten statements', rows: [
+    { k: 'n1', prompt: 'When challenges arise, I ____ share the answer from my experience and expertise.', type: 'scale', v: 8 },
+    { k: 'n2', prompt: 'I ____ visibly react before I respond to difficult or bad news shared with me about the company.', type: 'scale', v: 4 },
+    { k: 'n3', prompt: 'When a correction will benefit the whole team, I ____ address the entire team about it.', type: 'scale', v: 6 },
+    { k: 'n4', prompt: 'I ____ hire employees that equally fit the need and the company culture and values.', type: 'scale', v: 9 },
+    { k: 'n5', prompt: 'My response to dissenting viewpoints ____ shows the team that challenging one another leads to growth.', type: 'scale', v: 7 },
+    { k: 'n6', prompt: 'I am ____ known among employees for one-line phrases like “do what is right” or “we are in this together.”', type: 'scale', v: 5 },
+    { k: 'n7', prompt: 'I ____ have more answers than I do questions in our team discussions.', type: 'scale', v: 8 },
+    { k: 'n8', prompt: 'It is ____ important that performance metrics are directly connected to work in the employee’s control.', type: 'scale', v: 10 },
+    { k: 'n9', prompt: 'I ____ communicate processes, vision, and expectations so much that I am tired of hearing it.', type: 'scale', v: 5 },
+    { k: 'n10', prompt: 'When I am struggling professionally, I ____ openly share that information with my team.', type: 'scale', v: 3 }
+  ]},
+
+  { id: 'guide', kicker: 'Chapter I', title: 'Your Guide', short: 'your guide', rows: [
+    { k: 'guide', prompt: 'The voice that reads your answers back to you.', type: 'guide', req: 'Choose 1', a: 'The Mentor', note: 'Balanced — practical advice with an eye on the longer arc.' }
+  ]}
+];
+
+var FLAT = [];
+var GROUP_OF = {};
+DATA.forEach(function (g) { g.rows.forEach(function (r) { FLAT.push(r); GROUP_OF[r.k] = g.id; }); });
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var open = {};
+    var start = props.startExpanded === true;
+    DATA.forEach(function (g) { open[g.id] = start; });
+    this.state = { view: 'review', editKey: null, draft: null, open: open, verified: {}, popup: null, answers: {}, edited: {} };
+  }
+
+  answerFor(row) {
+    var over = this.state.answers[row.k];
+    return over === undefined ? row.a : over;
+  }
+
+  verifiedCount() {
+    var s = this.state.verified;
+    var n = 0;
+    DATA.forEach(function (g) { if (s[g.id]) { n++; } });
+    return n;
+  }
+
+  renderVals() {
+    var self = this;
+    var locked = this.state.view === 'locked';
+    var editing = this.state.view === 'editing';
+    var done = this.verifiedCount();
+    var allDone = done === DATA.length;
+
+    var groups = DATA.map(function (g, gi) {
+      var isOpen = self.state.open[g.id] === true;
+      var isVerified = self.state.verified[g.id] === true;
+
+      var btnLabel = 'Verify';
+      var btnBg = '#ffffff';
+      var btnInk = '#10223c';
+      var btnBorder = '#3f647b';
+      var btnShadow = 'none';
+      var iconCheck = false;
+      if (isOpen) {
+        btnLabel = 'Looks right';
+        btnBg = '#e07a3f';
+        btnInk = '#ffffff';
+        btnBorder = '#e07a3f';
+        btnShadow = '0 8px 22px rgba(224,122,63,.28)';
+        iconCheck = true;
+      } else if (isVerified) {
+        btnLabel = 'Verified';
+        btnBg = 'rgba(47,133,90,.09)';
+        btnInk = '#2f855a';
+        btnBorder = 'rgba(47,133,90,.42)';
+        iconCheck = true;
+      }
+
+      return {
+        kicker: g.kicker,
+        title: g.title,
+        shortTitle: g.short,
+        count: g.rows.length === 1 ? '1 question' : g.rows.length + ' questions',
+        open: isOpen,
+        cardBorder: isVerified && !isOpen ? 'rgba(47,133,90,.34)' : '#e8dbc3',
+        dotLabel: isVerified ? '✓' : String(gi + 1),
+        dotBg: isVerified ? '#2f855a' : '#fbf7f0',
+        dotBorder: isVerified ? '#2f855a' : '#e8dbc3',
+        dotInk: isVerified ? '#ffffff' : '#9d8e79',
+        showVerify: !locked,
+        showSeal: locked,
+        showFooterVerify: !locked,
+        btnLabel: btnLabel,
+        btnBg: btnBg,
+        btnInk: btnInk,
+        btnBorder: btnBorder,
+        btnShadow: btnShadow,
+        iconCheck: iconCheck,
+        iconChev: !iconCheck,
+        toggle: function () {
+          var nextOpen = Object.assign({}, self.state.open);
+          var nextVer = Object.assign({}, self.state.verified);
+          if (isOpen) { nextOpen[g.id] = false; nextVer[g.id] = true; }
+          else { nextOpen[g.id] = true; }
+          self.setState({ open: nextOpen, verified: nextVer });
+        },
+        rows: g.rows.map(function (row, i) {
+          var val = self.answerFor(row);
+          var wasEdited = self.state.edited[row.k] === true;
+          var out = {
+            num: ('0' + (i + 1)).slice(-2),
+            theme: row.theme || '',
+            hasTheme: !!row.theme,
+            prompt: row.prompt,
+            cardClass: wasEdited ? 'qcard flash' : 'qcard',
+            editable: !locked,
+            hasNote: !!row.note,
+            note: row.note || '',
+            value: '',
+            chips: [], ranked: [], sliders: [], dots: [],
+            tPlain: false, tChips: false, tRank: false, tSliders: false, tText: false, tScale: false, tGuide: false,
+            edit: function () { self.setState({ view: 'editing', editKey: row.k, draft: self.answerFor(row) }); }
+          };
+          if (row.type === 'choice' || row.type === 'field') { out.tPlain = true; out.value = val; }
+          else if (row.type === 'multi') { out.tChips = true; out.chips = val.map(function (c) { return { label: c }; }); }
+          else if (row.type === 'rank') {
+            out.tRank = true;
+            out.ranked = val.map(function (label, n) {
+              var first = n === 0;
+              var last = n === val.length - 1;
+              return {
+                n: n + 1,
+                label: label,
+                tone: first ? '#c0612a' : last ? '#8fb3cd' : '#d1bc93',
+                ink: last ? '#44566c' : '#0f1c2e',
+                weight: first ? '700' : '500'
+              };
+            });
+          }
+          else if (row.type === 'sliders') {
+            out.tSliders = true;
+            out.sliders = row.sliders.map(function (s) {
+              return {
+                left: s.left,
+                right: s.right,
+                pct: (((s.v - 1) / 9) * 100).toFixed(1) + '%',
+                leftInk: s.v <= 5 ? '#0f1c2e' : '#9c9081',
+                rightInk: s.v > 5 ? '#0f1c2e' : '#9c9081'
+              };
+            });
+          }
+          else if (row.type === 'text') { out.tText = true; out.value = val; }
+          else if (row.type === 'scale') {
+            out.tScale = true;
+            out.value = SCALE[row.v - 1] + ' · ' + row.v;
+            out.dots = [];
+            for (var d = 0; d < 10; d++) {
+              out.dots.push({ fill: d < row.v ? '#e07a3f' : 'transparent', stroke: d < row.v ? '#e07a3f' : '#d1bc93' });
+            }
+          }
+          else if (row.type === 'guide') { out.tGuide = true; out.value = val; }
+          return out;
+        })
+      };
+    });
+
+    var pips = DATA.map(function (g) {
+      var on = self.state.verified[g.id] === true;
+      return { fill: on ? '#2f855a' : 'transparent', stroke: on ? '#2f855a' : 'rgba(143,179,205,.5)' };
+    });
+
+    var current = FLAT.filter(function (r) { return r.k === self.state.editKey; })[0] || FLAT[0];
+    var draft = this.state.draft;
+    var isText = current.type === 'text' || current.type === 'field';
+    var editRow = {
+      theme: current.theme || current.prompt,
+      prompt: current.prompt,
+      requirement: current.req || 'Your answer',
+      hasOptions: !!current.options,
+      isText: isText,
+      isFrozen: current.type === 'rank' || current.type === 'sliders',
+      value: isText ? draft : '',
+      options: (current.options || []).map(function (o) {
+        var on = current.type === 'multi' ? (draft || []).indexOf(o) >= 0 : draft === o;
+        return {
+          label: o,
+          cls: on ? 'opt on' : 'opt',
+          border: on ? '#10223c' : '#e8dbc3',
+          bg: on ? '#10223c' : '#ffffff',
+          ink: on ? '#f4cea1' : '#44566c',
+          weight: on ? '700' : '600',
+          pick: function () {
+            if (current.type === 'multi') {
+              var cur = (draft || []).slice();
+              var at = cur.indexOf(o);
+              if (at >= 0) { cur.splice(at, 1); } else { cur.push(o); }
+              self.setState({ draft: cur });
+            } else {
+              self.setState({ draft: o });
+            }
+          }
+        };
+      })
+    };
+
+    return {
+      groups: groups,
+      pips: pips,
+      editRow: editRow,
+      isReview: !editing,
+      isEditing: editing,
+      isLocked: locked,
+      notLocked: !locked,
+      popupOpen: this.state.popup !== null,
+      isConfirmBeat: this.state.popup === 'confirm',
+      isReflectBeat: this.state.popup === 'reflect',
+      gate: {
+        counter: allDone ? 'All five verified' : done + ' of ' + DATA.length + ' verified',
+        counterInk: allDone ? '#7fc4a0' : '#8fb3cd',
+        ctaBg: allDone ? '#e07a3f' : 'rgba(224,122,63,.28)',
+        ctaInk: allDone ? '#ffffff' : 'rgba(255,255,255,.5)',
+        ctaShadow: allDone ? '0 8px 24px rgba(224,122,63,.3)' : 'none',
+        hint: allDone ? 'Your answers stay visible to you. They stop being editable.' : 'Verify every stretch above to unlock this.'
+      },
+      openConfirm: function () { if (allDone) { self.setState({ popup: 'confirm' }); } },
+      closePopup: function () { self.setState({ popup: null }); },
+      doLock: function () { self.setState({ popup: 'reflect', view: 'locked', open: {} }); },
+      reopenReflect: function () { self.setState({ popup: 'reflect' }); },
+      backToReview: function () { self.setState({ view: 'review', editKey: null, draft: null }); },
+      saveAndReturn: function () {
+        var gid = GROUP_OF[self.state.editKey];
+        var a = Object.assign({}, self.state.answers);
+        var e = Object.assign({}, self.state.edited);
+        var v = Object.assign({}, self.state.verified);
+        var o = Object.assign({}, self.state.open);
+        a[self.state.editKey] = self.state.draft;
+        e[self.state.editKey] = true;
+        v[gid] = false;
+        o[gid] = true;
+        self.setState({ answers: a, edited: e, verified: v, open: o, view: 'review', editKey: null, draft: null });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
