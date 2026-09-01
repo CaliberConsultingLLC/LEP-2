@@ -443,9 +443,13 @@ export default function CompassLanding() {
           Build a personalized growth plan. <em>At your pace.</em>
         </h2>
         <div className="cl-map">
-          <img src={ASSETS.mountains} alt="Mountain route map" />
           <div className="clx-curl is-left" aria-hidden="true" />
           <div className="clx-curl is-right" aria-hidden="true" />
+          {/* The artwork and everything anchored to it sit in an inner frame, so
+              the parchment margin around it widens the sheet without moving the
+              pins off the hills or scaling the illustration. */}
+          <div className="cl-map-inner">
+          <img src={ASSETS.mountains} alt="Mountain route map" />
           {WAYPOINTS.map((point, i) => (
             <button
               key={point.num}
@@ -471,6 +475,7 @@ export default function CompassLanding() {
             </ul>
             <span className="cl-journal-label ember">WHAT YOU WALK AWAY WITH</span>
             <p>{wp.gets}</p>
+          </div>
           </div>
         </div>
         <div className="cl-next-cta">
