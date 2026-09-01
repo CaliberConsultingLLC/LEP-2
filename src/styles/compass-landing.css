@@ -486,20 +486,21 @@ html:has([data-compass-landing]) {
 
 /* ------------------------------------------------------------- pillars --- */
 
-.cl-pillars {
-  padding: 64px 100px 0;
-}
-
+/* The promise triad lives in the hero, under the IDP paragraph and above the
+   CTA. Dividers between the three only — no rules above or below — and kept
+   short so the first screen still reads as a single block. */
 .cl-pillars-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid var(--cl-hairline);
-  border-bottom: 1px solid var(--cl-hairline);
+  width: 100%;
+  max-width: 56rem;
+  margin: 30px auto 0;
 }
 
 .cl-pillar {
-  padding: 34px 32px;
+  padding: 0 22px;
   border-left: 1px solid var(--cl-hairline);
+  text-align: center;
 }
 
 .cl-pillar:first-child {
@@ -512,10 +513,10 @@ html:has([data-compass-landing]) {
 }
 
 /* Each pillar is led by its promise — "Your Path" / "Your Growth" /
-   "Your Guide" — carrying the ember accent the hero line used to. */
+   "Your Guide" — carrying the ember accent the old hero line used to. */
 .cl-page .cl-pillar h3 {
   font-weight: 400;
-  font-size: 28px;
+  font-size: 20px;
 }
 
 .cl-page .cl-pillar h3 em {
@@ -524,10 +525,10 @@ html:has([data-compass-landing]) {
 }
 
 .cl-pillar p {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.55;
   color: rgba(255, 248, 240, 0.7);
-  margin: 14px 0 0;
+  margin: 8px 0 0;
 }
 
 /* -------------------------------------------------------------- guides --- */
@@ -1480,7 +1481,6 @@ html:has([data-compass-landing]) {
   .cl-nav { padding: 20px 40px; }
   .cl-hero { padding: 8px 40px 0; }
   .cl-page .cl-hero h1 { font-size: 54px; }
-  .cl-pillars { padding-left: var(--cl-gutter); padding-right: var(--cl-gutter); }
   .cl-guide-grid { grid-template-columns: repeat(3, 1fr); }
   .cl-panel-frame { grid-template-columns: 1fr 260px; }
   .cl-showcase { max-width: 100%; }
@@ -1510,9 +1510,11 @@ html:has([data-compass-landing]) {
 
   .cl-pin { font-size: 10px; padding: 7px 11px; }
 
-  .cl-pillars-grid { grid-template-columns: 1fr; }
-  .cl-pillar { padding: 24px 0; border-left: 0; border-top: 1px solid var(--cl-hairline); }
-  .cl-pillar:first-child { border-top: 0; }
+  /* Stacked: the dividers rotate to sit between the three, never above or below. */
+  .cl-pillars-grid { grid-template-columns: 1fr; margin-top: 24px; }
+  .cl-pillar { padding: 14px 0; border-left: 0; border-top: 1px solid var(--cl-hairline); }
+  .cl-pillar:first-child { padding-top: 0; border-top: 0; }
+  .cl-pillar:last-child { padding-bottom: 0; }
 
   .cl-guide-detail { grid-template-columns: 1fr; gap: 12px; text-align: center; }
   .cl-guide-detail-head { justify-content: center; }
@@ -1573,6 +1575,17 @@ html:has([data-compass-landing]) {
   .cl-signal-metric { font-size: 14px; }
   .cl-signal-metric.is-compass { font-size: 18px; }
   .cl-btn-ghost { padding: 15px 28px; font-size: 15px; }
+}
+
+/* Short laptop viewports: tighten the hero's rhythm — including the promise
+   triad — so "Walk the expedition" stays at the fold instead of below it. */
+@media (min-width: 901px) and (max-height: 820px) {
+  .cl-page .cl-hero h1 { font-size: 52px; }
+  .cl-page .cl-hero-sub { margin-top: 18px; }
+  .cl-hero-sub.clx-body { margin-top: 20px; }
+  .cl-pillars-grid { margin-top: 20px; }
+  .cl-page .cl-pillar h3 { font-size: 18px; }
+  .cl-pillar p { font-size: 12.5px; line-height: 1.5; }
 }
 
 @media (prefers-reduced-motion: reduce) {

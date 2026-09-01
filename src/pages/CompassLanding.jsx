@@ -420,6 +420,14 @@ export default function CompassLanding() {
           actually lead — you answer, your team answers anonymously, and you spend a year
           practicing the traits that would change the most for the people you lead.
         </p>
+        <div className="cl-pillars-grid">
+          {PILLARS.map((pillar) => (
+            <div className="cl-pillar" key={pillar.key}>
+              <h3>{pillar.label}</h3>
+              <p>{pillar.body}</p>
+            </div>
+          ))}
+        </div>
         </div>
         <div className="cl-hero-cta">
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
@@ -469,17 +477,6 @@ export default function CompassLanding() {
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-guide')}>
             Meet your guide ↓
           </button>
-        </div>
-      </section>
-
-      <section className="cl-section cl-pillars" aria-label="What Compass gives you">
-        <div className="cl-pillars-grid">
-          {PILLARS.map((pillar) => (
-            <div className="cl-pillar" key={pillar.key}>
-              <h3>{pillar.label}</h3>
-              <p>{pillar.body}</p>
-            </div>
-          ))}
         </div>
       </section>
 
