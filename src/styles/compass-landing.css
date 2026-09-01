@@ -701,11 +701,7 @@ html:has([data-compass-landing]) {
 /* -------------------------------------------------------------- growth --- */
 
 .cl-growth {
-  padding: 72px var(--cl-gutter) 0;
-}
-
-.cl-page .cl-growth h2 {
-  margin-bottom: 40px;
+  padding: 64px var(--cl-gutter) 0;
 }
 
 .cl-growth-grid {
@@ -744,18 +740,8 @@ html:has([data-compass-landing]) {
 
 .cl-showcase {
   max-width: 1180px;
-  margin: 56px auto 0;
+  margin: 0 auto;
   padding-right: 10px;
-}
-
-.cl-page .cl-showcase h3 {
-  font-size: 28px;
-  margin: 0 0 22px;
-  text-align: center;
-}
-
-.cl-page .cl-showcase h3 em {
-  color: var(--cl-gold);
 }
 
 .cl-tabs {
@@ -1277,6 +1263,7 @@ html:has([data-compass-landing]) {
 /* ------------------------------------------------------------- privacy --- */
 
 .cl-privacy {
+  text-align: left;
   margin: 72px 0 0;
   border-top: 1px solid rgba(244, 206, 161, 0.18);
   border-bottom: 1px solid rgba(244, 206, 161, 0.18);
@@ -1407,7 +1394,7 @@ html:has([data-compass-landing]) {
   color: rgba(255, 248, 240, 0.6);
 }
 
-.cl-page .cl-close h2 {
+.cl-page .cl-close .cl-close-title {
   font-size: 42px;
   margin: 64px 0 24px;
 }
@@ -1429,7 +1416,7 @@ html:has([data-compass-landing]) {
   text-align: left;
 }
 
-.cl-page .cl-close h2 em {
+.cl-page .cl-close .cl-close-title em {
   color: var(--cl-gold);
 }
 
@@ -1562,7 +1549,7 @@ html:has([data-compass-landing]) {
 
   .cl-price-card { padding: 32px 24px; }
   .cl-price-now { font-size: 52px; }
-  .cl-page .cl-close h2 { font-size: 32px; margin-top: 48px; }
+  .cl-page .cl-close .cl-close-title { font-size: 32px; margin-top: 48px; }
   .cl-page .cl-close .cl-offering h2 { font-size: 30px; margin-top: 0; }
 }
 

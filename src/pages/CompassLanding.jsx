@@ -531,9 +531,9 @@ export default function CompassLanding() {
         <SectionRule label="YOUR GROWTH" />
 
         <div className="cl-showcase">
-          <h3>
-            See it before you buy it. <em>Click around — your guide reacts.</em>
-          </h3>
+          <h2>
+            This is what the year looks like. <em>Your guide reads it with you.</em>
+          </h2>
           {/* Toggle buttons rather than a role="tab" widget: the panels below
               are plain content, not tabpanels, and cairn-theme.css repaints
               [aria-selected="true"] globally. */}
@@ -667,35 +667,19 @@ export default function CompassLanding() {
           </div>
           </div>
         </div>
-      </section>
-
-      <section className="cl-privacy" aria-label="The privacy contract">
-        <div className="cl-privacy-grid">
-          <div>
-            <span className="cl-privacy-kicker">THE PRIVACY CONTRACT</span>
-            <h2>
-              Honest answers require <em>a locked journal.</em>
-            </h2>
-            <p className="cl-privacy-lede">
-              This only works if everyone can tell the truth. So the rules are absolute, in both
-              directions:
-            </p>
-          </div>
-          <div className="cl-privacy-list">
-            {PRIVACY_TERMS.map((term) => (
-              <div className="cl-privacy-item" key={term.lead}>
-                <span className="cl-privacy-check">✓</span>
-                <p>
-                  <strong>{term.lead}</strong>
-                  {term.body}
-                </p>
-              </div>
-            ))}
-          </div>
+        <div className="cl-next-cta">
+          <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-pricing')}>
+            How much will this cost me? ↓
+          </button>
         </div>
       </section>
 
-      <section className="cl-close" id="cl-pricing" aria-label="Pricing">
+      <section className="cl-section cl-close" id="cl-pricing" aria-label="Your package">
+        <SectionRule label="YOUR PACKAGE" />
+        <h2>
+          What you get. <em>And what you pay.</em>
+        </h2>
+
         <div className="cl-price-card">
           <span className="cl-price-kicker">INTRODUCTORY PRICE · FIRST SET OF USERS</span>
           <div className="cl-price-row">
@@ -728,7 +712,34 @@ export default function CompassLanding() {
           </div>
         </div>
 
-        <h2>
+        {/* Reframed from "the privacy contract" — same terms, stated as a promise. */}
+        <div className="cl-privacy" aria-label="Our promise to you">
+          <div className="cl-privacy-grid">
+            <div>
+              <span className="cl-privacy-kicker">OUR PROMISE TO YOU</span>
+              <h2>
+                Honest answers require <em>a locked journal.</em>
+              </h2>
+              <p className="cl-privacy-lede">
+                This only works if everyone can tell the truth. So the rules are absolute, in both
+                directions:
+              </p>
+            </div>
+            <div className="cl-privacy-list">
+              {PRIVACY_TERMS.map((term) => (
+                <div className="cl-privacy-item" key={term.lead}>
+                  <span className="cl-privacy-check">✓</span>
+                  <p>
+                    <strong>{term.lead}</strong>
+                    {term.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <h2 className="cl-close-title">
           The path doesn&apos;t exist
           <br />
           <em>until you set it.</em>
