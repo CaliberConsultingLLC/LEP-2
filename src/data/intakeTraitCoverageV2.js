@@ -9,7 +9,7 @@
  *    norm setting, and values alignment contributed no evidence to those
  *    sub-traits. The questions already existed; the mapping did not.
  *
- * 2. Eight new behavior questions cover clusters with no signal at all, even
+ * 2. Seven new behavior questions cover clusters with no signal at all, even
  *    indirect: the Accountability group, the Change group, deadline behavior,
  *    cross-boundary influence, and systems diagnosis.
  *
@@ -62,7 +62,7 @@ export const INSTINCT_SUBTRAIT_MAP = {
   ],
 };
 
-// --- 2. Eight new behavior questions ----------------------------------------
+// --- 2. Seven new behavior questions ----------------------------------------
 // Each targets sub-traits that no existing question evidences, directly or
 // indirectly. Kept in the same shape as v1's BEHAVIOR_SIGNAL_MAP so the two can
 // merge without special-casing.
@@ -79,31 +79,10 @@ export const NEW_QUESTIONS = [
     ],
   },
   {
-    id: 'a3',
-    prompt: 'Someone on your team misses a commitment for the second time. What do you do?',
-    format: 'choice',
-    options: [
-      'Name it directly in private and reset the expectation with a date.',
-      'Ask what got in the way before assuming anything.',
-      'Quietly take the work back and handle it myself.',
-      'Tighten the process so it cannot slip again.',
-      'Escalate it — my manager or HR needs to know.',
-      'Let it slide, but factor it into how much I trust them.',
-      'Address it in front of the team so the standard is clear to everyone.',
-    ],
-    targets: ['holdingOthersAccountable', 'reliability', 'feedback'],
-    signals: [
-      { coreId: 'accountability', subId: 'holdingOthersAccountable', weight: 1.5 },
-      { coreId: 'accountability', subId: 'reliability', weight: 1.0 },
-      { coreId: 'teamDevelopment', subId: 'feedback', weight: 1.0 },
-    ],
-  },
-  {
     id: 'c1',
     prompt: 'Direction changes above you and the reason is not explained. What do you do first?',
     format: 'choice',
     options: [
-      'Ask for the reasoning before I pass anything down.',
       'Translate it into a plan and give my team the best why I can.',
       'Pass it along as-is — the reasoning is not mine to invent.',
       'Push back through channels until the reason is explained.',
@@ -139,7 +118,6 @@ export const NEW_QUESTIONS = [
       'I quietly cut scope so the date holds.',
       'I renegotiate what done means.',
       'The date passes, then I explain.',
-      'My dates do not slip — I pad them so they cannot.',
     ],
     targets: ['deadlineManagement', 'transparency'],
     signals: [
@@ -149,16 +127,18 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'x1',
-    prompt: 'You need something from a team you do not manage and they are not moving. What works for you?',
+    prompt: 'You need help from a team you do not manage and they are not moving. What two options describe your approach?',
     format: 'choice',
+    select: 2,
     options: [
-      'Build the relationship first and ask later.',
       'Make the case with data and business impact.',
       'Trade something they need.',
       'Escalate to someone with authority over both of us.',
-      'Go around them to whoever will say yes.',
+      'Leverage a current relationship on that team to find a yes.',
       'Make it easy — do part of their work for them.',
       'Create visibility — public status has a way of moving people.',
+      'Schedule a one-on-one with this team\u2019s leader to revisit the topic.',
+      'Go around this team and seek help elsewhere.',
     ],
     targets: ['crossFunctionalCollaboration', 'stakeholderManagement'],
     signals: [
@@ -171,11 +151,10 @@ export const NEW_QUESTIONS = [
     prompt: 'You have to change a mind that outranks you. How do you actually go about it?',
     format: 'choice',
     options: [
-      'Bring data and let it speak.',
+      'Let the evidence make the case \u2014 data, or a working result.',
       'Pre-wire allies one conversation at a time.',
       'Ask questions until they arrive at it themselves.',
       'Make the case head-on in the room.',
-      'Show a working result instead of arguing.',
       'Put it in writing and let them sit with it.',
       'Mostly I do not — I execute their call and revisit later.',
     ],
@@ -187,8 +166,9 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 's1',
-    prompt: 'The same problem has now come back three times. What is your first move?',
+    prompt: 'The same problem keeps occurring. What two actions would help the most?',
     format: 'choice',
+    select: 2,
     options: [
       'Map the system that keeps producing it before touching anything.',
       'Go watch it happen where it happens.',
@@ -197,6 +177,7 @@ export const NEW_QUESTIONS = [
       'Add a check or automation so it gets caught.',
       'Look at who keeps being involved.',
       'Rebuild the process from scratch.',
+      'Pull the record on every past occurrence and look for what they share.',
     ],
     targets: ['systemsThinking', 'patternRecognition', 'processImprovement'],
     signals: [
