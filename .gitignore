@@ -42,3 +42,14 @@ evidence-handoff/
 Journey Map Hero*
 public/the-compass-redesign/
 Reflection * - Cursor Handoff.md
+
+# Agent worktrees are separate git repos; committing them creates broken gitlinks.
+.claude/worktrees/
+
+# Design canvas handoffs are large generated artifacts kept locally, not in git.
+Chapter transition UI mockups/
+Compass Landing Page Redesign/
+Compass Navigation Redesign/
+Growth campaign redesign mockups/
+Intake Review and Lock/
+*.zip
