@@ -155,9 +155,10 @@ export const NEW_QUESTIONS = [
     id: 'x2',
     theme: 'The Uphill Pitch',
     prompt: 'You have to change a mind that outranks you. How do you actually go about it?',
-    // Most/least ranking: the leader marks the option MOST like them and the
-    // option LEAST like them. The rejection is as diagnostic as the pick.
-    format: 'mostLeast',
+    // Same drag-to-rank interaction as The Fire Drill and The Leader Fuel —
+    // one label, one pattern. Scoring reads the extremes: the top is most like
+    // them, the bottom least, and the rejection is as diagnostic as the pick.
+    format: 'ranking',
     options: [
       'Let the evidence make the case \u2014 data, or a working result.',
       'Pre-wire allies one conversation at a time.',
