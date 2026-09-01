@@ -16,6 +16,7 @@ import {
   WalkthroughStage,
 } from './debriefUi.jsx';
 import { deriveTraitRoles } from './debriefContent.js';
+import TraitRoom from './TraitRoom.jsx';
 import traitSystem from '../../../data/traitSystem.js';
 
 // ---------------------------------------------------------------------------
@@ -756,31 +757,15 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows, traitIndex, onTraitChange }) {
-  const [localIdx, setLocalIdx] = useState(0);
-  const traitIdx = Number.isFinite(traitIndex) ? traitIndex : localIdx;
-  const setTraitIdx = onTraitChange || setLocalIdx;
+function EvidenceSnapshot({ orderedRows, traitIndex, onOpenPlan }) {
+  // The rail owns trait selection; 0 is the fallback when this renders alone.
+  const traitIdx = Number.isFinite(traitIndex) ? traitIndex : 0;
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
-  const [selected, setSelected] = useState('all');
-  const [mode, setMode] = useState('map');
-
-  useEffect(() => {
-    setSelected('all');
-    setMode('map');
-  }, [traitIdx, row]);
+  const statements = useMemo(() => mapRowStatements(row), [row]);
 
   return (
     <SnapshotShell>
-      <StagePanels
-        row={row}
-        selected={selected}
-        onSelect={setSelected}
-        mode={mode}
-        onModeChange={setMode}
-        traitIndex={traitIdx}
-        traitCount={orderedRows.length}
-        onNextTrait={() => setTraitIdx((traitIdx + 1) % orderedRows.length)}
-      />
+      <TraitRoom row={row} statements={statements} onOpenPlan={onOpenPlan} />
     </SnapshotShell>
   );
 }
@@ -817,7 +802,7 @@ const EVIDENCE_GUIDE = {
   snapshot: 'The receipts keep. Come back any time a claim needs checking — or walk the room again.',
 };
 
-export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex, onTraitChange }) {
+export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
@@ -899,7 +884,7 @@ export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex, on
       <EvidenceSnapshot
         orderedRows={orderedRows}
         traitIndex={traitIndex}
-        onTraitChange={onTraitChange}
+        onOpenPlan={onAdvancePhase}
       />
     );
   }

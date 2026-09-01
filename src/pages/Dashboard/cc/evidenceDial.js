@@ -1,5 +1,8 @@
 import { colors } from '../../../styles/tokens';
 
+// `ink` is tuned for the cream dial face. The Trait Room expands a statement
+// into a navy-900 block, where those inks go nearly invisible, so each zone
+// also carries the brighter variant that reads on navy.
 export const DIAL_ZONES = {
   honed: {
     id: 'honed',
@@ -7,6 +10,7 @@ export const DIAL_ZONES = {
     note: 'The work goes in and it lands. This is the one to sharpen, not rebuild.',
     tint: colors.zoneHonedTint,
     ink: colors.zoneHonedInk,
+    inkOnNavy: colors.amber,
     a0: -45,
     place: { left: '50%', top: '6%', transform: 'translate(-50%, 0)', textAlign: 'center' },
   },
@@ -16,6 +20,7 @@ export const DIAL_ZONES = {
     note: 'The effort is real and it is not landing. This one needs attention and training.',
     tint: colors.zoneOfftargetTint,
     ink: colors.orangeDeep,
+    inkOnNavy: colors.orange,
     a0: 45,
     place: { left: '94%', top: '50%', transform: 'translate(-100%, -50%)', textAlign: 'right' },
   },
@@ -25,6 +30,9 @@ export const DIAL_ZONES = {
     note: 'Little effort, little result. Nothing to build on here yet — start with attention.',
     tint: colors.zoneMissingTint,
     ink: colors.inkSoft,
+    // No existing token sits at this muted gray-blue; it comes straight from
+    // the approved prototype, which is the source of truth for the navy block.
+    inkOnNavy: '#9fb0c3',
     a0: 135,
     place: { left: '50%', top: '94%', transform: 'translate(-50%, -100%)', textAlign: 'center' },
   },
@@ -34,6 +42,7 @@ export const DIAL_ZONES = {
     note: 'Lands without much push. Keep a little intention on it so it does not drift.',
     tint: colors.zoneNaturalTint,
     ink: colors.navy600,
+    inkOnNavy: colors.navy300,
     a0: 225,
     place: { left: '6%', top: '50%', transform: 'translate(0, -50%)', textAlign: 'left' },
   },

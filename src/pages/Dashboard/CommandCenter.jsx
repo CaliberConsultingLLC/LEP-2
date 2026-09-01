@@ -1019,7 +1019,6 @@ export default function CommandCenter() {
             phases={phases}
             onAdvancePhase={() => advancePhase('evidence')}
             traitIndex={evidenceTraitIdx}
-            onTraitChange={setEvidenceTraitIdx}
           />
         );
       case 'practice':
