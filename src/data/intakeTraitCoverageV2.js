@@ -69,6 +69,7 @@ export const INSTINCT_SUBTRAIT_MAP = {
 export const NEW_QUESTIONS = [
   {
     id: 'a2',
+    theme: 'The Honest Rewind',
     prompt: 'You got something wrong and the team saw it. What actually happens next?',
     format: 'open',
     targets: ['personalAccountability', 'transparency', 'integrity'],
@@ -80,6 +81,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'c1',
+    theme: 'The Direction Change',
     prompt: 'Direction changes above you and the reason is not explained. What do you do first?',
     format: 'choice',
     options: [
@@ -98,6 +100,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'c2',
+    theme: 'The Shelved Idea',
     prompt: 'Something your team tried did not work. What happens to that idea afterwards?',
     format: 'open',
     targets: ['innovation', 'learningAgility', 'organizationalLearning'],
@@ -109,6 +112,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'e1',
+    theme: 'The Slipping Date',
     prompt: 'A date you committed to is going to slip. When and how does anyone find out?',
     format: 'choice',
     options: [
@@ -127,6 +131,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'x1',
+    theme: 'The Stalled Ask',
     prompt: 'You need help from a team you do not manage and they are not moving. What two options describe your approach?',
     format: 'choice',
     select: 2,
@@ -148,8 +153,11 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'x2',
+    theme: 'The Uphill Pitch',
     prompt: 'You have to change a mind that outranks you. How do you actually go about it?',
-    format: 'choice',
+    // Most/least ranking: the leader marks the option MOST like them and the
+    // option LEAST like them. The rejection is as diagnostic as the pick.
+    format: 'mostLeast',
     options: [
       'Let the evidence make the case \u2014 data, or a working result.',
       'Pre-wire allies one conversation at a time.',
@@ -166,6 +174,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 's1',
+    theme: 'The Boomerang',
     prompt: 'The same problem keeps occurring. What two actions would help the most?',
     format: 'choice',
     select: 2,
