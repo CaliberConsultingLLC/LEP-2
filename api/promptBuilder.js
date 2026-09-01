@@ -13,6 +13,9 @@
 // after it — caching is a prefix match, so a single early variation costs the
 // whole cache.
 
+import { INSTINCT_SUBTRAIT_MAP } from '../src/data/intakeTraitCoverageV2.js';
+import { SOCIETAL_NORM_ITEMS } from '../src/data/intakeContext.js';
+
 const COMPASS_PHILOSOPHY_HEADER = 'COMPASS PHILOSOPHY';
 
 const EVIDENCE_RUBRIC = `
@@ -54,6 +57,8 @@ const SIGNAL_VOCABULARY = [
   'energyDrains', 'crisisResponse', 'pushbackFeeling', 'roleModelTrait',
   'warningLabel', 'leaderFuel', 'proudMoment', 'behaviorDichotomies',
   'visibilityComfort', 'decisionPace', 'teamPerception', 'societalInstincts',
+  'directionChange', 'slippingDate', 'stalledAsk', 'recurringProblem',
+  'uphillPitch', 'honestRewind', 'shelvedIdea',
   'intakeClarification',
 ];
 
@@ -91,9 +96,27 @@ export function buildIntakeProjection(body = {}) {
     decisionPace: str(body.decisionPace),
     teamPerception: str(body.teamPerception),
     societalInstincts: societal.map((score, i) => ({
-      item: societalLabels[i] || `instinct_${i + 1}`,
+      item: SOCIETAL_NORM_ITEMS[i]?.statement || societalLabels[i] || `instinct_${i + 1}`,
       score,
+      // The instinct remap: each slider names the sub-traits its wording
+      // measures, so these scores are evidence rather than mood.
+      measures: (INSTINCT_SUBTRAIT_MAP[SOCIETAL_NORM_ITEMS[i]?.id] || [])
+        .map((sig) => sig.subId + (sig.reverse ? ' (reversed: agreeing signals the risk)' : ''))
+        .join(', '),
     })),
+    directionChange: str(body.directionChange),
+    slippingDate: str(body.slippingDate),
+    stalledAsk: arr(body.stalledAsk),
+    recurringProblem: arr(body.recurringProblem),
+    // Drag-to-rank: scoring reads the extremes. The full order is kept, but the
+    // top and bottom are surfaced so the model treats the rejection as signal.
+    uphillPitch: (() => {
+      const ranking = arr(body.uphillPitch);
+      if (!ranking.length) return null;
+      return { mostLikeMe: ranking[0], leastLikeMe: ranking[ranking.length - 1], ranking };
+    })(),
+    honestRewind: str(body.honestRewind),
+    shelvedIdea: str(body.shelvedIdea),
     intakeClarification: body.intakeClarification || null,
   };
 }
@@ -105,6 +128,8 @@ const SIGNAL_BEARING_FIELDS = [
   'crisisResponse', 'pushbackFeeling', 'roleModelTrait', 'warningLabel',
   'leaderFuel', 'proudMoment', 'behaviorDichotomies', 'visibilityComfort',
   'decisionPace', 'teamPerception', 'societalInstincts',
+  'directionChange', 'slippingDate', 'stalledAsk', 'recurringProblem',
+  'uphillPitch', 'honestRewind', 'shelvedIdea',
 ];
 
 const MINIMUM_SIGNAL_FIELDS = 6;
@@ -121,6 +146,9 @@ export function intakeSignalCount(projection = {}) {
   return SIGNAL_BEARING_FIELDS.reduce((count, key) => {
     const value = projection[key];
     if (Array.isArray(value)) return count + (value.length ? 1 : 0);
+    if (value && typeof value === 'object') {
+      return count + (Array.isArray(value.ranking) && value.ranking.length ? 1 : 0);
+    }
     return count + (String(value ?? '').trim() ? 1 : 0);
   }, 0);
 }

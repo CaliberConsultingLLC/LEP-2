@@ -1,5 +1,6 @@
 // src/pages/DevSkipOne.jsx
 import React, { useEffect, useMemo, useState } from 'react';
+import { NQ_BY_FIELD } from '../data/newIntakeQuestions';
 import {
   Box,
   Container,
@@ -254,6 +255,24 @@ const generateRandomPayload = (sessionId) => ({
   visibilityComfort: pick(VISIBILITY_COMFORT),
   decisionPace: pick(DECISION_PACE),
   teamPerception: pick(TEAM_PERCEPTION),
+
+  directionChange: pick(NQ_BY_FIELD.directionChange.options),
+  slippingDate: pick(NQ_BY_FIELD.slippingDate.options),
+  stalledAsk: shuffle([...NQ_BY_FIELD.stalledAsk.options]).slice(0, 2),
+  recurringProblem: shuffle([...NQ_BY_FIELD.recurringProblem.options]).slice(0, 2),
+  uphillPitch: shuffle([...NQ_BY_FIELD.uphillPitch.options]),
+  honestRewind: pick([
+    'I name it in our standup before anyone has to ask, and I say what I am changing.',
+    'I fix it quietly first, then mention it once it is already handled.',
+    'I explain the context that led to it, which my team probably hears as defending it.',
+    'I over-apologize for a week and my team ends up reassuring me.',
+  ]),
+  shelvedIdea: pick([
+    'We do a quick debrief on what we learned and the idea goes into a parking lot we actually revisit.',
+    'It quietly disappears and nobody brings it up again.',
+    'I take the blame for green-lighting it so the team stays willing to try things.',
+    'We rework it into a smaller version and try again next quarter.',
+  ]),
   selectedAgent: pick(AGENTS),
 
   userReflection: '',

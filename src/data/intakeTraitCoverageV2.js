@@ -69,6 +69,7 @@ export const INSTINCT_SUBTRAIT_MAP = {
 export const NEW_QUESTIONS = [
   {
     id: 'a2',
+    fieldId: 'honestRewind',
     theme: 'The Honest Rewind',
     prompt: 'You got something wrong and the team saw it. What actually happens next?',
     format: 'open',
@@ -81,6 +82,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'c1',
+    fieldId: 'directionChange',
     theme: 'The Direction Change',
     prompt: 'Direction changes above you and the reason is not explained. What do you do first?',
     format: 'choice',
@@ -100,6 +102,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'c2',
+    fieldId: 'shelvedIdea',
     theme: 'The Shelved Idea',
     prompt: 'Something your team tried did not work. What happens to that idea afterwards?',
     format: 'open',
@@ -112,6 +115,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'e1',
+    fieldId: 'slippingDate',
     theme: 'The Slipping Date',
     prompt: 'A date you committed to is going to slip. When and how does anyone find out?',
     format: 'choice',
@@ -131,6 +135,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'x1',
+    fieldId: 'stalledAsk',
     theme: 'The Stalled Ask',
     prompt: 'You need help from a team you do not manage and they are not moving. What two options describe your approach?',
     format: 'choice',
@@ -153,6 +158,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 'x2',
+    fieldId: 'uphillPitch',
     theme: 'The Uphill Pitch',
     prompt: 'You have to change a mind that outranks you. How do you actually go about it?',
     // Same drag-to-rank interaction as The Fire Drill and The Leader Fuel —
@@ -175,6 +181,7 @@ export const NEW_QUESTIONS = [
   },
   {
     id: 's1',
+    fieldId: 'recurringProblem',
     theme: 'The Boomerang',
     prompt: 'The same problem keeps occurring. What two actions would help the most?',
     format: 'choice',

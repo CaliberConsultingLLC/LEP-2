@@ -6,7 +6,9 @@
  * Confidence goals mirror the Trait Audit spreadsheet (intake evidence only).
  */
 
-export const COVERAGE_VERSION = '2026-07-intake-v1';
+import { NEW_QUESTIONS, v2ReachableSubIds } from './intakeTraitCoverageV2.js';
+
+export const COVERAGE_VERSION = '2026-09-intake-v2';
 
 export const CONFIDENCE_GOALS = {
   communication: 65,
@@ -299,9 +301,28 @@ export function getSubTraitRole(subId, scoringRoleFromTrait) {
   return SUBTRAIT_ROLES[subId] || 'scored';
 }
 
+// Every sub-trait id at least one intake answer can evidence — the v1 behavior
+// map and balance line, plus the v2 questions and instinct remap.
+const RECOMMENDABLE_SUBTRAIT_IDS = (() => {
+  const reach = new Set();
+  Object.values(BEHAVIOR_SIGNAL_MAP).forEach((options) =>
+    Object.values(options).forEach((signals) => (signals || []).forEach((sig) => reach.add(sig.subId)))
+  );
+  BALANCE_LINE_SIGNALS.forEach((line) => {
+    [line.left, line.right].filter(Boolean).forEach((subId) => reach.add(subId));
+    [line.leftSub, line.rightSub].filter(Boolean).forEach((entry) => reach.add(entry.subId));
+  });
+  v2ReachableSubIds().forEach((subId) => reach.add(subId));
+  return reach;
+})();
+
 export function isEligibleForFocusRecommendation(subTrait) {
   const role = getSubTraitRole(subTrait?.id, subTrait?.scoringRole);
-  return role === 'scored';
+  // A trait no question measures cannot be recommended: a pick with no evidence
+  // path is unfalsifiable, and "what made you say this about me?" must always
+  // have an answer. This deliberately retires Career Development, Inclusion,
+  // and Reliability from the pool until they get questions of their own.
+  return role === 'scored' && RECOMMENDABLE_SUBTRAIT_IDS.has(subTrait?.id);
 }
 
 /**
@@ -358,6 +379,20 @@ export function scoreIntakeAgainstCoverage(data = {}) {
       add('communication', 'brevity', 1.0 + weight);
     }
   }
+
+  // The seven v2 questions score at question level: any real answer adds that
+  // question's signals. (uphillPitch stores a full ranking client-side and a
+  // {ranking, mostLikeMe, leastLikeMe} object in the server projection.)
+  NEW_QUESTIONS.forEach((q) => {
+    if (!q.fieldId) return;
+    const value = data[q.fieldId];
+    const answered = Array.isArray(value)
+      ? value.length > 0
+      : value && typeof value === 'object'
+        ? (Array.isArray(value.ranking) ? value.ranking.length > 0 : false)
+        : Boolean(String(value || '').trim());
+    if (answered) (q.signals || []).forEach((sig) => add(sig.coreId, sig.subId, sig.weight));
+  });
 
   return { scores, subScores };
 }

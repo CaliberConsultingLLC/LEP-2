@@ -10,6 +10,13 @@
 // submissions. Name, email, and uid are NOT set — the panel merges these over
 // the seeded identity so auth and Firestore paths keep working.
 
+import { NQ_BY_FIELD } from './newIntakeQuestions.js';
+
+// Option text referenced by 1-based index so persona answers can never drift
+// from the live option wording.
+const opt = (fieldId, n) => NQ_BY_FIELD[fieldId].options[n - 1];
+const rank = (fieldId, ordering) => ordering.map((n) => opt(fieldId, n));
+
 export const STAGING_PERSONAS = [
   {
     id: 'ops-controller',
@@ -31,6 +38,13 @@ export const STAGING_PERSONAS = [
       decisionPace: 'The Fix',
       teamPerception: 'Set clear expectations, an owner, and a check-in date to close the gap.',
       societalResponses: [7, 4, 8, 6, 9, 3, 5, 8, 6, 7],
+      directionChange: opt('directionChange', 4),
+      slippingDate: opt('slippingDate', 3),
+      stalledAsk: [opt('stalledAsk', 4), opt('stalledAsk', 3)],
+      recurringProblem: [opt('recurringProblem', 4), opt('recurringProblem', 5)],
+      uphillPitch: rank('uphillPitch', [1, 4, 2, 5, 6, 3]),
+      honestRewind: 'I say it fast in the next meeting and move on, then quietly over-correct for a week. The crew probably notices the over-correcting more than the mistake.',
+      shelvedIdea: 'Honestly, we stop doing it and I do not say much about why. The next idea just replaces it on the board.',
     },
   },
   {
@@ -53,6 +67,13 @@ export const STAGING_PERSONAS = [
       decisionPace: 'The Feedback',
       teamPerception: 'Observe for patterns and gather context before taking action.',
       societalResponses: [3, 8, 5, 9, 4, 7, 6, 5, 9, 4],
+      directionChange: opt('directionChange', 4),
+      slippingDate: opt('slippingDate', 1),
+      stalledAsk: [opt('stalledAsk', 4), opt('stalledAsk', 7)],
+      recurringProblem: [opt('recurringProblem', 1), opt('recurringProblem', 3)],
+      uphillPitch: rank('uphillPitch', [3, 1, 5, 2, 6, 4]),
+      honestRewind: 'I take it on myself in front of whoever saw it, sometimes even when it was not fully mine. Then I redo the work at night so nobody carries it.',
+      shelvedIdea: 'I treat it as data and say so openly in huddle. The unit knows a failed protocol tweak is information, not a verdict on whoever suggested it.',
     },
   },
   {
@@ -75,6 +96,13 @@ export const STAGING_PERSONAS = [
       decisionPace: 'The Fix',
       teamPerception: 'Reassign tasks or adjust their responsibilities to better fit their strengths.',
       societalResponses: [8, 6, 4, 5, 9, 8, 3, 7, 5, 6],
+      directionChange: opt('directionChange', 6),
+      slippingDate: opt('slippingDate', 4),
+      stalledAsk: [opt('stalledAsk', 1), opt('stalledAsk', 5)],
+      recurringProblem: [opt('recurringProblem', 5), opt('recurringProblem', 2)],
+      uphillPitch: rank('uphillPitch', [1, 4, 3, 5, 6, 2]),
+      honestRewind: 'I apologize more than I need to and it gets awkward. Then I usually fix it myself that night instead of letting whoever caught it help.',
+      shelvedIdea: 'We talk about it in retro and move on. I try not to let it kill the appetite for shipping small things to find out.',
     },
   },
   {
@@ -97,6 +125,13 @@ export const STAGING_PERSONAS = [
       decisionPace: 'The Standard',
       teamPerception: 'Name the gap in a private conversation and reset the expectation.',
       societalResponses: [9, 3, 8, 4, 3, 5, 8, 7, 4, 3],
+      directionChange: opt('directionChange', 6),
+      slippingDate: opt('slippingDate', 3),
+      stalledAsk: [opt('stalledAsk', 3), opt('stalledAsk', 6)],
+      recurringProblem: [opt('recurringProblem', 6), opt('recurringProblem', 4)],
+      uphillPitch: rank('uphillPitch', [4, 1, 2, 5, 6, 3]),
+      honestRewind: 'I do not dwell on it. I reset the target and get the store moving again — dwelling is how you lose a week.',
+      shelvedIdea: 'It was not going to work anyway. We move on to the next play and I do not spend time on the autopsy.',
     },
   },
   {
@@ -119,6 +154,13 @@ export const STAGING_PERSONAS = [
       decisionPace: 'The Standard',
       teamPerception: 'Set clear expectations, an owner, and a check-in date to close the gap.',
       societalResponses: [8, 5, 9, 6, 4, 4, 7, 8, 5, 3],
+      directionChange: opt('directionChange', 6),
+      slippingDate: opt('slippingDate', 1),
+      stalledAsk: [opt('stalledAsk', 4), opt('stalledAsk', 2)],
+      recurringProblem: [opt('recurringProblem', 2), opt('recurringProblem', 3)],
+      uphillPitch: rank('uphillPitch', [1, 4, 3, 2, 6, 5]),
+      honestRewind: 'I say it plain on the floor, once, and it is done. Thirty-eight years in, the crew trusts a straight answer more than a clean record.',
+      shelvedIdea: 'We try the next thing. I have seen enough ideas come and go that I do not treat one dying as news.',
     },
   },
   {
@@ -141,6 +183,13 @@ export const STAGING_PERSONAS = [
       decisionPace: 'The Fix',
       teamPerception: 'Set clear expectations, an owner, and a check-in date to close the gap.',
       societalResponses: [7, 6, 7, 7, 8, 9, 5, 5, 7, 6],
+      directionChange: opt('directionChange', 6),
+      slippingDate: opt('slippingDate', 3),
+      stalledAsk: [opt('stalledAsk', 4), opt('stalledAsk', 6)],
+      recurringProblem: [opt('recurringProblem', 7), opt('recurringProblem', 3)],
+      uphillPitch: rank('uphillPitch', [4, 1, 2, 3, 6, 5]),
+      honestRewind: 'I say it on the group call so all nine clubs hear it from me first, then I flip it into a rally about the fix. Sometimes the rally lands before the apology does.',
+      shelvedIdea: 'We move on fast — usually to a new program. If I am honest, the idea does not get a funeral, it just gets replaced.',
     },
   },
 ];

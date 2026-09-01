@@ -16,6 +16,7 @@ import { useCairnTheme } from '../config/runtimeFlags';
 import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
+import { buildNewQuestionEntry, requirementLabelFor, STORY_INTRO_ENTRY } from '../data/newIntakeQuestions';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
@@ -836,9 +837,13 @@ function IntakeForm() {
       }
       if (Number.isInteger(draft?.currentStep)) {
         let step = draft.currentStep;
-        const isLegacyDraft = draft?.draftVersion !== 2
+        const isLegacyDraft = draft?.draftVersion !== 2 && draft?.draftVersion !== 3
           && (draft?.reflectionNumber != null || typeof draft?.reflectionText === 'string');
         if (isLegacyDraft && step > 15) step -= 1;
+        // v3 added seven questions and reordered the chapter, so a step index
+        // saved under the old numbering points at the wrong question. Answers
+        // are kept; the walk restarts at the first behavior question.
+        if (draft?.draftVersion !== 3 && step > 3) step = 3;
         setCurrentStep(step);
       }
       if (draft?.clarification && typeof draft.clarification === 'object') {
@@ -964,6 +969,11 @@ function IntakeForm() {
   }, [location.search]);
 
   // Behavior Questions
+  // The Daily Behaviors chapter in the approved order: choices up front, the
+  // three ranking questions batched at 6-8, the pick-several family at 9-11,
+  // a run of single choices, the sliders, then the three open stories behind
+  // their own intro screen. New-question definitions live in
+  // intakeTraitCoverageV2.js so wording and trait signals cannot drift.
   const behaviorSet = [
     {
       id: 'resourcePick',
@@ -986,6 +996,8 @@ function IntakeForm() {
         'Ask clarifying questions before diving in.',
       ],
     },
+    buildNewQuestionEntry('directionChange'),
+    buildNewQuestionEntry('slippingDate'),
     {
       id: 'energyDrains',
       theme: 'The Energy Drain',
@@ -1017,6 +1029,24 @@ function IntakeForm() {
       ],
       scale: { top: 'like me', bottom: 'like me' },
     },
+    buildNewQuestionEntry('uphillPitch'),
+    {
+      id: 'leaderFuel',
+      theme: "The Leader's Fuel",
+      prompt: 'Rank the following outcomes that energize you most.',
+      type: 'ranking',
+      options: [
+        'Seeing the team gel and succeed together',
+        'Closing out a tough project completely',
+        'Solving a problem no one else could',
+        'Hearing the team say they learned something',
+        'My team getting the recognition it deserves',
+        'Turning chaos into quality',
+      ],
+      scale: { top: 'Energize Me Most', bottom: 'Energize Me Least' },
+    },
+    buildNewQuestionEntry('stalledAsk'),
+    buildNewQuestionEntry('recurringProblem'),
     {
       id: 'pushbackFeeling',
       theme: 'The Pushback Moment',
@@ -1066,42 +1096,6 @@ function IntakeForm() {
       ],
     },
     {
-      id: 'leaderFuel',
-      theme: "The Leader's Fuel",
-      prompt: 'Rank the following outcomes that energize you most.',
-      type: 'ranking',
-      options: [
-        'Seeing the team gel and succeed together',
-        'Closing out a tough project completely',
-        'Solving a problem no one else could',
-        'Hearing the team say they learned something',
-        'My team getting the recognition it deserves',
-        'Turning chaos into quality',
-      ],
-      scale: { top: 'Energize Me Most', bottom: 'Energize Me Least' },
-    },
-    {
-      id: 'proudMoment',
-      theme: 'The Highlight Reel',
-      prompt: 'Consider a significant team accomplishment and describe how your contribution made it possible.',
-      type: 'text',
-    },
-    {
-      id: 'behaviorDichotomies',
-      theme: 'The Balance Line',
-      prompt:
-        'Consider the following behaviors and select where you most naturally fit on the scale.',
-      type: 'sliders',
-      sliders: [
-        { left: 'Prone to listen', right: 'Prone to speak', min: 1, max: 10, step: 1 },
-        { left: 'Critical', right: 'Encouraging', min: 1, max: 10, step: 1 },
-        { left: 'Detail-Oriented', right: 'Big-picture-oriented', min: 1, max: 10, step: 1 },
-        { left: 'Directive', right: 'Empowering', min: 1, max: 10, step: 1 },
-        { left: 'Prefer clarity before moving', right: 'Move forward while clarity forms', min: 1, max: 10, step: 1 },
-        { left: 'Thorough communicator', right: 'Concise communicator', min: 1, max: 10, step: 1 },
-      ],
-    },
-    {
       id: 'visibilityComfort',
       theme: 'The Spotlight',
       prompt:
@@ -1139,6 +1133,30 @@ function IntakeForm() {
         'Involve HR or escalate to higher management for guidance.',
       ],
     },
+    {
+      id: 'behaviorDichotomies',
+      theme: 'The Balance Line',
+      prompt:
+        'Consider the following behaviors and select where you most naturally fit on the scale.',
+      type: 'sliders',
+      sliders: [
+        { left: 'Prone to listen', right: 'Prone to speak', min: 1, max: 10, step: 1 },
+        { left: 'Critical', right: 'Encouraging', min: 1, max: 10, step: 1 },
+        { left: 'Detail-Oriented', right: 'Big-picture-oriented', min: 1, max: 10, step: 1 },
+        { left: 'Directive', right: 'Empowering', min: 1, max: 10, step: 1 },
+        { left: 'Prefer clarity before moving', right: 'Move forward while clarity forms', min: 1, max: 10, step: 1 },
+        { left: 'Thorough communicator', right: 'Concise communicator', min: 1, max: 10, step: 1 },
+      ],
+    },
+    STORY_INTRO_ENTRY,
+    buildNewQuestionEntry('honestRewind'),
+    {
+      id: 'proudMoment',
+      theme: 'The Highlight Reel',
+      prompt: 'Consider a significant team accomplishment and describe how your contribution made it possible.',
+      type: 'text',
+    },
+    buildNewQuestionEntry('shelvedIdea'),
   ];
 
   // 10 societal norms (now the "Insights" section, 5 per page)
@@ -1173,7 +1191,7 @@ function IntakeForm() {
   };
   const stepVars = useMemo(() => {
     const behaviorStart = 3; // after profile (step 1) and behaviors intro popup (step 2)
-    const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 3..14 (12 qs)
+    const behaviorEnd = behaviorStart + behaviorSet.length - 1; // 20 questions + 1 story intro
     const mindsetIntroStep = behaviorEnd + 1; // 15 (popup)
     const societalStart = mindsetIntroStep + 1; // 16
     const societalEnd = societalStart; // single page with progressive questions
@@ -1217,7 +1235,7 @@ function IntakeForm() {
   ]);
 
   const buildDraftPayload = () => ({
-    draftVersion: 2,
+    draftVersion: 3,
     formData,
     societalResponses,
     currentStep,
@@ -1335,6 +1353,13 @@ function IntakeForm() {
     visibilityComfort: formData.visibilityComfort || '',
     decisionPace: formData.decisionPace || '',
     teamPerception: formData.teamPerception || '',
+    directionChange: formData.directionChange || '',
+    slippingDate: formData.slippingDate || '',
+    stalledAsk: formData.stalledAsk || [],
+    recurringProblem: formData.recurringProblem || [],
+    uphillPitch: formData.uphillPitch || [],
+    honestRewind: formData.honestRewind || '',
+    shelvedIdea: formData.shelvedIdea || '',
     societalResponses,
   });
 
@@ -1574,13 +1599,14 @@ function IntakeForm() {
           return;
         }
 
-      // Behaviors validation (steps 5..16)
+      // Behaviors validation
       } else if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
         const qIndex = currentStep - behaviorStart;
         const q = behaviorSet[qIndex];
         const v = formData[q.id];
         if (q.type === 'text' && !v) return;
         if (q.type === 'multi-select' && (!v || v.length === 0)) return;
+        if (q.type === 'multi-select' && q.minSelections != null && v.length < q.minSelections) return;
         if (q.type === 'ranking') {
           // null means user hasn't dragged yet — treat as default order and persist it
           if (!v) {
@@ -1741,20 +1767,26 @@ function IntakeForm() {
     }
   };
 
+  const behaviorQuestionCount = behaviorSet.filter((q) => q.type !== 'intro').length;
   const intakeQuestionNumber = (() => {
-    // User-facing numbers start at 1 on the first behavior question (exclude profile steps).
+    // User-facing numbers start at 1 on the first behavior question (exclude
+    // profile steps). The story-intro screen is not a question and holds the
+    // count of the questions answered so far rather than claiming a number.
     if (currentStep >= behaviorStart && currentStep <= behaviorEnd) {
-      return (currentStep - behaviorStart) + 1;
+      const answeredThrough = behaviorSet
+        .slice(0, currentStep - behaviorStart + 1)
+        .filter((q) => q.type !== 'intro').length;
+      return Math.max(1, answeredThrough);
     }
     if (currentStep >= societalStart && currentStep <= societalEnd) {
-      return behaviorSet.length + 1 + societalQuestionIndex;
+      return behaviorQuestionCount + 1 + societalQuestionIndex;
     }
     if (currentStep === clarificationStep || currentStep === agentStep) {
-      return behaviorSet.length + societalNormsQuestions.length;
+      return behaviorQuestionCount + societalNormsQuestions.length;
     }
     return Math.max(1, currentStep);
   })();
-  const intakeQuestionTotal = behaviorSet.length + societalNormsQuestions.length;
+  const intakeQuestionTotal = behaviorQuestionCount + societalNormsQuestions.length;
   const isProfileDetailsStep = useCairnTheme && currentStep === 1;
   const intakeActiveStepId = isProfileDetailsStep
     ? 'context'
@@ -2252,6 +2284,21 @@ function IntakeForm() {
                     )}
                   </Typography>
 
+                  {q.type !== 'intro' && requirementLabelFor(q) && (
+                    <Typography sx={{
+                      textAlign: 'center',
+                      fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.16em',
+                      textTransform: 'uppercase',
+                      color: useCairnTheme ? 'var(--orange-deep, #C0612A)' : 'text.secondary',
+                      mt: -0.5,
+                    }}>
+                      {requirementLabelFor(q)}
+                    </Typography>
+                  )}
+
                   {(q.type === 'radio' || q.type === 'multi-select') && (
                     <Grid
                       container
@@ -2327,6 +2374,20 @@ function IntakeForm() {
                         sx={{ maxWidth: '100%' }}
                       />
                     </Box>
+                  )}
+
+                  {q.type === 'intro' && (
+                    <Typography sx={{
+                      textAlign: 'center',
+                      maxWidth: '48ch',
+                      mx: 'auto',
+                      fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'inherit',
+                      fontSize: 15.5,
+                      lineHeight: 1.65,
+                      color: useCairnTheme ? 'var(--ink-soft, #44566C)' : 'text.secondary',
+                    }}>
+                      {q.body}
+                    </Typography>
                   )}
 
                   {q.type === 'ranking' && (
@@ -2529,6 +2590,7 @@ function IntakeForm() {
                         nextDisabled={
                           (q.type === 'text' && !formData[q.id]) ||
                           (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
+                          (q.type === 'multi-select' && q.minSelections != null && (formData[q.id]?.length || 0) < q.minSelections) ||
                           (q.type === 'ranking' && (formData[q.id] != null && formData[q.id].length !== q.options.length)) ||
                           (q.type === 'radio' && !formData[q.id]) ||
                           (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(formData[q.id]))
@@ -2576,6 +2638,7 @@ function IntakeForm() {
                       disabled={
                         (q.type === 'text' && !formData[q.id]) ||
                         (q.type === 'multi-select' && (!formData[q.id] || formData[q.id].length === 0)) ||
+                          (q.type === 'multi-select' && q.minSelections != null && (formData[q.id]?.length || 0) < q.minSelections) ||
                         (q.type === 'ranking' && (formData[q.id] != null && formData[q.id].length !== q.options.length)) ||
                         (q.type === 'radio' && !formData[q.id]) ||
                         (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(formData[q.id]))
