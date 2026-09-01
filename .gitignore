@@ -53,3 +53,10 @@ Compass Navigation Redesign/
 Growth campaign redesign mockups/
 Intake Review and Lock/
 *.zip
+
+# Evidence page handoff — extracted twice (EvidenceRevision/ and loose at root).
+EvidenceRevision/
+trait-room-prototype.html
+canvas.json
+*.dc.html
+EVIDENCE-PAGE-HANDOFF.md
