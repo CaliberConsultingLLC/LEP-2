@@ -249,7 +249,7 @@ html:has([data-compass-landing]) {
   justify-content: center;
   flex-shrink: 0;
   margin-top: auto;
-  padding: 28px 0 40px;
+  padding: 20px 0 40px;
 }
 
 .cl-next-cta {
@@ -494,7 +494,7 @@ html:has([data-compass-landing]) {
   grid-template-columns: repeat(3, 1fr);
   width: 100%;
   max-width: 56rem;
-  margin: 30px auto 0;
+  margin: 48px auto 0;
 }
 
 .cl-pillar {
@@ -1583,7 +1583,7 @@ html:has([data-compass-landing]) {
   .cl-page .cl-hero h1 { font-size: 52px; }
   .cl-page .cl-hero-sub { margin-top: 18px; }
   .cl-hero-sub.clx-body { margin-top: 20px; }
-  .cl-pillars-grid { margin-top: 20px; }
+  .cl-pillars-grid { margin-top: 28px; }
   .cl-page .cl-pillar h3 { font-size: 18px; }
   .cl-pillar p { font-size: 12.5px; line-height: 1.5; }
 }
