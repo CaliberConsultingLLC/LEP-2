@@ -1,3 +1,7 @@
+import { STAGING_PERSONAS } from '../data/stagingPersonas';
+import { CAMPAIGN_TRAITS } from './stagingSeed';
+import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
+
 const FLAG_KEY = 'compassDemo';
 const PREFIX = 'demo_';
 
@@ -150,7 +154,7 @@ export function seedDemoContext({ name, role, industry, teamSize } = {}) {
   localStorage.setItem(
     'intakeDraft',
     JSON.stringify({
-      draftVersion: 2,
+      draftVersion: 4,
       formData,
       societalResponses: Array(10).fill(null),
       currentStep: 3,
@@ -167,6 +171,81 @@ export function seedDemoContext({ name, role, industry, teamSize } = {}) {
       updatedAt: new Date().toISOString(),
     })
   );
+}
+
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
+
+/**
+ * The second demo path: skip the intake entirely, land on the reflection.
+ *
+ * Fills a whole finished intake from one of the staging personas, picks a
+ * guide at random so repeat runs do not all sound the same, and opens the
+ * campaign so the dashboard rooms are reachable straight after the summary.
+ * Returns the persona and guide so the caller can say what it chose.
+ */
+export function seedDemoPersona({ name, teamSize } = {}) {
+  const persona = pick(STAGING_PERSONAS);
+  const guide = pick(SELECTABLE_GUIDE_PERSONAS);
+
+  const safeName = String(name || '').trim() || 'You';
+  const societal = Array.isArray(persona.data?.societalResponses)
+    ? persona.data.societalResponses
+    : Array(10).fill(5);
+
+  const formData = {
+    ...persona.data,
+    name: safeName,
+    email: 'demo@local',
+    teamSize: String(teamSize || persona.data?.teamSize || '8'),
+    societalResponses: societal,
+    guideId: guide.id,
+    selectedAgent: guide.id,
+  };
+
+  localStorage.setItem('userInfo', JSON.stringify({
+    name: safeName,
+    email: 'demo@local',
+    role: persona.data?.role || 'Team lead',
+    industry: persona.data?.industry || 'Professional services',
+    teamSize: formData.teamSize,
+  }));
+  localStorage.setItem('compassPaid', 'paid');
+  localStorage.setItem('latestFormData', JSON.stringify(formData));
+  localStorage.setItem('intakeDraft', JSON.stringify({
+    draftVersion: 4,
+    formData,
+    societalResponses: societal,
+    currentStep: 27,
+    societalQuestionIndex: 9,
+    intakeLock: { locked: true, lockedAt: new Date().toISOString(), lockedFrom: 'demo-persona' },
+  }));
+  localStorage.setItem('intakeStatus', JSON.stringify({
+    started: true,
+    complete: true,
+    currentStep: 27,
+    totalSteps: 28,
+    updatedAt: new Date().toISOString(),
+  }));
+
+  // GuideContext reads these on mount, and the summary is generated in the
+  // picked voice — so both have to be in place before the page loads.
+  localStorage.setItem('selectedAgent', guide.id);
+  localStorage.setItem('selectedGuideId', guide.id);
+  localStorage.setItem('cairnGuide', JSON.stringify({ personaId: guide.id, selected: true, hidden: false }));
+
+  // A cached summary would replay instead of generating for this persona.
+  ['aiSummary', 'summariesByGuide', 'focusAreas', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
+    .forEach((key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } });
+
+  localStorage.setItem('selectedTraits', JSON.stringify([
+    'communication-clarity',
+    'execution-deadlineManagement',
+    'strategicThinking-vision',
+  ]));
+  localStorage.setItem('currentCampaign', JSON.stringify(CAMPAIGN_TRAITS));
+
+  finishDemoCampaign();
+  return { persona, guide };
 }
 
 export function finishDemoCampaign() {

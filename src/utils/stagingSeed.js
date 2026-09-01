@@ -46,7 +46,9 @@ const SEED_KEYS = [
   'journeyCeremonySeen',
 ];
 
-const CAMPAIGN_TRAITS = [
+// Exported so the demo's persona path can stand up the same three traits
+// without duplicating the fixture.
+export const CAMPAIGN_TRAITS = [
   {
     trait: 'Communication',
     subTrait: 'Clarity',
