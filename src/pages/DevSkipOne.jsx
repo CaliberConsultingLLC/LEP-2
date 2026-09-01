@@ -761,7 +761,6 @@ export default function DevSkipOne() {
     Array.from({ length: 10 }, () => rnd(1, 10))
   );
   const [aiSummary, setAiSummary] = useState('');
-  const [reflection, setReflection] = useState('');
   const [loading, setLoading] = useState(true);
 
   const [freeTextToggles, setFreeTextToggles] = useState({
@@ -833,20 +832,6 @@ export default function DevSkipOne() {
         societalResponses: norms,
         timestamp: new Date().toISOString(),
       });
-
-      const refRes = await fetch('/api/get-ai-reflection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ ...payload, societalResponses: norms }),
-      }).catch(() => null);
-
-      const refJson = await refRes?.json().catch(() => ({}));
-      if (refJson?.needsClarification) {
-        const prompts = (refJson.questions || []).map((q) => q.prompt).filter(Boolean);
-        setReflection(refJson.notice || prompts.join(' ') || 'Clarification suggested.');
-      } else {
-        setReflection(refJson?.notice || refJson?.reflection || 'No clarification needed.');
-      }
 
       const sumRes = await fetch('/api/get-ai-summary', {
         method: 'POST',
@@ -1251,7 +1236,7 @@ export default function DevSkipOne() {
                   variant="contained"
                   onClick={() => rerunBoth({ ...formData }, [...societalResponses])}
                 >
-                  Re-Run Reflection & Summary
+                  Re-Run Summary
                 </Button>
                 <Button variant="outlined" onClick={openReflectionPage}>Open Reflection Page</Button>
                 <Button variant="outlined" onClick={openSummaryPage}>Open Summary Page</Button>
@@ -1261,43 +1246,7 @@ export default function DevSkipOne() {
               </Stack>
             </Section>
 
-            <Section title="AI Reflection" dense>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  background: 'linear-gradient(145deg, #f9f9f9, #eef2f7)',
-                }}
-              >
-                <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                  <Box sx={{ color: 'primary.main', fontSize: 28, lineHeight: 1 }}>❝</Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      color: 'text.primary',
-                      textAlign: 'left',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    <strong>Agent Insight:</strong> {reflection || '—'}
-                  </Typography>
-                </Stack>
-              </Paper>
-
-              <TextField
-                fullWidth
-                multiline
-                minRows={3}
-                placeholder="Your response to the reflection…"
-                value={formData.userReflection || ''}
-                onChange={(e) => setFormData((p) => ({ ...p, userReflection: e.target.value }))}
-                sx={{ mt: 1 }}
-              />
+            <Section title="AI Summary" dense>
               <CardActions sx={{ justifyContent: 'flex-end', p: 0, pt: 1 }}>
                 <Button
                   size="small"

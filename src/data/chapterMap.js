@@ -52,7 +52,7 @@ export const CHAPTERS = [
       'These questions are about how you normally lead day to day, not who you wish you were. They are the raw material every later chapter reads from.',
     completeBlurb:
       'You finished the intake — how you actually lead, not a type. Those answers are what the reflection is built from.',
-    arriveHint: 'Your written reflection is ready. Read it in four short parts. Nothing to choose yet.',
+    arriveHint: 'About 32 questions on how you actually lead, then you read every answer back and lock it.',
     steps: [
       {
         id: 'habits',
@@ -65,6 +65,12 @@ export const CHAPTERS = [
         label: 'Leadership Insights',
         path: '/form?step=3',
         whatHappens: ['Same chapter, different scale', 'Private to you'],
+      },
+      {
+        id: 'review',
+        label: 'Review & Lock',
+        path: '/form?step=review',
+        whatHappens: ['Every answer, read back', 'Verify each stretch', 'Locked for good'],
       },
     ],
   },

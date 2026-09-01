@@ -1,7 +1,6 @@
 import express from 'express';
 import admin from 'firebase-admin';
 import cors from 'cors';
-import getAiReflection from './api/get-ai-reflection.js';
 import createCheckoutSession from './api/create-checkout-session.js';
 import confirmCheckout from './api/confirm-checkout.js';
 
@@ -291,7 +290,6 @@ app.get('/get-latest-response', async (req, res) => {
   }
 });
 
-app.post('/api/get-ai-reflection', (req, res) => getAiReflection(req, res));
 app.post('/api/create-checkout-session', (req, res) => createCheckoutSession(req, res));
 app.post('/api/confirm-checkout', (req, res) => confirmCheckout(req, res));
 

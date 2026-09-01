@@ -164,8 +164,6 @@ export function seedStagingData() {
     formData,
     societalResponses: formData.societalResponses,
     currentStep: 3,
-    clarification: { needsClarification: false, notice: '', questions: [] },
-    clarificationAnswers: {},
     societalQuestionIndex: 0,
   }));
 

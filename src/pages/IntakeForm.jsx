@@ -17,10 +17,11 @@ import { useStepNav } from '../context/StepNavContext';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import { buildNewQuestionEntry, requirementLabelFor, STORY_INTRO_ENTRY } from '../data/newIntakeQuestions';
+import ReviewAndLock from './IntakeForm/ReviewAndLock';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
-import { demoRequestFields, isDemoSession } from '../utils/demoMode';
+import { isDemoSession } from '../utils/demoMode';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -721,15 +722,13 @@ function IntakeForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stepJustValidated, setStepJustValidated] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [clarification, setClarification] = useState({
-    needsClarification: false,
-    notice: '',
-    questions: [],
-  });
-  const [clarificationAnswers, setClarificationAnswers] = useState({});
-  const [clarificationStatus, setClarificationStatus] = useState('idle');
-  const clarificationKeyRef = useRef('');
-  const clarificationSubmitLockRef = useRef(false);
+  // Review & Lock owns the terminal step. `returnToReview` is set when a row's
+  // Edit sends the leader back to a single question; both routes out of that
+  // question land on reviewStep again.
+  const [returnToReview, setReturnToReview] = useState(false);
+  const [flashedRow, setFlashedRow] = useState('');
+  const [intakeLock, setIntakeLock] = useState({ locked: false, lockedAt: '' });
+  const submitLockRef = useRef(false);
   const [customAnswerDialogOpen, setCustomAnswerDialogOpen] = useState(false);
   const [customAnswerText, setCustomAnswerText] = useState('');
   const [roleModelElaborationDialogOpen, setRoleModelElaborationDialogOpen] = useState(false);
@@ -832,24 +831,22 @@ function IntakeForm() {
       }
       if (Number.isInteger(draft?.currentStep)) {
         let step = draft.currentStep;
-        const isLegacyDraft = draft?.draftVersion !== 2 && draft?.draftVersion !== 3
-          && (draft?.reflectionNumber != null || typeof draft?.reflectionText === 'string');
-        if (isLegacyDraft && step > 15) step -= 1;
         // v3 added seven questions and reordered the chapter, so a step index
         // saved under the old numbering points at the wrong question. Answers
         // are kept; the walk restarts at the first behavior question.
-        if (draft?.draftVersion !== 3 && step > 3) step = 3;
+        if (draft?.draftVersion !== 3 && draft?.draftVersion !== 4 && step > 3) step = 3;
+        // v4 removed the clarification screen, so every step at or past where it
+        // used to sit is off by one — and a v3 draft parked ON it would resume
+        // into a step that no longer exists. Land those on the review step.
+        if (draft?.draftVersion === 3 && step > 3) step = Math.min(step, totalSteps - 1);
         setCurrentStep(step);
       }
-      if (draft?.clarification && typeof draft.clarification === 'object') {
-        setClarification({
-          needsClarification: Boolean(draft.clarification.needsClarification),
-          notice: String(draft.clarification.notice || ''),
-          questions: Array.isArray(draft.clarification.questions) ? draft.clarification.questions : [],
+
+      if (draft?.intakeLock?.locked) {
+        setIntakeLock({
+          locked: true,
+          lockedAt: String(draft.intakeLock.lockedAt || ''),
         });
-      }
-      if (draft?.clarificationAnswers && typeof draft.clarificationAnswers === 'object') {
-        setClarificationAnswers(draft.clarificationAnswers);
       }
       if (Number.isInteger(draft?.societalQuestionIndex)) {
         setSocietalQuestionIndex(draft.societalQuestionIndex);
@@ -1191,17 +1188,19 @@ function IntakeForm() {
     const mindsetIntroStep = behaviorEnd + 1; // 15 (popup)
     const societalStart = mindsetIntroStep + 1; // 16
     const societalEnd = societalStart; // single page with progressive questions
-    const clarificationStep = societalEnd + 1; // 17
-    const agentStep = clarificationStep + 1; // 18
-    const totalSteps = agentStep + 1;
+    // The clarification screen used to sit here. Review & Lock is the terminal
+    // step now; agentStep survives only for the legacy guide picker.
+    const agentStep = societalEnd + 1;
+    const reviewStep = agentStep + 1;
+    const totalSteps = reviewStep + 1;
     return {
-      behaviorStart, behaviorEnd, mindsetIntroStep, clarificationStep,
+      behaviorStart, behaviorEnd, mindsetIntroStep, reviewStep,
       societalStart, societalEnd, agentStep, totalSteps
     };
   }, [behaviorSet.length]);
 
   const {
-    behaviorStart, behaviorEnd, mindsetIntroStep, clarificationStep,
+    behaviorStart, behaviorEnd, mindsetIntroStep, reviewStep,
     societalStart, societalEnd, agentStep, totalSteps
   } = stepVars;
 
@@ -1214,7 +1213,7 @@ function IntakeForm() {
     } else if (currentStep === mindsetIntroStep) key = 'mindset-intro';
     else if (currentStep >= societalStart && currentStep <= societalEnd) {
       key = `societal-${Math.min(10, Math.max(1, (societalQuestionIndex || 0) + 1))}`;
-    } else if (currentStep === clarificationStep) key = 'reflection';
+    } else if (currentStep === reviewStep) key = 'review';
     setGuideStep(key);
     return () => setGuideStep('default');
   }, [
@@ -1224,19 +1223,17 @@ function IntakeForm() {
     mindsetIntroStep,
     societalStart,
     societalEnd,
-    clarificationStep,
+    reviewStep,
     societalQuestionIndex,
     behaviorSet,
     setGuideStep,
   ]);
 
   const buildDraftPayload = () => ({
-    draftVersion: 3,
+    draftVersion: 4,
     formData,
     societalResponses,
     currentStep,
-    clarification,
-    clarificationAnswers,
     societalQuestionIndex,
   });
 
@@ -1328,121 +1325,7 @@ function IntakeForm() {
     return undefined;
   }, [location.search, behaviorStart, societalStart, useCairnTheme, currentStep]);
 
-  const buildClarificationPayload = (resolution, extra = {}) => ({
-    notice: extra.notice ?? clarification.notice ?? '',
-    questions: extra.questions ?? clarification.questions ?? [],
-    answers: extra.answers ?? clarificationAnswers ?? {},
-    resolution,
-  });
 
-  const compactClarificationKey = () => JSON.stringify({
-    resourcePick: formData.resourcePick || '',
-    projectApproach: formData.projectApproach || '',
-    energyDrains: formData.energyDrains || [],
-    crisisResponse: formData.crisisResponse || [],
-    pushbackFeeling: formData.pushbackFeeling || [],
-    roleModelTrait: formData.roleModelTrait || '',
-    warningLabel: formData.warningLabel || '',
-    leaderFuel: formData.leaderFuel || [],
-    proudMoment: formData.proudMoment || '',
-    behaviorDichotomies: formData.behaviorDichotomies || [],
-    visibilityComfort: formData.visibilityComfort || '',
-    decisionPace: formData.decisionPace || '',
-    teamPerception: formData.teamPerception || '',
-    directionChange: formData.directionChange || '',
-    slippingDate: formData.slippingDate || '',
-    stalledAsk: formData.stalledAsk || [],
-    recurringProblem: formData.recurringProblem || [],
-    uphillPitch: formData.uphillPitch || [],
-    honestRewind: formData.honestRewind || '',
-    shelvedIdea: formData.shelvedIdea || '',
-    societalResponses,
-  });
-
-  useEffect(() => {
-    if (currentStep !== clarificationStep) {
-      clarificationSubmitLockRef.current = false;
-      return undefined;
-    }
-
-    const key = compactClarificationKey();
-    if (clarificationKeyRef.current === key && clarificationStatus === 'ready') {
-      return undefined;
-    }
-
-    const controller = new AbortController();
-    clarificationKeyRef.current = key;
-    clarificationSubmitLockRef.current = false;
-    setClarificationStatus('loading');
-
-    fetch('/api/get-ai-reflection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        ...formData,
-        societalResponses,
-        societalLabels: societalNormsQuestions,
-        ...demoRequestFields(),
-      }),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (controller.signal.aborted) return;
-        const questions = Array.isArray(data?.questions) ? data.questions.slice(0, 2) : [];
-        const needs = Boolean(data?.needsClarification) && questions.length > 0;
-        const next = {
-          needsClarification: needs,
-          notice: String(data?.notice || ''),
-          questions: needs ? questions : [],
-        };
-        setClarification(next);
-        setClarificationStatus('ready');
-        if (!needs && !clarificationSubmitLockRef.current) {
-          clarificationSubmitLockRef.current = true;
-          if (useCairnTheme && !formData.selectedAgent) {
-            handleChange('selectedAgent', 'balancedMentor');
-          }
-          if (useCairnTheme) {
-            setIsSubmitting(true);
-            handleSubmit(buildClarificationPayload('none', next));
-          } else {
-            setFormData((prev) => ({
-              ...prev,
-              intakeClarification: buildClarificationPayload('none', next),
-            }));
-            setCurrentStep(agentStep);
-          }
-        }
-      })
-      .catch((err) => {
-        if (controller.signal.aborted || err?.name === 'AbortError') return;
-        setClarification({
-          needsClarification: false,
-          notice: '',
-          questions: [],
-        });
-        setClarificationStatus('error');
-        if (!clarificationSubmitLockRef.current) {
-          clarificationSubmitLockRef.current = true;
-          if (useCairnTheme && !formData.selectedAgent) {
-            handleChange('selectedAgent', 'balancedMentor');
-          }
-          if (useCairnTheme) {
-            setIsSubmitting(true);
-            handleSubmit(buildClarificationPayload('check_failed'));
-          } else {
-            setFormData((prev) => ({
-              ...prev,
-              intakeClarification: buildClarificationPayload('check_failed'),
-            }));
-            setCurrentStep(agentStep);
-          }
-        }
-      });
-
-    return () => controller.abort();
-  }, [currentStep, clarificationStep]);
 
   useEffect(() => {
     if (currentStep === mindsetIntroStep) {
@@ -1515,8 +1398,6 @@ function IntakeForm() {
     currentStep,
     formData,
     societalResponses,
-    clarification,
-    clarificationAnswers,
     societalQuestionIndex,
     totalSteps,
   ]);
@@ -1614,8 +1495,8 @@ function IntakeForm() {
         // For Role Model question, also require elaboration (unless custom answer was used)
         if (q.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v)) return;
 
-      } else if (currentStep === clarificationStep) {
-        finishClarification('clarified');
+      } else if (currentStep === reviewStep) {
+        // The lock button is the only way forward from here.
         return;
 
       // Societal (Insights): no validation required
@@ -1627,7 +1508,17 @@ function IntakeForm() {
       } else if (currentStep === agentStep) {
         if (!formData.selectedAgent) return;
         setIsSubmitting(true);
-        await handleSubmit(formData.intakeClarification);
+        await handleSubmit();
+        return;
+      }
+
+      if (returnToReview) {
+        const edited = currentStep >= behaviorStart && currentStep <= behaviorEnd
+          ? behaviorSet[currentStep - behaviorStart]?.id
+          : currentStep >= societalStart && currentStep <= societalEnd
+            ? `societal-${societalQuestionIndex}`
+            : '';
+        returnToReviewStep(edited || '');
         return;
       }
 
@@ -1669,8 +1560,9 @@ function IntakeForm() {
           (q?.type === 'radio' && !v) ||
           (q?.id === 'roleModelTrait' && !formData.roleModelTraitElaboration && q.options.includes(v))
         );
-      } else if (currentStep === clarificationStep) {
-        canFwd = clarificationStatus !== 'loading' && !isSubmitting;
+      } else if (currentStep === reviewStep) {
+        // Review & Lock owns its own gate: the lock button, not the rail.
+        canFwd = false;
       } else if (currentStep === agentStep) {
         canFwd = !!formData.selectedAgent;
       }
@@ -1683,7 +1575,7 @@ function IntakeForm() {
       goForward: handleNext,
     });
     return unregisterStepNav;
-  }, [currentStep, formData, mindsetIntroStep, clarificationStep, clarificationStatus, clarification, isSubmitting,
+  }, [currentStep, formData, mindsetIntroStep, reviewStep, isSubmitting,
       behaviorStart, behaviorEnd, behaviorSet, agentStep]);
 
   const formatAutosaveTime = (value) => {
@@ -1699,38 +1591,72 @@ function IntakeForm() {
   };
 
 
-  const finishClarification = (resolution) => {
-    if (clarificationSubmitLockRef.current) return;
-    const hasText = (clarification.questions || []).some((q) => String(clarificationAnswers[q.id] || '').trim());
-    const finalResolution = resolution === 'clarified' && !hasText ? 'both_accurate' : resolution;
-    clarificationSubmitLockRef.current = true;
-    const payload = buildClarificationPayload(finalResolution);
-    if (useCairnTheme && !formData.selectedAgent) {
-      handleChange('selectedAgent', 'balancedMentor');
-    }
-    if (useCairnTheme) {
-      setIsSubmitting(true);
-      handleSubmit(payload);
+  /**
+   * Edit sends the leader back to the one question they clicked. Both routes
+   * out of it — the question's own Next, or the "Back to review" bar — land on
+   * reviewStep again, and the row flashes so they can see what they changed.
+   */
+  const handleReviewEdit = (questionKey) => {
+    const behaviorIdx = behaviorSet.findIndex((q) => q?.id === questionKey);
+    setReturnToReview(true);
+    setFlashedRow('');
+    if (behaviorIdx >= 0) {
+      setCurrentStep(behaviorStart + behaviorIdx);
       return;
     }
-    setFormData((prev) => ({ ...prev, intakeClarification: payload }));
-    setCurrentStep(agentStep);
+    // Societal rows are identified positionally: the templates are plain
+    // strings, so `societal-<index>` is the only stable handle they have.
+    const societalMatch = /^societal-(\d+)$/.exec(String(questionKey || ''));
+    const societalIdx = societalMatch ? Number(societalMatch[1]) : -1;
+    if (societalIdx >= 0) {
+      setSocietalQuestionIndex(societalIdx);
+      setCurrentStep(societalStart);
+      return;
+    }
+    if (questionKey === 'guide') {
+      navigate('/guide-select?return=review');
+      return;
+    }
+    // Context fields all live on the profile step.
+    setCurrentStep(1);
   };
 
-  const handleSubmit = async (clarificationPayload) => {
+  /** Returns to the ledger and flashes the row that just changed. */
+  const returnToReviewStep = (questionKey = '') => {
+    setReturnToReview(false);
+    setCurrentStep(reviewStep);
+    if (questionKey) {
+      setFlashedRow(questionKey);
+      setTimeout(() => setFlashedRow(''), 1900);
+    }
+  };
+
+  const handleReviewLock = async () => {
+    if (submitLockRef.current) return;
+    if (intakeLock.locked) {
+      navigate('/summary?stage=trailhead', { state: { formData, liveIntake: true } });
+      return;
+    }
+    submitLockRef.current = true;
+    setIsSubmitting(true);
+    await handleSubmit();
+  };
+
+  const handleSubmit = async () => {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
-      const intakeClarification = clarificationPayload || formData.intakeClarification || buildClarificationPayload('none');
       const updated = {
         ...formData,
         selectedAgent: selectedAgentId,
         societalResponses,
-        intakeClarification,
       };
+      const lockedAt = new Date().toISOString();
       const finalDraft = {
         ...buildDraftPayload(),
         formData: updated,
         currentStep: totalSteps - 1,
+        // The UI lock is a courtesy; firestore.rules is what makes it real.
+        intakeLock: { locked: true, lockedAt, lockedFrom: 'review-step' },
       };
       try {
         await persistDraftToFirestore(finalDraft, {
@@ -1756,7 +1682,7 @@ function IntakeForm() {
       navigate('/summary?stage=trailhead', { state: { formData: updated, liveIntake: true } });
     } catch (e) {
       console.error('Submit failed', e);
-      clarificationSubmitLockRef.current = false;
+      submitLockRef.current = false;
       alert('Failed to submit form. Please try again.');
       setIsSubmitting(false);
     }
@@ -1776,7 +1702,7 @@ function IntakeForm() {
     if (currentStep >= societalStart && currentStep <= societalEnd) {
       return behaviorQuestionCount + 1 + societalQuestionIndex;
     }
-    if (currentStep === clarificationStep || currentStep === agentStep) {
+    if (currentStep === reviewStep || currentStep === agentStep) {
       return behaviorQuestionCount + societalNormsQuestions.length;
     }
     return Math.max(1, currentStep);
@@ -1785,7 +1711,9 @@ function IntakeForm() {
   const isProfileDetailsStep = useCairnTheme && currentStep === 1;
   const intakeActiveStepId = isProfileDetailsStep
     ? 'context'
-    : (currentStep >= mindsetIntroStep ? 'insights' : 'habits');
+    : currentStep === reviewStep
+      ? 'review'
+      : (currentStep >= mindsetIntroStep ? 'insights' : 'habits');
   const intakeChip = isProfileDetailsStep
     ? { variant: 'sequence', label: 'Step', current: 3, total: 3 }
     : {
@@ -2649,137 +2577,6 @@ function IntakeForm() {
             })()}
           </SectionCard>
         )}
-        {currentStep === clarificationStep && (
-  <SectionCard narrow={false}>
-    <Stack spacing={useCairnTheme ? 2.5 : 3} alignItems="center" textAlign="center" sx={{ width: '100%' }}>
-      <Typography sx={useCairnTheme ? type.monoLabel : {
-        letterSpacing: 1.2,
-        opacity: 0.75,
-        textAlign: 'center',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-      }}>
-        Before the reflection
-      </Typography>
-      <Typography sx={useCairnTheme ? { ...type.question, textAlign: 'center', maxWidth: '56ch' } : {
-        fontWeight: 800,
-        fontSize: { xs: '1.25rem', md: '1.5rem' },
-        lineHeight: 1.35,
-        textAlign: 'center',
-      }}>
-        {clarificationStatus === 'ready' && clarification.needsClarification
-          ? 'Two of your answers can be read two ways.'
-          : 'We are reading for a tension worth naming.'}
-      </Typography>
-      <Typography sx={useCairnTheme ? { ...type.bodyMuted, textAlign: 'center', maxWidth: '52ch' } : {
-        opacity: 0.8,
-        maxWidth: 640,
-      }}>
-        {clarificationStatus === 'ready' && clarification.needsClarification
-          ? (clarification.notice || 'If a distinction would make the picture truer, write it here. If both answers are simply you, leave it.')
-          : 'If nothing needs a second look, we will move you on. This pause is only for a real contradiction — not a recap of what you already said.'}
-      </Typography>
-
-      {clarificationStatus === 'ready' && clarification.needsClarification && clarification.questions.map((q) => (
-        <Box key={q.id} sx={{ width: '100%', maxWidth: useCairnTheme ? '56ch' : 720 }}>
-          <Typography sx={useCairnTheme ? { ...type.question, fontSize: 18, textAlign: 'center', mb: 1.5 } : {
-            fontWeight: 700,
-            fontSize: '1.05rem',
-            textAlign: 'center',
-            mb: 1.5,
-          }}>
-            {q.prompt}
-          </Typography>
-          <MemoTextField
-            value={clarificationAnswers[q.id] || ''}
-            onChange={(e) => setClarificationAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
-            fullWidth
-            multiline
-            minRows={3}
-            placeholder="Optional — only if one answer was doing different work than it looks like."
-            sx={{
-              maxWidth: '100%',
-              '& .MuiOutlinedInput-root': useCairnTheme ? {
-                bgcolor: colors.surface2,
-                borderRadius: radii.md,
-                fontFamily: fonts.sans,
-                color: colors.ink,
-                '& fieldset': { borderColor: colors.sand300 },
-              } : undefined,
-            }}
-          />
-        </Box>
-      ))}
-
-      <Stack spacing={1.5} alignItems="center" sx={{ pt: 1, width: '100%' }}>
-        {clarificationStatus === 'ready' && clarification.needsClarification && (
-          <Box
-            component="button"
-            type="button"
-            onClick={() => finishClarification('both_accurate')}
-            disabled={isSubmitting}
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              fontFamily: fonts.sans,
-              fontSize: 13,
-              lineHeight: 1.5,
-              color: colors.inkSoft,
-              textDecoration: 'underline',
-              textUnderlineOffset: '3px',
-              '&:hover': { color: colors.ink },
-            }}
-          >
-            Both are accurate — that&apos;s just me
-          </Box>
-        )}
-        {useCairnTheme ? (
-          <Box sx={{ width: '100%', maxWidth: 420 }}>
-            <CairnFlowButtons
-              isDark={isDark}
-              backLabel="Back"
-              nextLabel={isSubmitting ? 'Locking…' : 'Continue'}
-              backDisabled={isSubmitting}
-              nextDisabled={isSubmitting || clarificationStatus === 'loading'}
-              onBack={() => {
-                setSocietalQuestionIndex(societalNormsQuestions.length - 1);
-                setCurrentStep(societalStart);
-              }}
-              onNext={() => {
-                if (clarification.needsClarification) finishClarification('clarified');
-                else finishClarification(clarificationStatus === 'error' ? 'check_failed' : 'none');
-              }}
-            />
-          </Box>
-        ) : (
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <MemoButton
-              variant="outlined"
-              disabled={isSubmitting}
-              onClick={() => {
-                setSocietalQuestionIndex(societalNormsQuestions.length - 1);
-                setCurrentStep(societalStart);
-              }}
-            >
-              Back
-            </MemoButton>
-            <MemoButton
-              variant="contained"
-              disabled={isSubmitting || clarificationStatus === 'loading'}
-              onClick={() => {
-                if (clarification.needsClarification) finishClarification('clarified');
-                else finishClarification(clarificationStatus === 'error' ? 'check_failed' : 'none');
-              }}
-            >
-              {isSubmitting ? 'Submitting...' : 'Continue'}
-            </MemoButton>
-          </Stack>
-        )}
-      </Stack>
-    </Stack>
-  </SectionCard>
-)}
-
         {/* Leader Instincts (Societal Norms) – single page, one question at a time */}
 {currentStep >= societalStart && currentStep <= societalEnd && (
   <SectionCard narrow={false}>
@@ -2952,7 +2749,7 @@ function IntakeForm() {
                       if (useCairnTheme && !formData.selectedAgent) {
                         handleChange('selectedAgent', 'balancedMentor');
                       }
-                      setCurrentStep(clarificationStep);
+                      setCurrentStep(reviewStep);
                     }
                   }}
                 />
@@ -2978,7 +2775,7 @@ function IntakeForm() {
                     if (!lastQuestion) {
                       setSocietalQuestionIndex((i) => i + 1);
                     } else {
-                      setCurrentStep(clarificationStep);
+                      setCurrentStep(reviewStep);
                     }
                   }}
                 >
@@ -2991,6 +2788,23 @@ function IntakeForm() {
       );
     })()}
   </SectionCard>
+)}
+
+{/* Review & Lock — the terminal step. Every answer read back, five chapters
+    verified, then locked for good. */}
+{currentStep === reviewStep && (
+  <ReviewAndLock
+    formData={formData}
+    societalResponses={societalResponses}
+    behaviorSet={behaviorSet}
+    societalNormsQuestions={societalNormsQuestions}
+    onEdit={handleReviewEdit}
+    onLock={handleReviewLock}
+    isSubmitting={isSubmitting}
+    locked={intakeLock.locked}
+    lockedAt={intakeLock.lockedAt}
+    flashedRow={flashedRow}
+  />
 )}
 
 {/* Agent Select — production only; cairn mode submits directly from societal norms */}

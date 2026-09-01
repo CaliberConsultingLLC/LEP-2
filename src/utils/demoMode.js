@@ -154,8 +154,6 @@ export function seedDemoContext({ name, role, industry, teamSize } = {}) {
       formData,
       societalResponses: Array(10).fill(null),
       currentStep: 3,
-      clarification: { needsClarification: false, notice: '', questions: [] },
-      clarificationAnswers: {},
       societalQuestionIndex: 0,
     })
   );

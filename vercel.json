@@ -40,10 +40,6 @@
       "destination": "/api/get-ai-summary.js"
     },
     {
-      "source": "/get-ai-reflection",
-      "destination": "/api/get-ai-reflection.js"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -51,9 +47,6 @@
   "functions": {
     "api/get-ai-summary.js": {
       "maxDuration": 300
-    },
-    "api/get-ai-reflection.js": {
-      "maxDuration": 60
     },
     "api/get-agent-insight.js": {
       "maxDuration": 30

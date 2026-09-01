@@ -599,7 +599,6 @@ function Summary() {
     const liveFromIntake = Boolean(
       state?.liveIntake
       || regenRequested
-      || formDataFromRoute?.intakeClarification
       || (formDataFromRoute?.societalResponses && state?.formData)
     );
     if (useCairnTheme && !liveFromIntake) {
