@@ -244,11 +244,6 @@ html:has([data-compass-landing]) {
   color: #FFF8F0;
 }
 
-.clx-pillars-line strong em {
-  font-style: normal;
-  color: var(--cl-ember);
-}
-
 .cl-hero-cta {
   display: flex;
   justify-content: center;
@@ -516,28 +511,23 @@ html:has([data-compass-landing]) {
   padding-right: 0;
 }
 
-.cl-pillar-head {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-
-.cl-pillar-num {
-  font-family: 'Fraunces', serif;
-  font-size: 44px;
-  color: rgba(244, 206, 161, 0.5);
-}
-
+/* Each pillar is led by its promise — "Your Path" / "Your Growth" /
+   "Your Guide" — carrying the ember accent the hero line used to. */
 .cl-page .cl-pillar h3 {
   font-weight: 400;
-  font-size: 21px;
+  font-size: 28px;
+}
+
+.cl-page .cl-pillar h3 em {
+  font-style: normal;
+  color: var(--cl-ember);
 }
 
 .cl-pillar p {
   font-size: 14px;
   line-height: 1.6;
   color: rgba(255, 248, 240, 0.7);
-  margin: 10px 0 0;
+  margin: 14px 0 0;
 }
 
 /* -------------------------------------------------------------- guides --- */
@@ -1421,6 +1411,23 @@ html:has([data-compass-landing]) {
   margin: 64px 0 24px;
 }
 
+/* The "Everything you get" block moved out of the growth section to sit under
+   the price as an offering reminder. It keeps the section-heading treatment
+   and left-aligned cards rather than inheriting the closing CTA's. */
+.cl-offering {
+  max-width: var(--cl-max);
+  margin: 64px auto 0;
+}
+
+.cl-page .cl-close .cl-offering h2 {
+  font-size: 40px;
+  margin: 0 0 40px;
+}
+
+.cl-offering .cl-growth-grid {
+  text-align: left;
+}
+
 .cl-page .cl-close h2 em {
   color: var(--cl-gold);
 }
@@ -1554,6 +1561,7 @@ html:has([data-compass-landing]) {
   .cl-price-card { padding: 32px 24px; }
   .cl-price-now { font-size: 52px; }
   .cl-page .cl-close h2 { font-size: 32px; margin-top: 48px; }
+  .cl-page .cl-close .cl-offering h2 { font-size: 30px; margin-top: 0; }
 }
 
 @media (max-width: 560px) {

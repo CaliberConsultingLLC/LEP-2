@@ -52,26 +52,37 @@ const WAYPOINTS = [
     gets: 'The arc of the year in one place — where you started, what changed, and what your team can now feel.' },
 ];
 
+/* The "Your Path, Your Guide, Your Growth" promise from the hero now lives
+   here, one label leading into each pillar. Order is Path → Growth → Guide,
+   matching the pillars' existing sequence rather than the nav's. */
 const PILLARS = [
   {
-    num: '01',
-    title: (
+    key: 'path',
+    label: (
       <>
-        AI insight into how <em>you</em> lead
+        Your <em>Path</em>
       </>
     ),
     body:
       'A written reflection built from your own answers — your instincts, and what each one costs you. A TED talk inspires everyone the same way. This reads you.',
   },
   {
-    num: '02',
-    title: <>Your team&apos;s honest read</>,
+    key: 'growth',
+    label: (
+      <>
+        Your <em>Growth</em>
+      </>
+    ),
     body:
       'A coach never meets your team. Compass asks them — anonymously, three times across the year — and lays their answer against yours. That gap is the growth edge.',
   },
   {
-    num: '03',
-    title: <>A guide for the hard parts</>,
+    key: 'guide',
+    label: (
+      <>
+        Your <em>Guide</em>
+      </>
+    ),
     body:
       'Some feedback stings. You choose the voice that walks you through the difficult pages and harder conversations, all year. Nobody summits alone.',
   },
@@ -164,8 +175,8 @@ const GROWTH = [
 ];
 
 const SHOWCASE_TABS = [
-  { id: 'gap', label: 'The gap map' },
   { id: 'signals', label: 'Signals overview' },
+  { id: 'gap', label: 'The gap map' },
   { id: 'plan', label: 'Your action plan' },
 ];
 
@@ -352,7 +363,7 @@ export default function CompassLanding() {
   const navigate = useNavigate();
   const [waypoint, setWaypoint] = useState(0);
   const [activeGuide, setActiveGuide] = useState('mentor');
-  const [showcase, setShowcase] = useState('gap');
+  const [showcase, setShowcase] = useState('signals');
   const [gapTrait, setGapTrait] = useState('Decisive Direction');
   const [signalTrait, setSignalTrait] = useState('Decisive Direction');
 
@@ -409,11 +420,6 @@ export default function CompassLanding() {
           actually lead — you answer, your team answers anonymously, and you spend a year
           practicing the traits that would change the most for the people you lead.
         </p>
-        <p className="cl-hero-sub clx-body clx-pillars-line">
-          <strong>
-            Your <em>Path</em>, Your <em>Guide</em>, Your <em>Growth</em>
-          </strong>
-        </p>
         </div>
         <div className="cl-hero-cta">
           <button type="button" className="cl-btn-ghost" onClick={() => scrollTo('cl-route')}>
@@ -469,11 +475,8 @@ export default function CompassLanding() {
       <section className="cl-section cl-pillars" aria-label="What Compass gives you">
         <div className="cl-pillars-grid">
           {PILLARS.map((pillar) => (
-            <div className="cl-pillar" key={pillar.num}>
-              <div className="cl-pillar-head">
-                <span className="cl-pillar-num">{pillar.num}</span>
-                <h3>{pillar.title}</h3>
-              </div>
+            <div className="cl-pillar" key={pillar.key}>
+              <h3>{pillar.label}</h3>
               <p>{pillar.body}</p>
             </div>
           ))}
@@ -529,18 +532,6 @@ export default function CompassLanding() {
 
       <section className="cl-section cl-growth" id="cl-growth" aria-label="Your growth">
         <SectionRule label="YOUR GROWTH" />
-        <h2>
-          Everything you get. <em>Nothing behind a tier.</em>
-        </h2>
-        <div className="cl-growth-grid">
-          {GROWTH.map((card) => (
-            <div className="cl-growth-card" key={card.title}>
-              <span className="cl-growth-card-kicker">{card.kicker}</span>
-              <h3>{card.title}</h3>
-              <p>{card.body}</p>
-            </div>
-          ))}
-        </div>
 
         <div className="cl-showcase">
           <h3>
@@ -722,6 +713,22 @@ export default function CompassLanding() {
           <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
             Begin your expedition — $250
           </button>
+        </div>
+
+        {/* Sits under the price as a reminder of what the $250 actually buys. */}
+        <div className="cl-offering">
+          <h2>
+            Everything you get. <em>Nothing behind a tier.</em>
+          </h2>
+          <div className="cl-growth-grid">
+            {GROWTH.map((card) => (
+              <div className="cl-growth-card" key={card.title}>
+                <span className="cl-growth-card-kicker">{card.kicker}</span>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <h2>
