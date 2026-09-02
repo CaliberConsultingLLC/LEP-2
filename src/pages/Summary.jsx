@@ -33,6 +33,7 @@ import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
 import { setGeneratedGuideLines } from '../data/generatedGuideLines';
+import { splitSentences as splitProseSentences } from '../utils/guideSummary';
 import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing } from '../data/guideBriefings';
 
@@ -1072,11 +1073,11 @@ function Summary() {
 
     const firstName = userName ? userName.split(' ')[0] : '';
 
-    const splitSentences = (text) => String(text || '')
-      .replace(/\*\*/g, '')
-      .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    // Shares the server's splitter so both sides break sentences the same way.
+    // The old local version split on any terminal punctuation followed by
+    // space, which cut "the 2 a.m. fix" in half — and the .slice() calls below
+    // could then drop the orphaned front half entirely.
+    const splitSentences = (text) => splitProseSentences(String(text || '').replace(/\*\*/g, ''));
 
     const stripLeadingListMarker = (value) => String(value || '')
       .replace(/^\s*(?:EXAMPLE\s*:|[-–—•●▪·‣*])\s*/i, '')

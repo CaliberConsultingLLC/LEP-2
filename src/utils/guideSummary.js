@@ -9,16 +9,33 @@ function asText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
-function asSentences(value, max = 20) {
+/**
+ * Splits prose into sentences without losing any of it.
+ *
+ * This used String.match with /[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g, which required
+ * whitespace or end-of-string after the terminal punctuation. "the 2 a.m. fix"
+ * has no space after "a.", so that alternative could not claim the run and the
+ * engine skipped forward — silently deleting the twelve words in front of it.
+ * The remaining text was still grammatical, so nothing downstream noticed. It
+ * hit five of six guide voices in a single generation.
+ *
+ * Matching can drop what it fails to claim. Splitting cannot, so this splits.
+ *
+ * The boundary also requires the next run to look like the start of a sentence,
+ * which keeps "a.m. fix", "e.g. this", "1.5 times" and "No. 3" intact — they
+ * continue lowercase or mid-token.
+ */
+export function splitSentences(value, max = Infinity) {
   const text = asText(value);
   if (!text) return [];
-  const matches = text.match(/[^.!?]+[.!?]+(?:\s|$)|[^.!?]+$/g) || [];
-  return matches
+  return text
+    .split(/(?<=[.!?])\s+(?=["'“‘([]?[A-Z])/)
     .map((s) => asText(s))
     .filter(Boolean)
-    .slice(0, max)
-    .map((s) => (/[.!?]$/.test(s) ? s : `${s}.`));
+    .slice(0, max);
 }
+
+const asSentences = splitSentences;
 
 function stripExamplePrefix(value) {
   return asText(String(value || '').replace(/^EXAMPLE\s*:/i, ''));
