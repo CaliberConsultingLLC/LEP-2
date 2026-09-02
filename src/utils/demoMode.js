@@ -125,6 +125,31 @@ export function endDemoSession() {
   window.location.href = '/';
 }
 
+/**
+ * The full-experience path: unlock the demo and land on the profile step with
+ * nothing filled in, so the leader gives their own context the way a customer
+ * does. Anything pre-filled here would be answering for them.
+ */
+export function seedDemoBlankIntake() {
+  localStorage.setItem('userInfo', JSON.stringify({ name: '', email: 'demo@local' }));
+  localStorage.setItem('compassPaid', 'paid');
+  localStorage.setItem('intakeDraft', JSON.stringify({
+    draftVersion: 4,
+    formData: { email: 'demo@local' },
+    societalResponses: Array(10).fill(null),
+    currentStep: 1,
+    societalQuestionIndex: 0,
+  }));
+  localStorage.setItem('intakeStatus', JSON.stringify({
+    started: true,
+    complete: false,
+    currentStep: 1,
+    totalSteps: 28,
+    updatedAt: new Date().toISOString(),
+  }));
+  try { localStorage.removeItem('cairn_profile_details_complete'); } catch { /* ignore */ }
+}
+
 export function seedDemoContext({ name, role, industry, teamSize } = {}) {
   const safeName = String(name || 'You').trim() || 'You';
   const safeRole = String(role || 'Team lead').trim() || 'Team lead';
