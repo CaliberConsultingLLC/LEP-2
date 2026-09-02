@@ -152,9 +152,9 @@ export function normalizeInsightMap(raw) {
     rendering: {
       spokenSeeds: {
         clearestAsset: text(seeds.clearestAsset),
-        coreTension: text(seeds.coreTension),
-        markerMoments: list(seeds.markerMoments).slice(0, 2),
-        hazardIfStay: list(seeds.hazardIfStay).slice(0, 2),
+        coreTensions: list(seeds.coreTensions).slice(0, 3),
+        markerMoments: list(seeds.markerMoments).slice(0, 3),
+        hazardIfStay: list(seeds.hazardIfStay).slice(0, 3),
       },
     },
     openQuestions: (Array.isArray(src.openQuestions) ? src.openQuestions : []).map((q) => ({
@@ -173,10 +173,10 @@ export function insightMapProblems(map) {
   const problems = [];
   const ev = map?.evidence || {};
   const seeds = map?.rendering?.spokenSeeds || {};
-  if (seeds.markerMoments?.length !== 2) problems.push('spokenSeeds.markerMoments must have exactly 2 entries');
-  if (seeds.hazardIfStay?.length !== 2) problems.push('spokenSeeds.hazardIfStay must have exactly 2 entries');
+  if (seeds.markerMoments?.length !== 3) problems.push('spokenSeeds.markerMoments must have exactly 3 entries');
+  if (seeds.hazardIfStay?.length !== 3) problems.push('spokenSeeds.hazardIfStay must have exactly 3 entries');
   if (!seeds.clearestAsset) problems.push('spokenSeeds.clearestAsset is empty');
-  if (!seeds.coreTension) problems.push('spokenSeeds.coreTension is empty');
+  if ((seeds.coreTensions?.length || 0) !== 3) problems.push('spokenSeeds.coreTensions must have exactly 3 entries');
   if ((ev.coreStrengths?.length || 0) < 3) problems.push('evidence.coreStrengths needs at least 3 entries');
   if ((ev.coreTensions?.length || 0) < 3) problems.push('evidence.coreTensions needs at least 3 entries');
   if ((ev.blindSpots?.length || 0) < 3) problems.push('evidence.blindSpots needs at least 3 entries');
@@ -202,7 +202,7 @@ function buildTrailheadHighlights(map) {
     },
     focus: {
       label: tension?.label || 'Focus point',
-      text: pick(tension, 'implication', [seeds.coreTension, map?.evidence?.protectivePattern, map?.evidence?.hiddenTradeoff]),
+      text: pick(tension, 'implication', [seeds.coreTensions?.[0], map?.evidence?.protectivePattern, map?.evidence?.hiddenTradeoff]),
     },
   };
 }
@@ -376,8 +376,8 @@ function narrativeProblems(summary) {
   if (mk < 4) problems.push(`markers.framing is ${mk} sentences and needs 5-7`);
   if (hz < 4) problems.push(`hazards.framing is ${hz} sentences and needs 5-7`);
   if (nt < 5) problems.push(`newTrail is ${nt} sentences and needs 7-10`);
-  if ((summary?.markers?.examples || []).length !== 2) problems.push('markers.examples must have exactly 2 scenes');
-  if ((summary?.hazards?.examples || []).length !== 2) problems.push('hazards.examples must have exactly 2 scenes');
+  if ((summary?.markers?.examples || []).length !== 3) problems.push('markers.examples must have exactly 3 scenes');
+  if ((summary?.hazards?.examples || []).length !== 3) problems.push('hazards.examples must have exactly 3 scenes');
   if (hasLeaveLanguage(summary)) {
     problems.push('the hazard beat used leaving/attrition language — it must describe how people who STAY change their behavior');
   }

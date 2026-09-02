@@ -269,19 +269,29 @@ export const INSIGHT_MAP_SCHEMA = {
       properties: {
         spokenSeeds: {
           type: 'object', additionalProperties: false,
-          required: ['clearestAsset', 'coreTension', 'markerMoments', 'hazardIfStay'],
+          required: ['clearestAsset', 'coreTensions', 'markerMoments', 'hazardIfStay'],
           properties: {
             clearestAsset: { type: 'string', description: '2-3 sentences naming the clearest leadership asset.' },
-            coreTension: { type: 'string', description: '2-3 sentences naming the core tension without solving it.' },
+            // Three, not one. A single tension meant the whole four-beat
+            // narrative could only ever be about one trait, however many the
+            // focus list carried — every marker, every hazard and the entire
+            // reflection hung off the same thread.
+            coreTensions: {
+              type: 'array',
+              description: 'Exactly 3 distinct tensions, each 2-3 sentences, each naming a different thread without solving it. They must not be restatements of one another.',
+              items: { type: 'string' },
+            },
             markerMoments: {
               type: 'array',
-              items: { type: 'string', description: 'A vivid, concrete, present-tense scene the leader can already recognize.' },
+              description: 'Exactly 3. One per coreTension, in the same order.',
+              items: { type: 'string', description: 'A vivid, concrete, present-tense scene the leader can already recognize. Draw the shape of the pattern, never retell an anecdote the leader gave us.' },
             },
             hazardIfStay: {
               type: 'array',
+              description: 'Exactly 3, paired 1:1 with markerMoments in the same order.',
               items: {
                 type: 'string',
-                description: 'Paired 1:1 with markerMoments. Year-later behavior of people who STAY — never quitting, resigning, leaving, attrition, or turnover.',
+                description: 'Year-later behavior of people who STAY — never quitting, resigning, leaving, attrition, or turnover. The consequence must land on a person’s development, not on a task or a deliverable.',
               },
             },
           },
@@ -326,7 +336,8 @@ REQUIRED COUNTS (the schema cannot enforce these — you must)
 - evidence.contradictions: 2 or 3.
 - Every observations array: 2 or 3 entries, each naming at least 2 comma-separated sourceSignals.
 - focusRecommendations: exactly 5, each naming at least 2 comma-separated signals in basis.
-- rendering.spokenSeeds.markerMoments: exactly 2. hazardIfStay: exactly 2, paired 1:1 with them.
+- rendering.spokenSeeds.coreTensions: exactly 3, each a different thread — not three wordings of one.
+- rendering.spokenSeeds.markerMoments: exactly 3, one per tension in order. hazardIfStay: exactly 3, paired 1:1.
 - openQuestions: 0 to 3. Only where the read is genuinely uncertain.
 
 DEPTH
@@ -385,24 +396,43 @@ export const GUIDE_NARRATIVE_SCHEMA = {
   additionalProperties: false,
   required: ['trailhead', 'markers', 'hazards', 'newTrail'],
   properties: {
-    trailhead: { type: 'string', description: '8-12 spoken sentences.' },
+    // Paragraphs rather than one string. The page had to guess where the
+    // breaks fell, and a 200-word block with no landmarks is hard to hold
+    // however well it is written.
+    trailhead: {
+      type: 'array',
+      description: '3 paragraphs, 8-12 spoken sentences in total. Break where the thought turns.',
+      items: { type: 'string' },
+    },
     markers: {
       type: 'object', additionalProperties: false,
       required: ['framing', 'examples'],
       properties: {
-        framing: { type: 'string', description: '5-7 spoken sentences.' },
-        examples: { type: 'array', items: { type: 'string' } },
+        framing: {
+          type: 'array',
+          description: '2 paragraphs, 5-7 spoken sentences in total.',
+          items: { type: 'string' },
+        },
+        examples: { type: 'array', description: 'Exactly 3.', items: { type: 'string' } },
       },
     },
     hazards: {
       type: 'object', additionalProperties: false,
       required: ['framing', 'examples'],
       properties: {
-        framing: { type: 'string', description: '5-7 spoken sentences.' },
-        examples: { type: 'array', items: { type: 'string' } },
+        framing: {
+          type: 'array',
+          description: '2 paragraphs, 5-7 spoken sentences in total.',
+          items: { type: 'string' },
+        },
+        examples: { type: 'array', description: 'Exactly 3.', items: { type: 'string' } },
       },
     },
-    newTrail: { type: 'string', description: '7-10 spoken sentences.' },
+    newTrail: {
+      type: 'array',
+      description: '3-4 paragraphs, 7-10 spoken sentences in total.',
+      items: { type: 'string' },
+    },
   },
 };
 
@@ -418,38 +448,54 @@ A leader should finish each beat feeling the pattern, not skimming a caption.
 
 SAFETY NON-NEGOTIABLES
 - Do NOT restate intake answers verbatim, or mention questions, sliders, or survey mechanics.
+- Do NOT retell a story the leader told us. Their own anecdote handed back makes them audit your
+  retelling instead of hearing the point. Name the SHAPE of the pattern — "when a date starts slipping
+  you wait until you are certain" — not the episode they described.
 - Do NOT invent claims, motives, or scenes that are not in the insight map.
 - Do NOT give advice, directives, steps, or trait lists. Naming what could be is fine; telling them what to do is not.
 - Do NOT name guides or personas, or refer to yourself as an AI.
 - Avoid consultant filler and leadership clichés. If a sentence would survive being pasted into any other leader's summary, rewrite it.
 - Speak as "I" to "you". This is spoken, not a report.
+- Never third person. Not "he", "she", "they", "the leader", or their name. If a sentence about
+  the leader does not contain "you" or "your", it is wrong — rewrite it. This slips most often
+  mid-paragraph, after a clause that started out describing a pattern in the abstract.
 
 WHAT TO WRITE
 Four beats. The emotional sequence across them is: Seen -> Exposed -> Hopeful -> Motivated.
 
-1) TRAILHEAD — land, then stay with them. 8-12 sentences.
+1) TRAILHEAD — land, then stay with them. 3 paragraphs, 8-12 sentences in total.
    Cover, in order: the clearest asset as something already true; the honest undercurrent running beneath it;
    what that specific pairing costs the room. Develop each — do not name and move on.
    Draw the substance from evidence.coreStrengths, evidence.coreTensions, and evidence.hiddenTradeoff.
+   This beat REFLECTS. It does not forecast. No "a year from now", no "they will start to", no prediction
+   of any kind — the later beats do that, and the team has not answered yet, so a forecast here is a
+   verdict from one side of the story.
    No future hazards, no solutions, no bio recap. Do not name generation, tenure, or team size unless the
    sentence genuinely needs it.
    Emotional target: seen, then quietly intrigued.
 
-2) MARKERS — recognizable right now. Framing 5-7 sentences.
+2) MARKERS — recognizable right now. Framing 2 paragraphs, 5-7 sentences in total.
    Cover: meet them where they are, name the pattern plainly, show how it surfaces in ordinary weeks,
    and ask them to notice it. Draw on evidence.pressurePattern and evidence.protectivePattern.
-   examples[0] and examples[1] MUST be the locked markerMoments, rewritten in your diction only.
-   Present tense. Human. No trait names.
+   All THREE examples MUST be the locked markerMoments, in order, rewritten in your diction only.
+   The three cover three different tensions — do not collapse them into one theme.
+   Present tense. Human.
+   Speak in the vocabulary of the focus leverage points listed below, but do NOT use their labels here.
+   The leader should recognise the behaviour now and meet its name in beat four.
 
-3) HAZARDS — if that pattern runs about a year and people stay. Framing 5-7 sentences.
+3) HAZARDS — if that pattern runs about a year and people stay. Framing 2 paragraphs, 5-7 sentences in total.
    Cover: what hardens, who absorbs it, and why it compounds quietly. Serious, agency intact, not doom.
    Draw on evidence.futureRiskIfUnchanged and evidence.trajectory.driftCase.
-   examples MUST pair 1:1 with the marker examples, using the locked hazardIfStay seeds, rewritten in your diction only.
+   All THREE examples MUST pair 1:1 with the marker examples, in order, using the locked hazardIfStay
+   seeds, rewritten in your diction only.
+   The cost lands on a PERSON, not on the work. The worst outcome here is not a slower deliverable — it
+   is that good people stay, stop growing, and hit a ceiling that is the leader's rather than their own.
+   Write the consequence as something that happens to someone's development.
    Stay-behavior only: withholding, over-asking, self-protection, quiet workarounds, slowed ownership,
    political caution, compliance without candor.
    Never: quitting, resigning, leaving, attrition, turnover, "they walk", "they exit", "talent leaves".
 
-4) NEW TRAIL — the turn toward who they become. 7-10 sentences.
+4) NEW TRAIL — the turn toward who they become. 3-4 paragraphs, 7-10 sentences in total.
    Cover: what the same strength looks like without the cost, what changes for the people around them,
    and why this version is reachable rather than aspirational. Draw on evidence.trajectory.bestCase.
    Specific to this leader. Energizing, never prescriptive. Give them a picture with enough texture to want it.

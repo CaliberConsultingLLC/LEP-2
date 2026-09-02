@@ -1111,6 +1111,9 @@ function Summary() {
           'You still have a say in whether this becomes the year that follows.',
         ];
       const list = splitSentences(text);
+      // In range already — hand the text back untouched so the writer's own
+      // paragraph breaks survive. Padding is only for a beat that came back thin.
+      if (list.length >= 5 && list.length <= 7) return String(text || '').trim();
       for (const s of defaults) {
         if (list.length >= 5) break;
         if (!list.includes(s)) list.push(s);
@@ -1146,11 +1149,11 @@ function Summary() {
         .filter((line) => !isExampleLine(line))
         .map(stripLeadingListMarker)
         .filter(Boolean)
-        .join(' ')
+        .join('\n')
         .trim();
 
       if (exampleLines.length) {
-        const situations = exampleLines.map(cleanSituationCopy).filter(Boolean).slice(0, 2);
+        const situations = exampleLines.map(cleanSituationCopy).filter(Boolean).slice(0, 3);
         return {
           reflection: padFramingReflection(reflection, mode),
           prompt: defaultIntro,
@@ -1163,7 +1166,7 @@ function Summary() {
         return {
           reflection: padFramingReflection(sentences.slice(0, 5).join(' ') || sentences[0] || '', mode),
           prompt: defaultIntro,
-          situations: sentences.slice(5).map(cleanSituationCopy).filter(Boolean).slice(0, 2),
+          situations: sentences.slice(5).map(cleanSituationCopy).filter(Boolean).slice(0, 3),
         };
       }
 
@@ -1171,14 +1174,14 @@ function Summary() {
       const reflectionText = sentences.slice(0, framingCount).join(' ');
       const rest = sentences.slice(framingCount);
       const situations = [];
-      if (rest.length <= 2) {
+      if (rest.length <= 3) {
         rest.forEach((s) => {
           const cleaned = cleanSituationCopy(s);
           if (cleaned) situations.push(cleaned);
         });
       } else {
-        const perCard = Math.ceil(rest.length / 2);
-        for (let i = 0; i < 2; i += 1) {
+        const perCard = Math.ceil(rest.length / 3);
+        for (let i = 0; i < 3; i += 1) {
           const chunk = rest.slice(i * perCard, (i + 1) * perCard).slice(0, 2).join(' ');
           const cleaned = cleanSituationCopy(chunk);
           if (cleaned) situations.push(cleaned);
@@ -1187,7 +1190,7 @@ function Summary() {
       return {
         reflection: padFramingReflection(reflectionText, mode),
         prompt: defaultIntro,
-        situations: situations.slice(0, 2),
+        situations: situations.slice(0, 3),
       };
     };
     const getBackTarget = () => {
@@ -1224,10 +1227,9 @@ function Summary() {
       const prose = lines
         .map((line) => stripLeadingListMarker(String(line || '').replace(/^\s*EXAMPLE\s*:/i, '')))
         .filter(Boolean)
-        .join(' ')
-        .replace(/(^|[.!?]\s*)[-–—•●▪·‣*]\s+/g, '$1')
-        .replace(/\s+/g, ' ')
-        .trim();
+        .map((line) => line.replace(/(^|[.!?]\s*)[-–—•●▪·‣*]\s+/g, '$1').replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+        .join('\n');
       if (prose) return prose;
       return splitSentences(stageBodyText)
         .map(stripLeadingListMarker)
@@ -1238,13 +1240,15 @@ function Summary() {
     const trailheadDisplay = String(stageBodyText || '').trim();
     const leverageCards = (focusAreas.length ? focusAreas : []).slice(0, 5);
 
-    // The beats arrive as one long string, so the page does the breaking for
-    // now. Grouping sentences into short runs is what turns 200 unbroken words
-    // into something a reader can hold; when the schema returns paragraphs this
-    // helper takes them straight through instead.
+    // The schema returns paragraphs now, and they survive the flat round-trip
+    // as single newlines. Where the writer broke the thought beats where a
+    // sentence counter would; the every-three-sentences grouping below is only
+    // the fallback for older summaries stored as one unbroken string.
     const asParagraphs = (text, per = 3) => {
-      const parts = Array.isArray(text) ? text.filter(Boolean) : null;
-      if (parts?.length) return parts;
+      const parts = Array.isArray(text)
+        ? text.filter(Boolean)
+        : String(text || '').split(/\n+/).map((p) => p.trim()).filter(Boolean);
+      if (parts.length > 1) return parts;
       const sentences = splitSentences(text);
       if (!sentences.length) return [];
       const out = [];

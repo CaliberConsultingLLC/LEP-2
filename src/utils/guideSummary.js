@@ -6,7 +6,18 @@ import { GUIDE_VOICE_IDS, DEFAULT_GUIDE_VOICE_ID, resolveGuideVoiceId } from '..
 const LEAVE_RE = /\b(quit|resign|leaving|leave the (team|company|org)|attrition|turnover|walk away|exit the|talent leaves|people leave|they leave)\b/i;
 
 function asText(value) {
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean).join(' ');
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Paragraph-preserving text. The beats arrive from the model as arrays of
+ * paragraphs now; a single newline joins them so the flat round-trip still
+ * reads a blank line as the boundary between beats.
+ */
+function asProse(value) {
+  const parts = Array.isArray(value) ? value : String(value || '').split(/\n+/);
+  return parts.map(asText).filter(Boolean).join('\n');
 }
 
 /**
@@ -69,7 +80,7 @@ export function spokenSeedsFromInsightMap(insightMap = {}) {
 
   const cleanList = (value) =>
     Array.isArray(value)
-      ? value.map((item) => stripListMarkers(stripExamplePrefix(item))).filter(Boolean).slice(0, 2)
+      ? value.map((item) => stripListMarkers(stripExamplePrefix(item))).filter(Boolean).slice(0, 3)
       : [];
 
   const strength = Array.isArray(evidence.coreStrengths) ? evidence.coreStrengths[0] : null;
@@ -77,7 +88,13 @@ export function spokenSeedsFromInsightMap(insightMap = {}) {
 
   return {
     clearestAsset: asText(seeds.clearestAsset || strength?.implication || evidence.leadershipMirror),
-    coreTension: asText(seeds.coreTension || tension?.implication || evidence.protectivePattern || evidence.hiddenTradeoff),
+    // Three threads now. The first is kept as coreTension so the Trailhead
+    // highlight keeps working while everything else reads the list.
+    coreTensions: cleanList(seeds.coreTensions),
+    coreTension: asText(
+      seeds.coreTensions?.[0] || seeds.coreTension || tension?.implication
+      || evidence.protectivePattern || evidence.hiddenTradeoff
+    ),
     markerMoments: cleanList(seeds.markerMoments),
     hazardIfStay: cleanList(seeds.hazardIfStay),
   };
@@ -92,7 +109,7 @@ function pairExamples(rawExamples, lockedSeeds) {
   const incoming = (Array.isArray(rawExamples) ? rawExamples : [])
     .map((item) => stripListMarkers(stripExamplePrefix(item)))
     .filter(Boolean);
-  return [0, 1].map((index) => incoming[index] || lockedSeeds[index] || '').filter(Boolean);
+  return [0, 1, 2].map((index) => incoming[index] || lockedSeeds[index] || '').filter(Boolean);
 }
 
 /**
@@ -105,11 +122,11 @@ export function normalizeGuideSummary(raw, insightMap = {}) {
   const src = raw && typeof raw === 'object' ? raw : {};
   const seeds = spokenSeedsFromInsightMap(insightMap);
 
-  const markerFraming = asSentences(src?.markers?.framing).join(' ') || asSentences(src?.markers).join(' ');
-  const hazardFraming = asSentences(src?.hazards?.framing).join(' ') || asSentences(src?.hazards).join(' ');
+  const markerFraming = asProse(src?.markers?.framing) || asProse(src?.markers);
+  const hazardFraming = asProse(src?.hazards?.framing) || asProse(src?.hazards);
 
   return {
-    trailhead: asSentences(src.trailhead).join(' '),
+    trailhead: asProse(src.trailhead),
     markers: {
       framing: markerFraming,
       examples: pairExamples(src?.markers?.examples, seeds.markerMoments),
@@ -118,7 +135,7 @@ export function normalizeGuideSummary(raw, insightMap = {}) {
       framing: hazardFraming,
       examples: pairExamples(src?.hazards?.examples, seeds.hazardIfStay),
     },
-    newTrail: asSentences(src.newTrail).join(' '),
+    newTrail: asProse(src.newTrail),
   };
 }
 
@@ -135,7 +152,7 @@ export function flattenGuideSummary(summary) {
   const src = summary && typeof summary === 'object' ? summary : emptyGuideSummary();
   const stage = (framing, examples) =>
     [
-      asText(framing),
+      asProse(framing),
       ...(Array.isArray(examples) ? examples : [])
         .map((line) => stripExamplePrefix(line))
         .filter(Boolean)
@@ -145,10 +162,10 @@ export function flattenGuideSummary(summary) {
       .join('\n');
 
   return [
-    asText(src.trailhead),
+    asProse(src.trailhead),
     stage(src?.markers?.framing, src?.markers?.examples),
     stage(src?.hazards?.framing, src?.hazards?.examples),
-    asText(src.newTrail),
+    asProse(src.newTrail),
   ]
     .filter(Boolean)
     .join('\n\n')
@@ -163,8 +180,8 @@ export function parseFlattenedSummary(text) {
     const lines = String(raw || '').split('\n').map((line) => line.trim()).filter(Boolean);
     const isExample = (line) => /^EXAMPLE\s*:/i.test(line) || /^[-–—•●▪·‣*]\s+/.test(line);
     return {
-      framing: lines.filter((line) => !isExample(line)).join(' ').trim(),
-      examples: lines.filter(isExample).map((line) => stripListMarkers(stripExamplePrefix(line))).filter(Boolean).slice(0, 2),
+      framing: lines.filter((line) => !isExample(line)).join('\n').trim(),
+      examples: lines.filter(isExample).map((line) => stripListMarkers(stripExamplePrefix(line))).filter(Boolean).slice(0, 3),
     };
   };
   return { trailhead, markers: splitStage(markersRaw), hazards: splitStage(hazardsRaw), newTrail };
