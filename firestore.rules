@@ -9,8 +9,28 @@ service cloud.firestore {
       return isSignedIn() && uid is string && uid == request.auth.uid;
     }
 
+    // Once an intake is locked, the answers stop being editable — and that has
+    // to hold here, not just in the UI. Hiding the Edit buttons only stops
+    // someone who is not looking at the console.
+    function intakeIsLocked() {
+      return resource != null
+        && 'intakeLock' in resource.data
+        && resource.data.intakeLock.locked == true;
+    }
+
+    // The write is only rejected if it would actually change a locked answer.
+    // Everything else on the doc — billing, campaignBundle, the lock stamp
+    // itself — stays writable, so locking does not freeze the whole record.
+    function touchesLockedAnswers() {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys()
+        .hasAny(['intakeDraft', 'latestFormData']);
+    }
+
     match /responses/{docId} {
-      allow create, get, update: if isOwnerUid(docId);
+      allow create, get: if isOwnerUid(docId);
+      allow update: if isOwnerUid(docId)
+        && !(intakeIsLocked() && touchesLockedAnswers());
       allow list, delete: if false;
     }
 

@@ -18,6 +18,7 @@ import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
 import { buildNewQuestionEntry, requirementLabelFor, STORY_INTRO_ENTRY } from '../data/newIntakeQuestions';
 import ReviewAndLock from './IntakeForm/ReviewAndLock';
+import IntakeLockCeremony from '../components/IntakeLockCeremony';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
@@ -728,6 +729,8 @@ function IntakeForm() {
   const [returnToReview, setReturnToReview] = useState(false);
   const [flashedRow, setFlashedRow] = useState('');
   const [intakeLock, setIntakeLock] = useState({ locked: false, lockedAt: '' });
+  // '' | 'confirm' | 'handoff'
+  const [lockBeat, setLockBeat] = useState('');
   const submitLockRef = useRef(false);
   const [customAnswerDialogOpen, setCustomAnswerDialogOpen] = useState(false);
   const [customAnswerText, setCustomAnswerText] = useState('');
@@ -1282,6 +1285,9 @@ function IntakeForm() {
           updatedAt: nowIso,
         },
         ...(latestFormData ? { latestFormData } : {}),
+        // Top-level so firestore.rules can read it. The same stamp rides
+        // inside the draft for the UI; this copy is what makes the lock real.
+        ...(options.intakeLock ? { intakeLock: options.intakeLock } : {}),
       },
       { merge: true }
     );
@@ -1335,6 +1341,9 @@ function IntakeForm() {
 
   useEffect(() => {
     if (!autosaveReadyRef.current) return undefined;
+    // A locked intake cannot be written any more — the rules reject it — so
+    // autosave stops rather than retrying into a permission error every keystroke.
+    if (intakeLock.locked) return undefined;
 
     const draft = buildDraftPayload();
     let draftJson = '';
@@ -1631,18 +1640,41 @@ function IntakeForm() {
     }
   };
 
-  const handleReviewLock = async () => {
-    if (submitLockRef.current) return;
-    if (intakeLock.locked) {
-      navigate('/summary?stage=trailhead', { state: { formData, liveIntake: true } });
-      return;
-    }
-    submitLockRef.current = true;
-    setIsSubmitting(true);
-    await handleSubmit();
+  const handleReviewLock = () => {
+    // A locked ledger's button re-opens the handoff rather than locking again.
+    setLockBeat(intakeLock.locked ? 'handoff' : 'confirm');
   };
 
-  const handleSubmit = async () => {
+  /** Beat one confirmed: write the lock, then hold on beat two. */
+  const confirmLock = async () => {
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    setIsSubmitting(true);
+    const ok = await handleSubmit({ navigateOnDone: false });
+    setIsSubmitting(false);
+    if (ok) {
+      setIntakeLock({ locked: true, lockedAt: new Date().toISOString() });
+      setLockBeat('handoff');
+    } else {
+      submitLockRef.current = false;
+      setLockBeat('');
+    }
+  };
+
+  /** Beat two: into the reflection, and only one owl on the way. */
+  const readReflection = () => {
+    // JourneyCeremonyGate would otherwise fire the same chapter transition
+    // when /summary mounts. This popup already did it.
+    try {
+      const seen = JSON.parse(localStorage.getItem('journeyCeremonySeen') || '{}');
+      localStorage.setItem('journeyCeremonySeen', JSON.stringify({ ...seen, reflect: true }));
+    } catch { /* ignore */ }
+    navigate('/summary?stage=trailhead', {
+      state: { formData: { ...formData, societalResponses }, liveIntake: true },
+    });
+  };
+
+  const handleSubmit = async ({ navigateOnDone = true } = {}) => {
     try {
       const selectedAgentId = formData.selectedAgent || 'balancedMentor';
       const updated = {
@@ -1651,17 +1683,19 @@ function IntakeForm() {
         societalResponses,
       };
       const lockedAt = new Date().toISOString();
+      const intakeLockStamp = { locked: true, lockedAt, lockedFrom: 'review-step' };
       const finalDraft = {
         ...buildDraftPayload(),
         formData: updated,
         currentStep: totalSteps - 1,
         // The UI lock is a courtesy; firestore.rules is what makes it real.
-        intakeLock: { locked: true, lockedAt, lockedFrom: 'review-step' },
+        intakeLock: intakeLockStamp,
       };
       try {
         await persistDraftToFirestore(finalDraft, {
           complete: true,
           latestFormData: updated,
+          intakeLock: intakeLockStamp,
         });
       } catch (persistErr) {
         const code = String(persistErr?.code || '').toLowerCase();
@@ -1679,12 +1713,16 @@ function IntakeForm() {
       ['aiSummary', 'focusAreas', 'trailheadHighlights', 'aiCampaign'].forEach((key) => {
         try { localStorage.removeItem(key); } catch { /* ignore */ }
       });
-      navigate('/summary?stage=trailhead', { state: { formData: updated, liveIntake: true } });
+      if (navigateOnDone) {
+        navigate('/summary?stage=trailhead', { state: { formData: updated, liveIntake: true } });
+      }
+      return true;
     } catch (e) {
       console.error('Submit failed', e);
       submitLockRef.current = false;
       alert('Failed to submit form. Please try again.');
       setIsSubmitting(false);
+      return false;
     }
   };
 
@@ -2806,6 +2844,15 @@ function IntakeForm() {
     flashedRow={flashedRow}
   />
 )}
+
+<IntakeLockCeremony
+  open={Boolean(lockBeat)}
+  beat={lockBeat}
+  busy={isSubmitting}
+  onConfirm={confirmLock}
+  onKeepReading={() => setLockBeat('')}
+  onRead={readReflection}
+/>
 
 {/* Agent Select — production only; cairn mode submits directly from societal norms */}
 {currentStep === agentStep && !useCairnTheme && (
