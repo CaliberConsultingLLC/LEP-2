@@ -1060,13 +1060,10 @@ export default function CommandCenter() {
         onStepSelect={isDrilledIn
           ? (step) => setEvidenceTraitIdx(Number(String(step.id).split('-')[1]) || 0)
           : undefined}
-        chip={{
-          variant: 'dashboard',
-          label: 'Responses',
-          current: respondents,
-          total: invited,
-          status: campaignClosed ? 'Signal ready' : 'Listening',
-        }}
+        // The response count belongs where a leader acts on it — the team
+        // assessment page and the dashboard's main screen — not pinned in the
+        // corner of every room.
+        chip={null}
       />
       <CompassLayout viewportFit>
         {renderActive()}

@@ -27,15 +27,6 @@ EVIDENCE RUBRIC
 - When the evidence for something is thin, say so in openQuestions instead of asserting it anyway.
 `.trim();
 
-const CLARIFICATION_RULES = `
-CLARIFICATION INTERPRETATION
-- If intakeClarification is missing, ignore this section.
-- Structured answers (clicks, ranks, sliders) are the primary evidence. Open text is not automatically weightier because it is prose.
-- If resolution is "both_accurate", "none", or "check_failed", keep existing tensions. Do not flatten them.
-- If the user wrote a clarification that corrects or disambiguates a named prior answer, treat that write-in as the intended meaning for those relatedSignals. Do not claim the stored clicks changed; interpret as if those signals now mean what the user clarified.
-- Ignore asides that do not address the named conflict.
-`.trim();
-
 // The single most consequential line in this prompt. Telling the model its
 // output will later be checked against real team ratings shifts it from claims
 // that merely resonate to claims that are actually falsifiable.
@@ -59,7 +50,6 @@ const SIGNAL_VOCABULARY = [
   'visibilityComfort', 'decisionPace', 'teamPerception', 'societalInstincts',
   'directionChange', 'slippingDate', 'stalledAsk', 'recurringProblem',
   'uphillPitch', 'honestRewind', 'shelvedIdea',
-  'intakeClarification',
 ];
 
 /**
@@ -117,7 +107,6 @@ export function buildIntakeProjection(body = {}) {
     })(),
     honestRewind: str(body.honestRewind),
     shelvedIdea: str(body.shelvedIdea),
-    intakeClarification: body.intakeClarification || null,
   };
 }
 
@@ -330,8 +319,6 @@ NON-NEGOTIABLES
 - Ground every claim in at least two signals, and name those signals in sourceSignals.
 
 ${EVIDENCE_RUBRIC}
-
-${CLARIFICATION_RULES}
 
 REQUIRED COUNTS (the schema cannot enforce these — you must)
 - evidence.findings: 9 to 15 entries total — at least 3 of each kind (strength, tension, blindSpot).
