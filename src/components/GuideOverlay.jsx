@@ -3,14 +3,7 @@ import { Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { getGuideMessages, getPageFaq, resolveRouteKey } from '../data/guideContent';
-import {
-  GUIDE_COLUMN,
-  GUIDE_TAB_BOTTOM,
-  GUIDE_TAB_HEIGHT,
-  GUIDE_Z,
-  clearGuideSpace,
-  reserveGuideSpace,
-} from './guidePlacement';
+import { GUIDE_COLUMN, GUIDE_TAB_BOTTOM, GUIDE_Z } from './guidePlacement';
 
 // Pages where the guide has not yet been chosen — overlay is suppressed entirely.
 const PRE_GUIDE_PATHS = ['/user-info', '/guide-select', '/sign-in', '/landing'];
@@ -96,7 +89,6 @@ function GuideOverlay() {
 
   // Collapse the FAQ whenever the underlying message changes.
   const [faqOpen, setFaqOpen] = useState(false);
-  const boxRef = useRef(null);
 
   useEffect(() => {
     setFaqOpen(false);
@@ -119,32 +111,6 @@ function GuideOverlay() {
     || isProfileDetails
     || isTeamSurvey
     || !hasSelectedGuide;
-  // Publish the footprint so CompassLayout can keep content out from under it.
-  // Measured, not assumed: the width is a CSS clamp and the height depends on
-  // how much the guide has to say.
-  useEffect(() => {
-    if (suppress || isPreGuide) { clearGuideSpace(); return undefined; }
-    if (hidden) {
-      reserveGuideSpace({ width: 0, height: GUIDE_TAB_HEIGHT + GUIDE_TAB_BOTTOM });
-      return undefined;
-    }
-    const measure = () => {
-      const el = boxRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      reserveGuideSpace({ width: r.width, height: r.height });
-    };
-    measure();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    if (ro && boxRef.current) ro.observe(boxRef.current);
-    window.addEventListener('resize', measure);
-    return () => {
-      ro?.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  });
-
-  useEffect(() => () => clearGuideSpace(), []);
 
   if (isPreGuide || suppress) return null;
 
@@ -207,7 +173,6 @@ function GuideOverlay() {
   // into the main content area. Height can grow upward freely.
   return (
     <Box
-      ref={boxRef}
       sx={{
         position: 'fixed',
         right: 0,

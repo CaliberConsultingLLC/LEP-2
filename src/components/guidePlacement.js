@@ -7,12 +7,12 @@
 // of whatever was underneath it — on Review & Lock that was the Lock it in
 // button.
 //
-// Two ideas fix both:
+// One set of numbers, here, so the guide sits in the same place everywhere.
 //
-//   1. One set of numbers, here.
-//   2. The overlay reports the box it occupies as CSS variables, and the page
-//      layout reserves that much room. A guide that reserves space cannot
-//      cover a button, and it stops being a z-index argument.
+// It stays a true overlay: it never reserves layout space and never moves
+// content. Reserving a gutter did keep it off the buttons, but it shifted the
+// question text sideways the moment the guide opened, which is worse than the
+// problem it solved.
 
 export const GUIDE_Z = 1200;
 
@@ -23,29 +23,6 @@ export const GUIDE_COLUMN = 'clamp(250px, 25vw, 350px)';
 // The collapsed tab: small, and the only thing on screen when hidden.
 export const GUIDE_TAB_HEIGHT = 48;
 export const GUIDE_TAB_BOTTOM = 32;
-
-// Names read by CompassLayout. The overlay owns writing them; nothing else
-// should set them, or the reservation stops matching what is on screen.
-export const GUTTER_W = '--guide-gutter-w';
-export const GUTTER_H = '--guide-gutter-h';
-
-/**
- * Publishes the space the guide is currently taking.
- *
- * `width` keeps content clear of the column on wide screens. `height` matters
- * below the breakpoint where the overlay spans the full width and would
- * otherwise sit on the last thing in the page.
- */
-export function reserveGuideSpace({ width = 0, height = 0 } = {}) {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  root.style.setProperty(GUTTER_W, width ? `${Math.round(width)}px` : '0px');
-  root.style.setProperty(GUTTER_H, height ? `${Math.round(height)}px` : '0px');
-}
-
-export function clearGuideSpace() {
-  reserveGuideSpace({ width: 0, height: 0 });
-}
 
 /**
  * The Summary's owl is the one deliberate exception: full-bleed, mirrored, and

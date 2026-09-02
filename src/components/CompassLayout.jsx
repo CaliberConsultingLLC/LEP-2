@@ -2,7 +2,6 @@ import React from 'react';
 import { Box } from '@mui/material';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { CONTENT_MAX_WIDTH_DEFAULT, CONTENT_PX, STAGE_PT, STAGE_PB } from './layoutConstants';
-import { GUTTER_H, GUTTER_W } from './guidePlacement';
 
 // Layout wrapper for the Cairn (staging) theme.
 // Same top inset on every chapter page. Content starts there — not optically
@@ -32,27 +31,14 @@ function CompassLayout({
         justifyContent: 'center',
         alignItems: 'flex-start',
         boxSizing: 'border-box',
-        // `px` and `pr` both compile to padding-right, and px's lg media query
-        // outranks a pr set only at md — so the sides are set separately and
-        // the gutter is folded into the right one at each breakpoint.
-        pl: CONTENT_PX,
-        pr: {
-          xs: CONTENT_PX.xs,
-          // Below md the guide spans the width and the height reservation is
-          // what keeps content clear; reserving 250px sideways would crush a phone.
-          md: `calc(${CONTENT_PX.md * 8}px + var(${GUTTER_W}, 0px))`,
-          lg: `calc(${CONTENT_PX.lg * 8}px + var(${GUTTER_W}, 0px))`,
-        },
+        // The guide is an overlay and must stay one: it never moves content.
+        // An earlier version reserved a gutter so the owl could not cover a
+        // button, but that shifted the question text sideways the moment the
+        // guide opened. Not worth it — a reader mid-sentence should not have
+        // the sentence move.
+        px: CONTENT_PX,
         pt: flushTop ? 0 : STAGE_PT,
-        // Room for the guide, so it can never sit on top of a button. The
-        // overlay measures itself and writes these; when it is absent they
-        // resolve to 0 and nothing changes.
-        pb: flushTop
-          ? 0
-          : {
-              xs: `calc(${STAGE_PB.xs * 8}px + var(${GUTTER_H}, 0px))`,
-              md: `calc(${STAGE_PB.md * 8}px + var(${GUTTER_H}, 0px))`,
-            },
+        pb: flushTop ? 0 : STAGE_PB,
         overflowX: allowBleed ? 'visible' : 'hidden',
         overflowY: viewportFit ? 'hidden' : 'auto',
         minHeight: viewportFit ? 0 : 'calc(100svh - 138px)',
