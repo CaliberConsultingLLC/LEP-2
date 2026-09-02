@@ -26,15 +26,15 @@ export const STAGING_GUIDE_SUMMARIES = {
     ],
     markers: {
       framing: [
-        'Pay attention here. These are not future problems.',
-        'They are the moments your pattern already shows up, in an ordinary week, with people who are already used to it.',
+        'Pay attention here. These are not future problems, and they are not hypotheticals.',
+        'They are the moments your pattern already shows up, in an ordinary week, with people who are so used to it that they have stopped remarking on it. Each one is small enough to explain away on the day it happens. Read all three together and the explanation gets harder. Notice which one you recognised first.',
       ],
       examples: SHARED_MARKERS,
     },
     hazards: {
       framing: [
-        'If that keeps running for a year, the cost is not who leaves. It is what the people who stay learn to do around you.',
-        'They will still be here. They will still be good. They will be exactly as good as they are right now.',
+        'If that keeps running for a year, the cost is not who leaves. It is what the people who stay quietly learn to do around you.',
+        'They will still be here. They will still be good at the work you already trust them with. And they will be exactly as good as they are today, because nothing in the year asked them to be more.',
       ],
       examples: SHARED_HAZARDS,
     },
@@ -52,15 +52,15 @@ export const STAGING_GUIDE_SUMMARIES = {
     ],
     markers: {
       framing: [
-        'Look. You can already catch this in the week you are in.',
-        'Three tells, all fast, all this week.',
+        'Look — you can catch all of this in the week you are already in. No new information required.',
+        'Three tells, all fast, all this week. Each one takes about four seconds to spot once you know the shape. The trick is that they feel like competence in the moment. That is why they last.',
       ],
       examples: SHARED_MARKERS,
     },
     hazards: {
       framing: [
-        'Leave it running a year and the team does not explode. They adapt.',
-        'That is worse. An adapted team is a team that stopped getting better and did not tell you.',
+        'Leave it running a year and the team does not explode. Nothing dramatic happens at all. They adapt.',
+        'That is the worse outcome. An adapted team is a team that quietly stopped getting better and never mentioned it. You will read the calm as a sign the problem went away.',
       ],
       examples: SHARED_HAZARDS,
     },
@@ -78,15 +78,15 @@ export const STAGING_GUIDE_SUMMARIES = {
     ],
     markers: {
       framing: [
-        'These are the tells. You have seen all three.',
-        'Name them when they happen, in the moment, out loud.',
+        'These are the tells. You have seen all three, and you have had a reason ready for each one.',
+        'Name them when they happen, in the moment, out loud. Not afterwards, when you have had time to build the case for why that time was different. The reason is usually true. It is also not the point.',
       ],
       examples: SHARED_MARKERS,
     },
     hazards: {
       framing: [
-        'If you leave it, people stay. They just stop bringing you the real thing.',
-        'And the person you were counting on to be ready next year is going to be exactly this ready next year.',
+        'If you leave it, people stay. Nobody quits over this. They just stop bringing you the real thing.',
+        'And the person you were counting on to be ready next year is going to be exactly this ready next year. You will call that a bench problem. It is not a bench problem.',
       ],
       examples: SHARED_HAZARDS,
     },
@@ -104,15 +104,15 @@ export const STAGING_GUIDE_SUMMARIES = {
     ],
     markers: {
       framing: [
-        'You have watched all three of these happen.',
-        'I am just putting language on them so you cannot shrug them off.',
+        'You have watched all three of these happen. More than once, and recently.',
+        'I am just putting language on them so you cannot shrug them off the way you usually do. None of them look like a problem on the day. That is the whole difficulty with them. Read them as a set.',
       ],
       examples: SHARED_MARKERS,
     },
     hazards: {
       framing: [
         'If this keeps being the move, the people who stick around learn a quieter, smaller way of working with you.',
-        'They stay. They just stop getting bigger, and you will not notice for about a year.',
+        'They stay. They still like you. They just stop getting bigger, and you will not notice for about a year, because a smaller version of a good person still does good work. That is the part that gets you.',
       ],
       examples: SHARED_HAZARDS,
     },
@@ -130,15 +130,15 @@ export const STAGING_GUIDE_SUMMARIES = {
     ],
     markers: {
       framing: [
-        'Watch these three moments.',
-        'They are where your care turns into delay, and the people who count on you feel it before you do.',
+        'Watch these three moments. I am not asking you to fix anything yet, only to see them.',
+        'They are where your care turns into delay, and the people who count on you feel it before you do. Each of them comes from something good in you. That is what makes them hard to give up. Sit with that before you move on.',
       ],
       examples: SHARED_MARKERS,
     },
     hazards: {
       framing: [
-        'If this stays the pattern, the people who remain will protect themselves instead of trusting you with unfinished thought.',
-        'And the ones you were protecting will still be waiting for the work that would have grown them. That is not the standard you mean to set.',
+        'If this stays the pattern, the people who remain will learn to protect themselves instead of trusting you with an unfinished thought.',
+        'And the ones you were protecting will still be waiting for the work that would have grown them. They will not ask for it twice. Waiting is quiet, so it will look like patience. That is not the standard you mean to set, and it is the one you would be setting.',
       ],
       examples: SHARED_HAZARDS,
     },
@@ -156,15 +156,15 @@ export const STAGING_GUIDE_SUMMARIES = {
     ],
     markers: {
       framing: [
-        'Here are the three scenes.',
-        'If you have never seen them, you have not been paying attention.',
+        'Here are the three scenes. Free of charge, no interpretation required.',
+        'If you have never seen any of them, you have not been paying attention. If you have seen all three, congratulations, you already knew. The gap between knowing and doing is where this whole thing lives.',
       ],
       examples: SHARED_MARKERS,
     },
     hazards: {
       framing: [
-        'A year of that and nobody storms out. They just stop bringing you the messy truth.',
-        'Your bench also stays exactly where it is. Congratulations on the world’s most loyal, least developed team.',
+        'A year of that and nobody storms out. No dramatic exit interview. They just stop bringing you the messy truth.',
+        'Your bench also stays exactly where it is. Congratulations on the world’s most loyal, least developed team. You will read the loyalty as proof it is working.',
       ],
       examples: SHARED_HAZARDS,
     },
