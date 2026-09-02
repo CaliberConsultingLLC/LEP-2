@@ -1036,9 +1036,11 @@ function Summary() {
     const stageIndex = STAGES.indexOf(stage);
     return (
       <LoadingScreen
-        title="Building your Compass..."
+        title="Building your Compass"
         subtitle={stage.text}
-        hint={`Step ${stageIndex + 1} of ${STAGES.length} · ${loadingSeconds}s · This takes about three minutes. Please don’t refresh.`}
+        hint={`About three minutes, and it is working the whole time. ${loadingSeconds}s in — please don’t refresh.`}
+        step={stageIndex}
+        totalSteps={STAGES.length}
       />
     );
   }
