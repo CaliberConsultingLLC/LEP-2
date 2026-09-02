@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
-import { seedDemoBlankIntake, seedDemoPersona, startDemoSession } from '../utils/demoMode';
+import { seedDemoBlankIntake, seedDemoPersona, seedDemoShowcase, startDemoSession } from '../utils/demoMode';
 
 
 function PathCard({ eyebrow, title, body, cta, onClick, primary = false, busy = false }) {
@@ -79,6 +79,15 @@ function DemoStart() {
     navigate('/guide-select');
   };
 
+  const runShowcase = () => {
+    setBusy(true);
+    startDemoSession();
+    seedDemoShowcase();
+    // Straight to the finished reflection — no regen flag, because the whole
+    // point is that nothing has to be generated.
+    window.location.assign('/summary?stage=trailhead');
+  };
+
   const runPersona = () => {
     setBusy(true);
     startDemoSession();
@@ -126,7 +135,7 @@ function DemoStart() {
 
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
           gap: 2,
           alignItems: 'stretch',
         }}>
@@ -144,6 +153,14 @@ function DemoStart() {
             body="A finished intake from a random leader and a random guide, taken straight to the reflection. The campaign is already closed, so the dashboard rooms open behind it."
             cta="Generate and go to the reflection"
             onClick={runPersona}
+            busy={busy}
+          />
+          <PathCard
+            eyebrow="Show someone"
+            title="Just the two outputs"
+            body="The reflection and the dashboard, both already written, with nothing in between and nothing to wait for. Every room is open. This is the one to run in front of a person."
+            cta="Open the reflection"
+            onClick={runShowcase}
             busy={busy}
           />
         </Box>

@@ -1,8 +1,12 @@
 import { STAGING_PERSONAS } from '../data/stagingPersonas';
 import { CAMPAIGN_TRAITS } from './stagingSeed';
+import { STAGING_GUIDE_SUMMARIES, stagingFlattenedSummary } from '../data/stagingGuideSummaries';
 import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 
 const FLAG_KEY = 'compassDemo';
+// Set by the seeded demo paths. Marks a session whose campaign is already on
+// disk, so pages use it instead of calling an API that has nothing to add.
+const STATIC_KEY = 'compassDemoStatic';
 const PREFIX = 'demo_';
 
 function readFlag() {
@@ -17,6 +21,15 @@ export function isDemoPath() {
   try {
     const path = String(window.location.pathname || '');
     return path === '/demo' || path.startsWith('/demo/');
+  } catch {
+    return false;
+  }
+}
+
+/** True when this demo was seeded with a campaign rather than generating one. */
+export function isDemoStatic() {
+  try {
+    return sessionStorage.getItem(STATIC_KEY) === '1';
   } catch {
     return false;
   }
@@ -258,8 +271,22 @@ export function seedDemoPersona({ name, teamSize } = {}) {
   localStorage.setItem('selectedGuideId', guide.id);
   localStorage.setItem('cairnGuide', JSON.stringify({ personaId: guide.id, selected: true, hidden: false }));
 
-  // A cached summary would replay instead of generating for this persona.
-  ['aiSummary', 'summariesByGuide', 'focusAreas', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
+  // Seed a real summary rather than clearing and depending on a live
+  // three-minute generation.
+  //
+  // Clearing it left the demo with no exit: campaign-builder redirects to
+  // /form when aiSummary is missing, the persona's intake is locked, and the
+  // only action on a locked ledger is "Read your reflection" — straight back
+  // to the generation that had just failed. A demo cannot be one API error
+  // away from a closed loop.
+  //
+  // Summary still regenerates over this when it can; this is the floor, not
+  // the ceiling.
+  try {
+    localStorage.setItem('summariesByGuide', JSON.stringify(STAGING_GUIDE_SUMMARIES));
+    localStorage.setItem('aiSummary', stagingFlattenedSummary(guide.id));
+  } catch { /* ignore */ }
+  ['focusAreas', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
     .forEach((key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } });
 
   localStorage.setItem('selectedTraits', JSON.stringify([
@@ -268,9 +295,40 @@ export function seedDemoPersona({ name, teamSize } = {}) {
     'strategicThinking-vision',
   ]));
   localStorage.setItem('currentCampaign', JSON.stringify(CAMPAIGN_TRAITS));
+  // The campaign is on disk, so the builder must not try to generate one. A
+  // demo that dies when an API does is not a demo.
+  try { sessionStorage.setItem(STATIC_KEY, '1'); } catch { /* ignore */ }
 
   finishDemoCampaign();
   return { persona, guide };
+}
+
+/**
+ * The showcase path: the two things worth showing, and nothing in between.
+ *
+ * Everything is already on disk — a finished intake, a written reflection, a
+ * closed campaign, and team answers — so the run needs no API, no waiting, and
+ * no clicking through the middle. Land on the reflection, then the dashboard.
+ *
+ * This is the one to open in front of somebody.
+ */
+export function seedDemoShowcase() {
+  const seeded = seedDemoPersona({});
+
+  // The debrief phases gate Signal, Evidence, and Practice behind each other.
+  // A showcase has no time for that walk, so the rooms open already read.
+  const userInfo = parseJson(localStorage.getItem('userInfo'), {});
+  const records = parseJson(localStorage.getItem('campaignRecords'), {});
+  const campaignKey = records?.bundleId || records?.teamCampaignId || records?.selfCampaignId || '123';
+  const userKey = userInfo?.email || userInfo?.name || 'anonymous';
+  try {
+    localStorage.setItem(
+      `signalDebrief_${campaignKey}_${userKey}_done`,
+      JSON.stringify({ signal: true, evidence: true, practice: true })
+    );
+  } catch { /* ignore */ }
+
+  return seeded;
 }
 
 export function finishDemoCampaign() {

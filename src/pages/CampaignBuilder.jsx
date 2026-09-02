@@ -29,7 +29,7 @@ import { useGuide } from '../context/GuideContext';
 import { spokenGuide } from '../data/guideContent';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
-import { demoRequestFields, isDemoSession } from '../utils/demoMode';
+import { demoRequestFields, isDemoSession, isDemoStatic } from '../utils/demoMode';
 import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
 const CAMPAIGN_ROMAN = ['I', 'II', 'III'];
@@ -186,10 +186,15 @@ function CampaignBuilder() {
       console.error('Error loading summary:', err);
     }
 
-    // If no summary available, redirect to form
+    // No summary means the campaign cannot be built — but bouncing to /form is
+    // how people got stranded. A locked intake offers only "Read your
+    // reflection", which returns to the generation that just failed, so the
+    // redirect closed a loop with no way out. Say what is missing and give a
+    // door instead.
     if (!effectiveSummary) {
-      console.warn('No summary available – redirecting to form');
-      navigate('/form');
+      console.warn('No summary available – campaign builder cannot start');
+      setError('Your reflection has not finished generating yet, so there is nothing to build a campaign from. Open the reflection to pick it back up.');
+      setIsLoading(false);
       return;
     }
 
@@ -201,7 +206,10 @@ function CampaignBuilder() {
       return;
     }
 
-    if (useCairnTheme && !isDemoSession()) {
+    // A seeded demo already has its campaign on disk. Excluding every demo
+    // from this branch meant the seeded paths called an API that had nothing
+    // to add — and died with it. The full-experience demo still generates.
+    if (useCairnTheme && (!isDemoSession() || isDemoStatic())) {
       const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
       if (isCampaignReady(cachedCampaign, { minTraits: 1, minStatementsPerTrait: 1 })) {
         setCampaign(cachedCampaign);
@@ -582,7 +590,7 @@ function CampaignBuilder() {
               <Typography sx={{ fontFamily: '"Manrope", sans-serif', color: 'error.main', mb: 2 }}>{error}</Typography>
               <Box component="button" type="button" onClick={() => navigate('/summary')}
                 sx={{ all: 'unset', cursor: 'pointer', fontFamily: '"Manrope", sans-serif', fontWeight: 600, color: 'var(--orange, #E07A3F)', textDecoration: 'underline' }}>
-                ← Return to Summary
+                ← Open the reflection
               </Box>
             </Box>
           ) : campaign && activeTrait ? (
@@ -1013,10 +1021,10 @@ function CampaignBuilder() {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => navigate('/summary')}
+                onClick={() => navigate('/summary?stage=trailhead')}
                 sx={{ mt: 2, fontFamily: 'Gemunu Libre, sans-serif', fontSize: '1rem', px: 4, py: 1 }}
               >
-                Return to Summary
+                Open the reflection
               </Button>
             </Box>
           ) : campaign ? (
