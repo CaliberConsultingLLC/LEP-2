@@ -62,7 +62,7 @@ function EvIntroPage({ rows, respondents }) {
   );
 }
 
-function mapRowStatements(row) {
+export function mapRowStatements(row) {
   const fallbackText = fallbackStatementsForRow(row);
   const teamStatements = row?.team?.statements || [];
   const selfStatements = row?.self?.statements || [];

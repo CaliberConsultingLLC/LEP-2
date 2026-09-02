@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["vite", "--port", "5199", "--strictPort"],
       "port": 5199
+    },
+    {
+      "name": "lep2-vite-narrative",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5217", "--strictPort"],
+      "port": 5217
     }
   ]
 }

@@ -10,6 +10,7 @@ import { spokenGuide } from '../../data/guideContent';
 import JourneyTab from './JourneyTab';
 import { getCurrentJourneyIndexFromState, getJourneyCompletion, JOURNEY_CHAPTER_COUNT, JOURNEY_ROMAN, JOURNEY_STATIONS } from './journey/journeyModel.js';
 import SignalView from './cc/SignalView.jsx';
+import NarrativeView from './cc/NarrativeView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import PracticeStudio from './cc/PracticeStudio.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
@@ -62,6 +63,9 @@ const QUERY_TO_TAB = {
   season: 'today',
   'campaign-details': 'today',
   campaign: 'today',
+  narrative: 'narrative',
+  debrief: 'narrative',
+  reading: 'narrative',
   signal: 'signal',
   signals: 'signal',
   'campaign-results': 'signal',
@@ -938,6 +942,10 @@ export default function CommandCenter() {
         evidence: !campaignClosed ? 'locked' : phases.dockStatus.evidence,
         practice: !campaignClosed ? 'locked' : phases.dockStatus.practice,
       };
+  // The narrative gates only on the campaign window — it is its own experience,
+  // not part of the signal/evidence phase chain.
+  const narrativeDone = Boolean(readJson(`${getDebriefScope()}_narrative`, {})?.done);
+  dockStatus.narrative = !campaignClosed && !demoSession ? 'locked' : narrativeDone ? 'done' : undefined;
 
   const {
     teamResponses,
@@ -1007,7 +1015,7 @@ export default function CommandCenter() {
   const chapterId = activeTab === 'journey' ? 'action' : 'review';
   const activeStepId = chapterId === 'action'
     ? 'journey'
-    : (['today', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today');
+    : (['today', 'narrative', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today');
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
@@ -1017,13 +1025,15 @@ export default function CommandCenter() {
   };
 
   const renderActive = () => {
-    if (['signal', 'evidence', 'practice'].includes(activeTab) && !campaignClosed && !demoSession) {
+    if (['narrative', 'signal', 'evidence', 'practice'].includes(activeTab) && !campaignClosed && !demoSession) {
       return <GatePage phase="campaign" onGoTab={goToTab} />;
     }
     if (PHASE_ORDER.includes(activeTab) && phases.isGated(activeTab) && !demoSession) {
       return <GatePage phase={activeTab} onGoTab={goToTab} />;
     }
     switch (activeTab) {
+      case 'narrative':
+        return <NarrativeView />;
       case 'signal':
         return (
           <SignalView

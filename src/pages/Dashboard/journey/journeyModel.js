@@ -358,7 +358,7 @@ export function getJourneyIndexForLocation(pathname = '', search = '') {
     if (['growth-plan', 'plan', 'practice'].includes(tab)) return 5;
     if (['my-journey', 'journey'].includes(tab)) return getCurrentJourneyIndexFromState();
     // Chapter V — review & reflect (signal + evidence)
-    if (['campaign-results', 'results', 'signals', 'signal', 'detailed-results', 'detailed', 'evidence'].includes(tab)) return 4;
+    if (['narrative', 'debrief', 'reading', 'campaign-results', 'results', 'signals', 'signal', 'detailed-results', 'detailed', 'evidence'].includes(tab)) return 4;
     return getCurrentJourneyIndexFromState();
   }
   return getCurrentJourneyIndexFromState();

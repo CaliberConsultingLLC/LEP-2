@@ -191,6 +191,13 @@ export const CHAPTERS = [
         whatHappens: ['The signal, the evidence, and your plan', 'Where you land when you log in'],
       },
       {
+        id: 'narrative',
+        label: 'Narrative',
+        path: '/dashboard?tab=narrative',
+        gated: true,
+        whatHappens: ['Your first reading, told in nine pages', 'Play it once, replay it any time'],
+      },
+      {
         id: 'signal',
         label: 'Signal',
         path: '/dashboard?tab=signal',
@@ -248,7 +255,7 @@ export const CHAPTER_STATION_INDEX = {
   action: 5,
 };
 
-const REVIEW_TABS = ['today', 'signal', 'evidence', 'practice'];
+const REVIEW_TABS = ['today', 'narrative', 'signal', 'evidence', 'practice'];
 
 export const chapterById = (id) => CHAPTERS.find((c) => c.id === id);
 export const chapterByStep = (stepId) =>
