@@ -990,7 +990,7 @@ export default function CommandCenter() {
       }))
     : null;
   const drillBack = isDrilledIn
-    ? { label: 'Back to Dashboard', onClick: () => goToTab('today') }
+    ? { label: 'Dashboard', onClick: () => goToTab('today') }
     : null;
 
   // Everyone answered, so there is nothing left to wait for. The leader keeps

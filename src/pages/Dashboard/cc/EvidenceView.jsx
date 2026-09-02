@@ -757,7 +757,7 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows, traitIndex, onOpenPlan }) {
+function EvidenceSnapshot({ orderedRows, traitIndex }) {
   // The rail owns trait selection; 0 is the fallback when this renders alone.
   const traitIdx = Number.isFinite(traitIndex) ? traitIndex : 0;
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
@@ -765,7 +765,7 @@ function EvidenceSnapshot({ orderedRows, traitIndex, onOpenPlan }) {
 
   return (
     <SnapshotShell>
-      <TraitRoom row={row} statements={statements} onOpenPlan={onOpenPlan} />
+      <TraitRoom row={row} statements={statements} />
     </SnapshotShell>
   );
 }
@@ -884,7 +884,6 @@ export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex }) 
       <EvidenceSnapshot
         orderedRows={orderedRows}
         traitIndex={traitIndex}
-        onOpenPlan={onAdvancePhase}
       />
     );
   }

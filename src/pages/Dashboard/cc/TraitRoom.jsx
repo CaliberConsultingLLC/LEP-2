@@ -227,7 +227,7 @@ function StatementRow({ statement, open, mode, onToggle, isLast }) {
 // Bottom ribbon
 // ---------------------------------------------------------------------------
 
-function NotesRibbon({ trait, selectedIdx, onOpenPlan }) {
+function NotesRibbon({ trait, selectedIdx }) {
   const [draft, setDraft] = useState('');
   const [notes, setNotes] = useState(() => readTraitNotes(trait));
 
@@ -240,73 +240,75 @@ function NotesRibbon({ trait, selectedIdx, onOpenPlan }) {
   };
 
   return (
-    <Box sx={{
-      ...surfaces.card,
-      p: { xs: '14px 16px', md: '14px 18px' },
-      display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
-    }}>
+    <Box sx={{ ...surfaces.card, p: { xs: '16px 18px', md: '18px 22px' } }}>
+      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', mb: '10px' }}>
+        <Typography sx={{
+          fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
+          textTransform: 'uppercase', color: colors.inkSoft,
+        }}>
+          Jot a thought
+        </Typography>
+        <Typography sx={{
+          fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em',
+          textTransform: 'uppercase', color: colors.inkSoft,
+        }}>
+          {notesLabel(notes.length)}
+        </Typography>
+      </Box>
+
+      {/* Room to actually write. Ctrl/Cmd+Enter saves; plain Enter makes a new
+          line, because a thought worth keeping is often more than one. */}
       <Box
-        component="input"
+        component="textarea"
+        rows={3}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') save(); }}
-        placeholder="Jot a thought to bring into the plan…"
+        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save(); }}
+        placeholder="Something to bring into the plan…"
         aria-label="Jot a thought to bring into the plan"
         sx={{
-          flex: 1, minWidth: 220,
-          boxSizing: 'border-box', height: 42, px: '16px',
-          borderRadius: radii.pill,
+          width: '100%',
+          boxSizing: 'border-box',
+          resize: 'vertical',
+          minHeight: 84,
+          p: '12px 14px',
+          borderRadius: radii.md,
           border: `1px solid ${colors.sand200}`,
           bgcolor: colors.sand50,
-          fontFamily: fonts.sans, fontSize: 13.5, color: colors.ink,
+          fontFamily: fonts.sans,
+          fontSize: 14,
+          lineHeight: 1.55,
+          color: colors.ink,
           '&::placeholder': { color: colors.inkSoft, opacity: 0.8 },
           '&:focus': { outline: 'none', borderColor: colors.orange },
         }}
       />
-      <Box
-        component="button"
-        type="button"
-        onClick={save}
-        disabled={!draft.trim()}
-        sx={{
-          all: 'unset', boxSizing: 'border-box',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          px: '20px', height: 42, borderRadius: radii.pill, flexShrink: 0,
-          border: `1px solid ${colors.navy500}`,
-          fontFamily: fonts.sans, fontSize: 13, fontWeight: 700,
-          color: colors.navy900,
-          cursor: draft.trim() ? 'pointer' : 'not-allowed',
-          opacity: draft.trim() ? 1 : 0.45,
-          '&:hover': draft.trim() ? { bgcolor: colors.sand100 } : undefined,
-          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-        }}
-      >
-        Save
-      </Box>
-      <Typography sx={{
-        fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em',
-        textTransform: 'uppercase', color: colors.inkSoft, flexShrink: 0,
-      }}>
-        {notesLabel(notes.length)}
-      </Typography>
-      <Box
-        component="button"
-        type="button"
-        onClick={onOpenPlan}
-        sx={{
-          all: 'unset', boxSizing: 'border-box',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          px: '24px', height: 44, borderRadius: radii.pill, flexShrink: 0,
-          bgcolor: colors.navy900, color: colors.amberSoft,
-          fontFamily: fonts.sans, fontSize: 13, fontWeight: 700,
-          boxShadow: shadows.buttonPrimary,
-          cursor: 'pointer',
-          transition: 'transform 140ms, background 140ms',
-          '&:hover': { bgcolor: colors.navy800, transform: 'translateY(-1px)' },
-          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-        }}
-      >
-        Open the action plan →
+
+      {/* Save is the only action here. An "open the action plan" button next to
+          it read as Next and pulled people out of the evidence before they had
+          finished reading it — the plan is a click away on the dashboard. */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: '12px' }}>
+        <Box
+          component="button"
+          type="button"
+          onClick={save}
+          disabled={!draft.trim()}
+          sx={{
+            all: 'unset', boxSizing: 'border-box',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            px: '26px', minHeight: 42, borderRadius: radii.pill,
+            bgcolor: colors.navy900, color: colors.amberSoft,
+            fontFamily: fonts.sans, fontSize: 13, fontWeight: 700,
+            boxShadow: shadows.buttonPrimary,
+            cursor: draft.trim() ? 'pointer' : 'not-allowed',
+            opacity: draft.trim() ? 1 : 0.45,
+            transition: 'transform 140ms, background 140ms',
+            '&:hover': draft.trim() ? { bgcolor: colors.navy800, transform: 'translateY(-1px)' } : undefined,
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+          }}
+        >
+          Save note
+        </Box>
       </Box>
     </Box>
   );
@@ -316,7 +318,7 @@ function NotesRibbon({ trait, selectedIdx, onOpenPlan }) {
 // Trait Room
 // ---------------------------------------------------------------------------
 
-export default function TraitRoom({ row, statements, onOpenPlan }) {
+export default function TraitRoom({ row, statements }) {
   const [selected, setSelected] = useState(null);
   const [mode, setMode] = useState('map');
 
@@ -431,7 +433,7 @@ export default function TraitRoom({ row, statements, onOpenPlan }) {
         </Box>
       </Box>
 
-      <NotesRibbon trait={traitLabel} selectedIdx={selected} onOpenPlan={onOpenPlan} />
+      <NotesRibbon trait={traitLabel} selectedIdx={selected} />
     </Box>
   );
 }

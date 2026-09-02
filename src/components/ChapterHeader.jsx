@@ -413,9 +413,10 @@ export default function ChapterHeader({
 
         <Box sx={{ width: '1px', height: 34, bgcolor: colors.sand200, mx: '22px', flexShrink: 0 }} aria-hidden />
 
-        {/* The way up, out of a drill-down. Deliberately not a step: it moves
-            you to a different level rather than sideways within one, so it
-            carries the orange the steps only get when active. */}
+        {/* The way up, out of a drill-down. Same type as the step tabs beside
+            it so it reads as part of the same row, but boxed so it is clearly
+            a way out rather than another step. Quiet on purpose — it should be
+            findable, not competing with the trait you are reading. */}
         {backAction ? (
           <Box
             component="button"
@@ -427,27 +428,39 @@ export default function ChapterHeader({
               boxSizing: 'border-box',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '0 16px',
-              height: 78,
+              gap: '7px',
+              px: '14px',
+              height: 34,
+              mr: '18px',
               flexShrink: 0,
               cursor: 'pointer',
-              fontFamily: fonts.sans,
-              fontSize: 13,
-              fontWeight: 700,
-              color: colors.orangeDeep,
-              whiteSpace: 'nowrap',
-              transition: 'color 140ms',
-              '&:hover': { color: colors.orange },
-              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: -4 },
+              borderRadius: radii.pill,
+              border: `1px solid ${colors.sand300}`,
+              bgcolor: colors.surface1,
+              color: colors.navy600,
+              transition: 'border-color 140ms, color 140ms, background 140ms',
+              '&:hover': {
+                borderColor: colors.navy500,
+                color: colors.navy900,
+                bgcolor: colors.sand50,
+              },
+              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
             }}
           >
-            <Box component="span" aria-hidden sx={{ fontSize: 15, lineHeight: 1 }}>←</Box>
-            {backAction.label || 'Back to Dashboard'}
+            <Box component="span" aria-hidden sx={{ fontSize: 13, lineHeight: 1 }}>←</Box>
+            <Typography
+              component="span"
+              sx={{
+                fontFamily: fonts.sans,
+                fontSize: 13.5,
+                fontWeight: 600,
+                color: 'inherit',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {backAction.label || 'Dashboard'}
+            </Typography>
           </Box>
-        ) : null}
-        {backAction ? (
-          <Box sx={{ width: '1px', height: 34, bgcolor: colors.sand200, mr: '18px', flexShrink: 0 }} aria-hidden />
         ) : null}
 
         {compact ? (
