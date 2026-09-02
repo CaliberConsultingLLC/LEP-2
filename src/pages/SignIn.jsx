@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, Container, Stack, TextField, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { buildPasswordResetActionSettings } from '../utils/authActionLinks';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
@@ -252,22 +251,25 @@ function SignIn() {
 
     setIsResettingPassword(true);
     try {
-      await sendPasswordResetEmail(auth, inputEmail, buildPasswordResetActionSettings(inputEmail));
+      // Goes through our own endpoint so the letter is ours and comes from our
+      // domain, rather than Firebase's default template from firebaseapp.com.
+      const res = await fetch('/api/send-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inputEmail }),
+      });
+      if (!res.ok) throw new Error(`reset-failed-${res.status}`);
       logAuthEvent({ emailAddress: inputEmail, status: 'success', message: 'Password reset email sent.' });
-      setInfoMessage('Password reset link sent. Check your inbox.');
+      // The endpoint answers the same way whether or not the account exists, so
+      // the message here cannot confirm one either.
+      setInfoMessage('If that address has an account, a reset link is on its way.');
     } catch (resetError) {
       logAuthEvent({
         emailAddress: inputEmail,
         status: 'failed',
-        message: String(resetError?.code || resetError?.message || 'Password reset failed.'),
+        message: String(resetError?.message || 'Password reset failed.'),
       });
-      if (resetError?.code === 'auth/user-not-found' || resetError?.code === 'auth/invalid-email') {
-        setError('Please enter a valid account email address.');
-      } else if (resetError?.code === 'auth/too-many-requests') {
-        setError('Too many reset attempts. Please wait and try again.');
-      } else {
-        setError('Could not send reset email right now. Please try again.');
-      }
+      setError('Could not send the reset email right now. Please try again.');
     } finally {
       setIsResettingPassword(false);
     }

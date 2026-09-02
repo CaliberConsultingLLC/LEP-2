@@ -3,6 +3,8 @@ import admin from 'firebase-admin';
 import cors from 'cors';
 import createCheckoutSession from './api/create-checkout-session.js';
 import confirmCheckout from './api/confirm-checkout.js';
+import sendPasswordReset from './api/send-password-reset.js';
+import cronCampaignMail from './api/cron-campaign-mail.js';
 
 const app = express();
 app.use(cors());
@@ -18,10 +20,14 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   credential = admin.credential.applicationDefault();
 }
 
-admin.initializeApp({
-  credential,
-  projectId: process.env.GCLOUD_PROJECT || 'leadership-evolution-project',
-});
+// api/firebase.js initialises the same default app, and importing any handler
+// that uses it runs first. Guard so whichever gets there first wins.
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential,
+    projectId: process.env.GCLOUD_PROJECT || 'leadership-evolution-project',
+  });
+}
 
 const db = admin.firestore();
 
@@ -146,6 +152,9 @@ async function resolveEmailFromIdToken(idToken) {
 app.get('/test', (req, res) => {
   res.send('Server is running!');
 });
+
+app.post('/api/send-password-reset', (req, res) => sendPasswordReset(req, res));
+app.post('/api/cron-campaign-mail', (req, res) => cronCampaignMail(req, res));
 
 app.post('/api/send-welcome-email', async (req, res) => {
   try {

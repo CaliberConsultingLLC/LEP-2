@@ -44,6 +44,12 @@
       "destination": "/index.html"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/cron-campaign-mail",
+      "schedule": "0 15 * * *"
+    }
+  ],
   "functions": {
     "api/get-ai-summary.js": {
       "maxDuration": 300
@@ -53,6 +59,12 @@
     },
     "api/send-welcome-email.js": {
       "maxDuration": 30
+    },
+    "api/send-password-reset.js": {
+      "maxDuration": 30
+    },
+    "api/cron-campaign-mail.js": {
+      "maxDuration": 300
     },
     "api/get-campaign.js": {
       "maxDuration": 60
