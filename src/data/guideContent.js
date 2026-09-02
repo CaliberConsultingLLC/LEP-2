@@ -440,6 +440,122 @@ export const GUIDE_CONTENT = {
   },
 };
 
+
+// ── Page FAQ ────────────────────────────────────────────────────────────────
+//
+// The "Learn more" panel inside the guide bubble. Deliberately not on every
+// screen — only the ones that introduce a concept, a new visual, or a decision
+// that cannot be undone. A help affordance on a page nobody struggles with
+// teaches people to stop opening it.
+//
+// The guide's spoken line stays the main message. This is what sits under it
+// for the leader who wants the mechanics.
+const PAGE_FAQ = {
+  summary: [
+    {
+      q: 'Where does this come from?',
+      a: 'Your own answers, nothing else. No benchmark, no comparison to other leaders — just what you said, read back in four parts.',
+    },
+    {
+      q: 'Why four sections instead of one write-up?',
+      a: 'Current state, recurring patterns, what it may cost, and where to build. Separating them stops the hard part being softened by the hopeful part.',
+    },
+    {
+      q: 'Can I change my answers now?',
+      a: 'No. The intake locked when you signed off on it, and everything here is read from that record. That is what makes it worth trusting later.',
+    },
+  ],
+  traitSelection: [
+    {
+      q: 'Why only three?',
+      a: 'Your team rates five statements per trait. Three traits is fifteen statements — about as much as anyone will answer carefully. More traits means worse data, not more.',
+    },
+    {
+      q: 'What if the right one is not offered?',
+      a: 'The suggestions come from your reflection, but the full library is open. Pick what you will actually work on this year.',
+    },
+  ],
+  campaignBuilder: [
+    {
+      q: 'Who sees these statements?',
+      a: 'Everyone you send the survey to. They rate each one twice — how much effort they see you putting in, and how well it lands.',
+    },
+    {
+      q: 'Should I soften the wording?',
+      a: 'No. A statement your team cannot rate honestly returns a score you cannot use. Write the one you would be willing to hear the answer to.',
+    },
+  ],
+  campaignVerify: [
+    {
+      q: 'What happens when I lock this?',
+      a: 'The statements stop being editable and your own assessment opens. Locking is what makes the team’s answers comparable to yours.',
+    },
+  ],
+  selfAssessment: [
+    {
+      q: 'Why do I answer first?',
+      a: 'So your rating is not influenced by theirs. The gap between the two readings is the most useful thing on the dashboard, and it only means something if you went first.',
+    },
+    {
+      q: 'What if I am not sure?',
+      a: 'Answer as your normal week, not your best day. The comparison is against how your team experiences you, so an aspirational self-rating just widens a gap that is not real.',
+    },
+  ],
+  teamAssessment: [
+    {
+      q: 'Why does Compass not email my team?',
+      a: 'Because then we would know who answered. You send the link yourself, which is exactly what makes the responses anonymous — we cannot match an answer to a name.',
+    },
+    {
+      q: 'Why does it ask how many I sent?',
+      a: 'We cannot see it. Without the number, "6 responses" has nothing to be six out of, and the window cannot know when everyone has answered.',
+    },
+    {
+      q: 'Can someone answer twice?',
+      a: 'The link does not track people, so technically yes. In practice it has not been a problem — and the reading works on patterns, not single answers.',
+    },
+  ],
+  dashboardSignal: [
+    {
+      q: 'What is a Compass score?',
+      a: 'One number per trait, combining how much effort your team sees with how well it lands. High effort that does not land scores lower than you would expect, on purpose.',
+    },
+    {
+      q: 'What does the Mirror number mean?',
+      a: 'Your own rating minus your team’s. Positive means you rate yourself higher than they do. Neither direction is automatically bad — the size is what is worth reading.',
+    },
+  ],
+  dashboardEvidence: [
+    {
+      q: 'What are the four quadrants?',
+      a: 'Effort against efficacy. Honed is both high. Off-target is real effort that is not landing. Natural lands without much push. Missing the mark is neither yet.',
+    },
+    {
+      q: 'Why is one statement worse than the trait?',
+      a: 'The trait score is an average of five. A single statement dragging it down is more actionable than the average — that is what this room is for.',
+    },
+    {
+      q: 'What is the dashed dot?',
+      a: 'Your own rating for that statement, shown against your team’s. The line between them is the gap.',
+    },
+  ],
+  dashboardPractice: [
+    {
+      q: 'Why only one behaviour per trait?',
+      a: 'Because three changes at once is none. A behaviour your team can notice within a fortnight beats a plan that reads well.',
+    },
+    {
+      q: 'What happens to my notes?',
+      a: 'They travel here from the evidence room, tagged with the statement you were looking at when you wrote them.',
+    },
+  ],
+};
+
+/** The FAQ for a route, or an empty list where the page needs no explaining. */
+export function getPageFaq(routeKey) {
+  return PAGE_FAQ[routeKey] || [];
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 // Resolve a route + optional tab string to a content key.

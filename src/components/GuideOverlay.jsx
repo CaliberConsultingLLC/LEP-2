@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
-import { getGuideMessages, resolveRouteKey } from '../data/guideContent';
+import { getGuideMessages, getPageFaq, resolveRouteKey } from '../data/guideContent';
 import {
   GUIDE_COLUMN,
   GUIDE_TAB_BOTTOM,
@@ -90,7 +90,9 @@ function GuideOverlay() {
     ? { text: pageMessage.text, pose: pageMessage.pose || fallbackMessage?.pose || 'idle', cta: pageMessage.cta || fallbackMessage?.cta, faq: pageMessage.faq || null }
     : fallbackMessage;
   const owlPose = persona.poses[message?.pose] || persona.poses.idle;
-  const faqItems = Array.isArray(message?.faq) ? message.faq.filter((f) => f && f.q && f.a) : [];
+  const routeFaq = getPageFaq(routeKey);
+  const rawFaq = Array.isArray(message?.faq) && message.faq.length ? message.faq : routeFaq;
+  const faqItems = Array.isArray(rawFaq) ? rawFaq.filter((f) => f && f.q && f.a) : [];
 
   // Collapse the FAQ whenever the underlying message changes.
   const [faqOpen, setFaqOpen] = useState(false);
