@@ -157,8 +157,8 @@ function DemoStart() {
           />
           <PathCard
             eyebrow="Show someone"
-            title="Just the two outputs"
-            body="The reflection and the dashboard, both already written, with nothing in between and nothing to wait for. Every room is open. This is the one to run in front of a person."
+            title="Walk it without the wait"
+            body="Start on a finished reflection, pick your traits, build the campaign — then one button skips your assessment and the wait for the team and opens the dashboard. The parts worth showing, none of the waiting."
             cta="Open the reflection"
             onClick={runShowcase}
             busy={busy}

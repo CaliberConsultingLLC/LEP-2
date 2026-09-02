@@ -111,6 +111,18 @@ export function installDemoStorageIfActive() {
 
 export function startDemoSession() {
   try {
+    // Wipe whatever the last demo run left behind. Without this, picking a
+    // second option in the same tab inherits the first one's state — try the
+    // skip-ahead path and then the walk-it path, and the campaign is already
+    // closed before you start.
+    Object.keys(sessionStorage)
+      .filter((k) => k.startsWith(PREFIX))
+      .forEach((k) => sessionStorage.removeItem(k));
+    sessionStorage.removeItem(STATIC_KEY);
+  } catch {
+    /* ignore */
+  }
+  try {
     sessionStorage.setItem(FLAG_KEY, '1');
   } catch {
     /* ignore */
@@ -221,7 +233,7 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)];
  * campaign so the dashboard rooms are reachable straight after the summary.
  * Returns the persona and guide so the caller can say what it chose.
  */
-export function seedDemoPersona({ name, teamSize } = {}) {
+export function seedDemoPersona({ name, teamSize, closeCampaign = true } = {}) {
   const persona = pick(STAGING_PERSONAS);
   const guide = pick(SELECTABLE_GUIDE_PERSONAS);
 
@@ -299,7 +311,9 @@ export function seedDemoPersona({ name, teamSize } = {}) {
   // demo that dies when an API does is not a demo.
   try { sessionStorage.setItem(STATIC_KEY, '1'); } catch { /* ignore */ }
 
-  finishDemoCampaign();
+  // The skip-ahead path wants the rooms open on arrival. The walk-it path
+  // wants the campaign still live so there is something left to do.
+  if (closeCampaign) finishDemoCampaign();
   return { persona, guide };
 }
 
@@ -312,11 +326,35 @@ export function seedDemoPersona({ name, teamSize } = {}) {
  *
  * This is the one to open in front of somebody.
  */
+/**
+ * The walk-it-without-the-wait path.
+ *
+ * Same finished intake and written reflection as the skip-ahead run, but the
+ * campaign stays open — the reflection, the traits, and the campaign are the
+ * parts worth showing, so they stay walkable. What gets skipped is the
+ * assessment, via the button that appears once the campaign is built.
+ */
 export function seedDemoShowcase() {
-  const seeded = seedDemoPersona({});
+  return seedDemoPersona({ closeCampaign: false });
+}
 
-  // The debrief phases gate Signal, Evidence, and Practice behind each other.
-  // A showcase has no time for that walk, so the rooms open already read.
+/**
+ * Skips the part of the demo nobody wants to sit through.
+ *
+ * The reflection and the campaign are worth walking — they are the product.
+ * Answering fifteen statements about yourself and then waiting on a team that
+ * does not exist is not. This closes the window with results already in place
+ * and opens every room, so the run goes campaign → dashboard directly.
+ *
+ * Static on purpose: the dashboard reads team answers from fakeData in a demo
+ * session regardless of which statements were built, so there is nothing to
+ * compute and nothing to wait for.
+ */
+export function skipDemoToResults() {
+  finishDemoCampaign();
+
+  // Without this the rooms open gated behind one another, which is the walk
+  // this button exists to avoid.
   const userInfo = parseJson(localStorage.getItem('userInfo'), {});
   const records = parseJson(localStorage.getItem('campaignRecords'), {});
   const campaignKey = records?.bundleId || records?.teamCampaignId || records?.selfCampaignId || '123';
@@ -326,9 +364,12 @@ export function seedDemoShowcase() {
       `signalDebrief_${campaignKey}_${userKey}_done`,
       JSON.stringify({ signal: true, evidence: true, practice: true })
     );
+    // The self assessment is what the leader would have just answered.
+    localStorage.setItem('selfCampaignCompleted', 'true');
+    if (records?.selfCampaignId) {
+      localStorage.setItem(`selfCampaignCompleted_${records.selfCampaignId}`, 'true');
+    }
   } catch { /* ignore */ }
-
-  return seeded;
 }
 
 export function finishDemoCampaign() {

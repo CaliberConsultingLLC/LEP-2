@@ -5,6 +5,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import LoadingScreen from '../components/LoadingScreen';
 import { StageDiamond, stageType } from '../components/CampaignStageCopy';
+import DemoAutomateResults from '../components/DemoAutomateResults';
 import {
   getSelfCampaignId,
   selfAssessmentComplete,
@@ -349,6 +350,7 @@ function SelfAssessmentChapter() {
                   </Typography>
                 </Box>
               </Box>
+              <DemoAutomateResults />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1.75, gap: 1.25 }}>
               <Box
@@ -436,6 +438,7 @@ function SelfAssessmentChapter() {
               {complete ? 'Team Invite' : 'Begin your assessment'}
             </Box>
           </Box>
+          <DemoAutomateResults />
         </Box>
       </CompassLayout>
     </Box>

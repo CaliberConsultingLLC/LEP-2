@@ -6,6 +6,7 @@ import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { campaignIsLocked } from '../data/chapterMap';
+import DemoAutomateResults from '../components/DemoAutomateResults';
 import { ensureCampaignBundle } from '../utils/campaignBundle';
 import { buttons, colors, fonts, radii, surfaces } from '../styles/tokens';
 import CampaignStageHeader, { stageType } from '../components/CampaignStageCopy';
@@ -226,6 +227,9 @@ function CampaignVerify() {
                 {ctaLabel}
               </Box>
             </Box>
+
+            {/* The campaign is built — this is the "and then" a demo wants. */}
+            <DemoAutomateResults sx={{ mb: 2 }} />
           </Box>
         </CompassLayout>
       </Box>
