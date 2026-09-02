@@ -1238,6 +1238,48 @@ function Summary() {
     const trailheadDisplay = String(stageBodyText || '').trim();
     const leverageCards = (focusAreas.length ? focusAreas : []).slice(0, 5);
 
+    // The beats arrive as one long string, so the page does the breaking for
+    // now. Grouping sentences into short runs is what turns 200 unbroken words
+    // into something a reader can hold; when the schema returns paragraphs this
+    // helper takes them straight through instead.
+    const asParagraphs = (text, per = 3) => {
+      const parts = Array.isArray(text) ? text.filter(Boolean) : null;
+      if (parts?.length) return parts;
+      const sentences = splitSentences(text);
+      if (!sentences.length) return [];
+      const out = [];
+      for (let i = 0; i < sentences.length; i += per) {
+        out.push(sentences.slice(i, i + per).join(' '));
+      }
+      // A lone trailing sentence reads as a dangling fragment; fold it back.
+      if (out.length > 1 && splitSentences(out[out.length - 1]).length === 1) {
+        out[out.length - 2] = `${out[out.length - 2]} ${out.pop()}`;
+      }
+      return out;
+    };
+
+    // The lead-in above a panel row. Names what the row is without a heading.
+    const leadInSx = {
+      fontFamily: fonts.mono,
+      fontSize: 9,
+      fontWeight: 700,
+      letterSpacing: '0.18em',
+      textTransform: 'uppercase',
+      color: colors.inkSoft,
+      mt: '4px',
+      mb: '2px',
+    };
+
+    // Left-ruled, left-aligned. Centring short text reads as a callout; these
+    // carry real scenes, so they read as content.
+    const panelSx = (warn) => ({
+      bgcolor: colors.sand100,
+      borderRadius: radii.md,
+      p: '15px 17px',
+      textAlign: 'left',
+      borderLeft: `3px solid ${warn ? colors.orange : colors.sand300}`,
+    });
+
     const bodyType = {
       fontFamily: fonts.sans,
       fontSize: 16,
@@ -1421,65 +1463,77 @@ function Summary() {
                   {activeStage.id === 'trailhead' && (
                     trailheadDisplay ? (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(trailheadDisplay)}
-                        </Typography>
+                        {asParagraphs(trailheadDisplay).map((para, i) => (
+                          <Typography key={`th-${i}`} sx={bodyType}>
+                            {renderParagraphWithTooltips(para)}
+                          </Typography>
+                        ))}
+
+                        {/* The two poles of the character, after the prose. The
+                            heading is the label the model already writes — it is
+                            specific to this leader, where "Strength" and "Focus"
+                            could sit on anyone's reflection. */}
                         {(trailheadHighlights?.strength?.text || trailheadHighlights?.focus?.text) && (
                           <Box
                             sx={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              flexWrap: 'nowrap',
-                              gap: '14px',
-                              width: '100%',
-                              alignItems: 'flex-start',
+                              mt: '10px',
+                              pt: '20px',
+                              borderTop: `1px solid ${colors.sand200}`,
+                              display: 'grid',
+                              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                              gap: { xs: '20px', md: '28px' },
                             }}
                           >
                             {[
                               trailheadHighlights?.strength?.text
-                                ? { key: 'strength', eyebrow: 'Strength', text: trailheadHighlights.strength.text }
+                                ? {
+                                    key: 'strength',
+                                    ink: colors.green,
+                                    label: trailheadHighlights.strength.label || 'What carries you',
+                                    text: trailheadHighlights.strength.text,
+                                  }
                                 : null,
                               trailheadHighlights?.focus?.text
-                                ? { key: 'focus', eyebrow: 'Focus', text: trailheadHighlights.focus.text }
+                                ? {
+                                    key: 'focus',
+                                    ink: colors.orangeDeep,
+                                    label: trailheadHighlights.focus.label || 'What costs you',
+                                    text: trailheadHighlights.focus.text,
+                                  }
                                 : null,
                             ].filter(Boolean).map((card) => (
-                              <Box
-                                key={card.key}
-                                sx={{
-                                  flex: '1 1 0',
-                                  minWidth: 0,
-                                  bgcolor: colors.surface1,
-                                  border: `1px solid ${colors.sand200}`,
-                                  borderRadius: radii.md,
-                                  px: '16px',
-                                  py: '16px',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  textAlign: 'center',
-                                  boxShadow: shadows.none,
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    fontFamily: fonts.mono,
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    color: colors.orangeDeep,
-                                    mb: 0.75,
-                                    letterSpacing: '0.08em',
-                                    textTransform: 'uppercase',
-                                  }}
-                                >
-                                  {card.eyebrow}
-                                </Typography>
+                              <Box key={card.key} sx={{ minWidth: 0 }}>
+                                <Box sx={{ display: 'flex', gap: '8px', alignItems: 'baseline', mb: '8px' }}>
+                                  <Box
+                                    aria-hidden
+                                    sx={{
+                                      width: 7,
+                                      height: 7,
+                                      borderRadius: radii.circle,
+                                      bgcolor: card.ink,
+                                      flexShrink: 0,
+                                      position: 'relative',
+                                      top: '-2px',
+                                    }}
+                                  />
+                                  <Typography
+                                    sx={{
+                                      fontFamily: fonts.serif,
+                                      fontSize: 15.5,
+                                      fontWeight: 600,
+                                      lineHeight: 1.3,
+                                      color: card.ink,
+                                    }}
+                                  >
+                                    {card.label}
+                                  </Typography>
+                                </Box>
                                 <Typography
                                   sx={{
                                     fontFamily: fonts.sans,
-                                    fontSize: '13.5px',
-                                    lineHeight: 1.55,
-                                    color: colors.ink,
-                                    textAlign: 'center',
+                                    fontSize: 14,
+                                    lineHeight: 1.6,
+                                    color: colors.inkSoft,
                                   }}
                                 >
                                   {card.text}
@@ -1498,79 +1552,79 @@ function Summary() {
 
                   {situationStage && (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                      {situationStage.reflection ? (
-                        <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(
-                            splitSentences(situationStage.reflection).slice(0, 7).join(' ')
-                          )}
-                        </Typography>
-                      ) : null}
+                      {situationStage.reflection
+                        ? asParagraphs(situationStage.reflection).map((para, i) => (
+                            <Typography key={`sit-p-${activeStage.id}-${i}`} sx={bodyType}>
+                              {renderParagraphWithTooltips(para)}
+                            </Typography>
+                          ))
+                        : null}
+
                       {situationStage.situations.length > 0 && (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            flexWrap: 'nowrap',
-                            gap: '14px',
-                            width: '100%',
-                            alignItems: 'flex-start',
-                          }}
-                        >
-                          {situationStage.situations.slice(0, 2).map((situation, idx) => (
-                            <Box
-                              key={`sit-${activeStage.id}-${idx}`}
-                              sx={{
-                                flex: '1 1 0',
-                                minWidth: 0,
-                                bgcolor: colors.surface1,
-                                border: `1px solid ${colors.sand200}`,
-                                borderRadius: radii.md,
-                                px: '16px',
-                                py: '16px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                textAlign: 'center',
-                                boxShadow: shadows.none,
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  fontFamily: fonts.mono,
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  color: colors.orangeDeep,
-                                  mb: 0.85,
-                                  letterSpacing: '0.06em',
-                                }}
-                              >
-                                {String(idx + 1).padStart(2, '0')}
-                              </Typography>
-                              <Typography
-                                sx={{
-                                  fontFamily: fonts.sans,
-                                  fontSize: '14px',
-                                  lineHeight: 1.55,
-                                  color: colors.ink,
-                                  textAlign: 'center',
-                                }}
-                              >
-                                {splitSentences(situation).slice(0, 2).join(' ')}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
+                        <>
+                          <Typography sx={leadInSx}>
+                            {activeStage.id === 'markers'
+                              ? 'What this likely looks like in an ordinary week'
+                              : 'Where those same moments could go if nothing changes'}
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: {
+                                xs: '1fr',
+                                md: `repeat(${Math.min(3, situationStage.situations.length)}, minmax(0, 1fr))`,
+                              },
+                              gap: '12px',
+                              width: '100%',
+                            }}
+                          >
+                            {situationStage.situations.slice(0, 3).map((situation, idx) => (
+                              <Box key={`sit-${activeStage.id}-${idx}`} sx={panelSx(activeStage.id === 'hazards')}>
+                                <Typography
+                                  sx={{
+                                    fontFamily: fonts.mono,
+                                    fontSize: 9,
+                                    fontWeight: 700,
+                                    letterSpacing: '0.16em',
+                                    textTransform: 'uppercase',
+                                    color: activeStage.id === 'hazards' ? colors.orangeDeep : colors.inkSoft,
+                                    mb: '7px',
+                                  }}
+                                >
+                                  {String(idx + 1).padStart(2, '0')}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    fontFamily: fonts.sans,
+                                    fontSize: 14,
+                                    lineHeight: 1.58,
+                                    color: colors.ink,
+                                  }}
+                                >
+                                  {situation}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </>
                       )}
                     </Box>
                   )}
 
                   {activeStage.id === 'new-trail' && (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-                      {newTrailIntro ? (
-                        <Typography sx={bodyType}>
-                          {renderParagraphWithTooltips(splitSentences(newTrailIntro).slice(0, 10).join(' '))}
+                      {newTrailIntro
+                        ? asParagraphs(newTrailIntro).map((para, i) => (
+                            <Typography key={`nt-${i}`} sx={bodyType}>
+                              {renderParagraphWithTooltips(para)}
+                            </Typography>
+                          ))
+                        : null}
+                      {leverageCards.length > 0 && (
+                        <Typography sx={leadInSx}>
+                          Where the smallest change would be felt first
                         </Typography>
-                      ) : null}
+                      )}
                       {leverageCards.length > 0 && (
                         <Box
                           sx={{
@@ -1744,7 +1798,11 @@ function Summary() {
           draggable={false}
           sx={{
             ...SUMMARY_GUIDE_OWL_SX,
-            zIndex: 1,
+            // Behind the card, not over it. The owl is a portrait beside the
+            // reflection; at z-index 1 it painted across the card's left edge,
+            // which the old opaque highlight cards happened to hide and the
+            // current ones do not.
+            zIndex: 0,
             visibility: briefingOpen ? 'hidden' : 'visible',
           }}
         />
