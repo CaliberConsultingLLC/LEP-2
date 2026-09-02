@@ -3,6 +3,14 @@ import { Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { getGuideMessages, resolveRouteKey } from '../data/guideContent';
+import {
+  GUIDE_COLUMN,
+  GUIDE_TAB_BOTTOM,
+  GUIDE_TAB_HEIGHT,
+  GUIDE_Z,
+  clearGuideSpace,
+  reserveGuideSpace,
+} from './guidePlacement';
 
 // Pages where the guide has not yet been chosen — overlay is suppressed entirely.
 const PRE_GUIDE_PATHS = ['/user-info', '/guide-select', '/sign-in', '/landing'];
@@ -86,6 +94,8 @@ function GuideOverlay() {
 
   // Collapse the FAQ whenever the underlying message changes.
   const [faqOpen, setFaqOpen] = useState(false);
+  const boxRef = useRef(null);
+
   useEffect(() => {
     setFaqOpen(false);
   }, [message?.text]);
@@ -107,10 +117,39 @@ function GuideOverlay() {
     || isProfileDetails
     || isTeamSurvey
     || !hasSelectedGuide;
+  // Publish the footprint so CompassLayout can keep content out from under it.
+  // Measured, not assumed: the width is a CSS clamp and the height depends on
+  // how much the guide has to say.
+  useEffect(() => {
+    if (suppress || isPreGuide) { clearGuideSpace(); return undefined; }
+    if (hidden) {
+      reserveGuideSpace({ width: 0, height: GUIDE_TAB_HEIGHT + GUIDE_TAB_BOTTOM });
+      return undefined;
+    }
+    const measure = () => {
+      const el = boxRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      reserveGuideSpace({ width: r.width, height: r.height });
+    };
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (ro && boxRef.current) ro.observe(boxRef.current);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  });
+
+  useEffect(() => () => clearGuideSpace(), []);
+
   if (isPreGuide || suppress) return null;
 
   // ── Collapsed tab ────────────────────────────────────────────────────────
   if (hidden) {
+    // The tab is small, but it still sits over the bottom-right corner, so it
+    // reserves its own height rather than trusting nothing is under it.
     return (
       <Box
         component="button"
@@ -122,8 +161,8 @@ function GuideOverlay() {
           cursor: 'pointer',
           position: 'fixed',
           right: 0,
-          bottom: 32,
-          zIndex: 1200,
+          bottom: GUIDE_TAB_BOTTOM,
+          zIndex: GUIDE_Z,
           display: 'flex',
           alignItems: 'center',
           gap: 1,
@@ -166,12 +205,13 @@ function GuideOverlay() {
   // into the main content area. Height can grow upward freely.
   return (
     <Box
+      ref={boxRef}
       sx={{
         position: 'fixed',
         right: 0,
         bottom: 0,
-        zIndex: 1200,
-        width: 'clamp(250px, 25vw, 350px)',
+        zIndex: GUIDE_Z,
+        width: GUIDE_COLUMN,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'stretch',
