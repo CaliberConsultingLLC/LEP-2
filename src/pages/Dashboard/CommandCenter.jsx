@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ import GatePage from './cc/GatePage.jsx';
 import { isDemoSession } from '../../utils/demoMode';
 import MetricHint from '../../components/MetricHint';
 import { SCORE_HINTS } from '../../data/scoreGlossary';
+import { inviteProgress, readInviteTarget } from '../../utils/campaignInvites';
 import {
   LOCK_CONFIRM_PHRASE,
   TEAM_WINDOW_CHANGED_EVENT,
@@ -256,7 +257,7 @@ function SignalFocalCard({
   onClick,
   listening,
   respondents,
-  invited,
+  progress,
   onLockIn,
   lockBusy,
 }) {
@@ -287,17 +288,21 @@ function SignalFocalCard({
             }}
           >
             {respondents}
-            <Box component="span" sx={{ fontSize: { xs: 22, md: 26 }, color: colors.inkSoft, fontWeight: 500 }}>
-              {' / '}{invited}
-            </Box>
+            {progress?.declared ? (
+              <Box component="span" sx={{ fontSize: { xs: 22, md: 26 }, color: colors.inkSoft, fontWeight: 500 }}>
+                {' / '}{progress.declared}
+              </Box>
+            ) : null}
           </Typography>
           <Typography sx={{ ...type.sectionTitle, fontStyle: 'normal', fontSize: 18, lineHeight: 1.2, mt: 0.8 }}>
-            {respondents >= invited && invited > 0 ? 'Responses complete' : 'Responses in'}
+            {progress?.state === 'complete' ? 'Responses complete' : 'Responses in'}
           </Typography>
           <Typography sx={{ ...type.bodyMuted, mt: 0.45 }}>
-            {respondents >= invited && invited > 0
-              ? 'Everyone you selected has answered. Lock in to calculate the reading.'
-              : 'Lock in when you are ready — even if you end the window early.'}
+            {progress?.declared
+              ? (progress.state === 'nudge'
+                  ? progress.message
+                  : 'Lock in when you are ready — even if you end the window early.')
+              : 'Say how many you sent on the team invite page and this counts against it.'}
           </Typography>
           <Box
             component="button"
@@ -500,7 +505,7 @@ function PlanFocalCard({ traitLabel, behavior, current, goal, onClick, ready }) 
   );
 }
 
-function TodayLanding({ t, onNavigate, teamCampaignClosed, respondents = 0, invited = 8, rows = [] }) {
+function TodayLanding({ t, onNavigate, teamCampaignClosed, respondents = 0, progress = null, rows = [] }) {
   const userInfo = readJson('userInfo', {});
   const campaignRecords = readJson('campaignRecords', {});
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
@@ -731,7 +736,7 @@ function TodayLanding({ t, onNavigate, teamCampaignClosed, respondents = 0, invi
           score={signalScore}
           listening={!teamCampaignClosed}
           respondents={respondents}
-          invited={invited}
+          progress={progress}
           onLockIn={() => {
             setLockPhrase('');
             setLockError('');
@@ -772,7 +777,10 @@ function TodayLanding({ t, onNavigate, teamCampaignClosed, respondents = 0, invi
             This is irreversible. Once you lock this in, results will be calculated and you will not be able to add any additional feedback.
           </Typography>
           <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.55, color: colors.inkSoft, mb: 1.5 }}>
-            {respondents} of {invited} responses are in. Type <b>{LOCK_CONFIRM_PHRASE}</b> to continue.
+            {progress?.declared
+              ? `${respondents} of ${progress.declared} responses are in.`
+              : `${respondents} response${respondents === 1 ? '' : 's'} are in.`}
+            {' '}Type <b>{LOCK_CONFIRM_PHRASE}</b> to continue.
           </Typography>
           <TextField
             autoFocus
@@ -939,7 +947,11 @@ export default function CommandCenter() {
     hasTeamData,
     hasSelfData,
   } = useBenchmarkData();
-  const invited = parseExpectedTeamCount(
+  // The number the leader declared when they took the link. Falls back to the
+  // old team-size guess only when they never said — and inviteProgress reports
+  // that case as 'waiting' rather than inventing a denominator.
+  const inviteTarget = useMemo(() => readInviteTarget(), []);
+  const invited = inviteTarget?.declared ?? parseExpectedTeamCount(
     readJson('latestFormData', {})?.teamSize ?? readJson('userInfo', {})?.teamSize
   );
   const respondents = campaignClosed
@@ -980,6 +992,17 @@ export default function CommandCenter() {
   const drillBack = isDrilledIn
     ? { label: 'Back to Dashboard', onClick: () => goToTab('today') }
     : null;
+
+  // Everyone answered, so there is nothing left to wait for. The leader keeps
+  // the manual close for every other case; this fires only on a full house,
+  // and only once.
+  const autoClosedRef = useRef(false);
+  useEffect(() => {
+    if (campaignClosed || autoClosedRef.current || demoSession) return;
+    if (inviteProgress(respondents, inviteTarget).state !== 'complete') return;
+    autoClosedRef.current = true;
+    lockTeamCampaignWindow().catch(() => { autoClosedRef.current = false; });
+  }, [respondents, inviteTarget, campaignClosed, demoSession]);
 
   const chapterId = activeTab === 'journey' ? 'action' : 'review';
   const activeStepId = chapterId === 'action'
@@ -1034,7 +1057,17 @@ export default function CommandCenter() {
         return <JourneyTab t={t} />;
       case 'today':
       default:
-        return <TodayLanding t={t} onNavigate={goToTab} teamCampaignClosed={campaignClosed} respondents={respondents} invited={invited} rows={benchmarkRows} />;
+        return (
+          <TodayLanding
+            t={t}
+            onNavigate={goToTab}
+            teamCampaignClosed={campaignClosed}
+            respondents={respondents}
+            invited={invited}
+            progress={inviteProgress(respondents, inviteTarget)}
+            rows={benchmarkRows}
+          />
+        );
     }
   };
 
