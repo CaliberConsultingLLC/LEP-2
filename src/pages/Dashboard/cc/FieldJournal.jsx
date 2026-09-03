@@ -459,6 +459,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
 
   const flipTimer = useRef(null);
   const prevRailRef = useRef(traitIndex);
+  const recoveredPhase = useRef(false);
   const mode = phases.modeFor('practice');
   const readOnly = mode === 'snapshot';
 
@@ -509,6 +510,29 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
       return next;
     });
   }, [orderedRows, planKeyFor]);
+
+  // Recover from a stale saved page index (6 = ledger) left by the old dual-state bug.
+  useEffect(() => {
+    if (recoveredPhase.current || readOnly || !orderedRows.length) return;
+    const saved = phases.pages.practice;
+    if (!Number.isFinite(saved) || saved < 6) return;
+    const allComplete = orderedRows.every((r) => {
+      const p = plans[r.trait] || readJson(planKeyFor(r.trait), null);
+      return planComplete({ ...EMPTY_PLAN, ...p });
+    });
+    if (allComplete) return;
+    recoveredPhase.current = true;
+    const idx = orderedRows.findIndex((r) => {
+      const p = plans[r.trait] || readJson(planKeyFor(r.trait), null);
+      return !planComplete({ ...EMPTY_PLAN, ...p });
+    });
+    const nextView =
+      idx >= 0 ? { kind: 'trait', traitIndex: idx, page: 0 } : { kind: 'ledger' };
+    setView(nextView);
+    phases.setPhasePage('practice', viewToPhase(nextView));
+    onTraitIndexChange(viewToRail(nextView));
+    prevRailRef.current = viewToRail(nextView);
+  }, [orderedRows, plans, readOnly, phases, planKeyFor, onTraitIndexChange]);
 
   const patchPlan = useCallback(
     (traitKey, patch) => {

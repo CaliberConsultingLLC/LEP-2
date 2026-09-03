@@ -1019,8 +1019,16 @@ export default function CommandCenter() {
     }
   }, [practiceRows.length, practiceTraitIdx]);
 
-  const isEvidenceDrilled = activeTab === 'evidence' && evidenceTraits.length > 0;
-  const isPracticeDrilled = activeTab === 'practice' && practiceRows.length > 0;
+  // Only show trait drill-in when the real view is mounted — not while a gate page blocks it.
+  const canRenderReviewTab = (tab) => {
+    if (demoSession) return true;
+    if (['narrative', 'signal', 'evidence', 'practice'].includes(tab) && !campaignClosed) return false;
+    if (PHASE_ORDER.includes(tab) && phases.isGated(tab)) return false;
+    return true;
+  };
+
+  const isEvidenceDrilled = activeTab === 'evidence' && evidenceTraits.length > 0 && canRenderReviewTab('evidence');
+  const isPracticeDrilled = activeTab === 'practice' && practiceRows.length > 0 && canRenderReviewTab('practice');
   const isDrilledIn = isEvidenceDrilled || isPracticeDrilled;
 
   const practiceStepStatus = useMemo(() => {
