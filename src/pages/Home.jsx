@@ -155,7 +155,7 @@ function Home() {
       hero: '/heroreflect.png',
       frameY: 42,
       frameScale: 1.2,
-      text: 'Compass is AI-powered but human-led. No HR infrastructure required; leaders own the work and the outcomes.',
+      text: 'Compass is AI-supported but human-led. No HR infrastructure required; leaders own the work and the outcomes.',
       points: [],
     },
     {
@@ -332,7 +332,7 @@ function Home() {
                       maxWidth: 690,
                     }}
                   >
-                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities. It is AI-powered, but human-led, so your outcomes stay grounded in real leadership context.
+                    We translate your assessment into a clear map of strengths, tradeoffs, and priorities. It is AI-supported, but human-led, so your outcomes stay grounded in real leadership context.
                   </Typography>
 
                   <Stack direction="row" spacing={1.2} flexWrap="wrap" sx={{ pt: 0.6 }}>

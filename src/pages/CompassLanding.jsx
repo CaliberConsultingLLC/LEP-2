@@ -21,35 +21,35 @@ const ASSETS = {
 
 const WAYPOINTS = [
   { num: 'I',    name: 'Profile',             pin: 'PROFILE',            time: '10 MIN',    pos: { left: '13.7%', top: '86.5%' },
-    happens: ['Create your account', 'Choose your guide', 'Give your leader context'],
-    gets: 'Your account is set, your guide is chosen, and your context is in. Nothing has been scored yet — that is next.' },
+    happens: ['You create your account', 'You choose your guide', 'You give us your context'],
+    gets: 'A tool that already understands your unique leadership position — your industry, your role, and the team you actually lead.' },
   { num: 'II',   name: 'Behaviors',           pin: 'BEHAVIORS',          time: '15 MIN',    pos: { left: '29.4%', top: '72.4%' },
-    happens: ['A short intake on how you actually lead', 'Answered as you normally show up, not your best day'],
-    gets: 'The raw material every later chapter reads from — how you actually lead, not a type.' },
+    happens: ['The Compass asks how you lead day to day', 'You answer as you normally show up, not as your best day'],
+    gets: 'An agent that understands how you show up on any given day — not the version you would present in a review.' },
   { num: 'III',  name: 'Reflection',          pin: 'REFLECTION',         time: '20 MIN',    pos: { left: '42.5%', top: '85.5%' },
-    happens: ['Your answers come back as a written reflection', 'Read it in four short parts'],
-    gets: 'A current-state mirror. Sit with it long enough to recognize yourself before you build anything.' },
+    happens: ['The Compass writes your personalized leadership insights map', 'Four short parts, drawn entirely from your own answers'],
+    gets: 'A mirror that reflects your unique leadership approach. Sit with it long enough to recognize yourself before we move forward.' },
   { num: 'IV',   name: 'Growth Campaign',     pin: 'GROWTH CAMPAIGN',    time: '15 MIN',    pos: { left: '50.5%', top: '76.5%' },
-    happens: ['Choose three growth traits', 'Shape the statements your team will rate'],
-    gets: 'The campaign your year runs on: three traits, fifteen statements, in language you would stand behind.' },
+    happens: ['You partner with the Compass to build your annual growth campaign', 'Three traits, and the statements your team will answer'],
+    gets: 'The campaign your year runs on — your perception and your team’s, aimed at three traits chosen for you, in fifteen statements written in language you would stand behind.' },
   { num: 'V',    name: 'Calibrate',           pin: 'CALIBRATE',          time: '10 MIN',    pos: { left: '59%',   top: '71.5%' },
-    happens: ['Rate yourself first', 'Invite your team to answer anonymously'],
-    gets: 'Your benchmark is in and the team has a way to answer. Closing the window opens the first reading — a signal, not a verdict.' },
+    happens: ['Your campaign goes live — you answer first, then your team, anonymously', 'The first real data on how you are doing lands'],
+    gets: 'A baseline and a benchmark for your growth campaign. Truth comes before growth, and this is where the truth starts.' },
   { num: 'VI',   name: 'Review & Reflect',    pin: 'REVIEW & REFLECT',   time: '1 SITTING', pos: { left: '76.5%', top: '57%' },
-    happens: ['Read the team\u2019s signal next to your own', 'See where their read differs from yours'],
-    gets: 'A first honest reading of how the team experiences you, next to how you see yourself.' },
+    happens: ['Your narrative and data analysis land in your dashboard', 'The Compass teaches you how to read them'],
+    gets: 'An honest reading of how your team experiences your leadership — an objective read on an otherwise blind pursuit.' },
   { num: 'VII',  name: 'Action Plan',         pin: 'ACTION PLAN',        time: '30 MIN',    pos: { left: '82%',   top: '47%' },
-    happens: ['Build a one-page action plan', 'One visible practice per trait'],
+    happens: ['A guided exercise in your field journal', 'You craft a practical action plan for the year'],
     gets: 'A one-page plan you live, not log into — held until the next check-in tells you whether it is landing.' },
   { num: 'VIII', name: 'Check-in Assessment', pin: 'CHECK-IN',           time: 'MONTH 3',   pos: { left: '86%',   top: '31.9%' },
-    happens: ['Your team calibrates again', 'The new signal lands next to the first'],
-    gets: 'A growth line, not a snapshot: whether the practice is landing where the team can feel it.' },
+    happens: ['The second assessment of your growth campaign runs', 'Your dashboard and field journal update with the new results'],
+    gets: 'Growth insights, not a snapshot — whether the practice is landing, and where the team can feel it.' },
   { num: 'IX',   name: 'Revise Action Plan',  pin: 'REVISE PLAN',        time: '20 MIN',    pos: { left: '84.5%', top: '22.8%' },
-    happens: ['Keep what landed, rewrite what did not', 'Revised with your guide alongside'],
+    happens: ['Updated feedback is held against your action plan', 'You revise it with your guide alongside'],
     gets: 'A sharper plan for the back half of the year, built on evidence instead of intention.' },
   { num: 'X',    name: 'Final Assessment',    pin: 'FINAL',              time: 'MONTH 9',   pos: { left: '83.8%', top: '14.5%' },
-    happens: ['A final self-assessment and team calibration', 'The year read back to you'],
-    gets: 'The arc of the year in one place — where you started, what changed, and what your team can now feel.' },
+    happens: ['A final self-assessment and team calibration close the year', 'A year-end ceremony celebrating your growth as a leader'],
+    gets: 'The arc of your progress in one place — where you started, what changed, and how your team’s experience has changed.' },
 ];
 
 /* The "Your Path, Your Guide, Your Growth" promise from the hero now lives
@@ -64,7 +64,7 @@ const PILLARS = [
       </>
     ),
     body:
-      'A written reflection built from your own answers — your instincts, and what each one costs you. A TED talk inspires everyone the same way. This reads you.',
+      'A rich summary built from your answers — your context, your behaviors, and your instincts. A book or TED talk inspires everyone similarly; the Compass reads you specifically.',
   },
   {
     key: 'growth',
@@ -74,7 +74,7 @@ const PILLARS = [
       </>
     ),
     body:
-      'A coach never meets your team. Compass asks them — anonymously, three times across the year — and lays their answer against yours. That gap is the growth edge.',
+      'Your team responds to anonymous surveys that you help craft — three times over a year. The Compass layers their responses with yours, revealing any gaps. That gap is your growth opportunity.',
   },
   {
     key: 'guide',
@@ -84,7 +84,7 @@ const PILLARS = [
       </>
     ),
     body:
-      'Some feedback stings. You choose the voice that walks you through the difficult pages and harder conversations, all year. Nobody summits alone.',
+      'You’re not alone, but not all of us receive feedback the same way. You choose the voice that walks you through the difficult pages and harder discoveries throughout the year.',
   },
 ];
 
@@ -155,16 +155,16 @@ const GUIDES = [
 
 const GROWTH = [
   {
-    kicker: 'TWICE THIS YEAR',
+    kicker: 'ONCE, AT THE START',
     title: 'Your self-assessment',
     body:
-      'A 15-minute intake at the start and again at month nine — each producing a written 3–4 page reflection on how you actually lead.',
+      'A 15-minute intake on how you actually lead — built into a personalized insights map that paints the full picture of you as a leader, in your own answers.',
   },
   {
     kicker: 'THREE TIMES THIS YEAR',
-    title: 'Team calibration',
+    title: 'Your growth campaign',
     body:
-      'Anonymous 5-minute team surveys at the start, month three, and month nine — your self-view laid against how they experience you, every gap named.',
+      'Anonymous 5-minute team surveys at the start, month three, and month nine — your own perception against how they experience your leadership. Every gap is named.',
   },
   {
     kicker: 'ALL YEAR',
@@ -176,102 +176,130 @@ const GROWTH = [
 
 const SHOWCASE_TABS = [
   { id: 'signals', label: 'Signals overview' },
+  { id: 'effort', label: 'Effort & efficacy' },
   { id: 'gap', label: 'The gap map' },
   { id: 'plan', label: 'Your action plan' },
 ];
 
+/* Every score on this page is on the same 0–100 scale the product itself
+   uses — no decimals, no second scale to translate. */
 const SIGNAL_ROWS = [
-  { name: 'Decisive Direction', compass: 5.3, effort: 6.9, efficacy: 4.5, growth: '+0.4', down: false },
-  { name: 'Coaching', compass: 7.8, effort: 7.1, efficacy: 8.1, growth: '+1.8', down: false },
-  { name: 'Strategic Patience', compass: 5.9, effort: 6.4, efficacy: 5.7, growth: '−0.7', down: true },
+  { name: 'Decisive Direction', compass: 53, effort: 69, efficacy: 45, growth: '+4', down: false },
+  { name: 'Coaching', compass: 78, effort: 71, efficacy: 81, growth: '+18', down: false },
+  { name: 'Strategic Patience', compass: 59, effort: 64, efficacy: 57, growth: '−7', down: true },
 ];
 
 const GAP_ROWS = [
-  { name: 'Decisive Direction', you: 8.4, team: 6.1, delta: '−2.3', up: false },
-  { name: 'Coaching', you: 5.6, team: 7.9, delta: '+2.3', up: true },
-  { name: 'Strategic Patience', you: 6.9, team: 5.8, delta: '−1.1', up: false },
+  { name: 'Decisive Direction', you: 84, team: 61 },
+  { name: 'Coaching', you: 56, team: 79 },
+  { name: 'Strategic Patience', you: 69, team: 58 },
 ];
 
 const GUIDE_INSIGHTS = {
   gap: {
     'Decisive Direction': {
       mentor:
-        'You gave yourself 8.4 because you decide fast. They gave you 6.1 because they find out afterward. Both are true.',
+        'You gave yourself 84 because you decide fast. They gave you 61 because they find out afterward. Both are true.',
       catalyst:
-        'That 2.3 is one habit wide — say the why before the what. Closable by the month-3 calibration.',
+        'Those 23 points are one habit wide \u2014 say the why before the what. Closable by the month-3 calibration.',
       challenger:
-        'You experience decisiveness. They experience speed without a map. The −2.3 is what that costs you.',
+        'You experience decisiveness. They experience speed without a map. The 23 points between you is what that costs.',
       bestFriend:
-        'They’re not saying you can’t decide. They’re saying they can’t see how you decide. That’s fixable.',
+        'They\u2019re not saying you can\u2019t decide. They\u2019re saying they can\u2019t see how you decide. That\u2019s fixable.',
       mother:
-        'A −2.3 on direction means they’re guessing what you want. Guessing wears a team down.',
+        'Twenty-three points apart on direction means they\u2019re guessing what you want. Guessing wears a team down.',
       roaster:
-        'An 8.4 self-score against their 6.1. The 2.3 in between? Every decision you made alone and called alignment.',
+        'An 84 self-score against their 61. The 23 in between? Every decision you made alone and called alignment.',
     },
     Coaching: {
       mentor:
-        'You scored yourself 5.6. They scored you 7.9. You’re the last one to see the coaching they already feel.',
-      catalyst: 'A +2.3 the right way. They’re already getting the coaching. Now do it on purpose.',
+        'You scored yourself 56. They scored you 79. You\u2019re the last one to see the coaching they already feel.',
+      catalyst: 'Twenty-three points the right way. They\u2019re already getting the coaching. Now do it on purpose.',
       challenger:
-        'You think you’re behind on coaching. They don’t. Stop arguing with the people you lead.',
-      bestFriend: 'They’re not being nice. They’re telling you this is working. Believe them.',
-      mother: 'You under-count the care you give. They didn’t. That’s a gift — protect it.',
+        'You think you\u2019re behind on coaching. They don\u2019t. Stop arguing with the people you lead.',
+      bestFriend: 'They\u2019re not being nice. They\u2019re telling you this is working. Believe them.',
+      mother: 'You under-count the care you give. They didn\u2019t. That\u2019s a gift \u2014 protect it.',
       roaster:
-        'You 5.6, them 7.9. Humble isn’t the same as accurate. They’re saying you’re better at this than you think. Awkward.',
+        'You 56, them 79. Humble isn\u2019t the same as accurate. They\u2019re saying you\u2019re better at this than you think. Awkward.',
     },
     'Strategic Patience': {
       mentor:
-        'You feel patient. They feel the wait without the why. Name the pause, and it becomes leadership instead of delay.',
+        'You feel patient at 69. They feel the wait at 58. Name the pause, and it becomes leadership instead of delay.',
       catalyst:
-        'Patience down a point. Speed is a gift until the team can’t see where you’re going with it.',
+        'Eleven points down. Speed is a gift until the team can\u2019t see where you\u2019re going with it.',
       challenger:
-        'A −1.1 on patience. You call it urgency. They call it being rushed. Which one is the room living in?',
+        'Eleven points on patience. You call it urgency. They call it being rushed. Which one is the room living in?',
       bestFriend:
-        'They’re not asking you to slow down forever. They’re asking to catch up. That’s fair.',
+        'They\u2019re not asking you to slow down forever. They\u2019re asking to catch up. That\u2019s fair.',
       mother:
-        'Urgency without rest wears a team thin. A little more air in the room, and they’ll meet you there.',
+        'Urgency without rest wears a team thin. A little more air in the room, and they\u2019ll meet you there.',
       roaster:
-        'You 6.9, them 5.8. You think you’re waiting. They think you’re already gone. Cute mismatch.',
+        'You 69, them 58. You think you\u2019re waiting. They think you\u2019re already gone. Cute mismatch.',
     },
   },
   signals: {
     'Decisive Direction': {
       mentor:
-        '5.3 Compass — the lowest on the board. Effort is there. Efficacy isn’t. They feel the call, not the why.',
-      catalyst: '6.9 effort, 4.5 efficacy. The leak is the landing. Say the why and this is closable.',
-      challenger: 'Lowest Compass you have. Speed without a map. The 4.5 efficacy is the bill.',
-      bestFriend: 'They’re not asking you to decide less. They’re asking to see how you decide.',
-      mother: 'Direction without the why wears a team down. Name it, and they’ll walk with you.',
-      roaster: 'Lots of motion, not a lot of “we knew that was coming.” 4.5 efficacy. Ouch — and useful.',
+        '53 out of 100 \u2014 the lowest on the board, and it moved 4 points all year. They feel the call, not the why.',
+      catalyst: '53 and barely climbing. Four points is a rounding error. Say the why out loud and this number moves.',
+      challenger: 'Lowest Compass you have, with 4 points to show for the year. Speed without a map costs exactly this.',
+      bestFriend: 'A 53 isn\u2019t a verdict on you. It\u2019s a note that they can\u2019t see how you decide yet.',
+      mother: '53, up 4. Slow progress is still progress \u2014 but direction without the why wears a team down.',
+      roaster: '53 out of 100, up a whole 4 points. At this pace you\u2019ll be adequate sometime next decade.',
     },
     Coaching: {
-      mentor: '7.8 Compass. Highest on the board — and the +1.8 is the proof they felt it.',
-      catalyst: 'Up 1.8. Coaching is compounding. Keep feeding this and month 9 writes itself.',
-      challenger: 'Best number you have. Don’t coast it. Growth you don’t tend regresses.',
-      bestFriend: 'They felt the coaching. That’s the kind of number you protect, not explain away.',
-      mother: 'Look what grew where you paid attention. This is care they can point to.',
-      roaster: 'Coaching’s the bright one. Try not to get sentimental. Just do it again.',
+      mentor: '78 out of 100, up 18. Highest on the board and the biggest move \u2014 the 18 is the proof they felt it.',
+      catalyst: 'Up 18 points. Coaching is compounding. Keep feeding this and month 9 writes itself.',
+      challenger: 'Best number you have. Don\u2019t coast it. Growth you stop tending regresses.',
+      bestFriend: 'They felt the coaching, and 18 points is them saying so. Protect that.',
+      mother: 'Look what grew where you paid attention. Eighteen points of care they can point to.',
+      roaster: '78, up 18. Coaching\u2019s the bright one. Try not to get sentimental \u2014 just do it again.',
     },
     'Strategic Patience': {
-      mentor:
-        '5.9 Compass — just above direction. Efficacy is the short number: the wait without the why.',
-      catalyst: 'Down 0.7. Speed is a gift until they can’t see where you’re going with it.',
+      mentor: '59 out of 100, and down 7. Just above direction, and moving the wrong way.',
+      catalyst: 'Down 7. Speed is a gift until they can\u2019t see where you\u2019re going with it.',
       challenger:
-        'You call it urgency. They call it being rushed. The 5.7 efficacy is which one the room is living in.',
-      bestFriend: 'They’re not asking you to slow down forever. They’re asking to catch up.',
-      mother: 'Urgency without rest wears a team thin. A little air, and they’ll meet you there.',
-      roaster: 'Patience took the L. Better at listening, worse at waiting. Poetry.',
+        'A 7-point drop. You call it urgency. They call it being rushed. Guess which one the room is living in.',
+      bestFriend: 'They\u2019re not asking you to slow down forever. They\u2019re asking to catch up.',
+      mother: 'A 59, down 7. Urgency without rest wears a team thin. Give the room a little air.',
+      roaster: 'Patience took the L \u2014 down 7. Better at listening, worse at waiting. Poetry.',
+    },
+  },
+  effort: {
+    'Decisive Direction': {
+      mentor: '69 effort, 45 efficacy. You\u2019re spending the energy. It isn\u2019t landing where they stand.',
+      catalyst: 'Effort 69, efficacy 45. The leak is the landing, not the work. Say the why and this closes.',
+      challenger: 'You put in 69 and delivered 45. That 24-point drop is the bill for deciding alone.',
+      bestFriend: 'You\u2019re trying \u2014 69 says so. They just can\u2019t follow the trying. That\u2019s fixable.',
+      mother: 'All that effort, and only 45 of it reaches them. Let them see the thinking, not just the answer.',
+      roaster: '69 effort, 45 efficacy. Lots of motion, not a lot of \u201cwe knew that was coming.\u201d',
+    },
+    Coaching: {
+      mentor: '71 effort, 81 efficacy. You get more back than you put in. That\u2019s a gift \u2014 notice it.',
+      catalyst: 'Efficacy above effort. This one pays interest. Do more of exactly this.',
+      challenger: 'Efficacy 81 on 71 effort. You\u2019re good at this and still under-claiming it. Stop.',
+      bestFriend: 'It costs you less than it gives them. That\u2019s what a strength feels like from the inside.',
+      mother: 'Eighty-one back on seventy-one given. Care rarely returns that cleanly. Keep it.',
+      roaster: 'You get 81 out of a 71 effort. Somewhere a consultant is furious.',
+    },
+    'Strategic Patience': {
+      mentor: '64 effort, 57 efficacy. You\u2019re waiting. They\u2019re experiencing the wait without the why.',
+      catalyst: 'Effort 64, efficacy 57. Name the pause out loud and it becomes leadership instead of delay.',
+      challenger: 'Seven points of your patience never arrive. Silence isn\u2019t the same as strategy.',
+      bestFriend: 'You\u2019re holding back on purpose. They just can\u2019t tell it\u2019s on purpose.',
+      mother: 'The patience is real; it isn\u2019t reaching them. Say what you\u2019re waiting for.',
+      roaster: '64 in, 57 out. You think you\u2019re waiting. They think you\u2019re already gone.',
     },
   },
   plan: {
     mentor:
-      'One root, one branch, one goal. You don’t report to this page — you live it, and the next calibration tells the truth.',
-    catalyst: 'The root feeds you. The branch is what the team sees. They’ll see it by March.',
+      'One root, one branch, one goal. You don\u2019t report to this page \u2014 you live it, and the next calibration tells the truth.',
+    catalyst: 'The root feeds you. The branch is what the team sees. They\u2019ll see it by March.',
     challenger:
-      'Your branch is public — end every meeting naming the decision. They’ll know if you skip it.',
-    bestFriend: 'It’s one page you could recite in an elevator. That’s exactly why it works.',
-    mother: 'Tend the root and the branch, and the goal takes care of itself. I’ll check on the gardener.',
-    roaster: 'A year of growth on one page. Even you can’t lose this one.',
+      'Your branch is public \u2014 end every meeting naming the decision. They\u2019ll know if you skip it.',
+    bestFriend: 'It\u2019s one page you could recite in an elevator. That\u2019s exactly why it works.',
+    mother: 'Tend the root and the branch, and the goal takes care of itself. I\u2019ll check on the gardener.',
+    roaster: 'A year of growth on one page. Even you can\u2019t lose this one.',
   },
 };
 
@@ -306,22 +334,24 @@ function SectionRule({ label }) {
   );
 }
 
-function MeterPair({ you, team }) {
+/* One trait, two stacked bars. Used by the Effort & Efficacy panel: the top
+   bar is what you spend, the bottom is what actually lands. */
+function MeterPair({ topLabel, topValue, bottomLabel, bottomValue }) {
   return (
     <div>
       <div className="cl-signal-label">
-        <span>YOU</span>
-        <span>{you.toFixed(1)}</span>
+        <span>{topLabel}</span>
+        <span>{topValue}</span>
       </div>
       <div className="cl-signal-meter">
-        <span style={{ width: `${you * 10}%` }} />
+        <span style={{ width: `${topValue}%` }} />
       </div>
       <div className="cl-signal-label team">
-        <span>TEAM</span>
-        <span>{team.toFixed(1)}</span>
+        <span>{bottomLabel}</span>
+        <span>{bottomValue}</span>
       </div>
       <div className="cl-signal-meter team">
-        <span style={{ width: `${team * 10}%` }} />
+        <span style={{ width: `${bottomValue}%` }} />
       </div>
     </div>
   );
@@ -331,30 +361,52 @@ function SignalRow({ row, selected, onSelect }) {
   return (
     <button
       type="button"
-      className={`cl-signal-row${selected ? ' is-active' : ''}`}
+      className={`cl-signal-row is-trio${selected ? ' is-active' : ''}`}
       aria-pressed={selected}
       onClick={() => onSelect(row.name)}
     >
       <span className="cl-signal-name">{row.name}</span>
-      <span className="cl-signal-metric is-compass">{row.compass.toFixed(1)}</span>
-      <span className="cl-signal-metric">{row.effort.toFixed(1)}</span>
-      <span className="cl-signal-metric">{row.efficacy.toFixed(1)}</span>
+      <span className="cl-signal-metric is-compass">
+        {row.compass}
+        <em className="cl-signal-outof">/ 100</em>
+      </span>
       <span className={`cl-signal-metric is-growth${row.down ? ' is-down' : ''}`}>{row.growth}</span>
     </button>
   );
 }
 
-function GapRow({ row, selected, onSelect }) {
+function EffortRow({ row, selected, onSelect }) {
   return (
     <button
       type="button"
-      className={`cl-gap-row${selected ? ' is-active' : ''}`}
+      className={`cl-gap-row is-pair${selected ? ' is-active' : ''}`}
       aria-pressed={selected}
       onClick={() => onSelect(row.name)}
     >
       <span className="cl-signal-name">{row.name}</span>
-      <MeterPair you={row.you} team={row.team} />
-      <span className={`cl-gap-delta${row.up ? ' is-up' : ''}`}>{row.delta}</span>
+      <MeterPair
+        topLabel="EFFORT"
+        topValue={row.effort}
+        bottomLabel="EFFICACY"
+        bottomValue={row.efficacy}
+      />
+    </button>
+  );
+}
+
+/* The gap map is a table now, not meters \u2014 the meters moved to Effort &
+   Efficacy, and two numbers side by side already show the distance. */
+function GapRow({ row, selected, onSelect }) {
+  return (
+    <button
+      type="button"
+      className={`cl-signal-row is-trio${selected ? ' is-active' : ''}`}
+      aria-pressed={selected}
+      onClick={() => onSelect(row.name)}
+    >
+      <span className="cl-signal-name">{row.name}</span>
+      <span className="cl-signal-metric">{row.you}</span>
+      <span className="cl-signal-metric is-team">{row.team}</span>
     </button>
   );
 }
@@ -366,13 +418,16 @@ export default function CompassLanding() {
   const [showcase, setShowcase] = useState('signals');
   const [gapTrait, setGapTrait] = useState('Decisive Direction');
   const [signalTrait, setSignalTrait] = useState('Decisive Direction');
+  const [effortTrait, setEffortTrait] = useState('Decisive Direction');
 
   const wp = WAYPOINTS[waypoint];
   const guide = GUIDES.find((g) => g.id === activeGuide);
+  const showcaseTrait =
+    showcase === 'gap' ? gapTrait : showcase === 'effort' ? effortTrait : signalTrait;
   const railQuote =
     showcase === 'plan'
       ? GUIDE_INSIGHTS.plan[activeGuide]
-      : GUIDE_INSIGHTS[showcase][showcase === 'gap' ? gapTrait : signalTrait][activeGuide];
+      : GUIDE_INSIGHTS[showcase][showcaseTrait][activeGuide];
 
   const startJourney = () => navigate('/user-info');
 
@@ -408,7 +463,7 @@ export default function CompassLanding() {
 
       <header className="cl-hero">
         <div className="cl-hero-copy">
-        <span className="cl-eyebrow">AN AI-POWERED INDIVIDUAL DEVELOPMENT PLAN</span>
+        <span className="cl-eyebrow">AN AI-SUPPORTED INDIVIDUAL DEVELOPMENT PLAN</span>
         <h1>
           Leaders don&rsquo;t follow paths.
           <br />
@@ -473,7 +528,7 @@ export default function CompassLanding() {
             <ul className="clx-bullets">
               {wp.happens.map((line) => <li key={line}>{line}</li>)}
             </ul>
-            <span className="cl-journal-label ember">WHAT YOU WALK AWAY WITH</span>
+            <span className="cl-journal-label ember">WHAT YOU GET</span>
             <p>{wp.gets}</p>
           </div>
           </div>
@@ -562,6 +617,11 @@ export default function CompassLanding() {
               {showcase === 'gap' && (
                 <div className="cl-gap-stack">
                   <span className="cl-kicker">PERCEPTION GAP · {gapTrait.toUpperCase()}</span>
+                  <div className="cl-signal-head is-trio" aria-hidden="true">
+                    <span />
+                    <span>You</span>
+                    <span>Team</span>
+                  </div>
                   {GAP_ROWS.map((row) => (
                     <GapRow
                       key={row.name}
@@ -570,17 +630,38 @@ export default function CompassLanding() {
                       onSelect={setGapTrait}
                     />
                   ))}
+                  <p className="cl-signal-foot">
+                    Your read on the left, your team’s on the right. The distance between them is
+                    the work.
+                  </p>
+                </div>
+              )}
+
+              {showcase === 'effort' && (
+                <div className="cl-gap-stack">
+                  <span className="cl-kicker">
+                    EFFORT &amp; EFFICACY · MONTH 4 · {effortTrait.toUpperCase()}
+                  </span>
+                  {SIGNAL_ROWS.map((row) => (
+                    <EffortRow
+                      key={row.name}
+                      row={row}
+                      selected={effortTrait === row.name}
+                      onSelect={setEffortTrait}
+                    />
+                  ))}
+                  <p className="cl-signal-foot">
+                    Effort is what you spend. Efficacy is what lands.
+                  </p>
                 </div>
               )}
 
               {showcase === 'signals' && (
                 <div className="cl-gap-stack">
                   <span className="cl-kicker">SIGNALS OVERVIEW · MONTH 4 · {signalTrait.toUpperCase()}</span>
-                  <div className="cl-signal-head" aria-hidden="true">
+                  <div className="cl-signal-head is-trio" aria-hidden="true">
                     <span />
                     <span>Compass</span>
-                    <span>Effort</span>
-                    <span>Efficacy</span>
                     <span>Growth</span>
                   </div>
                   {SIGNAL_ROWS.map((row) => (
@@ -626,7 +707,7 @@ export default function CompassLanding() {
                     <div className="cl-plan-step is-last">
                       <div className="cl-plan-goal-label">
                         <span>TRAIT GOAL</span>
-                        <em>6.1 today → 7.5 by month 9</em>
+                        <em>61 today → 75 by month 9</em>
                       </div>
                       <div className="cl-plan-goal-meter">
                         <span style={{ width: '61%' }} />
@@ -682,7 +763,7 @@ export default function CompassLanding() {
       <section className="cl-section cl-close" id="cl-pricing" aria-label="Your package">
         <SectionRule label="YOUR PACKAGE" />
         <h2>
-          What you get. <em>And what you pay.</em>
+          Full access. <em>No premium paywall.</em>
         </h2>
 
         {/* What you get, then what you pay — the section heading covers both,

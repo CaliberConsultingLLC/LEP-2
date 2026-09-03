@@ -833,6 +833,10 @@ html:has([data-compass-landing]) {
   min-height: 100%;
 }
 
+.cl-gap-row.is-pair {
+  grid-template-columns: 1.2fr 2fr;
+}
+
 .cl-gap-row {
   display: grid;
   grid-template-columns: 1.2fr 2fr auto;
@@ -929,6 +933,13 @@ html:has([data-compass-landing]) {
   align-items: center;
 }
 
+/* Signals overview and the gap map both run three columns now: a trait and
+   two numbers. Effort and efficacy moved to their own tab. */
+.cl-signal-head.is-trio,
+.cl-signal-row.is-trio {
+  grid-template-columns: 1.6fr 1fr 1fr;
+}
+
 .cl-signal-head {
   padding: 0 12px 8px;
   font-size: 10px;
@@ -991,6 +1002,20 @@ html:has([data-compass-landing]) {
   font-weight: 500;
   color: var(--cl-ember-deep);
   letter-spacing: -0.03em;
+}
+
+/* "/ 100" rides alongside the Compass score so the scale reads at a glance. */
+.cl-signal-outof {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--cl-ink-muted);
+  margin-left: 4px;
+}
+
+.cl-signal-metric.is-team {
+  color: var(--cl-ember-deep);
 }
 
 .cl-signal-metric.is-growth {
@@ -1559,7 +1584,10 @@ html:has([data-compass-landing]) {
     border-radius: 12px 12px 0 0;
   }
   .cl-panel-body { padding: 24px 22px; min-height: 0; }
-  .cl-gap-row { grid-template-columns: 1fr; gap: 8px; }
+  .cl-gap-row,
+  .cl-gap-row.is-pair { grid-template-columns: 1fr; gap: 8px; }
+  .cl-signal-head.is-trio,
+  .cl-signal-row.is-trio { grid-template-columns: 1.4fr 1fr 1fr; }
   .cl-signal-head,
   .cl-signal-row { gap: 6px; }
   .cl-rail-portrait { height: 240px; }
