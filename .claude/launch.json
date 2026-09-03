@@ -18,6 +18,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["vite", "--port", "5217", "--strictPort"],
       "port": 5217
+    },
+    {
+      "name": "lep2-vite-polish",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5223", "--strictPort"],
+      "port": 5223
     }
   ]
 }

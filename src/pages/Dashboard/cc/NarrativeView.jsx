@@ -120,27 +120,25 @@ function insightCopy(row, role) {
   switch (zone.id) {
     case 'naturalGift':
       return {
-        headline: gap < 0
-          ? `${name} is carrying more than you give it credit for.`
-          : `${name} is your natural gift.`,
+        headline: `${name} — your natural gift.`,
         serif: `Your team feels this landing. Efficacy of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else. That consistency is the signal: when a trait costs this little and lands this clearly, it is already doing work you may not be counting.`,
         sans: 'The read is consistent: it lands clearly enough that your team doesn’t watch you strain for it — they just orient by it. The only caution with a gift this natural is drift. Name it out loud, lean on it when the harder work gets heavy, and give it just enough deliberate attention that it keeps growing instead of coasting. Protect the ease without taking it for granted.',
       };
     case 'fullStrength':
       return {
-        headline: `${name} is strong because you keep it strong.`,
+        headline: `${name} — strong because you keep it strong.`,
         serif: `Real effort, real results. Your team rates the work at ${e} and the payoff at ${f} — they see you working at this, and they feel it landing in kind.${Math.abs(gap) < 8 ? ' And your read matches theirs almost exactly: a rare, shared picture of the same strength.' : ''} That alignment is what makes this trait dependable — not luck, but a pattern your team can name.`,
         sans: 'This is the strongest place a trait can be — and the most expensive to hold. Protect it: notice what’s working so you can repeat it on purpose, and keep an eye on the cost, because a peak held by force erodes quietly. Nothing here needs fixing; it needs guarding. The work is visible, the payoff is felt, and that loop is worth preserving deliberately.',
       };
     case 'offTarget':
       return {
-        headline: `${name} is asking the loudest.`,
+        headline: `${name} — asking the loudest.`,
         serif: `${role === 'edge' ? 'The heaviest signal in the reading' : 'A hard signal in the reading'}${gap >= 8 ? ' — and a wide gap between your read and theirs' : ''}. Your team sees real effort here (${e}), they aren’t yet feeling the results (${f})${gap >= 8 ? ', and you feel more landing than they do' : ''}. The split between trying and landing is the whole story — and it shows up statement by statement, not just in the headline score.`,
         sans: 'This is a targeting problem, not a character flaw. Don’t add more force — change the aim. Ask your team what would actually help, and redirect energy you’re already spending. When you’re ready to work, this trait is first in line, and its room holds every statement behind this read. Small aim corrections here will be felt faster than pushing harder on what is already maxed out.',
       };
     default:
       return {
-        headline: `${name} is quiet ground, not yet claimed.`,
+        headline: `${name} — quiet ground, not yet claimed.`,
         serif: `Neither much effort (${e}) nor much result (${f}) is showing up here yet. It’s not a failure — it’s unclaimed ground, and unclaimed ground moves fastest when you decide it matters. Until you choose it, your team reads quiet on both measurements.`,
         sans: 'Decide whether this trait belongs in the next stretch. If it does, a small, deliberate investment — one visible behavior, held for a season — can move it more quickly than any of the crowded traits. If it doesn’t, let it rest without guilt. Unclaimed is not broken; it is simply waiting for a decision about whether it earns your attention.',
       };
@@ -160,7 +158,7 @@ function NarrativeFrame({ children }) {
         borderRadius: radii.lg,
         boxShadow: shadows.dialCase,
         overflow: 'hidden',
-        p: { xs: 2.4, md: 3.6 },
+        p: { xs: 2, md: 2.8 },
       }}
     >
       {children}
@@ -175,10 +173,10 @@ function SlideHeader({ eyebrow, title, lead, legend }) {
       alignItems="flex-end"
       justifyContent="space-between"
       spacing={3}
-      sx={{ mb: 2.6, flexWrap: 'wrap', rowGap: 1.6 }}
+      sx={{ mb: 2.2, flexWrap: 'wrap', rowGap: 1.4 }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <ChapterEyebrow index={eyebrow.index} label={eyebrow.label} sx={{ mb: 1.2 }} />
+        <ChapterEyebrow index={eyebrow.index} label={eyebrow.label} sx={{ mb: 1 }} />
         <Typography
           component="h1"
           sx={{
@@ -186,15 +184,15 @@ function SlideHeader({ eyebrow, title, lead, legend }) {
             fontWeight: 500,
             letterSpacing: '-0.03em',
             lineHeight: 1.08,
-            fontSize: { xs: 26, md: 34 },
+            fontSize: { xs: 24, md: 30 },
             color: colors.textPrimary,
-            mb: 1.2,
+            mb: 1,
             textWrap: 'pretty',
           }}
         >
           {title}
         </Typography>
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 14.5, lineHeight: 1.55, color: colors.textSecondary, maxWidth: 700 }}>
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.5, color: colors.textSecondary, maxWidth: 700 }}>
           {lead}
         </Typography>
       </Box>
@@ -223,11 +221,12 @@ const GAP_LEGEND = [
   { strong: 'They see more', rest: 'than you feel', color: colors.navy500 },
 ];
 
-const pickCardSx = (on) => ({
+const pickCardSx = (on, h = { xs: 76, md: 92 }) => ({
   boxSizing: 'border-box',
-  borderRadius: '18px',
-  px: 3.4,
-  minHeight: { xs: 88, md: 106 },
+  borderRadius: '16px',
+  px: 2.6,
+  height: h,
+  overflow: 'hidden',
   display: 'flex',
   cursor: 'pointer',
   transition: 'all 180ms ease',
@@ -253,12 +252,14 @@ function DetailCard({ children }) {
         border: `1.5px solid ${colors.orange}`,
         borderRadius: radii.lg,
         boxShadow: shadows.card,
-        p: { xs: 3, md: '30px 34px 26px' },
+        p: { xs: 2.4, md: '22px 28px 20px' },
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 2,
-        minHeight: { md: 356 },
+        gap: 1.6,
+        height: { md: 316 },
+        minHeight: { xs: 280, md: 316 },
+        overflow: 'hidden',
       }}
     >
       {children}
@@ -275,21 +276,21 @@ function MeasureBar({ label, value, ink, fill, caption }) {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: `110px 1fr ${SCORE_COL_W}px`,
+          gridTemplateColumns: `96px 1fr ${SCORE_COL_W}px`,
           columnGap: 1.5,
           alignItems: 'center',
           mb: caption ? 0.8 : 0,
         }}
       >
         <Typography sx={{ ...type.monoLabel, color: ink }}>{label}</Typography>
-        <Box sx={{ height: 14, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
+        <Box sx={{ height: 11, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
           <Box sx={{ width: `${score}%`, height: '100%', borderRadius: radii.pill, bgcolor: fill, transition: 'width 280ms ease' }} />
         </Box>
         <Typography
           sx={{
             fontFamily: fonts.serif,
             fontWeight: 600,
-            fontSize: 28,
+            fontSize: 24,
             lineHeight: 1,
             letterSpacing: '-0.04em',
             color: ink,
@@ -315,11 +316,11 @@ function ReadFootnote({ children }) {
       sx={{
         fontFamily: fonts.serif,
         fontStyle: 'italic',
-        fontSize: 16,
-        lineHeight: 1.6,
+        fontSize: 15,
+        lineHeight: 1.55,
         color: colors.textSecondary,
         borderTop: `1px solid ${colors.borderSoft}`,
-        pt: 2.2,
+        pt: 1.8,
       }}
     >
       {children}
@@ -332,9 +333,9 @@ function PickGrid({ left, right }) {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(300px, 400px) minmax(0, 1fr)' },
-        gap: 3.4,
-        alignItems: 'stretch',
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(270px, 350px) minmax(0, 1fr)' },
+        gap: 2.6,
+        alignItems: 'start',
       }}
     >
       <Stack spacing={2}>{left}</Stack>
@@ -346,7 +347,7 @@ function PickGrid({ left, right }) {
 function GapCells({ label, labelColor, you, team, gap }) {
   const cell = {
     fontFamily: fonts.mono,
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: 700,
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'right',
@@ -357,11 +358,11 @@ function GapCells({ label, labelColor, you, team, gap }) {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: `110px repeat(3, ${SCORE_COL_W + 28}px)`,
+        gridTemplateColumns: `96px repeat(3, ${SCORE_COL_W + 24}px)`,
         columnGap: 1.5,
         alignItems: 'baseline',
         borderTop: `1px solid ${colors.borderSoft}`,
-        py: 2,
+        py: 1.6,
       }}
     >
       <Typography sx={{ ...type.monoLabel, color: labelColor }}>{label}</Typography>
@@ -443,44 +444,15 @@ function statementZoneBlurb(effort, efficacy) {
   return `${zone.label}. ${statementSplitRead(effort, efficacy)}`;
 }
 
-function bestStatementForRow(row) {
-  const mapped = mapRowStatements(row);
-  return [...mapped].sort((a, b) => b.compass - a.compass)[0] || mapped[0];
-}
-
 function MiniDial({ statement }) {
   const zone = statement ? dialZoneOf(statement.effort, statement.efficacy) : null;
   const pos = statement ? circPos(statement.effort, statement.efficacy) : null;
-  const corners = [
-    { text: 'HIGH EFFICACY', sx: { left: 0, top: 0 } },
-    { text: 'HIGH EFFORT', sx: { right: 0, top: 0 } },
-    { text: 'LOW EFFORT', sx: { left: 0, bottom: 0 } },
-    { text: 'LOW EFFICACY', sx: { right: 0, bottom: 0 } },
-  ];
   return (
-    <Box sx={{ position: 'relative', width: '100%', maxWidth: 420, aspectRatio: '1 / 1', mx: 'auto' }}>
-      {corners.map((c) => (
-        <Typography
-          key={c.text}
-          sx={{
-            position: 'absolute',
-            ...c.sx,
-            fontFamily: fonts.mono,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: '0.18em',
-            whiteSpace: 'nowrap',
-            color: '#8a94a3',
-            pointerEvents: 'none',
-          }}
-        >
-          {c.text}
-        </Typography>
-      ))}
+    <Box sx={{ position: 'relative', width: '100%', maxWidth: 400, aspectRatio: '1 / 1', mx: 'auto' }}>
       <Box
         sx={{
           position: 'absolute',
-          inset: '18px',
+          inset: '6px',
           borderRadius: radii.circle,
           background: 'radial-gradient(circle at 50% -10%, #223d66, #0a1424 72%)',
           boxShadow: shadows.dialCase,
@@ -630,11 +602,15 @@ function SlideThreshold({ firstName, respondents, invited, traits }) {
       <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 18, lineHeight: 1.6, color: colors.textSecondary, maxWidth: 560, mx: 'auto', mb: { xs: 4, md: 7 } }}>
         {answered} What follows is their experience of your leadership — read it slowly, and hold it lightly. Patterns matter more than any one number.
       </Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: `repeat(${traits.length}, 1fr)` }, gap: { xs: 3, md: 0 }, justifyContent: 'center' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 7 }, flexWrap: 'wrap' }}>
         {traits.map((row) => (
-          <Stack key={row.trait} alignItems="center" spacing={1.6}>
-            <Typography sx={{ ...type.monoLabel, textAlign: 'center' }}>{row.subTrait || row.trait}</Typography>
-            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: 64, md: 88 }, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+          <Stack key={row.trait} alignItems="center" sx={{ width: { xs: '100%', sm: 170 } }}>
+            {/* Fixed label zone, bottom-aligned: a wrapped name stacks upward so
+                every score sits on the same horizontal line. */}
+            <Box sx={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.4 }}>
+              <Typography sx={{ ...type.monoLabel, textAlign: 'center', lineHeight: 1.45 }}>{row.subTrait || row.trait}</Typography>
+            </Box>
+            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: 56, md: 74 }, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
               {Math.round(row.team.lepScore)}
             </Typography>
           </Stack>
@@ -669,10 +645,10 @@ function SlideMeasurements({ traits, sel, onSel }) {
               onClick={() => onSel(i)}
               sx={{ ...pickCardSx(on), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
             >
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 19, fontWeight: 600, lineHeight: 1.25, color: on ? '#fff' : colors.textPrimary }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
                 {row.subTrait || row.trait}
               </Typography>
-              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 32, letterSpacing: '-0.04em', color: on ? colors.amberSoft : colors.orange, flexShrink: 0 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 28, letterSpacing: '-0.04em', color: on ? colors.amberSoft : colors.orange, flexShrink: 0 }}>
                 {Math.round(row.team.lepScore)}
               </Typography>
             </Box>
@@ -681,18 +657,18 @@ function SlideMeasurements({ traits, sel, onSel }) {
         right={
           <DetailCard>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 24, fontWeight: 600, color: colors.textPrimary }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
                 {d.subTrait || d.trait}
               </Typography>
-              <Stack direction="row" alignItems="baseline" spacing={1}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 44, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
+                <Typography sx={{ ...type.monoLabel }}>Compass</Typography>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 38, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
                   {Math.round(d.team.lepScore)}
                 </Typography>
-                <Typography sx={{ ...type.monoLabel }}>Compass &#183; the blend</Typography>
               </Stack>
             </Stack>
-            <MeasureBar label="Effort" value={d.team.effort} ink={colors.orangeDeep} fill={colors.orange} caption={copy.effortCap} />
-            <MeasureBar label="Efficacy" value={d.team.efficacy} ink={colors.navy500} fill={colors.navy500} caption={copy.efficacyCap} />
+            <MeasureBar label="Effort" value={d.team.effort} ink={colors.orangeDeep} fill={colors.orange} />
+            <MeasureBar label="Efficacy" value={d.team.efficacy} ink={colors.navy500} fill={colors.navy500} />
             <ReadFootnote>{copy.read}</ReadFootnote>
           </DetailCard>
         }
@@ -707,12 +683,23 @@ function StatementPickCard({ on, trait, text, onClick }) {
       component="button"
       type="button"
       onClick={onClick}
-      sx={{ ...pickCardSx(on), flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', gap: 1 }}
+      sx={{ ...pickCardSx(on, { xs: 96, md: 108 }), flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', gap: 0.8 }}
     >
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: on ? 'rgba(244,206,161,0.75)' : '#8a94a3' }}>
         {trait}
       </Typography>
-      <Typography sx={{ fontFamily: fonts.serif, fontSize: 16.5, lineHeight: 1.4, color: on ? '#fff' : colors.textPrimary }}>
+      <Typography
+        sx={{
+          fontFamily: fonts.serif,
+          fontSize: 15,
+          lineHeight: 1.35,
+          color: on ? '#fff' : colors.textPrimary,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
         {text}
       </Typography>
     </Box>
@@ -735,7 +722,20 @@ function SlideStatements({ stmts, sel, onSel }) {
         ))}
         right={
           <DetailCard>
-            <Typography sx={{ fontFamily: fonts.serif, fontSize: 23, fontWeight: 500, lineHeight: 1.4, letterSpacing: '-0.015em', color: colors.textPrimary }}>
+            <Typography
+              sx={{
+                fontFamily: fonts.serif,
+                fontSize: 21,
+                fontWeight: 500,
+                lineHeight: 1.35,
+                letterSpacing: '-0.015em',
+                color: colors.textPrimary,
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
               &#8220;{d.text}&#8221;
             </Typography>
             <MeasureBar label="Effort" value={d.effort} ink={colors.orangeDeep} fill={colors.orange} />
@@ -893,12 +893,16 @@ function CompassExplainerVideo({ standalone = false }) {
 
 function SlideMapVideo() {
   return (
-    <Box>
-      <SlideHeader
-        eyebrow={{ index: 4, label: 'The Map' }}
-        title="Watch how effort and efficacy place a statement on the compass."
-        lead="Every statement your team rated carries two measurements. Together they give it a position on the compass — one of four zones, and the zone tells you the move."
-      />
+    <Box
+      sx={{
+        maxWidth: { xs: '100%', md: 860 },
+        mx: 'auto',
+        bgcolor: colors.surface1,
+        borderRadius: radii.xl,
+        p: { xs: 1, md: 1.4 },
+        boxShadow: shadows.card,
+      }}
+    >
       <CompassExplainerVideo standalone />
     </Box>
   );
@@ -922,9 +926,17 @@ function SlideMap({ stmts, sel, onSel }) {
               const zone = dialZoneOf(s.effort, s.efficacy);
               if (sel === i) {
                 return (
-                  <Box key={s.text} sx={{ bgcolor: colors.navy900, p: '24px 28px 20px' }}>
-                    <Box sx={{ mb: 1.8 }}>
-                      <Box component="span" sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 500, lineHeight: 1.35, letterSpacing: '-0.015em', color: '#fff' }}>
+                  <Box key={s.text} sx={{ bgcolor: colors.navy900, p: '20px 24px 16px' }}>
+                    <Box
+                      sx={{
+                        mb: 1.6,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Box component="span" sx={{ fontFamily: fonts.serif, fontSize: 19, fontWeight: 500, lineHeight: 1.35, letterSpacing: '-0.015em', color: '#fff' }}>
                         &#8220;{s.text}&#8221;
                       </Box>
                       <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, px: 1.4, py: 0.4, borderRadius: radii.pill, border: `1px solid ${zone.navyInk}`, ml: 1.4, verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
@@ -958,8 +970,19 @@ function SlideMap({ stmts, sel, onSel }) {
                         </Typography>
                       ))}
                     </Stack>
-                    <Box sx={{ borderTop: '1px solid rgba(244,206,161,0.18)', pt: 1.6, mt: 1.4 }}>
-                      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.55, color: 'rgba(244,206,161,0.88)' }}>
+                    <Box sx={{ borderTop: '1px solid rgba(244,206,161,0.18)', pt: 1.4, mt: 1.2 }}>
+                      <Typography
+                        sx={{
+                          fontFamily: fonts.sans,
+                          fontSize: 13,
+                          lineHeight: 1.5,
+                          color: 'rgba(244,206,161,0.88)',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
                         {statementZoneBlurb(s.effort, s.efficacy)}
                       </Typography>
                     </Box>
@@ -993,7 +1016,7 @@ function SlideMap({ stmts, sel, onSel }) {
                   }}
                 >
                   <Typography sx={{ fontFamily: fonts.mono, fontSize: 13, color: colors.navy300 }}>&#8964;</Typography>
-                  <Typography sx={{ fontFamily: fonts.serif, fontSize: 15, lineHeight: 1.35, color: colors.textPrimary }}>{s.text}</Typography>
+                  <Typography sx={{ fontFamily: fonts.serif, fontSize: 15, lineHeight: 1.35, color: colors.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.text}</Typography>
                   <Typography sx={{ fontFamily: fonts.mono, fontSize: 16, fontWeight: 700, textAlign: 'right', color: colors.textSecondary }}>
                     {Math.round(s.compass)}
                   </Typography>
@@ -1032,11 +1055,11 @@ function SlideMirror({ traits, sel, onSel }) {
               onClick={() => onSel(i)}
               sx={{ ...pickCardSx(on), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
             >
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 19, fontWeight: 600, lineHeight: 1.25, color: on ? '#fff' : colors.textPrimary }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
                 {row.subTrait || row.trait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 28, letterSpacing: '-0.03em', color: on ? gapLight(g) : gapInk(g) }}>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 26, letterSpacing: '-0.03em', color: on ? gapLight(g) : gapInk(g) }}>
                   {fmtGap(g)}
                 </Typography>
                 <Typography sx={{ fontFamily: fonts.mono, fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: on ? 'rgba(244,206,161,0.6)' : '#8a94a3' }}>
@@ -1049,14 +1072,14 @@ function SlideMirror({ traits, sel, onSel }) {
         right={
           <DetailCard>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 24, fontWeight: 600, color: colors.textPrimary }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
                 {d.subTrait || d.trait}
               </Typography>
-              <Stack direction="row" alignItems="baseline" spacing={1}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 44, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
+              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
+                <Typography sx={{ ...type.monoLabel }}>Compass gap</Typography>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 38, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
                   {fmtGap(gap)}
                 </Typography>
-                <Typography sx={{ ...type.monoLabel }}>Compass gap</Typography>
               </Stack>
             </Stack>
             <Box>
@@ -1091,14 +1114,28 @@ function SlideGapStatements({ stmts, sel, onSel }) {
         right={
           <DetailCard>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2.4}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 23, fontWeight: 500, lineHeight: 1.4, letterSpacing: '-0.015em', color: colors.textPrimary }}>
+              <Typography
+                sx={{
+                  fontFamily: fonts.serif,
+                  fontSize: 19,
+                  fontWeight: 500,
+                  lineHeight: 1.35,
+                  letterSpacing: '-0.015em',
+                  color: colors.textPrimary,
+                  minWidth: 0,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
                 &#8220;{d.text}&#8221;
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 40, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
+                <Typography sx={{ ...type.monoLabel }}>Gap</Typography>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 34, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
                   {fmtGap(gap)}
                 </Typography>
-                <Typography sx={{ ...type.monoLabel }}>Gap</Typography>
               </Stack>
             </Stack>
             <Box>
@@ -1118,7 +1155,6 @@ function SlideInsight({ traits, index, roles }) {
   const role =
     row.trait === roles.edge?.trait ? 'edge' : row.trait === roles.lifting?.trait ? 'lifting' : 'strength';
   const copy = insightCopy(row, role);
-  const best = bestStatementForRow(row);
   const traitDial = {
     effort: row.team.effort,
     efficacy: row.team.efficacy,
@@ -1128,7 +1164,7 @@ function SlideInsight({ traits, index, roles }) {
 
   return (
     <Box>
-      <ChapterEyebrow index={8 + index} label={`The Insights · ${name}`} sx={{ mb: 1.2 }} />
+      <ChapterEyebrow index={8 + index} label={`The Insights · ${name}`} sx={{ mb: 1 }} />
       <Typography
         component="h1"
         sx={{
@@ -1136,51 +1172,38 @@ function SlideInsight({ traits, index, roles }) {
           fontWeight: 500,
           letterSpacing: '-0.03em',
           lineHeight: 1.1,
-          fontSize: { xs: 28, md: 38 },
+          fontSize: { xs: 26, md: 34 },
           color: colors.textPrimary,
-          mb: 3.2,
+          mb: 2.6,
           textWrap: 'pretty',
         }}
       >
         {copy.headline}
       </Typography>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '380px minmax(0, 1fr)' }, gap: 4.5, alignItems: 'start' }}>
-        <MiniDial statement={traitDial} />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '340px minmax(0, 1fr)' }, gap: 4, alignItems: 'center' }}>
         <Box>
-          <Typography sx={{ ...type.monoLabel, mb: 1.4 }}>Strongest statement</Typography>
-          <Box
-            sx={{
-              bgcolor: colors.surface1,
-              border: `1.5px solid ${colors.borderSoft}`,
-              borderRadius: radii.lg,
-              p: { xs: 2.2, md: '22px 26px' },
-              mb: 3,
-            }}
-          >
-            <Typography sx={{ fontFamily: fonts.serif, fontSize: 20, fontWeight: 500, lineHeight: 1.4, letterSpacing: '-0.015em', color: colors.textPrimary, mb: 1.6 }}>
-              &#8220;{best.text}&#8221;
-            </Typography>
-            <Stack direction="row" alignItems="baseline" spacing={2.4}>
-              {[
-                { v: Math.round(best.compass), cap: 'Compass', color: colors.orange },
-                { v: Math.round(best.effort), cap: 'Effort', color: colors.orangeDeep },
-                { v: Math.round(best.efficacy), cap: 'Efficacy', color: colors.navy500 },
-              ].map((c) => (
-                <Stack key={c.cap} direction="row" alignItems="baseline" spacing={0.8}>
-                  <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 24, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
-                    {c.v}
-                  </Typography>
-                  <Typography sx={{ ...type.monoLabel, color: colors.textSecondary }}>{c.cap}</Typography>
-                </Stack>
-              ))}
-            </Stack>
-          </Box>
-
-          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 19, lineHeight: 1.65, color: colors.textPrimary, mb: 2.4, textWrap: 'pretty' }}>
+          <MiniDial statement={traitDial} />
+          <Stack direction="row" justifyContent="center" spacing={3} sx={{ mt: 1.6 }}>
+            {[
+              { v: Math.round(row.team.lepScore), cap: 'Compass', color: colors.orange },
+              { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orangeDeep },
+              { v: Math.round(row.team.efficacy), cap: 'Efficacy', color: colors.navy500 },
+            ].map((c) => (
+              <Stack key={c.cap} alignItems="center" spacing={0.4}>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 24, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
+                  {c.v}
+                </Typography>
+                <Typography sx={{ ...type.monoLabel, color: colors.textSecondary }}>{c.cap}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+        <Box>
+          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 18, lineHeight: 1.6, color: colors.textPrimary, mb: 2, textWrap: 'pretty' }}>
             {copy.serif}
           </Typography>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.62, color: colors.textSecondary, textWrap: 'pretty' }}>
             {copy.sans}
           </Typography>
         </Box>
@@ -1365,7 +1388,9 @@ export default function NarrativeView() {
     >
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', overflowY: 'auto' }}>
         <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
-          <NarrativeFrame>{renderSlide()}</NarrativeFrame>
+          {chapters[idx].id === 'map-video'
+            ? renderSlide()
+            : <NarrativeFrame>{renderSlide()}</NarrativeFrame>}
         </WalkthroughStage>
       </Box>
       <Stack alignItems="center" sx={{ pt: 1.6, pb: 0.6, flexShrink: 0 }}>
