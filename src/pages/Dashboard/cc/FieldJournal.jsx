@@ -5,8 +5,9 @@ import { useBenchmarkData } from './dashboardData.js';
 import { deriveTraitRoles } from './debriefContent.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
+import FieldJournalGuide from './FieldJournalGuide.jsx';
+import { useCairnTheme } from '../../../config/runtimeFlags';
 import {
-  BOOKMARK_GRADIENTS,
   EMPTY_PLAN,
   FIELD_LEAD_INS,
   FIELD_PROMPTS,
@@ -40,6 +41,31 @@ const writeJson = (key, value) => {
 
 const FLIP_MS = 780;
 const CLIP = paperClipPath();
+
+function viewFromPhase(saved) {
+  if (!Number.isFinite(saved)) return { kind: 'trait', traitIndex: 0, page: 0 };
+  if (saved >= 6) return { kind: 'ledger' };
+  return { kind: 'trait', traitIndex: Math.floor(saved / 2), page: saved % 2 };
+}
+
+function viewToPhase(view) {
+  if (view.kind === 'ledger') return 6;
+  return view.traitIndex * 2 + view.page;
+}
+
+function viewToRail(view) {
+  return view.kind === 'ledger' ? 3 : view.traitIndex;
+}
+
+function viewsEqual(a, b) {
+  if (a.kind !== b.kind) return false;
+  if (a.kind === 'ledger') return true;
+  return a.traitIndex === b.traitIndex && a.page === b.page;
+}
+
+function viewDir(from, to) {
+  return viewToPhase(to) >= viewToPhase(from) ? 'fwd' : 'back';
+}
 
 const journalKeyframes = {
   '@keyframes fjInkIn': {
@@ -410,7 +436,7 @@ function NoteModal({ note, onClose }) {
 
 export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, onTraitIndexChange }) {
   const { loaded, rows, teamResponses } = useBenchmarkData();
-  const { personaId, setPageMessage, clearPageMessage } = useGuide();
+  const { persona, personaId, setSuppress } = useGuide();
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
   const orderedRows = useMemo(() => {
     if (!roles.ordered.length) return [];
@@ -432,18 +458,14 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   );
 
   const flipTimer = useRef(null);
-  const skipExternalSync = useRef(false);
-
+  const prevRailRef = useRef(traitIndex);
   const mode = phases.modeFor('practice');
-  const initFromPhase = (saved) => {
-    if (!Number.isFinite(saved)) return { trait: 0, page: 0, ledger: false };
-    if (saved >= 6) return { trait: 0, page: 0, ledger: true };
-    return { trait: Math.floor(saved / 2), page: saved % 2, ledger: false };
-  };
-  const phaseInit = initFromPhase(phases.pages.practice);
+  const readOnly = mode === 'snapshot';
 
-  const [trait, setTrait] = useState(phaseInit.ledger ? orderedRows.length : phaseInit.trait);
-  const [page, setPage] = useState(phaseInit.page);
+  const [view, setView] = useState(() => {
+    const base = viewFromPhase(phases.pages.practice);
+    return base;
+  });
   const [plans, setPlans] = useState({});
   const [editing, setEditing] = useState(null);
   const [draft, setDraft] = useState('');
@@ -451,14 +473,29 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const [flipDir, setFlipDir] = useState('fwd');
   const [noteOpen, setNoteOpen] = useState(null);
   const [settleKey, setSettleKey] = useState(0);
+  const [guideMsg, setGuideMsg] = useState({ text: '', pose: 'think', eyebrow: '' });
 
-  const isLedger = trait >= orderedRows.length || traitIndex >= 3;
-  const traitIdx = isLedger ? 0 : Math.min(Math.max(trait, 0), Math.max(orderedRows.length - 1, 0));
+  const showLedger = view.kind === 'ledger';
+  const traitIdx = showLedger ? 0 : Math.min(Math.max(view.traitIndex, 0), Math.max(orderedRows.length - 1, 0));
+  const page = showLedger ? 0 : view.page;
   const row = orderedRows[traitIdx];
   const plan = row ? { ...EMPTY_PLAN, ...(plans[row.trait] || {}) } : EMPTY_PLAN;
   const traitLabel = row ? row.subTrait || row.trait : '';
   const role = row ? traitRole(row, roles) : 'edge';
   const respondents = teamResponses?.length || 0;
+
+  useEffect(() => {
+    if (!useCairnTheme) return undefined;
+    setSuppress(true);
+    return () => setSuppress(false);
+  }, [setSuppress]);
+
+  useEffect(() => {
+    if (readOnly) {
+      setView({ kind: 'ledger' });
+      onTraitIndexChange(3);
+    }
+  }, [readOnly, onTraitIndexChange]);
 
   useEffect(() => {
     if (!orderedRows.length) return;
@@ -473,22 +510,6 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     });
   }, [orderedRows, planKeyFor]);
 
-  useEffect(() => {
-    const saved = phases.pages.practice;
-    if (!orderedRows.length || !Number.isFinite(saved)) return;
-    skipExternalSync.current = true;
-    if (saved >= 6) {
-      setTrait(orderedRows.length);
-      setPage(0);
-      onTraitIndexChange(3);
-    } else {
-      setTrait(Math.floor(saved / 2));
-      setPage(saved % 2);
-      onTraitIndexChange(Math.floor(saved / 2));
-    }
-    skipExternalSync.current = false;
-  }, [orderedRows.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const patchPlan = useCallback(
     (traitKey, patch) => {
       setPlans((prev) => {
@@ -500,50 +521,49 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     [planKeyFor]
   );
 
-  const syncPhasePage = useCallback(
-    (tIdx, pg, ledger) => {
-      phases.setPhasePage('practice', ledger ? 6 : tIdx * 2 + pg);
+  const applyView = useCallback(
+    (nextView) => {
+      setView(nextView);
+      setEditing(null);
+      setSettleKey((k) => k + 1);
+      phases.setPhasePage('practice', viewToPhase(nextView));
+      onTraitIndexChange(viewToRail(nextView));
     },
-    [phases]
+    [onTraitIndexChange, phases]
   );
 
-  const runFlip = useCallback(
-    (nextTraitIdx, nextPage, dir, ledger = false) => {
+  const flipTo = useCallback(
+    (nextView, dir) => {
       if (flipTimer.current) clearTimeout(flipTimer.current);
       setFlipDir(dir);
       setFlipping(true);
-      skipExternalSync.current = true;
       flipTimer.current = setTimeout(() => {
-        const nextTrait = ledger ? orderedRows.length : nextTraitIdx;
-        setTrait(nextTrait);
-        setPage(nextPage);
-        setEditing(null);
-        setSettleKey((k) => k + 1);
+        applyView(nextView);
         setFlipping(false);
-        syncPhasePage(nextTraitIdx, nextPage, ledger);
-        onTraitIndexChange(ledger ? 3 : nextTraitIdx);
-        skipExternalSync.current = false;
       }, FLIP_MS);
     },
-    [onTraitIndexChange, syncPhasePage, orderedRows.length]
+    [applyView]
   );
 
+  const navigateTo = useCallback(
+    (nextView) => {
+      if (viewsEqual(view, nextView)) return;
+      flipTo(nextView, viewDir(view, nextView));
+    },
+    [view, flipTo]
+  );
+
+  // Header rail — react only when the rail selection changes, not internal page turns.
   useEffect(() => {
-    if (skipExternalSync.current || flipping || !orderedRows.length) return;
-    const externalLedger = traitIndex >= 3;
-    const internalLedger = trait >= orderedRows.length;
-    if (externalLedger && !internalLedger) {
-      runFlip(0, 0, 'fwd', true);
-      return;
-    }
-    if (!externalLedger && internalLedger) {
-      runFlip(traitIndex, 0, 'back', false);
-      return;
-    }
-    if (!externalLedger && traitIndex !== trait) {
-      runFlip(traitIndex, 0, traitIndex > trait ? 'fwd' : 'back', false);
-    }
-  }, [traitIndex, trait, flipping, orderedRows.length, runFlip]);
+    if (flipping || !orderedRows.length || readOnly) return;
+    if (traitIndex === prevRailRef.current) return;
+    prevRailRef.current = traitIndex;
+    const target =
+      traitIndex >= 3
+        ? { kind: 'ledger' }
+        : { kind: 'trait', traitIndex, page: 0 };
+    navigateTo(target);
+  }, [traitIndex, orderedRows.length, flipping, readOnly, navigateTo]);
 
   useEffect(() => () => {
     if (flipTimer.current) clearTimeout(flipTimer.current);
@@ -563,18 +583,16 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
       page,
       editing,
       sealed: pageSealed,
-      isLedger: isLedger || mode === 'snapshot',
+      isLedger: showLedger,
       allDone,
-      signed: signed || mode === 'snapshot',
+      signed: signed || readOnly,
       row,
       traitLabel,
       respondents,
     });
-    setPageMessage({ text: msg.text, pose: msg.pose, eyebrow: msg.eyebrow });
+    setGuideMsg({ text: msg.text, pose: msg.pose, eyebrow: msg.eyebrow });
     return undefined;
-  }, [personaId, role, page, editing, pageSealed, isLedger, mode, allDone, signed, row, traitLabel, respondents, orderedRows.length, setPageMessage]);
-
-  useEffect(() => () => clearPageMessage(), [clearPageMessage]);
+  }, [personaId, role, page, editing, pageSealed, showLedger, allDone, signed, readOnly, row, traitLabel, respondents, orderedRows.length]);
 
   const currentScore = row ? Math.round(row.team.lepScore) : 0;
   const goalVal = Number.isFinite(plan.commitGoal) ? plan.commitGoal : defaultGoal(currentScore);
@@ -626,6 +644,12 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
 
   const nextIncompleteTrait = orderedRows.findIndex((r) => !planComplete({ ...EMPTY_PLAN, ...(plans[r.trait] || {}) }));
 
+  useEffect(() => {
+    if (readOnly || showLedger || pageSealed || editing) return;
+    const first = firstUnanswered(page);
+    if (first) setEditing(first);
+  }, [page, view.traitIndex, readOnly, showLedger, pageSealed, editing, firstUnanswered]);
+
   if (!loaded && !orderedRows.length) {
     return (
       <Box sx={{ px: 3, py: 3 }}>
@@ -642,33 +666,22 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     );
   }
 
-  const showLedger = isLedger || mode === 'snapshot';
-  const readOnly = mode === 'snapshot';
-
-  useEffect(() => {
-    if (readOnly || showLedger || pageSealed || editing) return;
-    const first = firstUnanswered(page);
-    if (first) setEditing(first);
-  }, [page, trait, readOnly, showLedger, pageSealed, editing, firstUnanswered]);
-
-  const notes = row ? pickEvidenceNotes(row) : [];
-
   const cardPad = showLedger ? '30px 50px 26px' : page === 0 ? '30px 50px 26px' : '22px 50px 18px';
 
   const goForward = () => {
-    if (showLedger) return;
-    if (page === 0) runFlip(traitIdx, 1, 'fwd');
-    else if (traitIdx < orderedRows.length - 1) runFlip(traitIdx + 1, 0, 'fwd');
-    else runFlip(0, 0, 'fwd', true);
+    if (showLedger || readOnly) return;
+    if (page === 0) navigateTo({ kind: 'trait', traitIndex: traitIdx, page: 1 });
+    else if (traitIdx < orderedRows.length - 1) navigateTo({ kind: 'trait', traitIndex: traitIdx + 1, page: 0 });
+    else navigateTo({ kind: 'ledger' });
   };
 
   const goBack = () => {
     if (showLedger) {
-      runFlip(orderedRows.length - 1, 1, 'back');
+      navigateTo({ kind: 'trait', traitIndex: orderedRows.length - 1, page: 1 });
       return;
     }
-    if (page === 1) runFlip(traitIdx, 0, 'back');
-    else if (traitIdx > 0) runFlip(traitIdx - 1, 1, 'back');
+    if (page === 1) navigateTo({ kind: 'trait', traitIndex: traitIdx, page: 0 });
+    else if (traitIdx > 0) navigateTo({ kind: 'trait', traitIndex: traitIdx - 1, page: 1 });
   };
 
   const forwardLabel = page === 0
@@ -677,9 +690,30 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
       ? `Turn the page → ${orderedRows[traitIdx + 1].subTrait || orderedRows[traitIdx + 1].trait}`
       : 'To the Commitment →';
 
+  const notes = row ? pickEvidenceNotes(row) : [];
+
   return (
-    <Box sx={{ ...journalKeyframes, height: '100%', minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxWidth: 790, width: '100%', mx: 'auto', pt: '15px', pb: '8px', px: '10px' }}>
+    <Box sx={{ ...journalKeyframes, position: 'relative', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
+      {useCairnTheme && (
+        <FieldJournalGuide
+          persona={persona}
+          eyebrow={guideMsg.eyebrow}
+          text={guideMsg.text}
+          pose={guideMsg.pose}
+        />
+      )}
+      <Box
+        sx={{
+          position: 'relative',
+          pl: { xs: 0, md: 28, lg: 36, xl: 42 },
+          height: '100%',
+          minHeight: 0,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxWidth: 720, width: '100%', ml: { xs: 0, md: 'auto' }, mr: { xs: 0, md: 0 }, pt: '15px', pb: '8px', px: '10px' }}>
         {!showLedger && (
           <Stack direction="row" spacing={0.75} alignItems="flex-end" sx={{ pl: '14px', flexShrink: 0 }}>
             {[
@@ -692,7 +726,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
                   key={tab.label}
                   component="button"
                   type="button"
-                  onClick={() => !readOnly && runFlip(traitIdx, tab.pg, tab.pg > page ? 'fwd' : 'back')}
+                  onClick={() => !readOnly && navigateTo({ kind: 'trait', traitIndex: traitIdx, page: tab.pg })}
                   sx={{
                     all: 'unset',
                     cursor: readOnly ? 'default' : 'pointer',
@@ -732,7 +766,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
                   component="button"
                   type="button"
                   title={r.subTrait || r.trait}
-                  onClick={() => !readOnly && runFlip(i, 0, i > traitIdx ? 'fwd' : 'back')}
+                  onClick={() => !readOnly && navigateTo({ kind: 'trait', traitIndex: i, page: 0 })}
                   sx={{
                     all: 'unset',
                     cursor: readOnly ? 'default' : 'pointer',
@@ -1007,7 +1041,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
                               type="button"
                               onClick={() => {
                                 const idx = orderedRows.findIndex((x) => x.trait === r.trait);
-                                runFlip(idx, 1, 'back');
+                                navigateTo({ kind: 'trait', traitIndex: idx, page: 1 });
                               }}
                               sx={{ all: 'unset', cursor: 'pointer', fontFamily: fonts.sans, fontSize: 11.5, fontWeight: 700, color: PAPER.muted }}
                             >
@@ -1034,7 +1068,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
                         disabled={!allDone && !signed}
                         onClick={() => {
                           if (!allDone) {
-                            if (nextIncompleteTrait >= 0) runFlip(nextIncompleteTrait, 0, 'back');
+                            if (nextIncompleteTrait >= 0) navigateTo({ kind: 'trait', traitIndex: nextIncompleteTrait, page: 0 });
                             return;
                           }
                           onSign();
@@ -1131,6 +1165,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
             </Stack>
           </Box>
         </Box>
+      </Box>
       </Box>
       <NoteModal note={noteOpen} onClose={() => setNoteOpen(null)} />
     </Box>
