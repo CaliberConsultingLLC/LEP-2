@@ -362,7 +362,11 @@ export function skipDemoToResults() {
   try {
     localStorage.setItem(
       `signalDebrief_${campaignKey}_${userKey}_done`,
-      JSON.stringify({ signal: true, evidence: true, practice: true })
+      JSON.stringify({ signal: true, evidence: true, practice: false })
+    );
+    localStorage.setItem(
+      `signalDebrief_${campaignKey}_${userKey}_pages`,
+      JSON.stringify({ signal: 0, evidence: 0, practice: 0 })
     );
     // The self assessment is what the leader would have just answered.
     localStorage.setItem('selfCampaignCompleted', 'true');

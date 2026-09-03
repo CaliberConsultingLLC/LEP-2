@@ -172,6 +172,31 @@ export function useBenchmarkData() {
         const ownerUid = auth?.currentUser?.uid || null;
         const campaignClosed = String(records?.teamCampaignClosed || '').toLowerCase() === 'true';
 
+        const applyClosedPreview = () => {
+          const rowsForSynth = nextRows.length ? nextRows : campaignRows;
+          const fakeTeam = (useFakeDashboardData || isDemoSession()) ? fakeData.responses : [];
+          const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, rowsForSynth);
+          setTeamResponses(spreadTeam);
+          setSelfResponses(synthesizeSelfResponses(spreadTeam, rowsForSynth));
+          setLiveResponseCount(spreadTeam.length);
+          setLoaded(true);
+        };
+
+        // Demo sessions need team-shaped rows for Signal/Evidence/Practice even
+        // before the campaign window is locked — there is no real team to wait on.
+        if (!campaignClosed && isDemoSession()) {
+          if (active) {
+            if ((nextRows.length ? nextRows : campaignRows).length) applyClosedPreview();
+            else {
+              setTeamResponses([]);
+              setSelfResponses([]);
+              setLiveResponseCount(0);
+              setLoaded(true);
+            }
+          }
+          return;
+        }
+
         if (!campaignClosed) {
           if (active) {
             setTeamResponses([]);
@@ -206,16 +231,6 @@ export function useBenchmarkData() {
           );
           return;
         }
-
-        const applyClosedPreview = () => {
-          const rowsForSynth = nextRows.length ? nextRows : campaignRows;
-          const fakeTeam = (useFakeDashboardData || isDemoSession()) ? fakeData.responses : [];
-          const spreadTeam = spreadResponsesAcrossTraits(fakeTeam, TEAM_SPREAD_PROFILES, rowsForSynth);
-          setTeamResponses(spreadTeam);
-          setSelfResponses(synthesizeSelfResponses(spreadTeam, rowsForSynth));
-          setLiveResponseCount(spreadTeam.length);
-          setLoaded(true);
-        };
 
         if (!teamCampaignId || !ownerUid) {
           if (active) {

@@ -7,7 +7,9 @@ import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import FieldJournalGuide from './FieldJournalGuide.jsx';
 import { useCairnTheme } from '../../../config/runtimeFlags';
+import { isDemoSession } from '../../../utils/demoMode';
 import {
+  BOOKMARK_GRADIENTS,
   EMPTY_PLAN,
   FIELD_LEAD_INS,
   FIELD_PROMPTS,
@@ -461,7 +463,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const prevRailRef = useRef(traitIndex);
   const recoveredPhase = useRef(false);
   const mode = phases.modeFor('practice');
-  const readOnly = mode === 'snapshot';
+  const readOnly = mode === 'snapshot' && !isDemoSession();
 
   const [view, setView] = useState(() => {
     const base = viewFromPhase(phases.pages.practice);
