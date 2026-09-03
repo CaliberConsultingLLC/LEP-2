@@ -9,12 +9,12 @@ import { ChapterEyebrow, ProgressDots, WalkthroughStage } from './debriefUi.jsx'
 import { getDebriefScope } from './phaseState.js';
 
 // ----------------------------------------------------------------------------
-// NarrativeView — the nine-page results debrief narrative (v2 design).
+// NarrativeView — the ten-page results debrief narrative (v2 design).
 //
 // Played once when the first team reading lands, replayable any time. Pages:
 //   01 Threshold · 02 Two Measurements (traits) · 03 Two Measurements
-//   (statements) · 04 The Map · 05 The Gap (traits) · 06 The Gap (statements)
-//   · 07–09 one Insight per trait.
+//   (statements) · 04 The Map (video) · 05 The Map (statements) · 06 The Gap
+//   (traits) · 07 The Gap (statements) · 08–10 one Insight per trait.
 //
 // Pages 02–06 keep exactly one thing selected; the navy card is the selection.
 // Guide pop-ups (intro/closing check-in, insights skip offer) come later.
@@ -110,11 +110,6 @@ function mirrorStatementRead(gap) {
   return 'Your read and theirs sit nearly on top of each other here — a shared picture to trust.';
 }
 
-const ROLE_META = {
-  lifting: { eyebrow: 'What’s Lifting', color: colors.green },
-  strength: { eyebrow: 'The Held Strength', color: colors.navy500 },
-  edge: { eyebrow: 'The Edge', color: colors.orangeDeep },
-};
 
 function insightCopy(row, role) {
   const name = row.subTrait || row.trait;
@@ -128,26 +123,26 @@ function insightCopy(row, role) {
         headline: gap < 0
           ? `${name} is carrying more than you give it credit for.`
           : `${name} is your natural gift.`,
-        serif: `Your team feels this landing. Efficacy of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else.`,
-        sans: 'The read is consistent: it lands clearly enough that your team doesn’t watch you strain for it — they just orient by it. The only caution with a gift this natural is drift. Name it out loud, lean on it when the harder work gets heavy, and give it just enough deliberate attention that it keeps growing instead of coasting.',
+        serif: `Your team feels this landing. Efficacy of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else. That consistency is the signal: when a trait costs this little and lands this clearly, it is already doing work you may not be counting.`,
+        sans: 'The read is consistent: it lands clearly enough that your team doesn’t watch you strain for it — they just orient by it. The only caution with a gift this natural is drift. Name it out loud, lean on it when the harder work gets heavy, and give it just enough deliberate attention that it keeps growing instead of coasting. Protect the ease without taking it for granted.',
       };
     case 'fullStrength':
       return {
         headline: `${name} is strong because you keep it strong.`,
-        serif: `Real effort, real results. Your team rates the work at ${e} and the payoff at ${f} — they see you working at this, and they feel it landing in kind.${Math.abs(gap) < 8 ? ' And your read matches theirs almost exactly: a rare, shared picture of the same strength.' : ''}`,
-        sans: 'This is the strongest place a trait can be — and the most expensive to hold. Protect it: notice what’s working so you can repeat it on purpose, and keep an eye on the cost, because a peak held by force erodes quietly. Nothing here needs fixing; it needs guarding.',
+        serif: `Real effort, real results. Your team rates the work at ${e} and the payoff at ${f} — they see you working at this, and they feel it landing in kind.${Math.abs(gap) < 8 ? ' And your read matches theirs almost exactly: a rare, shared picture of the same strength.' : ''} That alignment is what makes this trait dependable — not luck, but a pattern your team can name.`,
+        sans: 'This is the strongest place a trait can be — and the most expensive to hold. Protect it: notice what’s working so you can repeat it on purpose, and keep an eye on the cost, because a peak held by force erodes quietly. Nothing here needs fixing; it needs guarding. The work is visible, the payoff is felt, and that loop is worth preserving deliberately.',
       };
     case 'offTarget':
       return {
         headline: `${name} is asking the loudest.`,
-        serif: `${role === 'edge' ? 'The heaviest signal in the reading' : 'A hard signal in the reading'}${gap >= 8 ? ' — and a wide gap between your read and theirs' : ''}. Your team sees real effort here (${e}), they aren’t yet feeling the results (${f})${gap >= 8 ? ', and you feel more landing than they do' : ''}.`,
-        sans: 'This is a targeting problem, not a character flaw. Don’t add more force — change the aim. Ask your team what would actually help, and redirect energy you’re already spending. When you’re ready to work, this trait is first in line, and its room holds every statement behind this read.',
+        serif: `${role === 'edge' ? 'The heaviest signal in the reading' : 'A hard signal in the reading'}${gap >= 8 ? ' — and a wide gap between your read and theirs' : ''}. Your team sees real effort here (${e}), they aren’t yet feeling the results (${f})${gap >= 8 ? ', and you feel more landing than they do' : ''}. The split between trying and landing is the whole story — and it shows up statement by statement, not just in the headline score.`,
+        sans: 'This is a targeting problem, not a character flaw. Don’t add more force — change the aim. Ask your team what would actually help, and redirect energy you’re already spending. When you’re ready to work, this trait is first in line, and its room holds every statement behind this read. Small aim corrections here will be felt faster than pushing harder on what is already maxed out.',
       };
     default:
       return {
         headline: `${name} is quiet ground, not yet claimed.`,
-        serif: `Neither much effort (${e}) nor much result (${f}) is showing up here yet. It’s not a failure — it’s unclaimed ground, and unclaimed ground moves fastest when you decide it matters.`,
-        sans: 'Decide whether this trait belongs in the next stretch. If it does, a small, deliberate investment — one visible behavior, held for a season — can move it more quickly than any of the crowded traits. If it doesn’t, let it rest without guilt.',
+        serif: `Neither much effort (${e}) nor much result (${f}) is showing up here yet. It’s not a failure — it’s unclaimed ground, and unclaimed ground moves fastest when you decide it matters. Until you choose it, your team reads quiet on both measurements.`,
+        sans: 'Decide whether this trait belongs in the next stretch. If it does, a small, deliberate investment — one visible behavior, held for a season — can move it more quickly than any of the crowded traits. If it doesn’t, let it rest without guilt. Unclaimed is not broken; it is simply waiting for a decision about whether it earns your attention.',
       };
   }
 }
@@ -155,6 +150,24 @@ function insightCopy(row, role) {
 // ---------------------------------------------------------------------------
 // Shared slide scaffolding
 // ---------------------------------------------------------------------------
+function NarrativeFrame({ children }) {
+  return (
+    <Box
+      sx={{
+        width: '100%',
+        bgcolor: colors.surface1,
+        border: `1.5px solid ${colors.borderSoft}`,
+        borderRadius: radii.lg,
+        boxShadow: shadows.dialCase,
+        overflow: 'hidden',
+        p: { xs: 2.4, md: 3.6 },
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
 function SlideHeader({ eyebrow, title, lead, legend }) {
   return (
     <Stack
@@ -253,20 +266,44 @@ function DetailCard({ children }) {
   );
 }
 
+const SCORE_COL_W = 52;
+
 function MeasureBar({ label, value, ink, fill, caption }) {
+  const score = Math.round(value);
   return (
     <Box>
-      <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 1 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `110px 1fr ${SCORE_COL_W}px`,
+          columnGap: 1.5,
+          alignItems: 'center',
+          mb: caption ? 0.8 : 0,
+        }}
+      >
         <Typography sx={{ ...type.monoLabel, color: ink }}>{label}</Typography>
-        <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 28, lineHeight: 0.95, letterSpacing: '-0.04em', color: ink }}>
-          {Math.round(value)}
+        <Box sx={{ height: 14, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
+          <Box sx={{ width: `${score}%`, height: '100%', borderRadius: radii.pill, bgcolor: fill, transition: 'width 280ms ease' }} />
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: fonts.serif,
+            fontWeight: 600,
+            fontSize: 28,
+            lineHeight: 1,
+            letterSpacing: '-0.04em',
+            color: ink,
+            fontVariantNumeric: 'tabular-nums',
+            textAlign: 'right',
+          }}
+        >
+          {score}
         </Typography>
-      </Stack>
-      <Box sx={{ height: 14, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
-        <Box sx={{ width: `${Math.round(value)}%`, height: '100%', borderRadius: radii.pill, bgcolor: fill, transition: 'width 280ms ease' }} />
       </Box>
       {caption && (
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, color: colors.textSecondary, mt: 1 }}>{caption}</Typography>
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, color: colors.textSecondary, mt: 0, pl: '110px', pr: `${SCORE_COL_W + 12}px` }}>
+          {caption}
+        </Typography>
       )}
     </Box>
   );
@@ -312,23 +349,35 @@ function GapCells({ label, labelColor, you, team, gap }) {
     fontSize: 21,
     fontWeight: 700,
     fontVariantNumeric: 'tabular-nums',
-    px: 3.4,
-    py: 0.2,
+    textAlign: 'right',
+    minWidth: SCORE_COL_W,
   };
-  const cap = { fontSize: '8.5px', letterSpacing: '0.14em', color: '#8a94a3' };
+  const cap = { fontSize: '8.5px', letterSpacing: '0.14em', color: '#8a94a3', display: 'block', mt: 0.2 };
   return (
-    <Stack direction="row" alignItems="baseline" sx={{ borderTop: `1px solid ${colors.borderSoft}`, py: 2 }}>
-      <Typography sx={{ ...type.monoLabel, width: 110, flexShrink: 0, color: labelColor }}>{label}</Typography>
-      <Typography sx={{ ...cell, pl: 0, color: colors.textSecondary }}>
-        {you} <Box component="span" sx={cap}>YOU</Box>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: `110px repeat(3, ${SCORE_COL_W + 28}px)`,
+        columnGap: 1.5,
+        alignItems: 'baseline',
+        borderTop: `1px solid ${colors.borderSoft}`,
+        py: 2,
+      }}
+    >
+      <Typography sx={{ ...type.monoLabel, color: labelColor }}>{label}</Typography>
+      <Typography sx={{ ...cell, color: colors.textSecondary }}>
+        {you}
+        <Box component="span" sx={cap}>YOU</Box>
       </Typography>
-      <Typography sx={{ ...cell, borderLeft: `1px solid ${colors.borderSoft}`, color: colors.textPrimary }}>
-        {team} <Box component="span" sx={cap}>TEAM</Box>
+      <Typography sx={{ ...cell, color: colors.textPrimary }}>
+        {team}
+        <Box component="span" sx={cap}>TEAM</Box>
       </Typography>
-      <Typography sx={{ ...cell, borderLeft: `1px solid ${colors.borderSoft}`, color: gapInk(gap) }}>
-        {fmtGap(gap)} <Box component="span" sx={cap}>GAP</Box>
+      <Typography sx={{ ...cell, color: gapInk(gap) }}>
+        {fmtGap(gap)}
+        <Box component="span" sx={cap}>GAP</Box>
       </Typography>
-    </Stack>
+    </Box>
   );
 }
 
@@ -389,9 +438,19 @@ const DIAL_ZONE_LABELS = [
   { id: 'naturalGift', label: 'Natural, needs tending', sx: { left: '6%', top: '50%', transform: 'translate(0, -50%)', textAlign: 'left' } },
 ];
 
+function statementZoneBlurb(effort, efficacy) {
+  const zone = dialZoneOf(effort, efficacy);
+  return `${zone.label}. ${statementSplitRead(effort, efficacy)}`;
+}
+
+function bestStatementForRow(row) {
+  const mapped = mapRowStatements(row);
+  return [...mapped].sort((a, b) => b.compass - a.compass)[0] || mapped[0];
+}
+
 function MiniDial({ statement }) {
-  const zone = dialZoneOf(statement.effort, statement.efficacy);
-  const pos = circPos(statement.effort, statement.efficacy);
+  const zone = statement ? dialZoneOf(statement.effort, statement.efficacy) : null;
+  const pos = statement ? circPos(statement.effort, statement.efficacy) : null;
   const corners = [
     { text: 'HIGH EFFICACY', sx: { left: 0, top: 0 } },
     { text: 'HIGH EFFORT', sx: { right: 0, top: 0 } },
@@ -471,7 +530,7 @@ function MiniDial({ statement }) {
             <line x1="17.01" y1="17.01" x2="82.99" y2="82.99" stroke={colors.dialAxis} strokeWidth="1" vectorEffect="non-scaling-stroke" />
             <line x1="82.99" y1="17.01" x2="17.01" y2="82.99" stroke={colors.dialAxis} strokeWidth="1" vectorEffect="non-scaling-stroke" />
             {DIAL_WEDGES.map((w) => (
-              <path key={w.id} d={w.d} fill={w.id === zone.id ? w.vibrant : DIAL_VEIL} style={{ transition: 'fill 280ms ease' }} />
+              <path key={w.id} d={w.d} fill={zone && w.id === zone.id ? w.vibrant : DIAL_VEIL} style={{ transition: 'fill 280ms ease' }} />
             ))}
           </Box>
           <Box
@@ -495,10 +554,10 @@ function MiniDial({ statement }) {
                 ...z.sx,
                 fontFamily: fonts.sans,
                 fontSize: 11,
-                fontWeight: z.id === zone.id ? 700 : 600,
+                fontWeight: zone && z.id === zone.id ? 700 : 600,
                 lineHeight: 1.3,
                 maxWidth: 104,
-                color: z.id === zone.id ? zone.faceInk : 'rgba(244, 236, 221, 0.6)',
+                color: zone && z.id === zone.id ? zone.faceInk : 'rgba(244, 236, 221, 0.6)',
                 pointerEvents: 'none',
                 transition: 'color 280ms ease',
               }}
@@ -506,6 +565,7 @@ function MiniDial({ statement }) {
               {z.label}
             </Typography>
           ))}
+          {statement && pos && (
           <Box
             sx={{
               position: 'absolute',
@@ -532,6 +592,7 @@ function MiniDial({ statement }) {
           >
             {Math.round(statement.compass)}
           </Box>
+          )}
         </Box>
       </Box>
     </Box>
@@ -687,7 +748,7 @@ function SlideStatements({ stmts, sel, onSel }) {
   );
 }
 
-function CompassExplainerVideo() {
+function CompassExplainerVideo({ standalone = false }) {
   const wrapperRef = useRef(null);
   const videoRef = useRef(null);
   const reducedMotion =
@@ -739,7 +800,7 @@ function CompassExplainerVideo() {
         width: '100%',
         borderRadius: radii.lg,
         overflow: 'hidden',
-        mb: 4.5,
+        mb: standalone ? 0 : 4.5,
         bgcolor: colors.navy900,
         boxShadow: shadows.dialCase,
       }}
@@ -830,20 +891,32 @@ function CompassExplainerVideo() {
   );
 }
 
-function SlideMap({ stmts, sel, onSel }) {
-  const d = stmts[sel];
+function SlideMapVideo() {
   return (
     <Box>
       <SlideHeader
         eyebrow={{ index: 4, label: 'The Map' }}
-        title="Where a statement lands tells you what to do with it."
-        lead="Effort and efficacy together give every statement a place on the compass — one of four zones, and the zone tells you the move. Select a statement to see where it sits."
+        title="Watch how effort and efficacy place a statement on the compass."
+        lead="Every statement your team rated carries two measurements. Together they give it a position on the compass — one of four zones, and the zone tells you the move."
       />
-      <CompassExplainerVideo />
+      <CompassExplainerVideo standalone />
+    </Box>
+  );
+}
+
+function SlideMap({ stmts, sel, onSel }) {
+  const d = sel == null ? null : stmts[sel];
+  return (
+    <Box>
+      <SlideHeader
+        eyebrow={{ index: 5, label: 'The Map · Statements' }}
+        title="Where a statement lands tells you what to do with it."
+        lead="Select a statement to see where it sits on the compass — effort and efficacy together, one of four zones."
+      />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '420px minmax(0, 1fr)' }, gap: 4.5, alignItems: 'start' }}>
         <MiniDial statement={d} />
         <Box>
-          <Typography sx={{ ...type.monoLabel, mb: 1.2 }}>Three statements &#183; one at a time</Typography>
+          <Typography sx={{ ...type.monoLabel, mb: 1.2 }}>Three statements &#183; select one</Typography>
           <Box sx={{ bgcolor: colors.surface1, border: `1.5px solid ${colors.borderSoft}`, borderRadius: radii.lg, overflow: 'hidden' }}>
             {stmts.map((s, i) => {
               const zone = dialZoneOf(s.effort, s.efficacy);
@@ -885,6 +958,11 @@ function SlideMap({ stmts, sel, onSel }) {
                         </Typography>
                       ))}
                     </Stack>
+                    <Box sx={{ borderTop: '1px solid rgba(244,206,161,0.18)', pt: 1.6, mt: 1.4 }}>
+                      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.55, color: 'rgba(244,206,161,0.88)' }}>
+                        {statementZoneBlurb(s.effort, s.efficacy)}
+                      </Typography>
+                    </Box>
                   </Box>
                 );
               }
@@ -937,7 +1015,7 @@ function SlideMirror({ traits, sel, onSel }) {
   return (
     <Box>
       <SlideHeader
-        eyebrow={{ index: 5, label: 'The Perception Gap' }}
+        eyebrow={{ index: 6, label: 'The Perception Gap' }}
         title="You rated yourself first — on everything."
         lead="Before your team answered, you scored the same statements. So every measurement you’ve seen has a twin: your own read. The distance between the two is the perception gap — neither number is wrong, the distance itself is the finding. Select a trait."
         legend={GAP_LEGEND}
@@ -1001,7 +1079,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
   return (
     <Box>
       <SlideHeader
-        eyebrow={{ index: 6, label: 'The Perception Gap · Statements' }}
+        eyebrow={{ index: 7, label: 'The Perception Gap · Statements' }}
         title="The gap, statement by statement."
         lead="The same statements you’ve been following — now with your read beside your team’s. This is as specific as the reading gets, and it’s where the gap turns into something you can actually ask about. One at a time."
         legend={GAP_LEGEND}
@@ -1039,30 +1117,18 @@ function SlideInsight({ traits, index, roles }) {
   const row = traits[index];
   const role =
     row.trait === roles.edge?.trait ? 'edge' : row.trait === roles.lifting?.trait ? 'lifting' : 'strength';
-  const meta = ROLE_META[role];
   const copy = insightCopy(row, role);
-  const zone = getQuadrant(row.team.effort, row.team.efficacy);
-  return (
-    <Box sx={{ maxWidth: 920, mx: 'auto' }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={3} sx={{ mb: 3.4, flexWrap: 'wrap', rowGap: 1.4 }}>
-        <ChapterEyebrow index={7 + index} label={`The Insights · ${index + 1} of ${traits.length}`} sx={{ mb: 0 }} />
-        <Stack direction="row" alignItems="center" spacing={2.2}>
-          {traits.map((t2, i) => {
-            const here = i === index;
-            const past = i < index;
-            return (
-              <Stack key={t2.trait} direction="row" alignItems="center" spacing={1} sx={{ opacity: here ? 1 : 0.45 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: radii.circle, bgcolor: here ? colors.orange : past ? colors.navy500 : colors.sand200 }} />
-                <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: here ? colors.textPrimary : colors.textSecondary }}>
-                  {t2.subTrait || t2.trait}
-                </Typography>
-              </Stack>
-            );
-          })}
-        </Stack>
-      </Stack>
+  const best = bestStatementForRow(row);
+  const traitDial = {
+    effort: row.team.effort,
+    efficacy: row.team.efficacy,
+    compass: row.team.lepScore,
+  };
+  const name = row.subTrait || row.trait;
 
-      <Typography sx={{ ...type.monoLabel, color: meta.color, mb: 1.4 }}>{meta.eyebrow}</Typography>
+  return (
+    <Box>
+      <ChapterEyebrow index={8 + index} label={`The Insights · ${name}`} sx={{ mb: 1.2 }} />
       <Typography
         component="h1"
         sx={{
@@ -1070,48 +1136,55 @@ function SlideInsight({ traits, index, roles }) {
           fontWeight: 500,
           letterSpacing: '-0.03em',
           lineHeight: 1.1,
-          fontSize: { xs: 30, md: 42 },
+          fontSize: { xs: 28, md: 38 },
           color: colors.textPrimary,
-          mb: 2.8,
+          mb: 3.2,
           textWrap: 'pretty',
         }}
       >
         {copy.headline}
       </Typography>
 
-      <Stack direction="row" alignItems="center" spacing={3.4} sx={{ mb: 3.4, flexWrap: 'wrap', rowGap: 1.6 }}>
-        <Stack direction="row" alignItems="baseline" spacing={1}>
-          <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 32, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
-            {Math.round(row.team.lepScore)}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '380px minmax(0, 1fr)' }, gap: 4.5, alignItems: 'start' }}>
+        <MiniDial statement={traitDial} />
+        <Box>
+          <Typography sx={{ ...type.monoLabel, mb: 1.4 }}>Strongest statement</Typography>
+          <Box
+            sx={{
+              bgcolor: colors.surface1,
+              border: `1.5px solid ${colors.borderSoft}`,
+              borderRadius: radii.lg,
+              p: { xs: 2.2, md: '22px 26px' },
+              mb: 3,
+            }}
+          >
+            <Typography sx={{ fontFamily: fonts.serif, fontSize: 20, fontWeight: 500, lineHeight: 1.4, letterSpacing: '-0.015em', color: colors.textPrimary, mb: 1.6 }}>
+              &#8220;{best.text}&#8221;
+            </Typography>
+            <Stack direction="row" alignItems="baseline" spacing={2.4}>
+              {[
+                { v: Math.round(best.compass), cap: 'Compass', color: colors.orange },
+                { v: Math.round(best.effort), cap: 'Effort', color: colors.orangeDeep },
+                { v: Math.round(best.efficacy), cap: 'Efficacy', color: colors.navy500 },
+              ].map((c) => (
+                <Stack key={c.cap} direction="row" alignItems="baseline" spacing={0.8}>
+                  <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 24, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
+                    {c.v}
+                  </Typography>
+                  <Typography sx={{ ...type.monoLabel, color: colors.textSecondary }}>{c.cap}</Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+
+          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 19, lineHeight: 1.65, color: colors.textPrimary, mb: 2.4, textWrap: 'pretty' }}>
+            {copy.serif}
           </Typography>
-          <Typography sx={{ ...type.monoLabel }}>Compass</Typography>
-        </Stack>
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, px: 1.3, py: 0.5, borderRadius: radii.pill, border: `1px solid ${zone.color}` }}>
-          <Box sx={{ width: 7, height: 7, borderRadius: radii.circle, bgcolor: zone.color }} />
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: zone.color }}>
-            {zone.label}
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
+            {copy.sans}
           </Typography>
         </Box>
-        <Stack direction="row" alignItems="baseline" spacing={1}>
-          <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 26, lineHeight: 0.95, letterSpacing: '-0.03em', color: colors.orange }}>
-            {Math.round(row.team.effort)}
-          </Typography>
-          <Typography sx={{ ...type.monoLabel }}>Effort</Typography>
-        </Stack>
-        <Stack direction="row" alignItems="baseline" spacing={1}>
-          <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 26, lineHeight: 0.95, letterSpacing: '-0.03em', color: colors.navy500 }}>
-            {Math.round(row.team.efficacy)}
-          </Typography>
-          <Typography sx={{ ...type.monoLabel }}>Efficacy</Typography>
-        </Stack>
-      </Stack>
-
-      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 19, lineHeight: 1.65, color: colors.textPrimary, mb: 2.2, maxWidth: 780, textWrap: 'pretty' }}>
-        {copy.serif}
-      </Typography>
-      <Typography sx={{ fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 1.65, color: colors.textSecondary, maxWidth: 780, textWrap: 'pretty' }}>
-        {copy.sans}
-      </Typography>
+      </Box>
     </Box>
   );
 }
@@ -1154,7 +1227,7 @@ function pickNarrativeStatements(orderedRows) {
 // ---------------------------------------------------------------------------
 // The view
 // ---------------------------------------------------------------------------
-const SLIDE_COUNT = 9;
+const SLIDE_COUNT = 10;
 
 export default function NarrativeView() {
   const { rows, loaded, teamResponses, hasSelfData } = useBenchmarkData();
@@ -1184,7 +1257,7 @@ export default function NarrativeView() {
   const edgeIdx = Math.max(traits.findIndex((r) => r.trait === roles.edge?.trait), 0);
   const [selMeasure, setSelMeasure] = useState(null);
   const [selStmt, setSelStmt] = useState(0);
-  const [selMap, setSelMap] = useState(0);
+  const [selMap, setSelMap] = useState(null);
   const [selMirror, setSelMirror] = useState(null);
   const [selGapStmt, setSelGapStmt] = useState(0);
 
@@ -1198,7 +1271,8 @@ export default function NarrativeView() {
       { id: 'threshold', label: 'The Threshold' },
       { id: 'measurements', label: 'Two Measurements' },
       { id: 'statements', label: 'Statements' },
-      { id: 'map', label: 'The Map' },
+      { id: 'map-video', label: 'The Map · Video' },
+      { id: 'map', label: 'The Map · Statements' },
       { id: 'mirror', label: 'The Perception Gap' },
       { id: 'gap-statements', label: 'The Gap · Statements' },
       { id: 'insight-1', label: 'Insight 1' },
@@ -1224,7 +1298,7 @@ export default function NarrativeView() {
           The campaign is still listening.
         </Typography>
         <Typography sx={{ ...type.italicBody, fontSize: 16, color: colors.textSecondary, maxWidth: 600 }}>
-          When the listening window closes, this is where the first reading gets told &#8212; nine short pages, at your pace.
+          When the listening window closes, this is where the first reading gets told &#8212; ten short pages, at your pace.
         </Typography>
       </Box>
     );
@@ -1235,7 +1309,7 @@ export default function NarrativeView() {
   const mirrorTraits = traits.filter((r) => r.self);
   const mirrorSelSafe = Math.min(mirrorSel, Math.max(mirrorTraits.length - 1, 0));
   const stmtSel = Math.min(selStmt, Math.max(stmts.length - 1, 0));
-  const mapSel = Math.min(selMap, Math.max(stmts.length - 1, 0));
+  const mapSel = selMap == null ? null : Math.min(selMap, Math.max(stmts.length - 1, 0));
   const gapStmtSel = Math.min(selGapStmt, Math.max(stmts.length - 1, 0));
 
   // Pages that need self data fall back gracefully when it's absent.
@@ -1248,6 +1322,10 @@ export default function NarrativeView() {
       case 'statements':
         return stmts.length
           ? <SlideStatements stmts={stmts} sel={stmtSel} onSel={setSelStmt} />
+          : <SlideInsight traits={traits} index={0} roles={roles} />;
+      case 'map-video':
+        return stmts.length
+          ? <SlideMapVideo />
           : <SlideInsight traits={traits} index={0} roles={roles} />;
       case 'map':
         return stmts.length
@@ -1287,7 +1365,7 @@ export default function NarrativeView() {
     >
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', overflowY: 'auto' }}>
         <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
-          {renderSlide()}
+          <NarrativeFrame>{renderSlide()}</NarrativeFrame>
         </WalkthroughStage>
       </Box>
       <Stack alignItems="center" sx={{ pt: 1.6, pb: 0.6, flexShrink: 0 }}>
