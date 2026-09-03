@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
@@ -687,6 +687,149 @@ function SlideStatements({ stmts, sel, onSel }) {
   );
 }
 
+function CompassExplainerVideo() {
+  const wrapperRef = useRef(null);
+  const videoRef = useRef(null);
+  const reducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const [ended, setEnded] = useState(false);
+  const [playing, setPlaying] = useState(false);
+
+  const overlayVisible = ended || (reducedMotion && !playing);
+
+  useEffect(() => {
+    if (reducedMotion) return undefined;
+
+    const wrapper = wrapperRef.current;
+    const video = videoRef.current;
+    if (!wrapper || !video) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          video.play().catch(() => {});
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(wrapper);
+    return () => observer.disconnect();
+  }, [reducedMotion]);
+
+  const handleReplay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    setEnded(false);
+    setPlaying(true);
+    video.play().catch(() => {});
+  };
+
+  const handleEnded = () => {
+    setEnded(true);
+    setPlaying(false);
+  };
+
+  return (
+    <Box
+      ref={wrapperRef}
+      sx={{
+        position: 'relative',
+        width: '100%',
+        borderRadius: radii.lg,
+        overflow: 'hidden',
+        mb: 4.5,
+        bgcolor: colors.navy900,
+        boxShadow: shadows.dialCase,
+      }}
+    >
+      <video
+        ref={videoRef}
+        src="/compass-explainer.mp4"
+        muted
+        playsInline
+        preload="auto"
+        onEnded={handleEnded}
+        aria-label="Animated explainer: how effort and efficacy place a statement on the compass"
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          aspectRatio: '16 / 9',
+        }}
+      />
+      <Box
+        aria-hidden={!overlayVisible}
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'rgba(10, 20, 36, 0.55)',
+          opacity: overlayVisible ? 1 : 0,
+          transition: 'opacity 200ms ease',
+          pointerEvents: overlayVisible ? 'auto' : 'none',
+        }}
+      >
+        <Box
+          component="button"
+          type="button"
+          onClick={handleReplay}
+          aria-label="Replay explainer video"
+          sx={{
+            all: 'unset',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1.2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: radii.circle,
+              bgcolor: colors.amber,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              component="svg"
+              width={22}
+              height={22}
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <path
+                d="M12 5V2L7 7l5 5V9c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.959 7.959 0 0019 15c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 10.74A7.959 7.959 0 005 15c0 4.42 3.58 8 8 8v3l5-5-5-5v3z"
+                fill={colors.navy900}
+              />
+            </Box>
+          </Box>
+          <Typography
+            sx={{
+              fontFamily: fonts.mono,
+              fontSize: 10,
+              textTransform: 'uppercase',
+              letterSpacing: '0.14em',
+              color: '#fff',
+            }}
+          >
+            Replay
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
 function SlideMap({ stmts, sel, onSel }) {
   const d = stmts[sel];
   return (
@@ -696,6 +839,7 @@ function SlideMap({ stmts, sel, onSel }) {
         title="Where a statement lands tells you what to do with it."
         lead="Effort and efficacy together give every statement a place on the compass — one of four zones, and the zone tells you the move. Select a statement to see where it sits."
       />
+      <CompassExplainerVideo />
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '420px minmax(0, 1fr)' }, gap: 4.5, alignItems: 'start' }}>
         <MiniDial statement={d} />
         <Box>
