@@ -175,10 +175,10 @@ const GROWTH = [
 ];
 
 const SHOWCASE_TABS = [
-  { id: 'signals', label: 'Signals overview' },
-  { id: 'effort', label: 'Effort & efficacy' },
-  { id: 'gap', label: 'The gap map' },
-  { id: 'plan', label: 'Your action plan' },
+  { id: 'signals', label: 'Signals Overview' },
+  { id: 'effort', label: 'Effort & Efficacy' },
+  { id: 'gap', label: 'Gap Map' },
+  { id: 'plan', label: 'Action Plan' },
 ];
 
 /* Every score on this page is on the same 0–100 scale the product itself
@@ -192,7 +192,7 @@ const SIGNAL_ROWS = [
 const GAP_ROWS = [
   { name: 'Decisive Direction', you: 84, team: 61 },
   { name: 'Coaching', you: 56, team: 79 },
-  { name: 'Strategic Patience', you: 69, team: 58 },
+  { name: 'Strategic Patience', you: 71, team: 54 },
 ];
 
 const GUIDE_INSIGHTS = {
@@ -201,105 +201,105 @@ const GUIDE_INSIGHTS = {
       mentor:
         'You gave yourself 84 because you decide fast. They gave you 61 because they find out afterward. Both are true.',
       catalyst:
-        'Those 23 points are one habit wide \u2014 say the why before the what. Closable by the month-3 calibration.',
+        'Those 23 points are one habit wide — say the why before the what. Closable by the month-3 calibration.',
       challenger:
         'You experience decisiveness. They experience speed without a map. The 23 points between you is what that costs.',
       bestFriend:
-        'They\u2019re not saying you can\u2019t decide. They\u2019re saying they can\u2019t see how you decide. That\u2019s fixable.',
+        'They’re not saying you can’t decide. They’re saying they can’t see how you decide. That’s fixable.',
       mother:
-        'Twenty-three points apart on direction means they\u2019re guessing what you want. Guessing wears a team down.',
+        'Twenty-three points apart on direction means they’re guessing what you want. Guessing wears a team down.',
       roaster:
         'An 84 self-score against their 61. The 23 in between? Every decision you made alone and called alignment.',
     },
     Coaching: {
       mentor:
-        'You scored yourself 56. They scored you 79. You\u2019re the last one to see the coaching they already feel.',
-      catalyst: 'Twenty-three points the right way. They\u2019re already getting the coaching. Now do it on purpose.',
+        'You scored yourself 56. They scored you 79. You’re the last one to see the coaching they already feel.',
+      catalyst: 'Twenty-three points the right way. They’re already getting the coaching. Now do it on purpose.',
       challenger:
-        'You think you\u2019re behind on coaching. They don\u2019t. Stop arguing with the people you lead.',
-      bestFriend: 'They\u2019re not being nice. They\u2019re telling you this is working. Believe them.',
-      mother: 'You under-count the care you give. They didn\u2019t. That\u2019s a gift \u2014 protect it.',
+        'You think you’re behind on coaching. They don’t. Stop arguing with the people you lead.',
+      bestFriend: 'They’re not being nice. They’re telling you this is working. Believe them.',
+      mother: 'You under-count the care you give. They didn’t. That’s a gift — protect it.',
       roaster:
-        'You 56, them 79. Humble isn\u2019t the same as accurate. They\u2019re saying you\u2019re better at this than you think. Awkward.',
+        'You 56, them 79. Humble isn’t the same as accurate. They’re saying you’re better at this than you think. Awkward.',
     },
     'Strategic Patience': {
       mentor:
-        'You feel patient at 69. They feel the wait at 58. Name the pause, and it becomes leadership instead of delay.',
+        'You feel patient at 71. They feel the wait at 54. Name the pause, and it becomes leadership instead of delay.',
       catalyst:
-        'Eleven points down. Speed is a gift until the team can\u2019t see where you\u2019re going with it.',
+        'Seventeen points down. Speed is a gift until the team can’t see where you’re going with it.',
       challenger:
-        'Eleven points on patience. You call it urgency. They call it being rushed. Which one is the room living in?',
+        'Seventeen points on patience. You call it urgency. They call it being rushed. Which one is the room living in?',
       bestFriend:
-        'They\u2019re not asking you to slow down forever. They\u2019re asking to catch up. That\u2019s fair.',
+        'They’re not asking you to slow down forever. They’re asking to catch up. That’s fair.',
       mother:
-        'Urgency without rest wears a team thin. A little more air in the room, and they\u2019ll meet you there.',
+        'Urgency without rest wears a team thin. A little more air in the room, and they’ll meet you there.',
       roaster:
-        'You 69, them 58. You think you\u2019re waiting. They think you\u2019re already gone. Cute mismatch.',
+        'You 71, them 54. You think you’re waiting. They think you’re already gone. Cute mismatch.',
     },
   },
   signals: {
     'Decisive Direction': {
       mentor:
-        '53 out of 100 \u2014 the lowest on the board, and it moved 4 points all year. They feel the call, not the why.',
+        '53 out of 100 — the lowest on the board, and it moved 4 points all year. They feel the call, not the why.',
       catalyst: '53 and barely climbing. Four points is a rounding error. Say the why out loud and this number moves.',
       challenger: 'Lowest Compass you have, with 4 points to show for the year. Speed without a map costs exactly this.',
-      bestFriend: 'A 53 isn\u2019t a verdict on you. It\u2019s a note that they can\u2019t see how you decide yet.',
-      mother: '53, up 4. Slow progress is still progress \u2014 but direction without the why wears a team down.',
-      roaster: '53 out of 100, up a whole 4 points. At this pace you\u2019ll be adequate sometime next decade.',
+      bestFriend: 'A 53 isn’t a verdict on you. It’s a note that they can’t see how you decide yet.',
+      mother: '53, up 4. Slow progress is still progress — but direction without the why wears a team down.',
+      roaster: '53 out of 100, up a whole 4 points. At this pace you’ll be adequate sometime next decade.',
     },
     Coaching: {
-      mentor: '78 out of 100, up 18. Highest on the board and the biggest move \u2014 the 18 is the proof they felt it.',
+      mentor: '78 out of 100, up 18. Highest on the board and the biggest move — the 18 is the proof they felt it.',
       catalyst: 'Up 18 points. Coaching is compounding. Keep feeding this and month 9 writes itself.',
-      challenger: 'Best number you have. Don\u2019t coast it. Growth you stop tending regresses.',
+      challenger: 'Best number you have. Don’t coast it. Growth you stop tending regresses.',
       bestFriend: 'They felt the coaching, and 18 points is them saying so. Protect that.',
       mother: 'Look what grew where you paid attention. Eighteen points of care they can point to.',
-      roaster: '78, up 18. Coaching\u2019s the bright one. Try not to get sentimental \u2014 just do it again.',
+      roaster: '78, up 18. Coaching’s the bright one. Try not to get sentimental — just do it again.',
     },
     'Strategic Patience': {
       mentor: '59 out of 100, and down 7. Just above direction, and moving the wrong way.',
-      catalyst: 'Down 7. Speed is a gift until they can\u2019t see where you\u2019re going with it.',
+      catalyst: 'Down 7. Speed is a gift until they can’t see where you’re going with it.',
       challenger:
         'A 7-point drop. You call it urgency. They call it being rushed. Guess which one the room is living in.',
-      bestFriend: 'They\u2019re not asking you to slow down forever. They\u2019re asking to catch up.',
+      bestFriend: 'They’re not asking you to slow down forever. They’re asking to catch up.',
       mother: 'A 59, down 7. Urgency without rest wears a team thin. Give the room a little air.',
-      roaster: 'Patience took the L \u2014 down 7. Better at listening, worse at waiting. Poetry.',
+      roaster: 'Patience took the L — down 7. Better at listening, worse at waiting. Poetry.',
     },
   },
   effort: {
     'Decisive Direction': {
-      mentor: '69 effort, 45 efficacy. You\u2019re spending the energy. It isn\u2019t landing where they stand.',
+      mentor: '69 effort, 45 efficacy. You’re spending the energy. It isn’t landing where they stand.',
       catalyst: 'Effort 69, efficacy 45. The leak is the landing, not the work. Say the why and this closes.',
       challenger: 'You put in 69 and delivered 45. That 24-point drop is the bill for deciding alone.',
-      bestFriend: 'You\u2019re trying \u2014 69 says so. They just can\u2019t follow the trying. That\u2019s fixable.',
+      bestFriend: 'You’re trying — 69 says so. They just can’t follow the trying. That’s fixable.',
       mother: 'All that effort, and only 45 of it reaches them. Let them see the thinking, not just the answer.',
-      roaster: '69 effort, 45 efficacy. Lots of motion, not a lot of \u201cwe knew that was coming.\u201d',
+      roaster: '69 effort, 45 efficacy. Lots of motion, not a lot of “we knew that was coming.”',
     },
     Coaching: {
-      mentor: '71 effort, 81 efficacy. You get more back than you put in. That\u2019s a gift \u2014 notice it.',
+      mentor: '71 effort, 81 efficacy. You get more back than you put in. That’s a gift — notice it.',
       catalyst: 'Efficacy above effort. This one pays interest. Do more of exactly this.',
-      challenger: 'Efficacy 81 on 71 effort. You\u2019re good at this and still under-claiming it. Stop.',
-      bestFriend: 'It costs you less than it gives them. That\u2019s what a strength feels like from the inside.',
+      challenger: 'Efficacy 81 on 71 effort. You’re good at this and still under-claiming it. Stop.',
+      bestFriend: 'It costs you less than it gives them. That’s what a strength feels like from the inside.',
       mother: 'Eighty-one back on seventy-one given. Care rarely returns that cleanly. Keep it.',
       roaster: 'You get 81 out of a 71 effort. Somewhere a consultant is furious.',
     },
     'Strategic Patience': {
-      mentor: '64 effort, 57 efficacy. You\u2019re waiting. They\u2019re experiencing the wait without the why.',
+      mentor: '64 effort, 57 efficacy. You’re waiting. They’re experiencing the wait without the why.',
       catalyst: 'Effort 64, efficacy 57. Name the pause out loud and it becomes leadership instead of delay.',
-      challenger: 'Seven points of your patience never arrive. Silence isn\u2019t the same as strategy.',
-      bestFriend: 'You\u2019re holding back on purpose. They just can\u2019t tell it\u2019s on purpose.',
-      mother: 'The patience is real; it isn\u2019t reaching them. Say what you\u2019re waiting for.',
-      roaster: '64 in, 57 out. You think you\u2019re waiting. They think you\u2019re already gone.',
+      challenger: 'Seven points of your patience never arrive. Silence isn’t the same as strategy.',
+      bestFriend: 'You’re holding back on purpose. They just can’t tell it’s on purpose.',
+      mother: 'The patience is real; it isn’t reaching them. Say what you’re waiting for.',
+      roaster: '64 in, 57 out. You think you’re waiting. They think you’re already gone.',
     },
   },
   plan: {
     mentor:
-      'One root, one branch, one goal. You don\u2019t report to this page \u2014 you live it, and the next calibration tells the truth.',
-    catalyst: 'The root feeds you. The branch is what the team sees. They\u2019ll see it by March.',
+      'One root, one branch, one goal. You don’t report to this page — you live it, and the next calibration tells the truth.',
+    catalyst: 'The root feeds you. The branch is what the team sees. They’ll see it by March.',
     challenger:
-      'Your branch is public \u2014 end every meeting naming the decision. They\u2019ll know if you skip it.',
-    bestFriend: 'It\u2019s one page you could recite in an elevator. That\u2019s exactly why it works.',
-    mother: 'Tend the root and the branch, and the goal takes care of itself. I\u2019ll check on the gardener.',
-    roaster: 'A year of growth on one page. Even you can\u2019t lose this one.',
+      'Your branch is public — end every meeting naming the decision. They’ll know if you skip it.',
+    bestFriend: 'It’s one page you could recite in an elevator. That’s exactly why it works.',
+    mother: 'Tend the root and the branch, and the goal takes care of itself. I’ll check on the gardener.',
+    roaster: 'A year of growth on one page. Even you can’t lose this one.',
   },
 };
 
@@ -394,19 +394,26 @@ function EffortRow({ row, selected, onSelect }) {
   );
 }
 
-/* The gap map is a table now, not meters \u2014 the meters moved to Effort &
-   Efficacy, and two numbers side by side already show the distance. */
+/* The gap map is a table now, not meters — the meters moved to Effort &
+   Efficacy. The gap itself is subtracted here rather than authored, so the
+   column can never drift away from the two numbers sitting beside it. */
 function GapRow({ row, selected, onSelect }) {
+  const gap = row.team - row.you;
+  const down = gap < 0;
   return (
     <button
       type="button"
-      className={`cl-signal-row is-trio${selected ? ' is-active' : ''}`}
+      className={`cl-signal-row is-quad${selected ? ' is-active' : ''}`}
       aria-pressed={selected}
       onClick={() => onSelect(row.name)}
     >
       <span className="cl-signal-name">{row.name}</span>
       <span className="cl-signal-metric">{row.you}</span>
       <span className="cl-signal-metric is-team">{row.team}</span>
+      <span className={`cl-signal-metric is-gap${down ? ' is-down' : ''}`}>
+        {down ? '−' : '+'}
+        {Math.abs(gap)}
+      </span>
     </button>
   );
 }
@@ -617,10 +624,11 @@ export default function CompassLanding() {
               {showcase === 'gap' && (
                 <div className="cl-gap-stack">
                   <span className="cl-kicker">PERCEPTION GAP · {gapTrait.toUpperCase()}</span>
-                  <div className="cl-signal-head is-trio" aria-hidden="true">
+                  <div className="cl-signal-head is-quad" aria-hidden="true">
                     <span />
                     <span>You</span>
                     <span>Team</span>
+                    <span>Gap</span>
                   </div>
                   {GAP_ROWS.map((row) => (
                     <GapRow
@@ -631,8 +639,11 @@ export default function CompassLanding() {
                     />
                   ))}
                   <p className="cl-signal-foot">
-                    Your read on the left, your team’s on the right. The distance between them is
-                    the work.
+                    Gap is their read minus yours — the subtraction is already done. Below zero
+                    means they experience less of it than you believe you give.
+                  </p>
+                  <p className="cl-signal-meta">
+                    Campaign 2 of 3 · Team responses 7 of 9 · aggregate only, always.
                   </p>
                 </div>
               )}
@@ -673,6 +684,10 @@ export default function CompassLanding() {
                     />
                   ))}
                   <p className="cl-signal-foot">
+                    Compass is your blended score out of 100. Growth is the points it moved since
+                    the last campaign.
+                  </p>
+                  <p className="cl-signal-meta">
                     Campaign 2 of 3 · Team responses 7 of 9 · aggregate only, always.
                   </p>
                 </div>

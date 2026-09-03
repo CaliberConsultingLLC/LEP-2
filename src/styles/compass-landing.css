@@ -933,16 +933,21 @@ html:has([data-compass-landing]) {
   align-items: center;
 }
 
-/* Signals overview and the gap map both run three columns now: a trait and
-   two numbers. Effort and efficacy moved to their own tab. */
+/* Signals overview runs a trait and two numbers; the gap map adds the
+   computed difference as a fourth. Effort and efficacy have their own tab. */
 .cl-signal-head.is-trio,
 .cl-signal-row.is-trio {
   grid-template-columns: 1.6fr 1fr 1fr;
 }
 
+.cl-signal-head.is-quad,
+.cl-signal-row.is-quad {
+  grid-template-columns: 1.6fr 0.85fr 0.85fr 1fr;
+}
+
 .cl-signal-head {
-  padding: 0 12px 8px;
-  font-size: 10px;
+  padding: 0 14px 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -960,7 +965,7 @@ html:has([data-compass-landing]) {
 
 .cl-signal-row {
   width: 100%;
-  padding: 14px 12px;
+  padding: 18px 14px;
   margin: 0;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -985,13 +990,14 @@ html:has([data-compass-landing]) {
 
 .cl-signal-name {
   font-family: 'Fraunces', serif;
-  font-size: 16px;
+  font-size: 22px;
+  line-height: 1.2;
   color: var(--cl-ink);
 }
 
 .cl-signal-metric {
   font-family: 'Fraunces', serif;
-  font-size: 18px;
+  font-size: 22px;
   font-variant-numeric: tabular-nums;
   text-align: center;
   color: var(--cl-ink);
@@ -1007,7 +1013,7 @@ html:has([data-compass-landing]) {
 /* "/ 100" rides alongside the Compass score so the scale reads at a glance. */
 .cl-signal-outof {
   font-style: normal;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--cl-ink-muted);
@@ -1019,12 +1025,25 @@ html:has([data-compass-landing]) {
 }
 
 .cl-signal-metric.is-growth {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 800;
   color: #2F855A;
 }
 
 .cl-signal-metric.is-growth.is-down {
+  color: #A33A32;
+}
+
+/* The gap is the whole point of its panel, so it carries the same weight
+   Compass carries in the signals table. */
+.cl-signal-metric.is-gap {
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: #2F855A;
+}
+
+.cl-signal-metric.is-gap.is-down {
   color: #A33A32;
 }
 
@@ -1060,29 +1079,38 @@ html:has([data-compass-landing]) {
 }
 
 .cl-signal-foot {
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--cl-ink-muted);
-  margin: 8px 0 0;
+  margin: 10px 0 0;
+}
+
+.cl-signal-meta {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cl-ink-muted);
+  opacity: 0.8;
+  margin: 6px 0 0;
 }
 
 /* plan panel */
 
 .cl-plan-intro {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--cl-ink-muted);
-  margin: 8px 0 14px;
+  margin: 10px 0 16px;
 }
 
 .cl-plan-steps {
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 15px;
 }
 
 .cl-plan-step {
   border-bottom: 1px solid rgba(28, 43, 58, 0.08);
-  padding-bottom: 11px;
+  padding-bottom: 13px;
 }
 
 .cl-plan-step.is-last {
@@ -1102,9 +1130,9 @@ html:has([data-compass-landing]) {
 }
 
 .cl-plan-step p {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
-  margin: 5px 0 0;
+  margin: 6px 0 0;
 }
 
 .cl-plan-step p.quote {
@@ -1588,8 +1616,12 @@ html:has([data-compass-landing]) {
   .cl-gap-row.is-pair { grid-template-columns: 1fr; gap: 8px; }
   .cl-signal-head.is-trio,
   .cl-signal-row.is-trio { grid-template-columns: 1.4fr 1fr 1fr; }
+  .cl-signal-head.is-quad,
+  .cl-signal-row.is-quad { grid-template-columns: 1.7fr 0.75fr 0.75fr 0.9fr; }
   .cl-signal-head,
   .cl-signal-row { gap: 6px; }
+  .cl-signal-row { padding: 14px 10px; }
+  .cl-signal-head { padding: 0 10px 8px; }
   .cl-rail-portrait { height: 240px; }
 
   .cl-privacy-grid { grid-template-columns: 1fr; gap: 24px; }
@@ -1606,9 +1638,12 @@ html:has([data-compass-landing]) {
   .cl-guide-grid { grid-template-columns: repeat(2, 1fr); }
   .cl-guide-tile { height: 214px; }
   .cl-guide-tile img { width: 112px; height: 112px; }
-  .cl-signal-name { font-size: 13px; }
-  .cl-signal-metric { font-size: 14px; }
-  .cl-signal-metric.is-compass { font-size: 18px; }
+  .cl-signal-name { font-size: 16px; }
+  .cl-signal-metric { font-size: 17px; }
+  .cl-signal-metric.is-compass { font-size: 20px; }
+  .cl-signal-metric.is-growth { font-size: 17px; }
+  .cl-signal-metric.is-gap { font-size: 20px; }
+  .cl-signal-foot { font-size: 14px; }
   .cl-btn-ghost { padding: 15px 28px; font-size: 15px; }
 }
 
