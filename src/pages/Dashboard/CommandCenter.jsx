@@ -12,7 +12,7 @@ import { getCurrentJourneyIndexFromState, getJourneyCompletion, JOURNEY_CHAPTER_
 import SignalView from './cc/SignalView.jsx';
 import NarrativeView from './cc/NarrativeView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
-import PracticeStudio from './cc/PracticeStudio.jsx';
+import FieldJournal, { planComplete } from './cc/FieldJournal.jsx';
 import { useBenchmarkData } from './cc/dashboardData.js';
 import { useResultsIntelligence } from './cc/useResultsIntelligence.js';
 import { getDebriefScope, useDebriefPhases, PHASE_ORDER } from './cc/phaseState.js';
@@ -990,16 +990,84 @@ export default function CommandCenter() {
     }
   }, [evidenceTraits.length, evidenceTraitIdx]);
 
-  const isDrilledIn = activeTab === 'evidence' && evidenceTraits.length > 0;
-  const drillSteps = isDrilledIn
+  const practiceRows = useMemo(() => {
+    const roles = deriveTraitRoles(benchmarkRows);
+    if (!roles.ordered?.length) return [];
+    if (!roles.edge) return roles.ordered;
+    return [roles.edge, ...roles.ordered.filter((r) => r.trait !== roles.edge.trait)];
+  }, [benchmarkRows]);
+
+  const practiceUserInfo = useMemo(() => readJson('userInfo', {}), []);
+  const practiceCampaignRecords = useMemo(() => readJson('campaignRecords', {}), []);
+  const practiceUserKey = practiceUserInfo?.email || practiceUserInfo?.name || 'anonymous';
+  const practiceCampaignKey =
+    practiceCampaignRecords?.bundleId ||
+    practiceCampaignRecords?.teamCampaignId ||
+    practiceCampaignRecords?.selfCampaignId ||
+    '123';
+
+  const [practiceTraitIdx, setPracticeTraitIdx] = useState(() => {
+    const saved = Number(phases.pages.practice);
+    if (Number.isFinite(saved) && saved >= 6) return 3;
+    if (Number.isFinite(saved)) return Math.floor(saved / 2);
+    return 0;
+  });
+
+  useEffect(() => {
+    if (practiceTraitIdx > 0 && practiceTraitIdx < 3 && practiceTraitIdx >= practiceRows.length) {
+      setPracticeTraitIdx(0);
+    }
+  }, [practiceRows.length, practiceTraitIdx]);
+
+  const isEvidenceDrilled = activeTab === 'evidence' && evidenceTraits.length > 0;
+  const isPracticeDrilled = activeTab === 'practice' && practiceRows.length > 0;
+  const isDrilledIn = isEvidenceDrilled || isPracticeDrilled;
+
+  const practiceStepStatus = useMemo(() => {
+    if (!isPracticeDrilled) return {};
+    const status = {};
+    practiceRows.forEach((r, i) => {
+      const plan = readJson(`practiceStudio_${practiceCampaignKey}_${practiceUserKey}_${r.trait}`, null);
+      if (planComplete(plan)) status[`trait-${i}`] = 'done';
+    });
+    const allComplete = practiceRows.every((r) =>
+      planComplete(readJson(`practiceStudio_${practiceCampaignKey}_${practiceUserKey}_${r.trait}`, null))
+    );
+    if (allComplete) status.commit = 'done';
+    return status;
+  }, [isPracticeDrilled, practiceRows, practiceCampaignKey, practiceUserKey]);
+
+  const drillSteps = isEvidenceDrilled
     ? evidenceTraits.map((r, i) => ({
         id: `trait-${i}`,
         label: r.subTrait || r.trait || `Trait ${i + 1}`,
       }))
-    : null;
+    : isPracticeDrilled
+      ? [
+          ...practiceRows.map((r, i) => ({
+            id: `trait-${i}`,
+            label: r.subTrait || r.trait || `Trait ${i + 1}`,
+          })),
+          { id: 'commit', label: 'The Commitment' },
+        ]
+      : null;
+
   const drillBack = isDrilledIn
     ? { label: 'Dashboard', onClick: () => goToTab('today') }
     : null;
+
+  const chapterId = activeTab === 'journey' ? 'action' : 'review';
+  const activeStepId = chapterId === 'action'
+    ? 'journey'
+    : (['today', 'narrative', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today');
+
+  const drilledActiveStepId = isEvidenceDrilled
+    ? `trait-${evidenceTraitIdx}`
+    : isPracticeDrilled
+      ? (practiceTraitIdx >= 3 ? 'commit' : `trait-${practiceTraitIdx}`)
+      : activeStepId;
+
+  const drilledStepStatus = isEvidenceDrilled ? {} : isPracticeDrilled ? practiceStepStatus : dockStatus;
 
   // Everyone answered, so there is nothing left to wait for. The leader keeps
   // the manual close for every other case; this fires only on a full house,
@@ -1011,11 +1079,6 @@ export default function CommandCenter() {
     autoClosedRef.current = true;
     lockTeamCampaignWindow().catch(() => { autoClosedRef.current = false; });
   }, [respondents, inviteTarget, campaignClosed, demoSession]);
-
-  const chapterId = activeTab === 'journey' ? 'action' : 'review';
-  const activeStepId = chapterId === 'action'
-    ? 'journey'
-    : (['today', 'narrative', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today');
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
@@ -1056,11 +1119,12 @@ export default function CommandCenter() {
         );
       case 'practice':
         return (
-          <PracticeStudio
+          <FieldJournal
             t={t}
-            onOpenJourney={() => goToTab('journey')}
             phases={phases}
             onAdvancePhase={() => advancePhase('practice')}
+            traitIndex={practiceTraitIdx}
+            onTraitIndexChange={setPracticeTraitIdx}
           />
         );
       case 'journey':
@@ -1096,13 +1160,18 @@ export default function CommandCenter() {
     >
       <ProcessTopRail
         chapterId={chapterId}
-        activeStepId={isDrilledIn ? `trait-${evidenceTraitIdx}` : activeStepId}
-        stepStatus={isDrilledIn ? {} : dockStatus}
+        activeStepId={isDrilledIn ? drilledActiveStepId : activeStepId}
+        stepStatus={isDrilledIn ? drilledStepStatus : dockStatus}
         steps={drillSteps}
         backAction={drillBack}
-        onStepSelect={isDrilledIn
+        onStepSelect={isEvidenceDrilled
           ? (step) => setEvidenceTraitIdx(Number(String(step.id).split('-')[1]) || 0)
-          : undefined}
+          : isPracticeDrilled
+            ? (step) => {
+                if (step.id === 'commit') setPracticeTraitIdx(3);
+                else setPracticeTraitIdx(Number(String(step.id).split('-')[1]) || 0);
+              }
+            : undefined}
         // The response count belongs where a leader acts on it — the team
         // assessment page and the dashboard's main screen — not pinned in the
         // corner of every room.
