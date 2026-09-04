@@ -6,6 +6,7 @@ import { deriveTraitRoles } from './debriefContent.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import FieldJournalGuide from './FieldJournalGuide.jsx';
+import GuideInterruption from '../../../components/GuideInterruption.jsx';
 import { useCairnTheme } from '../../../config/runtimeFlags';
 import { isDemoSession } from '../../../utils/demoMode';
 import {
@@ -477,6 +478,13 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const [noteOpen, setNoteOpen] = useState(null);
   const [settleKey, setSettleKey] = useState(0);
   const [guideMsg, setGuideMsg] = useState({ text: '', pose: 'think', eyebrow: '' });
+  // Each page of the journal introduces itself once per reading, the way the
+  // reflection's four stages do. Held in a ref scoped to the mounted page
+  // rather than in storage that outlives it, so turning back does not repeat
+  // the introduction and arriving at the journal again does give it.
+  const [introOpen, setIntroOpen] = useState(false);
+  const [introMsg, setIntroMsg] = useState(null);
+  const introSeenRef = useRef({});
 
   const showLedger = view.kind === 'ledger';
   const traitIdx = showLedger ? 0 : Math.min(Math.max(view.traitIndex, 0), Math.max(orderedRows.length - 1, 0));
@@ -487,11 +495,14 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const role = row ? traitRole(row, roles) : 'edge';
   const respondents = teamResponses?.length || 0;
 
+  // The journal draws its own guide beside the book, so the corner owl is
+  // suppressed here — except while an interruption is up, which is the one
+  // time the corner owl is the one speaking.
   useEffect(() => {
     if (!useCairnTheme) return undefined;
-    setSuppress(true);
+    setSuppress(!introOpen);
     return () => setSuppress(false);
-  }, [setSuppress]);
+  }, [setSuppress, introOpen]);
 
   useEffect(() => {
     if (readOnly) {
@@ -620,6 +631,45 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     return undefined;
   }, [personaId, role, page, editing, pageSealed, showLedger, allDone, signed, readOnly, row, traitLabel, respondents, orderedRows.length]);
 
+  // A different guide re-introduces the pages in their own words rather than
+  // inheriting a dismissal, the same rule the reflection follows.
+  useEffect(() => {
+    introSeenRef.current = {};
+  }, [personaId]);
+
+  const introKey = showLedger ? 'ledger' : `${traitIdx}-${page}`;
+
+  // The guide introduces the page before the page is worked on. It waits for
+  // any flip to land first — an interruption arriving mid-turn covers the
+  // page it is there to introduce. `editing` is deliberately left out: the
+  // intro speaks for the page, not for whichever field is open, so opening a
+  // field does not change what was said or fire a second one.
+  useEffect(() => {
+    if (!useCairnTheme || readOnly || !orderedRows.length || flipping) return undefined;
+    if (introSeenRef.current[introKey]) return undefined;
+    const msg = guideForContext({
+      personaId,
+      role,
+      page,
+      editing: null,
+      sealed: pageSealed,
+      isLedger: showLedger,
+      allDone,
+      signed: signed || readOnly,
+      row,
+      traitLabel,
+      respondents,
+    });
+    setIntroMsg({ text: msg.text, pose: msg.pose, eyebrow: msg.eyebrow });
+    setIntroOpen(true);
+    return undefined;
+  }, [introKey, flipping, readOnly, orderedRows.length, personaId, role, page, pageSealed, showLedger, allDone, signed, row, traitLabel, respondents]);
+
+  const dismissIntro = useCallback(() => {
+    introSeenRef.current[introKey] = true;
+    setIntroOpen(false);
+  }, [introKey]);
+
   const currentScore = row ? Math.round(row.team.lepScore) : 0;
   const goalVal = Number.isFinite(plan.commitGoal) ? plan.commitGoal : defaultGoal(currentScore);
 
@@ -720,7 +770,10 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
 
   return (
     <Box sx={{ ...journalKeyframes, position: 'relative', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
-      {useCairnTheme && (
+      {/* While the interruption is up the corner owl is the speaker, so the
+          journal's own guide stands down rather than saying the same line
+          twice on the same screen. */}
+      {useCairnTheme && !introOpen && (
         <FieldJournalGuide
           persona={persona}
           eyebrow={guideMsg.eyebrow}
@@ -728,6 +781,13 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
           pose={guideMsg.pose}
         />
       )}
+      <GuideInterruption
+        open={introOpen && Boolean(introMsg)}
+        eyebrow={introMsg?.eyebrow}
+        text={introMsg?.text || ''}
+        pose={introMsg?.pose}
+        onDone={dismissIntro}
+      />
       <Box
         sx={{
           position: 'relative',
