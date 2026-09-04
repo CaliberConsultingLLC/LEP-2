@@ -29,7 +29,7 @@ import { intakeContext } from '../data/intakeContext';
 import { scoreIntakeAgainstCoverage, isEligibleForFocusRecommendation } from '../data/intakeTraitCoverage';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { buttons, colors, fonts, radii, shadows, type } from '../styles/tokens';
+import { colors, fonts, radii, shadows, type } from '../styles/tokens';
 import { GUIDE_VOICE_IDS, getGuideVoice, resolveGuideVoiceId } from '../data/guideVoices';
 import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
 import { setGeneratedGuideLines } from '../data/generatedGuideLines';
@@ -1709,33 +1709,6 @@ function Summary() {
                     </Box>
                   )}
 
-                  <Box
-                    sx={{
-                      mt: '14px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Button
-                      ref={hearGuideBtnRef}
-                      type="button"
-                      onClick={() => setHearGuideOpen(true)}
-                      sx={{
-                        ...buttons.outlinedPrimary,
-                        minHeight: 34,
-                        py: '6px',
-                        px: '16px',
-                        fontSize: 12,
-                      }}
-                    >
-                      Hear from a different guide
-                    </Button>
-                    <GuidePickerMenu
-                      open={hearGuideOpen}
-                      anchorEl={hearGuideBtnRef.current}
-                      onClose={() => setHearGuideOpen(false)}
-                    />
-                  </Box>
 
                   <Box
                     sx={{
@@ -1771,6 +1744,51 @@ function Summary() {
                     >
                       {`‹ ${backTarget.label}`}
                     </Box>
+                    {/* Between the two directions rather than floating above
+                        them: hearing the same reflection in another voice is
+                        one of the more interesting things the product does,
+                        and as a quiet outlined button above the rule it read
+                        as a footnote. Orange to be noticed, navy ink on it
+                        because white on this orange is 2.99:1. */}
+                    <Box
+                      component="button"
+                      type="button"
+                      ref={hearGuideBtnRef}
+                      onClick={() => setHearGuideOpen(true)}
+                      sx={{
+                        all: 'unset',
+                        cursor: 'pointer',
+                        boxSizing: 'border-box',
+                        bgcolor: colors.orange,
+                        color: colors.navy900,
+                        borderRadius: radii.pill,
+                        px: '18px',
+                        py: '9px',
+                        fontFamily: fonts.sans,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        letterSpacing: '0.02em',
+                        whiteSpace: 'nowrap',
+                        boxShadow: shadows.buttonPrimary,
+                        transition: '180ms ease',
+                        '&:hover': {
+                          bgcolor: colors.orangeDeep,
+                          color: colors.sand50,
+                          boxShadow: shadows.buttonPrimaryHover,
+                        },
+                        '&:focus-visible': {
+                          outline: `3px solid ${colors.navy900}`,
+                          outlineOffset: 3,
+                        },
+                      }}
+                    >
+                      Hear from a different guide
+                    </Box>
+                    <GuidePickerMenu
+                      open={hearGuideOpen}
+                      anchorEl={hearGuideBtnRef.current}
+                      onClose={() => setHearGuideOpen(false)}
+                    />
                     <Box
                       component="button"
                       type="button"
