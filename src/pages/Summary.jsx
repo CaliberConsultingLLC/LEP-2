@@ -1037,15 +1037,19 @@ function Summary() {
     // working, so the screen narrates the actual stages rather than spinning —
     // a motionless spinner reads as broken, and the natural response is to
     // refresh, which throws the work away and starts over.
+    // Each stage carries what it is doing now and, in the past tense, what it
+    // leaves behind — the second is what the screen confirms with a check as
+    // the marker moves on, so three minutes reads as a run of small
+    // completions rather than one sentence repeating.
     const STAGES = [
-      { at: 0, text: 'Reading everything you told us.' },
-      { at: 18, text: 'Setting your answers against each other, looking for where they disagree.' },
-      { at: 42, text: 'Finding the patterns that run underneath the individual answers.' },
-      { at: 72, text: 'Working out what this costs the people around you.' },
-      { at: 105, text: 'Choosing the five places where change would matter most.' },
-      { at: 132, text: 'Committing to what we think your team will say about you.' },
-      { at: 158, text: 'Putting it into your guide’s voice.' },
-      { at: 190, text: 'Nearly there — the last part is worth the wait.' },
+      { at: 0, text: 'Reading everything you told us.', done: 'Read your intake' },
+      { at: 18, text: 'Setting your answers against each other, looking for where they disagree.', done: 'Compared your answers' },
+      { at: 42, text: 'Finding the patterns that run underneath the individual answers.', done: 'Found the patterns' },
+      { at: 72, text: 'Working out what this costs the people around you.', done: 'Traced the cost' },
+      { at: 105, text: 'Choosing the five places where change would matter most.', done: 'Chose your five' },
+      { at: 132, text: 'Committing to what we think your team will say about you.', done: 'Made the prediction' },
+      { at: 158, text: 'Putting it into your guide’s voice.', done: 'Written in your guide’s voice' },
+      { at: 190, text: 'Nearly there — the last part is worth the wait.', done: 'Read back for sense' },
     ];
     const stage = STAGES.filter((s2) => loadingSeconds >= s2.at).pop() || STAGES[0];
     const stageIndex = STAGES.indexOf(stage);
@@ -1053,9 +1057,10 @@ function Summary() {
       <LoadingScreen
         title="Building your Compass"
         subtitle={stage.text}
-        hint={`About three minutes, and it is working the whole time. ${loadingSeconds}s in — please don’t refresh.`}
+        explain={'Your reflection is written once, from everything you gave us — not assembled from a template. That is why it takes about three minutes, and why it is worth not refreshing.'}
         step={stageIndex}
-        totalSteps={STAGES.length}
+        steps={STAGES.map((s2) => s2.done)}
+        elapsedSeconds={loadingSeconds}
       />
     );
   }
