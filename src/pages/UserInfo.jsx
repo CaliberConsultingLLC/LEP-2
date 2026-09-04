@@ -655,7 +655,9 @@ function UserInfo() {
                   mt: 2,
                 }}
               >
-                {isSubmitting ? 'Saving...' : 'Continue to your guide'}
+                {isSubmitting
+                  ? 'Saving...'
+                  : isIntakeUnlocked() ? 'Continue to your guide' : 'Continue to payment'}
               </Button>
             </Stack>
           </CardContent>
