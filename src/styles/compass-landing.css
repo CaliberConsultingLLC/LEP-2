@@ -430,7 +430,7 @@ html:has([data-compass-landing]) {
   top: 20px;
   left: 76px;
   z-index: 4;
-  width: 340px;
+  width: 470px;
   background: var(--cl-parchment);
   color: var(--cl-ink);
   border-radius: 8px;
@@ -484,6 +484,13 @@ html:has([data-compass-landing]) {
 
 .cl-journal p:last-child {
   margin-bottom: 0;
+}
+
+/* One phrase per chapter carries the difference — bolded so the panel still
+   reads at a glance for anyone who won't work through the paragraph. */
+.cl-journal p strong {
+  font-weight: 700;
+  color: var(--cl-ember-deep);
 }
 
 .clx-bullets {
