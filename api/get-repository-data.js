@@ -40,6 +40,59 @@ function deriveUserStage({ intakeStarted, intakeComplete, summaryReady, campaign
   return 'Profile Created';
 }
 
+// Where people stop.
+//
+// The per-user table answers "what happened to this person"; it cannot answer
+// "where does everybody stop", which is the number that decides what to fix
+// next. Each step counts everyone who reached it or anything past it, so the
+// series only ever falls — a step's drop is the people it lost.
+//
+// Read off the same signals as deriveUserStage, so the funnel and the table
+// can never disagree.
+const FUNNEL_STEPS = [
+  { key: 'signedUp', label: 'Signed up' },
+  { key: 'intakeStarted', label: 'Intake started' },
+  { key: 'intakeComplete', label: 'Intake complete' },
+  { key: 'summaryReady', label: 'Reflection generated' },
+  { key: 'campaignBuilt', label: 'Campaign built' },
+  { key: 'responsesIn', label: 'Team responses in' },
+];
+
+function buildFunnel(rows) {
+  const reached = {
+    signedUp: rows.length,
+    intakeStarted: 0,
+    intakeComplete: 0,
+    summaryReady: 0,
+    campaignBuilt: 0,
+    responsesIn: 0,
+  };
+
+  rows.forEach((row) => {
+    if (row.intakeStarted) reached.intakeStarted += 1;
+    if (row.intakeComplete) reached.intakeComplete += 1;
+    if (row.summaryReady) reached.summaryReady += 1;
+    if (Number(row.campaignCount) > 0) reached.campaignBuilt += 1;
+    if (Number(row.responseCount) > 0) reached.responsesIn += 1;
+  });
+
+  let previous = null;
+  return FUNNEL_STEPS.map((step) => {
+    const count = reached[step.key] || 0;
+    const entry = {
+      key: step.key,
+      label: step.label,
+      count,
+      // Share of everyone who ever signed up, so the steps are comparable.
+      ofTotal: rows.length ? Math.round((count / rows.length) * 100) : 0,
+      // People who reached the step before this one and not this one. Null on
+      // the first, which has nothing in front of it to lose them from.
+      droppedHere: previous === null ? null : Math.max(previous - count, 0),
+    };
+    previous = count;
+    return entry;
+  });
+}
 function deriveCurrentStepLabel(intakeStatus, stage) {
   if (intakeStatus?.complete) return 'Complete';
   const current = Number(intakeStatus?.currentStep);
@@ -223,6 +276,10 @@ export default async function handler(req, res) {
         role: String(response?.latestFormData?.role || '').trim(),
         industry: String(response?.latestFormData?.industry || '').trim(),
         teamSize: asNumber(response?.latestFormData?.teamSize),
+        // Carried on the row as well as folded into currentStage, so the
+        // funnel counts the same signals the table shows.
+        intakeStarted,
+        intakeComplete,
         summaryReady,
         summarySavedAt: response?.summarySavedAt || '',
         campaignBundleReady: Boolean(response?.campaignBundleReady),
@@ -240,6 +297,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       users: userRows,
       campaigns: campaignRows,
+      funnel: buildFunnel(userRows),
       meta: {
         userCount: userRows.length,
         campaignCount: campaignRows.length,

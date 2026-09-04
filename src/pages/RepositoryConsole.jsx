@@ -46,7 +46,7 @@ function RepositoryConsole() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [session, setSession] = useState(null);
-  const [rows, setRows] = useState({ users: [], campaigns: [], meta: {} });
+  const [rows, setRows] = useState({ users: [], campaigns: [], funnel: [], meta: {} });
   const loadData = async (activeSession) => {
     if (!activeSession?.active || !activeSession?.token) {
       navigate('/dev-repository-login', { replace: true });
@@ -73,6 +73,7 @@ function RepositoryConsole() {
       setRows({
         users: Array.isArray(payload?.users) ? payload.users : [],
         campaigns: Array.isArray(payload?.campaigns) ? payload.campaigns : [],
+        funnel: Array.isArray(payload?.funnel) ? payload.funnel : [],
         meta: payload?.meta || {},
       });
     } catch (fetchErr) {
@@ -82,7 +83,7 @@ function RepositoryConsole() {
         return;
       }
       setError(fetchErr?.message || 'Could not load repository data.');
-      setRows({ users: [], campaigns: [], meta: {} });
+      setRows({ users: [], campaigns: [], funnel: [], meta: {} });
     } finally {
       setLoading(false);
     }
@@ -99,6 +100,7 @@ function RepositoryConsole() {
   }, [navigate]);
 
   const users = rows.users || [];
+  const funnel = rows.funnel || [];
   const campaigns = rows.campaigns || [];
 
   return (
@@ -190,6 +192,52 @@ function RepositoryConsole() {
             </Alert>
           )}
 
+          {/* Where people stop.
+              The table below says what happened to one person. This says where
+              everybody stops, which is the number that decides what to fix
+              next. Each bar counts everyone who reached that step or anything
+              past it, so the series only falls and the drop is the loss. */}
+          {funnel.length > 0 && (
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 3,
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,248,253,0.9))',
+                boxShadow: '0 12px 28px rgba(15,23,42,0.14)',
+                p: 2.5,
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, fontSize: 15, mb: 0.4 }}>Where people stop</Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'rgba(19,38,58,0.62)', mb: 2 }}>
+                Every leader who has ever signed up, counted at each step they reached.
+              </Typography>
+              <Stack spacing={1.4}>
+                {funnel.map((step) => (
+                  <Box key={step.key}>
+                    <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{step.label}</Typography>
+                      <Typography sx={{ fontSize: 12, color: 'rgba(19,38,58,0.62)' }}>
+                        {step.count} · {step.ofTotal}%
+                        {step.droppedHere ? ` · lost ${step.droppedHere} here` : ''}
+                      </Typography>
+                    </Stack>
+                    <Box sx={{ height: 8, borderRadius: 99, background: 'rgba(19,38,58,0.09)', overflow: 'hidden' }}>
+                      <Box
+                        sx={{
+                          height: '100%',
+                          width: `${step.ofTotal}%`,
+                          borderRadius: 99,
+                          background: step.droppedHere ? 'rgba(224,122,63,0.85)' : 'rgba(47,133,90,0.85)',
+                          transition: 'width 420ms ease',
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+          )}
           <Paper
             elevation={0}
             sx={{
