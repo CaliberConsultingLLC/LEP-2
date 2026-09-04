@@ -1,4 +1,5 @@
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
+import { appBaseUrl, renderEmail, sendEmail } from './_email.js';
 
 function getBearerToken(req) {
   const authHeader = String(req.headers?.authorization || '');
@@ -9,63 +10,24 @@ function getBearerToken(req) {
   return token.trim();
 }
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
+// The first letter a customer gets, on the same letterhead as every other
+// one. It was still the pre-redesign HTML table — Inter on a blue gradient —
+// because the mail layer landed after it and never came back for it. Being
+// the first email, it was the one most worth having in the product's voice.
 function buildWelcomeEmail({ name, email, signInUrl, forgotPasswordUrl }) {
-  const safeName = escapeHtml(name || 'there');
-  const safeEmail = escapeHtml(email || '');
-  const safeSignInUrl = escapeHtml(signInUrl);
-  const safeForgotUrl = escapeHtml(forgotPasswordUrl);
-
-  const textBody = [
-    `Thanks for signing up for Compass, ${name || 'there'}.`,
-    '',
-    `Sign in to your dashboard: ${signInUrl}`,
-    `Username: ${email}`,
-    '',
-    `Forgot your password? Reset it here: ${forgotPasswordUrl}`,
-    '',
-    'Compass Support',
-  ].join('\n');
-
-  const htmlBody = `
-    <div style="background:#f6f8fc;padding:28px 0;font-family:Inter,Segoe UI,Arial,sans-serif;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e5eaf2;border-radius:12px;overflow:hidden;">
-        <tr>
-          <td style="padding:24px 28px;background:linear-gradient(135deg,#2f4f67,#3f647b);color:#ffffff;">
-            <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:700;">Welcome to Compass</h1>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:24px 28px;color:#1f2a37;">
-            <p style="margin:0 0 14px 0;font-size:15px;line-height:1.6;">Thanks for signing up, ${safeName}.</p>
-            <p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;">Your account is ready. Use the button below to access your dashboard.</p>
-            <p style="margin:0 0 18px 0;">
-              <a href="${safeSignInUrl}" style="display:inline-block;background:#3f647b;color:#ffffff;text-decoration:none;padding:11px 18px;border-radius:999px;font-size:14px;font-weight:700;">Go to Dashboard</a>
-            </p>
-            <p style="margin:0 0 12px 0;font-size:14px;color:#4b5c70;"><strong>Username:</strong> ${safeEmail}</p>
-            <p style="margin:0;font-size:14px;color:#4b5c70;">Forgot your password? <a href="${safeForgotUrl}" style="color:#3f647b;text-decoration:underline;">Reset it here</a>.</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:14px 28px;border-top:1px solid #e5eaf2;color:#7b8798;font-size:12px;line-height:1.5;">
-            Compass Support
-          </td>
-        </tr>
-      </table>
-    </div>
-  `.trim();
-
-  return { textBody, htmlBody };
+  const first = String(name || '').trim().split(/\s+/)[0] || 'there';
+  return renderEmail({
+    eyebrow: 'Your account is open',
+    title: `Welcome to the Compass, ${first}.`,
+    body: [
+      'Your account is ready. What happens next is a reflection written from your own answers, then the same questions put to your team — and the distance between the two is the reading.',
+      'Nothing is asked of your team until you say so, and their answers come back to you anonymously.',
+      `You sign in with ${email}.`,
+    ],
+    cta: { label: 'Open your Compass', url: signInUrl },
+    outro: `Forgotten the password already? Set a new one at ${forgotPasswordUrl}`,
+  });
 }
-
 function normalizeBaseUrl(input) {
   const value = String(input || '').trim();
   if (!value) {
@@ -99,46 +61,6 @@ function resolveSignInUrl(candidate, fallbackBase) {
   } catch {
     return fallbackUrl;
   }
-}
-
-async function sendPostmarkEmail(payload, token, maxAttempts = 2) {
-  let lastResponse = null;
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      const response = await fetch('https://api.postmarkapp.com/email', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Postmark-Server-Token': token,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        return response;
-      }
-
-      lastResponse = response;
-      const shouldRetry = response.status >= 500 && attempt < maxAttempts;
-      if (!shouldRetry) {
-        return response;
-      }
-    } catch (error) {
-      lastError = error;
-      if (attempt >= maxAttempts) {
-        throw error;
-      }
-    }
-  }
-
-  if (lastResponse) {
-    return lastResponse;
-  }
-
-  throw lastError || new Error('postmark-send-failed');
 }
 
 async function resolveEmailFromIdToken(idToken) {
@@ -201,38 +123,35 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const postmarkServerToken = process.env.POSTMARK_SERVER_TOKEN;
-    const fromEmail = process.env.POSTMARK_FROM_EMAIL || 'YOUR_VERIFIED_SENDER@YOURDOMAIN.COM';
-    const originBase = normalizeBaseUrl(req.headers.origin);
-    const envBase = normalizeBaseUrl(process.env.APP_BASE_URL);
-    const resolvedBaseUrl = originBase || envBase || 'https://YOUR_DOMAIN';
+    // APP_BASE_URL first, then the request's own origin — the same order the
+    // rest of the mail layer uses, so one setting moves every link.
+    const resolvedBaseUrl = normalizeBaseUrl(appBaseUrl(req)) || '';
     const signInUrl = resolveSignInUrl(process.env.APP_SIGN_IN_URL, resolvedBaseUrl);
     const forgotPasswordUrl = process.env.APP_FORGOT_PASSWORD_URL
       || `${resolvedBaseUrl}/sign-in?email=${encodeURIComponent(requestEmail)}`;
 
-    if (!postmarkServerToken) {
-      return res.status(503).json({ error: 'Email service not configured' });
-    }
-
-    const { textBody, htmlBody } = buildWelcomeEmail({
+    const { html, text } = buildWelcomeEmail({
       name: requestName,
       email: requestEmail,
       signInUrl,
       forgotPasswordUrl,
     });
 
-    const postmarkResponse = await sendPostmarkEmail({
-      From: fromEmail,
-      To: requestEmail,
-      Subject: 'Welcome to Compass',
-      TextBody: textBody,
-      HtmlBody: htmlBody,
-      MessageStream: process.env.POSTMARK_MESSAGE_STREAM || 'outbound',
-    }, postmarkServerToken);
+    const result = await sendEmail({
+      to: requestEmail,
+      subject: 'Welcome to the Compass',
+      html,
+      text,
+    });
 
-    if (!postmarkResponse.ok) {
-      const details = await postmarkResponse.text().catch(() => '');
-      console.error('Postmark welcome email failed:', details);
+    // sendEmail reports a missing token or sender as `skipped` rather than
+    // throwing, so the two are answered differently: not configured is ours
+    // to fix, a provider error is not.
+    if (result.skipped) {
+      return res.status(503).json({ error: 'Email service not configured' });
+    }
+    if (!result.ok) {
+      console.error('Postmark welcome email failed:', result.reason);
       return res.status(502).json({ error: 'Email provider error' });
     }
 
