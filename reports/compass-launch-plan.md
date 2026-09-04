@@ -1,8 +1,8 @@
 # Compass Launch Plan
 
-Date: 24 August 2026
+Date: 24 August 2026 (last updated 4 September 2026 — item 3, Stripe)
 Horizon: public access within ~two weeks
-Status: plan only — not yet in build
+Status: mostly plan. Item 3 (payment) is now partly built and carries its own unfinished checklist.
 
 This document is the working plan for remaining launch items. It is grounded in how Compass is built today (Cairn/staging as the real product; legacy production skin still in the tree). Each item is tagged **Must / Should / Later** for public access.
 
@@ -18,7 +18,7 @@ The public cannot use Compass until these are true. Several list items are polis
 - **Real persistence** — Intake, summary, traits, campaigns, and team responses must survive a new browser, a new device, and a team member who never visited the leader’s machine. Today much of the Cairn path is `localStorage` plus `allowStagingPersistenceBypass`.
 - **Auth that actually protects the dashboard** — `ProtectedRoute` currently returns children whenever Cairn is on. Password reset, welcome email, and resume-journey only matter if accounts are real.
 - **Team survey for non-users** — Invite link + password must load campaign data from the server, not `campaign_${id}` in the leader’s `localStorage`. This is the first thing a customer’s team will hit.
-- **Payment, or a conscious delay** — Landing already sells **$250 / year**. If that is live at launch, Stripe (or a hold) must sit in the flow. If we are not charging week one, the landing copy has to change.
+- **Payment, or a conscious delay** — Landing already sells **$250 / year**. The flow is built and sits between account creation and Guide Select, but it runs on a **Stripe test link**: it charges nobody and test cards walk through it. Swapping in the live link and setting the post-payment redirect are launch gates, not polish. See item 3.
 - **Legal / org footer** — Terms, privacy, IP, contact. UserInfo already has agree-checkboxes; those dialogs need real documents.
 - **AI summary quality** — This is the product. Short summaries will feel unfinished.
 - **Evidence → Practice navigation** — Users can get stuck on Evidence and never reach Practice. That is a product dead-end, not polish.
@@ -86,23 +86,29 @@ Current narrative prompt in `api/promptBuilder.js` caps **Trailhead 4–6 senten
 
 ---
 
-### 3. Stripe payment shell — Must if charging at launch
+### 3. Stripe payment — Built on a test link. **Not finished.**
 
-No Stripe code exists. `Pricing.jsx` is a marketing page. Live flow is Landing → `/user-info` (Firebase account) → profile → `/guide-select` → `/form?stage=intake`. Payment should sit **after Guide, before Intake**.
+**Status (4 September 2026):** the flow is wired and works end to end. Payment sits **after account creation, before Guide Select** — signup lands on `/pay`, `/pay/success` lands on `/guide-select`, and Guide Select bounces anyone unpaid back to `/pay`. Demo sessions pass straight through.
 
-**Build as**
+It runs on a **Stripe Payment Link** (`buy.stripe.com/...`), not the secret-key Checkout Session path. The link is baked into `src/utils/billing.js` and the button just walks the leader over to Stripe with their account stapled to the URL (`client_reference_id` = Firebase uid, `prefilled_email`).
 
-- New `/pay` (or `/checkout`) between Guide Select and Intake.
-- Shell now: price, what they get, “Continue to payment” placeholder, success/cancel routes, webhook stub, entitlement flag (`paidAt` on the user/response doc).
-- Wire Checkout + webhook when keys land (test mode first). Gate Intake on `paid` unless demo.
-- **Do not** put secret keys in the client.
+Built: `/pay` (`Checkout.jsx`), `/pay/success` (`CheckoutSuccess.jsx`), the `compassPaid` entitlement flag, the gate on Guide Select and Intake, `api/create-checkout-session.js` + `api/confirm-checkout.js` + `api/stripe-webhook.js` (the last three are dormant — they need a secret key). No secret key is in the client.
+
+#### Still to do — payment is NOT safe to charge on yet
+
+- [ ] **The link in the code is a TEST link.** A test-mode Stripe link takes test card numbers (`4242 4242 4242 4242`) and charges nobody. Right now anyone who knows that walks past the paywall for free. **Before taking real money:** create the live Payment Link in Stripe (toggle out of test/sandbox mode), then set `VITE_STRIPE_PAYMENT_LINK` to it in the Vercel project. No code change needed. Setting that variable to `off` turns payment off entirely.
+- [ ] **Set the redirect in the Stripe dashboard.** Payment Link → *After payment* → "Don't show confirmation page, redirect customers to" → `https://<our domain>/pay/success?session_id={CHECKOUT_SESSION_ID}`. Without this, Stripe shows its own receipt page and the leader never comes back into Compass — they pay and land nowhere. Must be set on the live link too, not just the test one.
+- [ ] **`STRIPE_SECRET_KEY` in Vercel.** Today `/pay/success` trusts the redirect: if Stripe sent you here, you paid. That is true in practice but unverified, and the entitlement lives only in the browser's `localStorage` — clear it and the leader is locked out; a person who forges the URL is let in. With the secret key set, `confirm-checkout` asks Stripe whether the session really was paid and writes `billing.paid` / `paidAt` onto the response doc in Firestore, which makes the entitlement real and portable across devices.
+- [ ] **Webhook endpoint.** `api/stripe-webhook.js` is written and reachable on Vercel at `/api/stripe-webhook`, but it is not registered in the Stripe dashboard, has no `STRIPE_WEBHOOK_SECRET` (it currently skips signature checking without one), and is not mounted in local `server.js`. This is what catches a payment that completes after the leader closes the tab.
+- [ ] **Decide what "paid" means for a returning leader.** `compassPaid` is per-browser. Signing in on a second device does not carry it. This is fixed by the Firestore write above plus a read on sign-in — not yet built.
+- [ ] **Test purchase.** Nobody has completed one yet, in test or live mode. Run signup → pay → guide → intake all the way through on the staging URL once the redirect is set.
 
 **Consider**
 
-- Account is created **before** pay today. Abandoned signups will sit in Firebase. Better: create the account at UserInfo, collect pay before Intake, and treat unpaid accounts as “cannot generate a summary.”
-- Refund promise on the landing page (“30-day, keep your reflection”) needs a Stripe refund path later.
-- Org/Team “Contact us” vs Individual $250 — confirm one SKU for v1.
-- Demo and internal testers must bypass pay.
+- Account is created **before** pay. Abandoned signups will sit in Firebase — an account with no payment can be created and left. Treat unpaid accounts as "cannot generate a summary."
+- Refund promise on the landing page ("30-day, keep your reflection") needs a Stripe refund path later.
+- Org/Team "Contact us" vs Individual $250 — confirm one SKU for v1.
+- Demo and internal testers bypass pay today via `isDemoSession()`. Verify that still holds after the live link goes in.
 
 **Open question:** Is $250 / year the only live SKU? Paywall Intake only, or also Summary?
 
@@ -315,7 +321,7 @@ Cairn is the product, not the old `app.northstarpartners.org` skin. Promoting st
 2. Real data + real auth + no seed + no panel + no persistence bypass.
 3. Point the public domain at this Vercel project (or rename staging → production in Vercel). Keep a **private** preview for us (`?theme=cairn` + auth), not a second product.
 4. Firebase authorized domains, Auth email templates, `VITE_APP_BASE_URL`.
-5. Stripe live keys + webhook endpoint on that domain.
+5. Stripe: live Payment Link in `VITE_STRIPE_PAYMENT_LINK`, post-payment redirect pointed at the new domain, `STRIPE_SECRET_KEY`, webhook endpoint + `STRIPE_WEBHOOK_SECRET`. See item 3 for the full list.
 6. Smoke: signup → pay → intake → summary → campaign → **team on a different phone** → dashboard Signal/Evidence/Practice.
 7. Only then strip “staging” copy and URLs.
 
