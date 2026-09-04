@@ -37,22 +37,25 @@ export default async function handler(req, res) {
   const publishableKey = String(
     process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
   ).trim();
+  // Every problem is reported together. Stopping at the first one makes the
+  // operator fix, redeploy, and discover the next one — a round trip per key.
+  // A value pasted from the wrong field is named here too, because Stripe
+  // reports it as "Invalid API Key provided: https://..." which reads like
+  // our bug and never says which variable is wrong.
   const missing = [];
+  const malformed = [];
   if (!secret) missing.push('STRIPE_SECRET_KEY');
+  else if (!/^(sk|rk)_/.test(secret)) malformed.push('STRIPE_SECRET_KEY expects sk_ or rk_');
   if (!publishableKey) missing.push('STRIPE_PUBLISHABLE_KEY');
-  if (missing.length) {
-    console.error('Stripe is not configured; missing:', missing.join(', '));
-    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false, missing });
-  }
-  // A key pasted from the wrong field fails at Stripe with a message that
-  // reads like our bug. Name it here instead.
-  if (!/^sk_|^rk_/.test(secret)) {
-    console.error('STRIPE_SECRET_KEY does not look like a Stripe secret key (expected sk_ or rk_).');
-    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false, malformed: 'STRIPE_SECRET_KEY' });
-  }
-  if (!/^pk_/.test(publishableKey)) {
-    console.error('STRIPE_PUBLISHABLE_KEY does not look like a Stripe publishable key (expected pk_).');
-    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false, malformed: 'STRIPE_PUBLISHABLE_KEY' });
+  else if (!/^pk_/.test(publishableKey)) malformed.push('STRIPE_PUBLISHABLE_KEY expects pk_');
+  if (missing.length || malformed.length) {
+    console.error('Stripe is not configured.', { missing, malformed });
+    return res.status(503).json({
+      error: 'Checkout is not configured yet.',
+      configured: false,
+      ...(missing.length ? { missing } : {}),
+      ...(malformed.length ? { malformed } : {}),
+    });
   }
 
   try {
