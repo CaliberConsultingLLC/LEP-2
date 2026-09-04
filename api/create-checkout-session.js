@@ -97,12 +97,15 @@ export default async function handler(req, res) {
     // Stripe renders its own promotion-code field inside the form and
     // validates the code there. Nothing to collect on our side.
     params.set('allow_promotion_codes', 'true');
-    // Card only. Left to Stripe's dynamic defaults the form also offered Cash
-    // App Pay, Affirm and Amazon Pay plus a Link phone field — consumer-retail
-    // methods that do not fit a per-leader annual purchase, and together they
-    // made the form tall enough to need scrolling. Card keeps Apple Pay and
-    // Google Pay, which ride on it.
+    // Card and bank transfer, nothing else. Stripe's dynamic defaults offered
+    // Cash App Pay, Affirm, Amazon Pay and Klarna — consumer-retail and
+    // buy-now-pay-later methods that do not fit a per-leader annual purchase,
+    // and a company buying seats is as likely to want ACH as a card. Naming
+    // the types explicitly also overrides what the dashboard has enabled, so
+    // the form cannot quietly grow a method we did not choose.
+    // Apple Pay and Google Pay ride on 'card' and stay.
     params.set('payment_method_types[0]', 'card');
+    params.set('payment_method_types[1]', 'us_bank_account');
     params.set('line_items[0][quantity]', '1');
     params.set('line_items[0][price_data][currency]', 'usd');
     params.set('line_items[0][price_data][unit_amount]', String(amount));
