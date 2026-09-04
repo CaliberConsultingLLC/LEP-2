@@ -773,27 +773,27 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
       efficacy: {
         aligned: [
           'Your view of impact is closely aligned with your team. They are reading this trait in about the same way you are.',
-          'There is very little daylight in efficacy here. The impact you believe you are having is largely the impact your team is reporting.',
-          'Your self-view and team view of efficacy are mostly in sync, which suggests the signal around impact is fairly clear.',
-          'The efficacy gap is small, so this trait appears to be landing about as expected from both sides.',
-          'This is a relatively aligned efficacy picture. Your team is not reporting a materially different level of impact than you are.',
-          'There is not much separation in efficacy here, so perception and team experience are tracking fairly closely.',
+          'There is very little daylight in effectiveness here. The impact you believe you are having is largely the impact your team is reporting.',
+          'Your self-view and team view of effectiveness are mostly in sync, which suggests the signal around impact is fairly clear.',
+          'The effectiveness gap is small, so this trait appears to be landing about as expected from both sides.',
+          'This is a relatively aligned effectiveness picture. Your team is not reporting a materially different level of impact than you are.',
+          'There is not much separation in effectiveness here, so perception and team experience are tracking fairly closely.',
         ],
         positive: [
           'Your team sees slightly more impact here than you do, which suggests this trait may be landing a bit more clearly than you realize.',
-          'The team is rating efficacy a little higher, so your influence in this area may be stronger than your own read suggests.',
-          'This positive efficacy gap indicates your team is experiencing this trait more favorably than you are giving yourself credit for.',
+          'The team is rating effectiveness a little higher, so your influence in this area may be stronger than your own read suggests.',
+          'This positive effectiveness gap indicates your team is experiencing this trait more favorably than you are giving yourself credit for.',
           'Your team sees noticeably stronger impact here, which suggests the trait is landing better than your self-assessment implies.',
           'A gap this size suggests your team is receiving more value from this trait than you may currently recognize.',
-          'Your team is reading efficacy much higher, which points to a materially stronger impact than your own self-view.',
+          'Your team is reading effectiveness much higher, which points to a materially stronger impact than your own self-view.',
         ],
         negative: [
           'Your team sees slightly less impact here than you do, which suggests the trait is not landing quite as strongly as intended.',
-          'The team is rating efficacy lower, so there may be a mild disconnect between your intent and their actual experience.',
-          'This negative efficacy gap suggests your impact is being felt as weaker than your self-view would imply.',
-          'Your team is seeing meaningfully less efficacy here, which points to a clearer disconnect in how this trait is landing.',
+          'The team is rating effectiveness lower, so there may be a mild disconnect between your intent and their actual experience.',
+          'This negative effectiveness gap suggests your impact is being felt as weaker than your self-view would imply.',
+          'Your team is seeing meaningfully less effectiveness here, which points to a clearer disconnect in how this trait is landing.',
           'A gap this size suggests your approach is not translating into the level of impact you believe it is.',
-          'Your team is reading efficacy much lower, which demonstrates a major disconnect between intended impact and received experience.',
+          'Your team is reading effectiveness much lower, which demonstrates a major disconnect between intended impact and received experience.',
         ],
       },
       effort: {
@@ -1191,7 +1191,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
     };
 
     if (Math.abs(efficacyGap) < 10 && Math.abs(effortGap) < 10) {
-      return 'Self and team perception are mostly aligned across efficacy and effort. Differences are minor and likely reflect normal communication noise rather than a major leadership disconnect.';
+      return 'Self and team perception are mostly aligned across effectiveness and effort. Differences are minor and likely reflect normal communication noise rather than a major leadership disconnect.';
     }
 
     const significance = delta >= 10
@@ -1681,9 +1681,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       >
                         {[
                           { key: 'overall', label: useCairnTheme ? 'Signal Strength' : 'Overall Score', value: activeMetrics?.lepScore || 0, color: '#1F3347' },
-                          { key: 'efficacy', label: useCairnTheme ? 'Visible Impact' : 'Efficacy Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
+                          { key: 'efficacy', label: useCairnTheme ? 'Visible Impact' : 'Effectiveness Score', value: activeMetrics?.efficacy || 0, color: '#6393AA' },
                           { key: 'effort', label: useCairnTheme ? 'Perceived Effort' : 'Effort Score', value: activeMetrics?.effort || 0, color: '#E07A3F' },
-                          { key: 'gap-efficacy', label: 'Perception Gap (Efficacy)', value: efficacyPerceptionGap, color: '#6393AA', signed: true },
+                          { key: 'gap-efficacy', label: 'Perception Gap (Effectiveness)', value: efficacyPerceptionGap, color: '#6393AA', signed: true },
                           { key: 'gap-effort', label: 'Perception Gap (Effort)', value: effortPerceptionGap, color: '#E07A3F', signed: true },
                         ].map((item, idx) => (
                           <Paper
@@ -1737,7 +1737,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         {[
                           {
                             key: 'efficacy-gap-context',
-                            title: 'Efficacy Interpretation',
+                            title: 'Effectiveness Interpretation',
                             text: efficacyPerceptionNarrative,
                             row: '4 / 5',
                           },
@@ -1827,7 +1827,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                   >
                     {useCairnTheme
                       ? 'Use the details to understand the moments behind the signal. The goal is clarity, not more data for its own sake.'
-                      : 'Inspect statement-level scoring with five-ring breakdowns and question-specific efficacy and effort patterns. Use this page to drill into the precise items shaping each trait outcome.'}
+                      : 'Inspect statement-level scoring with five-ring breakdowns and question-specific effectiveness and effort patterns. Use this page to drill into the precise items shaping each trait outcome.'}
                   </Typography>
                   <Tabs
                     value={selectedDetailTraitKey || false}
@@ -1880,7 +1880,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         {[
                           'Statement',
                           'Overall',
-                          'Efficacy',
+                          'Effectiveness',
                           'Effort',
                           'Gap',
                         ].map((header) => (
@@ -2259,9 +2259,9 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                       >
                         {[
                           { key: 'overall', label: 'Overall Score', value: selectedDetailStatement?.lepScore ?? detailTraitMetrics.lepScore, color: '#1F3347' },
-                          { key: 'efficacy', label: 'Efficacy Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA' },
+                          { key: 'efficacy', label: 'Effectiveness Score', value: selectedDetailStatement?.efficacy ?? detailTraitMetrics.efficacy, color: '#6393AA' },
                           { key: 'effort', label: 'Effort Score', value: selectedDetailStatement?.effort ?? detailTraitMetrics.effort, color: '#E07A3F' },
-                          { key: 'gap-efficacy', label: 'Perception Gap (Efficacy)', value: detailEfficacyPerceptionGap, color: '#6393AA', signed: true },
+                          { key: 'gap-efficacy', label: 'Perception Gap (Effectiveness)', value: detailEfficacyPerceptionGap, color: '#6393AA', signed: true },
                           { key: 'gap-effort', label: 'Perception Gap (Effort)', value: detailEffortPerceptionGap, color: '#E07A3F', signed: true },
                         ].map((item, idx) => (
                           <Paper
@@ -2315,7 +2315,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                         {[
                           {
                             key: 'detail-efficacy-gap-context',
-                            title: 'Efficacy Interpretation',
+                            title: 'Effectiveness Interpretation',
                             text: detailEfficacyPerceptionNarrative,
                             row: '4 / 5',
                           },
@@ -2808,7 +2808,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     fontFamily: 'Gemunu Libre, sans-serif', 
                     fontSize: '0.9rem', 
                     fontWeight: 600,
-                    color: hoveredCircle.type === 'Efficacy' ? '#6393AA' : '#E07A3F',
+                    color: hoveredCircle.type === 'Effectiveness' ? '#6393AA' : '#E07A3F',
                     mb: 0.5,
                   }}>
                     {hoveredCircle.type || ''}
@@ -2817,7 +2817,7 @@ function ResultsTab({ view = 'compass', selectedAgent: selectedAgentProp = '' })
                     fontFamily: 'Gemunu Libre, sans-serif', 
                     fontSize: '1.1rem', 
                     fontWeight: 700,
-                    color: hoveredCircle.type === 'Efficacy' ? '#6393AA' : '#E07A3F',
+                    color: hoveredCircle.type === 'Effectiveness' ? '#6393AA' : '#E07A3F',
                   }}>
                     {typeof hoveredCircle.score === 'number' ? hoveredCircle.score.toFixed(1) : '0.0'}
                   </Typography>

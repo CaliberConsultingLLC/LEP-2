@@ -612,7 +612,7 @@ function NewCampaignIntro() {
               {[
                 {
                   title: 'Discovery (AI-powered gap analysis)',
-                  body: 'The platform identifies likely leadership friction points and surfaces where effort and efficacy may be misaligned.',
+                  body: 'The platform identifies likely leadership friction points and surfaces where effort and effectiveness may be misaligned.',
                 },
                 {
                   title: 'Self-Assessment',

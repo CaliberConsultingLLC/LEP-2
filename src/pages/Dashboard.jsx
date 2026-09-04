@@ -274,7 +274,7 @@ function DashboardLegacy() {
     },
     {
       label: 'Detailed Results',
-      subtitle: 'Inspect statement-level scoring with five-ring breakdowns and question-specific efficacy and effort patterns. Use this page to drill into the precise items shaping each trait outcome.',
+      subtitle: 'Inspect statement-level scoring with five-ring breakdowns and question-specific effectiveness and effort patterns. Use this page to drill into the precise items shaping each trait outcome.',
       icon: Insights,
     },
     {

@@ -127,7 +127,7 @@ function ModeBar({ mode, onModeChange, embedded = false }) {
   const modes = [
     { id: 'map', label: 'Compass' },
     { id: 'effort', label: 'Effort' },
-    { id: 'efficacy', label: 'Efficacy' },
+    { id: 'efficacy', label: 'Effectiveness' },
   ];
   return (
     <Box

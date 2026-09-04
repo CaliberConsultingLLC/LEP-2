@@ -46,7 +46,7 @@ const STATION_META = [
     subtitle: 'Rate yourself first, then invite your team with a different link you send by hand.',
     kind: 'assessment',
     campaign: 'team',
-    blurb: 'Rate yourself first on the same statements your team will see. Then invite them. Effort is how much you try this; Efficacy is how well it lands.',
+    blurb: 'Rate yourself first on the same statements your team will see. Then invite them. Effort is how much you try this; Effectiveness is how well it lands.',
     completeBlurb: 'You rated yourself. Next you send a separate link — by hand — so the team reading stays anonymous.',
     arriveHint: 'You go first on the same fifteen statements. Then you invite the team with a different link.',
   },

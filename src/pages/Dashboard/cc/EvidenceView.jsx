@@ -645,7 +645,7 @@ function EvFloorPage({ rows, chapterIndex }) {
             numberLabel="Compass"
             numberColor={colors.orange}
             stats={[
-              { label: 'Efficacy', value: s.efficacy, color: colors.green },
+              { label: 'Effectiveness', value: s.efficacy, color: colors.green },
               { label: 'Effort', value: s.effort, color: colors.orangeDeep },
             ]}
             trait={s.trait}
@@ -790,7 +790,7 @@ const EXHIBIT_COPY = {
     description:
       'The edge. Read these five slowly — this is where the effort-without-result pattern lives, and where one change would be felt first.',
     guide: () =>
-      'Watch the two lines: long effort, short efficacy. The pattern is specific, which means the fix can be too.',
+      'Watch the two lines: long effort, short effectiveness. The pattern is specific, which means the fix can be too.',
   },
 };
 

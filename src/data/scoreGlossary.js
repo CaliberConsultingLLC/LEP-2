@@ -6,7 +6,7 @@ export const SCORE_HINTS = {
   effort:
     'Effort is how much the behavior is being tried. Your team rates what they can see — not your intent.',
   efficacy:
-    'Efficacy is how well the behavior lands for the people around you.',
+    'Effectiveness is how well the behavior lands for the people around you.',
   teammatesHeard:
     'How many teammates submitted the anonymous survey. You never see who said what.',
   statementsRated:

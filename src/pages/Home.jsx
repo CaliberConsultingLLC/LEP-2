@@ -106,7 +106,7 @@ function Home() {
       frameScale: 1.2,
       text: 'Review a plain-language summary that turns raw responses into meaningful leadership perspective.',
       points: [
-        'See trade-offs by effort, efficacy, and near-term impact.',
+        'See trade-offs by effort, effectiveness, and near-term impact.',
         'Prioritize the few shifts that will move outcomes the most.',
       ],
     },

@@ -184,7 +184,7 @@ function StatementRow({ statement, open, mode, onToggle, isLast }) {
             <MetricRow label="Effort" team={statement.effort} self={statement.effortSelf} />
           )}
           {(compass || mode === 'efficacy') && (
-            <MetricRow label="Efficacy" team={statement.efficacy} self={statement.efficacySelf} />
+            <MetricRow label="Effectiveness" team={statement.efficacy} self={statement.efficacySelf} />
           )}
         </Stack>
       </Box>
@@ -398,7 +398,7 @@ export default function TraitRoom({ row, statements }) {
               fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
               textTransform: 'uppercase', color: colors.inkSoft,
             }}>
-              Score · {mode === 'effort' ? 'Effort' : mode === 'efficacy' ? 'Efficacy' : 'Compass'}
+              Score · {mode === 'effort' ? 'Effort' : mode === 'efficacy' ? 'Effectiveness' : 'Compass'}
             </Typography>
           </Box>
 

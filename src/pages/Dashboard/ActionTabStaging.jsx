@@ -113,7 +113,7 @@ function buildJourneyItems(plan, guidedSteps) {
 
   if (g.goalEffort || g.goalEfficacy) {
     const effortText = g.goalEffort ? `Effort ${g.goalEffort}` : null;
-    const efficacyText = g.goalEfficacy ? `Efficacy ${g.goalEfficacy}` : null;
+    const efficacyText = g.goalEfficacy ? `Effectiveness ${g.goalEfficacy}` : null;
     pushIfPresent(`Score goals: ${[effortText, efficacyText].filter(Boolean).join(' / ')}`);
   }
 

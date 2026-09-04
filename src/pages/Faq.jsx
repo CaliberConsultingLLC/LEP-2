@@ -25,8 +25,8 @@ const FAQ_ITEMS = [
     a: 'After your team answers, Signal is the reading of how those traits are landing. It is a pattern across the statements, not a verdict.',
   },
   {
-    q: 'What is the difference between Effort and Efficacy?',
-    a: 'Effort is how much you try the behavior. Efficacy is how well it lands for the people around you. Your team rates the same sentences; they are not scoring your intent.',
+    q: 'What is the difference between Effort and Effectiveness?',
+    a: 'Effort is how much you try the behavior. Effectiveness is how well it lands for the people around you. Your team rates the same sentences; they are not scoring your intent.',
   },
   {
     q: 'When should I invite my team?',
@@ -54,7 +54,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How do I know the year is working?',
-    a: 'Look for a clearer Signal on the traits you chose, a smaller gap between Effort and Efficacy, and a practice your team can name without a slide deck.',
+    a: 'Look for a clearer Signal on the traits you chose, a smaller gap between Effort and Effectiveness, and a practice your team can name without a slide deck.',
   },
   {
     q: 'How do I get help?',

@@ -528,7 +528,7 @@ const PAGE_FAQ = {
   dashboardEvidence: [
     {
       q: 'What are the four quadrants?',
-      a: 'Effort against efficacy. Honed is both high. Off-target is real effort that is not landing. Natural lands without much push. Missing the mark is neither yet.',
+      a: 'Effort against effectiveness. Honed is both high. Off-target is real effort that is not landing. Natural lands without much push. Missing the mark is neither yet.',
     },
     {
       q: 'Why is one statement worse than the trait?',

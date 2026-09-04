@@ -54,25 +54,25 @@ function measurementCopy(row) {
       return {
         effortCap: 'They don’t see you straining for this one.',
         efficacyCap: 'And yet it lands — clearly, consistently.',
-        read: `Efficacy of ${f} on effort of just ${e}. When landing outruns trying, you’re looking at something that comes naturally — a strength that costs you little.`,
+        read: `Effectiveness of ${f} on effort of just ${e}. When landing outruns trying, you’re looking at something that comes naturally — a strength that costs you little.`,
       };
     case 'fullStrength':
       return {
         effortCap: 'They see you genuinely working at this.',
         efficacyCap: 'And they feel it landing in kind.',
-        read: `Effort ${e}, efficacy ${f} — the two measurements moving together. The work goes in and the results come back. Strong because you make it strong.`,
+        read: `Effort ${e}, effectiveness ${f} — the two measurements moving together. The work goes in and the results come back. Strong because you make it strong.`,
       };
     case 'offTarget':
       return {
         effortCap: 'They see you genuinely working at this.',
         efficacyCap: 'But the results aren’t yet landing the way you intend.',
-        read: `Effort ${e}, efficacy ${f} — ${e - f} points apart. That split is the whole story of this trait: the work is real, the aim needs adjusting. Not a character flaw — a targeting problem.`,
+        read: `Effort ${e}, effectiveness ${f} — ${e - f} points apart. That split is the whole story of this trait: the work is real, the aim needs adjusting. Not a character flaw — a targeting problem.`,
       };
     default:
       return {
         effortCap: 'They don’t see much effort going in here yet.',
         efficacyCap: 'And not much is landing yet either.',
-        read: `Effort ${e}, efficacy ${f} — quiet on both measurements. Not a failure: unclaimed ground. If this trait matters for where you’re headed, a small deliberate investment moves it fastest.`,
+        read: `Effort ${e}, effectiveness ${f} — quiet on both measurements. Not a failure: unclaimed ground. If this trait matters for where you’re headed, a small deliberate investment moves it fastest.`,
       };
   }
 }
@@ -112,7 +112,7 @@ function insightCopy(row, role) {
     case 'naturalGift':
       return {
         headline: `${name} — your natural gift.`,
-        serif: `Your team feels this landing. Efficacy of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else. That consistency is the signal: when a trait costs this little and lands this clearly, it is already doing work you may not be counting.`,
+        serif: `Your team feels this landing. Effectiveness of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else. That consistency is the signal: when a trait costs this little and lands this clearly, it is already doing work you may not be counting.`,
         sans: 'The read is consistent: it lands clearly enough that your team doesn’t watch you strain for it — they just orient by it. The only caution with a gift this natural is drift. Name it out loud, lean on it when the harder work gets heavy, and give it just enough deliberate attention that it keeps growing instead of coasting. Protect the ease without taking it for granted.',
       };
     case 'fullStrength':
@@ -261,7 +261,7 @@ function SlideHeader({ title, lead, legend }) {
 
 const EFFORT_LEGEND = [
   { strong: 'Effort', rest: '— how hard they see you trying', color: colors.orange },
-  { strong: 'Efficacy', rest: '— how well it lands for them', color: colors.navy500 },
+  { strong: 'Effectiveness', rest: '— how well it lands for them', color: colors.navy500 },
 ];
 const GAP_LEGEND = [
   { strong: 'You see more', rest: 'than they feel', color: colors.orange },
@@ -276,7 +276,7 @@ const VIDEO_COPY = {
   map: {
     eyebrow: 'Introducing the Compass',
     title: 'This is the primary visual.',
-    line: 'Effort and efficacy together give every statement a place on the compass. Watch how it lands — then we will read yours.',
+    line: 'Effort and effectiveness together give every statement a place on the compass. Watch how it lands — then we will read yours.',
   },
   gap: {
     eyebrow: 'Introducing the Perception Gap',
@@ -781,7 +781,7 @@ function SlideMeasurements({ traits, sel, onSel }) {
               </Stack>
             </Stack>
             <MeasureBar label="Effort" value={d.team.effort} ink={colors.orangeDeep} fill={colors.orange} />
-            <MeasureBar label="Efficacy" value={d.team.efficacy} ink={colors.navy500} fill={colors.navy500} />
+            <MeasureBar label="Effectiveness" value={d.team.efficacy} ink={colors.navy500} fill={colors.navy500} />
             <ReadFootnote>{copy.read}</ReadFootnote>
           </DetailCard>
         }
@@ -846,7 +846,7 @@ function SlideStatements({ stmts, sel, onSel }) {
               &#8220;{d.text}&#8221;
             </Typography>
             <MeasureBar label="Effort" value={d.effort} ink={colors.orangeDeep} fill={colors.orange} />
-            <MeasureBar label="Efficacy" value={d.efficacy} ink={colors.navy500} fill={colors.navy500} />
+            <MeasureBar label="Effectiveness" value={d.efficacy} ink={colors.navy500} fill={colors.navy500} />
             <ReadFootnote>{statementSplitRead(d.effort, d.efficacy)}</ReadFootnote>
           </DetailCard>
         }
@@ -1099,7 +1099,7 @@ function VideoInterstitial({ which, onClose }) {
 // either explainer needs no code change.
 const MAP_VIDEO = {
   src: '/Compass%20Explainer.mp4',
-  label: 'Animated explainer: how effort and efficacy place a statement on the compass',
+  label: 'Animated explainer: how effort and effectiveness place a statement on the compass',
 };
 const GAP_VIDEO = {
   src: '/Perception%20Gap%20Explainer.mp4',
@@ -1277,7 +1277,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
             </Stack>
             <Box>
               <GapCells label="Effort" labelColor={colors.orangeDeep} you={Math.round(d.effortSelf)} team={Math.round(d.effort)} gap={eg} />
-              <GapCells label="Efficacy" labelColor={colors.navy500} you={Math.round(d.efficacySelf)} team={Math.round(d.efficacy)} gap={fg} />
+              <GapCells label="Effectiveness" labelColor={colors.navy500} you={Math.round(d.efficacySelf)} team={Math.round(d.efficacy)} gap={fg} />
             </Box>
             <ReadFootnote>{mirrorStatementRead(gap)}</ReadFootnote>
           </DetailCard>
@@ -1333,7 +1333,7 @@ function SlideInsight({ traits, index, roles }) {
           </Stack>
           {[
             { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orange },
-            { v: Math.round(row.team.efficacy), cap: 'Efficacy', color: colors.efficacyBlue },
+            { v: Math.round(row.team.efficacy), cap: 'Effectiveness', color: colors.efficacyBlue },
           ].map((c) => (
             <Stack key={c.cap} alignItems="center" justifyContent="center" sx={{ px: 1.4 }}>
               <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 31, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>

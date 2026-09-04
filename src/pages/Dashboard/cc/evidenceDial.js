@@ -63,7 +63,7 @@ export function perceptionGap(team, self) {
 
 export function metricLabel(mode) {
   if (mode === 'effort') return 'Effort score';
-  if (mode === 'efficacy') return 'Efficacy score';
+  if (mode === 'efficacy') return 'Effectiveness score';
   return 'Compass score';
 }
 

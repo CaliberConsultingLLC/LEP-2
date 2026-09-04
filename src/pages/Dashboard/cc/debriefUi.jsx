@@ -414,7 +414,7 @@ export function TraitScoresPanel({ rows, highlightKey = null, onSelect = null, c
                 </Typography>
               </Stack>
             </Stack>
-            <ScoreBar label="Efficacy" value={r.team.efficacy} fillColor={colors.navy500} />
+            <ScoreBar label="Effectiveness" value={r.team.efficacy} fillColor={colors.navy500} />
             <ScoreBar label="Effort" value={r.team.effort} fillColor={colors.orange} />
           </Box>
         );
@@ -523,7 +523,7 @@ export function GapScoresPanel({ rows, highlightKey, onSelect }) {
                 <Typography sx={{ ...type.monoLabel }}>Gap</Typography>
               </Stack>
             </Stack>
-            <DivergeBar label="Efficacy" gap={g.efficacy} />
+            <DivergeBar label="Effectiveness" gap={g.efficacy} />
             <DivergeBar label="Effort" gap={g.effort} />
           </Box>
         );

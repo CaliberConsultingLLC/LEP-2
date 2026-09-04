@@ -184,7 +184,7 @@ const GROWTH = [
 
 const SHOWCASE_TABS = [
   { id: 'signals', label: 'Signals Overview' },
-  { id: 'effort', label: 'Effort & Efficacy' },
+  { id: 'effort', label: 'Effort & Effectiveness' },
   { id: 'gap', label: 'Gap Map' },
   { id: 'plan', label: 'Action Plan' },
 ];
@@ -275,24 +275,24 @@ const GUIDE_INSIGHTS = {
   },
   effort: {
     'Decisive Direction': {
-      mentor: '69 effort, 45 efficacy. You’re spending the energy. It isn’t landing where they stand.',
-      catalyst: 'Effort 69, efficacy 45. The leak is the landing, not the work. Say the why and this closes.',
+      mentor: '69 effort, 45 effectiveness. You’re spending the energy. It isn’t landing where they stand.',
+      catalyst: 'Effort 69, effectiveness 45. The leak is the landing, not the work. Say the why and this closes.',
       challenger: 'You put in 69 and delivered 45. That 24-point drop is the bill for deciding alone.',
       bestFriend: 'You’re trying — 69 says so. They just can’t follow the trying. That’s fixable.',
       mother: 'All that effort, and only 45 of it reaches them. Let them see the thinking, not just the answer.',
-      roaster: '69 effort, 45 efficacy. Lots of motion, not a lot of “we knew that was coming.”',
+      roaster: '69 effort, 45 effectiveness. Lots of motion, not a lot of “we knew that was coming.”',
     },
     Coaching: {
-      mentor: '71 effort, 81 efficacy. You get more back than you put in. That’s a gift — notice it.',
-      catalyst: 'Efficacy above effort. This one pays interest. Do more of exactly this.',
-      challenger: 'Efficacy 81 on 71 effort. You’re good at this and still under-claiming it. Stop.',
+      mentor: '71 effort, 81 effectiveness. You get more back than you put in. That’s a gift — notice it.',
+      catalyst: 'Effectiveness above effort. This one pays interest. Do more of exactly this.',
+      challenger: 'Effectiveness 81 on 71 effort. You’re good at this and still under-claiming it. Stop.',
       bestFriend: 'It costs you less than it gives them. That’s what a strength feels like from the inside.',
       mother: 'Eighty-one back on seventy-one given. Care rarely returns that cleanly. Keep it.',
       roaster: 'You get 81 out of a 71 effort. Somewhere a consultant is furious.',
     },
     'Strategic Patience': {
-      mentor: '64 effort, 57 efficacy. You’re waiting. They’re experiencing the wait without the why.',
-      catalyst: 'Effort 64, efficacy 57. Name the pause out loud and it becomes leadership instead of delay.',
+      mentor: '64 effort, 57 effectiveness. You’re waiting. They’re experiencing the wait without the why.',
+      catalyst: 'Effort 64, effectiveness 57. Name the pause out loud and it becomes leadership instead of delay.',
       challenger: 'Seven points of your patience never arrive. Silence isn’t the same as strategy.',
       bestFriend: 'You’re holding back on purpose. They just can’t tell it’s on purpose.',
       mother: 'The patience is real; it isn’t reaching them. Say what you’re waiting for.',

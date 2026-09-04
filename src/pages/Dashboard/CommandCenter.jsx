@@ -402,7 +402,7 @@ function EvidenceFocalCard({ statement, onClick }) {
           <Stack direction="row" spacing={2.4} sx={{ mt: 1.4 }}>
             <Box>
               <Typography sx={{ ...type.eyebrow, color: colors.textSecondary, fontSize: 8.5 }}>
-                <MetricHint title={SCORE_HINTS.efficacy} underline>Efficacy</MetricHint>
+                <MetricHint title={SCORE_HINTS.efficacy} underline>Effectiveness</MetricHint>
               </Typography>
               <Typography sx={{ fontFamily: fonts.mono, fontSize: 22, fontWeight: 700, color: colors.textPrimary, lineHeight: 1.1 }}>
                 <MetricHint title={SCORE_HINTS.efficacy}>{Math.round(statement.efficacy)}</MetricHint>

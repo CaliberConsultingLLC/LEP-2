@@ -569,8 +569,8 @@ function CampaignSurvey() {
 
             <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.inkSoft, lineHeight: 1.5, mb: 1.75, textAlign: 'center' }}>
               {isSelfCampaign
-                ? 'Effort is how much you try this. Efficacy is how well it lands. Your team will rate the same sentences, not your intent.'
-                : 'Effort is how much they try this. Efficacy is how well it lands. Rate what you experience, not what you think they meant.'}
+                ? 'Effort is how much you try this. Effectiveness is how well it lands. Your team will rate the same sentences, not your intent.'
+                : 'Effort is how much they try this. Effectiveness is how well it lands. Rate what you experience, not what you think they meant.'}
             </Typography>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.75, mb: 1.75, width: '100%' }}>
@@ -591,7 +591,7 @@ function CampaignSurvey() {
               </Box>
 
               <Box sx={{ bgcolor: isDark ? 'rgba(255,255,255,0.05)' : '#fff', borderRadius: radii.lg, border: '1px solid rgba(99,147,170,0.28)', p: 2.25, boxShadow: '0 2px 8px rgba(16,34,60,0.05)' }}>
-                <Typography sx={{ fontFamily: fonts.sans, fontSize: '1rem', fontWeight: 700, color: isDark ? colors.ink : colors.navy900, mb: 0.6, textAlign: 'left' }}>Efficacy</Typography>
+                <Typography sx={{ fontFamily: fonts.sans, fontSize: '1rem', fontWeight: 700, color: isDark ? colors.ink : colors.navy900, mb: 0.6, textAlign: 'left' }}>Effectiveness</Typography>
                 <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.8rem', fontStyle: 'italic', color: colors.inkSoft, mb: 1.4, lineHeight: 1.4, textAlign: 'left' }}>
                   {isSelfCampaign ? 'How effectively I meet the demands of this area' : `How effectively ${leaderName} meets the needs of this area`}
                 </Typography>
@@ -638,7 +638,7 @@ function CampaignSurvey() {
                 <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: 'var(--navy-900, #10223C)', lineHeight: 1 }}>{traitRecap.effortAvg.toFixed(1)}</Typography>                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', color: 'var(--ink-soft, #44566C)', mt: 0.3 }}>out of 10</Typography>
               </Box>
               <Box sx={{ bgcolor: 'rgba(99,147,170,0.08)', border: '1px solid rgba(99,147,170,0.25)', borderRadius: '10px', p: 2, textAlign: 'center' }}>
-                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6393AA', mb: 0.5 }}>Efficacy</Typography>
+                <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6393AA', mb: 0.5 }}>Effectiveness</Typography>
                 <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '2rem', fontWeight: 800, color: 'var(--navy-900, #10223C)', lineHeight: 1 }}>{traitRecap.efficacyAvg.toFixed(1)}</Typography>
                 <Typography sx={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', color: 'var(--ink-soft, #44566C)', mt: 0.3 }}>out of 10</Typography>
               </Box>
@@ -999,7 +999,7 @@ function CampaignSurvey() {
                     </Box>
 
                     <Box sx={{ gridColumn: 2, gridRow: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="228" height="228" viewBox="0 0 148 148" role="img" aria-label="Live effort and efficacy ring">
+                    <svg width="228" height="228" viewBox="0 0 148 148" role="img" aria-label="Live effort and effectiveness ring">
                       <path d={leftArcBg} fill="none" stroke="rgba(99,147,170,0.24)" strokeWidth="11" strokeLinecap="butt" />
                       <path d={rightArcBg} fill="none" stroke="rgba(224,122,63,0.24)" strokeWidth="11" strokeLinecap="butt" />
                       <path d={leftArcProgress} fill="none" stroke={EFFICACY_PRIMARY} strokeWidth="11" strokeLinecap="butt" />

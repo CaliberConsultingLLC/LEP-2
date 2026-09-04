@@ -8,7 +8,7 @@ import { spokenGuide } from '../../data/guideContent';
 import { JOURNEY_STATIONS, JOURNEY_BASE_SRC } from './journey/journeyStations.js';
 
 const STAT_COLUMNS = [
-  { key: 'efficacy', label: 'Efficacy' },
+  { key: 'efficacy', label: 'Effectiveness' },
   { key: 'effort', label: 'Effort' },
   { key: 'compass', label: 'Compass', highlight: true },
 ];

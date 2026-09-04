@@ -922,7 +922,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
                   {[
                     { label: 'Compass', value: Math.round(row.team.lepScore) },
                     { label: 'Effort', value: Math.round(row.team.effort) },
-                    { label: 'Efficacy', value: Math.round(row.team.efficacy) },
+                    { label: 'Effectiveness', value: Math.round(row.team.efficacy) },
                   ].map((s) => (
                     <Stack key={s.label} alignItems="flex-end" spacing={0.4}>
                       <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAPER.sepia }}>

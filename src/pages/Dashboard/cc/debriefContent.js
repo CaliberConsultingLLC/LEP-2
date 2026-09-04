@@ -60,7 +60,7 @@ const zoneStory = (row) => {
     case 'naturalGift':
       return {
         headline: `${label} is your natural gift.`,
-        serif: `Your team feels the results — and what's striking is how little it seems to cost you. Efficacy of ${e} on effort of just ${f}: you're effective here almost effortlessly.`,
+        serif: `Your team feels the results — and what's striking is how little it seems to cost you. Effectiveness of ${e} on effort of just ${f}: you're effective here almost effortlessly.`,
         sans: 'Treat it as leverage. Name it, lean on it, and add just enough intention that it keeps growing instead of quietly coasting. This strength is real — and you\u2019ll need it for what comes next.',
       };
     case 'fullStrength':
