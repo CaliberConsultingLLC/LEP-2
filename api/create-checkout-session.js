@@ -9,9 +9,13 @@ function getBaseUrl(req) {
   return '';
 }
 
-// Current Stripe API versions call embedded checkout 'embedded_page'; older
-// ones call it 'embedded'. Try the current name first, fall back to the old.
-const UI_MODES = ['embedded_page', 'embedded'];
+// 'form' is the embedded form: Stripe's checkout rendered through the
+// Appearance API, so the fonts, colours and spacing are ours. The other two
+// are the older embedded page — a Stripe-skinned iframe our CSS cannot reach —
+// kept as fallbacks because which names an account accepts depends on the API
+// version pinned to it. Whichever one succeeds is reported back, because the
+// client mounts them with different SDKs.
+const UI_MODES = ['form', 'embedded_page', 'embedded'];
 
 function createSession(secret, params) {
   return fetch('https://api.stripe.com/v1/checkout/sessions', {
@@ -130,10 +134,9 @@ export default async function handler(req, res) {
     // ones take 'embedded_page'. Which one an account gets depends on the API
     // version pinned to that account, so rather than guess, take Stripe's word
     // for it and retry with the other name.
-    if (!stripeRes.ok && payload?.error?.param === 'ui_mode') {
-      const fallback = UI_MODES.find((m) => m !== params.get('ui_mode'));
-      console.error(`Stripe rejected ui_mode='${params.get('ui_mode')}'; retrying with '${fallback}'.`);
-      params.set('ui_mode', fallback);
+    for (let i = 1; i < UI_MODES.length && !stripeRes.ok && payload?.error?.param === 'ui_mode'; i += 1) {
+      console.error(`Stripe rejected ui_mode='${params.get('ui_mode')}'; retrying with '${UI_MODES[i]}'.`);
+      params.set('ui_mode', UI_MODES[i]);
       stripeRes = await createSession(secret, params);
       payload = await stripeRes.json().catch(() => ({}));
     }
@@ -147,6 +150,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       clientSecret: payload.client_secret,
       publishableKey,
+      uiMode: params.get('ui_mode'),
       id: payload.id,
       amount,
       intro: introEnabled(),
