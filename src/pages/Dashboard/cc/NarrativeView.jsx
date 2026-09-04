@@ -41,7 +41,6 @@ const writeJson = (key, value) => {
 
 const fmtGap = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
 const gapInk = (n) => (n > 0 ? colors.orangeDeep : n < 0 ? colors.navy500 : colors.textSecondary);
-const gapLight = (n) => (n > 0 ? colors.amberSoft : n < 0 ? colors.navy300 : 'rgba(255,255,255,0.6)');
 
 // ---------------------------------------------------------------------------
 // Copy builders — the mock voice, generalized by zone / gap direction
@@ -87,16 +86,6 @@ function statementSplitRead(effort, efficacy) {
     return 'Here it runs the other way: this lands better than the effort your team can see. Some behaviors simply fit you — the score is carried by results, not push.';
   }
   return 'The two measurements stay close on this one — what your team sees you put in is about what they feel coming back.';
-}
-
-function mirrorTraitRead(gap) {
-  if (gap <= -8) {
-    return 'You undersell this one. Your team feels more landing than you claim — the strength is more visible to them than it is to you. Let their read count.';
-  }
-  if (gap < 8) {
-    return 'You and your team see this one the same way. When a leader and a team agree this closely, the trait is being practiced in the open — a shared picture to trust.';
-  }
-  return 'You feel more landing here than your team is reflecting back. That’s not a contradiction; it’s the space between what you intend and what arrives, and the most useful conversations live exactly there.';
 }
 
 function mirrorStatementRead(gap) {
@@ -1248,64 +1237,6 @@ function SlideMap({ stmts, sel, onSel }) {
   );
 }
 
-function SlideMirror({ traits, sel, onSel }) {
-  const d = traits[sel];
-  const gap = Math.round(d.self.lepScore - d.team.lepScore);
-  const eg = Math.round(d.self.effort - d.team.effort);
-  const fg = Math.round(d.self.efficacy - d.team.efficacy);
-  return (
-    <Box sx={{ height: '100%' }}>
-      <PickGrid
-        left={traits.map((row, i) => {
-          const on = sel === i;
-          const g = Math.round(row.self.lepScore - row.team.lepScore);
-          return (
-            <Box
-              key={row.trait}
-              component="button"
-              type="button"
-              onClick={() => onSel(i)}
-              sx={{ ...pickCardSx(on, TRAIT_CARD_H), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
-            >
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 16, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
-                {row.subTrait || row.trait}
-              </Typography>
-              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 24, letterSpacing: '-0.03em', color: on ? gapLight(g) : gapInk(g) }}>
-                  {fmtGap(g)}
-                </Typography>
-                <Typography sx={{ fontFamily: fonts.mono, fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: on ? 'rgba(244,206,161,0.6)' : '#8a94a3' }}>
-                  Gap
-                </Typography>
-              </Stack>
-            </Box>
-          );
-        })}
-        right={
-          <DetailCard h={columnH(TRAIT_CARD_H)}>
-            <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
-                {d.subTrait || d.trait}
-              </Typography>
-              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ ...type.monoLabel }}>Compass gap</Typography>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 44, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
-                  {fmtGap(gap)}
-                </Typography>
-              </Stack>
-            </Stack>
-            <Box>
-              <GapCells label="Effort" labelColor={colors.orangeDeep} you={Math.round(d.self.effort)} team={Math.round(d.team.effort)} gap={eg} />
-              <GapCells label="Efficacy" labelColor={colors.navy500} you={Math.round(d.self.efficacy)} team={Math.round(d.team.efficacy)} gap={fg} />
-            </Box>
-            <ReadFootnote>{mirrorTraitRead(gap)}</ReadFootnote>
-          </DetailCard>
-        }
-      />
-    </Box>
-  );
-}
-
 function SlideGapStatements({ stmts, sel, onSel }) {
   const d = stmts[sel];
   const gap = Math.round(d.compassSelf - d.compass);
@@ -1456,10 +1387,14 @@ function pickNarrativeStatements(orderedRows) {
 // ---------------------------------------------------------------------------
 // The view
 // ---------------------------------------------------------------------------
-const SLIDE_COUNT = 9;
+// Eight pages. The trait-level perception gap used to sit between the map
+// and the statement-level gap, which taught the same idea twice; the
+// statement version is the one that carries into action planning, so it is
+// the one that stayed.
+const SLIDE_COUNT = 8;
 // Where the explainers interrupt: entering the map, and entering the gap.
 const MAP_IDX = 3;
-const MIRROR_IDX = 4;
+const GAP_IDX = 4;
 
 export default function NarrativeView() {
   const { rows, loaded, teamResponses, hasSelfData } = useBenchmarkData();
@@ -1494,7 +1429,7 @@ export default function NarrativeView() {
         setInterstitial({ which: 'map', target: clamped });
         return;
       }
-      if (clamped === MIRROR_IDX && !seenVideo.gap) {
+      if (clamped === GAP_IDX && !seenVideo.gap) {
         setSeenVideo((v) => ({ ...v, gap: true }));
         setInterstitial({ which: 'gap', target: clamped });
         return;
@@ -1525,7 +1460,6 @@ export default function NarrativeView() {
   const [selMeasure, setSelMeasure] = useState(null);
   const [selStmt, setSelStmt] = useState(0);
   const [selMap, setSelMap] = useState(null);
-  const [selMirror, setSelMirror] = useState(null);
   const [selGapStmt, setSelGapStmt] = useState(0);
 
   const userInfo = readJson('userInfo', {});
@@ -1539,7 +1473,6 @@ export default function NarrativeView() {
       { id: 'measurements', label: 'Two Measurements' },
       { id: 'statements', label: 'Statements' },
       { id: 'map', label: 'The Map · Statements' },
-      { id: 'mirror', label: 'The Perception Gap' },
       { id: 'gap-statements', label: 'The Gap · Statements' },
       { id: 'insight-1', label: 'Insight 1' },
       { id: 'insight-2', label: 'Insight 2' },
@@ -1571,9 +1504,7 @@ export default function NarrativeView() {
   }
 
   const measureSel = selMeasure == null ? edgeIdx : selMeasure;
-  const mirrorSel = selMirror == null ? edgeIdx : selMirror;
   const mirrorTraits = traits.filter((r) => r.self);
-  const mirrorSelSafe = Math.min(mirrorSel, Math.max(mirrorTraits.length - 1, 0));
   const stmtSel = Math.min(selStmt, Math.max(stmts.length - 1, 0));
   const mapSel = selMap == null ? null : Math.min(selMap, Math.max(stmts.length - 1, 0));
   const gapStmtSel = Math.min(selGapStmt, Math.max(stmts.length - 1, 0));
@@ -1625,13 +1556,6 @@ export default function NarrativeView() {
           title: 'Where a statement lands tells you what to do with it.',
           lead: 'Select a statement to see where it sits — one of four zones, and the zone tells you the move.',
         };
-      case 'mirror':
-        return {
-          eyebrow: { index: n, label: 'The Perception Gap · Traits' },
-          title: 'You rated yourself first — on everything.',
-          lead: 'Every measurement you’ve seen has a twin: your own read. Neither number is wrong — the distance itself is the finding. Select a trait.',
-          legend: GAP_LEGEND,
-        };
       case 'gap-statements':
         return {
           eyebrow: { index: n, label: 'The Perception Gap · Statements' },
@@ -1661,10 +1585,6 @@ export default function NarrativeView() {
         return stmts.length
           ? <SlideMap stmts={stmts} sel={mapSel} onSel={setSelMap} />
           : <SlideInsight traits={traits} index={0} roles={roles} />;
-      case 'mirror':
-        return showMirror
-          ? <SlideMirror traits={mirrorTraits} sel={mirrorSelSafe} onSel={setSelMirror} />
-          : <SlideMeasurements traits={traits} sel={Math.min(measureSel, traits.length - 1)} onSel={setSelMeasure} />;
       case 'gap-statements':
         return showMirror && stmts.length
           ? <SlideGapStatements stmts={stmts} sel={gapStmtSel} onSel={setSelGapStmt} />
