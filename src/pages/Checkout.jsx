@@ -77,6 +77,37 @@ const STRIPE_FONTS = [
   { cssSrc: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap' },
 ];
 
+/**
+ * A bad option throws an IntegrationError out of Stripe's provider, which
+ * without this takes the whole page down to a white screen — on the one screen
+ * where that costs a sale. The column fails on its own instead.
+ */
+class CheckoutBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(err) {
+    console.error('Checkout failed to mount:', err);
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <Alert severity="error">
+          Checkout could not load. Please refresh the page, and let us know if it keeps happening.
+        </Alert>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function readUserInfo() {
   try {
     return JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -232,7 +263,10 @@ function Checkout() {
 
   const providerOptions = useMemo(
     () => (session?.uiMode === 'form'
-      ? { clientSecret: session.clientSecret, appearance: STRIPE_APPEARANCE, elementsOptions: { fonts: STRIPE_FONTS } }
+      // `appearance` and `fonts` are both top-level here. They are nested
+      // under `elementsOptions` for initCheckoutElementsSdk, a different SDK —
+      // passing that shape to the form SDK throws an IntegrationError.
+      ? { clientSecret: session.clientSecret, appearance: STRIPE_APPEARANCE, fonts: STRIPE_FONTS }
       : null),
     [session],
   );
@@ -311,9 +345,11 @@ function Checkout() {
 
           <Box>
             {providerOptions ? (
-              <CheckoutFormProvider stripe={session.stripe} options={providerOptions}>
-                <PaymentForm />
-              </CheckoutFormProvider>
+              <CheckoutBoundary>
+                <CheckoutFormProvider stripe={session.stripe} options={providerOptions}>
+                  <PaymentForm />
+                </CheckoutFormProvider>
+              </CheckoutBoundary>
             ) : (
               <Box ref={legacyMountRef} sx={{ width: '100%' }} />
             )}
