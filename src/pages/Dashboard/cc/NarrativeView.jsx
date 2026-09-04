@@ -8,6 +8,7 @@ import { mapRowStatements } from './EvidenceView.jsx';
 import { ChapterEyebrow, PageFade, ProgressDots } from './debriefUi.jsx';
 import { getDebriefScope } from './phaseState.js';
 import { useGuide } from '../../../context/GuideContext';
+import { GUIDE_COLUMN } from '../../../components/guidePlacement';
 
 // ----------------------------------------------------------------------------
 // NarrativeView — the ten-page results debrief narrative (v2 design).
@@ -295,12 +296,18 @@ const VIDEO_COPY = {
   },
 };
 
-const pickCardSx = (on) => ({
+// Cards are sized to their content rather than stretched to fill the body, so
+// the column carries its own negative space inside the frame.
+const TRAIT_CARD_H = 'clamp(58px, 8vh, 76px)';
+const STMT_CARD_H = 'clamp(72px, 10vh, 94px)';
+const columnH = (cardH) => `calc(3 * ${cardH} + 32px)`;
+
+const pickCardSx = (on, h) => ({
   boxSizing: 'border-box',
   borderRadius: '16px',
-  px: 2.6,
-  flex: 1,
-  minHeight: 0,
+  px: 2.4,
+  height: h,
+  flexShrink: 0,
   overflow: 'hidden',
   display: 'flex',
   cursor: 'pointer',
@@ -318,7 +325,7 @@ const pickCardSx = (on) => ({
   '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
 });
 
-function DetailCard({ children }) {
+function DetailCard({ children, h }) {
   return (
     <Box
       sx={{
@@ -327,12 +334,12 @@ function DetailCard({ children }) {
         border: `1.5px solid ${colors.orange}`,
         borderRadius: radii.lg,
         boxShadow: shadows.card,
-        p: { xs: 2.4, md: '26px 30px 24px' },
+        p: { xs: 2.2, md: '22px 26px 20px' },
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 1.6,
-        height: SHOWCASE_H,
+        gap: 1.4,
+        height: h || SHOWCASE_H,
         boxSizing: 'border-box',
         overflow: 'hidden',
       }}
@@ -404,18 +411,20 @@ function ReadFootnote({ children }) {
 }
 
 function PickGrid({ left, right }) {
+  // Both columns are content-sized and centred in the body, which leaves even
+  // space above and below rather than pressing against the frame.
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(270px, 360px) minmax(0, 1fr)' },
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 340px) minmax(0, 1fr)' },
         gap: 3,
-        alignItems: 'stretch',
+        alignItems: 'center',
         height: '100%',
       }}
     >
-      <Stack spacing={2} sx={{ height: SHOWCASE_H }}>{left}</Stack>
-      <Box sx={{ height: '100%' }}>{right}</Box>
+      <Stack spacing={2}>{left}</Stack>
+      <Box>{right}</Box>
     </Box>
   );
 }
@@ -423,14 +432,14 @@ function PickGrid({ left, right }) {
 function GapCells({ label, labelColor, you, team, gap }) {
   const cell = {
     fontFamily: fonts.mono,
-    fontSize: 27,
+    fontSize: 23,
     fontWeight: 700,
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'right',
     minWidth: SCORE_COL_W,
     lineHeight: 1.1,
   };
-  const cap = { fontSize: '9px', letterSpacing: '0.14em', color: '#8a94a3', display: 'block', mt: 0.5 };
+  const cap = { fontSize: '8.5px', letterSpacing: '0.14em', color: '#8a94a3', display: 'block', mt: 0.4 };
   return (
     <Box
       sx={{
@@ -439,10 +448,10 @@ function GapCells({ label, labelColor, you, team, gap }) {
         columnGap: 1.5,
         alignItems: 'baseline',
         borderTop: `1px solid ${colors.borderSoft}`,
-        py: 2.4,
+        py: 1.5,
       }}
     >
-      <Typography sx={{ ...type.monoLabel, fontSize: 10.5, color: labelColor }}>{label}</Typography>
+      <Typography sx={{ ...type.monoLabel, color: labelColor }}>{label}</Typography>
       <Typography sx={{ ...cell, color: colors.textSecondary }}>
         {you}
         <Box component="span" sx={cap}>YOU</Box>
@@ -530,7 +539,7 @@ function statementZoneBlurb(effort, efficacy) {
   return `${zone.label}. ${statementSplitRead(effort, efficacy)}`;
 }
 
-function MiniDial({ statement, showAxisNodes = false }) {
+function MiniDial({ statement, showAxisNodes = false, max = 'min(100%, 38vh)' }) {
   const zone = statement ? dialZoneOf(statement.effort, statement.efficacy) : null;
   const pos = statement ? circPos(statement.effort, statement.efficacy) : null;
   const axisNodes = showAxisNodes && statement
@@ -540,7 +549,7 @@ function MiniDial({ statement, showAxisNodes = false }) {
       ]
     : [];
   return (
-    <Box sx={{ position: 'relative', width: '100%', maxWidth: 'min(100%, 38vh)', aspectRatio: '1 / 1', mx: 'auto' }}>
+    <Box sx={{ position: 'relative', width: '100%', maxWidth: max, aspectRatio: '1 / 1', mx: 'auto' }}>
       <Box
         sx={{
           position: 'absolute',
@@ -728,10 +737,10 @@ function SlideThreshold({ title, lead, traits }) {
           <Stack key={row.trait} alignItems="center" sx={{ width: { xs: '100%', sm: 180 } }}>
             {/* Fixed label zone, bottom-aligned: a wrapped name stacks upward so
                 every score sits on the same horizontal line. */}
-            <Box sx={{ height: 38, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.6 }}>
-              <Typography sx={{ ...type.monoLabel, textAlign: 'center', lineHeight: 1.45 }}>{row.subTrait || row.trait}</Typography>
+            <Box sx={{ height: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.6 }}>
+              <Typography sx={{ ...type.monoLabel, fontSize: 11, letterSpacing: '0.18em', textAlign: 'center', lineHeight: 1.45 }}>{row.subTrait || row.trait}</Typography>
             </Box>
-            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(44px, 7.2vh, 68px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(50px, 8.2vh, 78px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
               {Math.round(row.team.lepScore)}
             </Typography>
           </Stack>
@@ -758,26 +767,26 @@ function SlideMeasurements({ traits, sel, onSel }) {
               component="button"
               type="button"
               onClick={() => onSel(i)}
-              sx={{ ...pickCardSx(on), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
+              sx={{ ...pickCardSx(on, TRAIT_CARD_H), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
             >
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 16, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
                 {row.subTrait || row.trait}
               </Typography>
-              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 28, letterSpacing: '-0.04em', color: on ? colors.amberSoft : colors.orange, flexShrink: 0 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 25, letterSpacing: '-0.04em', color: on ? colors.amberSoft : colors.orange, flexShrink: 0 }}>
                 {Math.round(row.team.lepScore)}
               </Typography>
             </Box>
           );
         })}
         right={
-          <DetailCard>
+          <DetailCard h={columnH(TRAIT_CARD_H)}>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 19, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
                 {d.subTrait || d.trait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
                 <Typography sx={{ ...type.monoLabel }}>Compass</Typography>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 38, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 33, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
                   {Math.round(d.team.lepScore)}
                 </Typography>
               </Stack>
@@ -798,7 +807,7 @@ function StatementPickCard({ on, trait, text, onClick }) {
       component="button"
       type="button"
       onClick={onClick}
-      sx={{ ...pickCardSx(on), flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', gap: 0.8 }}
+      sx={{ ...pickCardSx(on, STMT_CARD_H), flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', gap: 0.8 }}
     >
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: on ? 'rgba(244,206,161,0.75)' : '#8a94a3' }}>
         {trait}
@@ -830,7 +839,7 @@ function SlideStatements({ stmts, sel, onSel }) {
           <StatementPickCard key={`${s.trait}-${i}`} on={sel === i} trait={s.trait} text={s.text} onClick={() => onSel(i)} />
         ))}
         right={
-          <DetailCard>
+          <DetailCard h={columnH(STMT_CARD_H)}>
             <Typography
               sx={{
                 fontFamily: fonts.serif,
@@ -1039,21 +1048,10 @@ function VideoInterstitial({ which, onClose }) {
         WebkitBackdropFilter: 'blur(7px)',
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: 'min(880px, 78vw)', textAlign: 'center' }}>
-        <Typography sx={{ ...type.eyebrow, color: colors.amberSoft, mb: 1.2 }}>{copy.eyebrow}</Typography>
-        <Typography
-          sx={{
-            fontFamily: fonts.serif,
-            fontWeight: 500,
-            fontSize: { xs: 21, md: 26 },
-            lineHeight: 1.15,
-            letterSpacing: '-0.02em',
-            color: '#fff',
-            mb: 2,
-          }}
-        >
-          {copy.title}
-        </Typography>
+      {/* The clip carries its own title, so the overlay adds only a small
+          label — anything more read as a doubled heading. */}
+      <Box sx={{ width: '100%', maxWidth: 'min(900px, 74vw)', textAlign: 'center' }}>
+        <Typography sx={{ ...type.eyebrow, color: colors.amberSoft, mb: 1.6 }}>{copy.eyebrow}</Typography>
         <Box
           sx={{
             border: `3px solid ${colors.amberSoft}`,
@@ -1061,12 +1059,25 @@ function VideoInterstitial({ which, onClose }) {
             overflow: 'hidden',
             boxShadow: '0 30px 80px rgba(5, 12, 24, 0.55)',
             aspectRatio: '16 / 9',
-            maxHeight: '46vh',
+            maxHeight: '56vh',
             mx: 'auto',
           }}
         >
           <ExplainerVideo src={video.src} label={video.label} standalone />
         </Box>
+      </Box>
+      {/* Dismiss sits with the guide, below its bubble, so the eye finishes on
+          the owl's line and acts from there. */}
+      <Box
+        sx={{
+          position: 'fixed',
+          right: { xs: 16, md: 28 },
+          top: 'calc(50% + 92px)',
+          width: GUIDE_COLUMN,
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
         <Box
           component="button"
           type="button"
@@ -1074,9 +1085,8 @@ function VideoInterstitial({ which, onClose }) {
           sx={{
             all: 'unset',
             cursor: 'pointer',
-            mt: 2.4,
-            px: '26px',
-            py: '13px',
+            px: '24px',
+            py: '12px',
             borderRadius: radii.pill,
             bgcolor: colors.amberSoft,
             color: colors.navy900,
@@ -1084,6 +1094,7 @@ function VideoInterstitial({ which, onClose }) {
             fontWeight: 700,
             fontSize: 13,
             letterSpacing: '0.04em',
+            boxShadow: '0 10px 26px rgba(5, 12, 24, 0.4)',
             '&:hover': { bgcolor: colors.amber },
             '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
           }}
@@ -1110,8 +1121,8 @@ function SlideMap({ stmts, sel, onSel }) {
   const d = sel == null ? null : stmts[sel];
   return (
     <Box sx={{ height: '100%' }}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(380px, 100%) minmax(0, 1fr)' }, gap: 4, alignItems: 'center', height: '100%' }}>
-        <MiniDial statement={d} />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(340px, 32vh) minmax(0, 1fr)' }, gap: 4, alignItems: 'center', height: '100%' }}>
+        <MiniDial statement={d} max="min(100%, 32vh)" />
         <Box>
           <Box sx={{ bgcolor: colors.surface1, border: `1.5px solid ${colors.borderSoft}`, borderRadius: radii.lg, overflow: 'hidden' }}>
             {stmts.map((s, i) => {
@@ -1254,13 +1265,13 @@ function SlideMirror({ traits, sel, onSel }) {
               component="button"
               type="button"
               onClick={() => onSel(i)}
-              sx={{ ...pickCardSx(on), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
+              sx={{ ...pickCardSx(on, TRAIT_CARD_H), alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
             >
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 16, fontWeight: 600, lineHeight: 1.2, color: on ? '#fff' : colors.textPrimary }}>
                 {row.subTrait || row.trait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 26, letterSpacing: '-0.03em', color: on ? gapLight(g) : gapInk(g) }}>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 24, letterSpacing: '-0.03em', color: on ? gapLight(g) : gapInk(g) }}>
                   {fmtGap(g)}
                 </Typography>
                 <Typography sx={{ fontFamily: fonts.mono, fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: on ? 'rgba(244,206,161,0.6)' : '#8a94a3' }}>
@@ -1271,9 +1282,9 @@ function SlideMirror({ traits, sel, onSel }) {
           );
         })}
         right={
-          <DetailCard>
+          <DetailCard h={columnH(TRAIT_CARD_H)}>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 24, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
                 {d.subTrait || d.trait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
@@ -1307,7 +1318,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
           <StatementPickCard key={`${s.trait}-${i}`} on={sel === i} trait={s.trait} text={s.text} onClick={() => onSel(i)} />
         ))}
         right={
-          <DetailCard>
+          <DetailCard h={columnH(STMT_CARD_H)}>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2.4}>
               <Typography
                 sx={{
@@ -1360,14 +1371,14 @@ function SlideInsight({ traits, index, roles }) {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) min(360px, 100%)' },
-        gap: 5,
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) min(300px, 34vh)' },
+        gap: 4.5,
         alignItems: 'center',
         height: '100%',
       }}
     >
       <Box>
-        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 18, lineHeight: 1.62, color: colors.textPrimary, mb: 2.2, textWrap: 'pretty' }}>
+        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17.5, lineHeight: 1.6, color: colors.textPrimary, mb: 2, textWrap: 'pretty' }}>
           {copy.serif}
         </Typography>
         <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
@@ -1401,7 +1412,7 @@ function SlideInsight({ traits, index, roles }) {
             </Stack>
           ))}
         </Stack>
-        <MiniDial statement={traitDial} showAxisNodes />
+        <MiniDial statement={traitDial} showAxisNodes max="min(100%, 26vh)" />
       </Box>
     </Box>
   );
@@ -1692,9 +1703,13 @@ export default function NarrativeView() {
         <StageArrow dir="prev" hidden={idx === 0} onClick={() => go(idx - 1)} />
         <Box sx={{ flex: 1, minWidth: 0, maxWidth: 1180, mx: 'auto' }}>
           <Box sx={{ height: EYEBROW_H, display: 'flex', alignItems: 'flex-end', px: 0.5 }}>
-            <PageFade fadeKey={`e-${activeId}`} sx={{ width: '100%' }}>
-              <ChapterEyebrow index={header.eyebrow.index} label={header.eyebrow.label} sx={{ mb: 0 }} />
-            </PageFade>
+            {/* The opening page speaks for itself — the slot stays so the frame
+                below it never shifts, but it carries no label. */}
+            {activeId !== 'threshold' && (
+              <PageFade fadeKey={`e-${activeId}`} sx={{ width: '100%' }}>
+                <ChapterEyebrow index={header.eyebrow.index} label={header.eyebrow.label} sx={{ mb: 0 }} />
+              </PageFade>
+            )}
           </Box>
           <Box sx={{ mt: 1 }}>
             <NarrativeFrame>

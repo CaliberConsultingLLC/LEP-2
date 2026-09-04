@@ -8,6 +8,8 @@ import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 import CompassLayout from '../components/CompassLayout';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
+import { isIntakeUnlocked } from '../utils/billing';
+import { isDemoSession } from '../utils/demoMode';
 
 function GuideSelect() {
   const navigate = useNavigate();
@@ -18,6 +20,12 @@ function GuideSelect() {
 
   const active = guides[activeIndex] || guides[0];
   const canBegin = hasSelectedGuide && guides.some((p) => p.id === personaId);
+
+  // Guide selection sits behind the paywall. Anyone who reached it without
+  // paying gets sent back one step.
+  useEffect(() => {
+    if (!isDemoSession() && !isIntakeUnlocked()) navigate('/pay', { replace: true });
+  }, [navigate]);
 
   useEffect(() => {
     const centered = guides[activeIndex];

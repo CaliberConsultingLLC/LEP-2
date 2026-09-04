@@ -6,9 +6,11 @@ import { colors, fonts, radii, shadows } from '../styles/tokens';
 import {
   INTRO_PRICE_USD,
   LIST_PRICE_USD,
+  POST_PAYMENT_ROUTE,
+  buildPaymentLink,
+  checkoutMode,
   isIntakeUnlocked,
   setPaymentStatus,
-  stripeIsConfigured,
 } from '../utils/billing';
 import { isDemoSession } from '../utils/demoMode';
 
@@ -26,22 +28,40 @@ function Checkout() {
   const canceled = new URLSearchParams(location.search || '').get('canceled') === '1';
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const stripeReady = stripeIsConfigured();
+  const mode = checkoutMode();
+  const stripeReady = mode !== 'off';
   const userInfo = useMemo(() => readUserInfo(), []);
 
   useEffect(() => {
-    if (isDemoSession()) navigate('/form?stage=intake', { replace: true });
+    // Demo sessions and anyone who already paid skip straight to the guide.
+    if (isDemoSession() || isIntakeUnlocked()) {
+      navigate(POST_PAYMENT_ROUTE, { replace: true });
+    }
   }, [navigate]);
 
   const startCheckout = async () => {
     setError('');
     if (!stripeReady) {
       setPaymentStatus('preview');
-      navigate('/form?stage=intake');
+      navigate(POST_PAYMENT_ROUTE);
       return;
     }
     if (isIntakeUnlocked()) {
-      navigate('/form?stage=intake');
+      navigate(POST_PAYMENT_ROUTE);
+      return;
+    }
+
+    // Payment Link: no server call, no secret key. Hand the leader to Stripe
+    // with their account stapled to the URL and let Stripe redirect them back
+    // to /pay/success.
+    if (mode === 'link') {
+      const url = buildPaymentLink({ uid: userInfo?.uid || '', email: userInfo?.email || '' });
+      if (!url) {
+        setError('Could not start checkout. Please try again.');
+        return;
+      }
+      setBusy(true);
+      window.location.assign(url);
       return;
     }
 
@@ -111,7 +131,7 @@ function Checkout() {
           )}
           {!stripeReady && (
             <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
-              Checkout is not live yet. Continue to the intake while Stripe is being connected.
+              Checkout is not live yet. Continue while Stripe is being connected.
             </Alert>
           )}
 
@@ -140,7 +160,7 @@ function Checkout() {
               '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
             }}
           >
-            {busy ? 'Opening checkout…' : stripeReady ? `Pay $${INTRO_PRICE_USD} and begin intake` : 'Continue to intake'}
+            {busy ? 'Opening checkout…' : stripeReady ? `Pay $${INTRO_PRICE_USD} and continue` : 'Continue'}
           </Box>
         </Box>
       </Box>

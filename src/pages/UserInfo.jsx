@@ -24,6 +24,7 @@ import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { legalParagraphs } from '../data/legalDocs';
+import { isIntakeUnlocked } from '../utils/billing';
 
 const cairnLabelSx = {
   ...type.body,
@@ -287,7 +288,9 @@ function UserInfo() {
         localStorage.removeItem('cairn_profile_details_complete');
         // Fresh journey — allow chapter transition popups again.
         localStorage.removeItem('journeyCeremonySeen');
-        navigate('/guide-select');
+        // Payment sits between the account and the guide. Anyone already
+        // unlocked (demo, or checkout switched off) skips straight through.
+        navigate(isIntakeUnlocked() ? '/guide-select' : '/pay');
       } else {
         navigate('/form');
       }

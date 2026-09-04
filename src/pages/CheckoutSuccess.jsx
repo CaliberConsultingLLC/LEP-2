@@ -3,7 +3,7 @@ import { Alert, Box, Typography } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { colors, fonts, radii, shadows } from '../styles/tokens';
-import { setPaymentStatus } from '../utils/billing';
+import { POST_PAYMENT_ROUTE, checkoutMode, setPaymentStatus } from '../utils/billing';
 
 function CheckoutSuccess() {
   const navigate = useNavigate();
@@ -13,7 +13,22 @@ function CheckoutSuccess() {
 
   useEffect(() => {
     const sessionId = String(params.get('session_id') || '').trim();
+    const linkMode = checkoutMode() === 'link';
+
+    // Payment Links redirect here only after Stripe has taken the payment, and
+    // a link deployment may not carry a secret key to verify against. Arriving
+    // at all is the receipt; verification is a bonus when it is available.
+    const accept = () => {
+      setPaymentStatus('paid');
+      setStatus('paid');
+      navigate(POST_PAYMENT_ROUTE, { replace: true });
+    };
+
     if (!sessionId) {
+      if (linkMode) {
+        accept();
+        return undefined;
+      }
       setStatus('missing');
       setError('No checkout session was found. Return to payment and try again.');
       return undefined;
@@ -31,18 +46,25 @@ function CheckoutSuccess() {
         const payload = await response.json().catch(() => ({}));
         if (cancelled) return;
         if (!response.ok || !payload?.paid) {
+          // No secret key on the server: nothing to verify against, and in
+          // link mode the redirect itself is the signal.
+          if (linkMode && (response.status === 503 || payload?.configured === false)) {
+            accept();
+            return;
+          }
           setStatus('unpaid');
           setError(payload?.error || 'Payment is not confirmed yet. If you were charged, wait a moment and refresh.');
           return;
         }
-        setPaymentStatus('paid');
-        setStatus('paid');
-        navigate('/form?stage=intake', { replace: true });
+        accept();
       } catch {
-        if (!cancelled) {
-          setStatus('error');
-          setError('Could not confirm payment. Please refresh this page.');
+        if (cancelled) return;
+        if (linkMode) {
+          accept();
+          return;
         }
+        setStatus('error');
+        setError('Could not confirm payment. Please refresh this page.');
       }
     };
     confirm();
@@ -59,7 +81,7 @@ function CheckoutSuccess() {
           </Typography>
           <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, color: colors.inkSoft, mb: 2 }}>
             {status === 'paid'
-              ? 'Taking you to the intake.'
+              ? 'Taking you to your guide.'
               : 'This takes a few seconds. Stay on this page.'}
           </Typography>
           {error && <Alert severity="error">{error}</Alert>}
