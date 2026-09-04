@@ -21,8 +21,12 @@ export default function FieldJournalGuide({ persona, eyebrow, text, pose = 'thin
         draggable={false}
         sx={{
           ...SUMMARY_GUIDE_OWL_SX,
-          zIndex: 0,
-          filter: 'drop-shadow(0 16px 36px rgba(9,16,31,0.28))',
+          // The journal's left leaf is blank paper, so the owl stands in front
+          // of it rather than beside it — softened and pushed back a touch so
+          // the page still reads as paper underneath.
+          zIndex: 3,
+          opacity: 0.82,
+          filter: 'drop-shadow(0 16px 36px rgba(9,16,31,0.28)) blur(0.4px) saturate(0.9)',
           pointerEvents: 'none',
         }}
       />
@@ -32,7 +36,7 @@ export default function FieldJournalGuide({ persona, eyebrow, text, pose = 'thin
           left: { xs: 16, sm: 20, md: 40, lg: 52, xl: 60 },
           bottom: { xs: 248, sm: 300, md: 300, lg: 340, xl: 360 },
           width: { xs: 'min(320px, calc(100vw - 32px))', sm: 300, md: 320, lg: 340 },
-          zIndex: 2,
+          zIndex: 4,
           pointerEvents: 'none',
         }}
       >

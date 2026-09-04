@@ -53,6 +53,17 @@
         "--strictPort"
       ],
       "port": 5231
+    },
+    {
+      "name": "lep2-vite-journal",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5241",
+        "--strictPort"
+      ],
+      "port": 5241
     }
   ]
 }

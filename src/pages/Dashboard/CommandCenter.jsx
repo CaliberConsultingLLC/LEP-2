@@ -969,7 +969,10 @@ export default function CommandCenter() {
   // Scores the intake predictions against real team data and re-voices the
   // dashboard screens off the result. Runs once per distinct result set and
   // caches; a plain revisit costs nothing.
-  useResultsIntelligence({
+  // The field journal surfaces the trait rollups and statement findings from
+  // this analysis as the two insight cards on each entry, so the return value
+  // is no longer discarded.
+  const { resultsAnalysis } = useResultsIntelligence({
     rows: benchmarkRows,
     loaded: benchmarkLoaded,
     hasTeamData,
@@ -1006,11 +1009,13 @@ export default function CommandCenter() {
     practiceCampaignRecords?.selfCampaignId ||
     '123';
 
+  // The journal stores one spread per page now (0-2 traits, 3 the closing
+  // entry). Older saves counted half-pages up to 6; anything past the last
+  // trait lands on the closing entry either way.
   const [practiceTraitIdx, setPracticeTraitIdx] = useState(() => {
     const saved = Number(phases.pages.practice);
-    if (Number.isFinite(saved) && saved >= 6) return 3;
-    if (Number.isFinite(saved)) return Math.floor(saved / 2);
-    return 0;
+    if (!Number.isFinite(saved)) return 0;
+    return Math.max(0, Math.min(3, Math.round(saved)));
   });
 
   useEffect(() => {
@@ -1149,6 +1154,7 @@ export default function CommandCenter() {
             onAdvancePhase={() => advancePhase('practice')}
             traitIndex={practiceTraitIdx}
             onTraitIndexChange={setPracticeTraitIdx}
+            resultsAnalysis={resultsAnalysis}
           />
         );
       case 'journey':

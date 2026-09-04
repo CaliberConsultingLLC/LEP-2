@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Dialog, DialogContent, Slider, Stack, Typography } from '@mui/material';
+import { Box, Dialog, DialogContent, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
 import { deriveTraitRoles } from './debriefContent.js';
@@ -9,20 +9,22 @@ import FieldJournalGuide from './FieldJournalGuide.jsx';
 import GuideInterruption from '../../../components/GuideInterruption.jsx';
 import { useCairnTheme } from '../../../config/runtimeFlags';
 import { isDemoSession } from '../../../utils/demoMode';
+import { readTraitNotes } from './traitRoomNotes.js';
+import JournalBook, { BOOK_KEYFRAMES, LAND_MS, TURN_MS, usePrefersReducedMotion } from './JournalBook.jsx';
 import {
-  BOOKMARK_GRADIENTS,
   EMPTY_PLAN,
-  FIELD_LEAD_INS,
-  FIELD_PROMPTS,
   PAPER,
+  STEP_DEFS,
+  STEP_KEYS,
+  TRAIT_ACCENTS,
   defaultGoal,
+  firstUnfilledStep,
   goalMin,
   page1Done,
   page2Done,
-  paperClipPath,
-  pickEvidenceNotes,
   planComplete,
-  truncateNote,
+  selectTraitInsights,
+  stepFilled,
 } from './fieldJournalUtils.js';
 
 const readJson = (key, fallback) => {
@@ -42,72 +44,13 @@ const writeJson = (key, value) => {
   }
 };
 
-const FLIP_MS = 780;
-const CLIP = paperClipPath();
+// The rail always calls the closing entry step 3, whatever the campaign's trait
+// count turns out to be, so that is what gets written to the phase page too.
+const LEDGER_RAIL = 3;
+const COMPLETE_TURN_MS = 2400;
 
-function viewFromPhase(saved) {
-  if (!Number.isFinite(saved)) return { kind: 'trait', traitIndex: 0, page: 0 };
-  if (saved >= 6) return { kind: 'ledger' };
-  return { kind: 'trait', traitIndex: Math.floor(saved / 2), page: saved % 2 };
-}
-
-function viewToPhase(view) {
-  if (view.kind === 'ledger') return 6;
-  return view.traitIndex * 2 + view.page;
-}
-
-function viewToRail(view) {
-  return view.kind === 'ledger' ? 3 : view.traitIndex;
-}
-
-function viewsEqual(a, b) {
-  if (a.kind !== b.kind) return false;
-  if (a.kind === 'ledger') return true;
-  return a.traitIndex === b.traitIndex && a.page === b.page;
-}
-
-function viewDir(from, to) {
-  return viewToPhase(to) >= viewToPhase(from) ? 'fwd' : 'back';
-}
-
-const journalKeyframes = {
-  '@keyframes fjInkIn': {
-    from: { opacity: 0, filter: 'blur(3px)', transform: 'translateY(2px)' },
-    to: { opacity: 1, filter: 'blur(0)', transform: 'none' },
-  },
-  '@keyframes fjStampIn': {
-    '0%': { opacity: 0, transform: 'scale(1.6) rotate(-16deg)' },
-    '60%': { opacity: 1, transform: 'scale(0.93) rotate(-7deg)' },
-    '100%': { opacity: 1, transform: 'scale(1) rotate(-7deg)' },
-  },
-  '@keyframes fjFlipSheet': {
-    '0%': { transform: 'rotateY(0deg)', opacity: 1 },
-    '50%': { transform: 'rotateY(-92deg)' },
-    '82%': { opacity: 1 },
-    '100%': { transform: 'rotateY(-178deg)', opacity: 0 },
-  },
-  '@keyframes fjFlipSheetBack': {
-    '0%': { transform: 'rotateY(-178deg)', opacity: 0 },
-    '14%': { opacity: 1 },
-    '50%': { transform: 'rotateY(-88deg)' },
-    '100%': { transform: 'rotateY(0deg)', opacity: 1 },
-  },
-  '@keyframes fjFlipShade': {
-    '0%': { opacity: 0 },
-    '45%': { opacity: 0.6 },
-    '100%': { opacity: 0 },
-  },
-  '@keyframes fjFlipLift': {
-    '0%': { transform: 'translateY(0)' },
-    '45%': { transform: 'translateY(-6px)' },
-    '100%': { transform: 'translateY(0)' },
-  },
-  '@keyframes fjPageSettle': {
-    '0%': { transform: 'translateY(-4px) scale(0.995)' },
-    '60%': { transform: 'translateY(1px) scale(1.002)' },
-    '100%': { transform: 'none' },
-  },
-};
+const shortDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const longDate = (d) => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
 function traitRole(row, roles) {
   if (row.trait === roles.edge?.trait) return 'edge';
@@ -115,36 +58,35 @@ function traitRole(row, roles) {
   return 'strength';
 }
 
+const FIELD_FALLBACKS = {
+  envisionExperience:
+    'Sit in their seat for a minute. Say what they expect the way they would say it — not the way you would defend it.',
+  envisionWant:
+    'Underneath the expectation is a want. It is usually simpler than the complaint. One sentence.',
+  branchBehavior:
+    'Behaviors, not intentions. If you want a place to start: the recap email, the check-back, the owner-and-date at the end of a meeting.',
+  branchSignal:
+    'Intentions drift. Give this a slot on the calendar, a way to measure it, and a person who will notice if it slips.',
+  commitGoal:
+    'Honest, not heroic. Six to ten points in a cycle is a change people actually feel.',
+  commitMessage:
+    'This is the line they will hold you to. Short enough to remember, specific enough to check.',
+};
+
+const ADJUST_STEPS = ['branchBehavior', 'branchSignal', 'commitGoal', 'commitMessage'];
+
 function guideForContext(ctx) {
-  const {
-    personaId,
-    role,
-    page,
-    editing,
-    sealed,
-    isLedger,
-    allDone,
-    signed,
-    row,
-    traitLabel,
-    respondents,
-  } = ctx;
+  const { personaId, role, editing, isLedger, isOpen, allDone, signed, row, traitLabel, respondents, plan } = ctx;
 
-  const section = page === 0 ? 'Empathize' : 'Adjust';
-  const eyebrow = isLedger ? 'The Commitment' : `${traitLabel} · ${section}`;
-
-  const fieldFallbacks = {
-    envisionExperience: 'Say it in their words. Describe it — do not fix it yet.',
-    envisionWant: 'The simplest thing they are hoping you would do or say. One sentence is enough.',
-    branchBehavior: 'One thing you will do differently, starting this week. Something they could watch you do.',
-    branchSignal: 'A ritual with a time attached. Habits without a slot on the calendar do not survive.',
-    commitMessage: 'This is the accountability line. Your team reads it at the next check-in — nothing else from this journal.',
-    commitGoal: 'Honest, not heroic. Six to ten points in a cycle is a change people actually feel.',
-  };
-
-  if (editing && fieldFallbacks[editing]) {
-    const spoken = spokenGuide(personaId, 'dashboardPractice', `field-${editing}`, fieldFallbacks[editing], page === 0 ? 'think' : 'map');
-    return { text: spoken.text, pose: spoken.pose, eyebrow };
+  if (!isOpen) {
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardPractice',
+      'closed-book',
+      'Your field journal. Everything the team told you is already inside. Open it when you are ready to write.',
+      'read'
+    );
+    return { text: spoken.text, pose: spoken.pose, eyebrow: 'Field journal' };
   }
 
   if (isLedger) {
@@ -155,262 +97,71 @@ function guideForContext(ctx) {
         ? 'Three pages, in your handwriting. Read them once the way your team will read them, then sign.'
         : 'One page is still open. The commitment only counts when it covers all three.';
     const spoken = spokenGuide(personaId, 'dashboardPractice', key, fb, 'lantern');
+    return { text: spoken.text, pose: spoken.pose, eyebrow: 'The Commitment' };
+  }
+
+  const onAdjust = editing ? ADJUST_STEPS.includes(editing) : page1Done(plan);
+  const eyebrow = `${traitLabel} · ${onAdjust ? 'Adjust' : 'Empathize'}`;
+
+  if (editing && FIELD_FALLBACKS[editing]) {
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardPractice',
+      `field-${editing}`,
+      FIELD_FALLBACKS[editing],
+      onAdjust ? 'map' : 'think'
+    );
     return { text: spoken.text, pose: spoken.pose, eyebrow };
   }
 
-  if (sealed) {
-    const fb = page === 0
-      ? 'Good. You know what they were carrying. Now do something with it.'
-      : 'That is a real commitment. Turn to the next trait, or read it back once more.';
-    const spoken = spokenGuide(personaId, 'dashboardPractice', `sealed-p${page + 1}`, fb, page === 0 ? 'think' : 'map');
+  if (planComplete(plan)) {
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardPractice',
+      'sealed-p2',
+      'That is a real commitment. Turn to the next trait, or read it back once more.',
+      'map'
+    );
+    return { text: spoken.text, pose: spoken.pose, eyebrow };
+  }
+
+  if (page1Done(plan)) {
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardPractice',
+      'sealed-p1',
+      'Good. You know what they were carrying. Now do something with it.',
+      'map'
+    );
     return { text: spoken.text, pose: spoken.pose, eyebrow };
   }
 
   const team = Math.round(row?.team?.lepScore || 0);
   const self = Math.round(row?.self?.lepScore || 0);
-  const pageKey = `${role}-p${page + 1}`;
+  const pageKey = `${role}-p1`;
   const fallbacks = {
     'edge-p1': `${respondents || 'Your team'} put you at ${team} here, and you put yourself at ${self}. Read what they wrote before you decide what it means.`,
-    'edge-p2': 'This is the part that changes something. Not the score — the behavior they will actually see next week.',
     'lifting-p1': 'They hear you. They just leave holding different versions of what you said. Sit with their words a minute.',
-    'lifting-p2': 'Clarity is a habit with a shape. Give it one your team can see from across the room.',
     'strength-p1': 'This one is a strength, and they told you so. Read it anyway — strengths slip quietly.',
-    'strength-p2': 'Protecting a strength is still a change. Make it deliberate enough to survive a busy quarter.',
   };
-  const spoken = spokenGuide(personaId, 'dashboardPractice', pageKey, fallbacks[pageKey] || fallbacks['edge-p1'], page === 0 ? 'think' : 'map');
+  const spoken = spokenGuide(personaId, 'dashboardPractice', pageKey, fallbacks[pageKey] || fallbacks['edge-p1'], 'think');
   return { text: spoken.text, pose: spoken.pose, eyebrow };
-}
-
-function WaxDot() {
-  return (
-    <Box
-      sx={{
-        width: 14,
-        height: 14,
-        borderRadius: radii.circle,
-        flexShrink: 0,
-        background: 'radial-gradient(circle at 32% 26%, #c85a30, #8d3418 72%)',
-        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.4)',
-      }}
-    />
-  );
-}
-
-function WaxSeal({ roman }) {
-  return (
-    <Box
-      sx={{
-        width: 36,
-        height: 36,
-        borderRadius: radii.circle,
-        flexShrink: 0,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'radial-gradient(circle at 32% 26%, #c85a30, #8d3418 72%)',
-        boxShadow: '0 4px 10px rgba(15,28,46,0.32), inset 0 1px 2px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(0,0,0,0.25)',
-        fontFamily: fonts.brand,
-        fontWeight: 700,
-        fontSize: 12.5,
-        color: PAPER.waxText,
-        animation: 'fjStampIn 480ms cubic-bezier(0.2,0.9,0.3,1.2) both',
-      }}
-    >
-      {roman}
-    </Box>
-  );
-}
-
-function SectionLabel({ children, sealed, roman }) {
-  return (
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
-      <Typography
-        sx={{
-          fontFamily: fonts.mono,
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: '0.24em',
-          textTransform: 'uppercase',
-          color: children === 'What they told us' ? PAPER.sepia : colors.orangeDeep,
-        }}
-      >
-        {children}
-      </Typography>
-      <Box sx={{ flex: 1, height: '1px', bgcolor: PAPER.hairline }} />
-      {sealed && roman ? <WaxSeal roman={roman} /> : null}
-    </Stack>
-  );
-}
-
-function PromptBlock({
-  prompt,
-  traitLabel,
-  value,
-  editing,
-  draft,
-  onDraft,
-  onFocus,
-  onSave,
-  onEdit,
-  fieldH,
-}) {
-  const key = prompt.key;
-  const isOpen = editing === key;
-  const isWritten = Boolean(String(value || '').trim()) && !isOpen;
-  const lead = FIELD_LEAD_INS[key] || '';
-
-  return (
-    <Box>
-      <Typography sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: 18.5, lineHeight: 1.32, color: PAPER.ink, textWrap: 'pretty' }}>
-        {typeof prompt.q === 'function' ? prompt.q(traitLabel) : prompt.q}
-      </Typography>
-      {isWritten && (
-        <Typography sx={{ mt: 1, fontFamily: fonts.serif, fontSize: 17, lineHeight: 1.7, color: PAPER.ink2 }}>
-          <Box component="span">{lead}</Box>
-          <Box
-            component="button"
-            type="button"
-            onClick={() => onEdit(key)}
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              fontFamily: fonts.serif,
-              fontStyle: 'italic',
-              fontSize: 17,
-              lineHeight: 1.75,
-              color: PAPER.ink,
-              borderBottom: `1.5px dotted ${PAPER.dotted}`,
-              animation: 'fjInkIn 560ms ease both',
-            }}
-          >
-            {value}
-          </Box>
-        </Typography>
-      )}
-      {isOpen && (
-        <Stack direction="row" spacing={1.25} alignItems="flex-end" sx={{ mt: 1.1 }}>
-          <Box
-            component="textarea"
-            value={draft}
-            placeholder={prompt.ph}
-            onChange={(e) => onDraft(e.target.value)}
-            onFocus={() => onFocus(key)}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              height: fieldH,
-              boxSizing: 'border-box',
-              resize: 'none',
-              fontFamily: fonts.serif,
-              fontSize: 15.5,
-              lineHeight: 1.55,
-              color: PAPER.ink,
-              bgcolor: PAPER.field,
-              border: `1px solid ${PAPER.rule}`,
-              borderRadius: radii.md,
-              p: '12px 15px',
-              outline: 'none',
-              '&:focus': { borderColor: colors.orangeDeep },
-              '&::placeholder': { color: PAPER.muted, opacity: 0.55 },
-            }}
-          />
-          <Box
-            component="button"
-            type="button"
-            onClick={onSave}
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              flexShrink: 0,
-              bgcolor: colors.navy900,
-              color: PAPER.buttonText,
-              fontFamily: fonts.sans,
-              fontWeight: 700,
-              fontSize: 13,
-              px: 2.5,
-              py: 1.5,
-              borderRadius: radii.pill,
-              boxShadow: shadows.buttonPrimary,
-              '&:hover': { bgcolor: colors.navy700 },
-            }}
-          >
-            Write it in →
-          </Box>
-        </Stack>
-      )}
-    </Box>
-  );
-}
-
-function FlipOverlay({ flipping, flipDir }) {
-  if (!flipping) return null;
-  const forward = flipDir === 'fwd';
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        inset: '-1px',
-        zIndex: 6,
-        pointerEvents: 'none',
-        perspective: '2200px',
-        animation: 'fjFlipLift 820ms ease both',
-      }}
-    >
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          transformOrigin: 'left center',
-          transformStyle: 'preserve-3d',
-          animation: `${forward ? 'fjFlipSheet' : 'fjFlipSheetBack'} 820ms cubic-bezier(0.42,0,0.18,1) both`,
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(90deg, #fffdf8 0%, #faf4e4 55%, #e9dcbf 100%)',
-            border: '1px solid #eee4d0',
-            boxShadow: '-18px 0 40px rgba(15,28,46,0.28)',
-            backfaceVisibility: 'hidden',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            transform: 'rotateY(180deg)',
-            background: 'linear-gradient(270deg, #f6efdd 0%, #ede3cb 60%, #e2d5b6 100%)',
-            border: '1px solid #e6dac2',
-            boxShadow: '18px 0 40px rgba(15,28,46,0.22)',
-            backfaceVisibility: 'hidden',
-          }}
-        />
-      </Box>
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          background: forward
-            ? 'linear-gradient(90deg, rgba(15,28,46,0.34), transparent 58%)'
-            : 'linear-gradient(270deg, rgba(15,28,46,0.28), transparent 62%)',
-          animation: 'fjFlipShade 820ms ease both',
-        }}
-      />
-    </Box>
-  );
 }
 
 function NoteModal({ note, onClose }) {
   if (!note) return null;
   return (
-    <Dialog open onClose={onClose} PaperProps={{ sx: { bgcolor: PAPER.page, borderRadius: '14px', border: '1px solid #eee4d0', boxShadow: shadows.overlay, maxWidth: 460 } }}>
+    <Dialog
+      open
+      onClose={onClose}
+      PaperProps={{ sx: { bgcolor: PAPER.page, borderRadius: '14px', border: '1px solid #eee4d0', boxShadow: shadows.overlay, maxWidth: 460 } }}
+    >
       <DialogContent sx={{ p: '28px 30px' }}>
         <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: colors.orangeDeep }}>
           {note.who}
         </Typography>
         <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, lineHeight: 1.6, color: PAPER.ink2, mt: 1.25, textWrap: 'pretty' }}>
-          &#8220;{note.text}&#8221;
+          {note.text}
         </Typography>
         <Box
           component="button"
@@ -437,19 +188,24 @@ function NoteModal({ note, onClose }) {
   );
 }
 
-export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, onTraitIndexChange }) {
+export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, onTraitIndexChange, resultsAnalysis = null }) {
   const { loaded, rows, teamResponses } = useBenchmarkData();
   const { persona, personaId, setSuppress } = useGuide();
+  const reducedMotion = usePrefersReducedMotion();
+
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
   const orderedRows = useMemo(() => {
     if (!roles.ordered.length) return [];
     if (!roles.edge) return roles.ordered;
     return [roles.edge, ...roles.ordered.filter((r) => r.trait !== roles.edge.trait)];
   }, [roles]);
+  const traitCount = orderedRows.length;
+  const ledgerSpread = traitCount;
 
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
   const campaignRecords = useMemo(() => readJson('campaignRecords', {}), []);
   const userKey = userInfo?.email || userInfo?.name || 'anonymous';
+  const ownerName = String(userInfo?.name || '').trim() || 'Your name';
   const campaignKey =
     campaignRecords?.bundleId ||
     campaignRecords?.teamCampaignId ||
@@ -460,40 +216,47 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     [campaignKey, userKey]
   );
 
-  const flipTimer = useRef(null);
-  const prevRailRef = useRef(traitIndex);
-  const recoveredPhase = useRef(false);
   const mode = phases.modeFor('practice');
   const readOnly = mode === 'snapshot' && !isDemoSession();
 
-  const [view, setView] = useState(() => {
-    const base = viewFromPhase(phases.pages.practice);
-    return base;
+  const [spread, setSpread] = useState(() => {
+    const saved = Number(phases.pages.practice);
+    if (!Number.isFinite(saved)) return 0;
+    return Math.max(0, Math.min(LEDGER_RAIL, Math.round(saved)));
   });
+  const [open, setOpen] = useState(false);
+  const [landed, setLanded] = useState(false);
+  const [flip, setFlip] = useState(null);
   const [plans, setPlans] = useState({});
   const [editing, setEditing] = useState(null);
   const [draft, setDraft] = useState('');
-  const [flipping, setFlipping] = useState(false);
-  const [flipDir, setFlipDir] = useState('fwd');
-  const [noteOpen, setNoteOpen] = useState(null);
-  const [settleKey, setSettleKey] = useState(0);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [modal, setModal] = useState(null);
   const [guideMsg, setGuideMsg] = useState({ text: '', pose: 'think', eyebrow: '' });
-  // Each page of the journal introduces itself once per reading, the way the
-  // reflection's four stages do. Held in a ref scoped to the mounted page
-  // rather than in storage that outlives it, so turning back does not repeat
-  // the introduction and arriving at the journal again does give it.
+  // The guide introduces each spread once per reading, held in a ref scoped to
+  // the mounted page rather than storage that outlives it.
   const [introOpen, setIntroOpen] = useState(false);
   const [introMsg, setIntroMsg] = useState(null);
   const introSeenRef = useRef({});
 
-  const showLedger = view.kind === 'ledger';
-  const traitIdx = showLedger ? 0 : Math.min(Math.max(view.traitIndex, 0), Math.max(orderedRows.length - 1, 0));
-  const page = showLedger ? 0 : view.page;
+  const landTimer = useRef(null);
+  const flipTimer = useRef(null);
+  const completeTimer = useRef(null);
+  const prevRailRef = useRef(traitIndex);
+
+  const isLedger = spread >= ledgerSpread && traitCount > 0;
+  const traitIdx = traitCount ? Math.min(Math.max(spread, 0), traitCount - 1) : 0;
   const row = orderedRows[traitIdx];
-  const plan = row ? { ...EMPTY_PLAN, ...(plans[row.trait] || {}) } : EMPTY_PLAN;
+  const plan = useMemo(
+    () => (row ? { ...EMPTY_PLAN, ...(plans[row.trait] || {}) } : EMPTY_PLAN),
+    [row, plans]
+  );
   const traitLabel = row ? row.subTrait || row.trait : '';
   const role = row ? traitRole(row, roles) : 'edge';
   const respondents = teamResponses?.length || 0;
+
+  const allDone = traitCount > 0 && orderedRows.every((r) => planComplete({ ...EMPTY_PLAN, ...(plans[r.trait] || {}) }));
+  const signed = traitCount > 0 && orderedRows.every((r) => Boolean(plans[r.trait]?.savedAt));
 
   // The journal draws its own guide beside the book, so the corner owl is
   // suppressed here — except while an interruption is up, which is the one
@@ -503,13 +266,6 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     setSuppress(!introOpen);
     return () => setSuppress(false);
   }, [setSuppress, introOpen]);
-
-  useEffect(() => {
-    if (readOnly) {
-      setView({ kind: 'ledger' });
-      onTraitIndexChange(3);
-    }
-  }, [readOnly, onTraitIndexChange]);
 
   useEffect(() => {
     if (!orderedRows.length) return;
@@ -524,33 +280,26 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     });
   }, [orderedRows, planKeyFor]);
 
-  // Recover from a stale saved page index (6 = ledger) left by the old dual-state bug.
+  // A signed entry opens straight to the ledger, already open and read-only.
   useEffect(() => {
-    if (recoveredPhase.current || readOnly || !orderedRows.length) return;
-    const saved = phases.pages.practice;
-    if (!Number.isFinite(saved) || saved < 6) return;
-    const allComplete = orderedRows.every((r) => {
-      const p = plans[r.trait] || readJson(planKeyFor(r.trait), null);
-      return planComplete({ ...EMPTY_PLAN, ...p });
-    });
-    if (allComplete) return;
-    recoveredPhase.current = true;
-    const idx = orderedRows.findIndex((r) => {
-      const p = plans[r.trait] || readJson(planKeyFor(r.trait), null);
-      return !planComplete({ ...EMPTY_PLAN, ...p });
-    });
-    const nextView =
-      idx >= 0 ? { kind: 'trait', traitIndex: idx, page: 0 } : { kind: 'ledger' };
-    setView(nextView);
-    phases.setPhasePage('practice', viewToPhase(nextView));
-    onTraitIndexChange(viewToRail(nextView));
-    prevRailRef.current = viewToRail(nextView);
-  }, [orderedRows, plans, readOnly, phases, planKeyFor, onTraitIndexChange]);
+    if (!readOnly || !traitCount) return;
+    setOpen(true);
+    setLanded(true);
+    setSpread(ledgerSpread);
+    onTraitIndexChange(LEDGER_RAIL);
+    prevRailRef.current = LEDGER_RAIL;
+  }, [readOnly, traitCount, ledgerSpread, onTraitIndexChange]);
+
+  useEffect(() => () => {
+    clearTimeout(landTimer.current);
+    clearTimeout(flipTimer.current);
+    clearTimeout(completeTimer.current);
+  }, []);
 
   const patchPlan = useCallback(
     (traitKey, patch) => {
       setPlans((prev) => {
-        const nextPlan = { ...(prev[traitKey] || EMPTY_PLAN), ...patch };
+        const nextPlan = { ...EMPTY_PLAN, ...(prev[traitKey] || {}), ...patch };
         writeJson(planKeyFor(traitKey), nextPlan);
         return { ...prev, [traitKey]: nextPlan };
       });
@@ -558,173 +307,337 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     [planKeyFor]
   );
 
-  const applyView = useCallback(
-    (nextView) => {
-      setView(nextView);
-      setEditing(null);
-      setSettleKey((k) => k + 1);
-      phases.setPhasePage('practice', viewToPhase(nextView));
-      onTraitIndexChange(viewToRail(nextView));
+  const planFor = useCallback(
+    (i) => ({ ...EMPTY_PLAN, ...(plans[orderedRows[i]?.trait] || {}) }),
+    [plans, orderedRows]
+  );
+
+  const landSpread = useCallback(
+    (next) => {
+      setSpread(next);
+      setFlip(null);
+      setDraft('');
+      setNotesOpen(false);
+      const rail = next >= ledgerSpread ? LEDGER_RAIL : next;
+      prevRailRef.current = rail;
+      phases.setPhasePage('practice', rail);
+      onTraitIndexChange(rail);
     },
-    [onTraitIndexChange, phases]
+    [ledgerSpread, onTraitIndexChange, phases]
   );
 
   const flipTo = useCallback(
-    (nextView, dir) => {
-      if (flipTimer.current) clearTimeout(flipTimer.current);
-      setFlipDir(dir);
-      setFlipping(true);
-      flipTimer.current = setTimeout(() => {
-        applyView(nextView);
-        setFlipping(false);
-      }, FLIP_MS);
+    (next) => {
+      if (!open || flip || next === spread || next < 0 || next > ledgerSpread) return;
+      clearTimeout(completeTimer.current);
+      const dir = next > spread ? 'fwd' : 'back';
+      setEditing(null);
+      setNotesOpen(false);
+      if (reducedMotion) {
+        landSpread(next);
+        return;
+      }
+      setFlip({ dir, to: next });
+      clearTimeout(flipTimer.current);
+      flipTimer.current = setTimeout(() => landSpread(next), TURN_MS);
     },
-    [applyView]
+    [open, flip, spread, ledgerSpread, reducedMotion, landSpread]
   );
 
-  const navigateTo = useCallback(
-    (nextView) => {
-      if (viewsEqual(view, nextView)) return;
-      flipTo(nextView, viewDir(view, nextView));
-    },
-    [view, flipTo]
-  );
+  const openBook = useCallback(() => {
+    if (open) return;
+    setOpen(true);
+    if (reducedMotion) {
+      setLanded(true);
+      return;
+    }
+    clearTimeout(landTimer.current);
+    landTimer.current = setTimeout(() => setLanded(true), LAND_MS);
+  }, [open, reducedMotion]);
 
-  // Header rail — react only when the rail selection changes, not internal page turns.
+  // Header rail — react only when the rail selection changes, not page turns.
   useEffect(() => {
-    if (flipping || !orderedRows.length || readOnly) return;
+    if (!traitCount || readOnly || flip) return;
     if (traitIndex === prevRailRef.current) return;
     prevRailRef.current = traitIndex;
-    const target =
-      traitIndex >= 3
-        ? { kind: 'ledger' }
-        : { kind: 'trait', traitIndex, page: 0 };
-    navigateTo(target);
-  }, [traitIndex, orderedRows.length, flipping, readOnly, navigateTo]);
+    const target = traitIndex >= LEDGER_RAIL ? ledgerSpread : Math.min(traitIndex, ledgerSpread);
+    if (!open) {
+      // A rail click before the cover is opened opens it on that page.
+      setSpread(target);
+      openBook();
+      return;
+    }
+    flipTo(target);
+  }, [traitIndex, traitCount, readOnly, flip, open, ledgerSpread, flipTo, openBook]);
 
-  useEffect(() => () => {
-    if (flipTimer.current) clearTimeout(flipTimer.current);
-  }, []);
-
-  const p1Sealed = page1Done(plan);
-  const p2Sealed = page2Done(plan);
-  const pageSealed = page === 0 ? p1Sealed : p2Sealed;
-  const allDone = orderedRows.every((r) => planComplete({ ...EMPTY_PLAN, ...(plans[r.trait] || {}) }));
-  const signed = orderedRows.every((r) => Boolean(plans[r.trait]?.savedAt));
-
+  // The open step is always the first one with nothing written in it.
   useEffect(() => {
-    if (!orderedRows.length) return undefined;
-    const msg = guideForContext({
+    if (readOnly || isLedger || !row || flip || !open) return;
+    if (editing) return;
+    setEditing(firstUnfilledStep(plan));
+  }, [readOnly, isLedger, row, flip, open, editing, plan]);
+
+  const currentScore = row ? Math.round(row.team.lepScore) : 0;
+  const goalVal = Number.isFinite(plan.commitGoal) ? plan.commitGoal : defaultGoal(currentScore);
+
+  const handleSave = useCallback(
+    (key) => {
+      if (!row || readOnly) return;
+      const patch =
+        key === 'commitGoal'
+          ? { commitGoal: goalVal, goalSet: true }
+          : { [key]: String(draft || '').trim() };
+      if (key !== 'commitGoal' && !patch[key]) return;
+      patchPlan(row.trait, patch);
+      const nextPlan = { ...plan, ...patch };
+      const after = STEP_KEYS.slice(STEP_KEYS.indexOf(key) + 1).find((q) => !stepFilled(nextPlan, q));
+      const nextStep = after || firstUnfilledStep(nextPlan);
+      setEditing(nextStep);
+      setDraft('');
+      // The entry closes itself: the stamp lands, then the page turns.
+      if (!nextStep && planComplete(nextPlan)) {
+        clearTimeout(completeTimer.current);
+        completeTimer.current = setTimeout(() => flipTo(spread + 1), COMPLETE_TURN_MS);
+      }
+    },
+    [row, readOnly, goalVal, draft, patchPlan, plan, flipTo, spread]
+  );
+
+  const handleFocus = useCallback(
+    (key) => {
+      if (readOnly) return;
+      setEditing((prev) => {
+        if (prev !== key) setDraft(String(plan[key] || ''));
+        return key;
+      });
+    },
+    [plan, readOnly]
+  );
+
+  const handleEdit = useCallback(
+    (key) => {
+      if (readOnly) return;
+      clearTimeout(completeTimer.current);
+      setEditing(key);
+      setDraft(key === 'commitGoal' ? '' : String(plan[key] || ''));
+    },
+    [plan, readOnly]
+  );
+
+  const handleGoal = useCallback(
+    (v) => {
+      if (!row || readOnly) return;
+      patchPlan(row.trait, { commitGoal: v });
+    },
+    [row, readOnly, patchPlan]
+  );
+
+  const onSign = useCallback(() => {
+    if (!allDone || readOnly) return;
+    const stamp = new Date().toISOString();
+    orderedRows.forEach((r) => {
+      const p = { ...EMPTY_PLAN, ...(plans[r.trait] || {}), savedAt: stamp };
+      writeJson(planKeyFor(r.trait), p);
+    });
+    setPlans((prev) => {
+      const next = { ...prev };
+      orderedRows.forEach((r) => {
+        next[r.trait] = { ...EMPTY_PLAN, ...(next[r.trait] || {}), savedAt: stamp };
+      });
+      return next;
+    });
+    onAdvancePhase();
+  }, [allDone, readOnly, orderedRows, plans, planKeyFor, onAdvancePhase]);
+
+  // --- Evidence notes -------------------------------------------------------
+  const notes = useMemo(() => {
+    if (!row || isLedger) return [];
+    return readTraitNotes(row.trait).map((n) => ({
+      ...n,
+      meta: `${Number.isInteger(n.statementIdx) ? `Statement ${n.statementIdx + 1}` : 'Trait view'} · ${shortDate(new Date(n.ts))}`,
+    }));
+  }, [row, isLedger]);
+
+  const useNote = useCallback(
+    (n) => {
+      if (readOnly) return;
+      const key = editing || firstUnfilledStep(plan);
+      if (!key || key === 'commitGoal') return;
+      setEditing(key);
+      setDraft((prev) => {
+        const base = editing === key ? String(prev || '') : String(plan[key] || '');
+        return base.trim() ? `${base.trim()} ${n.text}` : n.text;
+      });
+    },
+    [editing, plan, readOnly]
+  );
+
+  // --- Guide ----------------------------------------------------------------
+  const guideCtx = useMemo(
+    () => ({
       personaId,
       role,
-      page,
       editing,
-      sealed: pageSealed,
-      isLedger: showLedger,
+      isLedger,
+      isOpen: open,
       allDone,
       signed: signed || readOnly,
       row,
       traitLabel,
       respondents,
-    });
-    setGuideMsg({ text: msg.text, pose: msg.pose, eyebrow: msg.eyebrow });
-    return undefined;
-  }, [personaId, role, page, editing, pageSealed, showLedger, allDone, signed, readOnly, row, traitLabel, respondents, orderedRows.length]);
+      plan,
+    }),
+    [personaId, role, editing, isLedger, open, allDone, signed, readOnly, row, traitLabel, respondents, plan]
+  );
 
-  // A different guide re-introduces the pages in their own words rather than
-  // inheriting a dismissal, the same rule the reflection follows.
+  useEffect(() => {
+    if (!traitCount) return;
+    const msg = guideForContext(guideCtx);
+    setGuideMsg(msg);
+  }, [guideCtx, traitCount]);
+
   useEffect(() => {
     introSeenRef.current = {};
   }, [personaId]);
 
-  const introKey = showLedger ? 'ledger' : `${traitIdx}-${page}`;
+  const introKey = !open ? 'closed' : isLedger ? 'ledger' : `trait-${traitIdx}`;
 
-  // The guide introduces the page before the page is worked on. It waits for
-  // any flip to land first — an interruption arriving mid-turn covers the
-  // page it is there to introduce. `editing` is deliberately left out: the
-  // intro speaks for the page, not for whichever field is open, so opening a
-  // field does not change what was said or fire a second one.
   useEffect(() => {
-    if (!useCairnTheme || readOnly || !orderedRows.length || flipping) return undefined;
-    if (introSeenRef.current[introKey]) return undefined;
-    const msg = guideForContext({
-      personaId,
-      role,
-      page,
-      editing: null,
-      sealed: pageSealed,
-      isLedger: showLedger,
-      allDone,
-      signed: signed || readOnly,
-      row,
-      traitLabel,
-      respondents,
-    });
-    setIntroMsg({ text: msg.text, pose: msg.pose, eyebrow: msg.eyebrow });
+    if (!useCairnTheme || readOnly || !traitCount || flip) return;
+    if (introSeenRef.current[introKey]) return;
+    const msg = guideForContext({ ...guideCtx, editing: null });
+    setIntroMsg(msg);
     setIntroOpen(true);
-    return undefined;
-  }, [introKey, flipping, readOnly, orderedRows.length, personaId, role, page, pageSealed, showLedger, allDone, signed, row, traitLabel, respondents]);
+  }, [introKey, flip, readOnly, traitCount, guideCtx]);
 
   const dismissIntro = useCallback(() => {
     introSeenRef.current[introKey] = true;
     setIntroOpen(false);
   }, [introKey]);
 
-  const currentScore = row ? Math.round(row.team.lepScore) : 0;
-  const goalVal = Number.isFinite(plan.commitGoal) ? plan.commitGoal : defaultGoal(currentScore);
+  // --- Page props -----------------------------------------------------------
+  const pagePropsFor = useCallback(
+    (s, side, ghost) => {
+      const ledger = s >= ledgerSpread;
+      const i = Math.min(Math.max(s, 0), Math.max(traitCount - 1, 0));
+      const r = orderedRows[i];
+      const acc = TRAIT_ACCENTS[i % TRAIT_ACCENTS.length];
+      const p = planFor(i);
+      const label = r ? r.subTrait || r.trait : '';
+      const base = { accent: acc.accent, accentHi: acc.accentHi, ghost: Boolean(ghost), readOnly };
 
-  useEffect(() => {
-    if (page === 1 && row && !Number.isFinite(plan.commitGoal)) {
-      patchPlan(row.trait, { commitGoal: defaultGoal(currentScore) });
-    }
-  }, [page, row, plan.commitGoal, currentScore, patchPlan]);
+      if (side === 'left') {
+        return {
+          ...base,
+          kind: 'blank',
+          blankLabel: ledger ? 'Field journal · closing entry' : `Field journal · ${label}`,
+        };
+      }
 
-  const firstUnanswered = useCallback((pg) => {
-    const fields = pg === 0 ? FIELD_PROMPTS.page1 : FIELD_PROMPTS.page2;
-    const p = row ? { ...EMPTY_PLAN, ...(plans[row.trait] || {}) } : EMPTY_PLAN;
-    const hit = fields.find((f) => !String(p[f.key] || '').trim());
-    return hit?.key || null;
-  }, [row, plans]);
+      if (ledger) {
+        const firstOpen = orderedRows.findIndex((x) => !planComplete({ ...EMPTY_PLAN, ...(plans[x.trait] || {}) }));
+        return {
+          ...base,
+          kind: 'ledger',
+          folio: String(ledgerSpread + 1),
+          ledger: orderedRows.map((tr, j) => {
+            const lp = planFor(j);
+            const cur = Math.round(tr.team.lepScore);
+            const g = Number.isFinite(lp.commitGoal) ? lp.commitGoal : defaultGoal(cur);
+            return {
+              label: tr.subTrait || tr.trait,
+              range: `${cur} → ${g}`,
+              done: planComplete(lp),
+              message: String(lp.commitMessage || '').trim() ? `“${lp.commitMessage}”` : 'No commitment written yet.',
+            };
+          }),
+          allDone,
+          signed: signed || readOnly,
+          signLabel: signed
+            ? 'Signed ✓'
+            : allDone
+              ? 'Sign the entry'
+              : `Finish ${orderedRows[firstOpen]?.subTrait || orderedRows[firstOpen]?.trait || 'the pages'} first`,
+          onSign: () => {
+            if (!allDone) {
+              if (firstOpen >= 0) flipTo(firstOpen);
+              return;
+            }
+            onSign();
+          },
+          onOpenTrait: (j) => flipTo(j),
+          signatureName: ownerName,
+          signedDate: signed
+            ? longDate(new Date(plans[orderedRows[0]?.trait]?.savedAt || Date.now()))
+            : 'Awaiting signature',
+          backLabel: 'Previous',
+          onBack: () => flipTo(ledgerSpread - 1),
+        };
+      }
 
-  const saveField = (key) => {
-    if (!row) return;
-    patchPlan(row.trait, { [key]: draft.trim() });
-    setEditing(null);
-    setDraft('');
-    const pg = ['envisionExperience', 'envisionWant'].includes(key) ? 0 : 1;
-    setTimeout(() => setEditing(firstUnanswered(pg)), 0);
-  };
+      const defs = STEP_DEFS(label);
+      const activeKey = ghost ? null : editing;
+      const steps = defs
+        .map((d, k) => ({ def: d, n: k + 1, value: p[d.key] || '', active: activeKey === d.key }))
+        .filter((s2) => s2.active || stepFilled(p, s2.def.key));
+      const cur = r ? Math.round(r.team.lepScore) : 0;
 
-  const openEdit = (key) => {
-    if (!row) return;
-    const p = plans[row.trait] || EMPTY_PLAN;
-    setEditing(key);
-    setDraft(String(p[key] || ''));
-  };
-
-  const onSign = () => {
-    const stamp = new Date().toISOString();
-    orderedRows.forEach((r) => {
-      const p = { ...(plans[r.trait] || EMPTY_PLAN), savedAt: stamp };
-      writeJson(planKeyFor(r.trait), p);
-    });
-    setPlans((prev) => {
-      const next = { ...prev };
-      orderedRows.forEach((r) => {
-        next[r.trait] = { ...(next[r.trait] || EMPTY_PLAN), savedAt: stamp };
-      });
-      return next;
-    });
-    onAdvancePhase();
-  };
-
-  const nextIncompleteTrait = orderedRows.findIndex((r) => !planComplete({ ...EMPTY_PLAN, ...(plans[r.trait] || {}) }));
-
-  useEffect(() => {
-    if (readOnly || showLedger || pageSealed || editing) return;
-    const first = firstUnanswered(page);
-    if (first) setEditing(first);
-  }, [page, view.traitIndex, readOnly, showLedger, pageSealed, editing, firstUnanswered]);
+      return {
+        ...base,
+        kind: 'trait',
+        trait: {
+          label,
+          team: cur,
+          effort: r ? Math.round(r.team.effort) : 0,
+          efficacy: r ? Math.round(r.team.efficacy) : 0,
+        },
+        insights: selectTraitInsights({ row: r, rowIndex: i, analysis: resultsAnalysis, respondents }),
+        respondents,
+        steps,
+        draft,
+        traitDone: planComplete(p),
+        stampDate: shortDate(new Date()),
+        folio: String(s + 1),
+        dots: STEP_KEYS.map((k) => stepFilled(p, k)),
+        goal: Number.isFinite(p.commitGoal) ? p.commitGoal : defaultGoal(cur),
+        goalSet: Boolean(p.goalSet),
+        goalMin: goalMin(cur),
+        current: cur,
+        onDraft: setDraft,
+        onFocus: handleFocus,
+        onEdit: handleEdit,
+        onSave: handleSave,
+        onGoal: handleGoal,
+        onReadAll: (card) => setModal({ who: card.who, text: card.text }),
+        backLabel: i > 0 ? 'Previous' : '',
+        onBack: () => flipTo(s - 1),
+        fwdLabel: 'Next',
+        onFwd: () => flipTo(s + 1),
+        fwdReady: planComplete(p),
+      };
+    },
+    [
+      ledgerSpread,
+      traitCount,
+      orderedRows,
+      planFor,
+      readOnly,
+      plans,
+      allDone,
+      signed,
+      ownerName,
+      flipTo,
+      onSign,
+      editing,
+      draft,
+      resultsAnalysis,
+      respondents,
+      handleFocus,
+      handleEdit,
+      handleSave,
+      handleGoal,
+    ]
+  );
 
   if (!loaded && !orderedRows.length) {
     return (
@@ -742,37 +655,12 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     );
   }
 
-  const cardPad = showLedger ? '30px 50px 26px' : page === 0 ? '30px 50px 26px' : '22px 50px 18px';
-
-  const goForward = () => {
-    if (showLedger || readOnly) return;
-    if (page === 0) navigateTo({ kind: 'trait', traitIndex: traitIdx, page: 1 });
-    else if (traitIdx < orderedRows.length - 1) navigateTo({ kind: 'trait', traitIndex: traitIdx + 1, page: 0 });
-    else navigateTo({ kind: 'ledger' });
-  };
-
-  const goBack = () => {
-    if (showLedger) {
-      navigateTo({ kind: 'trait', traitIndex: orderedRows.length - 1, page: 1 });
-      return;
-    }
-    if (page === 1) navigateTo({ kind: 'trait', traitIndex: traitIdx, page: 0 });
-    else if (traitIdx > 0) navigateTo({ kind: 'trait', traitIndex: traitIdx - 1, page: 1 });
-  };
-
-  const forwardLabel = page === 0
-    ? 'Turn to the adjustment →'
-    : traitIdx < orderedRows.length - 1
-      ? `Turn the page → ${orderedRows[traitIdx + 1].subTrait || orderedRows[traitIdx + 1].trait}`
-      : 'To the Commitment →';
-
-  const notes = row ? pickEvidenceNotes(row) : [];
+  const forward = flip?.dir === 'fwd';
+  const leftS = flip ? (forward ? spread : flip.to) : spread;
+  const rightS = flip ? (forward ? flip.to : spread) : spread;
 
   return (
-    <Box sx={{ ...journalKeyframes, position: 'relative', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
-      {/* While the interruption is up the corner owl is the speaker, so the
-          journal's own guide stands down rather than saying the same line
-          twice on the same screen. */}
+    <Box sx={{ ...BOOK_KEYFRAMES, position: 'relative', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
       {useCairnTheme && !introOpen && (
         <FieldJournalGuide
           persona={persona}
@@ -788,472 +676,31 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
         pose={introMsg?.pose}
         onDone={dismissIntro}
       />
-      <Box
-        sx={{
-          position: 'relative',
-          pl: { xs: 0, md: 28, lg: 36, xl: 42 },
-          height: '100%',
-          minHeight: 0,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxWidth: 720, width: '100%', ml: { xs: 0, md: 'auto' }, mr: { xs: 0, md: 0 }, pt: '15px', pb: '8px', px: '10px' }}>
-        {!showLedger && (
-          <Stack direction="row" spacing={0.75} alignItems="flex-end" sx={{ pl: '14px', flexShrink: 0 }}>
-            {[
-              { roman: 'I', label: 'Empathize', pg: 0, sealed: p1Sealed },
-              { roman: 'II', label: 'Adjust & Commit', pg: 1, sealed: p2Sealed },
-            ].map((tab) => {
-              const active = page === tab.pg;
-              return (
-                <Box
-                  key={tab.label}
-                  component="button"
-                  type="button"
-                  onClick={() => !readOnly && navigateTo({ kind: 'trait', traitIndex: traitIdx, page: tab.pg })}
-                  sx={{
-                    all: 'unset',
-                    cursor: readOnly ? 'default' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.1,
-                    border: `1px solid ${PAPER.rule}`,
-                    borderBottom: 'none',
-                    borderRadius: '10px 10px 0 0',
-                    bgcolor: active ? PAPER.page : PAPER.cream,
-                    px: active ? '18px' : '16px',
-                    pt: active ? '9px' : '7px',
-                    pb: active ? '10px' : '8px',
-                    boxShadow: '0 -6px 16px rgba(15,28,46,0.08)',
-                  }}
-                >
-                  <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.2em', color: colors.orangeDeep }}>
-                    {tab.roman}
-                  </Typography>
-                  <Typography sx={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: 12.5, color: active ? PAPER.ink : PAPER.tabMuted }}>
-                    {tab.label}
-                  </Typography>
-                  {tab.sealed ? <WaxDot /> : null}
-                </Box>
-              );
-            })}
-          </Stack>
-        )}
 
-        <Box sx={{ position: 'relative', flex: 1, minHeight: 0, filter: 'drop-shadow(0 1px 1px rgba(15,28,46,0.16)) drop-shadow(0 22px 34px rgba(15,28,46,0.15))' }}>
-          {!showLedger &&
-            orderedRows.map((r, i) => {
-              const active = i === traitIdx;
-              return (
-                <Box
-                  key={r.trait}
-                  component="button"
-                  type="button"
-                  title={r.subTrait || r.trait}
-                  onClick={() => !readOnly && navigateTo({ kind: 'trait', traitIndex: i, page: 0 })}
-                  sx={{
-                    all: 'unset',
-                    cursor: readOnly ? 'default' : 'pointer',
-                    position: 'absolute',
-                    top: -15,
-                    right: [104, 74, 44][i],
-                    width: active ? 19 : 17,
-                    height: active ? 58 : 19,
-                    background: BOOKMARK_GRADIENTS[i],
-                    clipPath: active ? 'polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%)' : 'none',
-                    borderRadius: active ? 0 : '2px 2px 0 0',
-                    boxShadow: active ? '0 5px 10px rgba(15,28,46,0.28)' : 'inset 0 -3px 4px rgba(15,28,46,0.22)',
-                    zIndex: active ? 3 : 1,
-                  }}
-                />
-              );
-            })}
+      <JournalBook
+        open={open}
+        landed={landed}
+        onOpen={openBook}
+        spread={spread}
+        flip={flip}
+        ownerName={ownerName}
+        traitLabels={orderedRows.slice(0, 3).map((r) => r.subTrait || r.trait)}
+        left={pagePropsFor(leftS, 'left', Boolean(flip))}
+        right={pagePropsFor(rightS, 'right', Boolean(flip))}
+        sheetFront={flip ? pagePropsFor(forward ? spread : flip.to, 'right', true) : {}}
+        sheetBack={flip ? pagePropsFor(forward ? flip.to : spread, 'left', true) : {}}
+        leftKey={`L${leftS}`}
+        rightKey={`R${rightS}`}
+        notes={notes}
+        notesOpen={notesOpen}
+        onToggleNotes={() => !isLedger && setNotesOpen((v) => !v)}
+        onUseNote={useNote}
+        notesTraitLabel={isLedger ? 'all traits' : traitLabel}
+        onBookmark={(i) => (open ? flipTo(i) : (setSpread(i), openBook()))}
+        reducedMotion={reducedMotion}
+      />
 
-          <Box
-            key={settleKey}
-            sx={{
-              position: 'relative',
-              zIndex: 2,
-              height: '100%',
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              clipPath: CLIP,
-              bgcolor: PAPER.page,
-              backgroundImage: 'radial-gradient(circle at 18% 24%, rgba(15,28,46,0.02) 0%, transparent 40%), radial-gradient(circle at 82% 76%, rgba(15,28,46,0.022) 0%, transparent 45%)',
-              boxShadow: 'inset 12px 0 18px -12px rgba(15,28,46,0.42)',
-              p: cardPad,
-              boxSizing: 'border-box',
-              animation: 'fjPageSettle 420ms cubic-bezier(0.2,0.8,0.2,1) both',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 6,
-                left: -7,
-                bottom: 8,
-                width: 11,
-                background: `repeating-linear-gradient(to bottom, ${PAPER.page} 0 2px, ${PAPER.ring} 2px 3px)`,
-                borderRadius: '3px 0 0 3px',
-                boxShadow: '-3px 0 8px rgba(15,28,46,0.16)',
-                zIndex: 1,
-              },
-            }}
-          >
-            <FlipOverlay flipping={flipping} flipDir={flipDir} />
-
-            <Stack direction="row" alignItems="flex-end" justifyContent="space-between" spacing={2.75} sx={{ flexShrink: 0 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: fonts.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: colors.orangeDeep }}>
-                  {showLedger ? 'Field journal · closing entry' : `Field journal · ${traitLabel} · page ${page + 1} of 2`}
-                </Typography>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: 31, letterSpacing: '-0.02em', color: PAPER.ink, mt: 0.6, lineHeight: 1.1 }}>
-                  {showLedger ? 'The Commitment' : page === 0 ? 'Their Side of It' : 'The Adjustment'}
-                </Typography>
-                {showLedger && (
-                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 14.5, color: PAPER.muted, mt: 0.6 }}>
-                    Three promises, one signature.
-                  </Typography>
-                )}
-              </Box>
-              {!showLedger && row && (
-                <Stack direction="row" spacing={2.75} sx={{ flexShrink: 0 }}>
-                  {[
-                    { label: 'Compass', value: Math.round(row.team.lepScore) },
-                    { label: 'Effort', value: Math.round(row.team.effort) },
-                    { label: 'Effectiveness', value: Math.round(row.team.efficacy) },
-                  ].map((s) => (
-                    <Stack key={s.label} alignItems="flex-end" spacing={0.4}>
-                      <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAPER.sepia }}>
-                        {s.label}
-                      </Typography>
-                      <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 30, lineHeight: 1, letterSpacing: '-0.02em', color: PAPER.ink2, fontVariantNumeric: 'tabular-nums' }}>
-                        {s.value}
-                      </Typography>
-                    </Stack>
-                  ))}
-                </Stack>
-              )}
-            </Stack>
-
-            <Box sx={{ height: '1px', bgcolor: PAPER.rule, mt: 2.75, flexShrink: 0 }} />
-
-            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {!showLedger && page === 0 && (
-                <Box sx={{ mt: 3, flexShrink: 0 }}>
-                  <SectionLabel sealed={p1Sealed} roman="I">What they told us</SectionLabel>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(178px, 1fr))', gap: 1.25, mt: 1.5 }}>
-                    {notes.map((n) => {
-                      const { short, truncated } = truncateNote(n.text);
-                      return (
-                        <Box
-                          key={n.who}
-                          sx={{
-                            bgcolor: PAPER.field,
-                            border: `1px solid ${PAPER.noteBorder}`,
-                            borderRadius: '3px',
-                            p: '11px 12px 10px',
-                            boxShadow: '0 5px 12px rgba(15,28,46,0.07)',
-                            transform: `rotate(${n.tilt})`,
-                          }}
-                        >
-                          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: colors.orangeDeep }}>
-                            {n.who}
-                          </Typography>
-                          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 13, lineHeight: 1.45, color: PAPER.ink2, mt: 0.75 }}>
-                            {short}
-                          </Typography>
-                          {truncated && (
-                            <Box component="button" type="button" onClick={() => setNoteOpen(n)} sx={{ all: 'unset', cursor: 'pointer', fontFamily: fonts.sans, fontSize: 11, fontWeight: 700, color: colors.orangeDeep, mt: 0.5 }}>
-                              Read all →
-                            </Box>
-                          )}
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                </Box>
-              )}
-
-              {!showLedger && (
-                <Box sx={{ mt: page === 0 ? 3 : 2, flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                      <SectionLabel sealed={pageSealed} roman={page === 0 ? 'I' : 'II'}>
-                        {page === 0 ? 'I · Stand where they stand' : 'II · Adjust'}
-                      </SectionLabel>
-                  <Stack spacing={page === 0 ? 2.25 : 2} sx={{ mt: page === 0 ? 2.25 : 2, flex: 1, minHeight: 0 }}>
-                    {(page === 0 ? FIELD_PROMPTS.page1 : FIELD_PROMPTS.page2).map((prompt) => (
-                      <PromptBlock
-                        key={prompt.key}
-                        prompt={prompt}
-                        traitLabel={traitLabel}
-                        value={plan[prompt.key]}
-                        editing={readOnly ? null : editing}
-                        draft={draft}
-                        onDraft={setDraft}
-                        onFocus={(key) => {
-                          setEditing(key);
-                          if (!draft && plan[key]) setDraft(plan[key]);
-                        }}
-                        onSave={() => saveField(prompt.key)}
-                        onEdit={openEdit}
-                        fieldH={page === 0 ? 'clamp(66px, 11vh, 132px)' : 'clamp(54px, 5.6vh, 96px)'}
-                      />
-                    ))}
-                  </Stack>
-
-                  {page === 1 && (
-                    <Box sx={{ mt: 2, pt: 1.5, borderTop: `1px solid ${PAPER.rule}`, flexShrink: 0 }}>
-                      <SectionLabel>The commitment</SectionLabel>
-                      <Stack spacing={2} sx={{ mt: 1.5 }}>
-                        <Box>
-                          <Typography sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: 18.5, color: PAPER.ink }}>
-                            Where will this land next cycle?
-                          </Typography>
-                          <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1 }}>
-                            <Stack direction="row" alignItems="baseline" spacing={1.1} sx={{ flexShrink: 0 }}>
-                              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 22, color: PAPER.sepia, fontVariantNumeric: 'tabular-nums' }}>
-                                {currentScore}
-                              </Typography>
-                              <Typography sx={{ fontFamily: fonts.mono, fontSize: 11, color: PAPER.sepia }}>→</Typography>
-                              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 38, lineHeight: 1, letterSpacing: '-0.03em', color: PAPER.ink2, fontVariantNumeric: 'tabular-nums' }}>
-                                {goalVal}
-                              </Typography>
-                            </Stack>
-                            <Slider
-                              min={goalMin(currentScore)}
-                              max={100}
-                              value={goalVal}
-                              disabled={readOnly}
-                              onChange={(_, v) => {
-                                patchPlan(row.trait, { commitGoal: v });
-                                setEditing('commitGoal');
-                              }}
-                              sx={{ flex: 1, color: colors.orangeDeep, minWidth: 0 }}
-                            />
-                          </Stack>
-                        </Box>
-                        <Box>
-                          <Typography sx={{ fontFamily: fonts.serif, fontWeight: 500, fontSize: 18.5, lineHeight: 1.32, color: PAPER.ink }}>
-                            How would you like to communicate your commitment to your team?{' '}
-                            <Box component="span" sx={{ fontStyle: 'italic', fontWeight: 400, color: PAPER.sepia }}>
-                              (they will see this)
-                            </Box>
-                          </Typography>
-                          {String(plan.commitMessage || '').trim() && editing !== 'commitMessage' ? (
-                            <Box sx={{ mt: 1.25, bgcolor: PAPER.field, borderLeft: `3px solid ${colors.orangeDeep}`, pl: 2, pr: 2, py: 1.5, borderRadius: '0 8px 8px 0' }}>
-                              <Box
-                                component="button"
-                                type="button"
-                                onClick={() => openEdit('commitMessage')}
-                                sx={{
-                                  all: 'unset',
-                                  cursor: readOnly ? 'default' : 'pointer',
-                                  fontFamily: fonts.serif,
-                                  fontStyle: 'italic',
-                                  fontSize: 18,
-                                  lineHeight: 1.6,
-                                  color: PAPER.ink,
-                                  animation: 'fjInkIn 560ms ease both',
-                                }}
-                              >
-                                &#8220;{plan.commitMessage}&#8221;
-                              </Box>
-                            </Box>
-                          ) : !readOnly && (
-                            <Stack direction="row" spacing={1.1} alignItems="flex-end" sx={{ mt: 1.1 }}>
-                              <Box
-                                component="textarea"
-                                value={editing === 'commitMessage' ? draft : plan.commitMessage}
-                                placeholder="Expect me to…"
-                                onChange={(e) => {
-                                  setEditing('commitMessage');
-                                  setDraft(e.target.value);
-                                }}
-                                onFocus={() => {
-                                  setEditing('commitMessage');
-                                  setDraft(plan.commitMessage || '');
-                                }}
-                                sx={{
-                                  flex: 1,
-                                  height: 'clamp(70px, 7vh, 110px)',
-                                  resize: 'none',
-                                  fontFamily: fonts.serif,
-                                  fontSize: 15.5,
-                                  lineHeight: 1.55,
-                                  bgcolor: PAPER.field,
-                                  border: `1px solid ${PAPER.rule}`,
-                                  borderRadius: radii.md,
-                                  p: '12px 15px',
-                                  outline: 'none',
-                                  '&:focus': { borderColor: colors.orangeDeep },
-                                }}
-                              />
-                              <Box component="button" type="button" onClick={() => saveField('commitMessage')} sx={{ all: 'unset', cursor: 'pointer', bgcolor: colors.navy900, color: PAPER.buttonText, fontFamily: fonts.sans, fontWeight: 700, fontSize: 12.5, px: 2, py: 1.4, borderRadius: radii.pill, boxShadow: shadows.buttonPrimary }}>
-                                Write it in →
-                              </Box>
-                            </Stack>
-                          )}
-                        </Box>
-                      </Stack>
-                    </Box>
-                  )}
-                </Box>
-              )}
-
-              {showLedger && (
-                <Box sx={{ mt: 1, flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                  <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16.5, lineHeight: 1.65, color: PAPER.ink2 }}>
-                    {readOnly || signed
-                      ? 'Signed and dated. These hold until the next reading of the signal.'
-                      : 'This is the whole entry. Three traits, three numbers, three sentences your team will actually hear.'}
-                  </Typography>
-                  {orderedRows.map((r) => {
-                    const p = { ...EMPTY_PLAN, ...(plans[r.trait] || {}) };
-                    const cur = Math.round(r.team.lepScore);
-                    const goal = Number.isFinite(p.commitGoal) ? p.commitGoal : defaultGoal(cur);
-                    const name = r.subTrait || r.trait;
-                    return (
-                      <Box key={r.trait} sx={{ mt: 2.75, pb: 2.25, borderBottom: `1px solid ${PAPER.hairline}` }}>
-                        <Stack direction="row" alignItems="baseline" spacing={1.75}>
-                          <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: 13.5, color: PAPER.ink }}>{name}</Typography>
-                          <Typography sx={{ fontFamily: fonts.mono, fontSize: 12, fontWeight: 700, color: colors.orangeDeep }}>
-                            {cur} → {goal}
-                          </Typography>
-                          <Box sx={{ flex: 1, height: '1px', bgcolor: PAPER.hairline }} />
-                          {!readOnly && (
-                            <Box
-                              component="button"
-                              type="button"
-                              onClick={() => {
-                                const idx = orderedRows.findIndex((x) => x.trait === r.trait);
-                                navigateTo({ kind: 'trait', traitIndex: idx, page: 1 });
-                              }}
-                              sx={{ all: 'unset', cursor: 'pointer', fontFamily: fonts.sans, fontSize: 11.5, fontWeight: 700, color: PAPER.muted }}
-                            >
-                              Open the page →
-                            </Box>
-                          )}
-                        </Stack>
-                        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 16, lineHeight: 1.6, color: PAPER.ink2, mt: 1.1 }}>
-                          {String(p.commitMessage || '').trim() ? `“${p.commitMessage}”` : 'No commitment written yet.'}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                  {!readOnly && (
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2.5} sx={{ mt: 3.25, flexWrap: 'wrap' }}>
-                      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 14, color: PAPER.sepia, maxWidth: 420 }}>
-                        {signed
-                          ? 'Sent to your next check-in. Your team sees the three commitments — not your notes.'
-                          : 'Signing sends the three commitments to your team at the next check-in. The rest of this journal stays yours.'}
-                      </Typography>
-                      <Box
-                        component="button"
-                        type="button"
-                        disabled={!allDone && !signed}
-                        onClick={() => {
-                          if (!allDone) {
-                            if (nextIncompleteTrait >= 0) navigateTo({ kind: 'trait', traitIndex: nextIncompleteTrait, page: 0 });
-                            return;
-                          }
-                          onSign();
-                        }}
-                        sx={{
-                          all: 'unset',
-                          cursor: allDone ? 'pointer' : 'pointer',
-                          opacity: allDone ? 1 : 0.5,
-                          bgcolor: colors.navy900,
-                          color: PAPER.buttonText,
-                          fontFamily: fonts.sans,
-                          fontWeight: 700,
-                          fontSize: 14.5,
-                          letterSpacing: '0.03em',
-                          px: 3.75,
-                          py: 1.75,
-                          borderRadius: radii.pill,
-                          boxShadow: '0 10px 24px rgba(15,28,46,0.28)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {signed ? 'Signed ✓' : allDone ? 'Sign the entry' : `Finish ${orderedRows[nextIncompleteTrait]?.subTrait || orderedRows[nextIncompleteTrait]?.trait || 'trait'} first`}
-                      </Box>
-                    </Stack>
-                  )}
-                </Box>
-              )}
-            </Box>
-
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={2}
-              sx={{
-                flexShrink: 0,
-                mt: showLedger ? 4 : page === 0 ? 2.25 : 1.5,
-                pt: 1.75,
-                borderTop: `1px solid ${PAPER.rule}`,
-              }}
-            >
-              <Box
-                component="button"
-                type="button"
-                onClick={goBack}
-                disabled={!showLedger && traitIdx === 0 && page === 0}
-                sx={{
-                  all: 'unset',
-                  cursor: showLedger || traitIdx > 0 || page > 0 ? 'pointer' : 'default',
-                  opacity: !showLedger && traitIdx === 0 && page === 0 ? 0.45 : 1,
-                  fontFamily: fonts.sans,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: PAPER.muted,
-                }}
-              >
-                ‹{' '}
-                {showLedger
-                  ? `Back to ${orderedRows[orderedRows.length - 1].subTrait || orderedRows[orderedRows.length - 1].trait}`
-                  : page === 1
-                    ? 'Back to their side of it'
-                    : traitIdx > 0
-                      ? `Back to ${orderedRows[traitIdx - 1].subTrait || orderedRows[traitIdx - 1].trait}`
-                      : 'Back to the reading'}
-              </Box>
-              <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: PAPER.sepia, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {showLedger ? (signed || readOnly ? 'Entry signed' : 'Awaiting signature') : `Page ${page + 1} of 2`}
-              </Typography>
-              {!showLedger && !readOnly && (
-                <Box
-                  component="button"
-                  type="button"
-                  onClick={goForward}
-                  sx={{
-                    all: 'unset',
-                    cursor: 'pointer',
-                    opacity: pageSealed ? 1 : 0.55,
-                    bgcolor: colors.navy900,
-                    color: PAPER.buttonText,
-                    fontFamily: fonts.sans,
-                    fontWeight: 700,
-                    fontSize: 14,
-                    px: 3.25,
-                    py: 1.5,
-                    borderRadius: radii.pill,
-                    boxShadow: '0 10px 24px rgba(15,28,46,0.28)',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {forwardLabel}
-                </Box>
-              )}
-              {(showLedger || readOnly) && <Box sx={{ width: 120 }} />}
-            </Stack>
-          </Box>
-        </Box>
-      </Box>
-      </Box>
-      <NoteModal note={noteOpen} onClose={() => setNoteOpen(null)} />
+      <NoteModal note={modal} onClose={() => setModal(null)} />
     </Box>
   );
 }
