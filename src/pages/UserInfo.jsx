@@ -24,7 +24,7 @@ import CompassLayout from '../components/CompassLayout';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { legalParagraphs } from '../data/legalDocs';
-import { isIntakeUnlocked } from '../utils/billing';
+import { isIntakeUnlocked, setPaymentStatus } from '../utils/billing';
 
 const cairnLabelSx = {
   ...type.body,
@@ -288,8 +288,13 @@ function UserInfo() {
         localStorage.removeItem('cairn_profile_details_complete');
         // Fresh journey — allow chapter transition popups again.
         localStorage.removeItem('journeyCeremonySeen');
-        // Payment sits between the account and the guide. Anyone already
-        // unlocked (demo, or checkout switched off) skips straight through.
+        // Entitlement is stored per browser, not per account, so a new signup
+        // would otherwise inherit whatever the previous one left behind — and
+        // walk past payment on a shared or previously-used machine. A brand
+        // new account has paid for nothing yet.
+        setPaymentStatus('');
+        // Payment sits between the account and the guide. Demo sessions, and
+        // deployments where checkout is unconfigured, skip straight through.
         navigate(isIntakeUnlocked() ? '/guide-select' : '/pay');
       } else {
         navigate('/form');
