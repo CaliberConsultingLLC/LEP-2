@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ConsentCeremony from '../components/ConsentCeremony';
 import {
   Box,
   Container,
@@ -72,6 +73,17 @@ function UserInfo() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDialog, setOpenDialog] = useState(null);
   const closeDialog = () => setOpenDialog(null);
+
+  // The guide speaks before the form does. Two checkboxes at the foot of a
+  // signup form are the least-read part of the most consequential screen, and
+  // this product asks something of people who are not in the room. Agreeing in
+  // the ceremony sets the same two flags the form has always carried, so the
+  // stored consent and its timestamp are unchanged — only the delivery is.
+  const [ceremonyDone, setCeremonyDone] = useState(false);
+  const acceptCeremony = () => {
+    setUserInfo((prev) => ({ ...prev, agreeTerms: true, agreePrivacy: true }));
+    setCeremonyDone(true);
+  };
   const agreeDialog = (field) => {
     setUserInfo((prev) => ({ ...prev, [field]: true }));
     setOpenDialog(null);
@@ -670,7 +682,13 @@ function UserInfo() {
         </Box>
       </Container>
 
-      <Dialog open={openDialog === 'terms'} onClose={closeDialog} maxWidth="sm" fullWidth>
+      <ConsentCeremony
+        open={!ceremonyDone}
+        onAgree={acceptCeremony}
+        onOpenTerms={() => setOpenDialog('terms')}
+        onOpenPrivacy={() => setOpenDialog('privacy')}
+      />
+      <Dialog open={openDialog === 'terms'} onClose={closeDialog} maxWidth="sm" fullWidth sx={{ zIndex: 10060 }}>
         <DialogTitle sx={{ fontFamily: useCairnTheme ? fonts.serif : 'Gemunu Libre, sans-serif' }}>Terms of Use</DialogTitle>
         <DialogContent dividers>
           {legalParagraphs('terms').map((para) => (
@@ -685,7 +703,7 @@ function UserInfo() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openDialog === 'privacy'} onClose={closeDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog === 'privacy'} onClose={closeDialog} maxWidth="sm" fullWidth sx={{ zIndex: 10060 }}>
         <DialogTitle sx={{ fontFamily: useCairnTheme ? fonts.serif : 'Gemunu Libre, sans-serif' }}>Privacy Policy</DialogTitle>
         <DialogContent dividers>
           {legalParagraphs('privacy').map((para) => (
