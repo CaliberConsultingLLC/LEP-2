@@ -9,6 +9,21 @@ function getBaseUrl(req) {
   return '';
 }
 
+// Current Stripe API versions call embedded checkout 'embedded_page'; older
+// ones call it 'embedded'. Try the current name first, fall back to the old.
+const UI_MODES = ['embedded_page', 'embedded'];
+
+function createSession(secret, params) {
+  return fetch('https://api.stripe.com/v1/checkout/sessions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params.toString(),
+  });
+}
+
 function introEnabled() {
   const raw = String(process.env.STRIPE_INTRO_ENABLED || 'true').trim().toLowerCase();
   return raw !== 'false' && raw !== '0';
@@ -73,7 +88,7 @@ export default async function handler(req, res) {
     // Embedded checkout mounts Stripe's form inside /pay rather than sending
     // the leader to buy.stripe.com. `return_url` replaces success_url and
     // cancel_url — Stripe rejects a session that carries both.
-    params.set('ui_mode', 'embedded');
+    params.set('ui_mode', UI_MODES[0]);
     params.set('return_url', `${baseUrl}/pay/success?session_id={CHECKOUT_SESSION_ID}`);
     // Stripe renders its own promotion-code field inside the form and
     // validates the code there. Nothing to collect on our side.
@@ -95,15 +110,20 @@ export default async function handler(req, res) {
     if (name) params.set('metadata[name]', name);
     params.set('metadata[product]', 'compass');
 
-    const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${secret}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
-    });
-    const payload = await stripeRes.json().catch(() => ({}));
+    let stripeRes = await createSession(secret, params);
+    let payload = await stripeRes.json().catch(() => ({}));
+
+    // Stripe renamed this enum: older API versions take 'embedded', current
+    // ones take 'embedded_page'. Which one an account gets depends on the API
+    // version pinned to that account, so rather than guess, take Stripe's word
+    // for it and retry with the other name.
+    if (!stripeRes.ok && payload?.error?.param === 'ui_mode') {
+      const fallback = UI_MODES.find((m) => m !== params.get('ui_mode'));
+      console.error(`Stripe rejected ui_mode='${params.get('ui_mode')}'; retrying with '${fallback}'.`);
+      params.set('ui_mode', fallback);
+      stripeRes = await createSession(secret, params);
+      payload = await stripeRes.json().catch(() => ({}));
+    }
     if (!stripeRes.ok || !payload?.client_secret) {
       console.error('Stripe checkout session failed:', payload);
       return res.status(502).json({ error: 'Could not start checkout.' });
