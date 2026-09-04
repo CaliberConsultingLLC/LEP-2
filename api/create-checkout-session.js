@@ -31,8 +31,28 @@ export default async function handler(req, res) {
   if (!ensureJsonObjectBody(req, res)) return;
 
   const secret = String(process.env.STRIPE_SECRET_KEY || '').trim();
-  if (!secret) {
-    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false });
+  // The publishable key is checked up front, not after the session exists: a
+  // session we cannot mount is an orphan on Stripe's side, and failing later
+  // would report a missing key as a Stripe rejection.
+  const publishableKey = String(
+    process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
+  ).trim();
+  const missing = [];
+  if (!secret) missing.push('STRIPE_SECRET_KEY');
+  if (!publishableKey) missing.push('STRIPE_PUBLISHABLE_KEY');
+  if (missing.length) {
+    console.error('Stripe is not configured; missing:', missing.join(', '));
+    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false, missing });
+  }
+  // A key pasted from the wrong field fails at Stripe with a message that
+  // reads like our bug. Name it here instead.
+  if (!/^sk_|^rk_/.test(secret)) {
+    console.error('STRIPE_SECRET_KEY does not look like a Stripe secret key (expected sk_ or rk_).');
+    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false, malformed: 'STRIPE_SECRET_KEY' });
+  }
+  if (!/^pk_/.test(publishableKey)) {
+    console.error('STRIPE_PUBLISHABLE_KEY does not look like a Stripe publishable key (expected pk_).');
+    return res.status(503).json({ error: 'Checkout is not configured yet.', configured: false, malformed: 'STRIPE_PUBLISHABLE_KEY' });
   }
 
   try {
@@ -88,17 +108,6 @@ export default async function handler(req, res) {
 
     // The publishable key travels with the session so the browser never needs
     // a VITE_ build-time copy of it — adding the key in Vercel is enough.
-    const publishableKey = String(
-      process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
-    ).trim();
-    if (!publishableKey) {
-      console.error('Stripe publishable key is not set; embedded checkout cannot mount.');
-      return res.status(503).json({
-        error: 'Checkout is not configured yet.',
-        configured: false,
-      });
-    }
-
     return res.status(200).json({
       clientSecret: payload.client_secret,
       publishableKey,
