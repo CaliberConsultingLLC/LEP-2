@@ -6,7 +6,6 @@ import { deriveTraitRoles } from './debriefContent.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import FieldJournalGuide from './FieldJournalGuide.jsx';
-import GuideInterruption from '../../../components/GuideInterruption.jsx';
 import { useCairnTheme } from '../../../config/runtimeFlags';
 import { isDemoSession } from '../../../utils/demoMode';
 import { readTraitNotes } from './traitRoomNotes.js';
@@ -258,14 +257,15 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const allDone = traitCount > 0 && orderedRows.every((r) => planComplete({ ...EMPTY_PLAN, ...(plans[r.trait] || {}) }));
   const signed = traitCount > 0 && orderedRows.every((r) => Boolean(plans[r.trait]?.savedAt));
 
-  // The journal draws its own guide beside the book, so the corner owl is
-  // suppressed here — except while an interruption is up, which is the one
-  // time the corner owl is the one speaking.
+  // The journal draws its own guide beside the book, and it is the one that
+  // speaks here — interruptions included. The corner owl stays down for the
+  // whole room rather than appearing in the opposite corner to deliver a line
+  // the guide on screen should be delivering.
   useEffect(() => {
     if (!useCairnTheme) return undefined;
-    setSuppress(!introOpen);
+    setSuppress(true);
     return () => setSuppress(false);
-  }, [setSuppress, introOpen]);
+  }, [setSuppress]);
 
   useEffect(() => {
     if (!orderedRows.length) return;
@@ -655,27 +655,23 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     );
   }
 
+  const interrupting = introOpen && Boolean(introMsg);
   const forward = flip?.dir === 'fwd';
   const leftS = flip ? (forward ? spread : flip.to) : spread;
   const rightS = flip ? (forward ? flip.to : spread) : spread;
 
   return (
     <Box sx={{ ...BOOK_KEYFRAMES, position: 'relative', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
-      {useCairnTheme && !introOpen && (
+      {useCairnTheme && (
         <FieldJournalGuide
           persona={persona}
-          eyebrow={guideMsg.eyebrow}
-          text={guideMsg.text}
-          pose={guideMsg.pose}
+          eyebrow={interrupting ? introMsg?.eyebrow : guideMsg.eyebrow}
+          text={interrupting ? introMsg?.text || '' : guideMsg.text}
+          pose={interrupting ? introMsg?.pose : guideMsg.pose}
+          interrupting={interrupting}
+          onDone={dismissIntro}
         />
       )}
-      <GuideInterruption
-        open={introOpen && Boolean(introMsg)}
-        eyebrow={introMsg?.eyebrow}
-        text={introMsg?.text || ''}
-        pose={introMsg?.pose}
-        onDone={dismissIntro}
-      />
 
       <JournalBook
         open={open}

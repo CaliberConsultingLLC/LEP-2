@@ -134,7 +134,7 @@ function NotesPad({ open, notes, traitLabel, onToggle, onUse }) {
         top: 72,
         width: NOTES_W,
         height: 'calc(100% - 150px)',
-        zIndex: open ? 1 : 0,
+        zIndex: open ? 6 : 0,
         transform: `translateX(${open ? 0 : -300}px) rotate(1deg)`,
         transition: 'transform 520ms cubic-bezier(0.2,0.8,0.2,1), opacity 300ms ease',
         opacity: open ? 1 : 0,
@@ -413,28 +413,39 @@ export default function JournalBook({
   reducedMotion,
 }) {
   const colRef = useRef(null);
-  const [{ scale, avail }, setFit] = useState({ scale: 1, avail: DESIGN_W });
+  const [{ scale, stage, vw }, setFit] = useState({ scale: 1, stage: null, vw: 0 });
 
   useLayoutEffect(() => {
     const el = colRef.current;
     if (!el) return undefined;
     const measure = () => {
       const cs = getComputedStyle(el);
-      const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const padL = parseFloat(cs.paddingLeft);
+      const padT = parseFloat(cs.paddingTop);
+      const w = el.clientWidth - padL - parseFloat(cs.paddingRight);
+      const boxH = el.clientHeight - padT - parseFloat(cs.paddingBottom);
       // 24px of slack under the book so the closed-state hint has somewhere
       // to sit without the spread ever losing height to it.
-      const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 24;
+      const h = boxH - 24;
       if (w <= 0 || h <= 0) return;
       const next = Math.max(0.35, Math.min(1, w / DESIGN_W, h / DESIGN_H));
+      const r = el.getBoundingClientRect();
+      const box = { left: r.left + padL, top: r.top + padT, width: w, height: boxH };
       setFit((prev) =>
-        Math.abs(next - prev.scale) > 0.004 || Math.abs(w - prev.avail) > 1
-          ? { scale: next, avail: w }
+        Math.abs(next - prev.scale) > 0.004
+          || prev.vw !== window.innerWidth
+          || !prev.stage
+          || Math.abs(box.left - prev.stage.left) > 1
+          || Math.abs(box.width - prev.stage.width) > 1
+          || Math.abs(box.top - prev.stage.top) > 1
+          ? { scale: next, stage: box, vw: window.innerWidth }
           : prev
       );
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
+    if (el.parentElement) ro.observe(el.parentElement);
     window.addEventListener('resize', measure);
     return () => {
       ro.disconnect();
@@ -446,28 +457,50 @@ export default function JournalBook({
   const openDelay = open ? '620ms' : '0ms';
   const openOpacity = open ? 1 : 0;
 
-  // The pad hangs off the fore-edge, past the right cover. Whatever of it does
-  // not fit in the column, the book slides over to make room for — the left
-  // leaf is blank and already sits behind the guide, so it is the half that
-  // can afford to go.
-  const notesShift = notesOpen
-    ? Math.max(0, (NOTES_W + 16) * scale - Math.max(0, (avail - DESIGN_W * scale) / 2))
-    : 0;
+  // The pad hangs off the fore-edge, past the right cover. It is an overlay
+  // now rather than something tucked inside the content column, so it only
+  // needs to stay on screen — the book holds still unless the pad would run
+  // off the right edge, and then it gives up exactly the difference.
+  const bookRight = stage ? stage.left + (stage.width + DESIGN_W * scale) / 2 : 0;
+  const notesShift =
+    notesOpen && stage
+      ? Math.max(0, bookRight + (NOTES_W + 16) * scale - (vw - 16))
+      : 0;
 
   return (
-    <Box
-      ref={colRef}
-      sx={{
-        position: 'absolute',
-        inset: 0,
-        p: '16px 24px 14px clamp(90px, 8vw, 160px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1,
-        boxSizing: 'border-box',
-      }}
-    >
+    <>
+      {/* Measurer only — it marks out the column the book has to fit inside. */}
+      <Box
+        ref={colRef}
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          p: '16px 24px 14px clamp(90px, 8vw, 160px)',
+          boxSizing: 'border-box',
+          pointerEvents: 'none',
+          visibility: 'hidden',
+        }}
+      />
+      {/* The book is drawn on a fixed stage laid over that rectangle. The
+          content column clips at its own edge, and a book whose shadow — or
+          whose notes pad — gets sliced off at an invisible boundary stops
+          reading as an object sitting on the page. Fixed positioning escapes
+          the clip the same way the guide already does. */}
+      <Box
+        sx={{
+          position: 'fixed',
+          left: stage ? stage.left : 0,
+          top: stage ? stage.top : 0,
+          width: stage ? stage.width : 0,
+          height: stage ? stage.height : 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1,
+          opacity: stage ? 1 : 0,
+        }}
+      >
       <Box
         sx={{
           position: 'relative',
@@ -753,6 +786,7 @@ export default function JournalBook({
         )}
       </Box>
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 }
