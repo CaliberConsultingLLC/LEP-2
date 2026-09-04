@@ -1064,6 +1064,22 @@ export default function CommandCenter() {
     ? { label: 'Dashboard', onClick: () => goToTab('today') }
     : null;
 
+  // Anything rendered above the dashboard (the demo banner) shifts it down;
+  // measure that offset so the shell can size to what is actually left.
+  const shellRef = useRef(null);
+  const [shellTop, setShellTop] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      const el = shellRef.current;
+      if (!el) return;
+      const top = Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY));
+      setShellTop((prev) => (prev === top ? prev : top));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
   const chapterId = activeTab === 'journey' ? 'action' : 'review';
   const activeStepId = chapterId === 'action'
     ? 'journey'
@@ -1155,9 +1171,13 @@ export default function CommandCenter() {
 
   return (
     <Box
+      ref={shellRef}
       sx={{
         position: 'relative',
-        height: '100svh',
+        // Fill exactly from wherever the shell starts to the bottom of the
+        // viewport. A hard 100svh overflows whenever anything sits above it
+        // (the demo banner), which is what made the rooms scroll by a sliver.
+        height: `calc(100svh - ${shellTop}px)`,
         width: '100%',
         bgcolor: t.bg,
         color: t.ink,

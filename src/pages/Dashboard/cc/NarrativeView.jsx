@@ -158,7 +158,7 @@ function NarrativeFrame({ children }) {
         borderRadius: radii.lg,
         boxShadow: shadows.dialCase,
         overflow: 'hidden',
-        p: { xs: 2, md: 2.8 },
+        p: { xs: 1.8, md: 2.4 },
       }}
     >
       {children}
@@ -221,11 +221,17 @@ const GAP_LEGEND = [
   { strong: 'They see more', rest: 'than you feel', color: colors.navy500 },
 ];
 
-const pickCardSx = (on, h = { xs: 76, md: 92 }) => ({
+// The showcase pages hold one height for both columns: the three pick cards
+// split it evenly, the detail card matches it. Selecting anything longer can
+// never resize the layout.
+const SHOWCASE_H = 'clamp(248px, 36vh, 336px)';
+
+const pickCardSx = (on) => ({
   boxSizing: 'border-box',
   borderRadius: '16px',
   px: 2.6,
-  height: h,
+  flex: 1,
+  minHeight: 0,
   overflow: 'hidden',
   display: 'flex',
   cursor: 'pointer',
@@ -257,8 +263,7 @@ function DetailCard({ children }) {
         flexDirection: 'column',
         justifyContent: 'space-between',
         gap: 1.6,
-        height: { md: 316 },
-        minHeight: { xs: 280, md: 316 },
+        height: SHOWCASE_H,
         overflow: 'hidden',
       }}
     >
@@ -338,7 +343,7 @@ function PickGrid({ left, right }) {
         alignItems: 'start',
       }}
     >
-      <Stack spacing={2}>{left}</Stack>
+      <Stack spacing={2} sx={{ height: SHOWCASE_H }}>{left}</Stack>
       <Box>{right}</Box>
     </Box>
   );
@@ -347,25 +352,26 @@ function PickGrid({ left, right }) {
 function GapCells({ label, labelColor, you, team, gap }) {
   const cell = {
     fontFamily: fonts.mono,
-    fontSize: 19,
+    fontSize: 27,
     fontWeight: 700,
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'right',
     minWidth: SCORE_COL_W,
+    lineHeight: 1.1,
   };
-  const cap = { fontSize: '8.5px', letterSpacing: '0.14em', color: '#8a94a3', display: 'block', mt: 0.2 };
+  const cap = { fontSize: '9px', letterSpacing: '0.14em', color: '#8a94a3', display: 'block', mt: 0.5 };
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: `96px repeat(3, ${SCORE_COL_W + 24}px)`,
+        gridTemplateColumns: `104px repeat(3, ${SCORE_COL_W + 32}px)`,
         columnGap: 1.5,
         alignItems: 'baseline',
         borderTop: `1px solid ${colors.borderSoft}`,
-        py: 1.6,
+        py: 2.4,
       }}
     >
-      <Typography sx={{ ...type.monoLabel, color: labelColor }}>{label}</Typography>
+      <Typography sx={{ ...type.monoLabel, fontSize: 10.5, color: labelColor }}>{label}</Typography>
       <Typography sx={{ ...cell, color: colors.textSecondary }}>
         {you}
         <Box component="span" sx={cap}>YOU</Box>
@@ -402,6 +408,15 @@ function circPos(effort, efficacy) {
   }
   return { x: 50 + ru * 50, y: 50 - rv * 50 };
 }
+
+// The two diagonal axes of the dial: effort runs to the upper right, efficacy
+// to the upper left — same geometry the Evidence dial uses.
+const DIAG = 1 / Math.SQRT2;
+const EFFORT_DIR = { x: DIAG, y: -DIAG };
+const EFFICACY_DIR = { x: -DIAG, y: -DIAG };
+const AXIS_LEN = 46.65;
+const axPt = (dir, t) => ({ x: 50 + dir.x * t, y: 50 + dir.y * t });
+const axT = (v) => ((Number(v) - 50) / 50) * AXIS_LEN;
 
 function wedgePath(a0) {
   const PAD = 1.35;
@@ -444,11 +459,17 @@ function statementZoneBlurb(effort, efficacy) {
   return `${zone.label}. ${statementSplitRead(effort, efficacy)}`;
 }
 
-function MiniDial({ statement }) {
+function MiniDial({ statement, showAxisNodes = false }) {
   const zone = statement ? dialZoneOf(statement.effort, statement.efficacy) : null;
   const pos = statement ? circPos(statement.effort, statement.efficacy) : null;
+  const axisNodes = showAxisNodes && statement
+    ? [
+        { key: 'effort', label: 'Effort', value: Math.round(statement.effort), color: colors.orange, at: axPt(EFFORT_DIR, axT(statement.effort)) },
+        { key: 'efficacy', label: 'Efficacy', value: Math.round(statement.efficacy), color: colors.efficacyBlue, at: axPt(EFFICACY_DIR, axT(statement.efficacy)) },
+      ]
+    : [];
   return (
-    <Box sx={{ position: 'relative', width: '100%', maxWidth: 400, aspectRatio: '1 / 1', mx: 'auto' }}>
+    <Box sx={{ position: 'relative', width: '100%', maxWidth: 'min(100%, 38vh)', aspectRatio: '1 / 1', mx: 'auto' }}>
       <Box
         sx={{
           position: 'absolute',
@@ -537,6 +558,57 @@ function MiniDial({ statement }) {
               {z.label}
             </Typography>
           ))}
+          {axisNodes.map((n) => (
+            <Box
+              key={n.key}
+              sx={{
+                position: 'absolute',
+                left: `${n.at.x.toFixed(1)}%`,
+                top: `${n.at.y.toFixed(1)}%`,
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: radii.circle,
+                  bgcolor: n.color,
+                  border: '2px solid #fff',
+                  boxShadow: shadows.dialNode,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: fonts.mono,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  fontVariantNumeric: 'tabular-nums',
+                  color: '#fff',
+                }}
+              >
+                {n.value}
+              </Box>
+              <Typography
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translate(-50%, 3px)',
+                  fontFamily: fonts.mono,
+                  fontSize: 8,
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                  color: n.color,
+                }}
+              >
+                {n.label}
+              </Typography>
+            </Box>
+          ))}
           {statement && pos && (
           <Box
             sx={{
@@ -591,15 +663,15 @@ function SlideThreshold({ firstName, respondents, invited, traits }) {
           fontWeight: 500,
           letterSpacing: '-0.03em',
           lineHeight: 1.08,
-          fontSize: { xs: 32, md: 48 },
+          fontSize: 'clamp(28px, 4.6vh, 46px)',
           color: colors.textPrimary,
-          mb: 2.4,
+          mb: 2,
           textWrap: 'pretty',
         }}
       >
         {firstName ? `${firstName}, your` : 'Your'} team has reflected back.
       </Typography>
-      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 18, lineHeight: 1.6, color: colors.textSecondary, maxWidth: 560, mx: 'auto', mb: { xs: 4, md: 7 } }}>
+      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, lineHeight: 1.55, color: colors.textSecondary, maxWidth: 560, mx: 'auto', mb: 'clamp(24px, 5vh, 52px)' }}>
         {answered} What follows is their experience of your leadership — read it slowly, and hold it lightly. Patterns matter more than any one number.
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 7 }, flexWrap: 'wrap' }}>
@@ -610,13 +682,13 @@ function SlideThreshold({ firstName, respondents, invited, traits }) {
             <Box sx={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.4 }}>
               <Typography sx={{ ...type.monoLabel, textAlign: 'center', lineHeight: 1.45 }}>{row.subTrait || row.trait}</Typography>
             </Box>
-            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: 56, md: 74 }, lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(46px, 8vh, 74px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
               {Math.round(row.team.lepScore)}
             </Typography>
           </Stack>
         ))}
       </Box>
-      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary, mt: 3.4 }}>
+      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary, mt: 'clamp(16px, 3vh, 28px)' }}>
         Compass scores &#183; 0&#8211;100 &#183; readings, not grades
       </Typography>
     </Box>
@@ -683,7 +755,7 @@ function StatementPickCard({ on, trait, text, onClick }) {
       component="button"
       type="button"
       onClick={onClick}
-      sx={{ ...pickCardSx(on, { xs: 96, md: 108 }), flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', gap: 0.8 }}
+      sx={{ ...pickCardSx(on), flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center', gap: 0.8 }}
     >
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '8.5px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: on ? 'rgba(244,206,161,0.75)' : '#8a94a3' }}>
         {trait}
@@ -748,7 +820,7 @@ function SlideStatements({ stmts, sel, onSel }) {
   );
 }
 
-function CompassExplainerVideo({ standalone = false }) {
+function ExplainerVideo({ src, label, standalone = false }) {
   const wrapperRef = useRef(null);
   const videoRef = useRef(null);
   const reducedMotion =
@@ -807,12 +879,12 @@ function CompassExplainerVideo({ standalone = false }) {
     >
       <video
         ref={videoRef}
-        src="/compass-explainer.mp4"
+        src={src}
         muted
         playsInline
         preload="auto"
         onEnded={handleEnded}
-        aria-label="Animated explainer: how effort and efficacy place a statement on the compass"
+        aria-label={label}
         style={{
           display: 'block',
           width: '100%',
@@ -891,11 +963,12 @@ function CompassExplainerVideo({ standalone = false }) {
   );
 }
 
-function SlideMapVideo() {
+function VideoSlide({ src, label }) {
   return (
     <Box
       sx={{
-        maxWidth: { xs: '100%', md: 860 },
+        width: '100%',
+        maxWidth: 'min(860px, 108vh)',
         mx: 'auto',
         bgcolor: colors.surface1,
         borderRadius: radii.xl,
@@ -903,10 +976,21 @@ function SlideMapVideo() {
         boxShadow: shadows.card,
       }}
     >
-      <CompassExplainerVideo standalone />
+      <ExplainerVideo src={src} label={label} standalone />
     </Box>
   );
 }
+
+// Sourced straight from the named files in /public so dropping in a new cut of
+// either explainer needs no code change.
+const MAP_VIDEO = {
+  src: '/Compass%20Explainer.mp4',
+  label: 'Animated explainer: how effort and efficacy place a statement on the compass',
+};
+const GAP_VIDEO = {
+  src: '/Perception%20Gap%20Explainer.mp4',
+  label: 'Animated explainer: how your own read sits beside your team’s, and what the gap means',
+};
 
 function SlideMap({ stmts, sel, onSel }) {
   const d = sel == null ? null : stmts[sel];
@@ -917,7 +1001,7 @@ function SlideMap({ stmts, sel, onSel }) {
         title="Where a statement lands tells you what to do with it."
         lead="Select a statement to see where it sits on the compass — effort and efficacy together, one of four zones."
       />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '420px minmax(0, 1fr)' }, gap: 4.5, alignItems: 'start' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(400px, 38vh) minmax(0, 1fr)' }, gap: 4, alignItems: 'start' }}>
         <MiniDial statement={d} />
         <Box>
           <Typography sx={{ ...type.monoLabel, mb: 1.2 }}>Three statements &#183; select one</Typography>
@@ -1038,7 +1122,7 @@ function SlideMirror({ traits, sel, onSel }) {
   return (
     <Box>
       <SlideHeader
-        eyebrow={{ index: 6, label: 'The Perception Gap' }}
+        eyebrow={{ index: 7, label: 'The Perception Gap' }}
         title="You rated yourself first — on everything."
         lead="Before your team answered, you scored the same statements. So every measurement you’ve seen has a twin: your own read. The distance between the two is the perception gap — neither number is wrong, the distance itself is the finding. Select a trait."
         legend={GAP_LEGEND}
@@ -1072,12 +1156,12 @@ function SlideMirror({ traits, sel, onSel }) {
         right={
           <DetailCard>
             <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2}>
-              <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontSize: 24, fontWeight: 600, lineHeight: 1.2, color: colors.textPrimary, minWidth: 0 }}>
                 {d.subTrait || d.trait}
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
                 <Typography sx={{ ...type.monoLabel }}>Compass gap</Typography>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 38, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 44, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
                   {fmtGap(gap)}
                 </Typography>
               </Stack>
@@ -1102,7 +1186,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
   return (
     <Box>
       <SlideHeader
-        eyebrow={{ index: 7, label: 'The Perception Gap · Statements' }}
+        eyebrow={{ index: 8, label: 'The Perception Gap · Statements' }}
         title="The gap, statement by statement."
         lead="The same statements you’ve been following — now with your read beside your team’s. This is as specific as the reading gets, and it’s where the gap turns into something you can actually ask about. One at a time."
         legend={GAP_LEGEND}
@@ -1117,7 +1201,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
               <Typography
                 sx={{
                   fontFamily: fonts.serif,
-                  fontSize: 19,
+                  fontSize: 22,
                   fontWeight: 500,
                   lineHeight: 1.35,
                   letterSpacing: '-0.015em',
@@ -1133,7 +1217,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
               </Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
                 <Typography sx={{ ...type.monoLabel }}>Gap</Typography>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 34, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
+                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 40, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
                   {fmtGap(gap)}
                 </Typography>
               </Stack>
@@ -1164,46 +1248,47 @@ function SlideInsight({ traits, index, roles }) {
 
   return (
     <Box>
-      <ChapterEyebrow index={8 + index} label={`The Insights · ${name}`} sx={{ mb: 1 }} />
-      <Typography
-        component="h1"
-        sx={{
-          fontFamily: fonts.serif,
-          fontWeight: 500,
-          letterSpacing: '-0.03em',
-          lineHeight: 1.1,
-          fontSize: { xs: 26, md: 34 },
-          color: colors.textPrimary,
-          mb: 2.6,
-          textWrap: 'pretty',
-        }}
-      >
-        {copy.headline}
-      </Typography>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '340px minmax(0, 1fr)' }, gap: 4, alignItems: 'center' }}>
-        <Box>
-          <MiniDial statement={traitDial} />
-          <Stack direction="row" justifyContent="center" spacing={3} sx={{ mt: 1.6 }}>
-            {[
-              { v: Math.round(row.team.lepScore), cap: 'Compass', color: colors.orange },
-              { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orangeDeep },
-              { v: Math.round(row.team.efficacy), cap: 'Efficacy', color: colors.navy500 },
-            ].map((c) => (
-              <Stack key={c.cap} alignItems="center" spacing={0.4}>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 24, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
-                  {c.v}
-                </Typography>
-                <Typography sx={{ ...type.monoLabel, color: colors.textSecondary }}>{c.cap}</Typography>
-              </Stack>
-            ))}
-          </Stack>
+      <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={3} sx={{ mb: 2.4, flexWrap: 'wrap', rowGap: 1.6 }}>
+        <Box sx={{ minWidth: 0 }}>
+          <ChapterEyebrow index={9 + index} label={`The Insights · ${name}`} sx={{ mb: 1 }} />
+          <Typography
+            component="h1"
+            sx={{
+              fontFamily: fonts.serif,
+              fontWeight: 500,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1,
+              fontSize: { xs: 26, md: 34 },
+              color: colors.textPrimary,
+              textWrap: 'pretty',
+            }}
+          >
+            {copy.headline}
+          </Typography>
         </Box>
+        <Stack direction="row" spacing={3} sx={{ flexShrink: 0, pt: 0.4 }}>
+          {[
+            { v: Math.round(row.team.lepScore), cap: 'Compass', color: colors.orange },
+            { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orangeDeep },
+            { v: Math.round(row.team.efficacy), cap: 'Efficacy', color: colors.navy500 },
+          ].map((c) => (
+            <Stack key={c.cap} alignItems="center" spacing={0.4}>
+              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 26, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
+                {c.v}
+              </Typography>
+              <Typography sx={{ ...type.monoLabel, color: colors.textSecondary }}>{c.cap}</Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Stack>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(340px, 36vh) minmax(0, 1fr)' }, gap: 4, alignItems: 'center' }}>
+        <MiniDial statement={traitDial} showAxisNodes />
         <Box>
-          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 18, lineHeight: 1.6, color: colors.textPrimary, mb: 2, textWrap: 'pretty' }}>
+          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 19.5, lineHeight: 1.6, color: colors.textPrimary, mb: 2.2, textWrap: 'pretty' }}>
             {copy.serif}
           </Typography>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.62, color: colors.textSecondary, textWrap: 'pretty' }}>
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 16, lineHeight: 1.65, color: colors.textSecondary, textWrap: 'pretty' }}>
             {copy.sans}
           </Typography>
         </Box>
@@ -1250,7 +1335,7 @@ function pickNarrativeStatements(orderedRows) {
 // ---------------------------------------------------------------------------
 // The view
 // ---------------------------------------------------------------------------
-const SLIDE_COUNT = 10;
+const SLIDE_COUNT = 11;
 
 export default function NarrativeView() {
   const { rows, loaded, teamResponses, hasSelfData } = useBenchmarkData();
@@ -1296,6 +1381,7 @@ export default function NarrativeView() {
       { id: 'statements', label: 'Statements' },
       { id: 'map-video', label: 'The Map · Video' },
       { id: 'map', label: 'The Map · Statements' },
+      { id: 'gap-video', label: 'The Perception Gap · Video' },
       { id: 'mirror', label: 'The Perception Gap' },
       { id: 'gap-statements', label: 'The Gap · Statements' },
       { id: 'insight-1', label: 'Insight 1' },
@@ -1338,6 +1424,12 @@ export default function NarrativeView() {
   // Pages that need self data fall back gracefully when it's absent.
   const showMirror = hasSelfData && mirrorTraits.length > 0;
 
+  // A video page drops the frame — but only when it actually renders a video;
+  // when its data is missing it falls back to a normal slide, which keeps one.
+  const activeId = chapters[idx].id;
+  const isVideoSlide =
+    (activeId === 'map-video' && stmts.length > 0) || (activeId === 'gap-video' && showMirror);
+
   const renderSlide = () => {
     switch (chapters[idx].id) {
       case 'measurements':
@@ -1348,12 +1440,16 @@ export default function NarrativeView() {
           : <SlideInsight traits={traits} index={0} roles={roles} />;
       case 'map-video':
         return stmts.length
-          ? <SlideMapVideo />
+          ? <VideoSlide src={MAP_VIDEO.src} label={MAP_VIDEO.label} />
           : <SlideInsight traits={traits} index={0} roles={roles} />;
       case 'map':
         return stmts.length
           ? <SlideMap stmts={stmts} sel={mapSel} onSel={setSelMap} />
           : <SlideInsight traits={traits} index={0} roles={roles} />;
+      case 'gap-video':
+        return showMirror
+          ? <VideoSlide src={GAP_VIDEO.src} label={GAP_VIDEO.label} />
+          : <SlideMeasurements traits={traits} sel={Math.min(measureSel, traits.length - 1)} onSel={setSelMeasure} />;
       case 'mirror':
         return showMirror
           ? <SlideMirror traits={mirrorTraits} sel={mirrorSelSafe} onSel={setSelMirror} />
@@ -1383,17 +1479,18 @@ export default function NarrativeView() {
         display: 'flex',
         flexDirection: 'column',
         px: { xs: 1, md: 2 },
-        py: { xs: 1.5, md: 2 },
+        py: 0.5,
+        overflow: 'hidden',
       }}
     >
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', overflowY: 'auto' }}>
+      {/* The deck is a fixed stage: every slide is sized to fit the viewport,
+          so the narrative never scrolls. */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
         <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
-          {chapters[idx].id === 'map-video'
-            ? renderSlide()
-            : <NarrativeFrame>{renderSlide()}</NarrativeFrame>}
+          {isVideoSlide ? renderSlide() : <NarrativeFrame>{renderSlide()}</NarrativeFrame>}
         </WalkthroughStage>
       </Box>
-      <Stack alignItems="center" sx={{ pt: 1.6, pb: 0.6, flexShrink: 0 }}>
+      <Stack alignItems="center" sx={{ pt: 1.2, pb: 0, flexShrink: 0 }}>
         <ProgressDots chapters={chapters} current={idx} onJump={setIdx} />
       </Stack>
     </Box>
