@@ -9,7 +9,7 @@ import {
   POST_PAYMENT_ROUTE,
   buildPaymentLink,
   checkoutMode,
-  isIntakeUnlocked,
+  getPaymentStatus,
   setPaymentStatus,
 } from '../utils/billing';
 import { isDemoSession } from '../utils/demoMode';
@@ -38,8 +38,12 @@ function Checkout() {
   const startedRef = useRef(false);
 
   useEffect(() => {
-    // Demo sessions and anyone who already paid never see checkout at all.
-    if (isDemoSession() || isIntakeUnlocked()) {
+    // Only a real payment skips checkout. A 'preview' unlock is provisional —
+    // it was written because the server had no Stripe keys at the time, and
+    // treating it as settled would bounce the leader past payment forever,
+    // long after the keys arrived. Falling through re-asks the server, so the
+    // bypass heals itself the moment checkout is configured.
+    if (isDemoSession() || getPaymentStatus() === 'paid') {
       navigate(POST_PAYMENT_ROUTE, { replace: true });
       return undefined;
     }
@@ -94,6 +98,10 @@ function Checkout() {
           setError(payload?.error || 'Could not start checkout. Please refresh and try again.');
           return;
         }
+
+        // Checkout is configured after all — retire any provisional unlock so
+        // the gates stop honouring it.
+        if (getPaymentStatus() === 'preview') setPaymentStatus('');
 
         const stripe = await loadStripe(payload.publishableKey);
         if (cancelledRun) return;
