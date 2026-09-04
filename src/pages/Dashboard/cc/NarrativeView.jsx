@@ -5,7 +5,7 @@ import { useBenchmarkData } from './dashboardData.js';
 import { deriveTraitRoles } from './debriefContent.js';
 import { getQuadrant } from './quadrants.js';
 import { mapRowStatements } from './EvidenceView.jsx';
-import { ChapterEyebrow, ProgressDots, WalkthroughStage } from './debriefUi.jsx';
+import { ChapterEyebrow, PageFade, ProgressDots } from './debriefUi.jsx';
 import { getDebriefScope } from './phaseState.js';
 
 // ----------------------------------------------------------------------------
@@ -148,17 +148,68 @@ function insightCopy(row, role) {
 // ---------------------------------------------------------------------------
 // Shared slide scaffolding
 // ---------------------------------------------------------------------------
+// Only the numbered eyebrow sits above the frame; it gets a fixed slot so the
+// rectangle below it never shifts.
+const EYEBROW_H = 24;
+// Inside the frame, the title band is fixed too, so the body area below it is
+// identical on every page.
+const FRAME_HEAD_H = { xs: 84, md: 96 };
+
+function StageArrow({ dir, hidden, onClick }) {
+  return (
+    <Box
+      component="button"
+      type="button"
+      aria-label={dir === 'prev' ? 'Previous' : 'Next'}
+      onClick={onClick}
+      disabled={hidden}
+      sx={{
+        all: 'unset',
+        cursor: hidden ? 'default' : 'pointer',
+        visibility: hidden ? 'hidden' : 'visible',
+        pointerEvents: hidden ? 'none' : 'auto',
+        alignSelf: 'center',
+        flexShrink: 0,
+        width: { xs: 40, md: 44 },
+        height: { xs: 40, md: 44 },
+        borderRadius: radii.circle,
+        border: `1px solid ${colors.sand300}`,
+        bgcolor: colors.surface1,
+        boxShadow: shadows.card,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: fonts.mono,
+        fontSize: { xs: 18, md: 22 },
+        color: colors.inkSoft,
+        transition: 'all 180ms ease',
+        '&:hover': hidden ? {} : { borderColor: colors.orange, color: colors.orangeDeep },
+        '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+      }}
+    >
+      {dir === 'prev' ? '‹' : '›'}
+    </Box>
+  );
+}
+
+// One rectangle for the whole narrative. It never moves or resizes between
+// pages — only what sits inside it changes, so the deck reads as paging
+// through a single guide rather than a run of different screens.
 function NarrativeFrame({ children }) {
   return (
     <Box
       sx={{
         width: '100%',
+        height: '100%',
+        boxSizing: 'border-box',
         bgcolor: colors.surface1,
-        border: `1.5px solid ${colors.borderSoft}`,
-        borderRadius: radii.lg,
-        boxShadow: shadows.dialCase,
+        border: `2.5px solid ${colors.sand300}`,
+        borderRadius: radii.xl,
+        boxShadow: shadows.card,
         overflow: 'hidden',
-        p: { xs: 1.8, md: 2.4 },
+        // Roughly double the old inset — the content should breathe inside the
+        // frame rather than press against it.
+        p: { xs: 3.2, md: 5 },
       }}
     >
       {children}
@@ -166,17 +217,18 @@ function NarrativeFrame({ children }) {
   );
 }
 
-function SlideHeader({ eyebrow, title, lead, legend }) {
+// Title, lead and legend live INSIDE the frame, in a fixed-height band above
+// the body — only the numbered eyebrow sits outside, above the rectangle.
+function SlideHeader({ title, lead, legend }) {
   return (
     <Stack
       direction="row"
-      alignItems="flex-end"
+      alignItems="flex-start"
       justifyContent="space-between"
       spacing={3}
-      sx={{ mb: 2.2, flexWrap: 'wrap', rowGap: 1.4 }}
+      sx={{ width: '100%' }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <ChapterEyebrow index={eyebrow.index} label={eyebrow.label} sx={{ mb: 1 }} />
         <Typography
           component="h1"
           sx={{
@@ -186,18 +238,20 @@ function SlideHeader({ eyebrow, title, lead, legend }) {
             lineHeight: 1.08,
             fontSize: { xs: 24, md: 30 },
             color: colors.textPrimary,
-            mb: 1,
+            mb: lead ? 0.8 : 0,
             textWrap: 'pretty',
           }}
         >
           {title}
         </Typography>
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.5, color: colors.textSecondary, maxWidth: 700 }}>
-          {lead}
-        </Typography>
+        {lead && (
+          <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.5, color: colors.textSecondary, maxWidth: 760 }}>
+            {lead}
+          </Typography>
+        )}
       </Box>
       {legend && (
-        <Stack spacing={1} sx={{ flexShrink: 0, pb: 0.5 }}>
+        <Stack spacing={1} sx={{ flexShrink: 0, pb: 0.4 }}>
           {legend.map((item) => (
             <Stack key={item.strong} direction="row" alignItems="center" spacing={1}>
               <Box sx={{ width: 10, height: 10, borderRadius: radii.circle, bgcolor: item.color, flexShrink: 0 }} />
@@ -224,7 +278,7 @@ const GAP_LEGEND = [
 // The showcase pages hold one height for both columns: the three pick cards
 // split it evenly, the detail card matches it. Selecting anything longer can
 // never resize the layout.
-const SHOWCASE_H = 'clamp(248px, 36vh, 336px)';
+const SHOWCASE_H = '100%';
 
 const pickCardSx = (on) => ({
   boxSizing: 'border-box',
@@ -258,12 +312,13 @@ function DetailCard({ children }) {
         border: `1.5px solid ${colors.orange}`,
         borderRadius: radii.lg,
         boxShadow: shadows.card,
-        p: { xs: 2.4, md: '22px 28px 20px' },
+        p: { xs: 2.4, md: '26px 30px 24px' },
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         gap: 1.6,
         height: SHOWCASE_H,
+        boxSizing: 'border-box',
         overflow: 'hidden',
       }}
     >
@@ -338,13 +393,14 @@ function PickGrid({ left, right }) {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(270px, 350px) minmax(0, 1fr)' },
-        gap: 2.6,
-        alignItems: 'start',
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(270px, 360px) minmax(0, 1fr)' },
+        gap: 3,
+        alignItems: 'stretch',
+        height: '100%',
       }}
     >
       <Stack spacing={2} sx={{ height: SHOWCASE_H }}>{left}</Stack>
-      <Box>{right}</Box>
+      <Box sx={{ height: '100%' }}>{right}</Box>
     </Box>
   );
 }
@@ -464,8 +520,8 @@ function MiniDial({ statement, showAxisNodes = false }) {
   const pos = statement ? circPos(statement.effort, statement.efficacy) : null;
   const axisNodes = showAxisNodes && statement
     ? [
-        { key: 'effort', label: 'Effort', value: Math.round(statement.effort), color: colors.orange, at: axPt(EFFORT_DIR, axT(statement.effort)) },
-        { key: 'efficacy', label: 'Efficacy', value: Math.round(statement.efficacy), color: colors.efficacyBlue, at: axPt(EFFICACY_DIR, axT(statement.efficacy)) },
+        { key: 'effort', value: Math.round(statement.effort), color: colors.orange, at: axPt(EFFORT_DIR, axT(statement.effort)) },
+        { key: 'efficacy', value: Math.round(statement.efficacy), color: colors.efficacyBlue, at: axPt(EFFICACY_DIR, axT(statement.efficacy)) },
       ]
     : [];
   return (
@@ -590,23 +646,6 @@ function MiniDial({ statement, showAxisNodes = false }) {
               >
                 {n.value}
               </Box>
-              <Typography
-                sx={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translate(-50%, 3px)',
-                  fontFamily: fonts.mono,
-                  fontSize: 8,
-                  fontWeight: 700,
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                  color: n.color,
-                }}
-              >
-                {n.label}
-              </Typography>
             </Box>
           ))}
           {statement && pos && (
@@ -646,52 +685,27 @@ function MiniDial({ statement, showAxisNodes = false }) {
 // ---------------------------------------------------------------------------
 // Slides
 // ---------------------------------------------------------------------------
-function SlideThreshold({ firstName, respondents, invited, traits }) {
-  const answered =
-    Number.isFinite(invited) && invited >= respondents && respondents > 0
-      ? `${respondents} of ${invited} teammates answered.`
-      : respondents > 0
-      ? `${respondents} ${respondents === 1 ? 'teammate' : 'teammates'} answered.`
-      : 'Your team has answered.';
+function SlideThreshold({ traits }) {
   return (
-    <Box sx={{ textAlign: 'center', maxWidth: 980, mx: 'auto' }}>
-      <ChapterEyebrow index={1} label="The Threshold" />
-      <Typography
-        component="h1"
-        sx={{
-          fontFamily: fonts.serif,
-          fontWeight: 500,
-          letterSpacing: '-0.03em',
-          lineHeight: 1.08,
-          fontSize: 'clamp(28px, 4.6vh, 46px)',
-          color: colors.textPrimary,
-          mb: 2,
-          textWrap: 'pretty',
-        }}
-      >
-        {firstName ? `${firstName}, your` : 'Your'} team has reflected back.
-      </Typography>
-      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, lineHeight: 1.55, color: colors.textSecondary, maxWidth: 560, mx: 'auto', mb: 'clamp(24px, 5vh, 52px)' }}>
-        {answered} What follows is their experience of your leadership — read it slowly, and hold it lightly. Patterns matter more than any one number.
-      </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 7 }, flexWrap: 'wrap' }}>
+    <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 8 }, flexWrap: 'wrap' }}>
         {traits.map((row) => (
-          <Stack key={row.trait} alignItems="center" sx={{ width: { xs: '100%', sm: 170 } }}>
+          <Stack key={row.trait} alignItems="center" sx={{ width: { xs: '100%', sm: 180 } }}>
             {/* Fixed label zone, bottom-aligned: a wrapped name stacks upward so
                 every score sits on the same horizontal line. */}
-            <Box sx={{ height: 36, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.4 }}>
+            <Box sx={{ height: 38, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.6 }}>
               <Typography sx={{ ...type.monoLabel, textAlign: 'center', lineHeight: 1.45 }}>{row.subTrait || row.trait}</Typography>
             </Box>
-            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(46px, 8vh, 74px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(52px, 9vh, 82px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
               {Math.round(row.team.lepScore)}
             </Typography>
           </Stack>
         ))}
       </Box>
-      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary, mt: 'clamp(16px, 3vh, 28px)' }}>
+      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary, mt: 'clamp(20px, 4vh, 36px)' }}>
         Compass scores &#183; 0&#8211;100 &#183; readings, not grades
       </Typography>
-    </Box>
+    </Stack>
   );
 }
 
@@ -699,13 +713,7 @@ function SlideMeasurements({ traits, sel, onSel }) {
   const d = traits[sel];
   const copy = measurementCopy(d);
   return (
-    <Box>
-      <SlideHeader
-        eyebrow={{ index: 2, label: 'Two Measurements' }}
-        title="Every score here is made of two questions."
-        lead="Your team answered every statement twice — how hard you try, and how well it lands. The Compass number blends the two. Select a trait to see its two measurements."
-        legend={EFFORT_LEGEND}
-      />
+    <Box sx={{ height: '100%' }}>
       <PickGrid
         left={traits.map((row, i) => {
           const on = sel === i;
@@ -781,13 +789,7 @@ function StatementPickCard({ on, trait, text, onClick }) {
 function SlideStatements({ stmts, sel, onSel }) {
   const d = stmts[sel];
   return (
-    <Box>
-      <SlideHeader
-        eyebrow={{ index: 3, label: 'Two Measurements · Statements' }}
-        title="The two questions go all the way down."
-        lead="Not just traits — every single statement your team rated carries both measurements. This is where the reading gets specific. Here are a few of yours; select one."
-        legend={EFFORT_LEGEND}
-      />
+    <Box sx={{ height: '100%' }}>
       <PickGrid
         left={stmts.map((s, i) => (
           <StatementPickCard key={`${s.trait}-${i}`} on={sel === i} trait={s.trait} text={s.text} onClick={() => onSel(i)} />
@@ -870,6 +872,7 @@ function ExplainerVideo({ src, label, standalone = false }) {
       sx={{
         position: 'relative',
         width: '100%',
+        height: standalone ? '100%' : 'auto',
         borderRadius: radii.lg,
         overflow: 'hidden',
         mb: standalone ? 0 : 4.5,
@@ -888,8 +891,8 @@ function ExplainerVideo({ src, label, standalone = false }) {
         style={{
           display: 'block',
           width: '100%',
-          height: 'auto',
-          aspectRatio: '16 / 9',
+          height: '100%',
+          objectFit: 'cover',
         }}
       />
       <Box
@@ -964,20 +967,13 @@ function ExplainerVideo({ src, label, standalone = false }) {
 }
 
 function VideoSlide({ src, label }) {
+  // Height-driven so the clip always fits the frame it plays inside.
   return (
-    <Box
-      sx={{
-        width: '100%',
-        maxWidth: 'min(860px, 108vh)',
-        mx: 'auto',
-        bgcolor: colors.surface1,
-        borderRadius: radii.xl,
-        p: { xs: 1, md: 1.4 },
-        boxShadow: shadows.card,
-      }}
-    >
-      <ExplainerVideo src={src} label={label} standalone />
-    </Box>
+    <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
+      <Box sx={{ height: '100%', aspectRatio: '16 / 9', maxWidth: '100%' }}>
+        <ExplainerVideo src={src} label={label} standalone />
+      </Box>
+    </Stack>
   );
 }
 
@@ -995,16 +991,10 @@ const GAP_VIDEO = {
 function SlideMap({ stmts, sel, onSel }) {
   const d = sel == null ? null : stmts[sel];
   return (
-    <Box>
-      <SlideHeader
-        eyebrow={{ index: 5, label: 'The Map · Statements' }}
-        title="Where a statement lands tells you what to do with it."
-        lead="Select a statement to see where it sits on the compass — effort and efficacy together, one of four zones."
-      />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(400px, 38vh) minmax(0, 1fr)' }, gap: 4, alignItems: 'start' }}>
+    <Box sx={{ height: '100%' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(380px, 100%) minmax(0, 1fr)' }, gap: 4, alignItems: 'center', height: '100%' }}>
         <MiniDial statement={d} />
         <Box>
-          <Typography sx={{ ...type.monoLabel, mb: 1.2 }}>Three statements &#183; select one</Typography>
           <Box sx={{ bgcolor: colors.surface1, border: `1.5px solid ${colors.borderSoft}`, borderRadius: radii.lg, overflow: 'hidden' }}>
             {stmts.map((s, i) => {
               const zone = dialZoneOf(s.effort, s.efficacy);
@@ -1096,10 +1086,25 @@ function SlideMap({ stmts, sel, onSel }) {
                     color: 'inherit',
                     appearance: 'none',
                     m: 0,
+                    transition: 'background 160ms ease',
+                    '&:hover': { bgcolor: colors.sand50 },
+                    '&:hover .pickTarget': { borderColor: colors.orange, boxShadow: `inset 0 0 0 3px ${colors.orange}` },
                     '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: -3 },
                   }}
                 >
-                  <Typography sx={{ fontFamily: fonts.mono, fontSize: 13, color: colors.navy300 }}>&#8964;</Typography>
+                  {/* A radio-style target reads as selectable where a caret read
+                      as "expand" — the row is a choice, not a disclosure. */}
+                  <Box
+                    className="pickTarget"
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: radii.circle,
+                      border: `1.5px solid ${colors.navy300}`,
+                      flexShrink: 0,
+                      transition: 'all 160ms ease',
+                    }}
+                  />
                   <Typography sx={{ fontFamily: fonts.serif, fontSize: 15, lineHeight: 1.35, color: colors.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.text}</Typography>
                   <Typography sx={{ fontFamily: fonts.mono, fontSize: 16, fontWeight: 700, textAlign: 'right', color: colors.textSecondary }}>
                     {Math.round(s.compass)}
@@ -1120,13 +1125,7 @@ function SlideMirror({ traits, sel, onSel }) {
   const eg = Math.round(d.self.effort - d.team.effort);
   const fg = Math.round(d.self.efficacy - d.team.efficacy);
   return (
-    <Box>
-      <SlideHeader
-        eyebrow={{ index: 7, label: 'The Perception Gap' }}
-        title="You rated yourself first — on everything."
-        lead="Before your team answered, you scored the same statements. So every measurement you’ve seen has a twin: your own read. The distance between the two is the perception gap — neither number is wrong, the distance itself is the finding. Select a trait."
-        legend={GAP_LEGEND}
-      />
+    <Box sx={{ height: '100%' }}>
       <PickGrid
         left={traits.map((row, i) => {
           const on = sel === i;
@@ -1184,13 +1183,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
   const eg = Math.round(d.effortSelf - d.effort);
   const fg = Math.round(d.efficacySelf - d.efficacy);
   return (
-    <Box>
-      <SlideHeader
-        eyebrow={{ index: 8, label: 'The Perception Gap · Statements' }}
-        title="The gap, statement by statement."
-        lead="The same statements you’ve been following — now with your read beside your team’s. This is as specific as the reading gets, and it’s where the gap turns into something you can actually ask about. One at a time."
-        legend={GAP_LEGEND}
-      />
+    <Box sx={{ height: '100%' }}>
       <PickGrid
         left={stmts.map((s, i) => (
           <StatementPickCard key={`${s.trait}-${i}`} on={sel === i} trait={s.trait} text={s.text} onClick={() => onSel(i)} />
@@ -1244,54 +1237,53 @@ function SlideInsight({ traits, index, roles }) {
     efficacy: row.team.efficacy,
     compass: row.team.lepScore,
   };
-  const name = row.subTrait || row.trait;
 
   return (
-    <Box>
-      <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={3} sx={{ mb: 2.4, flexWrap: 'wrap', rowGap: 1.6 }}>
-        <Box sx={{ minWidth: 0 }}>
-          <ChapterEyebrow index={9 + index} label={`The Insights · ${name}`} sx={{ mb: 1 }} />
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: fonts.serif,
-              fontWeight: 500,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.1,
-              fontSize: { xs: 26, md: 34 },
-              color: colors.textPrimary,
-              textWrap: 'pretty',
-            }}
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) min(360px, 100%)' },
+        gap: 5,
+        alignItems: 'center',
+        height: '100%',
+      }}
+    >
+      <Box>
+        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 18, lineHeight: 1.62, color: colors.textPrimary, mb: 2.2, textWrap: 'pretty' }}>
+          {copy.serif}
+        </Typography>
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
+          {copy.sans}
+        </Typography>
+      </Box>
+
+      <Box>
+        {/* The Compass figure wears the dial's own colours — navy plate, amber
+            numeral — so the headline score reads as the instrument's answer. */}
+        <Stack direction="row" alignItems="stretch" justifyContent="center" spacing={1.6} sx={{ mb: 2 }}>
+          <Stack
+            alignItems="center"
+            justifyContent="center"
+            sx={{ bgcolor: colors.navy900, borderRadius: radii.md, px: 2.2, py: 1, minWidth: 92 }}
           >
-            {copy.headline}
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={3} sx={{ flexShrink: 0, pt: 0.4 }}>
+            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 31, lineHeight: 1, letterSpacing: '-0.03em', color: colors.amber, fontVariantNumeric: 'tabular-nums' }}>
+              {Math.round(row.team.lepScore)}
+            </Typography>
+            <Typography sx={{ ...type.monoLabel, color: '#fff', mt: 0.5 }}>Compass</Typography>
+          </Stack>
           {[
-            { v: Math.round(row.team.lepScore), cap: 'Compass', color: colors.orange },
-            { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orangeDeep },
-            { v: Math.round(row.team.efficacy), cap: 'Efficacy', color: colors.navy500 },
+            { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orange },
+            { v: Math.round(row.team.efficacy), cap: 'Efficacy', color: colors.efficacyBlue },
           ].map((c) => (
-            <Stack key={c.cap} alignItems="center" spacing={0.4}>
-              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 26, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
+            <Stack key={c.cap} alignItems="center" justifyContent="center" sx={{ px: 1.4 }}>
+              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 31, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
                 {c.v}
               </Typography>
-              <Typography sx={{ ...type.monoLabel, color: colors.textSecondary }}>{c.cap}</Typography>
+              <Typography sx={{ ...type.monoLabel, color: colors.textSecondary, mt: 0.5 }}>{c.cap}</Typography>
             </Stack>
           ))}
         </Stack>
-      </Stack>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'min(340px, 36vh) minmax(0, 1fr)' }, gap: 4, alignItems: 'center' }}>
         <MiniDial statement={traitDial} showAxisNodes />
-        <Box>
-          <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 19.5, lineHeight: 1.6, color: colors.textPrimary, mb: 2.2, textWrap: 'pretty' }}>
-            {copy.serif}
-          </Typography>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 16, lineHeight: 1.65, color: colors.textSecondary, textWrap: 'pretty' }}>
-            {copy.sans}
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );
@@ -1355,6 +1347,17 @@ export default function NarrativeView() {
     if (done !== doneEver) setDoneEver(done);
     writeJson(storeKey, { page: clamped, done });
   };
+
+  // Arrow keys page the deck, as the shared walkthrough stage used to do.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+      if (e.key === 'ArrowRight') setIdx(idx + 1);
+      if (e.key === 'ArrowLeft') setIdx(idx - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
   const traits = roles.ordered || [];
@@ -1424,11 +1427,85 @@ export default function NarrativeView() {
   // Pages that need self data fall back gracefully when it's absent.
   const showMirror = hasSelfData && mirrorTraits.length > 0;
 
-  // A video page drops the frame — but only when it actually renders a video;
-  // when its data is missing it falls back to a normal slide, which keeps one.
   const activeId = chapters[idx].id;
-  const isVideoSlide =
-    (activeId === 'map-video' && stmts.length > 0) || (activeId === 'gap-video' && showMirror);
+  const answered =
+    Number.isFinite(invited) && invited >= respondents && respondents > 0
+      ? `${respondents} of ${invited} teammates answered.`
+      : respondents > 0
+      ? `${respondents} ${respondents === 1 ? 'teammate' : 'teammates'} answered.`
+      : 'Your team has answered.';
+
+  // Header copy for the slot above the frame. Every page gets one, videos
+  // included, so the reader always knows which step of the guide they are on.
+  const headerFor = () => {
+    const n = idx + 1;
+    const insightIdx = ['insight-1', 'insight-2', 'insight-3'].indexOf(activeId);
+    if (insightIdx > -1) {
+      const row = traits[Math.min(insightIdx, traits.length - 1)];
+      const role =
+        row.trait === roles.edge?.trait ? 'edge' : row.trait === roles.lifting?.trait ? 'lifting' : 'strength';
+      return {
+        eyebrow: { index: n, label: `The Insights · ${row.subTrait || row.trait}` },
+        title: insightCopy(row, role).headline,
+        lead: null,
+      };
+    }
+    switch (activeId) {
+      case 'measurements':
+        return {
+          eyebrow: { index: n, label: 'Two Measurements' },
+          title: 'Every score here is made of two questions.',
+          lead: 'Your team answered every statement twice — how hard you try, and how well it lands. The Compass number blends the two. Select a trait to see its two measurements.',
+          legend: EFFORT_LEGEND,
+        };
+      case 'statements':
+        return {
+          eyebrow: { index: n, label: 'Two Measurements · Statements' },
+          title: 'The two questions go all the way down.',
+          lead: 'Not just traits — every statement your team rated carries both measurements. Select a statement to see its two.',
+          legend: EFFORT_LEGEND,
+        };
+      case 'map-video':
+        return {
+          eyebrow: { index: n, label: 'The Map' },
+          title: 'Introducing the compass.',
+          lead: 'A short walk through how effort and efficacy together place a statement on the compass.',
+        };
+      case 'map':
+        return {
+          eyebrow: { index: n, label: 'The Map · Statements' },
+          title: 'Where a statement lands tells you what to do with it.',
+          lead: 'Select a statement to see where it sits — one of four zones, and the zone tells you the move.',
+        };
+      case 'gap-video':
+        return {
+          eyebrow: { index: n, label: 'The Perception Gap' },
+          title: 'Introducing the perception gap.',
+          lead: 'A short walk through how your own read sits beside your team’s — and what the distance between them means.',
+        };
+      case 'mirror':
+        return {
+          eyebrow: { index: n, label: 'The Perception Gap · Traits' },
+          title: 'You rated yourself first — on everything.',
+          lead: 'Every measurement you’ve seen has a twin: your own read. Neither number is wrong — the distance itself is the finding. Select a trait.',
+          legend: GAP_LEGEND,
+        };
+      case 'gap-statements':
+        return {
+          eyebrow: { index: n, label: 'The Perception Gap · Statements' },
+          title: 'The gap, statement by statement.',
+          lead: 'The same statements, now with your read beside your team’s. Select a statement to see both.',
+          legend: GAP_LEGEND,
+        };
+      case 'threshold':
+      default:
+        return {
+          eyebrow: { index: n, label: 'The Threshold' },
+          title: `${firstName ? `${firstName}, your` : 'Your'} team has reflected back.`,
+          lead: `${answered} What follows is their experience of your leadership — read it slowly, and hold it lightly. Patterns matter more than any one number.`,
+        };
+    }
+  };
 
   const renderSlide = () => {
     switch (chapters[idx].id) {
@@ -1466,9 +1543,11 @@ export default function NarrativeView() {
         return <SlideInsight traits={traits} index={Math.min(2, traits.length - 1)} roles={roles} />;
       case 'threshold':
       default:
-        return <SlideThreshold firstName={firstName} respondents={respondents} invited={invited} traits={traits} />;
+        return <SlideThreshold traits={traits} />;
     }
   };
+
+  const header = headerFor();
 
   return (
     <Box
@@ -1484,13 +1563,43 @@ export default function NarrativeView() {
       }}
     >
       {/* The deck is a fixed stage: every slide is sized to fit the viewport,
-          so the narrative never scrolls. */}
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
-        <WalkthroughStage chapters={chapters} idx={idx} setIdx={setIdx}>
-          {isVideoSlide ? renderSlide() : <NarrativeFrame>{renderSlide()}</NarrativeFrame>}
-        </WalkthroughStage>
+          so the narrative never scrolls. The frame is rendered once, outside
+          the fade, so only its contents change from page to page. */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 1.5 } }}>
+        <StageArrow dir="prev" hidden={idx === 0} onClick={() => setIdx(idx - 1)} />
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            height: '100%',
+            maxWidth: 1180,
+            mx: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+          }}
+        >
+          <Box sx={{ height: EYEBROW_H, flexShrink: 0, display: 'flex', alignItems: 'flex-end', px: 0.5 }}>
+            <PageFade fadeKey={`e-${activeId}`} sx={{ width: '100%' }}>
+              <ChapterEyebrow index={header.eyebrow.index} label={header.eyebrow.label} sx={{ mb: 0 }} />
+            </PageFade>
+          </Box>
+          <Box sx={{ flex: 1, minHeight: 0, mt: 1 }}>
+            <NarrativeFrame>
+              <PageFade fadeKey={activeId} sx={{ height: '100%' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <Box sx={{ height: FRAME_HEAD_H, flexShrink: 0 }}>
+                    <SlideHeader title={header.title} lead={header.lead} legend={header.legend} />
+                  </Box>
+                  <Box sx={{ flex: 1, minHeight: 0 }}>{renderSlide()}</Box>
+                </Box>
+              </PageFade>
+            </NarrativeFrame>
+          </Box>
+        </Box>
+        <StageArrow dir="next" hidden={idx === SLIDE_COUNT - 1} onClick={() => setIdx(idx + 1)} />
       </Box>
-      <Stack alignItems="center" sx={{ pt: 1.2, pb: 0, flexShrink: 0 }}>
+      <Stack alignItems="center" sx={{ pt: 1.4, pb: 0, flexShrink: 0 }}>
         <ProgressDots chapters={chapters} current={idx} onJump={setIdx} />
       </Stack>
     </Box>
