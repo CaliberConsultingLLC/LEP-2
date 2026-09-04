@@ -29,7 +29,7 @@ import { useGuide } from '../context/GuideContext';
 import { spokenGuide } from '../data/guideContent';
 import traitSystem from '../data/traitSystem';
 import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
-import { demoRequestFields, isDemoSession, isDemoStatic } from '../utils/demoMode';
+import { demoRequestFields, isDemoStatic } from '../utils/demoMode';
 import { colors, fonts, radii, shadows, surfaces } from '../styles/tokens';
 
 const CAMPAIGN_ROMAN = ['I', 'II', 'III'];
@@ -206,17 +206,25 @@ function CampaignBuilder() {
       return;
     }
 
-    // A seeded demo already has its campaign on disk. Excluding every demo
-    // from this branch meant the seeded paths called an API that had nothing
-    // to add — and died with it. The full-experience demo still generates.
-    if (useCairnTheme && (!isDemoSession() || isDemoStatic())) {
-      const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
-      if (isCampaignReady(cachedCampaign, { minTraits: 1, minStatementsPerTrait: 1 })) {
-        setCampaign(cachedCampaign);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
+    // Reuse the campaign this session already has. Every arrival used to end
+    // in a generation, so clicking back and forward was a fresh call each
+    // time — another chance to fail, and another paid one. Trait selection
+    // clears this on the way in, so anything cached belongs to the traits
+    // currently chosen.
+    const cachedCampaign = normalizeCampaignItems(parseJson(localStorage.getItem('currentCampaign'), []));
+    if (isCampaignReady(cachedCampaign, { minTraits: 1, minStatementsPerTrait: 1 })) {
+      setCampaign(cachedCampaign);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    // A seeded demo has no generation behind it — its campaign IS the seed, so
+    // a missing one is a seeding fault and says so. This branch used to cover
+    // every non-demo session as well, which meant a first-time leader with
+    // nothing cached was shown a staging QA message instead of having their
+    // campaign built. Everyone else falls through and generates.
+    if (isDemoStatic()) {
       setError('Static staging campaign data is missing. Use the Stage Navigator reset to reseed the review flow.');
       setIsLoading(false);
       return;
@@ -278,6 +286,13 @@ function CampaignBuilder() {
         } else {
           setCampaign(campaignData);
           setError(null);
+          // Keep it, so coming back to this page reuses the campaign rather
+          // than paying for another generation of the same thing. Only the
+          // rebuild button persisted before, so the first generation was
+          // thrown away the moment the leader navigated.
+          try {
+            localStorage.setItem('currentCampaign', JSON.stringify(campaignData));
+          } catch { /* non-fatal */ }
           // Show welcome dialog after campaign loads
           if (!localStorage.getItem('campaignWelcomeDismissed')) {
             setShowWelcomeDialog(true);

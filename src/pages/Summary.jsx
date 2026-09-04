@@ -36,6 +36,7 @@ import { setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { splitSentences as splitProseSentences } from '../utils/guideSummary';
 import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing } from '../data/guideBriefings';
+import { commitSelectedTraits } from '../utils/campaignState';
 
 
 function Summary() {
@@ -2382,7 +2383,7 @@ function Summary() {
                   size="large"
                   onClick={() => {
                     if (selectedTraits.length === 3) {
-                      localStorage.setItem('selectedTraits', JSON.stringify(selectedTraits));
+                      commitSelectedTraits(selectedTraits);
                       navigate('/campaign-builder');
                     }
                   }}

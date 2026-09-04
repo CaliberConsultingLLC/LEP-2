@@ -55,3 +55,34 @@ export function getLeaderDisplayName(campaignMeta) {
   const [firstName] = rawName.split(/\s+/).filter(Boolean);
   return firstName || rawName;
 }
+
+// Trait selection is the campaign's only input, so choosing a different three
+// invalidates whatever campaign is already on disk. The builder reuses a
+// cached campaign rather than regenerating on every arrival; without this it
+// would hand back statements written for the traits the leader just replaced.
+//
+// Both places that let a leader commit their three call this instead of
+// writing the key directly, so the rule lives in one spot.
+export function commitSelectedTraits(traits) {
+  const next = (Array.isArray(traits) ? traits : []).map((t) => String(t));
+
+  let previous = [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem('selectedTraits') || '[]');
+    previous = Array.isArray(parsed) ? parsed.map((t) => String(t)) : [];
+  } catch { /* treat unreadable as absent */ }
+
+  try {
+    localStorage.setItem('selectedTraits', JSON.stringify(next));
+  } catch { /* non-fatal */ }
+
+  const unchanged = previous.length === next.length && previous.every((t, i) => t === next[i]);
+  if (unchanged) return;
+
+  // Dismissals are indexed against the campaign they were made on, so they go
+  // with it rather than outliving it.
+  try {
+    localStorage.removeItem('currentCampaign');
+    localStorage.removeItem('statementDismissals');
+  } catch { /* non-fatal */ }
+}

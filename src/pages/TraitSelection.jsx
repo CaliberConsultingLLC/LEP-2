@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Warning, CheckCircle, TrendingUp } from '@mui/icons-material';
+import { commitSelectedTraits } from '../utils/campaignState';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
@@ -185,7 +186,7 @@ function TraitSelection() {
     if (selectedTraits.length !== 3) {
       return;
     }
-    localStorage.setItem('selectedTraits', JSON.stringify(selectedTraits));
+    commitSelectedTraits(selectedTraits);
     navigate('/campaign-builder');
   };
 
