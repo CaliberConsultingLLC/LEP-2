@@ -67,12 +67,34 @@ export default function SummaryBriefingModal({
           filter: 'drop-shadow(0 16px 36px rgba(9,16,31,0.28))',
         }}
       />
+      {/*
+        The bubble reads off the owl like hours off a clock face: one to two
+        o'clock, mostly above and a little to the right, overlapping the
+        portrait's upper edge rather than standing clear of it.
+
+        It used to sit level with the owl's middle and far to its right —
+        centre-low on the screen, which is a strange place for the one thing
+        interrupting you.
+
+        The art is square (1254 x 1254), so the portrait box is as tall as it
+        is wide and these offsets are read against the same numbers as
+        SUMMARY_OWL's widths: 480 / 580 / 640. Roughly 60% across and 75% up
+        puts the tail by the owl's head. Vertical offsets are clamped against
+        viewport height so a short screen pulls the bubble down rather than
+        pushing it off the top.
+      */}
       <Box
         onClick={(event) => event.stopPropagation()}
         sx={{
           position: 'fixed',
-          left: { xs: 16, sm: 24, md: 544, lg: 652, xl: 728 },
-          bottom: { xs: 256, sm: 320, md: 190, lg: 220, xl: 240 },
+          left: { xs: 16, sm: 24, md: 290, lg: 350, xl: 390 },
+          bottom: {
+            xs: 256,
+            sm: 320,
+            md: 'clamp(240px, 44vh, 380px)',
+            lg: 'clamp(260px, 48vh, 450px)',
+            xl: 'clamp(280px, 50vh, 500px)',
+          },
           width: { xs: 'min(340px, calc(100vw - 32px))', sm: 340, md: 360 },
           zIndex: 2,
         }}
@@ -87,24 +109,21 @@ export default function SummaryBriefingModal({
             px: { xs: '20px', md: '24px' },
             pt: { xs: '22px', md: '24px' },
             pb: '18px',
+            // Tail off the bottom-left corner, pointing down at the owl now
+            // standing below and to the left. A left-edge tail pointed
+            // sideways at nothing once the bubble moved up.
             '&:after': {
               content: '""',
               position: 'absolute',
-              left: -8,
-              bottom: { xs: 28, md: 40 },
+              left: 36,
+              bottom: -8,
               width: 16,
               height: 16,
               bgcolor: bubbleBg,
               borderBottom: bubbleBorder,
-              borderLeft: bubbleBorder,
+              borderRight: bubbleBorder,
               transform: 'rotate(45deg)',
               zIndex: 1,
-              '@media (max-width: 899px)': {
-                left: 36,
-                bottom: -8,
-                borderLeft: 'none',
-                borderRight: bubbleBorder,
-              },
             },
           }}
         >

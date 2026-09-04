@@ -659,22 +659,39 @@ function Summary() {
     return () => setGuideStep('default');
   }, [currentStageId, setGuideStep]);
 
+  // Which stages this reading has already been introduced to.
+  //
+  // Scoped to the mounted page rather than to the tab. Moving between stages
+  // keeps this component alive, so flipping back does not brief you twice;
+  // arriving at the reflection again does.
+  //
+  // It used to live in sessionStorage, which outlives the reading. A second
+  // walk in the same tab got no briefings at all, and a walk that had stopped
+  // part-way earlier got them only on the stages it had never reached — which
+  // is how "it only fires on the last step" happens. The staging reset had to
+  // clear the key by hand for the same reason.
+  const briefingSeenRef = useRef({});
+
+  // A different guide is a different voice on the same four stages, so they
+  // introduce them in their own words rather than inheriting a dismissal.
+  useEffect(() => {
+    briefingSeenRef.current = {};
+  }, [personaId]);
+
   useEffect(() => {
     if (!useCairnTheme || isLoading) return undefined;
-    const readSeen = () => {
-      try { return JSON.parse(sessionStorage.getItem('summaryBriefingSeen') || '{}'); }
-      catch { return {}; }
-    };
     const ceremonyOpen = () => {
       try { return sessionStorage.getItem('journeyCeremonyOpen') === '1'; }
       catch { return false; }
     };
-    if (readSeen()[currentStageId]) {
+    if (briefingSeenRef.current[currentStageId]) {
       setBriefingOpen(false);
       return undefined;
     }
     const show = () => {
-      if (readSeen()[currentStageId]) return;
+      if (briefingSeenRef.current[currentStageId]) return;
+      // The chapter ceremony owns the screen while it is up. The briefing
+      // waits for its done event rather than stacking on top of it.
       if (ceremonyOpen()) return;
       setBriefingOpen(true);
     };
@@ -684,14 +701,10 @@ function Summary() {
       window.removeEventListener('compass:journey-ceremony-done', show);
       window.clearTimeout(timer);
     };
-  }, [currentStageId, isLoading]);
+  }, [currentStageId, isLoading, personaId]);
 
   const dismissBriefing = () => {
-    try {
-      const seen = JSON.parse(sessionStorage.getItem('summaryBriefingSeen') || '{}');
-      seen[currentStageId] = true;
-      sessionStorage.setItem('summaryBriefingSeen', JSON.stringify(seen));
-    } catch { /* ignore */ }
+    briefingSeenRef.current[currentStageId] = true;
     setBriefingOpen(false);
   };
 
