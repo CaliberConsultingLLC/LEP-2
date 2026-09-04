@@ -6,6 +6,7 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import { colors, fonts } from '../styles/tokens';
 import {
+  LIST_PRICE_USD,
   POST_PAYMENT_ROUTE,
   buildPaymentLink,
   checkoutMode,
@@ -13,6 +14,14 @@ import {
   setPaymentStatus,
 } from '../utils/billing';
 import { isDemoSession } from '../utils/demoMode';
+
+// What the money buys, in the order the year actually happens.
+const INCLUDED = [
+  'The intake — about 32 questions on how you actually lead',
+  'A written reflection in your guide’s voice, built from your own answers',
+  'An anonymous team campaign, three times across the year',
+  'The dashboard for a year: your sentiment, the evidence, and an action plan',
+];
 
 function readUserInfo() {
   try {
@@ -170,7 +179,7 @@ function Checkout() {
   return (
     <Box sx={{ minHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column' }}>
       <ProcessTopRail utilityOnly />
-      <CompassLayout contentMaxWidth={760}>
+      <CompassLayout contentMaxWidth={1060}>
         {canceled && (
           <Alert severity="info" sx={{ mb: 2 }}>
             Payment was canceled. Your details are below when you are ready.
@@ -178,25 +187,100 @@ function Checkout() {
         )}
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        {/* Stripe paints its own surface here — nothing wraps it. */}
-        <Box ref={mountRef} sx={{ width: '100%' }} />
-
-        {waiting && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1.5,
-              py: 8,
-            }}
-          >
-            <CircularProgress size={22} sx={{ color: colors.orangeDeep }} />
-            <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, color: colors.inkSoft }}>
-              Opening secure checkout…
+        {/* Stripe's form is a fixed single column that does not reflow, so the
+            page makes its own second column rather than leaving a narrow strip
+            stranded on a wide screen. Stacks below the md breakpoint. */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 480px' },
+            gap: { xs: 4, md: 6 },
+            alignItems: 'start',
+          }}
+        >
+          <Box sx={{ pt: { md: 1 } }}>
+            <Typography
+              sx={{
+                fontFamily: fonts.mono,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: colors.orangeDeep,
+                mb: 1.5,
+              }}
+            >
+              Per leader / year
             </Typography>
+            <Typography
+              sx={{
+                fontFamily: fonts.serif,
+                fontSize: { xs: 30, md: 38 },
+                fontWeight: 500,
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+                color: colors.navy900,
+                mb: 2,
+              }}
+            >
+              The Compass
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, mb: 3 }}>
+              {INCLUDED.map((line) => (
+                <Box key={line} sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start' }}>
+                  <Box
+                    aria-hidden
+                    sx={{
+                      mt: '7px',
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      bgcolor: colors.orange,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.5, color: colors.inkSoft }}>
+                    {line}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* Stripe's form carries the live total. This says what the price
+                is without competing with it — a static number here would
+                contradict the form the moment a code is applied. */}
+            <Box sx={{ borderTop: `1px solid ${colors.sand200}`, pt: 2.5 }}>
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.55, color: colors.inkSoft }}>
+                List price is <strong style={{ color: colors.navy900 }}>${LIST_PRICE_USD} per leader, per year</strong>.
+                If you were given an introductory code, enter it with <strong style={{ color: colors.navy900 }}>Add code</strong> and
+                the total updates before you pay.
+              </Typography>
+            </Box>
           </Box>
-        )}
+
+          <Box>
+            {/* Stripe paints its own surface here — nothing wraps it. */}
+            <Box ref={mountRef} sx={{ width: '100%' }} />
+
+            {waiting && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  py: 8,
+                }}
+              >
+                <CircularProgress size={22} sx={{ color: colors.orangeDeep }} />
+                <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, color: colors.inkSoft }}>
+                  Opening secure checkout…
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
       </CompassLayout>
     </Box>
   );

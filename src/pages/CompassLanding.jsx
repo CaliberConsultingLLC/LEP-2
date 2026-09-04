@@ -157,7 +157,7 @@ const GUIDES = [
     accent: '#A33A32',
     tagline: 'Sharp humor. Cuts through the spin.',
     quip: 'Everyone says they want feedback. What they want is applause with footnotes.',
-    pitch: '$250 to learn what your team says after you leave the room? Honestly, a bargain.',
+    pitch: '$500 to learn what your team says after you leave the room? Honestly, a bargain.',
   },
 ];
 
@@ -804,18 +804,17 @@ export default function CompassLanding() {
         </div>
 
         <div className="cl-price-card">
-          <span className="cl-price-kicker">INTRODUCTORY PRICE · FIRST SET OF USERS</span>
+          <span className="cl-price-kicker">ONE PRICE · NO TIERS</span>
           <div className="cl-price-row">
-            <span className="cl-price-was">$500</span>
-            <span className="cl-price-now">$250</span>
+            <span className="cl-price-now">$500</span>
             <span className="cl-price-per">/ leader / year</span>
           </div>
           <p className="cl-price-copy">
-            $500 per leader, per year. The first set of users pays $250 — same product, introductory
-            price. Same whether you buy it or your company does. No tiers inside.
+            $500 per leader, per year. Same whether you buy it or your company does. No tiers
+            inside. If you have been given an introductory code, you enter it at checkout.
           </p>
           <button type="button" className="cl-btn-ember cl-btn-lg" onClick={startJourney}>
-            Begin your expedition — $250
+            Begin your expedition — $500
           </button>
         </div>
 

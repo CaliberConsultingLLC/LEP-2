@@ -24,9 +24,13 @@ function createSession(secret, params) {
   });
 }
 
+// The introductory half-price is a promotion code now, not an automatic
+// discount: checkout charges list, and the leader types the code into Stripe's
+// own field to take it down. Setting STRIPE_INTRO_ENABLED=true restores the
+// automatic discount if we ever want an open sale again.
 function introEnabled() {
-  const raw = String(process.env.STRIPE_INTRO_ENABLED || 'true').trim().toLowerCase();
-  return raw !== 'false' && raw !== '0';
+  const raw = String(process.env.STRIPE_INTRO_ENABLED || 'false').trim().toLowerCase();
+  return raw === 'true' || raw === '1' || raw === 'yes';
 }
 
 function amountCents() {
@@ -93,6 +97,12 @@ export default async function handler(req, res) {
     // Stripe renders its own promotion-code field inside the form and
     // validates the code there. Nothing to collect on our side.
     params.set('allow_promotion_codes', 'true');
+    // Card only. Left to Stripe's dynamic defaults the form also offered Cash
+    // App Pay, Affirm and Amazon Pay plus a Link phone field — consumer-retail
+    // methods that do not fit a per-leader annual purchase, and together they
+    // made the form tall enough to need scrolling. Card keeps Apple Pay and
+    // Google Pay, which ride on it.
+    params.set('payment_method_types[0]', 'card');
     params.set('line_items[0][quantity]', '1');
     params.set('line_items[0][price_data][currency]', 'usd');
     params.set('line_items[0][price_data][unit_amount]', String(amount));
