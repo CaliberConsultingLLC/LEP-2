@@ -65,6 +65,7 @@ function Checkout() {
 
     let cancelledRun = false;
     let checkout = null;
+    let stopWatching = null;
 
     const start = async () => {
       try {
@@ -114,7 +115,29 @@ function Checkout() {
           return;
         }
         checkout.mount(mountRef.current);
-        setMounted(true);
+
+        // mount() returns before Stripe has painted: it inserts an iframe at
+        // zero height and grows it once the inner page reports its size.
+        // Treating mount as "done" leaves a blank page under a hidden spinner,
+        // so wait for the frame to actually take up room.
+        const node = mountRef.current;
+        const painted = () => {
+          const frame = node?.querySelector('iframe');
+          return Boolean(frame && frame.getBoundingClientRect().height > 0);
+        };
+        if (painted()) {
+          setMounted(true);
+        } else {
+          const observer = new ResizeObserver(() => {
+            if (cancelledRun) return;
+            if (painted()) {
+              setMounted(true);
+              observer.disconnect();
+            }
+          });
+          observer.observe(node);
+          stopWatching = () => observer.disconnect();
+        }
       } catch {
         if (!cancelledRun) {
           setError('Could not start checkout. Please refresh and try again.');
@@ -125,6 +148,7 @@ function Checkout() {
     start();
     return () => {
       cancelledRun = true;
+      stopWatching?.();
       try {
         checkout?.destroy();
       } catch {
