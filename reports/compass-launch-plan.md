@@ -90,25 +90,30 @@ Current narrative prompt in `api/promptBuilder.js` caps **Trailhead 4–6 senten
 
 **Status (4 September 2026):** the flow is wired and works end to end. Payment sits **after account creation, before Guide Select** — signup lands on `/pay`, `/pay/success` lands on `/guide-select`, and Guide Select bounces anyone unpaid back to `/pay`. Demo sessions pass straight through.
 
-It runs on a **Stripe Payment Link** (`buy.stripe.com/...`), not the secret-key Checkout Session path. The link is baked into `src/utils/billing.js` and the button just walks the leader over to Stripe with their account stapled to the URL (`client_reference_id` = Firebase uid, `prefilled_email`).
+It runs on **embedded Stripe Checkout**. Arriving at `/pay` creates a Checkout Session server-side (`ui_mode=embedded`) and mounts Stripe's own form inside the page — there is no interstitial and no trip to `buy.stripe.com`. Price, product line and the promotion-code field all come from Stripe. The account is stapled on as `client_reference_id` (Firebase uid) and `customer_email`.
 
-Built: `/pay` (`Checkout.jsx`), `/pay/success` (`CheckoutSuccess.jsx`), the `compassPaid` entitlement flag, the gate on Guide Select and Intake, `api/create-checkout-session.js` + `api/confirm-checkout.js` + `api/stripe-webhook.js` (the last three are dormant — they need a secret key). No secret key is in the client.
+Built: `/pay` (`Checkout.jsx`), `/pay/success` (`CheckoutSuccess.jsx`), the `compassPaid` entitlement flag, the gate on Guide Select and Intake, `api/create-checkout-session.js` + `api/confirm-checkout.js` + `api/stripe-webhook.js`.
+
+The Payment Link path is kept as a fallback only: set `VITE_STRIPE_PAYMENT_LINK` to a `buy.stripe.com` URL to opt out of embedding. A Payment Link **cannot** be embedded — it is always a redirect off-site.
 
 #### Still to do — payment is NOT safe to charge on yet
 
-- [ ] **The link in the code is a TEST link.** A test-mode Stripe link takes test card numbers (`4242 4242 4242 4242`) and charges nobody. Right now anyone who knows that walks past the paywall for free. **Before taking real money:** create the live Payment Link in Stripe (toggle out of test/sandbox mode), then set `VITE_STRIPE_PAYMENT_LINK` to it in the Vercel project. No code change needed. Setting that variable to `off` turns payment off entirely.
-- [ ] **Set the redirect in the Stripe dashboard.** Payment Link → *After payment* → "Don't show confirmation page, redirect customers to" → `https://<our domain>/pay/success?session_id={CHECKOUT_SESSION_ID}`. Without this, Stripe shows its own receipt page and the leader never comes back into Compass — they pay and land nowhere. Must be set on the live link too, not just the test one.
-- [ ] **`STRIPE_SECRET_KEY` in Vercel.** Today `/pay/success` trusts the redirect: if Stripe sent you here, you paid. That is true in practice but unverified, and the entitlement lives only in the browser's `localStorage` — clear it and the leader is locked out; a person who forges the URL is let in. With the secret key set, `confirm-checkout` asks Stripe whether the session really was paid and writes `billing.paid` / `paidAt` onto the response doc in Firestore, which makes the entitlement real and portable across devices.
+- [ ] **Use live keys before taking real money.** Test-mode keys take test card numbers (`4242 4242 4242 4242`) and charge nobody. Swapping `sk_test_`/`pk_test_` for `sk_live_`/`pk_live_` in Vercel is the whole switch — no code change. The baked-in test Payment Link has been removed.
+- [x] ~~Set the redirect in the Stripe dashboard.~~ **No longer needed.** Embedded checkout sets `return_url` on the session in code, so the leader always comes back to `/pay/success`. There is no dashboard field to forget.
+  - **This URL is not a key.** It was once pasted into `STRIPE_SECRET_KEY` in Vercel, which made every session request fail with `Invalid API Key provided: https://…`. The two Stripe values are `sk_…` and `pk_…`; nothing else belongs in those variables.
+- [ ] **`STRIPE_SECRET_KEY` and `STRIPE_PUBLISHABLE_KEY` in Vercel.** Both are required now: without the secret key no session can be created, and without the publishable key the browser cannot mount the form. The publishable key is served to the browser with the session, so it needs no `VITE_` prefix and no rebuild. When either is missing the deployment lets leaders through unpaid rather than stranding them.
+- [ ] **What the secret key buys.** Today `/pay/success` trusts the redirect: if Stripe sent you here, you paid. That is true in practice but unverified, and the entitlement lives only in the browser's `localStorage` — clear it and the leader is locked out; a person who forges the URL is let in. With the secret key set, `confirm-checkout` asks Stripe whether the session really was paid and writes `billing.paid` / `paidAt` onto the response doc in Firestore, which makes the entitlement real and portable across devices.
 - [ ] **Webhook endpoint.** `api/stripe-webhook.js` is written and reachable on Vercel at `/api/stripe-webhook`, but it is not registered in the Stripe dashboard, has no `STRIPE_WEBHOOK_SECRET` (it currently skips signature checking without one), and is not mounted in local `server.js`. This is what catches a payment that completes after the leader closes the tab.
 - [ ] **Decide what "paid" means for a returning leader.** `compassPaid` is per-browser. Signing in on a second device does not carry it. This is fixed by the Firestore write above plus a read on sign-in — not yet built.
-- [ ] **Test purchase.** Nobody has completed one yet, in test or live mode. Run signup → pay → guide → intake all the way through on the staging URL once the redirect is set.
+- [ ] **Test purchase.** Nobody has completed one yet, in test or live mode. Run signup → pay → guide → intake all the way through on the staging URL once both keys are set.
 
 **Consider**
 
 - Account is created **before** pay. Abandoned signups will sit in Firebase — an account with no payment can be created and left. Treat unpaid accounts as "cannot generate a summary."
 - Refund promise on the landing page ("30-day, keep your reflection") needs a Stripe refund path later.
 - Org/Team "Contact us" vs Individual $250 — confirm one SKU for v1.
-- Demo and internal testers bypass pay today via `isDemoSession()`. Verify that still holds after the live link goes in.
+- Demo and internal testers bypass pay today via `isDemoSession()`. Verify that still holds after the live keys go in.
+- Promotion codes are on (`allow_promotion_codes`). Stripe renders and validates the field inside its own form; a code cannot be injected from outside the iframe, so any promo we advertise has to be typed in by the customer.
 
 **Open question:** Is $250 / year the only live SKU? Paywall Intake only, or also Summary?
 
