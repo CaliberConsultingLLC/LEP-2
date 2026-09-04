@@ -7,6 +7,7 @@ import { getQuadrant } from './quadrants.js';
 import { mapRowStatements } from './EvidenceView.jsx';
 import { ChapterEyebrow, PageFade, ProgressDots } from './debriefUi.jsx';
 import { getDebriefScope } from './phaseState.js';
+import { useGuide } from '../../../context/GuideContext';
 
 // ----------------------------------------------------------------------------
 // NarrativeView — the ten-page results debrief narrative (v2 design).
@@ -153,7 +154,10 @@ function insightCopy(row, role) {
 const EYEBROW_H = 24;
 // Inside the frame, the title band is fixed too, so the body area below it is
 // identical on every page.
-const FRAME_HEAD_H = { xs: 84, md: 96 };
+const FRAME_HEAD_H = { xs: 84, md: 92 };
+// The body area is sized to the densest page plus breathing room — the content
+// keeps its own scale and sits centred, rather than stretching to fill.
+const FRAME_BODY_H = 'clamp(276px, 38vh, 356px)';
 
 function StageArrow({ dir, hidden, onClick }) {
   return (
@@ -200,16 +204,15 @@ function NarrativeFrame({ children }) {
     <Box
       sx={{
         width: '100%',
-        height: '100%',
         boxSizing: 'border-box',
         bgcolor: colors.surface1,
-        border: `2.5px solid ${colors.sand300}`,
+        border: `2px solid ${colors.borderSoft}`,
         borderRadius: radii.xl,
         boxShadow: shadows.card,
         overflow: 'hidden',
-        // Roughly double the old inset — the content should breathe inside the
-        // frame rather than press against it.
-        p: { xs: 3.2, md: 5 },
+        // Generous inset so content breathes, without the frame swallowing the
+        // screen — the extra room goes to the margin, not to stretched content.
+        p: { xs: 2.6, md: '30px 36px' },
       }}
     >
       {children}
@@ -279,6 +282,18 @@ const GAP_LEGEND = [
 // split it evenly, the detail card matches it. Selecting anything longer can
 // never resize the layout.
 const SHOWCASE_H = '100%';
+const VIDEO_COPY = {
+  map: {
+    eyebrow: 'Introducing the Compass',
+    title: 'This is the primary visual.',
+    line: 'Effort and efficacy together give every statement a place on the compass. Watch how it lands — then we will read yours.',
+  },
+  gap: {
+    eyebrow: 'Introducing the Perception Gap',
+    title: 'The same instrument, read twice.',
+    line: 'You rated yourself on these same statements. Here is how your read sits beside your team’s — and why the distance matters.',
+  },
+};
 
 const pickCardSx = (on) => ({
   boxSizing: 'border-box',
@@ -685,9 +700,29 @@ function MiniDial({ statement, showAxisNodes = false }) {
 // ---------------------------------------------------------------------------
 // Slides
 // ---------------------------------------------------------------------------
-function SlideThreshold({ traits }) {
+// The opening page keeps its own centred composition — headline, the reading,
+// then the three scores — rather than the left-aligned band the other pages use.
+function SlideThreshold({ title, lead, traits }) {
   return (
-    <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
+    <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', textAlign: 'center' }}>
+      <Typography
+        component="h1"
+        sx={{
+          fontFamily: fonts.serif,
+          fontWeight: 500,
+          letterSpacing: '-0.03em',
+          lineHeight: 1.08,
+          fontSize: 'clamp(28px, 4.4vh, 44px)',
+          color: colors.textPrimary,
+          mb: 1.8,
+          textWrap: 'pretty',
+        }}
+      >
+        {title}
+      </Typography>
+      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, lineHeight: 1.55, color: colors.textSecondary, maxWidth: 580, mb: 'clamp(22px, 4vh, 44px)' }}>
+        {lead}
+      </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 8 }, flexWrap: 'wrap' }}>
         {traits.map((row) => (
           <Stack key={row.trait} alignItems="center" sx={{ width: { xs: '100%', sm: 180 } }}>
@@ -696,7 +731,7 @@ function SlideThreshold({ traits }) {
             <Box sx={{ height: 38, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', mb: 1.6 }}>
               <Typography sx={{ ...type.monoLabel, textAlign: 'center', lineHeight: 1.45 }}>{row.subTrait || row.trait}</Typography>
             </Box>
-            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(52px, 9vh, 82px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
+            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(44px, 7.2vh, 68px)', lineHeight: 0.95, letterSpacing: '-0.04em', color: colors.orange }}>
               {Math.round(row.team.lepScore)}
             </Typography>
           </Stack>
@@ -966,14 +1001,97 @@ function ExplainerVideo({ src, label, standalone = false }) {
   );
 }
 
-function VideoSlide({ src, label }) {
-  // Height-driven so the clip always fits the frame it plays inside.
+// The explainers interrupt rather than page: the deck blurs behind a bordered
+// clip, and the guide comes up beside it to introduce what is being shown.
+// Sits below GUIDE_Z so the owl stays crisp above the blur.
+function VideoInterstitial({ which, onClose }) {
+  const copy = VIDEO_COPY[which];
+  const video = which === 'map' ? MAP_VIDEO : GAP_VIDEO;
+  const { setHidden, setPageMessage, clearPageMessage } = useGuide();
+
+  useEffect(() => {
+    setHidden(false);
+    setPageMessage({ text: copy.line, pose: 'map', eyebrow: copy.eyebrow });
+    return () => clearPageMessage();
+  }, [which, copy.line, copy.eyebrow, setHidden, setPageMessage, clearPageMessage]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === 'ArrowRight') onClose();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [onClose]);
+
   return (
-    <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}>
-      <Box sx={{ height: '100%', aspectRatio: '16 / 9', maxWidth: '100%' }}>
-        <ExplainerVideo src={src} label={label} standalone />
+    <Box
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        px: { xs: 2, md: 6 },
+        py: { xs: 2, md: 4 },
+        bgcolor: 'rgba(10, 20, 36, 0.42)',
+        backdropFilter: 'blur(7px)',
+        WebkitBackdropFilter: 'blur(7px)',
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 'min(880px, 78vw)', textAlign: 'center' }}>
+        <Typography sx={{ ...type.eyebrow, color: colors.amberSoft, mb: 1.2 }}>{copy.eyebrow}</Typography>
+        <Typography
+          sx={{
+            fontFamily: fonts.serif,
+            fontWeight: 500,
+            fontSize: { xs: 21, md: 26 },
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            color: '#fff',
+            mb: 2,
+          }}
+        >
+          {copy.title}
+        </Typography>
+        <Box
+          sx={{
+            border: `3px solid ${colors.amberSoft}`,
+            borderRadius: radii.lg,
+            overflow: 'hidden',
+            boxShadow: '0 30px 80px rgba(5, 12, 24, 0.55)',
+            aspectRatio: '16 / 9',
+            maxHeight: '46vh',
+            mx: 'auto',
+          }}
+        >
+          <ExplainerVideo src={video.src} label={video.label} standalone />
+        </Box>
+        <Box
+          component="button"
+          type="button"
+          onClick={onClose}
+          sx={{
+            all: 'unset',
+            cursor: 'pointer',
+            mt: 2.4,
+            px: '26px',
+            py: '13px',
+            borderRadius: radii.pill,
+            bgcolor: colors.amberSoft,
+            color: colors.navy900,
+            fontFamily: fonts.sans,
+            fontWeight: 700,
+            fontSize: 13,
+            letterSpacing: '0.04em',
+            '&:hover': { bgcolor: colors.amber },
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
+          }}
+        >
+          Got it — keep going &#8594;
+        </Box>
       </Box>
-    </Stack>
+    </Box>
   );
 }
 
@@ -1327,7 +1445,10 @@ function pickNarrativeStatements(orderedRows) {
 // ---------------------------------------------------------------------------
 // The view
 // ---------------------------------------------------------------------------
-const SLIDE_COUNT = 11;
+const SLIDE_COUNT = 9;
+// Where the explainers interrupt: entering the map, and entering the gap.
+const MAP_IDX = 3;
+const MIRROR_IDX = 4;
 
 export default function NarrativeView() {
   const { rows, loaded, teamResponses, hasSelfData } = useBenchmarkData();
@@ -1348,12 +1469,36 @@ export default function NarrativeView() {
     writeJson(storeKey, { page: clamped, done });
   };
 
+  // The explainers interrupt the first forward crossing into the map and the
+  // gap; after that the deck pages normally.
+  const [interstitial, setInterstitial] = useState(null);
+  const [seenVideo, setSeenVideo] = useState({ map: false, gap: false });
+
+  const go = (next) => {
+    const clamped = Math.min(Math.max(next, 0), SLIDE_COUNT - 1);
+    if (clamped === idx) return;
+    if (clamped > idx) {
+      if (clamped === MAP_IDX && !seenVideo.map) {
+        setSeenVideo((v) => ({ ...v, map: true }));
+        setInterstitial({ which: 'map', target: clamped });
+        return;
+      }
+      if (clamped === MIRROR_IDX && !seenVideo.gap) {
+        setSeenVideo((v) => ({ ...v, gap: true }));
+        setInterstitial({ which: 'gap', target: clamped });
+        return;
+      }
+    }
+    setIdx(clamped);
+  };
+
   // Arrow keys page the deck, as the shared walkthrough stage used to do.
   useEffect(() => {
     const onKey = (e) => {
+      if (interstitial) return;
       if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
-      if (e.key === 'ArrowRight') setIdx(idx + 1);
-      if (e.key === 'ArrowLeft') setIdx(idx - 1);
+      if (e.key === 'ArrowRight') go(idx + 1);
+      if (e.key === 'ArrowLeft') go(idx - 1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1382,9 +1527,7 @@ export default function NarrativeView() {
       { id: 'threshold', label: 'The Threshold' },
       { id: 'measurements', label: 'Two Measurements' },
       { id: 'statements', label: 'Statements' },
-      { id: 'map-video', label: 'The Map · Video' },
       { id: 'map', label: 'The Map · Statements' },
-      { id: 'gap-video', label: 'The Perception Gap · Video' },
       { id: 'mirror', label: 'The Perception Gap' },
       { id: 'gap-statements', label: 'The Gap · Statements' },
       { id: 'insight-1', label: 'Insight 1' },
@@ -1465,23 +1608,11 @@ export default function NarrativeView() {
           lead: 'Not just traits — every statement your team rated carries both measurements. Select a statement to see its two.',
           legend: EFFORT_LEGEND,
         };
-      case 'map-video':
-        return {
-          eyebrow: { index: n, label: 'The Map' },
-          title: 'Introducing the compass.',
-          lead: 'A short walk through how effort and efficacy together place a statement on the compass.',
-        };
       case 'map':
         return {
           eyebrow: { index: n, label: 'The Map · Statements' },
           title: 'Where a statement lands tells you what to do with it.',
           lead: 'Select a statement to see where it sits — one of four zones, and the zone tells you the move.',
-        };
-      case 'gap-video':
-        return {
-          eyebrow: { index: n, label: 'The Perception Gap' },
-          title: 'Introducing the perception gap.',
-          lead: 'A short walk through how your own read sits beside your team’s — and what the distance between them means.',
         };
       case 'mirror':
         return {
@@ -1515,18 +1646,10 @@ export default function NarrativeView() {
         return stmts.length
           ? <SlideStatements stmts={stmts} sel={stmtSel} onSel={setSelStmt} />
           : <SlideInsight traits={traits} index={0} roles={roles} />;
-      case 'map-video':
-        return stmts.length
-          ? <VideoSlide src={MAP_VIDEO.src} label={MAP_VIDEO.label} />
-          : <SlideInsight traits={traits} index={0} roles={roles} />;
       case 'map':
         return stmts.length
           ? <SlideMap stmts={stmts} sel={mapSel} onSel={setSelMap} />
           : <SlideInsight traits={traits} index={0} roles={roles} />;
-      case 'gap-video':
-        return showMirror
-          ? <VideoSlide src={GAP_VIDEO.src} label={GAP_VIDEO.label} />
-          : <SlideMeasurements traits={traits} sel={Math.min(measureSel, traits.length - 1)} onSel={setSelMeasure} />;
       case 'mirror':
         return showMirror
           ? <SlideMirror traits={mirrorTraits} sel={mirrorSelSafe} onSel={setSelMirror} />
@@ -1543,7 +1666,7 @@ export default function NarrativeView() {
         return <SlideInsight traits={traits} index={Math.min(2, traits.length - 1)} roles={roles} />;
       case 'threshold':
       default:
-        return <SlideThreshold traits={traits} />;
+        return <SlideThreshold title={header.title} lead={header.lead} traits={traits} />;
     }
   };
 
@@ -1566,42 +1689,45 @@ export default function NarrativeView() {
           so the narrative never scrolls. The frame is rendered once, outside
           the fade, so only its contents change from page to page. */}
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 1.5 } }}>
-        <StageArrow dir="prev" hidden={idx === 0} onClick={() => setIdx(idx - 1)} />
-        <Box
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            height: '100%',
-            maxWidth: 1180,
-            mx: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 0,
-          }}
-        >
-          <Box sx={{ height: EYEBROW_H, flexShrink: 0, display: 'flex', alignItems: 'flex-end', px: 0.5 }}>
+        <StageArrow dir="prev" hidden={idx === 0} onClick={() => go(idx - 1)} />
+        <Box sx={{ flex: 1, minWidth: 0, maxWidth: 1180, mx: 'auto' }}>
+          <Box sx={{ height: EYEBROW_H, display: 'flex', alignItems: 'flex-end', px: 0.5 }}>
             <PageFade fadeKey={`e-${activeId}`} sx={{ width: '100%' }}>
               <ChapterEyebrow index={header.eyebrow.index} label={header.eyebrow.label} sx={{ mb: 0 }} />
             </PageFade>
           </Box>
-          <Box sx={{ flex: 1, minHeight: 0, mt: 1 }}>
+          <Box sx={{ mt: 1 }}>
             <NarrativeFrame>
               <PageFade fadeKey={activeId} sx={{ height: '100%' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                  <Box sx={{ height: FRAME_HEAD_H, flexShrink: 0 }}>
-                    <SlideHeader title={header.title} lead={header.lead} legend={header.legend} />
+                {activeId === 'threshold' ? (
+                  <Box sx={{ height: `calc(${FRAME_BODY_H} + ${FRAME_HEAD_H.md}px)` }}>{renderSlide()}</Box>
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ height: FRAME_HEAD_H, flexShrink: 0 }}>
+                      <SlideHeader title={header.title} lead={header.lead} legend={header.legend} />
+                    </Box>
+                    <Box sx={{ height: FRAME_BODY_H }}>{renderSlide()}</Box>
                   </Box>
-                  <Box sx={{ flex: 1, minHeight: 0 }}>{renderSlide()}</Box>
-                </Box>
+                )}
               </PageFade>
             </NarrativeFrame>
           </Box>
         </Box>
-        <StageArrow dir="next" hidden={idx === SLIDE_COUNT - 1} onClick={() => setIdx(idx + 1)} />
+        <StageArrow dir="next" hidden={idx === SLIDE_COUNT - 1} onClick={() => go(idx + 1)} />
       </Box>
       <Stack alignItems="center" sx={{ pt: 1.4, pb: 0, flexShrink: 0 }}>
         <ProgressDots chapters={chapters} current={idx} onJump={setIdx} />
       </Stack>
+      {interstitial && (
+        <VideoInterstitial
+          which={interstitial.which}
+          onClose={() => {
+            const { target } = interstitial;
+            setInterstitial(null);
+            setIdx(target);
+          }}
+        />
+      )}
     </Box>
   );
 }
