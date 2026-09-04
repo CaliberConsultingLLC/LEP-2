@@ -47,8 +47,14 @@ export default async function handler(req, res) {
     const amount = amountCents();
     const params = new URLSearchParams();
     params.set('mode', 'payment');
-    params.set('success_url', `${baseUrl}/pay/success?session_id={CHECKOUT_SESSION_ID}`);
-    params.set('cancel_url', `${baseUrl}/pay?canceled=1`);
+    // Embedded checkout mounts Stripe's form inside /pay rather than sending
+    // the leader to buy.stripe.com. `return_url` replaces success_url and
+    // cancel_url — Stripe rejects a session that carries both.
+    params.set('ui_mode', 'embedded');
+    params.set('return_url', `${baseUrl}/pay/success?session_id={CHECKOUT_SESSION_ID}`);
+    // Stripe renders its own promotion-code field inside the form and
+    // validates the code there. Nothing to collect on our side.
+    params.set('allow_promotion_codes', 'true');
     params.set('line_items[0][quantity]', '1');
     params.set('line_items[0][price_data][currency]', 'usd');
     params.set('line_items[0][price_data][unit_amount]', String(amount));
@@ -75,13 +81,27 @@ export default async function handler(req, res) {
       body: params.toString(),
     });
     const payload = await stripeRes.json().catch(() => ({}));
-    if (!stripeRes.ok || !payload?.url) {
+    if (!stripeRes.ok || !payload?.client_secret) {
       console.error('Stripe checkout session failed:', payload);
       return res.status(502).json({ error: 'Could not start checkout.' });
     }
 
+    // The publishable key travels with the session so the browser never needs
+    // a VITE_ build-time copy of it — adding the key in Vercel is enough.
+    const publishableKey = String(
+      process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
+    ).trim();
+    if (!publishableKey) {
+      console.error('Stripe publishable key is not set; embedded checkout cannot mount.');
+      return res.status(503).json({
+        error: 'Checkout is not configured yet.',
+        configured: false,
+      });
+    }
+
     return res.status(200).json({
-      url: payload.url,
+      clientSecret: payload.client_secret,
+      publishableKey,
       id: payload.id,
       amount,
       intro: introEnabled(),

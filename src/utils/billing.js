@@ -9,38 +9,28 @@ export const LIST_PRICE_USD = 500;
 // creation and guide selection, so the next thing they owe us is a guide.
 export const POST_PAYMENT_ROUTE = '/guide-select';
 
-// The Stripe Payment Link. This is the whole integration for link mode: no
-// secret key, no session API — the button just walks the leader over to
-// Stripe and Stripe walks them back.
+// Checkout is embedded by default: /pay creates a Checkout Session server-side
+// and mounts Stripe's own form inside the page. A Payment Link cannot be
+// embedded — it is only ever a redirect to buy.stripe.com — so the link path
+// is now opt-in, kept for a deployment that has no secret key.
 //
-// TEST LINK. Swap this for the live link (or set VITE_STRIPE_PAYMENT_LINK in
-// the Vercel project) before real money is expected — a test-mode link accepts
-// test cards and charges nobody.
-const DEFAULT_PAYMENT_LINK = 'https://buy.stripe.com/test_fZuaEPeUC88Y99m1tDfAc00';
-
-/** The configured payment link, or '' when link checkout is switched off. */
+// Set VITE_STRIPE_PAYMENT_LINK to a buy.stripe.com URL to take that path
+// instead, or to 'off' to state plainly that there is no link.
 export function paymentLinkUrl() {
   const raw = String(import.meta.env.VITE_STRIPE_PAYMENT_LINK ?? '').trim();
-  if (!raw) return DEFAULT_PAYMENT_LINK;
+  if (!raw) return '';
   const off = raw.toLowerCase();
   if (off === 'off' || off === 'false' || off === '0') return '';
   return raw;
 }
 
-/** True when the server-side Checkout Session path is wired up instead. */
-export function stripeSessionIsConfigured() {
-  return Boolean(String(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim());
-}
-
-/** 'link' | 'session' | 'off' — which checkout path this build should take. */
+/** 'link' | 'embedded' — which checkout path this build should take. */
 export function checkoutMode() {
-  if (paymentLinkUrl()) return 'link';
-  if (stripeSessionIsConfigured()) return 'session';
-  return 'off';
+  return paymentLinkUrl() ? 'link' : 'embedded';
 }
 
 export function stripeIsConfigured() {
-  return checkoutMode() !== 'off';
+  return true;
 }
 
 /**
@@ -81,6 +71,9 @@ export function setPaymentStatus(status) {
 
 export function isIntakeUnlocked() {
   if (isDemoSession()) return true;
-  if (!stripeIsConfigured()) return true;
-  return getPaymentStatus() === 'paid';
+  const status = getPaymentStatus();
+  // 'preview' is written only when the server has told us it carries no Stripe
+  // keys. Without it an unconfigured deployment would paywall a door it cannot
+  // open, and Guide Select would bounce the leader straight back to /pay.
+  return status === 'paid' || status === 'preview';
 }

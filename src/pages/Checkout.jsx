@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Box, Typography } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Box, CircularProgress, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { colors, fonts, radii, shadows } from '../styles/tokens';
+import CompassLayout from '../components/CompassLayout';
+import { colors, fonts } from '../styles/tokens';
 import {
-  INTRO_PRICE_USD,
-  LIST_PRICE_USD,
   POST_PAYMENT_ROUTE,
   buildPaymentLink,
   checkoutMode,
@@ -22,148 +22,143 @@ function readUserInfo() {
   }
 }
 
+/**
+ * Payment is not a screen the leader stops on — it is the Stripe form itself.
+ * Nothing is rendered in front of it: the session is created on arrival and
+ * Stripe's own checkout mounts in place, carrying the price, the product line
+ * and its promotion-code field.
+ */
 function Checkout() {
   const navigate = useNavigate();
   const location = useLocation();
   const canceled = new URLSearchParams(location.search || '').get('canceled') === '1';
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const mode = checkoutMode();
-  const stripeReady = mode !== 'off';
-  const userInfo = useMemo(() => readUserInfo(), []);
+  const [mounted, setMounted] = useState(false);
+  const mountRef = useRef(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    // Demo sessions and anyone who already paid skip straight to the guide.
+    // Demo sessions and anyone who already paid never see checkout at all.
     if (isDemoSession() || isIntakeUnlocked()) {
       navigate(POST_PAYMENT_ROUTE, { replace: true });
+      return undefined;
     }
+
+    // A Payment Link cannot be embedded, so that path stays a redirect — but
+    // it happens on arrival rather than behind a button, so there is still no
+    // page in between.
+    if (checkoutMode() === 'link') {
+      const userInfo = readUserInfo();
+      const url = buildPaymentLink({ uid: userInfo?.uid || '', email: userInfo?.email || '' });
+      if (url) {
+        window.location.assign(url);
+        return undefined;
+      }
+      setError('Could not start checkout. Please refresh and try again.');
+      return undefined;
+    }
+
+    // React runs effects twice in StrictMode; a second mount would create a
+    // second Stripe session and leave two forms fighting over the node.
+    if (startedRef.current) return undefined;
+    startedRef.current = true;
+
+    let cancelledRun = false;
+    let checkout = null;
+
+    const start = async () => {
+      try {
+        const userInfo = readUserInfo();
+        const response = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            uid: userInfo?.uid || '',
+            email: userInfo?.email || '',
+            name: userInfo?.name || '',
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (cancelledRun) return;
+
+        // The server carries no Stripe keys. Paywalling a door we cannot open
+        // would strand the leader, so this deployment lets them through.
+        if (response.status === 503 || payload?.configured === false) {
+          setPaymentStatus('preview');
+          navigate(POST_PAYMENT_ROUTE, { replace: true });
+          return;
+        }
+
+        if (!response.ok || !payload?.clientSecret || !payload?.publishableKey) {
+          setError(payload?.error || 'Could not start checkout. Please refresh and try again.');
+          return;
+        }
+
+        const stripe = await loadStripe(payload.publishableKey);
+        if (cancelledRun) return;
+        if (!stripe) {
+          setError('Could not reach Stripe. Please refresh and try again.');
+          return;
+        }
+
+        checkout = await stripe.initEmbeddedCheckout({ clientSecret: payload.clientSecret });
+        if (cancelledRun || !mountRef.current) {
+          checkout.destroy();
+          return;
+        }
+        checkout.mount(mountRef.current);
+        setMounted(true);
+      } catch {
+        if (!cancelledRun) {
+          setError('Could not start checkout. Please refresh and try again.');
+        }
+      }
+    };
+
+    start();
+    return () => {
+      cancelledRun = true;
+      try {
+        checkout?.destroy();
+      } catch {
+        /* already gone */
+      }
+    };
   }, [navigate]);
 
-  const startCheckout = async () => {
-    setError('');
-    if (!stripeReady) {
-      setPaymentStatus('preview');
-      navigate(POST_PAYMENT_ROUTE);
-      return;
-    }
-    if (isIntakeUnlocked()) {
-      navigate(POST_PAYMENT_ROUTE);
-      return;
-    }
-
-    // Payment Link: no server call, no secret key. Hand the leader to Stripe
-    // with their account stapled to the URL and let Stripe redirect them back
-    // to /pay/success.
-    if (mode === 'link') {
-      const url = buildPaymentLink({ uid: userInfo?.uid || '', email: userInfo?.email || '' });
-      if (!url) {
-        setError('Could not start checkout. Please try again.');
-        return;
-      }
-      setBusy(true);
-      window.location.assign(url);
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uid: userInfo?.uid || '',
-          email: userInfo?.email || '',
-          name: userInfo?.name || '',
-        }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload?.url) {
-        setError(payload?.error || 'Could not start checkout. Please try again.');
-        return;
-      }
-      window.location.assign(payload.url);
-    } catch {
-      setError('Could not start checkout. Please try again.');
-    } finally {
-      setBusy(false);
-    }
-  };
+  const waiting = !error && !mounted;
 
   return (
     <Box sx={{ minHeight: '100svh', bgcolor: colors.sand50, display: 'flex', flexDirection: 'column' }}>
       <ProcessTopRail utilityOnly />
-      <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', px: 2, py: { xs: 3, md: 5 } }}>
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: 520,
-            bgcolor: colors.surface1,
-            border: `1px solid ${colors.sand200}`,
-            borderRadius: radii.lg,
-            boxShadow: shadows.card,
-            p: { xs: 3, md: 4 },
-            textAlign: 'center',
-          }}
-        >
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.orangeDeep, mb: 1.5 }}>
-            Per leader / year
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 1.25, mb: 1 }}>
-            <Typography sx={{ fontFamily: fonts.serif, fontSize: 22, color: colors.inkSoft, textDecoration: 'line-through' }}>
-              ${LIST_PRICE_USD}
-            </Typography>
-            <Typography sx={{ fontFamily: fonts.serif, fontSize: 48, fontWeight: 600, color: colors.navy900, letterSpacing: '-0.04em' }}>
-              ${INTRO_PRICE_USD}
-            </Typography>
-          </Box>
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.55, color: colors.inkSoft, mb: 2.5 }}>
-            Introductory price for the first set of users. Then ${LIST_PRICE_USD} per leader, per year.
-            Same Compass either way: intake, written reflection, team campaign, and the year on the dashboard.
-          </Typography>
+      <CompassLayout contentMaxWidth={760}>
+        {canceled && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Payment was canceled. Your details are below when you are ready.
+          </Alert>
+        )}
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-          {canceled && (
-            <Alert severity="info" sx={{ mb: 2, textAlign: 'left' }}>
-              Payment was canceled. You can try again when you are ready.
-            </Alert>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, textAlign: 'left' }}>{error}</Alert>
-          )}
-          {!stripeReady && (
-            <Alert severity="warning" sx={{ mb: 2, textAlign: 'left' }}>
-              Checkout is not live yet. Continue while Stripe is being connected.
-            </Alert>
-          )}
+        {/* Stripe paints its own surface here — nothing wraps it. */}
+        <Box ref={mountRef} sx={{ width: '100%' }} />
 
+        {waiting && (
           <Box
-            component="button"
-            type="button"
-            onClick={startCheckout}
-            disabled={busy}
             sx={{
-              all: 'unset',
-              cursor: busy ? 'default' : 'pointer',
-              opacity: busy ? 0.7 : 1,
-              display: 'inline-flex',
+              display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 48,
-              px: '32px',
-              borderRadius: 999,
-              bgcolor: colors.navy900,
-              color: colors.amberSoft,
-              fontFamily: fonts.sans,
-              fontWeight: 800,
-              fontSize: '0.95rem',
-              boxShadow: '0 10px 32px rgba(16,34,60,0.28)',
-              '&:hover': busy ? {} : { bgcolor: colors.navy800 },
-              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+              gap: 1.5,
+              py: 8,
             }}
           >
-            {busy ? 'Opening checkout…' : stripeReady ? `Pay $${INTRO_PRICE_USD} and continue` : 'Continue'}
+            <CircularProgress size={22} sx={{ color: colors.orangeDeep }} />
+            <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, color: colors.inkSoft }}>
+              Opening secure checkout…
+            </Typography>
           </Box>
-        </Box>
-      </Box>
+        )}
+      </CompassLayout>
     </Box>
   );
 }
