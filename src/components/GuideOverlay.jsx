@@ -80,7 +80,7 @@ function GuideOverlay() {
   // so the overlay can carry trait/step-aware talking points.
   const fallbackMessage = messages[msgIdx] || messages[0];
   const message = pageMessage && pageMessage.text
-    ? { text: pageMessage.text, pose: pageMessage.pose || fallbackMessage?.pose || 'idle', cta: pageMessage.cta || fallbackMessage?.cta, faq: pageMessage.faq || null }
+    ? { text: pageMessage.text, pose: pageMessage.pose || fallbackMessage?.pose || 'idle', cta: pageMessage.cta || fallbackMessage?.cta, faq: pageMessage.faq || null, composer: pageMessage.composer || null }
     : fallbackMessage;
   const owlPose = persona.poses[message?.pose] || persona.poses.idle;
   const routeFaq = getPageFaq(routeKey);
@@ -92,6 +92,15 @@ function GuideOverlay() {
 
   useEffect(() => {
     setFaqOpen(false);
+  }, [message?.text]);
+
+  // Composer draft. Cleared when the guide moves on to a different message so
+  // a half-written note cannot reappear under an unrelated line.
+  const [draft, setDraft] = useState('');
+  const [savedCount, setSavedCount] = useState(0);
+  useEffect(() => {
+    setDraft('');
+    setSavedCount(0);
   }, [message?.text]);
 
   // Suppress before a guide is chosen, on pre-guide routes, or when explicitly suppressed.
@@ -239,6 +248,97 @@ function GuideOverlay() {
         >
           {message.text}
         </Box>
+
+        {/* ── Composer ──
+            The guide can be written to as well as read. A page hands over a
+            composer and the bubble becomes the place the note is typed, so a
+            note is given to the guide rather than filled into a form
+            somewhere else on the page. It stays open after each save: one
+            thought is rarely the only one. */}
+        {message.composer && (
+          <Box sx={{ mt: '14px' }}>
+            <Box
+              component="textarea"
+              rows={3}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  if (!draft.trim()) return;
+                  message.composer.onSubmit?.(draft.trim());
+                  setDraft('');
+                  setSavedCount((n) => n + 1);
+                }
+              }}
+              placeholder={message.composer.placeholder || 'Type it here…'}
+              aria-label={message.composer.placeholder || 'Note'}
+              sx={{
+                width: '100%',
+                boxSizing: 'border-box',
+                resize: 'vertical',
+                minHeight: 74,
+                p: '10px 12px',
+                borderRadius: 'var(--cairn-radius-sm, 10px)',
+                border: '1px solid var(--sand-200, #E8DBC3)',
+                background: 'var(--sand-50, #FBF7F0)',
+                fontFamily: '"Manrope", sans-serif',
+                fontSize: 13.5,
+                lineHeight: 1.5,
+                color: 'var(--ink, #0f1c2e)',
+                '&:focus': { outline: 'none', borderColor: 'var(--orange, #E07A3F)' },
+              }}
+            />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', mt: '9px' }}>
+              <Box
+                component="span"
+                sx={{
+                  fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: savedCount ? 'var(--green, #2F855A)' : 'var(--ink-soft, #44566C)',
+                }}
+              >
+                {savedCount
+                  ? `${savedCount} logged · add another`
+                  : (message.composer.helper || 'Cmd/Ctrl + Enter saves')}
+              </Box>
+              <Box
+                component="button"
+                type="button"
+                disabled={!draft.trim()}
+                onClick={() => {
+                  if (!draft.trim()) return;
+                  message.composer.onSubmit?.(draft.trim());
+                  setDraft('');
+                  setSavedCount((n) => n + 1);
+                }}
+                sx={{
+                  all: 'unset',
+                  boxSizing: 'border-box',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  px: '18px',
+                  minHeight: 34,
+                  borderRadius: 999,
+                  background: 'var(--navy-900, #10223C)',
+                  color: 'var(--amber-soft, #F4CEA1)',
+                  fontFamily: '"Manrope", sans-serif',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: draft.trim() ? 'pointer' : 'not-allowed',
+                  opacity: draft.trim() ? 1 : 0.45,
+                  '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+                }}
+              >
+                {message.composer.submitLabel || 'Save'}
+              </Box>
+            </Box>
+          </Box>
+        )}
 
         {/* ── Expandable FAQ for the detailed read ── */}
         {faqItems.length > 0 && (

@@ -17,6 +17,7 @@ import { appendTraitNote, notesLabel, readTraitNotes } from './traitRoomNotes';
 import MetricHint from '../../../components/MetricHint';
 import { SCORE_HINTS } from '../../../data/scoreGlossary';
 import { colors, fonts, radii, shadows, surfaces, type } from '../../../styles/tokens';
+import { useGuide } from '../../../context/GuideContext';
 
 const HAIRLINE_ON_NAVY = 'rgba(244,206,161,0.20)';
 const signed = (n) => `${n > 0 ? '+' : ''}${n}`;
@@ -228,87 +229,76 @@ function StatementRow({ statement, open, mode, onToggle, isLast }) {
 // ---------------------------------------------------------------------------
 
 function NotesRibbon({ trait, selectedIdx }) {
-  const [draft, setDraft] = useState('');
   const [notes, setNotes] = useState(() => readTraitNotes(trait));
+  const { setHidden, setPageMessage } = useGuide();
 
-  useEffect(() => { setNotes(readTraitNotes(trait)); setDraft(''); }, [trait]);
+  useEffect(() => { setNotes(readTraitNotes(trait)); }, [trait]);
 
-  const save = () => {
-    if (!draft.trim()) return;
-    setNotes(appendTraitNote(trait, draft, Number.isInteger(selectedIdx) ? selectedIdx : null));
-    setDraft('');
+  // The note goes to the guide rather than into a form sitting open at the
+  // bottom of the room. Pressing this raises the owl if it is collapsed and
+  // turns its bubble into the place the note is typed — and it stays there
+  // for the next one, because a reading rarely produces exactly one thought.
+  const openWithGuide = () => {
+    setHidden(false);
+    setPageMessage({
+      text: `Anything you want to carry into action planning from ${trait}? Tell me and I will keep it with this trait.`,
+      pose: 'think',
+      composer: {
+        placeholder: 'Something to bring into the plan…',
+        submitLabel: 'Log it',
+        helper: 'Cmd/Ctrl + Enter saves',
+        onSubmit: (text) => {
+          setNotes(appendTraitNote(trait, text, Number.isInteger(selectedIdx) ? selectedIdx : null));
+        },
+      },
+    });
   };
 
   return (
-    <Box sx={{ ...surfaces.card, p: { xs: '16px 18px', md: '18px 22px' } }}>
-      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', mb: '10px' }}>
-        <Typography sx={{
-          fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
-          textTransform: 'uppercase', color: colors.inkSoft,
-        }}>
-          Jot a thought
-        </Typography>
-        <Typography sx={{
-          fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em',
-          textTransform: 'uppercase', color: colors.inkSoft,
-        }}>
-          {notesLabel(notes.length)}
-        </Typography>
-      </Box>
+    <Box
+      sx={{
+        ...surfaces.card,
+        p: { xs: '12px 14px', md: '12px 18px' },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '14px',
+        flexWrap: 'wrap',
+      }}
+    >
+      <Typography sx={{
+        fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.5, color: colors.inkSoft,
+      }}>
+        If you&#8217;d like to add a note ahead of action planning, log it here.
+        {notes.length ? (
+          <Box component="span" sx={{
+            ml: '10px', fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
+            letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.inkSoft,
+          }}>
+            {notesLabel(notes.length)}
+          </Box>
+        ) : null}
+      </Typography>
 
-      {/* Room to actually write. Ctrl/Cmd+Enter saves; plain Enter makes a new
-          line, because a thought worth keeping is often more than one. */}
       <Box
-        component="textarea"
-        rows={3}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save(); }}
-        placeholder="Something to bring into the plan…"
-        aria-label="Jot a thought to bring into the plan"
+        component="button"
+        type="button"
+        onClick={openWithGuide}
         sx={{
-          width: '100%',
-          boxSizing: 'border-box',
-          resize: 'vertical',
-          minHeight: 84,
-          p: '12px 14px',
-          borderRadius: radii.md,
-          border: `1px solid ${colors.sand200}`,
-          bgcolor: colors.sand50,
-          fontFamily: fonts.sans,
-          fontSize: 14,
-          lineHeight: 1.55,
-          color: colors.ink,
-          '&::placeholder': { color: colors.inkSoft, opacity: 0.8 },
-          '&:focus': { outline: 'none', borderColor: colors.orange },
+          all: 'unset', boxSizing: 'border-box',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          px: '20px', minHeight: 36, borderRadius: radii.pill,
+          bgcolor: colors.navy900, color: colors.amberSoft,
+          fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
+          boxShadow: shadows.buttonPrimary,
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          transition: 'transform 140ms, background 140ms',
+          '&:hover': { bgcolor: colors.navy800, transform: 'translateY(-1px)' },
+          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
         }}
-      />
-
-      {/* Save is the only action here. An "open the action plan" button next to
-          it read as Next and pulled people out of the evidence before they had
-          finished reading it — the plan is a click away on the dashboard. */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: '12px' }}>
-        <Box
-          component="button"
-          type="button"
-          onClick={save}
-          disabled={!draft.trim()}
-          sx={{
-            all: 'unset', boxSizing: 'border-box',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            px: '26px', minHeight: 42, borderRadius: radii.pill,
-            bgcolor: colors.navy900, color: colors.amberSoft,
-            fontFamily: fonts.sans, fontSize: 13, fontWeight: 700,
-            boxShadow: shadows.buttonPrimary,
-            cursor: draft.trim() ? 'pointer' : 'not-allowed',
-            opacity: draft.trim() ? 1 : 0.45,
-            transition: 'transform 140ms, background 140ms',
-            '&:hover': draft.trim() ? { bgcolor: colors.navy800, transform: 'translateY(-1px)' } : undefined,
-            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-          }}
-        >
-          Save note
-        </Box>
+      >
+        Add a note
       </Box>
     </Box>
   );
