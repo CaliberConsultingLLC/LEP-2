@@ -21,35 +21,35 @@ const ASSETS = {
 
 const WAYPOINTS = [
   { num: 'I',    name: 'Profile',             pin: 'PROFILE',            time: '10 MIN',    pos: { left: '13.7%', top: '86.5%' },
-    happens: ['You create your account', 'You choose your guide', 'You give us your context'],
-    gets: 'A tool that already understands your unique leadership position — your industry, your role, and the team you actually lead.' },
+    happens: ['Setting up your account and choosing your guide', 'A short intake on your industry, your role, and the team you actually lead'],
+    different: 'Every product opens with a sign-up form and never mentions it again. The Compass reads those fields as leadership context — so every insight that follows is aimed at your industry, your level, and your team, not at leaders in general.' },
   { num: 'II',   name: 'Behaviors',           pin: 'BEHAVIORS',          time: '15 MIN',    pos: { left: '29.4%', top: '72.4%' },
-    happens: ['The Compass asks how you lead day to day', 'You answer as you normally show up, not as your best day'],
-    gets: 'An agent that understands how you show up on any given day — not the version you would present in a review.' },
+    happens: ['The Compass asks how you lead day to day — answered as you normally show up, not as your best day', 'Your answers become the baseline every later chapter is measured against'],
+    different: 'Most assessments sort you into a type and hand you the type’s advice. Nothing here gets scored against a personality grid — your own words become the reference point, which is what makes your team’s answers comparable later.' },
   { num: 'III',  name: 'Reflection',          pin: 'REFLECTION',         time: '20 MIN',    pos: { left: '42.5%', top: '85.5%' },
-    happens: ['The Compass writes your personalized leadership insights map', 'Four short parts, drawn entirely from your own answers'],
-    gets: 'A mirror that reflects your unique leadership approach. Sit with it long enough to recognize yourself before we move forward.' },
+    happens: ['The Compass writes your personalized leadership insights map — four short parts, drawn entirely from your own answers', 'Your guide walks you through it, page by page'],
+    different: 'A generated report usually reads like it could belong to anyone. This one is written from nothing but your own answers — no archetypes, no benchmark cohort — and your guide reads it with you, so the hardest pages land in a voice you chose.' },
   { num: 'IV',   name: 'Growth Campaign',     pin: 'GROWTH CAMPAIGN',    time: '15 MIN',    pos: { left: '50.5%', top: '76.5%' },
-    happens: ['You partner with the Compass to build your annual growth campaign', 'Three traits, and the statements your team will answer'],
-    gets: 'The campaign your year runs on — your perception and your team’s, aimed at three traits chosen for you, in fifteen statements written in language you would stand behind.' },
+    happens: ['Your annual growth campaign gets built alongside the Compass', 'Three traits get chosen, and fifteen statements your team will answer get written'],
+    different: 'Every 360 tool ships a fixed question bank written by someone who has never met your team. Here the statements come out of your own vocabulary — which is the reason nobody can wave the results off as somebody else’s survey.' },
   { num: 'V',    name: 'Calibrate',           pin: 'CALIBRATE',          time: '10 MIN',    pos: { left: '59%',   top: '71.5%' },
-    happens: ['Your campaign goes live — you answer first, then your team, anonymously', 'The first real data on how you are doing lands'],
-    gets: 'A baseline and a benchmark for your growth campaign. Truth comes before growth, and this is where the truth starts.' },
+    happens: ['Your campaign goes live — your answers first, then your team’s, anonymously', 'The first real data on how you are doing lands'],
+    different: 'Most feedback tools survey the team and hand the leader a score. You answer the same statements first, on purpose — so what comes back isn’t a grade, it’s the distance between how you see it and how they do.' },
   { num: 'VI',   name: 'Review & Reflect',    pin: 'REVIEW & REFLECT',   time: '1 SITTING', pos: { left: '76.5%', top: '57%' },
-    happens: ['Your narrative and data analysis land in your dashboard', 'The Compass teaches you how to read them'],
-    gets: 'An honest reading of how your team experiences your leadership — an objective read on an otherwise blind pursuit.' },
+    happens: ['Your narrative and data analysis land in your dashboard', 'The Compass walks you through how to read them'],
+    different: 'Dashboards hand over numbers and leave the interpreting to you — which is how most feedback quietly goes unused. The Compass reads the results with you, narrative first, and says plainly what the gap between your view and theirs means.' },
   { num: 'VII',  name: 'Action Plan',         pin: 'ACTION PLAN',        time: '30 MIN',    pos: { left: '82%',   top: '47%' },
-    happens: ['A guided exercise in your field journal', 'You craft a practical action plan for the year'],
-    gets: 'A one-page plan you live, not log into — held until the next check-in tells you whether it is landing.' },
+    happens: ['A guided exercise in your field journal', 'A practical one-page action plan for the year comes out of it'],
+    different: 'Development plans usually get written once and filed where nobody reads them again. This one is one page, and the next assessment reports directly against it — the plan is what gets graded, not you.' },
   { num: 'VIII', name: 'Check-in Assessment', pin: 'CHECK-IN',           time: 'MONTH 3',   pos: { left: '86%',   top: '31.9%' },
     happens: ['The second assessment of your growth campaign runs', 'Your dashboard and field journal update with the new results'],
-    gets: 'Growth insights, not a snapshot — whether the practice is landing, and where the team can feel it.' },
+    different: 'A one-and-done survey can only ever give you a snapshot. Running the same statements a second time turns a score into a trend — and tells you whether three months of practice changed anything your team can actually feel.' },
   { num: 'IX',   name: 'Revise Action Plan',  pin: 'REVISE PLAN',        time: '20 MIN',    pos: { left: '84.5%', top: '22.8%' },
-    happens: ['Updated feedback is held against your action plan', 'You revise it with your guide alongside'],
-    gets: 'A sharper plan for the back half of the year, built on evidence instead of intention.' },
+    happens: ['The updated feedback lands against your action plan, line by line', 'A revision for the back half of the year, made with your guide alongside'],
+    different: 'Mid-year, most plans get adjusted on instinct — or not at all. This revision is made against three months of evidence from the people you actually lead, with a guide in the room who already knows what the numbers said.' },
   { num: 'X',    name: 'Final Assessment',    pin: 'FINAL',              time: 'MONTH 9',   pos: { left: '83.8%', top: '14.5%' },
     happens: ['A final self-assessment and team calibration close the year', 'A year-end ceremony celebrating your growth as a leader'],
-    gets: 'The arc of your progress in one place — where you started, what changed, and how your team’s experience has changed.' },
+    different: 'Most programs end with a certificate and a feeling. This one ends with the arc — three readings across a year, your view beside your team’s, showing exactly where you started and what actually changed.' },
 ];
 
 /* The "Your Path, Your Guide, Your Growth" promise from the hero now lives
@@ -535,8 +535,8 @@ export default function CompassLanding() {
             <ul className="clx-bullets">
               {wp.happens.map((line) => <li key={line}>{line}</li>)}
             </ul>
-            <span className="cl-journal-label ember">WHAT YOU GET</span>
-            <p>{wp.gets}</p>
+            <span className="cl-journal-label ember">HOW THIS IS DIFFERENT</span>
+            <p>{wp.different}</p>
           </div>
           </div>
         </div>
