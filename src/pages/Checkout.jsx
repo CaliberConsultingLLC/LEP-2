@@ -101,7 +101,14 @@ function Checkout() {
           return;
         }
 
-        checkout = await stripe.initEmbeddedCheckout({ clientSecret: payload.clientSecret });
+        // Stripe renamed this alongside the session's ui_mode: current
+        // stripe.js exposes createEmbeddedCheckoutPage, older builds only
+        // initEmbeddedCheckout. Calling the removed one throws rather than
+        // returning undefined, so pick by what the loaded copy actually has.
+        const create = typeof stripe.createEmbeddedCheckoutPage === 'function'
+          ? stripe.createEmbeddedCheckoutPage.bind(stripe)
+          : stripe.initEmbeddedCheckout.bind(stripe);
+        checkout = await create({ clientSecret: payload.clientSecret });
         if (cancelledRun || !mountRef.current) {
           checkout.destroy();
           return;
