@@ -4,26 +4,55 @@
     {
       "name": "lep2-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
     },
     {
       "name": "lep2-vite-alt",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--port", "5199", "--strictPort"],
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
       "port": 5199
     },
     {
       "name": "lep2-vite-narrative",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--port", "5217", "--strictPort"],
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5217",
+        "--strictPort"
+      ],
       "port": 5217
     },
     {
       "name": "lep2-vite-polish",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--port", "5223", "--strictPort"],
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5223",
+        "--strictPort"
+      ],
       "port": 5223
+    },
+    {
+      "name": "lep2-vite-stripe",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5231",
+        "--strictPort"
+      ],
+      "port": 5231
     }
   ]
 }
