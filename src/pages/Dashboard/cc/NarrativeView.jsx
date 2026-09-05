@@ -586,13 +586,25 @@ function dialZoneOf(effort, efficacy) {
   return { id: 'untapped', label: 'Missing the mark', navyInk: '#9fb0c3', faceInk: colors.inkSoft };
 }
 
+// `vibrantSoft` is the lit zone under the light veil: with the dimming pulled
+// back, the contrast has to come from the highlight instead, or nothing reads
+// as selected.
 const DIAL_WEDGES = [
-  { id: 'fullStrength', d: wedgePath(-45), vibrant: 'rgba(236,201,75,0.55)' },
-  { id: 'offTarget', d: wedgePath(45), vibrant: 'rgba(224,122,63,0.48)' },
-  { id: 'untapped', d: wedgePath(135), vibrant: 'rgba(15,28,46,0.16)' },
-  { id: 'naturalGift', d: wedgePath(225), vibrant: 'rgba(143,179,205,0.55)' },
+  { id: 'fullStrength', d: wedgePath(-45), vibrant: 'rgba(236,201,75,0.55)', vibrantSoft: 'rgba(236,201,75,0.88)' },
+  { id: 'offTarget', d: wedgePath(45), vibrant: 'rgba(224,122,63,0.48)', vibrantSoft: 'rgba(224,122,63,0.60)' },
+  { id: 'untapped', d: wedgePath(135), vibrant: 'rgba(15,28,46,0.16)', vibrantSoft: 'rgba(15,28,46,0.34)' },
+  { id: 'naturalGift', d: wedgePath(225), vibrant: 'rgba(143,179,205,0.55)', vibrantSoft: 'rgba(94,145,176,0.62)' },
 ];
+// The veil dims the zones a statement did not land in. On the map page that
+// dimming is doing work — the lit zone changes as you select — so it stays
+// heavy. On the insight pages the dial is static and three times the size, and
+// the same veil reads as a slab, so those pass `soft` and get a veil light
+// enough to leave the face sand-coloured. The unselected labels have to move
+// with it: cream ink over the heavy veil, soft dark ink over the light one.
 const DIAL_VEIL = 'rgba(10,20,36,0.38)';
+const DIAL_VEIL_SOFT = 'rgba(10,20,36,0.17)';
+const DIAL_DIM_INK = 'rgba(244, 236, 221, 0.6)';
+const DIAL_DIM_INK_SOFT = 'rgba(68, 86, 108, 0.62)';
 const DIAL_ZONE_LABELS = [
   { id: 'fullStrength', label: 'Honed, keep perfecting', sx: { left: '50%', top: '6%', transform: 'translate(-50%, 0)', textAlign: 'center' } },
   { id: 'offTarget', label: 'Off-target, but intentional', sx: { left: '94%', top: '50%', transform: 'translate(-100%, -50%)', textAlign: 'right' } },
@@ -605,7 +617,7 @@ function statementZoneBlurb(effort, efficacy) {
   return `${zone.label}. ${statementSplitRead(effort, efficacy)}`;
 }
 
-function MiniDial({ statement, showAxisNodes = false, max = 'min(100%, 38vh)' }) {
+function MiniDial({ statement, showAxisNodes = false, max = 'min(100%, 38vh)', soft = false }) {
   const zone = statement ? dialZoneOf(statement.effort, statement.efficacy) : null;
   const pos = statement ? circPos(statement.effort, statement.efficacy) : null;
   const axisNodes = showAxisNodes && statement
@@ -669,7 +681,20 @@ function MiniDial({ statement, showAxisNodes = false, max = 'min(100%, 38vh)' })
             <line x1="17.01" y1="17.01" x2="82.99" y2="82.99" stroke={colors.dialAxis} strokeWidth="1" vectorEffect="non-scaling-stroke" />
             <line x1="82.99" y1="17.01" x2="17.01" y2="82.99" stroke={colors.dialAxis} strokeWidth="1" vectorEffect="non-scaling-stroke" />
             {DIAL_WEDGES.map((w) => (
-              <path key={w.id} d={w.d} fill={zone && w.id === zone.id ? w.vibrant : DIAL_VEIL} style={{ transition: 'fill 280ms ease' }} />
+              <path
+                key={w.id}
+                d={w.d}
+                fill={
+                  zone && w.id === zone.id
+                    ? soft
+                      ? w.vibrantSoft
+                      : w.vibrant
+                    : soft
+                    ? DIAL_VEIL_SOFT
+                    : DIAL_VEIL
+                }
+                style={{ transition: 'fill 280ms ease' }}
+              />
             ))}
           </Box>
           <Box
@@ -696,7 +721,7 @@ function MiniDial({ statement, showAxisNodes = false, max = 'min(100%, 38vh)' })
                 fontWeight: zone && z.id === zone.id ? 700 : 600,
                 lineHeight: 1.3,
                 maxWidth: 104,
-                color: zone && z.id === zone.id ? zone.faceInk : 'rgba(244, 236, 221, 0.6)',
+                color: zone && z.id === zone.id ? zone.faceInk : soft ? DIAL_DIM_INK_SOFT : DIAL_DIM_INK,
                 pointerEvents: 'none',
                 transition: 'color 280ms ease',
               }}
@@ -1446,7 +1471,7 @@ function SlideInsight({ traits, index, roles }) {
       </Box>
 
       <Box>
-        <MiniDial statement={traitDial} showAxisNodes max={INSIGHT_DIAL_MAX} />
+        <MiniDial statement={traitDial} showAxisNodes soft max={INSIGHT_DIAL_MAX} />
       </Box>
     </Box>
   );
