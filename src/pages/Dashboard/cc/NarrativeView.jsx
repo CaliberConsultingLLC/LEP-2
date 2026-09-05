@@ -111,25 +111,29 @@ function insightCopy(row, role) {
   switch (zone.id) {
     case 'naturalGift':
       return {
-        headline: `${name} — your natural gift.`,
+        name,
+        tagline: 'your natural gift.',
         serif: `Your team feels this landing. Effectiveness of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else. That consistency is the signal: when a trait costs this little and lands this clearly, it is already doing work you may not be counting.`,
         sans: 'The read is consistent: it lands clearly enough that your team doesn’t watch you strain for it — they just orient by it. The only caution with a gift this natural is drift. Name it out loud, lean on it when the harder work gets heavy, and give it just enough deliberate attention that it keeps growing instead of coasting. Protect the ease without taking it for granted.',
       };
     case 'fullStrength':
       return {
-        headline: `${name} — strong because you keep it strong.`,
+        name,
+        tagline: 'strong because you keep it strong.',
         serif: `Real effort, real results. Your team rates the work at ${e} and the payoff at ${f} — they see you working at this, and they feel it landing in kind.${Math.abs(gap) < 8 ? ' And your read matches theirs almost exactly: a rare, shared picture of the same strength.' : ''} That alignment is what makes this trait dependable — not luck, but a pattern your team can name.`,
         sans: 'This is the strongest place a trait can be — and the most expensive to hold. Protect it: notice what’s working so you can repeat it on purpose, and keep an eye on the cost, because a peak held by force erodes quietly. Nothing here needs fixing; it needs guarding. The work is visible, the payoff is felt, and that loop is worth preserving deliberately.',
       };
     case 'offTarget':
       return {
-        headline: `${name} — asking the loudest.`,
+        name,
+        tagline: 'asking the loudest.',
         serif: `${role === 'edge' ? 'The heaviest signal in the reading' : 'A hard signal in the reading'}${gap >= 8 ? ' — and a wide gap between your read and theirs' : ''}. Your team sees real effort here (${e}), they aren’t yet feeling the results (${f})${gap >= 8 ? ', and you feel more landing than they do' : ''}. The split between trying and landing is the whole story — and it shows up statement by statement, not just in the headline score.`,
         sans: 'This is a targeting problem, not a character flaw. Don’t add more force — change the aim. Ask your team what would actually help, and redirect energy you’re already spending. When you’re ready to work, this trait is first in line, and its room holds every statement behind this read. Small aim corrections here will be felt faster than pushing harder on what is already maxed out.',
       };
     default:
       return {
-        headline: `${name} — quiet ground, not yet claimed.`,
+        name,
+        tagline: 'quiet ground, not yet claimed.',
         serif: `Neither much effort (${e}) nor much result (${f}) is showing up here yet. It’s not a failure — it’s unclaimed ground, and unclaimed ground moves fastest when you decide it matters. Until you choose it, your team reads quiet on both measurements.`,
         sans: 'Decide whether this trait belongs in the next stretch. If it does, a small, deliberate investment — one visible behavior, held for a season — can move it more quickly than any of the crowded traits. If it doesn’t, let it rest without guilt. Unclaimed is not broken; it is simply waiting for a decision about whether it earns your attention.',
       };
@@ -148,13 +152,13 @@ const FRAME_HEAD_H = { xs: 84, md: 92 };
 // The body area is sized to the densest page plus breathing room — the content
 // keeps its own scale and sits centred, rather than stretching to fill.
 const FRAME_BODY_H = 'clamp(276px, 38vh, 356px)';
-// The insight pages are the exception: they carry a full-size Compass beside a
-// narrow reading column, so their body sizes to its content rather than to the
-// band. Their title also stands alone — no lead line — so the head band drops
-// to its natural height there and hands the difference to the dial. The dial
-// takes every pixel the stage can spare: the 500px it gives back covers the
-// chrome above and below it (nav, eyebrow, title, frame inset, page dots).
-const INSIGHT_DIAL_MAX = 'min(100%, max(180px, calc(100vh - 500px)))';
+// The insight pages are the exception: two columns and nothing else — the
+// reading on the left under its own title, the Compass on the right at the
+// size the page is actually about. They skip the head band entirely, so their
+// body sizes to its content and the dial takes every pixel the stage can
+// spare; the 420px it gives back covers the chrome above and below it (nav,
+// eyebrow, frame inset, page dots).
+const INSIGHT_DIAL_MAX = 'min(100%, max(180px, calc(100vh - 420px)))';
 
 function StageArrow({ dir, hidden, onClick }) {
   return (
@@ -334,9 +338,8 @@ function DetailCard({ children, h }) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: 1.4,
+        gap: 'clamp(7px, 1.15vh, 11.2px)',
         height: h || SHOWCASE_H,
-        boxSizing: 'border-box',
         overflow: 'hidden',
       }}
     >
@@ -394,11 +397,12 @@ function ReadFootnote({ children }) {
       sx={{
         fontFamily: fonts.serif,
         fontStyle: 'italic',
-        fontSize: 15,
+        fontSize: 'clamp(13px, 1.7vh, 15px)',
         lineHeight: 1.55,
         color: colors.textSecondary,
         borderTop: `1px solid ${colors.borderSoft}`,
-        pt: 1.8,
+        pt: 'clamp(9px, 1.6vh, 14.4px)',
+        flexShrink: 0,
       }}
     >
       {children}
@@ -421,6 +425,72 @@ function PickGrid({ left, right }) {
     >
       <Stack spacing={2}>{left}</Stack>
       <Box>{right}</Box>
+    </Box>
+  );
+}
+
+// One measurement, read twice. The filled bar is what the team feels — the same
+// bar slide 02 drew, so it is recognisable — and it carries on in a lighter
+// band to where you thought it was, with your read marked at the end of it. The
+// distance between the two marks IS the gap, so the number on the right only
+// confirms what the bar already shows.
+const GAP_BAND = (n) => (n > 0 ? 'rgba(224,122,63,0.34)' : n < 0 ? 'rgba(63,100,123,0.30)' : 'transparent');
+
+function GapTrack({ label, ink, fill, you, team, gap }) {
+  const lo = Math.min(you, team);
+  const hi = Math.max(you, team);
+  return (
+    <Box>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `104px 1fr ${SCORE_COL_W}px`,
+          columnGap: 1.8,
+          alignItems: 'center',
+        }}
+      >
+        <Typography sx={{ ...type.monoLabel, color: ink }}>{label}</Typography>
+        <Box sx={{ position: 'relative', height: 12 }}>
+          <Box sx={{ position: 'absolute', inset: 0, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
+            <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${team}%`, bgcolor: fill, transition: 'width 280ms ease' }} />
+            <Box sx={{ position: 'absolute', left: `${lo}%`, width: `${hi - lo}%`, top: 0, bottom: 0, bgcolor: GAP_BAND(gap) }} />
+          </Box>
+          {/* Your read, pinned on their track. The caption below keys the two
+              colours, so the mark needs no label of its own. */}
+          <Box sx={{ position: 'absolute', left: `${you}%`, top: -6, bottom: -6, width: '2px', ml: '-1px', borderRadius: radii.pill, bgcolor: colors.navy900 }} />
+          <Box
+            sx={{
+              position: 'absolute',
+              left: `${you}%`,
+              top: -11,
+              width: 7,
+              height: 7,
+              ml: '-3.5px',
+              borderRadius: radii.circle,
+              bgcolor: colors.navy900,
+            }}
+          />
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: fonts.serif,
+            fontWeight: 600,
+            fontSize: 24,
+            lineHeight: 1,
+            letterSpacing: '-0.04em',
+            color: gapInk(gap),
+            fontVariantNumeric: 'tabular-nums',
+            textAlign: 'right',
+          }}
+        >
+          {fmtGap(gap)}
+        </Typography>
+      </Box>
+      <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, color: colors.textSecondary, mt: 'clamp(4px, 0.95vh, 9px)', pl: '122px' }}>
+        <Box component="span" sx={{ color: colors.navy900, fontWeight: 600 }}>You {you}</Box>
+        {' · '}
+        <Box component="span" sx={{ color: ink, fontWeight: 600 }}>they feel {team}</Box>
+      </Typography>
     </Box>
   );
 }
@@ -1257,34 +1327,43 @@ function SlideGapStatements({ stmts, sel, onSel }) {
         ))}
         right={
           <DetailCard h={columnH(STMT_CARD_H)}>
-            <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={2.4}>
-              <Typography
-                sx={{
-                  fontFamily: fonts.serif,
-                  fontSize: 22,
-                  fontWeight: 500,
-                  lineHeight: 1.35,
-                  letterSpacing: '-0.015em',
-                  color: colors.textPrimary,
-                  minWidth: 0,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                &#8220;{d.text}&#8221;
-              </Typography>
-              <Stack direction="row" alignItems="baseline" spacing={1} sx={{ flexShrink: 0 }}>
-                <Typography sx={{ ...type.monoLabel }}>Gap</Typography>
-                <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 40, lineHeight: 0.95, letterSpacing: '-0.04em', color: gapInk(gap) }}>
-                  {fmtGap(gap)}
-                </Typography>
-              </Stack>
-            </Stack>
-            <Box>
-              <GapCells label="Effort" labelColor={colors.orangeDeep} you={Math.round(d.effortSelf)} team={Math.round(d.effort)} gap={eg} />
-              <GapCells label="Effectiveness" labelColor={colors.navy500} you={Math.round(d.efficacySelf)} team={Math.round(d.efficacy)} gap={fg} />
+            {/* The statement gets the width to itself; the two tracks below it
+                carry the comparison, so there is no headline number competing
+                with the quote for the top of the card. */}
+            <Typography
+              sx={{
+                fontFamily: fonts.serif,
+                fontSize: 'clamp(17px, 2.35vh, 21px)',
+                fontWeight: 500,
+                lineHeight: 1.35,
+                letterSpacing: '-0.015em',
+                color: colors.textPrimary,
+                flexShrink: 0,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              &#8220;{d.text}&#8221;
+            </Typography>
+            <Box sx={{ display: 'grid', rowGap: 'clamp(10px, 1.9vh, 18px)' }}>
+              <GapTrack
+                label="Effort"
+                ink={colors.orangeDeep}
+                fill={colors.orange}
+                you={Math.round(d.effortSelf)}
+                team={Math.round(d.effort)}
+                gap={eg}
+              />
+              <GapTrack
+                label="Effectiveness"
+                ink={colors.navy500}
+                fill={colors.efficacyBlue}
+                you={Math.round(d.efficacySelf)}
+                team={Math.round(d.efficacy)}
+                gap={fg}
+              />
             </Box>
             <ReadFootnote>{mirrorStatementRead(gap)}</ReadFootnote>
           </DetailCard>
@@ -1321,43 +1400,87 @@ function SlideInsight({ traits, index, roles }) {
       }}
     >
       <Box sx={{ maxWidth: 480 }}>
-        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 'clamp(15px, 1.9vh, 17.5px)', lineHeight: 1.6, color: colors.textPrimary, mb: 2, textWrap: 'pretty' }}>
+        {/* The trait carries the page, so it is the page's title — the name
+            ruled underneath, the verdict on it as a subtitle. Everything below
+            is the reading, and it stays in one voice so the two serif lines at
+            the top are the only display type in the column. */}
+        <Typography
+          component="h1"
+          sx={{
+            display: 'inline-block',
+            fontFamily: fonts.serif,
+            fontWeight: 500,
+            fontSize: 'clamp(25px, 3.3vh, 32px)',
+            lineHeight: 1.05,
+            letterSpacing: '-0.03em',
+            color: colors.textPrimary,
+            borderBottom: `2px solid ${colors.orange}`,
+            pb: 0.7,
+          }}
+        >
+          {copy.name}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: fonts.serif,
+            fontStyle: 'italic',
+            fontSize: 'clamp(15px, 2vh, 18px)',
+            lineHeight: 1.4,
+            color: colors.textSecondary,
+            mt: 1.1,
+            mb: 2.2,
+            textWrap: 'pretty',
+          }}
+        >
+          {copy.tagline}
+        </Typography>
+        <Box sx={{ mb: 2.4 }}>
+          <TraitVitals row={row} />
+        </Box>
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 'clamp(13.5px, 1.72vh, 15.5px)', lineHeight: 1.62, color: colors.textPrimary, mb: 1.6, textWrap: 'pretty' }}>
           {copy.serif}
         </Typography>
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 'clamp(13.5px, 1.65vh, 15px)', lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 'clamp(12.75px, 1.6vh, 14.5px)', lineHeight: 1.65, color: colors.textSecondary, textWrap: 'pretty' }}>
           {copy.sans}
         </Typography>
       </Box>
 
       <Box>
-        {/* The Compass figure wears the dial's own colours — navy plate, amber
-            numeral — so the headline score reads as the instrument's answer. */}
-        <Stack direction="row" alignItems="stretch" justifyContent="center" spacing={1.6} sx={{ mb: 2 }}>
-          <Stack
-            alignItems="center"
-            justifyContent="center"
-            sx={{ bgcolor: colors.navy900, borderRadius: radii.md, px: 2.2, py: 1, minWidth: 92 }}
-          >
-            <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 31, lineHeight: 1, letterSpacing: '-0.03em', color: colors.amber, fontVariantNumeric: 'tabular-nums' }}>
-              {Math.round(row.team.lepScore)}
-            </Typography>
-            <Typography sx={{ ...type.monoLabel, color: '#fff', mt: 0.5 }}>Compass</Typography>
-          </Stack>
-          {[
-            { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orange },
-            { v: Math.round(row.team.efficacy), cap: 'Effectiveness', color: colors.efficacyBlue },
-          ].map((c) => (
-            <Stack key={c.cap} alignItems="center" justifyContent="center" sx={{ px: 1.4 }}>
-              <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 31, lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
-                {c.v}
-              </Typography>
-              <Typography sx={{ ...type.monoLabel, color: colors.textSecondary, mt: 0.5 }}>{c.cap}</Typography>
-            </Stack>
-          ))}
-        </Stack>
         <MiniDial statement={traitDial} showAxisNodes max={INSIGHT_DIAL_MAX} />
       </Box>
     </Box>
+  );
+}
+
+// The trait's three numbers, read as its vitals: they sit with the words that
+// cite them, not with the dial, which leaves the right-hand column holding one
+// object. The Compass figure wears the dial's own colours — navy plate, amber
+// numeral — so the headline score reads as the instrument's answer.
+function TraitVitals({ row }) {
+  return (
+    <Stack direction="row" alignItems="stretch" spacing={1.4}>
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={{ bgcolor: colors.navy900, borderRadius: radii.md, px: 2, py: 0.9, minWidth: 88 }}
+      >
+        <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(24px, 3vh, 29px)', lineHeight: 1, letterSpacing: '-0.03em', color: colors.amber, fontVariantNumeric: 'tabular-nums' }}>
+          {Math.round(row.team.lepScore)}
+        </Typography>
+        <Typography sx={{ ...type.monoLabel, color: '#fff', mt: 0.5 }}>Compass</Typography>
+      </Stack>
+      {[
+        { v: Math.round(row.team.effort), cap: 'Effort', color: colors.orange },
+        { v: Math.round(row.team.efficacy), cap: 'Effectiveness', color: colors.efficacyBlue },
+      ].map((c) => (
+        <Stack key={c.cap} alignItems="center" justifyContent="center" sx={{ px: 1.2 }}>
+          <Typography sx={{ fontFamily: fonts.serif, fontWeight: 600, fontSize: 'clamp(24px, 3vh, 29px)', lineHeight: 1, letterSpacing: '-0.03em', color: c.color, fontVariantNumeric: 'tabular-nums' }}>
+            {c.v}
+          </Typography>
+          <Typography sx={{ ...type.monoLabel, color: colors.textSecondary, mt: 0.5 }}>{c.cap}</Typography>
+        </Stack>
+      ))}
+    </Stack>
   );
 }
 
@@ -1536,16 +1659,10 @@ export default function NarrativeView() {
   // included, so the reader always knows which step of the guide they are on.
   const headerFor = () => {
     const n = idx + 1;
-    const insightIdx = ['insight-1', 'insight-2', 'insight-3'].indexOf(activeId);
-    if (insightIdx > -1) {
-      const row = traits[Math.min(insightIdx, traits.length - 1)];
-      const role =
-        row.trait === roles.edge?.trait ? 'edge' : row.trait === roles.lifting?.trait ? 'lifting' : 'strength';
-      return {
-        eyebrow: { index: n, label: `The Insights · ${row.subTrait || row.trait}` },
-        title: insightCopy(row, role).headline,
-        lead: null,
-      };
+    if (['insight-1', 'insight-2', 'insight-3'].includes(activeId)) {
+      // No title or lead here: the slide draws its own, inside the reading
+      // column, so the trait name sits over the prose it belongs to.
+      return { eyebrow: { index: n, label: 'The Insights' }, title: null, lead: null };
     }
     switch (activeId) {
       case 'measurements':
@@ -1654,9 +1771,11 @@ export default function NarrativeView() {
                   <Box sx={{ height: `calc(${FRAME_BODY_H} + ${FRAME_HEAD_H.md}px)` }}>{renderSlide()}</Box>
                 ) : (
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ height: showsInsight ? 'auto' : FRAME_HEAD_H, flexShrink: 0, mb: showsInsight ? 2.5 : 0 }}>
-                      <SlideHeader title={header.title} lead={header.lead} legend={header.legend} />
-                    </Box>
+                    {!showsInsight && (
+                      <Box sx={{ height: FRAME_HEAD_H, flexShrink: 0 }}>
+                        <SlideHeader title={header.title} lead={header.lead} legend={header.legend} />
+                      </Box>
+                    )}
                     <Box sx={showsInsight ? { minHeight: FRAME_BODY_H } : { height: FRAME_BODY_H }}>{renderSlide()}</Box>
                   </Box>
                 )}
