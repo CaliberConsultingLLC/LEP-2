@@ -9,6 +9,7 @@ import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { clearGeneratedGuideLines, setGeneratedGuideLines } from '../data/generatedGuideLines';
+import { clearFocusAreas, isCompleteFocusAreaSet, persistFocusAreas } from '../utils/focusAreas';
 
 function SignIn() {
   const navigate = useNavigate();
@@ -116,10 +117,10 @@ function SignIn() {
     } else {
       localStorage.removeItem('summarySavedAt');
     }
-    if (Array.isArray(summaryCache?.focusAreas)) {
-      localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
+    if (isCompleteFocusAreaSet(summaryCache?.focusAreas)) {
+      persistFocusAreas(summaryCache.focusAreas, 'ai');
     } else {
-      localStorage.removeItem('focusAreas');
+      clearFocusAreas();
     }
     if (campaignBundle?.campaignRecords && typeof campaignBundle.campaignRecords === 'object') {
       const records = campaignBundle.campaignRecords;
@@ -202,7 +203,7 @@ function SignIn() {
             localStorage.removeItem('summariesByGuide');
             localStorage.removeItem('selectedGuideId');
             localStorage.removeItem('summarySavedAt');
-            localStorage.removeItem('focusAreas');
+            clearFocusAreas();
             clearGeneratedGuideLines();
             clearLocalCampaignState();
           }

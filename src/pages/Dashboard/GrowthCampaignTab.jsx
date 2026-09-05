@@ -20,6 +20,7 @@ import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/fire
 import { auth, db } from '../../firebase';
 import { useFakeDashboardData } from '../../config/runtimeFlags';
 import { LOCK_CONFIRM_PHRASE, lockTeamCampaignWindow, reopenTeamCampaignWindow } from '../../utils/lockTeamCampaign';
+import { persistFocusAreas } from '../../utils/focusAreas';
 
 const parseJson = (raw, fallback = null) => {
   try {
@@ -139,9 +140,8 @@ function GrowthCampaignTab() {
           setCachedSummary(remoteSummary);
           localStorage.setItem('aiSummary', remoteSummary);
         }
-        if (Array.isArray(summaryCache?.focusAreas)) {
-          localStorage.setItem('focusAreas', JSON.stringify(summaryCache.focusAreas));
-        }
+        // The durable copy of the real set, so it carries the same weight.
+        persistFocusAreas(summaryCache?.focusAreas, 'ai');
         if (summaryCache?.savedAt) {
           const savedValue = String(summaryCache.savedAt || '').trim();
           setSummarySavedAt(savedValue);

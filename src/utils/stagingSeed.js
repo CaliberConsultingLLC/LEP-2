@@ -7,6 +7,7 @@
  */
 
 import { STAGING_GUIDE_SUMMARIES, stagingFlattenedSummary } from '../data/stagingGuideSummaries';
+import { persistFocusAreas } from './focusAreas';
 
 export const STAGING_USER_ID   = 'staging-test-uid-001';
 export const STAGING_EMAIL     = 'alex@staging.test';
@@ -24,6 +25,7 @@ const SEED_KEYS = [
   'aiSummary',
   'summariesByGuide',
   'focusAreas',
+  'focusAreasSource',
   'trailheadHighlights',
   'selectedAgent',
   'selectedGuideId',
@@ -179,7 +181,7 @@ export function seedStagingData() {
   localStorage.setItem('summariesByGuide', JSON.stringify(STAGING_GUIDE_SUMMARIES));
   localStorage.setItem('aiSummary', stagingFlattenedSummary('mentor'));
 
-  localStorage.setItem('focusAreas', JSON.stringify([
+  persistFocusAreas([
     {
       id: 'communication-clarity',
       traitName: 'Communication',
@@ -230,7 +232,7 @@ export function seedStagingData() {
       risk: 'Stakeholder relationships deteriorate, creating roadblocks.',
       impact: 'Inclusive decisions generate buy-in and reduce implementation friction.',
     },
-  ]));
+  ], 'seed');
 
   localStorage.setItem('selectedTraits', JSON.stringify([
     'communication-clarity',

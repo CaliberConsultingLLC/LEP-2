@@ -298,7 +298,7 @@ export function seedDemoPersona({ name, teamSize, closeCampaign = true } = {}) {
     localStorage.setItem('summariesByGuide', JSON.stringify(STAGING_GUIDE_SUMMARIES));
     localStorage.setItem('aiSummary', stagingFlattenedSummary(guide.id));
   } catch { /* ignore */ }
-  ['focusAreas', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
+  ['focusAreas', 'focusAreasSource', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
     .forEach((key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } });
 
   localStorage.setItem('selectedTraits', JSON.stringify([

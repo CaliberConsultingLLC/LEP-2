@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { GUIDE_VOICE_IDS, getGuideVoice } from '../data/guideVoices';
 import { seedStagingData, clearStagingData, STAGING_SELF_ID, STAGING_TEAM_ID } from '../utils/stagingSeed';
 import { STAGING_PERSONAS } from '../data/stagingPersonas';
+import { clearFocusAreas } from '../utils/focusAreas';
 
 const PAGE_GROUPS = [
   {
@@ -167,6 +168,7 @@ function StagingDevPanel() {
     } catch { /* ignore */ }
 
     // Clear the cached summary so the page generates instead of replaying.
+    clearFocusAreas();
     ['aiSummary', 'summariesByGuide', 'focusAreas', 'trailheadHighlights', 'summarySavedAt'].forEach((key) => {
       localStorage.removeItem(key);
     });

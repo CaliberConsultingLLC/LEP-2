@@ -23,6 +23,7 @@ import { auth, db } from '../firebase';
 import { colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { isIntakeUnlocked } from '../utils/billing';
 import { isDemoSession } from '../utils/demoMode';
+import { clearFocusAreas } from '../utils/focusAreas';
 
 // ---------- Memo wrappers ----------
 const MemoTextField = memo(TextField);
@@ -1717,6 +1718,7 @@ function IntakeForm() {
         complete: true,
         latestFormData: updated,
       });
+      clearFocusAreas();
       ['aiSummary', 'focusAreas', 'trailheadHighlights', 'aiCampaign'].forEach((key) => {
         try { localStorage.removeItem(key); } catch { /* ignore */ }
       });

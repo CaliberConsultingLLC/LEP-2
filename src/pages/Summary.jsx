@@ -37,13 +37,20 @@ import { splitSentences as splitProseSentences } from '../utils/guideSummary';
 import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing } from '../data/guideBriefings';
 import { commitSelectedTraits } from '../utils/campaignState';
+import { isCompleteFocusAreaSet, persistFocusAreas, readFocusAreas } from '../utils/focusAreas';
 
 
 function Summary() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = location;
-  const formDataFromRoute = state?.formData || {};
+  // null, not {}. An empty object is truthy, and this value is used as a
+  // "do we have intake data" guard further down — as {} it answered yes on
+  // every mount, which is how a reading with no data in hand ended up
+  // regenerating its own focus areas.
+  const formDataFromRoute = (state?.formData && Object.keys(state.formData).length)
+    ? state.formData
+    : null;
   const REFLECT_STAGES = ['trailhead', 'markers', 'hazards', 'new-trail'];
   const stageIndexFromSearch = (search) => {
     const stage = String(new URLSearchParams(search || '').get('stage') || '').toLowerCase();
@@ -155,12 +162,23 @@ function Summary() {
     }
   };
 
-  // Generate focus areas based on intake data (instead of random)
+  // Derive focus areas from the intake, or derive nothing.
+  //
+  // This is the weaker of the two sources — the real set comes back from the
+  // reading itself, keyed off what the guide actually found. This one exists
+  // for the gap before that lands. It must never invent a set.
+  //
+  // It used to. With no intake data every trait scored zero, the sort left
+  // them in declaration order, and the top five came out as the first five
+  // core traits — the same five every time, written straight over whatever the
+  // reading had produced. Nothing about the output said "made up", so every
+  // page downstream believed it.
   const generateAndSetFocusAreas = () => {
     const CORE_TRAITS = traitSystem.CORE_TRAITS || [];
     if (!CORE_TRAITS.length) return;
 
-    const data = summaryData || formDataFromRoute || {};
+    const data = summaryData || formDataFromRoute || null;
+    if (!data || !Object.keys(data).length) return;
     const scores = {};
     CORE_TRAITS.forEach((trait) => { scores[trait.id] = 0; });
 
@@ -193,6 +211,11 @@ function Summary() {
     }
 
     // ---- select top 5 traits ----
+    // A ranking where nothing scored is not a ranking, it is the order the
+    // traits happen to be declared in. Stop rather than dress that up as a
+    // finding.
+    if (!Object.values(scores).some((value) => value > 0)) return;
+
     const ranked = Object.entries(scores)
       .sort((a, b) => b[1] - a[1])
       .map(([id]) => CORE_TRAITS.find((t) => t.id === id))
@@ -276,10 +299,11 @@ function Summary() {
       };
     }).filter(Boolean);
 
-    if (!generatedAreas.length) return;
+    // Five or nothing. A short set reads downstream as "focus areas not
+    // found", which is the honest outcome anyway.
     const finalAreas = generatedAreas.slice(0, 5);
-    setFocusAreas(finalAreas);
-    localStorage.setItem('focusAreas', JSON.stringify(finalAreas));
+    if (!isCompleteFocusAreaSet(finalAreas)) return;
+    if (persistFocusAreas(finalAreas, 'heuristic')) setFocusAreas(finalAreas);
   };
 
   // Load user name, AI campaign, and focus areas from localStorage
@@ -303,19 +327,9 @@ function Summary() {
       }
       
       // Load or generate focus areas
-      const storedFocusAreas = localStorage.getItem('focusAreas');
+      const storedFocusAreas = readFocusAreas();
       if (storedFocusAreas) {
-        try {
-          const parsed = JSON.parse(storedFocusAreas);
-          if (Array.isArray(parsed) && parsed.length === 5) {
-            setFocusAreas(parsed);
-          } else {
-            generateAndSetFocusAreas();
-          }
-        } catch (e) {
-          console.warn('Failed to parse focusAreas from localStorage:', e);
-          generateAndSetFocusAreas();
-        }
+        setFocusAreas(storedFocusAreas);
       } else {
         generateAndSetFocusAreas();
       }
@@ -326,9 +340,10 @@ function Summary() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-generate focus areas once summary data is available
+  // Re-derive focus areas once real intake data is in hand — and only then.
   useEffect(() => {
-    if (summaryData || formDataFromRoute) {
+    const data = summaryData || formDataFromRoute;
+    if (data && Object.keys(data).length) {
       generateAndSetFocusAreas();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -543,9 +558,9 @@ function Summary() {
       const text = flattenGuideSummary(picked.summary) || payload?.aiSummary || '';
       setAiSummary(text);
 
-      if (Array.isArray(payload?.focusAreas) && payload.focusAreas.length === 5) {
+      // The real set. Outranks anything the client derived on its own.
+      if (persistFocusAreas(payload?.focusAreas, 'ai')) {
         setFocusAreas(payload.focusAreas);
-        localStorage.setItem('focusAreas', JSON.stringify(payload.focusAreas));
       }
 
       const highlights = payload?.trailheadHighlights || null;
@@ -605,11 +620,7 @@ function Summary() {
     );
     if (useCairnTheme && !liveFromIntake) {
       const cachedSummary = (localStorage.getItem('aiSummary') || '').trim();
-      let focusAreasValid = false;
-      try {
-        const parsed = JSON.parse(localStorage.getItem('focusAreas') || '[]');
-        focusAreasValid = Array.isArray(parsed) && parsed.length === 5;
-      } catch { /* ignore */ }
+      const focusAreasValid = Boolean(readFocusAreas());
 
       if (cachedSummary && focusAreasValid) {
         setAiSummary(cachedSummary);

@@ -86,6 +86,17 @@
         "--strictPort"
       ],
       "port": 5261
+    },
+    {
+      "name": "lep2-vite-focus",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5271",
+        "--strictPort"
+      ],
+      "port": 5271
     }
   ]
 }
