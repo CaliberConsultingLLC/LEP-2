@@ -474,8 +474,8 @@ function Summary() {
       // Non-blocking, but not silent.
       //
       // This returned on !ok without a word, so /api/get-campaign could fail
-      // on every single call — it did, for weeks — and the only symptom was a
-      // campaign that never happened to be cached. The leader met the failure
+      // on every single call — it did, from 27 Aug to 5 Sep — and the only
+      // symptom was a campaign that never happened to be cached. The leader met the failure
       // later, at the builder, as a bare "internal server error".
       if (!campaignResp.ok) {
         let detail = '';
