@@ -3,6 +3,15 @@ import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_securi
 import { NARRATIVE_MODEL, createJson, hasAnthropicKey } from './_anthropic.js';
 
 // --- helpers ---------------------------------------------------------------
+// Counts live in the prompt and in these descriptions, not in minItems /
+// maxItems.
+//
+// Structured output rejects both: minItems above 1 is unsupported, and
+// maxItems is unsupported outright. Asking for 3 and 5 there did not constrain
+// the model, it 400'd the request — so every campaign build failed instantly,
+// and had been failing since this endpoint moved to schema-enforced output.
+// The handler still checks the shape it got back, which is where a count
+// belongs anyway.
 const CAMPAIGN_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -10,8 +19,7 @@ const CAMPAIGN_SCHEMA = {
   properties: {
     campaign: {
       type: 'array',
-      minItems: 3,
-      maxItems: 3,
+      description: 'Exactly three traits, in the order the leader selected them.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -20,8 +28,7 @@ const CAMPAIGN_SCHEMA = {
           trait: { type: 'string', description: 'The core trait name, e.g. "Communication".' },
           statements: {
             type: 'array',
-            minItems: 5,
-            maxItems: 5,
+            description: 'Exactly five statements for this trait.',
             items: {
               type: 'string',
               description: 'An observable leader behavior the team can rate on both effort and efficacy. At most 140 characters.',

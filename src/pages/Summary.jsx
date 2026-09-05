@@ -471,7 +471,18 @@ function Summary() {
         }),
       }, 60000);
 
-      if (!campaignResp.ok) return;
+      // Non-blocking, but not silent.
+      //
+      // This returned on !ok without a word, so /api/get-campaign could fail
+      // on every single call — it did, for weeks — and the only symptom was a
+      // campaign that never happened to be cached. The leader met the failure
+      // later, at the builder, as a bare "internal server error".
+      if (!campaignResp.ok) {
+        let detail = '';
+        try { detail = JSON.stringify(await campaignResp.json()); } catch { /* ignore */ }
+        console.error(`Campaign prefetch failed: HTTP ${campaignResp.status} ${detail}`);
+        return;
+      }
       const campaignData = await campaignResp.json();
       if (activeRunIdRef.current !== runId) return;
       if (campaignData?.campaign) {
