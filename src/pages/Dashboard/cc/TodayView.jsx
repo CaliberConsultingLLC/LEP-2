@@ -153,7 +153,22 @@ export default function TodayView({
   };
 
   return (
-    <Box sx={{ width: '100%', height: '100%', minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
+    // The room measures itself into whatever height it is given, so this hands
+    // it the shell's height and turns scrolling off. Below the three-column
+    // breakpoint the room stacks and is allowed to run long like any other
+    // narrow page.
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        minHeight: 0,
+        overflowX: 'hidden',
+        // Matches the room's own threshold: wide enough for the three-column
+        // composition, and the room guarantees it fits.
+        overflowY: 'auto',
+        '@media (min-width:1024px)': { overflowY: 'hidden' },
+      }}
+    >
       <TodayRoom view={view} onLockIn={lockIn} onNavigate={onNavigate} />
     </Box>
   );

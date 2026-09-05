@@ -11,10 +11,16 @@
  * is taken from the 1280px mockups: the room's padding is 3.3% of its width,
  * the porthole a quarter, the owl a third, and the owl bleeds off its corner by
  * roughly a quarter of its own size.
+ *
+ * The room never scrolls. It takes exactly the height the shell hands it and
+ * measures its own composition into that height — see `MIN_FIT` below. Fitting
+ * by eye is what put a scrollbar on this page in the first place; a screen that
+ * clips at the bottom is a bug, not a trade-off, and the only reliable way to
+ * hold that is to let the room do the measuring every time it is drawn.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Box, Typography, useMediaQuery } from '@mui/material';
 import JourneyPorthole from '../../../components/JourneyPorthole';
 import { JOURNEY_STATIONS } from '../journey/journeyModel.js';
 import { LOCK_PHRASE, lockHint } from './todayRoomModel.js';
@@ -137,6 +143,29 @@ const PALETTE = {
     good: '#2f855a',
   },
 };
+
+/**
+ * How far the composition may be squeezed to land in the viewport. This is a
+ * legibility floor, not a layout one: below it the body copy drops under about
+ * 11px and the room stops being readable, which is worse than the thing it is
+ * avoiding. Past the floor the room keeps its shape and scrolls inside itself —
+ * it never clips, because a clipped screen is the bug being fixed here.
+ */
+const MIN_FIT = 0.78;
+
+/**
+ * The width at which the three-column composition applies, and with it the fit.
+ *
+ * 1024 rather than 1200 because the fit changes the arithmetic: the stage is
+ * laid out at 1/fit of the card, so a 1100px window renders the room at ~1290
+ * and scales it down. The composition holds far below the width its raw
+ * measurements suggest, and holding it is better than stacking into a page that
+ * scrolls.
+ */
+const FIT_MIN_WIDTH = 1024;
+const FIT_QUERY = `(min-width:${FIT_MIN_WIDTH}px)`;
+/** Same threshold as an sx key. MUI's `lg` is 1200, which is too late here. */
+const WIDE = `@media ${FIT_QUERY}`;
 
 const ORANGE = '#e07a3f';
 const GREEN = '#2f855a';
@@ -518,6 +547,76 @@ export default function TodayRoom({
 
   useEffect(() => { setPicked(view.stationIndex); }, [view.stationIndex]);
 
+  // -- fit ---------------------------------------------------------------------
+  // The room is a stage, and a stage does not scroll. The card takes the height
+  // the shell gives it; the stage inside is laid out at 1/fit of that box and
+  // scaled back down, so the whole composition — type, porthole, owl, gaps —
+  // lands inside the viewport at 100% zoom instead of clipping off the bottom.
+  // Measuring beats guessing: a hand-tuned type scale fits one monitor and no
+  // others, and comes loose the next time a line of copy grows.
+  const fitting = useMediaQuery(FIT_QUERY, { noSsr: true });
+  const roomRef = useRef(null);
+  const stageRef = useRef(null);
+  const footRef = useRef(null);
+  const [fit, setFit] = useState(1);
+  const [floored, setFloored] = useState(false);
+  const passRef = useRef(0);
+
+  // Runs after every paint, deliberately without a dependency list: what it
+  // reads is layout, and layout changes for reasons no dependency array can
+  // name — a longer trait name, a rewrapped headline, a note that grew. The
+  // tolerance and the pass counter are what stop it, not the deps.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    if (!fitting) {
+      if (fit !== 1) setFit(1);
+      return;
+    }
+    const room = roomRef.current?.clientHeight;
+    // The bottom of the footer, not the stage's scroll height: the owl hangs a
+    // quarter of its own height below the composition on purpose and the room
+    // clips it on purpose. Measuring that bleed as content to be fitted shrinks
+    // the whole room to make space for something nobody was ever going to see.
+    const foot = footRef.current;
+    const content = foot ? foot.offsetTop + foot.offsetHeight : stageRef.current?.scrollHeight;
+    if (!room || !content) return;
+    // The card stays pinned to the shell either way, so this ratio is stable
+    // whether or not the floor is in play.
+    const wanted = room / content;
+    const next = Math.min(1, Math.max(MIN_FIT, wanted));
+    const hitFloor = wanted < MIN_FIT - 0.004;
+    if (hitFloor !== floored) setFloored(hitFloor);
+    if (Math.abs(next - fit) > 0.004 && passRef.current < 8) {
+      passRef.current += 1;
+      setFit(next);
+    }
+  });
+
+  // Anything that changes the box or what is in it starts the measurement over
+  // from full size, so the room grows back into a taller window as readily as it
+  // shrinks into a shorter one.
+  const remeasure = () => { passRef.current = 0; setFit(1); setFloored(false); };
+
+  useEffect(() => {
+    if (!fitting || typeof ResizeObserver === 'undefined') return undefined;
+    const room = roomRef.current;
+    if (!room) return undefined;
+    const observer = new ResizeObserver(remeasure);
+    observer.observe(room);
+    return () => observer.disconnect();
+  }, [fitting]);
+
+  // Fraunces and Manrope land after first paint and change every line height in
+  // the room. Without this the fit is measured against fallback metrics.
+  useEffect(() => {
+    if (!fitting || !document.fonts?.ready) return undefined;
+    let live = true;
+    document.fonts.ready.then(() => { if (live) remeasure(); }).catch(() => {});
+    return () => { live = false; };
+  }, [fitting]);
+
+  useEffect(remeasure, [view.moment, view.theme, traitIdx, picked]);
+
   const trait = traits[Math.min(traitIdx, traits.length - 1)] || traits[0] || {};
   const lockReady = lockText.trim().toLowerCase() === LOCK_PHRASE.toLowerCase();
   const outstanding = Math.max(0, (view.invited || 0) - (view.responded || 0));
@@ -555,13 +654,14 @@ export default function TodayRoom({
   const portholeCell = (
     <Box
       sx={{
-        gridColumn: { xs: '1 / -1', md: isReading ? '2 / 3' : '1 / 2', lg: isReading ? '3 / 4' : '1 / 2' },
+        gridColumn: { xs: '1 / -1', md: isReading ? '2 / 3' : '1 / 2' },
         gridRow: { xs: 2, md: 1 },
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '22px',
         minWidth: 0,
+        [WIDE]: { gridColumn: isReading ? '3 / 4' : '1 / 2' },
       }}
     >
       <JourneyPorthole variant="room" size="var(--porthole)" chapterIndex={picked} />
@@ -572,12 +672,22 @@ export default function TodayRoom({
   const owlCell = (
     <Box
       sx={{
-        gridColumn: { xs: '1 / -1', md: '1 / -1', lg: isReading ? '1 / 2' : '3 / 4' },
-        gridRow: { xs: 3, md: 2, lg: 1 },
+        gridColumn: { xs: '1 / -1', md: '1 / -1' },
+        gridRow: { xs: 3, md: 2 },
         position: 'relative',
-        minHeight: {
-          xs: 'calc(var(--owl-w) * 0.74 + 150px)',
-          lg: 'calc(var(--owl-w) * 1.4)',
+        // Only what the owl's visible body and the bubble above its head
+        // actually need — 0.655 of the owl clears its head, the rest is the
+        // bubble. The mock's column was 1.4x the owl because its middle column
+        // happened to be that tall; copying that number let the owl decide how
+        // tall the whole room was, which pushed the room past the window and
+        // left a void beside it whenever the content was short. The row still
+        // stretches to the tallest column, so the owl usually gets more than
+        // this and simply sinks further into the footer's fade.
+        minHeight: { xs: 'calc(var(--owl-w) * 0.74 + 150px)' },
+        [WIDE]: {
+          gridColumn: isReading ? '1 / 2' : '3 / 4',
+          gridRow: 1,
+          minHeight: 'calc(var(--owl-w) * 0.655 + 172px)',
         },
       }}
     >
@@ -1031,27 +1141,30 @@ export default function TodayRoom({
 
   return (
     <Box
+      ref={roomRef}
       data-today-room={moment}
       sx={{
-        containerType: 'inline-size',
         position: 'relative',
         width: '100%',
         maxWidth: 1560,
         mx: 'auto',
         borderRadius: '24px',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: floored ? 'auto' : 'hidden',
         background: p.room,
         boxShadow: p.roomShadow,
         color: p.ink,
         fontFamily: FONT_SANS,
-        minHeight: { xs: 480, lg: 600 },
-        display: 'flex',
-        flexDirection: 'column',
+        // In its three-column form the card is exactly as tall as the shell
+        // allows and never a pixel more. Stacked, it is a phone-shaped page and
+        // is allowed to run long.
+        ...(fitting ? { height: '100%', minHeight: 0 } : { minHeight: 480 }),
+        '--fit': fit,
         // Every ratio below is measured off the 1280px mockups, expressed
         // against the room instead of the page so the composition survives the
         // shell being any width at all.
-        '--room-pad': 'clamp(22px, 3.35cqw, 54px)',
-        '--porthole': 'clamp(212px, 25cqw, 320px)',
+        '--room-pad': 'clamp(22px, 3.35cqw, 46px)',
+        '--porthole': 'clamp(212px, 25cqw, 300px)',
         '--owl-w': 'clamp(268px, 33cqw, 440px)',
         '--lantern': 'clamp(300px, 35cqw, 540px)',
       }}
@@ -1095,42 +1208,64 @@ export default function TodayRoom({
         }}
       />
 
-      {/* Layer 3 — the content grid. */}
+      {/* Layer 3 — the stage: the grid and the footer, measured into the card.
+          Laid out at 1/fit of the card and scaled back down, so the container
+          query below still resolves against the room's real width. */}
+      <Box
+        ref={stageRef}
+        sx={{
+          containerType: 'inline-size',
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          width: 'calc(100% / var(--fit))',
+          height: fitting ? 'calc(100% / var(--fit))' : 'auto',
+          transformOrigin: 'top left',
+          transform: 'scale(var(--fit))',
+        }}
+      >
       <Box
         sx={{
           position: 'relative',
-          flex: 1,
+          // Grows into a tall card so the footer sits on the floor; never
+          // shrinks, so an overflow is visible to the measurement above rather
+          // than silently squeezed.
+          flex: '1 0 auto',
           display: 'grid',
           gridTemplateColumns: {
             xs: 'minmax(0, 1fr)',
             md: isReading
               ? 'minmax(0, 1fr) clamp(248px, 30cqw, 360px)'
               : 'clamp(248px, 30cqw, 360px) minmax(0, 1fr)',
-            // The mock's 340 / fluid / 300 split, pulled in by ~20px a side. The
-            // owl column only sets where the owl anchors — its outer edge is
-            // the grid's, so narrowing it moves nothing — and the porthole is
-            // centred with room to spare. What the two give up, the middle
-            // column takes, which is what keeps the action card's buttons on
-            // one row instead of spilling past the card the way the mock does.
-            lg: isReading
-              ? 'clamp(232px, 22.5cqw, 320px) minmax(0, 1fr) clamp(268px, 26.8cqw, 366px)'
-              : 'clamp(268px, 26.8cqw, 366px) minmax(0, 1fr) clamp(232px, 22.5cqw, 320px)',
           },
           gap: 'clamp(22px, 2.6cqw, 40px)',
           padding: 'var(--room-pad) var(--room-pad) 0',
           alignContent: 'start',
+          // The mock's 340 / fluid / 300 split, pulled in by ~20px a side. The
+          // owl column only sets where the owl anchors — its outer edge is the
+          // grid's, so narrowing it moves nothing — and the porthole is centred
+          // with room to spare. What the two give up, the middle column takes,
+          // which is what keeps the action card's buttons on one row instead of
+          // spilling past the card the way the mock does.
+          [WIDE]: {
+            gridTemplateColumns: isReading
+              ? 'clamp(232px, 22.5cqw, 320px) minmax(0, 1fr) clamp(268px, 26.8cqw, 366px)'
+              : 'clamp(268px, 26.8cqw, 366px) minmax(0, 1fr) clamp(232px, 22.5cqw, 320px)',
+          },
         }}
       >
         {portholeCell}
 
         <Box
           sx={{
-            gridColumn: { xs: '1 / -1', md: isReading ? '1 / 2' : '2 / 3', lg: '2 / 3' },
+            gridColumn: { xs: '1 / -1', md: isReading ? '1 / 2' : '2 / 3' },
             gridRow: { xs: 1, md: 1 },
             display: 'flex',
             flexDirection: 'column',
             gap: '22px',
             minWidth: 0,
+            [WIDE]: { gridColumn: '2 / 3' },
           }}
         >
           <Box>
@@ -1159,40 +1294,49 @@ export default function TodayRoom({
         {owlCell}
       </Box>
 
-      {/* Layer 4 — the footer strip, with its own fade so the owl's feet do not
-          collide with the link chip. */}
+      {/* Layer 4 — the footer strip. The fade runs the full width of the room:
+          inset, it draws a rectangle edge across the middle of the ground. Only
+          the hairline and the content are held to the room's padding. */}
       <Box
+        ref={footRef}
         sx={{
           position: 'relative',
           zIndex: 4,
+          flexShrink: 0,
           mt: '26px',
-          mx: 'var(--room-pad)',
-          pt: '16px',
-          pb: '26px',
-          borderTop: `1px solid ${p.hair}`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '26px',
-          flexWrap: 'wrap',
           background: p.footerFade,
         }}
       >
-        <Typography component="span" sx={{ ...eyebrowSx(p.faint, 9.5), whiteSpace: 'nowrap' }}>
-          {view.footerLabel}
-        </Typography>
-        {footerBody}
-        <Typography
+        <Box
           sx={{
-            fontFamily: FONT_SERIF,
-            fontStyle: 'italic',
-            fontSize: 14,
-            color: p.inkSoft,
-            maxWidth: 320,
-            ml: 'auto',
+            mx: 'var(--room-pad)',
+            pt: '16px',
+            pb: '26px',
+            borderTop: `1px solid ${p.hair}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '26px',
+            flexWrap: 'wrap',
           }}
         >
-          {view.aside}
-        </Typography>
+          <Typography component="span" sx={{ ...eyebrowSx(p.faint, 9.5), whiteSpace: 'nowrap' }}>
+            {view.footerLabel}
+          </Typography>
+          {footerBody}
+          <Typography
+            sx={{
+              fontFamily: FONT_SERIF,
+              fontStyle: 'italic',
+              fontSize: 14,
+              color: p.inkSoft,
+              maxWidth: 320,
+              ml: 'auto',
+            }}
+          >
+            {view.aside}
+          </Typography>
+        </Box>
+      </Box>
       </Box>
     </Box>
   );
