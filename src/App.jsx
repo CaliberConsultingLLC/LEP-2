@@ -28,6 +28,7 @@ import GuideSelect from './pages/GuideSelect';
 import Checkout from './pages/Checkout';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import DemoStart from './pages/DemoStart';
+import DemoCatalog from './pages/DemoCatalog';
 import ProtectedRoute from './components/ProtectedRoute';
 import DemoBanner from './components/DemoBanner';
 import { showDevTools, useCairnTheme, isProductionHost } from './config/runtimeFlags';
@@ -39,7 +40,7 @@ import JourneyCeremonyGate from './components/JourneyCeremonyGate';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
 import { isDemoSession } from './utils/demoMode';
 
-const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success', '/demo', '/faq', '/documents'];
+const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/user-info', '/pay', '/pay/success', '/demo', '/demo/catalog', '/faq', '/documents'];
 
 function RouteAwareGuide() {
   const { pathname } = useLocation();
@@ -65,6 +66,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/landing" element={<Home />} />
       {!isProductionHost && <Route path="/demo" element={<DemoStart />} />}
+      {!isProductionHost && <Route path="/demo/catalog" element={<DemoCatalog />} />}
       <Route path="/user-info" element={<UserInfo />} />
       <Route path="/guide-select" element={<GuideSelect />} />
       <Route path="/pay" element={<Checkout />} />

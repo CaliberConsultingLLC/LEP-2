@@ -64,6 +64,17 @@
         "--strictPort"
       ],
       "port": 5241
+    },
+    {
+      "name": "lep2-vite-catalog",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5251",
+        "--strictPort"
+      ],
+      "port": 5251
     }
   ]
 }

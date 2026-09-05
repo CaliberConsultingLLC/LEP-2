@@ -1323,13 +1323,20 @@ function IntakeForm() {
     const step = String(params.get('step') || '');
     if (stage === 'profile' || step === '1') {
       if (currentStep !== 1) setCurrentStep(1);
+    } else if (stage === 'review') {
+      // The terminal step had no address of its own, so the sealed ledger was
+      // only reachable by answering thirty questions to arrive at it. Jumping
+      // in is safe: Review & Lock reads the draft it finds and owns its own
+      // lock gate, so an unfinished draft renders with blanks rather than
+      // letting anything be locked early.
+      if (currentStep !== reviewStep) setCurrentStep(reviewStep);
     } else if (step === '3') {
       if (currentStep < societalStart) setCurrentStep(societalStart);
     } else if (stage === 'intake' || step === '2') {
       if (currentStep < behaviorStart) setCurrentStep(behaviorStart);
     }
     return undefined;
-  }, [location.search, behaviorStart, societalStart, useCairnTheme, currentStep]);
+  }, [location.search, behaviorStart, societalStart, reviewStep, useCairnTheme, currentStep]);
 
 
 

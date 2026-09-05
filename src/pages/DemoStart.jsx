@@ -13,6 +13,7 @@ import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
 import { seedDemoBlankIntake, seedDemoPersona, seedDemoShowcase, startDemoSession } from '../utils/demoMode';
+import { FIXTURES } from '../utils/catalogFixtures';
 
 
 function PathCard({ eyebrow, title, body, cta, onClick, primary = false, busy = false }) {
@@ -129,7 +130,8 @@ function DemoStart() {
           </Typography>
           <Typography sx={{ ...type.body, maxWidth: '58ch', mx: 'auto' }}>
             A throwaway session. Nothing is written to the live account store, and
-            closing the tab ends it. Pick how far back you want to start.
+            closing the tab ends it. Three ways to run it, and one way to just look
+            at it.
           </Typography>
         </Box>
 
@@ -163,6 +165,70 @@ function DemoStart() {
             onClick={runShowcase}
             busy={busy}
           />
+        </Box>
+
+        {/* Set apart from the three above on purpose. Those start a run and
+            carry you forward; this one starts nothing. It is a list. */}
+        <Box
+          sx={{
+            ...surfaces.card,
+            mt: 2,
+            p: { xs: 2.4, md: 3 },
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 2,
+            borderStyle: 'dashed',
+          }}
+        >
+          <Box sx={{ flex: '1 1 340px', minWidth: 0 }}>
+            <Typography sx={{ ...type.eyebrow, color: colors.inkSoft, mb: '6px' }}>
+              Don&rsquo;t run it — just look at it
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: fonts.serif,
+                fontSize: 21,
+                fontWeight: 500,
+                lineHeight: 1.2,
+                color: colors.ink,
+                mb: '6px',
+              }}
+            >
+              Page catalog
+            </Typography>
+            <Typography sx={{ ...type.body }}>
+              Every page in the product, listed, each one openable in{' '}
+              {FIXTURES.length} states — {FIXTURES.map((f) => f.label.toLowerCase()).join(', ')}.
+              Every link resets first, so a page looks the same on the tenth visit as
+              the first. For checking design changes, not for showing anyone.
+            </Typography>
+          </Box>
+          <Box
+            component="button"
+            type="button"
+            onClick={() => navigate('/demo/catalog')}
+            sx={{
+              all: 'unset',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              textAlign: 'center',
+              flex: '0 0 auto',
+              px: '20px',
+              py: '10px',
+              borderRadius: radii.pill,
+              border: `1px solid ${colors.navy500}`,
+              color: colors.navy600,
+              fontFamily: fonts.sans,
+              fontWeight: 700,
+              fontSize: 13,
+              transition: '120ms',
+              '&:hover': { bgcolor: 'rgba(63, 100, 123, 0.08)' },
+              '&:focus-visible': { outline: `2px solid ${colors.navy500}`, outlineOffset: 2 },
+            }}
+          >
+            Open the catalog
+          </Box>
         </Box>
       </Box>
     </Box>
