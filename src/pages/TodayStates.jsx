@@ -10,7 +10,7 @@
  * what you see here is what Chapter VI looks like, not a facsimile of it.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ChapterHeader from '../components/ChapterHeader';
@@ -82,11 +82,43 @@ export default function TodayStates() {
 
   const go = (state) => navigate(`/today-states?state=${state.id}`, { replace: true });
 
+  // Anything App renders above this page — the demo banner — pushes it down, so
+  // a flat `100svh` shell would hang off the bottom by exactly that much and put
+  // a scrollbar on a page whose whole point is that it does not need one. The
+  // dashboard measures the same offset for the same reason.
+  const shellRef = useRef(null);
+  const [shellTop, setShellTop] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      const el = shellRef.current;
+      if (!el) return;
+      const top = Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY));
+      setShellTop((prev) => (prev === top ? prev : top));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+
   return (
+    // The same shell the dashboard gives the room: one viewport tall, the stage
+    // taking whatever the rail leaves behind. Checking the room against the
+    // mockups in a page that is free to scroll would prove nothing about the
+    // one place it actually has to fit.
+    //
     // The rail's status chip spills past a phone-width viewport — it does on
     // every page that passes one. Every shell that renders the rail clips it;
     // this one has to as well, or the whole page pans sideways.
-    <Box sx={{ minHeight: '100svh', bgcolor: colors.sand50, overflowX: 'hidden' }}>
+    <Box
+      ref={shellRef}
+      sx={{
+        height: `calc(100svh - ${shellTop}px)`,
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: colors.sand50,
+        overflowX: 'hidden',
+      }}
+    >
       <ChapterHeader
         chapterId="review"
         activeStepId="today"
@@ -101,7 +133,18 @@ export default function TodayStates() {
         }}
       />
 
-      <Box sx={{ padding: { xs: '20px 16px 32px', md: '28px 40px 40px' } }}>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: { xs: '20px 16px 32px', md: '28px 40px 40px' },
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          '@media (min-width:1024px)': { overflowY: 'hidden' },
+        }}
+      >
         <TodayRoom view={view} onLockIn={() => {}} onNavigate={() => {}} />
       </Box>
 
