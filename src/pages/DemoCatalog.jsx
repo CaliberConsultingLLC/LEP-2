@@ -88,12 +88,24 @@ const GROUPS = [
       { label: 'Self complete', path: `/campaign/${STAGING_SELF_ID}/complete`, in: ['mid', 'finished'] },
       { label: 'Team intro', path: `/campaign/${STAGING_TEAM_ID}`, in: ['mid', 'finished'] },
       { label: 'Team survey', path: `/campaign/${STAGING_TEAM_ID}/survey`, in: ['mid', 'finished'] },
+      {
+        label: 'Team complete',
+        path: `/campaign/${STAGING_TEAM_ID}/complete`,
+        in: ['mid', 'finished'],
+        hint: 'The teammate’s thank-you — a different page from the self one above it.',
+      },
     ],
   },
   {
     label: 'Command center',
     pages: [
       { label: 'Current bearing', path: '/dashboard?tab=bearing', in: ['mid', 'finished'] },
+      {
+        label: 'Narrative',
+        path: '/dashboard?tab=narrative',
+        in: ['finished'],
+        hint: 'The eight-page reading, opened on page one — the deck remembers where you stopped, and the wipe forgets it.',
+      },
       {
         label: 'Signal',
         path: '/dashboard?tab=results',
