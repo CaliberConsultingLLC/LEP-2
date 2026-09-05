@@ -1,3 +1,13 @@
+// Arrival briefings for the four stages of the reading.
+//
+// These are the fallback, not the product. When a personalized line exists for
+// the stage it wins outright — the strings below are what a leader hears before
+// generation lands, or if it fails. They were the only thing anyone ever heard
+// until now: the modal read from this file, the overlay is suppressed on
+// /summary, and the generated summary lines sat unused in localStorage.
+
+import { getGeneratedGuideLine } from './generatedGuideLines';
+
 export const SUMMARY_BRIEFING_STAGES = ['trailhead', 'markers', 'hazards', 'new-trail'];
 
 export const SUMMARY_BRIEFINGS = {
@@ -42,6 +52,20 @@ export function fillBriefing(template, firstName) {
 
 export function getSummaryBriefing(stageId, guideId, firstName) {
   const stage = SUMMARY_BRIEFINGS[stageId] || SUMMARY_BRIEFINGS.trailhead;
+
+  // The generated line is already written to this leader and needs no name
+  // merge — it earned the right to open however it wants.
+  const generated = getGeneratedGuideLine(guideId, `summary::${stageId}`);
+  if (generated) return generated;
+
   const template = stage[guideId] || stage.mentor;
   return fillBriefing(template, firstName);
+}
+
+/** Whether every guide has a generated line for every stage of the reading. */
+export function summaryBriefingsReady(guideIds = []) {
+  if (!guideIds.length) return false;
+  return guideIds.every((id) =>
+    SUMMARY_BRIEFING_STAGES.every((stage) => getGeneratedGuideLine(id, `summary::${stage}`))
+  );
 }

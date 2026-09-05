@@ -585,6 +585,9 @@ export function resolveRouteKey(pathname = '', search = '') {
   if (p.startsWith('/dashboard')) {
     // New command-center dock tabs
     if (tab === 'today')    return 'dashboardToday';
+    // Unmapped until now, so all eight pages of the debrief fell through to
+    // 'dashboard' — the legacy catch-all, and the least relevant line in the set.
+    if (tab === 'narrative') return 'dashboardNarrative';
     if (tab === 'signal')   return 'dashboardSignal';
     if (tab === 'evidence') return 'dashboardEvidence';
     if (tab === 'practice') return 'dashboardPractice';
@@ -642,22 +645,46 @@ export function getGuideLine(personaId, routeKey, stepKey = 'default') {
   const persona = PERSONA_IDS.includes(personaId) ? personaId : 'mentor';
   const step = String(stepKey || 'default').trim() || 'default';
 
-  const canned = pickPersonaLine(GUIDE_STEPS[`${routeKey}::${step}`], persona)
+  const exactCanned = pickPersonaLine(GUIDE_STEPS[`${routeKey}::${step}`], persona);
+  const canned = exactCanned
     || pickPersonaLine(GUIDE_STEPS[`${routeKey}::default`], persona)
     || pickPersonaLine(GUIDE_STEPS['default::default'], persona)
     || legacyLine(routeKey, persona)
     || { text: '', pose: 'idle', cta: 'Okay', title: 'Guide' };
 
-  const generated = getGeneratedGuideLine(persona, `${routeKey}::${step}`)
-    || getGeneratedGuideLine(persona, `${routeKey}::default`);
+  const exactGenerated = getGeneratedGuideLine(persona, `${routeKey}::${step}`);
+  const generated = exactGenerated || getGeneratedGuideLine(persona, `${routeKey}::default`);
 
-  return generated ? { ...canned, text: generated } : canned;
+  // Whether anything actually knows about *this* step, as opposed to the page
+  // it sits on. Callers that carry their own step-aware copy need to be able
+  // to tell the difference — see spokenGuide.
+  const exact = Boolean(exactCanned || exactGenerated);
+
+  return generated
+    ? { ...canned, text: generated, exact }
+    : { ...canned, exact };
 }
 
+/**
+ * Spoken line for a screen that has its own fallback copy to fall back to.
+ *
+ * The fallback wins over a page default. A caller passing fallbackText is
+ * saying "I know what this specific step is about" — usually with the trait
+ * name and the real scores baked in — and that beats the page-level line every
+ * time. Only an entry that names this exact step, canned or generated,
+ * outranks it.
+ *
+ * This used to compare against line.text alone, which is never empty once a
+ * page default exists. The Field Journal asks for thirteen step keys that have
+ * no entries, so all thirteen resolved to one page default and the numeric
+ * fallbacks written for them were unreachable — twenty-one screens, one
+ * sentence.
+ */
 export function spokenGuide(personaId, routeKey, stepKey, fallbackText = '', fallbackPose = 'idle') {
   const line = getGuideLine(personaId, routeKey, stepKey);
+  const useFallback = !line.exact && String(fallbackText || '').trim();
   return {
-    text: line.text || fallbackText,
+    text: useFallback ? fallbackText : (line.text || fallbackText),
     pose: line.pose || fallbackPose,
     cta: line.cta || 'Okay',
     title: line.title || 'Guide',

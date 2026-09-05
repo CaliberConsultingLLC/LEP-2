@@ -35,7 +35,7 @@ import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
 import { setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { splitSentences as splitProseSentences } from '../utils/guideSummary';
 import { demoRequestFields } from '../utils/demoMode';
-import { getSummaryBriefing } from '../data/guideBriefings';
+import { getSummaryBriefing, summaryBriefingsReady } from '../data/guideBriefings';
 import { commitSelectedTraits } from '../utils/campaignState';
 import { isCompleteFocusAreaSet, persistFocusAreas, readFocusAreas } from '../utils/focusAreas';
 
@@ -675,6 +675,26 @@ function Summary() {
 
   const currentStageId = ['trailhead', 'markers', 'hazards', 'new-trail'][activeJourneyStep] || 'trailhead';
   const briefingFirstName = userName ? userName.split(' ')[0] : '';
+  const onFinalStage = currentStageId === 'new-trail';
+
+  // The other five voices are prefetched in the background while the leader
+  // reads. Nothing fires an event when they land, so poll — but only while the
+  // swap is actually on screen and still unavailable, and stop the moment it
+  // is ready. Reading six keys out of localStorage every two seconds for the
+  // minute or so that gap lasts is cheaper than plumbing a subscription
+  // through the store for one button.
+  const [otherGuidesReady, setOtherGuidesReady] = useState(
+    () => summaryBriefingsReady(GUIDE_VOICE_IDS)
+  );
+  useEffect(() => {
+    if (!onFinalStage || otherGuidesReady) return undefined;
+    const check = () => {
+      if (summaryBriefingsReady(GUIDE_VOICE_IDS)) setOtherGuidesReady(true);
+    };
+    check();
+    const id = window.setInterval(check, 2000);
+    return () => window.clearInterval(id);
+  }, [onFinalStage, otherGuidesReady]);
 
   useEffect(() => {
     setGuideStep(currentStageId);
@@ -1776,46 +1796,67 @@ function Summary() {
                         one of the more interesting things the product does,
                         and as a quiet outlined button above the rule it read
                         as a footnote. Orange to be noticed, navy ink on it
-                        because white on this orange is 2.99:1. */}
-                    <Box
-                      component="button"
-                      type="button"
-                      ref={hearGuideBtnRef}
-                      onClick={() => setHearGuideOpen(true)}
-                      sx={{
-                        all: 'unset',
-                        cursor: 'pointer',
-                        boxSizing: 'border-box',
-                        bgcolor: colors.orange,
-                        color: colors.navy900,
-                        borderRadius: radii.pill,
-                        px: '18px',
-                        py: '9px',
-                        fontFamily: fonts.sans,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        letterSpacing: '0.02em',
-                        whiteSpace: 'nowrap',
-                        boxShadow: shadows.buttonPrimary,
-                        transition: '180ms ease',
-                        '&:hover': {
-                          bgcolor: colors.orangeDeep,
-                          color: colors.sand50,
-                          boxShadow: shadows.buttonPrimaryHover,
-                        },
-                        '&:focus-visible': {
-                          outline: `3px solid ${colors.navy900}`,
-                          outlineOffset: 3,
-                        },
-                      }}
-                    >
-                      Hear from a different guide
-                    </Box>
-                    <GuidePickerMenu
-                      open={hearGuideOpen}
-                      anchorEl={hearGuideBtnRef.current}
-                      onClose={() => setHearGuideOpen(false)}
-                    />
+                        because white on this orange is 2.99:1.
+
+                        Last stage only, and inert until every voice is
+                        written. The other five guides generate in the
+                        background while the leader reads, so offering the swap
+                        on the Trailhead offers something that does not exist
+                        yet — they would land on a half-generated voice falling
+                        back to canned copy, which is exactly the impression
+                        this feature exists to avoid. By A New Trail they have
+                        read four stages and the background work has landed. */}
+                    {onFinalStage && (
+                      <>
+                        <Box
+                          component="button"
+                          type="button"
+                          ref={hearGuideBtnRef}
+                          disabled={!otherGuidesReady}
+                          aria-label={otherGuidesReady
+                            ? 'Hear from a different guide'
+                            : 'The other guides are still being written'}
+                          onClick={() => otherGuidesReady && setHearGuideOpen(true)}
+                          sx={{
+                            all: 'unset',
+                            cursor: otherGuidesReady ? 'pointer' : 'default',
+                            boxSizing: 'border-box',
+                            bgcolor: otherGuidesReady ? colors.orange : colors.sand200,
+                            color: otherGuidesReady ? colors.navy900 : colors.inkSoft,
+                            borderRadius: radii.pill,
+                            px: '18px',
+                            py: '9px',
+                            fontFamily: fonts.sans,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            letterSpacing: '0.02em',
+                            whiteSpace: 'nowrap',
+                            boxShadow: otherGuidesReady ? shadows.buttonPrimary : 'none',
+                            transition: '180ms ease',
+                            ...(otherGuidesReady && {
+                              '&:hover': {
+                                bgcolor: colors.orangeDeep,
+                                color: colors.sand50,
+                                boxShadow: shadows.buttonPrimaryHover,
+                              },
+                            }),
+                            '&:focus-visible': {
+                              outline: `3px solid ${colors.navy900}`,
+                              outlineOffset: 3,
+                            },
+                          }}
+                        >
+                          {otherGuidesReady
+                            ? 'Hear from a different guide'
+                            : 'Other guides still being written…'}
+                        </Box>
+                        <GuidePickerMenu
+                          open={hearGuideOpen}
+                          anchorEl={hearGuideBtnRef.current}
+                          onClose={() => setHearGuideOpen(false)}
+                        />
+                      </>
+                    )}
                     <Box
                       component="button"
                       type="button"

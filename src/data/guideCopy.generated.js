@@ -2208,6 +2208,102 @@ export const GUIDE_STEPS = {
     "challenger": {
       "text": "Don't stall on me. Put the first real thing down and we'll sharpen it later.",
       "pose": "idle"
+    },
+    "bestFriend": {
+      "text": "I'm here. Whatever this page is asking, answer it the way you'd say it to me.",
+      "pose": "idle"
+    },
+    "mother": {
+      "text": "You are not behind. Take this page at the pace it deserves and no faster.",
+      "pose": "idle"
+    },
+    "roaster": {
+      "text": "New page, same deal. Say the true thing, not the tidy one.",
+      "pose": "idle"
+    }
+  },
+  "selfAssessment::default": {
+    "title": "Campaign Assessment · Information",
+    "pose": "read",
+    "mentor": {
+      "text": "You go first, then they do. Your answers stay yours; theirs arrive as a pattern, never a name.",
+      "pose": "read"
+    },
+    "catalyst": {
+      "text": "You first, team second. Two links, and we never see who you sent it to.",
+      "pose": "read"
+    },
+    "challenger": {
+      "text": "You rate yourself before they do. That order matters — it stops you scoring to match.",
+      "pose": "read"
+    },
+    "bestFriend": {
+      "text": "You go first. Then they do, anonymously, and neither of you sees the other's page.",
+      "pose": "read"
+    },
+    "mother": {
+      "text": "You answer first, then your people. No names come back to you, and none go out from us.",
+      "pose": "read"
+    },
+    "roaster": {
+      "text": "You go first. Rating yourself after reading theirs would be a fantasy exercise.",
+      "pose": "read"
+    }
+  },
+  "selfAssessment::survey-open": {
+    "title": "Campaign Assessment · Your Assessment",
+    "pose": "lantern",
+    "mentor": {
+      "text": "Answer for the ordinary Tuesday, not the day you were at your best. The gap between those two is the whole point of doing this.",
+      "pose": "lantern"
+    },
+    "catalyst": {
+      "text": "Rate what happens, not what you intend. Fast and honest beats slow and flattering.",
+      "pose": "lantern"
+    },
+    "challenger": {
+      "text": "Score yourself the way the person who reports to you would. If that number is lower, that is the real one.",
+      "pose": "lantern"
+    },
+    "bestFriend": {
+      "text": "Be honest here — I already like you, and a generous score just makes the comparison useless.",
+      "pose": "lantern"
+    },
+    "mother": {
+      "text": "Answer as you actually are on a normal week. Nothing here needs to be impressive to be useful.",
+      "pose": "lantern"
+    },
+    "roaster": {
+      "text": "Rate the real version. Inflate it and you have just built a very expensive mirror that lies.",
+      "pose": "lantern"
+    }
+  },
+  "teamAssessment::default": {
+    "title": "Campaign Assessment · Team Invite",
+    "pose": "point",
+    "mentor": {
+      "text": "Send it yourself, to the people who actually see you lead. We never hold their addresses.",
+      "pose": "point"
+    },
+    "catalyst": {
+      "text": "Copy, send, tell us how many. That is the whole step.",
+      "pose": "point"
+    },
+    "challenger": {
+      "text": "Send it to the ones who would tell you the truth, not the ones who would be kind.",
+      "pose": "point"
+    },
+    "bestFriend": {
+      "text": "You send it, not us. Pick the people who see the real you at work.",
+      "pose": "point"
+    },
+    "mother": {
+      "text": "Send it in your own words. The people you choose here decide how honest this gets.",
+      "pose": "point"
+    },
+    "roaster": {
+      "text": "You send it. Choosing only your fans is allowed, and it wastes five hundred dollars.",
+      "pose": "point"
     }
   }
 };

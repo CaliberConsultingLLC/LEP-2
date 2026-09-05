@@ -8,6 +8,7 @@ import { mapRowStatements } from './EvidenceView.jsx';
 import { ChapterEyebrow, PageFade, ProgressDots } from './debriefUi.jsx';
 import { getDebriefScope } from './phaseState.js';
 import { useGuide } from '../../../context/GuideContext';
+import { spokenGuide } from '../../../data/guideContent';
 import { GUIDE_COLUMN } from '../../../components/guidePlacement';
 
 // ----------------------------------------------------------------------------
@@ -1556,8 +1557,22 @@ const SLIDE_COUNT = 8;
 const MAP_IDX = 3;
 const GAP_IDX = 4;
 
+// Per-page fallbacks for the debrief. These carry the page's own job so they
+// are useful before generation lands; the generated line replaces them.
+const NARRATIVE_GUIDE = {
+  threshold: 'This is the first thing your team said back. Read it slowly — the number matters less than the shape underneath it.',
+  measurements: 'Two questions behind every score: how hard they see you trying, and how well it lands. They move independently, and the distance between them is the finding.',
+  statements: 'Same two measurements, now on single behaviours. This is where a trait score stops being an average and starts being specific.',
+  map: 'Four quadrants. Where a behaviour sits tells you whether it needs more effort or a different aim — those are not the same fix.',
+  'gap-statements': 'Your read beside theirs, one statement at a time. Neither of you is wrong. The distance is the thing to look at.',
+  'insight-1': 'One trait, read whole. Hold it against what you predicted before your team was asked.',
+  'insight-2': 'The second trait. Notice whether the pattern here rhymes with the last one.',
+  'insight-3': 'Last trait. By now you can probably say what it is going to tell you — check whether you are right.',
+};
+
 export default function NarrativeView() {
   const { rows, loaded, teamResponses, hasSelfData } = useBenchmarkData();
+  const { personaId, setPageMessage, clearPageMessage } = useGuide();
   const scope = useMemo(() => getDebriefScope(), []);
   const storeKey = `${scope}_narrative`;
 
@@ -1641,6 +1656,24 @@ export default function NarrativeView() {
     []
   );
 
+  // One line per page of the debrief. Before this the whole deck ran on the
+  // overlay's route lookup, which resolved every page to the same legacy
+  // default — eight pages of real findings beside one unchanging sentence.
+  //
+  // Above the loading returns because hooks cannot sit behind them.
+  const pageId = chapters[idx].id;
+  useEffect(() => {
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardNarrative',
+      pageId,
+      NARRATIVE_GUIDE[pageId] || NARRATIVE_GUIDE.threshold,
+      pageId === 'threshold' ? 'read' : 'map'
+    );
+    setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapters[idx].label });
+    return () => clearPageMessage();
+  }, [pageId, idx, chapters, personaId, setPageMessage, clearPageMessage]);
+
   if (!loaded && !rows.length) {
     return (
       <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, py: 3 }}>
@@ -1673,6 +1706,7 @@ export default function NarrativeView() {
   const showMirror = hasSelfData && mirrorTraits.length > 0;
 
   const activeId = chapters[idx].id;
+
   const answered =
     Number.isFinite(invited) && invited >= respondents && respondents > 0
       ? `${respondents} of ${invited} teammates answered.`
