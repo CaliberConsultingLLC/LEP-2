@@ -18,6 +18,7 @@ import TodayRoom from './Dashboard/cc/TodayRoom';
 import { demoTodayView, MOMENTS, THEMES } from './Dashboard/cc/todayRoomModel.js';
 import { useGuide } from '../context/GuideContext';
 import { colors, fonts, radii } from '../styles/tokens';
+import { CONTENT_PX, STAGE_PB, STAGE_PT } from '../components/layoutConstants';
 
 // The mockups' ids, so a screenshot can be named the same thing the design file
 // calls it and the two can be laid side by side without a decoder ring.
@@ -139,7 +140,12 @@ export default function TodayStates() {
           minHeight: 0,
           display: 'flex',
           flexDirection: 'column',
-          padding: { xs: '20px 16px 32px', md: '28px 40px 40px' },
+          // The dashboard's own insets, not the mockup page's. A preview that
+          // gives the room 20px more than the real shell would say it fits when
+          // it does not.
+          px: CONTENT_PX,
+          pt: STAGE_PT,
+          pb: STAGE_PB,
           overflowX: 'hidden',
           overflowY: 'auto',
           '@media (min-width:1024px)': { overflowY: 'hidden' },
