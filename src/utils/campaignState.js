@@ -4,20 +4,33 @@ export function normalizeCampaignItems(rawCampaign, options = {}) {
   const {
     maxTraits = 3,
     maxStatementsPerTrait = 5,
+    maxReservePerTrait = 5,
   } = options;
 
   if (!Array.isArray(rawCampaign)) return [];
+
+  const textOf = (statement) => trimText(typeof statement === 'string' ? statement : statement?.text);
 
   return rawCampaign
     .map((item, index) => {
       const traitName = trimText(item?.traitName || item?.trait || item?.title || `Trait ${index + 1}`);
       const title = trimText(item?.title || traitName);
       const statements = (Array.isArray(item?.statements) ? item.statements : [])
-        .map((statement) => trimText(typeof statement === 'string' ? statement : statement?.text))
+        .map(textOf)
         .filter(Boolean)
         .slice(0, maxStatementsPerTrait);
 
       if (!traitName || !statements.length) return null;
+
+      // Spare statements, written in the same pass as the five that ship.
+      // Dismissing one pulls from here instead of paying for a live rewrite.
+      // Anything already on screen is not a spare, so it is filtered out —
+      // a "replacement" the leader is currently looking at is not one.
+      const shown = new Set(statements.map((s) => s.toLowerCase()));
+      const reserve = (Array.isArray(item?.reserve) ? item.reserve : [])
+        .map(textOf)
+        .filter((s) => s && !shown.has(s.toLowerCase()))
+        .slice(0, maxReservePerTrait);
 
       return {
         ...item,
@@ -25,6 +38,7 @@ export function normalizeCampaignItems(rawCampaign, options = {}) {
         traitName,
         title,
         statements,
+        reserve,
       };
     })
     .filter(Boolean)

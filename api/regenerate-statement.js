@@ -76,7 +76,21 @@ Write the one replacement statement now.
 `.trim();
 }
 
-const clean = (v) => String(v || '').replace(/\s+/g, ' ').replace(/^["'“‘]|["'”’]$/g, '').trim();
+// Same wrapping-quote rule as the campaign builder: strip only a matching
+// pair, so a statement that legitimately ends on a quote keeps it.
+const QUOTE_PAIRS = [['"', '"'], ["'", "'"], ['“', '”'], ['‘', '’']];
+
+function stripWrappingQuotes(text) {
+  for (const [open, close] of QUOTE_PAIRS) {
+    if (text.length > 1 && text.startsWith(open) && text.endsWith(close)) {
+      const inner = text.slice(1, -1);
+      if (!inner.includes(open) && !inner.includes(close)) return inner.trim();
+    }
+  }
+  return text;
+}
+
+const clean = (v) => stripWrappingQuotes(String(v || '').replace(/\s+/g, ' ').trim());
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');

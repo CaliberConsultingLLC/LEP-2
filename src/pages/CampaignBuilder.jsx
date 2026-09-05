@@ -48,6 +48,14 @@ function CampaignBuilder() {
   const [error, setError] = useState(null);
   const [dismissalHistory, setDismissalHistory] = useState(() => parseJson(localStorage.getItem('statementDismissals'), []));
   const [regeneratingStatement, setRegeneratingStatement] = useState(null);
+  // A swap that fails is not a dead campaign.
+  //
+  // This used to set `error`, which the render treats as fatal and swaps for a
+  // bare message and a link out. So a failed statement rewrite blanked fifteen
+  // statements off the screen while telling the leader the statement was
+  // "still in the campaign" — which was true, and invisible. Recoverable
+  // trouble gets its own line above the campaign it did not break.
+  const [swapNotice, setSwapNotice] = useState(null);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [selectedTraitInfo, setSelectedTraitInfo] = useState([]);
   const [expandedTrait, setExpandedTrait] = useState(0);
@@ -234,12 +242,22 @@ function CampaignBuilder() {
     setIsLoading(true);
     setError(null);
     
+    // The insight map, not just the prose.
+    //
+    // The endpoint has always accepted it, and this file already reads it for
+    // single-statement rewrites — it just was never sent on the build that
+    // writes all fifteen. So the statements the team actually rated were
+    // inferred back out of flattened narrative while the structured evidence
+    // sat in localStorage one function away.
+    const insightMap = parseJson(localStorage.getItem('insightProfile'), null);
+
     fetch('/api/get-campaign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({ 
         aiSummary: effectiveSummary,
         selectedTraits: selectedTraits,
+        insightMap,
         ...demoRequestFields(),
       }),
     })
@@ -319,19 +337,58 @@ function CampaignBuilder() {
   // What a leader rejects is signal, so the dismissal history is kept and sent
   // with each request — the replacement takes a different angle instead of
   // rephrasing something they already turned down.
+  const commitReplacement = (traitIndex, index, trait, dismissed, replacement, takeFromReserve) => {
+    setCampaign((prev) => {
+      if (!Array.isArray(prev)) return prev;
+      const next = prev.map((t, i) => {
+        if (i !== traitIndex) return t;
+        return {
+          ...t,
+          statements: t.statements.map((st, si) => (si === index ? replacement : st)),
+          reserve: takeFromReserve
+            ? (Array.isArray(t.reserve) ? t.reserve.slice(1) : [])
+            : (Array.isArray(t.reserve) ? t.reserve : []),
+        };
+      });
+      localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(next)));
+      return next;
+    });
+
+    setDismissalHistory((prev) => {
+      const next = [...prev, { trait, statement: dismissed, replacedWith: replacement, at: new Date().toISOString() }];
+      try {
+        localStorage.setItem('statementDismissals', JSON.stringify(next));
+      } catch { /* non-fatal */ }
+      return next;
+    });
+  };
+
   const handleStatementDismiss = async (trait, index) => {
     if (regeneratingStatement) return;
     const traitIndex = (campaign || []).findIndex((t) => t?.trait === trait);
     if (traitIndex < 0) return;
-    const statements = Array.isArray(campaign[traitIndex]?.statements) ? campaign[traitIndex].statements : [];
+    const traitItem = campaign[traitIndex] || {};
+    const statements = Array.isArray(traitItem?.statements) ? traitItem.statements : [];
     const dismissed = String(statements[index] || '').trim();
     if (!dismissed) return;
 
+    // The bench first. These were written in the same pass as the five on
+    // screen, to the same brief, so the swap is instant and costs nothing.
+    const reserve = Array.isArray(traitItem?.reserve) ? traitItem.reserve : [];
+    const bench = String(reserve[0] || '').trim();
+    if (bench) {
+      setSwapNotice(null);
+      commitReplacement(traitIndex, index, trait, dismissed, bench, true);
+      return;
+    }
+
+    // Bench empty. Now it is worth a live rewrite, which can also react to
+    // everything they have turned down so far.
     const info = selectedTraitInfo[traitIndex] || {};
     const historyForTrait = dismissalHistory.filter((d) => d.trait === trait).map((d) => d.statement);
 
     setRegeneratingStatement({ trait, index });
-    setError(null);
+    setSwapNotice(null);
     try {
       const focusAreas = parseJson(localStorage.getItem('focusAreas'), []);
       const insightProfile = parseJson(localStorage.getItem('insightProfile'), null);
@@ -359,27 +416,10 @@ function CampaignBuilder() {
       const replacement = String(data?.statement || '').trim();
       if (!replacement) throw new Error('No replacement returned');
 
-      setCampaign((prev) => {
-        if (!Array.isArray(prev)) return prev;
-        const next = prev.map((t, i) => (
-          i === traitIndex
-            ? { ...t, statements: t.statements.map((st, si) => (si === index ? replacement : st)) }
-            : t
-        ));
-        localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(next)));
-        return next;
-      });
-
-      setDismissalHistory((prev) => {
-        const next = [...prev, { trait, statement: dismissed, replacedWith: replacement, at: new Date().toISOString() }];
-        try {
-          localStorage.setItem('statementDismissals', JSON.stringify(next));
-        } catch { /* non-fatal */ }
-        return next;
-      });
+      commitReplacement(traitIndex, index, trait, dismissed, replacement, false);
     } catch (err) {
       console.warn('Statement replacement failed:', err?.message || err);
-      setError('Could not swap that statement out. It is still in the campaign — try again in a moment.');
+      setSwapNotice('Could not swap that statement out. It is still in the campaign — try again in a moment.');
     } finally {
       setRegeneratingStatement(null);
     }
@@ -408,9 +448,14 @@ function CampaignBuilder() {
         return;
       }
 
+      // Avoid the reserve too. A rebuild that hands back statements already
+      // sitting on the bench is not a different set.
       const existingCampaign = normalizeCampaignItems(campaign || []);
       const avoidStatements = existingCampaign.flatMap((traitItem) => (
-        (Array.isArray(traitItem?.statements) ? traitItem.statements : [])
+        [
+          ...(Array.isArray(traitItem?.statements) ? traitItem.statements : []),
+          ...(Array.isArray(traitItem?.reserve) ? traitItem.reserve : []),
+        ]
           .map((s) => String(s || '').trim())
           .filter(Boolean)
       ));
@@ -425,6 +470,7 @@ function CampaignBuilder() {
         body: JSON.stringify({
           aiSummary: storedSummary,
           selectedTraits: selectedTraits,
+          insightMap: parseJson(localStorage.getItem('insightProfile'), null),
           rebuild: true,
           avoidStatements,
           ...demoRequestFields(),
@@ -708,6 +754,25 @@ function CampaignBuilder() {
                   })}
                 </Box>
               </Box>
+
+              {swapNotice ? (
+                <Box
+                  role="status"
+                  sx={{
+                    px: '14px',
+                    py: '10px',
+                    borderRadius: radii.md,
+                    bgcolor: 'color-mix(in srgb, var(--orange-deep) 8%, var(--sand-50))',
+                    border: '1px solid color-mix(in srgb, var(--orange-deep) 34%, transparent)',
+                    fontFamily: fonts.sans,
+                    fontSize: 13.5,
+                    lineHeight: 1.45,
+                    color: colors.navy900,
+                  }}
+                >
+                  {swapNotice}
+                </Box>
+              ) : null}
 
               <Box
                 sx={{
