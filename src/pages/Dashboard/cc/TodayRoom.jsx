@@ -146,12 +146,14 @@ const PALETTE = {
 
 /**
  * How far the composition may be squeezed to land in the viewport. This is a
- * legibility floor, not a layout one: below it the body copy drops under about
- * 11px and the room stops being readable, which is worse than the thing it is
- * avoiding. Past the floor the room keeps its shape and scrolls inside itself —
- * it never clips, because a clipped screen is the bug being fixed here.
+ * legibility floor, not a layout one: at 0.7 the body copy is just under 10px
+ * and the room is genuinely being crushed, which is the point where a scrollbar
+ * becomes the better of two bad answers. Above it, scrolling is never the
+ * answer — a 1280x800 window needs about 0.74 and gets it. Past the floor the
+ * room keeps its shape and scrolls inside itself; it never clips, because a
+ * clipped screen is the bug all of this exists to prevent.
  */
-const MIN_FIT = 0.78;
+const MIN_FIT = 0.7;
 
 /**
  * The width at which the three-column composition applies, and with it the fit.
@@ -349,12 +351,25 @@ function StationList({ p, currentIndex, picked, onPick }) {
   );
 }
 
-/** One trait ring. `compact` is the row form the notes moment uses. */
+/**
+ * One trait ring.
+ *
+ * The dial grows with the room rather than sitting at the mock's 104px forever.
+ * At the mock's own width it is the mock's size; past that a fixed circle reads
+ * as a small object stranded in a wide column, and the middle column runs short
+ * of the porthole column beside it. Growing the dial fills that width and pushes
+ * the statement and the action card down into the space they were leaving empty.
+ * Everything inside the dial — the face, the score, the SELF line — is a ratio of
+ * it, so the score stays seated in the circle at every size.
+ *
+ * `compact` is the row form the notes moment uses.
+ */
 function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false }) {
   const low = trait.team < 60;
   const ringColor = low ? ORANGE : p.ringHigh;
-  const size = compact ? 64 : 104;
-  const face = compact ? 50 : 84;
+  const dial = compact ? 'clamp(64px, 5.35cqw, 88px)' : 'clamp(104px, 8.7cqw, 152px)';
+  const faceRatio = compact ? 0.781 : 0.808;
+  const scoreRatio = compact ? 0.3125 : 0.308;
   return (
     <Box
       component="button"
@@ -363,6 +378,7 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
       aria-current={selected ? 'true' : undefined}
       sx={{
         ...bare,
+        '--dial': dial,
         cursor: 'pointer',
         flex: 1,
         minWidth: 0,
@@ -384,8 +400,8 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
         aria-hidden
         sx={{
           position: 'relative',
-          width: size,
-          height: size,
+          width: 'var(--dial)',
+          height: 'var(--dial)',
           flexShrink: 0,
           borderRadius: '50%',
           background: `conic-gradient(${ringColor} ${trait.team * 3.6}deg, ${p.ringTrack} 0)`,
@@ -402,8 +418,8 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
       >
         <Box
           sx={{
-            width: face,
-            height: face,
+            width: `calc(var(--dial) * ${faceRatio})`,
+            height: `calc(var(--dial) * ${faceRatio})`,
             borderRadius: '50%',
             bgcolor: p.dialFace,
             display: 'flex',
@@ -418,7 +434,7 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
             sx={{
               fontFamily: FONT_SERIF,
               fontWeight: 600,
-              fontSize: compact ? 20 : 32,
+              fontSize: `calc(var(--dial) * ${scoreRatio})`,
               lineHeight: 1,
               letterSpacing: '-0.03em',
               color: p.dialInk,
@@ -429,7 +445,12 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
           {!compact && (
             <Typography
               component="span"
-              sx={{ fontFamily: FONT_MONO, fontSize: 8.5, letterSpacing: '0.14em', color: p.dialSub }}
+              sx={{
+                fontFamily: FONT_MONO,
+                fontSize: 'calc(var(--dial) * 0.082)',
+                letterSpacing: '0.14em',
+                color: p.dialSub,
+              }}
             >
               SELF {trait.self}
             </Typography>
@@ -449,7 +470,7 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
           component="span"
           sx={{
             fontFamily: FONT_SANS,
-            fontSize: 13,
+            fontSize: 'clamp(13px, 1.05cqw, 16px)',
             fontWeight: 700,
             color: p.isDay ? p.ink : p.amber,
             whiteSpace: 'nowrap',
@@ -464,7 +485,7 @@ function TraitDial({ p, trait, selected, onClick, sub, subColor, compact = false
           component="span"
           sx={{
             fontFamily: FONT_MONO,
-            fontSize: compact ? 9 : 9.5,
+            fontSize: compact ? 'clamp(9px, 0.74cqw, 11px)' : 'clamp(9.5px, 0.79cqw, 11.5px)',
             fontWeight: 700,
             letterSpacing: compact ? '0.1em' : '0.12em',
             color: subColor,
