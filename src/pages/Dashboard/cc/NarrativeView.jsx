@@ -148,6 +148,13 @@ const FRAME_HEAD_H = { xs: 84, md: 92 };
 // The body area is sized to the densest page plus breathing room — the content
 // keeps its own scale and sits centred, rather than stretching to fill.
 const FRAME_BODY_H = 'clamp(276px, 38vh, 356px)';
+// The insight pages are the exception: they carry a full-size Compass beside a
+// narrow reading column, so their body sizes to its content rather than to the
+// band. Their title also stands alone — no lead line — so the head band drops
+// to its natural height there and hands the difference to the dial. The dial
+// takes every pixel the stage can spare: the 500px it gives back covers the
+// chrome above and below it (nav, eyebrow, title, frame inset, page dots).
+const INSIGHT_DIAL_MAX = 'min(100%, max(180px, calc(100vh - 500px)))';
 
 function StageArrow({ dir, hidden, onClick }) {
   return (
@@ -1299,20 +1306,25 @@ function SlideInsight({ traits, index, roles }) {
   };
 
   return (
+    // The reading and the instrument split the page, but not evenly: the prose
+    // holds a single comfortable measure on the left and gives everything it
+    // saves to the dial, which is what the page is actually about. The text
+    // grows downward instead of sideways, so the type is sized against the
+    // viewport and the body sizes to its content.
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) min(300px, 34vh)' },
-        gap: 4.5,
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 0.85fr) minmax(0, 1fr)' },
+        gap: { xs: 3, md: 5 },
         alignItems: 'center',
-        height: '100%',
+        minHeight: '100%',
       }}
     >
-      <Box>
-        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17.5, lineHeight: 1.6, color: colors.textPrimary, mb: 2, textWrap: 'pretty' }}>
+      <Box sx={{ maxWidth: 480 }}>
+        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 'clamp(15px, 1.9vh, 17.5px)', lineHeight: 1.6, color: colors.textPrimary, mb: 2, textWrap: 'pretty' }}>
           {copy.serif}
         </Typography>
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
+        <Typography sx={{ fontFamily: fonts.sans, fontSize: 'clamp(13.5px, 1.65vh, 15px)', lineHeight: 1.68, color: colors.textSecondary, textWrap: 'pretty' }}>
           {copy.sans}
         </Typography>
       </Box>
@@ -1343,7 +1355,7 @@ function SlideInsight({ traits, index, roles }) {
             </Stack>
           ))}
         </Stack>
-        <MiniDial statement={traitDial} showAxisNodes max="min(100%, 26vh)" />
+        <MiniDial statement={traitDial} showAxisNodes max={INSIGHT_DIAL_MAX} />
       </Box>
     </Box>
   );
@@ -1602,6 +1614,10 @@ export default function NarrativeView() {
   };
 
   const header = headerFor();
+  // The insight layout also stands in when a deck has no statements to show,
+  // so the frame follows what is rendered rather than the page name.
+  const showsInsight =
+    activeId.startsWith('insight') || (['statements', 'map'].includes(activeId) && !stmts.length);
 
   return (
     <Box
@@ -1638,10 +1654,10 @@ export default function NarrativeView() {
                   <Box sx={{ height: `calc(${FRAME_BODY_H} + ${FRAME_HEAD_H.md}px)` }}>{renderSlide()}</Box>
                 ) : (
                   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ height: FRAME_HEAD_H, flexShrink: 0 }}>
+                    <Box sx={{ height: showsInsight ? 'auto' : FRAME_HEAD_H, flexShrink: 0, mb: showsInsight ? 2.5 : 0 }}>
                       <SlideHeader title={header.title} lead={header.lead} legend={header.legend} />
                     </Box>
-                    <Box sx={{ height: FRAME_BODY_H }}>{renderSlide()}</Box>
+                    <Box sx={showsInsight ? { minHeight: FRAME_BODY_H } : { height: FRAME_BODY_H }}>{renderSlide()}</Box>
                   </Box>
                 )}
               </PageFade>
