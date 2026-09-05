@@ -99,7 +99,12 @@ const GROUPS = [
   {
     label: 'Command center',
     pages: [
-      { label: 'Current bearing', path: '/dashboard?tab=bearing', in: ['mid', 'finished'] },
+      {
+        label: 'Today',
+        path: '/dashboard?tab=today',
+        in: ['mid', 'finished'],
+        hint: 'Mid draws the listening window; finished draws the room after the reading.',
+      },
       {
         label: 'Narrative',
         path: '/dashboard?tab=narrative',
@@ -123,6 +128,12 @@ const GROUPS = [
       { label: 'FAQ', path: '/faq', in: ['fresh'] },
       { label: 'Documents', path: '/documents', in: ['fresh'] },
       { label: 'Design system', path: '/design', in: ['fresh'] },
+      {
+        label: 'Today — the eight states',
+        path: '/today-states',
+        in: ['fresh'],
+        hint: 'All four moments in both themes, on a fixture, so the room can be compared to the mockups without playing a year to reach it.',
+      },
       { label: 'Not found', path: '/no-such-page', in: ['fresh'] },
     ],
   },

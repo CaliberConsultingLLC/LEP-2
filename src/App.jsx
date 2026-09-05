@@ -29,6 +29,7 @@ import Checkout from './pages/Checkout';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import DemoStart from './pages/DemoStart';
 import DemoCatalog from './pages/DemoCatalog';
+import TodayStates from './pages/TodayStates';
 import ProtectedRoute from './components/ProtectedRoute';
 import DemoBanner from './components/DemoBanner';
 import { showDevTools, useCairnTheme, isProductionHost } from './config/runtimeFlags';
@@ -67,6 +68,7 @@ function AppRoutes() {
       <Route path="/landing" element={<Home />} />
       {!isProductionHost && <Route path="/demo" element={<DemoStart />} />}
       {!isProductionHost && <Route path="/demo/catalog" element={<DemoCatalog />} />}
+      {!isProductionHost && <Route path="/today-states" element={<TodayStates />} />}
       <Route path="/user-info" element={<UserInfo />} />
       <Route path="/guide-select" element={<GuideSelect />} />
       <Route path="/pay" element={<Checkout />} />

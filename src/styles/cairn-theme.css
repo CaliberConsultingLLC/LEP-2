@@ -590,6 +590,20 @@ html[data-theme='cairn'][data-dark='true'] [data-cairn-landing] h4 {
   color: inherit !important;
 }
 
+/* Today room: same reason as the landing above. The room paints its own night
+   or day ground and every heading inside it takes the room's ink, not the
+   app surface's. Without this the night headline renders navy on navy.        */
+html[data-theme='cairn'] [data-today-room] h1,
+html[data-theme='cairn'] [data-today-room] h2,
+html[data-theme='cairn'] [data-today-room] h3,
+html[data-theme='cairn'] [data-today-room] h4,
+html[data-theme='cairn'][data-dark='true'] [data-today-room] h1,
+html[data-theme='cairn'][data-dark='true'] [data-today-room] h2,
+html[data-theme='cairn'][data-dark='true'] [data-today-room] h3,
+html[data-theme='cairn'][data-dark='true'] [data-today-room] h4 {
+  color: inherit !important;
+}
+
 /* Chapter header: kill OS button face so step tabs stay transparent.
    Do not set `border` or `box-shadow` here — tabs paint the active underline
    with an inset shadow, and the map card needs its own border. */
