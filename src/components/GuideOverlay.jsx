@@ -80,7 +80,14 @@ function GuideOverlay() {
   // so the overlay can carry trait/step-aware talking points.
   const fallbackMessage = messages[msgIdx] || messages[0];
   const message = pageMessage && pageMessage.text
-    ? { text: pageMessage.text, pose: pageMessage.pose || fallbackMessage?.pose || 'idle', cta: pageMessage.cta || fallbackMessage?.cta, faq: pageMessage.faq || null, composer: pageMessage.composer || null }
+    ? {
+        text: pageMessage.text,
+        pose: pageMessage.pose || fallbackMessage?.pose || 'idle',
+        cta: pageMessage.cta || fallbackMessage?.cta,
+        faq: pageMessage.faq || null,
+        composer: pageMessage.composer || null,
+        action: pageMessage.action || null,
+      }
     : fallbackMessage;
   const owlPose = persona.poses[message?.pose] || persona.poses.idle;
   const routeFaq = getPageFaq(routeKey);
@@ -102,6 +109,11 @@ function GuideOverlay() {
     setDraft('');
     setSavedCount(0);
   }, [message?.text]);
+
+  // An acknowledgement has to be given again for each thing said, so the tick
+  // resets whenever the line does.
+  const [acked, setAcked] = useState(false);
+  useEffect(() => { setAcked(false); }, [message?.text]);
 
   // Suppress before a guide is chosen, on pre-guide routes, or when explicitly suppressed.
   const stage = new URLSearchParams(location.search || '').get('stage');
@@ -208,7 +220,10 @@ function GuideOverlay() {
           pointerEvents: 'auto',
         }}
       >
-        {/* Close button */}
+        {/* Close button. Withheld while the guide is holding the only way on:
+            collapsing the bubble then would leave the leader behind a backdrop
+            with nothing to press. */}
+        {!message.action && (
         <Box
           component="button"
           type="button"
@@ -234,6 +249,7 @@ function GuideOverlay() {
         >
           ×
         </Box>
+        )}
 
         {/* Message text */}
         <Box
@@ -248,6 +264,99 @@ function GuideOverlay() {
         >
           {message.text}
         </Box>
+
+        {/* ── Action ──
+            The way on lives in the bubble, under the line, rather than
+            floating somewhere else on the page: the eye finishes on what the
+            guide said and acts from there. When the page asks for an
+            acknowledgement the button waits on a tick — the leader agrees to
+            what was said rather than clicking past it. */}
+        {message.action && (
+          <Box sx={{ mt: '14px' }}>
+            {message.action.acknowledge && (
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setAcked((v) => !v)}
+                aria-pressed={acked}
+                sx={{
+                  all: 'unset',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '9px',
+                  mb: '11px',
+                  '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+                }}
+              >
+                <Box
+                  aria-hidden
+                  sx={{
+                    flexShrink: 0,
+                    mt: '1px',
+                    width: 17,
+                    height: 17,
+                    borderRadius: '5px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: `1.5px solid ${acked ? 'var(--orange-deep, #C0612A)' : 'var(--sand-300, #DCC9A6)'}`,
+                    background: acked ? 'var(--orange-deep, #C0612A)' : 'transparent',
+                    color: '#fff',
+                    fontSize: 11,
+                    lineHeight: 1,
+                    fontWeight: 700,
+                  }}
+                >
+                  {acked ? '✓' : ''}
+                </Box>
+                <Box
+                  sx={{
+                    fontFamily: '"Manrope", sans-serif',
+                    fontSize: 12.5,
+                    lineHeight: 1.45,
+                    fontWeight: 600,
+                    color: 'var(--ink-soft, #44566C)',
+                    textAlign: 'left',
+                  }}
+                >
+                  {message.action.acknowledgeLabel || 'I have read this.'}
+                </Box>
+              </Box>
+            )}
+            <Box
+              component="button"
+              type="button"
+              autoFocus={Boolean(message.action.autoFocus)}
+              disabled={Boolean(message.action.acknowledge) && !acked}
+              onClick={() => {
+                if (message.action.acknowledge && !acked) return;
+                message.action.onClick?.();
+              }}
+              sx={{
+                all: 'unset',
+                boxSizing: 'border-box',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                px: '20px',
+                minHeight: 36,
+                borderRadius: 999,
+                background: 'var(--navy-900, #10223C)',
+                color: 'var(--amber-soft, #F4CEA1)',
+                fontFamily: '"Manrope", sans-serif',
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: message.action.acknowledge && !acked ? 'not-allowed' : 'pointer',
+                opacity: message.action.acknowledge && !acked ? 0.45 : 1,
+                transition: 'opacity 140ms',
+                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+              }}
+            >
+              {message.action.label || 'Continue'}
+            </Box>
+          </Box>
+        )}
 
         {/* ── Composer ──
             The guide can be written to as well as read. A page hands over a

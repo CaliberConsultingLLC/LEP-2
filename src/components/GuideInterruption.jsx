@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Box } from '@mui/material';
-import { colors, fonts, radii } from '../styles/tokens';
-import { GUIDE_COLUMN, GUIDE_Z } from './guidePlacement';
+import { GUIDE_Z } from './guidePlacement';
 import { useGuide } from '../context/GuideContext';
 
 // One interruption, used everywhere a room introduces itself.
@@ -14,9 +13,8 @@ import { useGuide } from '../context/GuideContext';
 // an owl in it. That is the difference Dustin asked for on action planning.
 //
 // Two deliberate exceptions keep their own owl. The Summary stands the guide
-// full-height on the left, because there the owl is the page rather than a
-// speaker in the corner. The narrative's video interstitial predates this and
-// can adopt it whenever that file is next open.
+// full-height on the left, and the field journal does the same, because there
+// the owl is the page rather than a speaker in the corner.
 //
 // The backdrop sits below GUIDE_Z so the owl and its bubble stay crisp above
 // the blur — blurring the speaker along with the page is what made earlier
@@ -29,22 +27,40 @@ export default function GuideInterruption({
   text,
   pose = 'think',
   cta = 'Okay',
+  acknowledge = false,
+  acknowledgeLabel,
   onDone,
   children,
 }) {
   const { setHidden, setPageMessage, clearPageMessage } = useGuide();
+
+  // Handing the guide a message is a context write, which re-renders the page
+  // that is holding this open and hands down a fresh `onDone`. Read the current
+  // one through a ref, or the message is rebuilt on every render — which is a
+  // write, which is a render.
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
 
   useEffect(() => {
     if (!open) return undefined;
     // A collapsed guide cannot deliver an interruption, so it opens for this
     // and is left open afterwards — the line stays readable after dismissal.
     setHidden(false);
-    setPageMessage({ text, pose, eyebrow });
+    setPageMessage({
+      text,
+      pose,
+      eyebrow,
+      // The way on rides inside the bubble, under the line the guide just
+      // said, rather than floating beside it.
+      action: { label: cta, onClick: () => doneRef.current?.(), acknowledge, acknowledgeLabel, autoFocus: true },
+    });
     return () => clearPageMessage();
-  }, [open, text, pose, eyebrow, setHidden, setPageMessage, clearPageMessage]);
+  }, [open, text, pose, eyebrow, cta, acknowledge, acknowledgeLabel, setHidden, setPageMessage, clearPageMessage]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    // An acknowledgement has to be given, not escaped past, so the shortcuts
+    // and the click-away are only offered when none was asked for.
+    if (!open || acknowledge) return undefined;
     const onKey = (event) => {
       if (event.key === 'Escape' || event.key === 'Enter') {
         event.preventDefault();
@@ -53,7 +69,7 @@ export default function GuideInterruption({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [open, onDone]);
+  }, [open, acknowledge, onDone]);
 
   if (!open || typeof document === 'undefined') return null;
 
@@ -62,7 +78,7 @@ export default function GuideInterruption({
       role="dialog"
       aria-modal="true"
       aria-label={eyebrow || 'Guide'}
-      onClick={onDone}
+      onClick={acknowledge ? undefined : onDone}
       sx={{
         position: 'fixed',
         inset: 0,
@@ -83,45 +99,8 @@ export default function GuideInterruption({
         </Box>
       ) : null}
 
-      {/* Dismiss sits under the guide's bubble rather than in the middle of the
-          screen, so the eye finishes on the owl's line and acts from there. */}
-      <Box
-        sx={{
-          position: 'fixed',
-          right: { xs: 16, md: 28 },
-          top: 'calc(50% + 92px)',
-          width: GUIDE_COLUMN,
-          display: 'flex',
-          justifyContent: 'center',
-          pointerEvents: 'none',
-        }}
-      >
-        <Box
-          component="button"
-          type="button"
-          autoFocus
-          onClick={(event) => { event.stopPropagation(); onDone?.(); }}
-          sx={{
-            all: 'unset',
-            pointerEvents: 'auto',
-            cursor: 'pointer',
-            px: '24px',
-            py: '12px',
-            borderRadius: radii.pill,
-            bgcolor: colors.amberSoft,
-            color: colors.navy900,
-            fontFamily: fonts.sans,
-            fontWeight: 700,
-            fontSize: 13,
-            letterSpacing: '0.04em',
-            boxShadow: '0 10px 26px rgba(5, 12, 24, 0.4)',
-            '&:hover': { bgcolor: colors.amber },
-            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
-          }}
-        >
-          {cta}
-        </Box>
-      </Box>
+      {/* Nothing else is drawn here: the way on is the button inside the
+          guide's own bubble, handed over with the line above. */}
     </Box>,
     document.body
   );

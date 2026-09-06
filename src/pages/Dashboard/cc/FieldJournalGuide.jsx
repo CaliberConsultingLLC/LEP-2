@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows } from '../../../styles/tokens';
@@ -39,14 +39,21 @@ export default function FieldJournalGuide({
   pose = 'think',
   interrupting = false,
   cta = 'Okay',
+  acknowledge = false,
+  acknowledgeLabel = 'I have read this.',
   onDone,
 }) {
+  const [acked, setAcked] = useState(false);
+  useEffect(() => { setAcked(false); }, [text]);
+  const blocked = acknowledge && !acked;
   const owlSrc = persona?.poses?.[pose] || persona?.poses?.idle;
   const bubbleBg = colors.surface1;
   const bubbleBorder = `1px solid ${colors.sand200}`;
 
   useEffect(() => {
-    if (!interrupting) return undefined;
+    // An acknowledgement is given, not escaped past, so the shortcuts are only
+    // offered when the page did not ask for one.
+    if (!interrupting || acknowledge) return undefined;
     const onKey = (event) => {
       if (event.key === 'Escape' || event.key === 'Enter') {
         event.preventDefault();
@@ -55,7 +62,7 @@ export default function FieldJournalGuide({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [interrupting, onDone]);
+  }, [interrupting, acknowledge, onDone]);
 
   const guide = (
     <>
@@ -143,39 +150,98 @@ export default function FieldJournalGuide({
           >
             {text}
           </Typography>
-        </Box>
 
-        {/* Dismiss sits under the bubble so the eye finishes on the line and
-            acts from there, the same order the corner guide uses. */}
-        {interrupting && (
-          <Box sx={{ display: 'flex', mt: '14px', pl: '10px' }}>
-            <Box
-              component="button"
-              type="button"
-              autoFocus
-              onClick={onDone}
-              sx={{
-                all: 'unset',
-                pointerEvents: 'auto',
-                cursor: 'pointer',
-                px: '24px',
-                py: '12px',
-                borderRadius: radii.pill,
-                bgcolor: colors.amberSoft,
-                color: colors.navy900,
-                fontFamily: fonts.sans,
-                fontWeight: 700,
-                fontSize: 13,
-                letterSpacing: '0.04em',
-                boxShadow: '0 10px 26px rgba(5, 12, 24, 0.4)',
-                '&:hover': { bgcolor: colors.amber },
-                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
-              }}
-            >
-              {cta}
+          {/* The way on lives inside the bubble, under the line — the same
+              place the corner guide keeps it, so the guide reads as one thing
+              wherever it is standing. When the page asks to be acknowledged
+              the button waits on the tick. */}
+          {interrupting && (
+            <Box sx={{ mt: '14px' }}>
+              {acknowledge && (
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => setAcked((v) => !v)}
+                  aria-pressed={acked}
+                  sx={{
+                    all: 'unset',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '9px',
+                    mb: '11px',
+                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                  }}
+                >
+                  <Box
+                    aria-hidden
+                    sx={{
+                      flexShrink: 0,
+                      mt: '1px',
+                      width: 17,
+                      height: 17,
+                      borderRadius: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `1.5px solid ${acked ? colors.orangeDeep : colors.sand300}`,
+                      bgcolor: acked ? colors.orangeDeep : 'transparent',
+                      color: '#fff',
+                      fontSize: 11,
+                      lineHeight: 1,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {acked ? '✓' : ''}
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontFamily: fonts.sans,
+                      fontSize: 12.5,
+                      lineHeight: 1.45,
+                      fontWeight: 600,
+                      color: colors.inkSoft,
+                      textAlign: 'left',
+                    }}
+                  >
+                    {acknowledgeLabel}
+                  </Typography>
+                </Box>
+              )}
+              <Box
+                component="button"
+                type="button"
+                autoFocus
+                disabled={blocked}
+                onClick={() => { if (!blocked) onDone?.(); }}
+                sx={{
+                  all: 'unset',
+                  boxSizing: 'border-box',
+                  pointerEvents: 'auto',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: blocked ? 'not-allowed' : 'pointer',
+                  px: '20px',
+                  minHeight: 36,
+                  borderRadius: radii.pill,
+                  bgcolor: colors.navy900,
+                  color: colors.amberSoft,
+                  fontFamily: fonts.sans,
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  letterSpacing: '0.04em',
+                  opacity: blocked ? 0.45 : 1,
+                  transition: 'opacity 140ms, background 140ms',
+                  '&:hover': { bgcolor: blocked ? colors.navy900 : colors.navy800 },
+                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
+                }}
+              >
+                {cta}
+              </Box>
             </Box>
-          </Box>
-        )}
+          )}
+        </Box>
       </Box>
     </>
   );
@@ -185,7 +251,7 @@ export default function FieldJournalGuide({
   return createPortal(
     <Box role="dialog" aria-modal="true" aria-label={eyebrow || 'Guide'}>
       <Box
-        onClick={onDone}
+        onClick={acknowledge ? undefined : onDone}
         sx={{
           position: 'fixed',
           inset: 0,
