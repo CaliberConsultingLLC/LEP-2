@@ -9,7 +9,6 @@ import { ChapterEyebrow, PageFade, ProgressDots } from './debriefUi.jsx';
 import { getDebriefScope } from './phaseState.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
-import { GUIDE_COLUMN } from '../../../components/guidePlacement';
 
 // ----------------------------------------------------------------------------
 // NarrativeView — the ten-page results debrief narrative (v2 design).
@@ -113,28 +112,28 @@ function insightCopy(row, role) {
     case 'naturalGift':
       return {
         name,
-        tagline: 'your natural gift.',
+        tagline: 'Your natural gift',
         serif: `Your team feels this landing. Effectiveness of ${f} on effort of just ${e} — it works almost without you pushing${gap < 0 ? ', and they rated it higher than you rated yourself' : ''}. While your attention has been on the harder traits, this one has been quietly doing the lifting underneath everything else. That consistency is the signal: when a trait costs this little and lands this clearly, it is already doing work you may not be counting.`,
         sans: 'The read is consistent: it lands clearly enough that your team doesn’t watch you strain for it — they just orient by it. The only caution with a gift this natural is drift. Name it out loud, lean on it when the harder work gets heavy, and give it just enough deliberate attention that it keeps growing instead of coasting. Protect the ease without taking it for granted.',
       };
     case 'fullStrength':
       return {
         name,
-        tagline: 'strong because you keep it strong.',
+        tagline: 'Strong because you keep it strong',
         serif: `Real effort, real results. Your team rates the work at ${e} and the payoff at ${f} — they see you working at this, and they feel it landing in kind.${Math.abs(gap) < 8 ? ' And your read matches theirs almost exactly: a rare, shared picture of the same strength.' : ''} That alignment is what makes this trait dependable — not luck, but a pattern your team can name.`,
         sans: 'This is the strongest place a trait can be — and the most expensive to hold. Protect it: notice what’s working so you can repeat it on purpose, and keep an eye on the cost, because a peak held by force erodes quietly. Nothing here needs fixing; it needs guarding. The work is visible, the payoff is felt, and that loop is worth preserving deliberately.',
       };
     case 'offTarget':
       return {
         name,
-        tagline: 'asking the loudest.',
+        tagline: 'Asking the loudest',
         serif: `${role === 'edge' ? 'The heaviest signal in the reading' : 'A hard signal in the reading'}${gap >= 8 ? ' — and a wide gap between your read and theirs' : ''}. Your team sees real effort here (${e}), they aren’t yet feeling the results (${f})${gap >= 8 ? ', and you feel more landing than they do' : ''}. The split between trying and landing is the whole story — and it shows up statement by statement, not just in the headline score.`,
         sans: 'This is a targeting problem, not a character flaw. Don’t add more force — change the aim. Ask your team what would actually help, and redirect energy you’re already spending. When you’re ready to work, this trait is first in line, and its room holds every statement behind this read. Small aim corrections here will be felt faster than pushing harder on what is already maxed out.',
       };
     default:
       return {
         name,
-        tagline: 'quiet ground, not yet claimed.',
+        tagline: 'Quiet ground, not yet claimed',
         serif: `Neither much effort (${e}) nor much result (${f}) is showing up here yet. It’s not a failure — it’s unclaimed ground, and unclaimed ground moves fastest when you decide it matters. Until you choose it, your team reads quiet on both measurements.`,
         sans: 'Decide whether this trait belongs in the next stretch. If it does, a small, deliberate investment — one visible behavior, held for a season — can move it more quickly than any of the crowded traits. If it doesn’t, let it rest without guilt. Unclaimed is not broken; it is simply waiting for a decision about whether it earns your attention.',
       };
@@ -1110,19 +1109,32 @@ function VideoInterstitial({ which, onClose }) {
   const video = which === 'map' ? MAP_VIDEO : GAP_VIDEO;
   const { setHidden, setPageMessage, clearPageMessage } = useGuide();
 
-  useEffect(() => {
-    setHidden(false);
-    setPageMessage({ text: copy.line, pose: 'map', eyebrow: copy.eyebrow });
-    return () => clearPageMessage();
-  }, [which, copy.line, copy.eyebrow, setHidden, setPageMessage, clearPageMessage]);
+  // Handing the guide a new message is a context write, and a context write
+  // re-renders the deck above this — which hands down a fresh `onClose`. Read
+  // the current one through a ref so the message is built once per explainer
+  // instead of once per render.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape' || e.key === 'Enter' || e.key === 'ArrowRight') onClose();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClose]);
+    setHidden(false);
+    setPageMessage({
+      text: copy.line,
+      pose: 'map',
+      eyebrow: copy.eyebrow,
+      // The explainers are the two places the guide asks to be answered rather
+      // than clicked past: the deck does not move on until the leader says the
+      // idea landed, which is the whole reason the video interrupts at all.
+      action: {
+        label: 'Got it — keep going →',
+        onClick: () => closeRef.current?.(),
+        acknowledge: true,
+        acknowledgeLabel: 'I have watched this and I follow it.',
+        autoFocus: true,
+      },
+    });
+    return () => clearPageMessage();
+  }, [which, copy.line, copy.eyebrow, setHidden, setPageMessage, clearPageMessage]);
 
   return (
     <Box
@@ -1158,42 +1170,8 @@ function VideoInterstitial({ which, onClose }) {
           <ExplainerVideo src={video.src} label={video.label} standalone />
         </Box>
       </Box>
-      {/* Dismiss sits with the guide, below its bubble, so the eye finishes on
-          the owl's line and acts from there. */}
-      <Box
-        sx={{
-          position: 'fixed',
-          right: { xs: 16, md: 28 },
-          top: 'calc(50% + 92px)',
-          width: GUIDE_COLUMN,
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <Box
-          component="button"
-          type="button"
-          onClick={onClose}
-          sx={{
-            all: 'unset',
-            cursor: 'pointer',
-            px: '24px',
-            py: '12px',
-            borderRadius: radii.pill,
-            bgcolor: colors.amberSoft,
-            color: colors.navy900,
-            fontFamily: fonts.sans,
-            fontWeight: 700,
-            fontSize: 13,
-            letterSpacing: '0.04em',
-            boxShadow: '0 10px 26px rgba(5, 12, 24, 0.4)',
-            '&:hover': { bgcolor: colors.amber },
-            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
-          }}
-        >
-          Got it — keep going &#8594;
-        </Box>
-      </Box>
+      {/* Nothing is drawn out here: the acknowledgement and the way on both
+          live inside the guide's bubble, under the line it just said. */}
     </Box>
   );
 }
@@ -1634,7 +1612,7 @@ export default function NarrativeView() {
   const edgeIdx = Math.max(traits.findIndex((r) => r.trait === roles.edge?.trait), 0);
   const [selMeasure, setSelMeasure] = useState(null);
   const [selStmt, setSelStmt] = useState(0);
-  const [selMap, setSelMap] = useState(null);
+  const [selMap, setSelMap] = useState(0);
   const [selGapStmt, setSelGapStmt] = useState(0);
 
   const userInfo = readJson('userInfo', {});
