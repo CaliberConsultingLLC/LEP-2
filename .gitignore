@@ -54,6 +54,11 @@ Growth campaign redesign mockups/
 Intake Review and Lock/
 *.zip
 
+# Handoff drops — the spec and mock for a page, worked from locally, never in git.
+handoff/
+handoff-[0-9]*/
+handoff_*/
+
 # Evidence page handoff — extracted twice (EvidenceRevision/ and loose at root).
 EvidenceRevision/
 trait-room-prototype.html
