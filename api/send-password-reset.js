@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       // its own message instead: plainer than our letterhead, but a reset that
       // works beats a branded one that does not.
       if (String(err?.code || '') === 'requires-admin') {
-        await adminAuth.sendPasswordResetEmail(email);
+        await adminAuth.sendPasswordResetEmail(email, { continueUrl: `${base}/sign-in` });
         return uniform();
       }
       // auth/user-not-found lands here. Same response as success, on purpose.

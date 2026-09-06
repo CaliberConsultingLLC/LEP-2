@@ -286,14 +286,20 @@ export const adminAuth = {
     throw err;
   },
 
-  async sendPasswordResetEmail(email) {
+  async sendPasswordResetEmail(email, { continueUrl } = {}) {
     requireConfig();
     const res = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(WEB_API_KEY)}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email }),
+        body: JSON.stringify({
+          requestType: 'PASSWORD_RESET',
+          email,
+          // Without this the leader finishes on Firebase's own page and has no
+          // way back into Compass. With it, they land on our sign-in.
+          ...(continueUrl ? { continueUrl } : {}),
+        }),
       },
     );
     const body = await res.json().catch(() => ({}));
