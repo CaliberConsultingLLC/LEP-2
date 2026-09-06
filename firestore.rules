@@ -9,6 +9,14 @@ service cloud.firestore {
       return isSignedIn() && uid is string && uid == request.auth.uid;
     }
 
+    // The server has no service account — key creation is blocked by org
+    // policy — so it signs in as one ordinary account and acts as that. The
+    // Admin SDK used to bypass these rules entirely; the robot does not, so
+    // everything the server does has to be allowed here explicitly.
+    function isRobot() {
+      return isSignedIn() && request.auth.uid == 'TVPZiQah9uPI8ycO4umeEePHJU12';
+    }
+
     // Once an intake is locked, the answers stop being editable — and that has
     // to hold here, not just in the UI. Hiding the Edit buttons only stops
     // someone who is not looking at the console.
@@ -28,10 +36,15 @@ service cloud.firestore {
     }
 
     match /responses/{docId} {
-      allow create, get: if isOwnerUid(docId);
-      allow update: if isOwnerUid(docId)
+      allow create, get: if isOwnerUid(docId) || isRobot();
+      // The robot writes billing and campaignMail, never answers, so the lock
+      // still binds it exactly as it binds the owner.
+      allow update: if (isOwnerUid(docId) || isRobot())
         && !(intakeIsLocked() && touchesLockedAnswers());
-      allow list, delete: if false;
+      // Only the robot may scan across leaders: that is the nightly mail and
+      // the admin console, and no signed-in customer has any business here.
+      allow list: if isRobot();
+      allow delete: if false;
     }
 
     match /societalNorms/{docId} {
@@ -42,7 +55,8 @@ service cloud.firestore {
     match /campaigns/{docId} {
       allow create, update: if isSignedIn();
       allow get: if isSignedIn();
-      allow list, delete: if false;
+      allow list: if isRobot();
+      allow delete: if false;
     }
 
     match /surveyResponses/{docId} {
@@ -54,7 +68,17 @@ service cloud.firestore {
 
     match /users/{docId} {
       allow create, get, update: if isSignedIn();
-      allow list, delete: if false;
+      allow list: if isRobot();
+      allow delete: if false;
+    }
+
+    // Never had a rule, so the catch-all denied it. That went unnoticed only
+    // because the Admin SDK ignored rules; under the robot it would have been
+    // the first thing to break.
+    match /authEvents/{docId} {
+      allow create: if isSignedIn();
+      allow get, list: if isRobot();
+      allow update, delete: if false;
     }
 
     match /{document=**} {
