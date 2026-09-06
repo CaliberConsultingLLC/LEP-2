@@ -198,11 +198,13 @@ export const CHAPTERS = [
         whatHappens: ['Your first reading, told in nine pages', 'Play it once, replay it any time'],
       },
       {
+        // The id stays `signal`: it keys saved progress, the phase chain and
+        // every ?tab=signal link already sitting in a sent email.
         id: 'signal',
-        label: 'Signal',
+        label: 'Sentiment',
         path: '/dashboard?tab=signal',
         gated: true,
-        whatHappens: ['Team score, trait by trait', 'Where their read differs from yours', 'Reading only — nothing to commit here'],
+        whatHappens: ['What it is like to be led by you, trait by trait', 'Three questions, answered from what your team rated', 'Reading only — nothing to commit here'],
       },
       {
         id: 'evidence',

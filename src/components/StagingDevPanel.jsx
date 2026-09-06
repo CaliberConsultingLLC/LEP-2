@@ -48,7 +48,7 @@ const PAGE_GROUPS = [
     label: 'Command Center',
     pages: [
       { label: 'VI - Today', path: '/dashboard?tab=today' },
-      { label: 'VI - Signal', path: '/dashboard?tab=signal' },
+      { label: 'VI - Sentiment', path: '/dashboard?tab=sentiment' },
       { label: 'VI - Evidence', path: '/dashboard?tab=evidence' },
       { label: 'VI - Practice', path: '/dashboard?tab=practice' },
       { label: 'VII - Journey', path: '/dashboard?tab=journey' },

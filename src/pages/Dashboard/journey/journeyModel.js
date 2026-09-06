@@ -384,7 +384,7 @@ export function getHeaderMetaForLocation(pathname = '', search = '') {
   if (pathname.startsWith('/dashboard')) {
     if (['growth-plan', 'plan', 'practice'].includes(tab)) return { label: 'Practice', value: 'Active' };
     if (['my-journey', 'journey'].includes(tab)) return { label: 'Chapters', value: '9' };
-    return { label: 'Signal', value: 'Current' };
+    return { label: 'Sentiment', value: 'Current' };
   }
   return null;
 }
