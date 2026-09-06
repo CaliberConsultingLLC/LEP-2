@@ -125,13 +125,21 @@ function WaxSeal({ children, size = 32, fontSize = 11 }) {
 
 function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdReady, readOnly }) {
   return (
+    // `mt: auto` pins the footer to the foot of the leaf and `flexShrink: 0`
+    // keeps its height, so a tall entry above it cannot push the forward
+    // control off the bottom of the paper — the page is `overflow: hidden`, so
+    // anything pushed past the edge simply is not there. The two controls also
+    // refuse to shrink or wrap; it was the long forward labels, squeezed by the
+    // folio in the middle, that made the button look like it had run out of
+    // room on the right.
     <Box
       sx={{
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        mt: '8px',
+        gap: '10px',
+        mt: 'auto',
         pt: '6px',
         flexShrink: 0,
         minHeight: 28,
@@ -152,6 +160,8 @@ function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdRe
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
             ...focusRing(accent),
             '&:hover': { color: PAPER.ink },
           }}
@@ -160,11 +170,11 @@ function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdRe
           {backLabel}
         </Box>
       ) : (
-        <Box sx={{ width: 60 }} />
+        <Box sx={{ width: 60, flexShrink: 0 }} />
       )}
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.18em', color: PAPER.sepia }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, overflow: 'hidden' }}>
+        <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.18em', color: PAPER.sepia, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {folio}
         </Typography>
         {Boolean(dots?.length) && (
@@ -201,6 +211,8 @@ function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdRe
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
             ...focusRing(accent),
             '&:hover': { color: fwdReady ? '#8d3418' : PAPER.ink },
           }}
@@ -209,7 +221,7 @@ function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdRe
           <Box component="span" sx={{ fontSize: 15, lineHeight: 1 }}>›</Box>
         </Box>
       ) : (
-        <Box sx={{ width: 60 }} />
+        <Box sx={{ width: 60, flexShrink: 0 }} />
       )}
     </Box>
   );
