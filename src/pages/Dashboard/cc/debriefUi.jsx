@@ -548,7 +548,25 @@ export function GapScoresPanel({ rows, highlightKey, onSelect }) {
 // ---------------------------------------------------------------------------
 export function SnapshotShell({ children }) {
   return (
-    <Box component="main" sx={{ width: '100%', maxWidth: 1180, mx: 'auto', px: 0, pt: 0, pb: 0 }}>
+    // The command center hands its pages a fixed box with overflow hidden, so
+    // the shell has to take that box's height rather than its content's —
+    // otherwise whatever sits at the foot of the room is silently clipped
+    // instead of being measured and fitted.
+    <Box
+      component="main"
+      sx={{
+        width: '100%',
+        maxWidth: 1180,
+        mx: 'auto',
+        px: 0,
+        pt: 0,
+        pb: 0,
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {children}
     </Box>
   );

@@ -124,9 +124,11 @@ const FOCUS_SX = {
 };
 
 function ModeBar({ mode, onModeChange, embedded = false }) {
+  // Effort on the left, the Compass in the middle, Effectiveness on the right:
+  // the blended reading sits between the two questions it is made of.
   const modes = [
-    { id: 'map', label: 'Compass' },
     { id: 'effort', label: 'Effort' },
+    { id: 'map', label: 'Compass' },
     { id: 'efficacy', label: 'Effectiveness' },
   ];
   return (
@@ -334,16 +336,6 @@ export default function EvidenceQuadrant({
     return { start, end, arrow };
   }, [axisDir, compass, teamPt]);
 
-  const axisColor = (axis) => {
-    if (compass) return colors.inkSoft;
-    if (mode === axis) return modeInk(mode);
-    return colors.inkSoft;
-  };
-  const axisOpacity = (axis) => {
-    if (compass) return 1;
-    return mode === axis ? 1 : 0.4;
-  };
-
   const px = (n) => n * scale;
   const brassRing = `color-mix(in srgb, ${colors.amber} 75%, ${colors.orangeDeep})`;
 
@@ -362,36 +354,11 @@ export default function EvidenceQuadrant({
           overflow: 'visible',
         }}
       >
-        {[
-          { key: 'hi-eff', text: 'HIGH EFFICACY', axis: 'efficacy', left: 0, top: 0, textAlign: 'left' },
-          { key: 'hi-eft', text: 'HIGH EFFORT', axis: 'effort', right: 0, top: 0, textAlign: 'right' },
-          { key: 'lo-eft', text: 'LOW EFFORT', axis: 'effort', left: 0, bottom: 0, textAlign: 'left' },
-          { key: 'lo-eff', text: 'LOW EFFICACY', axis: 'efficacy', right: 0, bottom: 0, textAlign: 'right' },
-        ].map((lab) => (
-          <Typography
-            key={lab.key}
-            sx={{
-              position: 'absolute',
-              left: lab.left === 0 ? 0 : 'auto',
-              right: lab.right === 0 ? 0 : 'auto',
-              top: lab.top === 0 ? 0 : 'auto',
-              bottom: lab.bottom === 0 ? 0 : 'auto',
-              fontFamily: fonts.mono,
-              fontSize: 9,
-              fontWeight: 700,
-              letterSpacing: '0.18em',
-              whiteSpace: 'nowrap',
-              textAlign: lab.textAlign,
-              color: axisColor(lab.axis),
-              opacity: axisOpacity(lab.axis),
-              transition: DIAL_EASE,
-              pointerEvents: 'none',
-              zIndex: 2,
-            }}
-          >
-            {lab.text}
-          </Typography>
-        ))}
+        {/* The four corner labels — HIGH EFFICACY / HIGH EFFORT / LOW EFFORT /
+            LOW EFFICACY — are gone. The narrative teaches the two axes before
+            anyone reaches this room, and the zone names inside the face already
+            say what each quadrant means; the corners were restating the picture
+            in the picture's own frame. */}
 
         <Box
           sx={{

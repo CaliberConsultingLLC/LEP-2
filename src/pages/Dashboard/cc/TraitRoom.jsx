@@ -1,23 +1,23 @@
 // The Trait Room — the Evidence page body, one trait at a time.
 //
-// The dial on the left, the five statements on the right, and a ribbon along
-// the bottom for the thought you want to carry into the plan. The table IS the
-// selector: there are no statement tabs, and clicking a row both expands it and
-// lights its node on the dial.
+// The dial on the left, the five statements on the right, and — beneath them,
+// sharing one bottom edge — the three mode buttons and the note pad they sit
+// beside. The table IS the selector: there are no statement tabs, and clicking
+// a row both expands it and lights its node on the dial.
 //
 // Idle means nothing is selected — all five dots on the dial, no self ghost, no
 // gap chip, every row collapsed. That is the arrival state, and clicking an
 // open row returns to it.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import EvidenceQuadrant, { EvidenceModeBar } from './EvidenceQuadrant';
+import { useFitScale } from './useFitScale.js';
 import { DIAL_ZONES, perceptionGap, scoresFor, zoneFor } from './evidenceDial';
 import { appendTraitNote, notesLabel, readTraitNotes } from './traitRoomNotes';
 import MetricHint from '../../../components/MetricHint';
 import { SCORE_HINTS } from '../../../data/scoreGlossary';
 import { colors, fonts, radii, shadows, surfaces, type } from '../../../styles/tokens';
-import { useGuide } from '../../../context/GuideContext';
 
 const HAIRLINE_ON_NAVY = 'rgba(244,206,161,0.20)';
 const signed = (n) => `${n > 0 ? '+' : ''}${n}`;
@@ -228,77 +228,124 @@ function StatementRow({ statement, open, mode, onToggle, isLast }) {
 // Bottom ribbon
 // ---------------------------------------------------------------------------
 
-function NotesRibbon({ trait, selectedIdx }) {
+function NotePad({ trait, selectedIdx, onResize }) {
   const [notes, setNotes] = useState(() => readTraitNotes(trait));
-  const { setHidden, setPageMessage } = useGuide();
+  const [draft, setDraft] = useState('');
+  const areaRef = useRef(null);
 
-  useEffect(() => { setNotes(readTraitNotes(trait)); }, [trait]);
+  useEffect(() => { setNotes(readTraitNotes(trait)); setDraft(''); }, [trait]);
 
-  // The note goes to the guide rather than into a form sitting open at the
-  // bottom of the room. Pressing this raises the owl if it is collapsed and
-  // turns its bubble into the place the note is typed — and it stays there
-  // for the next one, because a reading rarely produces exactly one thought.
-  const openWithGuide = () => {
-    setHidden(false);
-    setPageMessage({
-      text: `Anything you want to carry into action planning from ${trait}? Tell me and I will keep it with this trait.`,
-      pose: 'think',
-      composer: {
-        placeholder: 'Something to bring into the plan…',
-        submitLabel: 'Log it',
-        helper: 'Cmd/Ctrl + Enter saves',
-        onSubmit: (text) => {
-          setNotes(appendTraitNote(trait, text, Number.isInteger(selectedIdx) ? selectedIdx : null));
-        },
-      },
-    });
+  // The box starts small and grows with what is written in it, rather than
+  // opening at the size of the longest note anyone might leave.
+  const grow = () => {
+    const el = areaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 168)}px`;
+  };
+  // Growing the box changes the height of the room, so the room re-measures
+  // itself against its window rather than being clipped mid-sentence.
+  useEffect(() => { grow(); onResize?.(); }, [draft]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const keep = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setNotes(appendTraitNote(trait, text, Number.isInteger(selectedIdx) ? selectedIdx : null));
+    setDraft('');
   };
 
   return (
     <Box
       sx={{
         ...surfaces.card,
-        p: { xs: '12px 14px', md: '12px 18px' },
+        p: { xs: '14px 16px', md: '16px 18px' },
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '14px',
-        flexWrap: 'wrap',
+        flexDirection: 'column',
+        gap: '10px',
       }}
     >
-      <Typography sx={{
-        fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.5, color: colors.inkSoft,
-      }}>
-        If you&#8217;d like to add a note ahead of action planning, log it here.
+      <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
+        <Typography sx={{
+          fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
+          textTransform: 'uppercase', color: colors.inkSoft,
+        }}>
+          A note for the plan
+        </Typography>
         {notes.length ? (
-          <Box component="span" sx={{
-            ml: '10px', fontFamily: fonts.mono, fontSize: 9, fontWeight: 700,
-            letterSpacing: '0.16em', textTransform: 'uppercase', color: colors.inkSoft,
+          <Typography sx={{
+            fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em',
+            textTransform: 'uppercase', color: colors.green,
           }}>
             {notesLabel(notes.length)}
-          </Box>
+          </Typography>
         ) : null}
-      </Typography>
+      </Box>
 
+      {/* Click in and type. The placeholder is the first half of the sentence
+          the leader is most likely to be writing. */}
       <Box
-        component="button"
-        type="button"
-        onClick={openWithGuide}
-        sx={{
-          all: 'unset', boxSizing: 'border-box',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          px: '20px', minHeight: 36, borderRadius: radii.pill,
-          bgcolor: colors.navy900, color: colors.amberSoft,
-          fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
-          boxShadow: shadows.buttonPrimary,
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-          transition: 'transform 140ms, background 140ms',
-          '&:hover': { bgcolor: colors.navy800, transform: 'translateY(-1px)' },
-          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+        component="textarea"
+        ref={areaRef}
+        rows={2}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); keep(); }
         }}
-      >
-        Add a note
+        placeholder={'“I noticed…”'}
+        aria-label={`A note for the plan on ${trait}`}
+        sx={{
+          width: '100%',
+          boxSizing: 'border-box',
+          resize: 'none',
+          overflow: 'auto',
+          minHeight: 58,
+          p: '10px 12px',
+          borderRadius: radii.sm,
+          border: `1px solid ${colors.sand200}`,
+          bgcolor: colors.sand50,
+          fontFamily: fonts.serif,
+          fontSize: 14,
+          lineHeight: 1.5,
+          color: colors.ink,
+          '&::placeholder': { color: colors.inkSoft, opacity: 0.8, fontStyle: 'italic' },
+          '&:focus': { outline: 'none', borderColor: colors.orange, bgcolor: colors.surface1 },
+        }}
+      />
+
+      {/* The button leads on the left. The guide stands over the bottom-right
+          corner of every room, and the one control here is the one thing that
+          must not end up behind an owl. */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <Box
+          component="button"
+          type="button"
+          disabled={!draft.trim()}
+          onClick={keep}
+          sx={{
+            all: 'unset', boxSizing: 'border-box',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            px: '18px', minHeight: 32, borderRadius: radii.pill,
+            bgcolor: colors.navy900, color: colors.amberSoft,
+            fontFamily: fonts.sans, fontSize: 12, fontWeight: 700,
+            flexShrink: 0,
+            cursor: draft.trim() ? 'pointer' : 'not-allowed',
+            opacity: draft.trim() ? 1 : 0.45,
+            transition: 'opacity 140ms, background 140ms',
+            '&:hover': { bgcolor: draft.trim() ? colors.navy800 : colors.navy900 },
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+          }}
+        >
+          Keep it
+        </Box>
+        <Typography sx={{
+          fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 11.5, lineHeight: 1.4,
+          color: colors.inkSoft, minWidth: 0,
+        }}>
+          {draft.trim()
+            ? 'Cmd/Ctrl + Enter keeps it'
+            : '“This shows up when…” · “Ask them about…”'}
+        </Typography>
       </Box>
     </Box>
   );
@@ -332,8 +379,31 @@ export default function TraitRoom({ row, statements }) {
 
   const toggle = (idx) => setSelected((prev) => (prev === idx ? null : idx));
 
+  // The room is given a fixed box with overflow hidden, so it measures itself
+  // into it rather than trusting it will fit. Opening a statement changes the
+  // height, so every selection re-measures.
+  const { frameRef, contentRef, fit, remeasure } = useFitScale();
+  useEffect(remeasure, [traitLabel, selected, mode, remeasure]);
+
   return (
-    <Box sx={{ width: '100%', maxWidth: 1180, mx: 'auto', pb: '8px' }}>
+    <Box
+      ref={frameRef}
+      // A clipped frame is never scrolled. Focusing the note pad makes the
+      // browser scroll it into view, which drags the top of the room out of
+      // sight and leaves it there; the room fits, so the answer is to refuse
+      // the scroll rather than to allow it.
+      onScroll={(e) => { e.currentTarget.scrollTop = 0; e.currentTarget.scrollLeft = 0; }}
+      sx={{ width: '100%', maxWidth: 1180, mx: 'auto', flex: 1, minHeight: 0, overflow: 'hidden', '--fit': fit }}
+    >
+    <Box
+      ref={contentRef}
+      sx={{
+        width: 'calc(100% / var(--fit))',
+        transformOrigin: 'top left',
+        transform: 'scale(var(--fit))',
+        pb: '8px',
+      }}
+    >
       {/* Header */}
       <Box sx={{
         display: 'flex', alignItems: { xs: 'flex-start', md: 'flex-end' },
@@ -362,15 +432,17 @@ export default function TraitRoom({ row, statements }) {
         </Stack>
       </Box>
 
-      {/* Stage */}
+      {/* Stage. Both columns stretch to the taller of the two, and the last
+          thing in each is pushed to the bottom — so the mode buttons and the
+          note pad share one bottom edge no matter how tall the table runs. */}
       <Box sx={{
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: '470px minmax(0, 1fr)' },
         gap: { xs: '18px', md: '28px' },
-        alignItems: 'start',
+        alignItems: 'stretch',
         mb: '16px',
       }}>
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {/* `selectedIdx="all"` is the dial's idle presentation: every dot
               visible, none selected, no ghost, no gap chip. */}
           <EvidenceQuadrant
@@ -381,24 +453,24 @@ export default function TraitRoom({ row, statements }) {
             onModeChange={setMode}
             showModeBar={false}
           />
-          <Box sx={{ mt: '14px', '& > div': { width: '100%' }, '& > div > div': { width: '100%', justifyContent: 'space-between' } }}>
+          {/* Held to its own width and centred under the dial. Stretched edge
+              to edge, three pills read as a segmented control the width of the
+              instrument; brought in, they read as a choice about it. */}
+          <Box sx={{ mt: 'auto', pt: '14px', display: 'flex', justifyContent: 'center', '& > div': { mb: 0 } }}>
             <EvidenceModeBar mode={mode} onModeChange={setMode} />
           </Box>
         </Box>
 
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: '10px', gap: '12px' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {/* One word, on the right, naming the column of numbers. The row used
+              to carry "What your team rated" as well — everything in this room
+              is what the team rated, so it was labelling the room. */}
+          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', mb: '10px' }}>
             <Typography sx={{
               fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
               textTransform: 'uppercase', color: colors.inkSoft,
             }}>
-              What your team rated
-            </Typography>
-            <Typography sx={{
-              fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
-              textTransform: 'uppercase', color: colors.inkSoft,
-            }}>
-              Score · {mode === 'effort' ? 'Effort' : mode === 'efficacy' ? 'Effectiveness' : 'Compass'}
+              {mode === 'effort' ? 'Effort' : mode === 'efficacy' ? 'Effectiveness' : 'Compass'}
             </Typography>
           </Box>
 
@@ -420,10 +492,15 @@ export default function TraitRoom({ row, statements }) {
               />
             ))}
           </Box>
+
+          {/* The note lives beside the three buttons, in the space the table
+              leaves under itself, rather than as a ribbon across the room. */}
+          <Box sx={{ mt: 'auto', pt: '16px' }}>
+            <NotePad trait={traitLabel} selectedIdx={selected} onResize={remeasure} />
+          </Box>
         </Box>
       </Box>
-
-      <NotesRibbon trait={traitLabel} selectedIdx={selected} />
+    </Box>
     </Box>
   );
 }
