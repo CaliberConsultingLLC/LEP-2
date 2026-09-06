@@ -14,7 +14,7 @@ function getBearerToken(req) {
 // one. It was still the pre-redesign HTML table — Inter on a blue gradient —
 // because the mail layer landed after it and never came back for it. Being
 // the first email, it was the one most worth having in the product's voice.
-function buildWelcomeEmail({ name, email, signInUrl, forgotPasswordUrl }) {
+export function buildWelcomeEmail({ name, email, signInUrl, forgotPasswordUrl }) {
   const first = String(name || '').trim().split(/\s+/)[0] || 'there';
   return renderEmail({
     eyebrow: 'Your account is open',

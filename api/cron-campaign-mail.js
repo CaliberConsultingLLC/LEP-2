@@ -33,7 +33,7 @@ const dueNudge = (days) => {
   return passed.length ? passed[passed.length - 1] : null;
 };
 
-function completeMail({ name, base, declared }) {
+export function completeMail({ name, base, declared }) {
   return renderEmail({
     eyebrow: 'Your campaign',
     title: 'Everyone answered.',
@@ -46,7 +46,7 @@ function completeMail({ name, base, declared }) {
   });
 }
 
-function nudgeMail({ name, base, got, declared, day }) {
+export function nudgeMail({ name, base, got, declared, day }) {
   const short = Math.max(0, declared - got);
   return renderEmail({
     eyebrow: 'Your campaign',
