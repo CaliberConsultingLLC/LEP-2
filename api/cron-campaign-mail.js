@@ -73,8 +73,24 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // A dry run does everything except send: same auth, same scan, same
+  // decisions, and a list of what would have gone out. Without it the only way
+  // to find out what this job will do is to let it do it — and it mails
+  // customers, so that is a poor way to find out.
+  const dry = String(req.query?.dry ?? '').trim() === '1';
+
+  // Enough of the address to recognise your own test accounts from a real
+  // customer's, without printing whole inboxes into a terminal.
+  const maskEmail = (addr) => {
+    const [local = '', domain = ''] = String(addr).split('@');
+    const head = local.slice(0, 1);
+    const tail = local.length > 1 ? local.slice(-1) : '';
+    return `${head}${'*'.repeat(Math.max(1, local.length - 2))}${tail}@${domain}`;
+  };
+
   const base = appBaseUrl(req);
   const summary = { scanned: 0, complete: 0, nudged: 0, skipped: 0, failed: 0 };
+  const wouldSend = [];
 
   try {
     // Ordering by declaredAt is the filter: Firestore excludes documents that
@@ -115,6 +131,11 @@ export default async function handler(req, res) {
 
       if (responses >= target) {
         if (sent.complete) { summary.skipped += 1; continue; }
+        if (dry) {
+          wouldSend.push({ kind: 'complete', to: maskEmail(email), responses, declared: target });
+          summary.complete += 1;
+          continue;
+        }
         const { html, text } = completeMail({ name, base, declared: target });
         const result = await sendEmail({ to: email, subject: 'Your Compass reading is ready', html, text });
         if (result.ok) {
@@ -129,6 +150,12 @@ export default async function handler(req, res) {
 
       const day = dueNudge(days ?? -1);
       if (day == null || sent[`nudge${day}`]) { summary.skipped += 1; continue; }
+
+      if (dry) {
+        wouldSend.push({ kind: `nudge-day-${day}`, to: maskEmail(email), responses, declared: target, daysOpen: days });
+        summary.nudged += 1;
+        continue;
+      }
 
       const { html, text } = nudgeMail({ name, base, got: responses, declared: target, day });
       const result = await sendEmail({
@@ -146,7 +173,7 @@ export default async function handler(req, res) {
       } else if (result.skipped) { summary.skipped += 1; } else { summary.failed += 1; }
     }
 
-    return res.status(200).json({ ok: true, ...summary });
+    return res.status(200).json({ ok: true, dry, ...summary, ...(dry ? { wouldSend } : {}) });
   } catch (error) {
     return safeServerError(res, 'cron-campaign-mail error:', error);
   }
