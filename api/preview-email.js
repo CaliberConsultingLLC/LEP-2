@@ -33,6 +33,19 @@ export default async function handler(req, res) {
   const base = appBaseUrl(req);
   const name = String(req.query?.name || 'Dustin').trim();
 
+  // Which POSTMARK_* keys does this deployment actually have? Names and
+  // lengths only, never values. A variable saved to the wrong environment and
+  // one saved under a slightly different name look identical from outside,
+  // and guessing between them costs more than reporting it.
+  const config = {
+    postmarkKeysPresent: Object.keys(process.env).filter((k) => /POSTMARK/i.test(k)).sort(),
+    fromLength: String(process.env.POSTMARK_FROM_EMAIL || '').trim().length,
+    tokenLength: String(process.env.POSTMARK_SERVER_TOKEN || '').trim().length,
+  };
+  if (String(req.query?.config || '') === '1') {
+    return res.status(200).json({ ok: true, config });
+  }
+
   // Representative values, not empty ones — a template only shows its problems
   // when it has real-length copy in it.
   const letters = [
@@ -74,7 +87,7 @@ export default async function handler(req, res) {
       });
       sent.push({ letter: letter.key, ...result });
     }
-    return res.status(200).json({ ok: true, to, base, sent });
+    return res.status(200).json({ ok: true, to, base, config, sent });
   } catch (error) {
     return safeServerError(res, 'preview-email error:', error);
   }
