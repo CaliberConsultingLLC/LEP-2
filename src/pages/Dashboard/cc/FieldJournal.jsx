@@ -642,7 +642,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   if (!loaded && !orderedRows.length) {
     return (
       <Box sx={{ px: 3, py: 3 }}>
-        <Typography sx={{ color: t.inkSoft }}>Loading practice…</Typography>
+        <Typography sx={{ color: t.inkSoft }}>Loading the action plan…</Typography>
       </Box>
     );
   }
@@ -650,7 +650,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   if (!orderedRows.length) {
     return (
       <Box sx={{ px: 3, py: 3 }}>
-        <Typography sx={{ color: t.inkSoft }}>Practice will open once your campaign is set up.</Typography>
+        <Typography sx={{ color: t.inkSoft }}>The action plan will open once your campaign is set up.</Typography>
       </Box>
     );
   }

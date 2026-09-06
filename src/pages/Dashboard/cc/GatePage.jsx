@@ -7,7 +7,7 @@ import { spokenGuide } from '../../../data/guideContent';
 
 // ----------------------------------------------------------------------------
 // Gate page — shown when Evidence is visited before the Signal walkthrough is
-// complete, or Practice before Evidence. Centered ceremony: lock eyebrow,
+// complete, or the Action Plan before Evidence. Centered ceremony: lock eyebrow,
 // serif headline, italic explanation, one primary door back to the
 // prerequisite phase.
 // ----------------------------------------------------------------------------
@@ -31,9 +31,9 @@ const COPY = {
     goTo: 'signal',
   },
   practice: {
-    eyebrow: 'Practice · Not yet open',
-    headline: 'Evidence before practice.',
-    body: 'Practice built on an unverified signal doesn\u2019t hold. Read the evidence first — then we\u2019ll choose the behavior.',
+    eyebrow: 'Action Plan · Not yet open',
+    headline: 'Evidence before the plan.',
+    body: 'A plan built on an unverified reading doesn\u2019t hold. Read the evidence first — then we\u2019ll choose the behavior.',
     cta: 'Review the evidence',
     goTo: 'evidence',
   },

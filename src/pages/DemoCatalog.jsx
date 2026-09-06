@@ -100,7 +100,7 @@ const GROUPS = [
     label: 'Command center',
     pages: [
       {
-        label: 'Today',
+        label: 'Basecamp',
         path: '/dashboard?tab=today',
         in: ['mid', 'finished'],
         hint: 'Mid draws the listening window; finished draws the room after the reading.',
@@ -118,7 +118,7 @@ const GROUPS = [
         hint: 'Mid is still gathering; finished opens the trait room — three questions, one answer, sourced underneath.',
       },
       { label: 'Evidence', path: '/dashboard?tab=evidence', in: ['finished'] },
-      { label: 'Practice', path: '/dashboard?tab=practice', in: ['finished'] },
+      { label: 'Action plan', path: '/dashboard?tab=practice', in: ['finished'] },
       { label: 'Journey', path: '/dashboard?tab=journey', in: ['mid', 'finished'] },
     ],
   },

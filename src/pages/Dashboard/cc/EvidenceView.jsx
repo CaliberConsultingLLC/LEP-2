@@ -709,7 +709,7 @@ function EvGapsPage({ rows, chapterIndex }) {
 }
 
 // ---------------------------------------------------------------------------
-// Evidence close — the single door to Practice
+// Evidence close — the single door to the Action Plan
 // ---------------------------------------------------------------------------
 function EvClosePage({ chapterIndex, onAdvancePhase }) {
   return (
@@ -743,7 +743,7 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
         >
           <Typography sx={{ ...type.eyebrow, mb: 1 }}>Now unlocked</Typography>
           <Typography sx={{ fontFamily: fonts.serif, fontSize: 23, fontWeight: 600, color: colors.textPrimary, mb: 0.7 }}>
-            Begin practice →
+            Begin the action plan →
           </Typography>
           <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.5, color: colors.textSecondary }}>
             Turn what you've verified into an action plan for each trait.

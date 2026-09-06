@@ -460,6 +460,12 @@ export default function CommandCenter() {
         stepStatus={isDrilledIn ? drilledStepStatus : dockStatus}
         steps={drillSteps}
         backAction={drillBack}
+        // Basecamp, then a short rule, then the four rooms. Numbers rather
+        // than ticks: these are places you come back to, and a tick says
+        // closed. Inside a drill-down the rail is the trait switcher, where a
+        // finished plan really is finished — so the ticks stay there.
+        markers={isDrilledIn ? 'auto' : 'number'}
+        dividerAfterId={isDrilledIn ? null : 'today'}
         onStepSelect={isTraitDrilled
           ? (step) => setEvidenceTraitIdx(Number(String(step.id).split('-')[1]) || 0)
           : isPracticeDrilled

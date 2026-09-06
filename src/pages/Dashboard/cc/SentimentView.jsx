@@ -239,7 +239,7 @@ function CheckinPage({ reaction, onReact }) {
 }
 
 // ---------------------------------------------------------------------------
-// 05 · The Close — two doors: Evidence (live) and Practice (locked)
+// 05 · The Close — two doors: Evidence (live) and the Action Plan (locked)
 // ---------------------------------------------------------------------------
 function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
   const copy = closeCopyFor(reaction, edgeRow);
@@ -303,7 +303,7 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
             <Typography sx={{ ...type.eyebrow, color: colors.textSecondary }}>Then · Move forward</Typography>
           </Stack>
           <Typography sx={{ fontFamily: fonts.serif, fontSize: 21, fontWeight: 600, color: colors.textSecondary, mb: 0.7 }}>
-            Begin practice
+            Begin the action plan
           </Typography>
           <Typography sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.5, color: colors.textSecondary }}>
             Unlocks after you've read the evidence — practice built on a signal you've verified holds

@@ -277,6 +277,8 @@ function ProcessTopRail({
   utilityOnly = false,
   steps = null,
   backAction = null,
+  markers = 'auto',
+  dividerAfterId = null,
   ...legacy
 }) {
   if (useCairnTheme) {
@@ -290,6 +292,8 @@ function ProcessTopRail({
         onStepSelect={onStepSelect}
         steps={steps}
         backAction={backAction}
+        markers={markers}
+        dividerAfterId={dividerAfterId}
       />
     );
   }

@@ -204,6 +204,13 @@ export default function ChapterHeader({
   // way up, which is why it renders as a distinct control rather than a step.
   steps: stepsProp = null,
   backAction = null,
+  // The dashboard rail is a set of rooms you move between, not a checklist you
+  // burn down: a tick there reads as "closed", which is the wrong word for a
+  // room you are meant to come back to. `markers="number"` keeps the circle and
+  // drops the tick, and `dividerAfterId` sets Basecamp — where you stand —
+  // apart from the four rooms you go and look at.
+  markers = 'auto',
+  dividerAfterId = null,
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -492,7 +499,7 @@ export default function ChapterHeader({
               const locked = status === 'locked';
               const active = status === 'active';
               const done = status === 'done';
-              return (
+              const tab = (
                 <Box
                   key={step.id}
                   component="button"
@@ -529,15 +536,19 @@ export default function ChapterHeader({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontFamily: done ? fonts.sans : fonts.mono,
-                      fontSize: done ? 9 : 8.5,
+                      fontFamily: done && markers !== 'number' ? fonts.sans : fonts.mono,
+                      fontSize: done && markers !== 'number' ? 9 : 8.5,
                       fontWeight: 700,
-                      bgcolor: active ? colors.orange : done ? colors.green : 'transparent',
+                      bgcolor: active ? colors.orange : (done && markers !== 'number') ? colors.green : 'transparent',
                       border: `1px solid ${active ? colors.orange : done ? colors.green : colors.sand300}`,
-                      color: active || done ? 'var(--dial-node-fill)' : colors.inkSoft,
+                      color: active
+                        ? 'var(--dial-node-fill)'
+                        : done
+                          ? (markers === 'number' ? colors.green : 'var(--dial-node-fill)')
+                          : colors.inkSoft,
                     }}
                   >
-                    {done ? '✓' : index + 1}
+                    {done && markers !== 'number' ? '✓' : index + 1}
                   </Box>
                   )}
                   <Typography
@@ -556,6 +567,19 @@ export default function ChapterHeader({
                     <LockOutlined aria-label="Locked" sx={{ fontSize: 10, color: colors.inkSoft }} />
                   )}
                 </Box>
+              );
+              if (step.id !== dividerAfterId) return tab;
+              return (
+                <React.Fragment key={`${step.id}-group`}>
+                  {tab}
+                  {/* Short on purpose — a full-height rule would cut the row in
+                      two. This only has to say that what is behind it is where
+                      you stand, and what is ahead of it is where you look. */}
+                  <Box
+                    aria-hidden
+                    sx={{ width: '1px', height: 26, bgcolor: colors.sand300, mx: '10px', flexShrink: 0, alignSelf: 'center' }}
+                  />
+                </React.Fragment>
               );
             })}
           </Box>

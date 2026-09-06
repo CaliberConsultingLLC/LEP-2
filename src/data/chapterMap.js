@@ -185,10 +185,12 @@ export const CHAPTERS = [
     arriveHint: 'The map holds the year. Today holds the work in front of you.',
     steps: [
       {
+        // The id stays `today`: it keys the phase chain and every ?tab=today
+        // link already sitting in a sent letter.
         id: 'today',
-        label: 'Today',
+        label: 'Basecamp',
         path: '/dashboard?tab=today',
-        whatHappens: ['The signal, the evidence, and your plan', 'Where you land when you log in'],
+        whatHappens: ['The sentiment, the evidence, and your plan', 'Where you land when you log in'],
       },
       {
         id: 'narrative',
@@ -211,11 +213,13 @@ export const CHAPTERS = [
         label: 'Evidence',
         path: '/dashboard?tab=evidence',
         gated: true,
-        whatHappens: ['Every statement behind the signal', 'Sourced, not styled', 'Opens Practice when read'],
+        whatHappens: ['Every statement behind the sentiment', 'Sourced, not styled', 'Opens the action plan when read'],
       },
       {
+        // Named Action Plan everywhere a leader reads it; the id stays
+        // `practice` for the same reason `today` and `signal` keep theirs.
         id: 'practice',
-        label: 'Practice',
+        label: 'Action Plan',
         path: '/dashboard?tab=practice',
         gated: true,
         whatHappens: ['One visible behavior per trait', 'Small enough to hold', 'Held until the next check-in'],
