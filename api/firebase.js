@@ -15,9 +15,14 @@ const PROJECT_ID =
   || process.env.VITE_FIREBASE_PROJECT_ID
   || process.env.FIREBASE_PROJECT_ID;
 
-const WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY || process.env.VITE_FIREBASE_API_KEY;
-const ROBOT_EMAIL = process.env.FIREBASE_ROBOT_EMAIL;
-const ROBOT_PASSWORD = process.env.FIREBASE_ROBOT_PASSWORD;
+// Values pasted into a dashboard pick up stray whitespace and the odd
+// wrapping quote, and Firebase rejects those as malformed rather than as
+// wrong — which reads like the account does not exist.
+const clean = (raw) => String(raw ?? '').trim().replace(/^["']|["']$/g, '');
+
+const WEB_API_KEY = clean(process.env.FIREBASE_WEB_API_KEY) || clean(process.env.VITE_FIREBASE_API_KEY);
+const ROBOT_EMAIL = clean(process.env.FIREBASE_ROBOT_EMAIL);
+const ROBOT_PASSWORD = clean(process.env.FIREBASE_ROBOT_PASSWORD);
 
 const DOCS = () =>
   `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
@@ -53,6 +58,14 @@ async function robotToken() {
   );
   const body = await res.json().catch(() => ({}));
   if (!res.ok || !body?.idToken) {
+    // Say which account was tried. It is a robot, not a customer, and without
+    // this a bad paste is indistinguishable from a wrong password.
+    console.error('Robot sign-in failed.', {
+      email: ROBOT_EMAIL,
+      emailLength: ROBOT_EMAIL.length,
+      passwordLength: ROBOT_PASSWORD.length,
+      reason: body?.error?.message || 'unknown',
+    });
     throw new Error(`robot-sign-in-failed:${res.status}:${body?.error?.message || 'unknown'}`);
   }
   cached = {
