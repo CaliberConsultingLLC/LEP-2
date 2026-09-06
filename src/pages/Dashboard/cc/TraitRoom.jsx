@@ -443,6 +443,14 @@ export default function TraitRoom({ row, statements }) {
         mb: '16px',
       }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {/* The dial is sized by its own width and nothing else. Its inner
+              square carries `flex: 1` against a full-height root, so the moment
+              it becomes a stretching item in a column it takes the row's spare
+              height and the compass goes oval — which is what expanding a
+              statement did. Boxed here so its height stays a function of its
+              width; the spare height goes to the gap above the mode bar
+              instead, which is what keeps the two bottom edges together. */}
+          <Box sx={{ flexShrink: 0 }}>
           {/* `selectedIdx="all"` is the dial's idle presentation: every dot
               visible, none selected, no ghost, no gap chip. */}
           <EvidenceQuadrant
@@ -453,6 +461,7 @@ export default function TraitRoom({ row, statements }) {
             onModeChange={setMode}
             showModeBar={false}
           />
+          </Box>
           {/* Held to its own width and centred under the dial. Stretched edge
               to edge, three pills read as a segmented control the width of the
               instrument; brought in, they read as a choice about it. */}
