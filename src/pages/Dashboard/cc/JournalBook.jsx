@@ -476,7 +476,7 @@ export default function JournalBook({
         sx={{
           position: 'absolute',
           inset: 0,
-          p: '16px 24px 14px clamp(90px, 8vw, 160px)',
+          p: '16px 24px 14px 24px',
           boxSizing: 'border-box',
           pointerEvents: 'none',
           visibility: 'hidden',

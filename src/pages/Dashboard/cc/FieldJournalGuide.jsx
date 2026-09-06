@@ -32,6 +32,26 @@ const byBreakpoint = (fractions) =>
 const BUBBLE_LEFT = byBreakpoint(OWL_FRACTION_OUT);
 const BUBBLE_BOTTOM = byBreakpoint(OWL_FRACTION_UP);
 
+// The book is centred on the page, so its gutter is the middle of the window.
+// The owl stands on the left leaf and its bubble belongs there too: at laptop
+// widths it was reaching 21px past the gutter and sitting on the first line of
+// the written page.
+//
+// It moves in rather than narrows. Narrowing looks like the smaller change and
+// is the worse one — the same words in a thinner column is a taller bubble, and
+// this bubble grows upward from the owl's head, straight into the chapter
+// header. Sliding it toward the owl costs a few degrees of the one-o'clock
+// angle and nothing else.
+const BUBBLE_W = { xs: null, sm: 280, md: 300, lg: 320, xl: 340 };
+const BUBBLE_LEFT_HELD = Object.fromEntries(
+  Object.keys(BUBBLE_LEFT).map((bp) => [
+    bp,
+    BUBBLE_W[bp]
+      ? `min(${BUBBLE_LEFT[bp]}px, calc(50vw - ${BUBBLE_W[bp] + 14}px))`
+      : BUBBLE_LEFT[bp],
+  ])
+);
+
 export default function FieldJournalGuide({
   persona,
   eyebrow,
@@ -73,21 +93,22 @@ export default function FieldJournalGuide({
         draggable={false}
         sx={{
           ...SUMMARY_GUIDE_OWL_SX,
-          // The journal's left leaf is blank paper, so the owl stands in front
-          // of it rather than beside it — softened and pushed back a touch so
-          // the page still reads as paper underneath.
+          // The owl is never softened. Pushing the guide back was meant to let
+          // the paper behind it read as paper — but the blur and the fade land
+          // on the owl, which is the one thing on the page that should be in
+          // focus. The leaf does its own fogging; the guide stays sharp.
           zIndex: interrupting ? GUIDE_Z + 1 : 3,
-          opacity: interrupting ? 1 : 0.82,
+          opacity: 1,
           filter: interrupting
             ? 'drop-shadow(0 16px 36px rgba(9,16,31,0.44))'
-            : 'drop-shadow(0 16px 36px rgba(9,16,31,0.28)) blur(0.4px) saturate(0.9)',
+            : 'drop-shadow(0 16px 36px rgba(9,16,31,0.28))',
           pointerEvents: 'none',
         }}
       />
       <Box
         sx={{
           position: 'fixed',
-          left: BUBBLE_LEFT,
+          left: BUBBLE_LEFT_HELD,
           bottom: BUBBLE_BOTTOM,
           // Narrow enough that the bubble never reaches the gutter, including
           // when the notes pad pulls the book left on a laptop.
