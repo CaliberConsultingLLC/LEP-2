@@ -114,7 +114,16 @@ export function renderEmail({ eyebrow, title, body = [], cta = null, outro = '' 
 export async function sendEmail({ to, subject, html, text, stream }) {
   const token = String(process.env.POSTMARK_SERVER_TOKEN || '').trim();
   const from = String(process.env.POSTMARK_FROM_EMAIL || '').trim();
-  if (!token || !from) return { ok: false, skipped: true, reason: 'email-not-configured' };
+  if (!token || !from) {
+    // Naming the missing half matters: the two are set in different places —
+    // the token in Postmark's API Tokens tab, the address on a verified sender
+    // — and one generic message sends you looking in both.
+    const missing = [
+      ...(token ? [] : ['POSTMARK_SERVER_TOKEN']),
+      ...(from ? [] : ['POSTMARK_FROM_EMAIL']),
+    ];
+    return { ok: false, skipped: true, reason: `email-not-configured:${missing.join('+')}` };
+  }
   if (!to) return { ok: false, skipped: true, reason: 'no-recipient' };
 
   const payload = {
