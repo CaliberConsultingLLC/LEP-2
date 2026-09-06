@@ -112,10 +112,10 @@ const GROUPS = [
         hint: 'The eight-page reading, opened on page one — the deck remembers where you stopped, and the wipe forgets it.',
       },
       {
-        label: 'Signal',
-        path: '/dashboard?tab=results',
+        label: 'Sentiment',
+        path: '/dashboard?tab=sentiment',
         in: ['mid', 'finished'],
-        hint: 'Mid is still gathering; finished has the signal in.',
+        hint: 'Mid is still gathering; finished opens the trait room — three questions, one answer, sourced underneath.',
       },
       { label: 'Evidence', path: '/dashboard?tab=evidence', in: ['finished'] },
       { label: 'Practice', path: '/dashboard?tab=practice', in: ['finished'] },

@@ -319,9 +319,9 @@ export const GUIDE_CONTENT = {
     ],
   },
 
-  // ── Command Center · Signal ──────────────────────────────────────────────
+  // ── Command Center · Sentiment (bank key stays dashboardSignal) ──────────
   dashboardSignal: {
-    title: 'Signal',
+    title: 'Sentiment',
     mentor: [
       { text: 'The signal is what your team is reflecting back. Hold it lightly — patterns matter more than any one number.', pose: 'map', cta: 'Okay' },
       { text: 'Click a trait pill or a dot on the quadrant. I’ll meet you there with a steadier read.', pose: 'think', cta: 'Got it' },
@@ -588,7 +588,7 @@ export function resolveRouteKey(pathname = '', search = '') {
     // Unmapped until now, so all eight pages of the debrief fell through to
     // 'dashboard' — the legacy catch-all, and the least relevant line in the set.
     if (tab === 'narrative') return 'dashboardNarrative';
-    if (tab === 'signal')   return 'dashboardSignal';
+    if (tab === 'signal' || tab === 'sentiment') return 'dashboardSignal';
     if (tab === 'evidence') return 'dashboardEvidence';
     if (tab === 'practice') return 'dashboardPractice';
     if (tab === 'journey')  return 'dashboardJourney';

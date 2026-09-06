@@ -7,7 +7,7 @@ import CompassLayout from '../../components/CompassLayout';
 import { colors, shadows } from '../../styles/tokens';
 import JourneyTab from './JourneyTab';
 import { JOURNEY_CHAPTER_COUNT, JOURNEY_ROMAN, JOURNEY_STATIONS } from './journey/journeyModel.js';
-import SignalView from './cc/SignalView.jsx';
+import SentimentView from './cc/SentimentView.jsx';
 import NarrativeView from './cc/NarrativeView.jsx';
 import EvidenceView from './cc/EvidenceView.jsx';
 import FieldJournal, { planComplete } from './cc/FieldJournal.jsx';
@@ -65,6 +65,10 @@ const QUERY_TO_TAB = {
   narrative: 'narrative',
   debrief: 'narrative',
   reading: 'narrative',
+  // The tab is called Sentiment now. The id stays `signal` so saved progress,
+  // the phase chain and the ?tab=signal links already sitting in sent email
+  // all keep resolving.
+  sentiment: 'signal',
   signal: 'signal',
   signals: 'signal',
   'campaign-results': 'signal',
@@ -281,9 +285,19 @@ export default function CommandCenter() {
     return true;
   };
 
+  // Sentiment is a trait room once the walkthrough has been read: the rail
+  // stops being the dashboard's tab strip and becomes the trait switcher, the
+  // same way Evidence does. Both share `evidenceTraitIdx`, so moving between
+  // the two pages keeps you on the trait you were reading.
+  const isSentimentDrilled =
+    activeTab === 'signal'
+    && phases.modeFor('signal') === 'snapshot'
+    && evidenceTraits.length > 0
+    && canRenderReviewTab('signal');
   const isEvidenceDrilled = activeTab === 'evidence' && evidenceTraits.length > 0 && canRenderReviewTab('evidence');
   const isPracticeDrilled = activeTab === 'practice' && practiceRows.length > 0 && canRenderReviewTab('practice');
-  const isDrilledIn = isEvidenceDrilled || isPracticeDrilled;
+  const isTraitDrilled = isSentimentDrilled || isEvidenceDrilled;
+  const isDrilledIn = isTraitDrilled || isPracticeDrilled;
 
   const practiceStepStatus = useMemo(() => {
     if (!isPracticeDrilled) return {};
@@ -299,7 +313,7 @@ export default function CommandCenter() {
     return status;
   }, [isPracticeDrilled, practiceRows, practiceCampaignKey, practiceUserKey]);
 
-  const drillSteps = isEvidenceDrilled
+  const drillSteps = isTraitDrilled
     ? evidenceTraits.map((r, i) => ({
         id: `trait-${i}`,
         label: r.subTrait || r.trait || `Trait ${i + 1}`,
@@ -339,13 +353,13 @@ export default function CommandCenter() {
     ? 'journey'
     : (['today', 'narrative', 'signal', 'evidence', 'practice'].includes(activeTab) ? activeTab : 'today');
 
-  const drilledActiveStepId = isEvidenceDrilled
+  const drilledActiveStepId = isTraitDrilled
     ? `trait-${evidenceTraitIdx}`
     : isPracticeDrilled
       ? (practiceTraitIdx >= 3 ? 'commit' : `trait-${practiceTraitIdx}`)
       : activeStepId;
 
-  const drilledStepStatus = isEvidenceDrilled ? {} : isPracticeDrilled ? practiceStepStatus : dockStatus;
+  const drilledStepStatus = isTraitDrilled ? {} : isPracticeDrilled ? practiceStepStatus : dockStatus;
 
   // Everyone answered, so there is nothing left to wait for. The leader keeps
   // the manual close for every other case; this fires only on a full house,
@@ -377,12 +391,12 @@ export default function CommandCenter() {
         return <NarrativeView />;
       case 'signal':
         return (
-          <SignalView
+          <SentimentView
             t={t}
             selectedAgent={selectedAgent}
-            onOpenEvidence={() => goToTab('evidence')}
             phases={phases}
             onAdvancePhase={() => advancePhase('signal')}
+            traitIndex={evidenceTraitIdx}
           />
         );
       case 'evidence':
@@ -446,7 +460,7 @@ export default function CommandCenter() {
         stepStatus={isDrilledIn ? drilledStepStatus : dockStatus}
         steps={drillSteps}
         backAction={drillBack}
-        onStepSelect={isEvidenceDrilled
+        onStepSelect={isTraitDrilled
           ? (step) => setEvidenceTraitIdx(Number(String(step.id).split('-')[1]) || 0)
           : isPracticeDrilled
             ? (step) => {
@@ -461,7 +475,7 @@ export default function CommandCenter() {
           label: 'Responses',
           current: respondents,
           total: invited || 0,
-          status: campaignClosed ? 'Signal ready' : 'Signal forming',
+          status: campaignClosed ? 'Sentiment ready' : 'Sentiment forming',
         } : null}
       />
       {/* Today is a room, not a column of reading: it wants the shell's full

@@ -17,17 +17,17 @@ const GATE_GUIDE_LINE =
 
 const COPY = {
   campaign: {
-    eyebrow: 'Signal · Not yet open',
+    eyebrow: 'Sentiment · Not yet open',
     headline: 'The campaign is still listening.',
-    body: 'Signal and Evidence stay empty until you lock in the team window. Partial results would be a sketch, not a reading.',
+    body: 'Sentiment and Evidence stay empty until you lock in the team window. Partial results would be a sketch, not a reading.',
     cta: 'Back to Today',
     goTo: 'today',
   },
   evidence: {
     eyebrow: 'Evidence · Not yet open',
-    headline: 'The signal comes first.',
+    headline: 'The sentiment comes first.',
     body: 'This room makes sense only after you\u2019ve read what your team reflected back. The debrief takes about five minutes.',
-    cta: 'Read the signal',
+    cta: 'Read the sentiment',
     goTo: 'signal',
   },
   practice: {

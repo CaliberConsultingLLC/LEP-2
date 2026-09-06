@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Stack, Tooltip, Typography } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
-import { buttons, colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
+import { colors, fonts, motion, radii, shadows, surfaces, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
+import SentimentRoom from './SentimentRoom.jsx';
+import { mapRowStatements } from './EvidenceView.jsx';
 import {
   ChapterEyebrow,
   GapScoresPanel,
   Headline,
   PageFade,
   Prose,
-  SnapshotShell,
   TraitScoresPanel,
   TwoCol,
   WalkArrow,
@@ -315,64 +316,22 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
 }
 
 // ---------------------------------------------------------------------------
-// Signal snapshot — the whole debrief in one view
+// Sentiment snapshot — one trait at a time, three questions, chosen by the rail
 // ---------------------------------------------------------------------------
-function SignalSnapshot({ traitStories }) {
-  const [highlight, setHighlight] = useState(null);
+function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData }) {
+  // The chapter rail owns trait selection; 0 is the fallback when this
+  // renders without one.
+  const traitIdx = Number.isFinite(traitIndex) ? traitIndex : 0;
+  const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
+  const statements = useMemo(() => mapRowStatements(row), [row]);
 
-  return (
-    <SnapshotShell>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.15fr) minmax(0, 0.85fr)' },
-          gap: 1.5,
-          alignItems: 'start',
-        }}
-      >
-        <Stack spacing={1.2}>
-          {traitStories.map((story) => (
-            <Box
-              key={story.row.trait}
-              sx={{
-                ...surfaces.cardFlat,
-                px: 2,
-                py: 1.5,
-                minHeight: 132,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
-            >
-              <Typography sx={{ ...type.eyebrow, mb: 0.45, fontSize: 9.5 }}>{story.eyebrow}</Typography>
-              <Typography
-                sx={{ fontFamily: fonts.serif, fontSize: 15.5, fontWeight: 600, color: colors.textPrimary, mb: 0.45, textWrap: 'pretty' }}
-              >
-                {story.headline}
-              </Typography>
-              <Typography
-                sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 12.5, lineHeight: 1.45, color: colors.textSecondary, textWrap: 'pretty' }}
-              >
-                {story.paras[0]}
-              </Typography>
-            </Box>
-          ))}
-        </Stack>
-        <TraitScoresPanel
-          rows={traitStories.map((s) => s.row)}
-          highlightKey={highlight}
-          onSelect={(traitKey) => setHighlight(highlight === traitKey ? null : traitKey)}
-          cardMinHeight={132}
-        />
-      </Box>
-    </SnapshotShell>
-  );
+  return <SentimentRoom row={row} statements={statements} hasSelfData={hasSelfData} />;
 }
 
 // ---------------------------------------------------------------------------
 // Main view — walkthrough on first visit / replay, snapshot once complete
 // ---------------------------------------------------------------------------
-export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }) {
+export default function SentimentView({ t, phases, onAdvancePhase, traitIndex }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
   const intakeData = useMemo(() => readJson('latestFormData', null), []);
@@ -418,18 +377,15 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
   const chapter = chapters[idx];
   const setIdx = (i) => phases.setPhasePage('signal', Math.min(Math.max(i, 0), chapters.length - 1));
 
-  // Guide — chapter lines in walkthrough, resting line on the snapshot
+  // Guide — chapter lines in the walkthrough only. In the room the line moves
+  // with the open question, so the room sets it and this must not fight it.
   useEffect(() => {
+    if (mode === 'snapshot') return undefined;
     if (!rows.some((r) => r.team)) return undefined;
-    if (mode === 'snapshot') {
-      const spoken = spokenGuide(personaId, 'dashboardSignal', 'snapshot', SIGNAL_GUIDE.snapshot, 'map');
-      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'The Signal' });
-    } else {
-      const reactionKey = reaction ? `reaction-${reaction}` : '';
-      const stepKey = chapter.id === 'checkin' && reactionKey ? reactionKey : chapter.id;
-      const spoken = spokenGuide(personaId, 'dashboardSignal', stepKey, chapter.guide(), chapter.pose);
-      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapter.label });
-    }
+    const reactionKey = reaction ? `reaction-${reaction}` : '';
+    const stepKey = chapter.id === 'checkin' && reactionKey ? reactionKey : chapter.id;
+    const spoken = spokenGuide(personaId, 'dashboardSignal', stepKey, chapter.guide(), chapter.pose);
+    setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapter.label });
     return undefined;
   }, [mode, chapter, rows, setPageMessage, personaId, reaction]);
 
@@ -438,7 +394,7 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
   if (!loaded && !rows.length) {
     return (
       <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, py: 3 }}>
-        <Typography sx={{ ...type.sectionTitle, fontSize: 22, color: t.inkSoft }}>Loading the signal…</Typography>
+        <Typography sx={{ ...type.sectionTitle, fontSize: 22, color: t.inkSoft }}>Loading the sentiment…</Typography>
       </Box>
     );
   }
@@ -446,7 +402,7 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
   if (!rows.some((r) => r.team)) {
     return (
       <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, py: 3 }}>
-        <Typography sx={{ ...type.eyebrow, mb: 1.6 }}>The Signal</Typography>
+        <Typography sx={{ ...type.eyebrow, mb: 1.6 }}>Sentiment</Typography>
         <Typography sx={{ ...type.lead, fontSize: { xs: 24, md: 28 }, lineHeight: 1.25, mb: 1.4 }}>
           The campaign is still listening.
         </Typography>
@@ -459,8 +415,10 @@ export default function SignalView({ t, phases, onAdvancePhase, onOpenEvidence }
 
   if (mode === 'snapshot') {
     return (
-      <SignalSnapshot
-        traitStories={traitStories}
+      <SentimentSnapshot
+        orderedRows={roles.ordered}
+        traitIndex={traitIndex}
+        hasSelfData={hasSelfData}
       />
     );
   }
