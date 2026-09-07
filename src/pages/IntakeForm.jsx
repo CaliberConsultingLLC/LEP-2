@@ -21,7 +21,7 @@ import ReviewAndLock from './IntakeForm/ReviewAndLock';
 import IntakeLockCeremony from '../components/IntakeLockCeremony';
 import { auth, db } from '../firebase';
 import { colors, fonts, radii, surfaces, type } from '../styles/tokens';
-import { isIntakeUnlocked } from '../utils/billing';
+import { isIntakeUnlocked, refreshEntitlement } from '../utils/billing';
 import { isDemoSession } from '../utils/demoMode';
 import { clearFocusAreas } from '../utils/focusAreas';
 
@@ -754,11 +754,21 @@ function IntakeForm() {
   const authUidRef = useRef('');
   const lastDraftJsonRef = useRef('');
 
+  // The intake is the paid product. The cached flag answers first so the page
+  // does not flicker, and the server is asked straight after — a refunded or
+  // self-granted flag survives the first check and not the second.
   useEffect(() => {
     const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
-    if (stage === 'intake' && !isIntakeUnlocked() && !isDemoSession()) {
+    if (stage !== 'intake' || isDemoSession()) return undefined;
+    if (!isIntakeUnlocked()) {
       navigate('/pay', { replace: true });
+      return undefined;
     }
+    let cancelled = false;
+    refreshEntitlement().then((allowed) => {
+      if (!cancelled && !allowed) navigate('/pay', { replace: true });
+    });
+    return () => { cancelled = true; };
   }, [location.search, navigate]);
 
   const handleCustomAnswerSubmit = () => {

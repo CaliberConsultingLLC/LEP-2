@@ -1,4 +1,5 @@
 import { isDemoSession } from './demoMode';
+import { auth } from '../firebase';
 
 const PAID_KEY = 'compassPaid';
 
@@ -76,4 +77,46 @@ export function isIntakeUnlocked() {
   // keys. Without it an unconfigured deployment would paywall a door it cannot
   // open, and Guide Select would bounce the leader straight back to /pay.
   return status === 'paid' || status === 'preview';
+}
+
+/**
+ * Ask the server whether this leader has actually paid, and bring the local
+ * flag into line with the answer.
+ *
+ * The local flag is a cache, not the record. It exists so a gated page can
+ * render immediately instead of flashing a paywall while a request is in
+ * flight — but the server gets the last word, which is what makes a refund
+ * take effect and what stops the flag from being self-granted.
+ *
+ * A failure here is never treated as 'unpaid'. If the request errors, times
+ * out, or the leader is not signed in yet, the cached answer stands: an
+ * outage must not lock out someone who paid. Only an explicit paid:false
+ * revokes.
+ *
+ * Returns true if the leader may proceed.
+ */
+export async function refreshEntitlement() {
+  if (isDemoSession()) return true;
+  // 'preview' means the deployment carries no Stripe keys at all. There is no
+  // entitlement to check and no door to hold shut.
+  if (getPaymentStatus() === 'preview') return true;
+
+  try {
+    const user = auth?.currentUser;
+    if (!user) return isIntakeUnlocked();
+
+    const token = await user.getIdToken();
+    const res = await fetch('/api/get-entitlement', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return isIntakeUnlocked();
+
+    const data = await res.json();
+    if (typeof data?.paid !== 'boolean') return isIntakeUnlocked();
+
+    setPaymentStatus(data.paid ? 'paid' : '');
+    return data.paid;
+  } catch {
+    return isIntakeUnlocked();
+  }
 }

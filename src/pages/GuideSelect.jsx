@@ -8,7 +8,7 @@ import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 import CompassLayout from '../components/CompassLayout';
 import ProcessTopRail from '../components/ProcessTopRail';
 import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
-import { isIntakeUnlocked } from '../utils/billing';
+import { isIntakeUnlocked, refreshEntitlement } from '../utils/billing';
 import { isDemoSession } from '../utils/demoMode';
 
 function GuideSelect() {
@@ -22,9 +22,20 @@ function GuideSelect() {
   const canBegin = hasSelectedGuide && guides.some((p) => p.id === personaId);
 
   // Guide selection sits behind the paywall. Anyone who reached it without
-  // paying gets sent back one step.
+  // paying gets sent back one step. The cached flag is checked first so a
+  // paying leader never sees a flash of the paywall, then the server is asked
+  // — that second answer is the one a refund can change.
   useEffect(() => {
-    if (!isDemoSession() && !isIntakeUnlocked()) navigate('/pay', { replace: true });
+    if (isDemoSession()) return undefined;
+    if (!isIntakeUnlocked()) {
+      navigate('/pay', { replace: true });
+      return undefined;
+    }
+    let cancelled = false;
+    refreshEntitlement().then((allowed) => {
+      if (!cancelled && !allowed) navigate('/pay', { replace: true });
+    });
+    return () => { cancelled = true; };
   }, [navigate]);
 
   useEffect(() => {
