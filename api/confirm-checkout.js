@@ -49,6 +49,11 @@ export default async function handler(req, res) {
           amountTotal: session?.amount_total || null,
           currency: session?.currency || 'usd',
           stripeSessionId: sessionId,
+          // Kept for the same reason the webhook keeps it: a refund arrives as
+          // a charge, and matching it back needs the payment intent. This write
+          // replaces the whole billing map, so omitting the field here erased
+          // what the webhook had just stored.
+          stripePaymentIntentId: String(session?.payment_intent || ''),
           email,
         },
       }, { merge: true });
