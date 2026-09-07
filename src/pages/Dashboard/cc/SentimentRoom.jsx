@@ -337,10 +337,41 @@ function Answer({ question, answer }) {
 }
 
 // ---------------------------------------------------------------------------
+// Fallback guide copy for the three questions, per trait.
+//
+// The generic version reads the same in all three rooms, which is exactly the
+// complaint: the trait changes, the numbers change, the guide does not. These
+// take the trait's own effort, effectiveness and split so the same question
+// gets a different reading in each room. A generated line replaces them.
+// ---------------------------------------------------------------------------
+function sentimentFallback(questionId, page, generic) {
+  const { compass, effort, efficacy } = page.scores || {};
+  if (![compass, effort, efficacy].every(Number.isFinite)) return generic;
+  const split = effort - efficacy;
+  const label = page.label;
+
+  if (questionId === 'q01') {
+    return split >= 20
+      ? `${label} sits at ${compass}, and the two halves disagree — ${effort} effort against ${efficacy} landing. Read this one for the distance between them, not the headline.`
+      : split <= -20
+        ? `${label} lands at ${efficacy} on only ${effort} of effort. That is cheaper than it should be. Worth knowing why before you assume it will hold.`
+        : `${label} comes in at ${compass}, with effort and effect close together. What you put in is roughly what they feel — so this number is about level, not aim.`;
+  }
+  if (questionId === 'q02') {
+    return split >= 20
+      ? `This is where the ${split}-point gap on ${label.toLowerCase()} actually shows up — in specific behaviours, not in the average.`
+      : `The average on ${label.toLowerCase()} hides the spread. These statements are where it stops being one number.`;
+  }
+  return split >= 20
+    ? `You already know ${label.toLowerCase()} is costing more than it returns. This is the part where you decide whether that stays true next cycle.`
+    : `${label} is not asking for rescue. The question is whether you keep it deliberate or let it run on its own.`;
+}
+
+// ---------------------------------------------------------------------------
 // The room
 // ---------------------------------------------------------------------------
 
-export default function SentimentRoom({ row, statements, hasSelfData }) {
+export default function SentimentRoom({ row, statements, hasSelfData, traitIndex = 0 }) {
   const [questionId, setQuestionId] = useState('q01');
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
@@ -357,11 +388,22 @@ export default function SentimentRoom({ row, statements, hasSelfData }) {
   const answer = page.answers[question.id];
 
   // The guide says how to read the question in front of you, not what it says.
+  //
+  // Keyed on the trait as well as the question. Three questions on one key
+  // meant all three traits said the same three things — the room changed
+  // underneath a line that never did. The fallback carries this trait's own
+  // numbers so the three rooms differ before a generated line lands.
   useEffect(() => {
     const line = sentimentGuideLine(question.id);
-    const spoken = spokenGuide(personaId, 'dashboardSignal', `sent-${question.id}`, line.text, line.pose);
+    const spoken = spokenGuide(
+      personaId,
+      'dashboardSignal',
+      `sent-t${traitIndex + 1}-${question.id}`,
+      sentimentFallback(question.id, page, line.text),
+      line.pose
+    );
     setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: page.label });
-  }, [question.id, page.label, personaId, setPageMessage]);
+  }, [question.id, page, traitIndex, personaId, setPageMessage]);
 
   useEffect(() => () => clearPageMessage(), [clearPageMessage]);
 

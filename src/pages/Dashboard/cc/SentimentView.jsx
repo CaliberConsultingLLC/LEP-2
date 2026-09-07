@@ -325,7 +325,14 @@ function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData }) {
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
   const statements = useMemo(() => mapRowStatements(row), [row]);
 
-  return <SentimentRoom row={row} statements={statements} hasSelfData={hasSelfData} />;
+  return (
+    <SentimentRoom
+      row={row}
+      statements={statements}
+      hasSelfData={hasSelfData}
+      traitIndex={traitIdx}
+    />
+  );
 }
 
 // ---------------------------------------------------------------------------

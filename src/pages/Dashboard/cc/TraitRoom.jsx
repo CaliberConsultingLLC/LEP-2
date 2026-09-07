@@ -18,6 +18,8 @@ import { appendTraitNote, notesLabel, readTraitNotes } from './traitRoomNotes';
 import MetricHint from '../../../components/MetricHint';
 import { SCORE_HINTS } from '../../../data/scoreGlossary';
 import { colors, fonts, radii, shadows, surfaces, type } from '../../../styles/tokens';
+import { useGuide } from '../../../context/GuideContext';
+import { spokenGuide } from '../../../data/guideContent';
 
 const HAIRLINE_ON_NAVY = 'rgba(244,206,161,0.20)';
 const signed = (n) => `${n > 0 ? '+' : ''}${n}`;
@@ -355,11 +357,34 @@ function NotePad({ trait, selectedIdx, onResize }) {
 // Trait Room
 // ---------------------------------------------------------------------------
 
-export default function TraitRoom({ row, statements }) {
+export default function TraitRoom({ row, statements, traitIndex = 0, role = 'strength', guideLines }) {
   const [selected, setSelected] = useState(null);
   const [mode, setMode] = useState('map');
+  const { personaId, setPageMessage } = useGuide();
 
   const traitLabel = row?.subTrait || row?.trait || 'Trait';
+
+  // The room speaks for itself, per trait and per open statement.
+  //
+  // The snapshot used to hold one line for the whole room, so switching
+  // between three traits and opening any of their fifteen statements never
+  // changed a word. The keys are index-based so a generated line can target
+  // them; the fallbacks are written from this trait's own numbers.
+  useEffect(() => {
+    if (!guideLines || !row) return;
+    const n = traitIndex + 1;
+    const open = Number.isInteger(selected) && statements?.[selected];
+    const stepKey = open ? `t${n}-s${selected + 1}` : `trait-${n}`;
+    const fallback = open
+      ? guideLines.statement(statements[selected], statements, traitLabel)
+      : guideLines.trait(row, statements, traitLabel, role);
+    const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, fallback, 'map');
+    setPageMessage({
+      text: spoken.text,
+      pose: spoken.pose,
+      eyebrow: open ? `${traitLabel} · ${selected + 1} of ${statements.length}` : traitLabel,
+    });
+  }, [row, selected, statements, traitLabel, traitIndex, role, guideLines, personaId, setPageMessage]);
 
   // Arriving at a new trait resets to idle — the previous trait's open
   // statement has no meaning here.

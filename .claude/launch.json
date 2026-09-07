@@ -130,6 +130,17 @@
         "--strictPort"
       ],
       "port": 5301
+    },
+    {
+      "name": "lep2-vite-evidence",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5291",
+        "--strictPort"
+      ],
+      "port": 5291
     }
   ]
 }

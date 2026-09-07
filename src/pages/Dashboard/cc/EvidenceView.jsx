@@ -528,16 +528,122 @@ function StagePanels({
 }
 
 // ---------------------------------------------------------------------------
+// Fallback lines for the trait rooms and the statements inside them.
+//
+// These are what the guide says before a generated line exists for that key,
+// and they are written from this leader's actual numbers rather than from the
+// screen's job — a room about Deadline Management at 48 has something
+// different to say than one about Clarity at 79, and the fifteen statements
+// underneath differ again. Generated lines replace them key for key.
+// ---------------------------------------------------------------------------
+export const GUIDE_LINE_WRITERS = { trait: traitLine, statement: statementLine };
+
+function traitLine(row, statements, label, role) {
+  const effort = Math.round(row?.team?.effort || 0);
+  const efficacy = Math.round(row?.team?.efficacy || 0);
+  const split = effort - efficacy;
+  const worst = statements.reduce(
+    (lo, s, i) => (s.compass < statements[lo].compass ? i : lo),
+    0
+  );
+
+  if (!effort && !efficacy) {
+    return `${label}, five statements. Nothing has been scored here yet — read them as the questions your team is about to answer about you.`;
+  }
+  if (role === 'edge') {
+    return `Effort ${effort}, effectiveness ${efficacy} — a ${Math.abs(split)}-point split. They can see you working at ${label.toLowerCase()} harder than almost anything else, and it is landing least. That distance is aim, not effort.`;
+  }
+  if (role === 'lifting') {
+    return `${label} lands at ${efficacy} on ${effort} of effort. It costs you least and returns most — worth knowing which of these five it rests on before you spend it somewhere else.`;
+  }
+  return `Effort ${effort} and effectiveness ${efficacy} — close, and both earned. Strength like this is built rather than found. Statement ${worst + 1} is the one holding it back.`;
+}
+
+// "an 81-point gap", not "a 81-point gap".
+const article = (n) => (/^(8|11|18)/.test(String(n)) ? 'An' : 'A');
+
+function statementLine(s, all, label) {
+  const split = (s.effort || 0) - (s.efficacy || 0);
+  const here = all.indexOf(s);
+  // Ties break by position, or every statement in a flat set claims to be the
+  // lowest — which is how five different behaviours ended up reading
+  // identically the first time this ran against seeded data.
+  const rank =
+    [...all.keys()].sort((a, b) => (all[a].compass - all[b].compass) || (a - b)).indexOf(here) + 1;
+  const selfGap = Math.round((s.compassSelf || 0) - (s.compass || 0));
+  const spread = Math.max(...all.map((x) => x.compass)) - Math.min(...all.map((x) => x.compass));
+  const place =
+    spread === 0 ? `number ${here + 1} of ${all.length} in ${label}` :
+    rank === 1 ? `the lowest of the five in ${label}` :
+    rank === all.length ? `the strongest of the five in ${label}` :
+    `${rank} of ${all.length} in ${label}`;
+
+  // No scores yet — quoting zeros reads like a broken page. Say the true thing
+  // about the behaviour instead and leave the numbers out.
+  if (!s.effort && !s.efficacy) {
+    return `“${String(s.text || '').replace(/\s+$/, '')}” — ${place}. Nothing scored here yet, so read it as a question: would your team say you do this?`;
+  }
+
+  // A wide-split trait makes every one of its five statements take this
+  // branch, so the closing clause rotates by rank — otherwise the room reads
+  // as one sentence with the numbers swapped, which is the whole complaint.
+  if (split >= 25) {
+    const closes = [
+      'They are watching you try at this and not feeling it arrive.',
+      'The effort is not in question here. Where it is aimed might be.',
+      'More of the same will not close this one — it is already the most effort you spend.',
+      'This is what "trying hard" looks like from the other side of it.',
+      'Whatever you are doing here, they are not receiving it as the thing you meant.',
+    ];
+    return `Effort ${s.effort}, effectiveness ${s.efficacy}. ${article(split)} ${split}-point gap on one behaviour, and ${place}. ${closes[(rank - 1) % closes.length]}`;
+  }
+  if (split <= -15) {
+    return `Effectiveness ${s.efficacy} on effort ${s.effort} — this one lands better than you are working at it. ${place[0].toUpperCase()}${place.slice(1)}, and cheaper than you think.`;
+  }
+  if (Math.abs(selfGap) >= 15) {
+    return `You put this at ${s.compassSelf}. They put it at ${s.compass}. ${place[0].toUpperCase()}${place.slice(1)} — and the ${Math.abs(selfGap)} points between those two readings is the conversation.`;
+  }
+  return `Effort ${s.effort}, effectiveness ${s.efficacy}, ${place}. What you put into this one is roughly what comes back out — which makes it a fair place to read the others against.`;
+}
+
+// ---------------------------------------------------------------------------
 // Trait exhibit chapter — same explorer format as Evidence snapshot
 // ---------------------------------------------------------------------------
-function EvTraitPage({ row, traitIndex = 0, traitCount = 1, onNextTrait }) {
+function EvTraitPage({ row, traitIndex = 0, traitCount = 1, onNextTrait, role = 'strength' }) {
   const [selected, setSelected] = useState('all');
   const [mode, setMode] = useState('map');
+  const { personaId, setPageMessage } = useGuide();
 
   useEffect(() => {
     setSelected('all');
     setMode('map');
   }, [row]);
+
+  // A line per trait, and a line per statement inside it.
+  //
+  // This whole room used to run on one key — three trait rooms and fifteen
+  // statements resolving to the same sentence, which said nothing about which
+  // trait you were in or which behaviour you had opened. The keys below are
+  // index-based so a generator can target them (trait names differ per
+  // leader); the fallbacks carry this trait's real numbers so the room reads
+  // differently on every click even before a generated line exists.
+  const statements = useMemo(() => mapRowStatements(row), [row]);
+  const traitLabel = row?.subTrait || row?.trait || 'this trait';
+  const n = traitIndex + 1;
+
+  useEffect(() => {
+    const onStatement = typeof selected === 'number' && statements[selected];
+    const stepKey = onStatement ? `t${n}-s${selected + 1}` : `trait-${n}`;
+    const fallback = onStatement
+      ? statementLine(statements[selected], statements, traitLabel)
+      : traitLine(row, statements, traitLabel, role);
+    const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, fallback, 'map');
+    setPageMessage({
+      text: spoken.text,
+      pose: spoken.pose,
+      eyebrow: onStatement ? `${traitLabel} · ${selected + 1} of ${statements.length}` : traitLabel,
+    });
+  }, [row, selected, statements, traitLabel, role, n, personaId, setPageMessage]);
 
   return (
     <Box sx={{ maxWidth: 1180, mx: 'auto' }}>
@@ -757,15 +863,25 @@ function EvClosePage({ chapterIndex, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Evidence snapshot — trait switcher + the shared explorer
 // ---------------------------------------------------------------------------
-function EvidenceSnapshot({ orderedRows, traitIndex }) {
+function EvidenceSnapshot({ orderedRows, traitIndex, roles }) {
   // The rail owns trait selection; 0 is the fallback when this renders alone.
   const traitIdx = Number.isFinite(traitIndex) ? traitIndex : 0;
   const row = orderedRows[Math.min(traitIdx, orderedRows.length - 1)];
   const statements = useMemo(() => mapRowStatements(row), [row]);
+  const role =
+    row?.trait === roles?.edge?.trait ? 'edge'
+      : row?.trait === roles?.lifting?.trait ? 'lifting'
+        : 'strength';
 
   return (
     <SnapshotShell>
-      <TraitRoom row={row} statements={statements} />
+      <TraitRoom
+        row={row}
+        statements={statements}
+        traitIndex={traitIdx}
+        role={role}
+        guideLines={GUIDE_LINE_WRITERS}
+      />
     </SnapshotShell>
   );
 }
@@ -843,13 +959,14 @@ export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex }) 
 
   useEffect(() => {
     if (!orderedRows.length) return undefined;
-    if (mode === 'snapshot') {
-      const spoken = spokenGuide(personaId, 'dashboardEvidence', 'snapshot', EVIDENCE_GUIDE.snapshot, 'map');
-      setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: 'The Evidence' });
-    } else {
-      const known = ['ev-intro', 'ev-floor', 'ev-gaps', 'ev-close'];
-      const stepKey = known.includes(chapter.id) ? chapter.id : 'ev-trait';
-      const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, chapter.guide(), chapter.pose);
+    // Snapshot mode is deliberately absent here: TraitRoom sets its own line,
+    // per trait and per open statement, and a parent effect runs after the
+    // child's — setting one here would overwrite it on every render.
+    if (mode !== 'snapshot' && !chapter.row) {
+      // Trait chapters speak for themselves — EvTraitPage owns the line there,
+      // because it changes again every time a statement is opened and this
+      // effect cannot see that. Setting it here too would fight the child.
+      const spoken = spokenGuide(personaId, 'dashboardEvidence', chapter.id, chapter.guide(), chapter.pose);
       setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapter.label });
     }
     return undefined;
@@ -884,6 +1001,7 @@ export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex }) 
       <EvidenceSnapshot
         orderedRows={orderedRows}
         traitIndex={traitIndex}
+        roles={roles}
       />
     );
   }
@@ -895,6 +1013,7 @@ export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex }) 
         <EvTraitPage
           key={chapter.row.trait}
           row={chapter.row}
+          role={chapter.role}
           traitIndex={Math.max(0, orderedRows.findIndex((r) => r.trait === chapter.row.trait))}
           traitCount={orderedRows.length}
           onNextTrait={() => {
