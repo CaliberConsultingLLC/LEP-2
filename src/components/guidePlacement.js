@@ -43,3 +43,20 @@ export const SUMMARY_OWL = {
   userSelect: 'none',
   zIndex: 0,
 };
+
+/**
+ * The corner the guide stands in.
+ *
+ * The guide is an overlay and never reserves layout space — a gutter that
+ * appeared when it opened would shove the page sideways, which is worse than
+ * the problem it solves. But a page that pins its primary button to the
+ * bottom-right corner is putting it exactly where the bird stands, and no
+ * amount of moving the guide fixes that: sinking it far enough to clear a
+ * control at the bottom edge would take it off the page.
+ *
+ * So the two pages that do this keep their footer actions out of the corner
+ * with a static right padding. Static is the important word — it does not
+ * change when the guide opens, closes or moves, so nothing ever shifts under
+ * the reader.
+ */
+export const GUIDE_CORNER_GUTTER = 'clamp(0px, 18vw, 240px)';

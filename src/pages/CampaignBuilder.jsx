@@ -23,6 +23,7 @@ import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
+import { GUIDE_CORNER_GUTTER } from '../components/guidePlacement';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -64,12 +65,16 @@ function CampaignBuilder() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Suppress the global overlay, because this page draws its own guide and two
+  // owls read as a fault. It used to collapse the guide as well — but `hidden`
+  // is persisted, so opening Trait Selection once closed the guide on every
+  // page after it and left it closed. Suppression is per-page and reversible;
+  // collapsing is neither.
   useEffect(() => {
     if (!useCairnTheme) return undefined;
     setSuppress(true);
-    setHidden(true);
     return () => setSuppress(false);
-  }, [setSuppress, setHidden, useCairnTheme]);
+  }, [setSuppress, useCairnTheme]);
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -889,6 +894,8 @@ function CampaignBuilder() {
                   justifyContent: 'space-between',
                   borderTop: `1px solid ${colors.sand200}`,
                   pt: '14px',
+                  // Keep the way forward out of the corner the guide stands in.
+                  pr: { lg: GUIDE_CORNER_GUTTER },
                   flexShrink: 0,
                   gap: 2,
                 }}
@@ -927,6 +934,7 @@ function CampaignBuilder() {
                     type="button"
                     onClick={() => navigate('/trait-selection')}
                     aria-label="Back to traits"
+                    data-guide-keepclear=""
                     sx={{
                       all: 'unset',
                       boxSizing: 'border-box',
@@ -952,6 +960,7 @@ function CampaignBuilder() {
                       localStorage.setItem('currentCampaign', JSON.stringify(normalizeCampaignItems(campaign || [])));
                       navigate('/campaign-verify');
                     }}
+                    data-guide-keepclear=""
                     sx={{
                       all: 'unset',
                       boxSizing: 'border-box',

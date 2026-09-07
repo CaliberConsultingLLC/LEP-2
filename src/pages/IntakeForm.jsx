@@ -2285,6 +2285,7 @@ function IntakeForm() {
                       spacing={q.id === 'pushbackFeeling' ? 1.5 : 2}
                       alignItems="stretch"
                       justifyContent="center"
+                      data-guide-keepclear=""
                     >
                       {q.options.map((opt) => {
                         const optValue = typeof opt === 'object' && opt.primary ? opt.primary : opt;

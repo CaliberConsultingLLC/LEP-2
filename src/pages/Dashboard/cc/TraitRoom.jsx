@@ -483,7 +483,11 @@ export default function TraitRoom({ row, statements }) {
             </Typography>
           </Box>
 
-          <Box sx={{
+          {/* The five statements and their scores are the room. The guide used
+              to land on two of them outright, so it is told to stay off. */}
+          <Box
+            data-guide-keepclear=""
+            sx={{
             bgcolor: colors.surface1,
             border: `1px solid ${colors.sand200}`,
             borderRadius: '20px',

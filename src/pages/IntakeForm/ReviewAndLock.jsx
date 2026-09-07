@@ -11,6 +11,7 @@
 // them, so the recap and the intake cannot drift apart.
 
 import React, { useMemo, useState } from 'react';
+import { GUIDE_CORNER_GUTTER } from '../../components/guidePlacement';
 import { Box, Stack, Typography } from '@mui/material';
 import { SOCIETAL_NORM_RULES } from '../../data/intakeContext';
 import { useGuide } from '../../context/GuideContext';
@@ -816,6 +817,7 @@ function SignOffPanel({ verifiedCount, total, allVerified, isSubmitting, onLock 
           type="button"
           onClick={allVerified && !isSubmitting ? onLock : undefined}
           disabled={!allVerified || isSubmitting}
+          data-guide-keepclear=""
           sx={{
             all: 'unset', boxSizing: 'border-box',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -864,6 +866,8 @@ function LockedBanner({ date, onRead }) {
       background: 'linear-gradient(158deg, #16304f 0%, #09101f 76%)',
       overflow: 'hidden',
       p: { xs: '22px 24px', md: '24px 32px' },
+      // Keep the way forward out of the corner the guide stands in.
+      pr: { lg: GUIDE_CORNER_GUTTER },
       display: 'flex',
       flexDirection: { xs: 'column', md: 'row' },
       alignItems: { xs: 'stretch', md: 'center' },
@@ -902,6 +906,9 @@ function LockedBanner({ date, onRead }) {
         component="button"
         type="button"
         onClick={onRead}
+        // The only way out of the intake. The owl's image box used to cover
+        // 89% of it and swallow the click at its centre.
+        data-guide-keepclear=""
         sx={{
           all: 'unset', boxSizing: 'border-box', cursor: 'pointer', flexShrink: 0,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

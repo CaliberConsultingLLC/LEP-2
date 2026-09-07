@@ -166,6 +166,9 @@ function StageArrow({ dir, hidden, onClick }) {
       component="button"
       type="button"
       aria-label={dir === 'prev' ? 'Previous' : 'Next'}
+      // The one control on an eight-page reading. The guide used to sit on
+      // 65% of it; now it is told to stay off.
+      data-guide-keepclear=""
       onClick={onClick}
       disabled={hidden}
       sx={{
@@ -235,6 +238,7 @@ function SlideHeader({ title, lead, legend }) {
       <Box sx={{ minWidth: 0 }}>
         <Typography
           component="h1"
+        data-guide-keepclear=""
           sx={{
             fontFamily: fonts.serif,
             fontWeight: 500,
@@ -807,6 +811,7 @@ function SlideThreshold({ title, lead, traits }) {
     <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', textAlign: 'center' }}>
       <Typography
         component="h1"
+      data-guide-keepclear=""
         sx={{
           fontFamily: fonts.serif,
           fontWeight: 500,
@@ -820,10 +825,12 @@ function SlideThreshold({ title, lead, traits }) {
       >
         {title}
       </Typography>
-      <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, lineHeight: 1.55, color: colors.textSecondary, maxWidth: 580, mb: 'clamp(22px, 4vh, 44px)' }}>
+      <Typography data-guide-keepclear="" sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 17, lineHeight: 1.55, color: colors.textSecondary, maxWidth: 580, mb: 'clamp(22px, 4vh, 44px)' }}>
         {lead}
       </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 8 }, flexWrap: 'wrap' }}>
+      {/* The three readings are what this page is for. Everything above and
+          below them can take a bubble; these cannot. */}
+      <Box data-guide-keepclear="" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: { xs: 3, sm: 8 }, flexWrap: 'wrap' }}>
         {traits.map((row) => (
           <Stack key={row.trait} alignItems="center" sx={{ width: { xs: '100%', sm: 180 } }}>
             {/* Fixed label zone, bottom-aligned: a wrapped name stacks upward so

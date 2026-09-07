@@ -75,6 +75,9 @@ export function Headline({ children, size = 'lg', sx }) {
   return (
     <Typography
       component="h1"
+      // The line the room is built around. The guide reads it as an obstacle
+      // rather than as background, so a bubble is never solved across it.
+      data-guide-keepclear=""
       sx={{
         fontFamily: fonts.serif,
         fontWeight: 500,

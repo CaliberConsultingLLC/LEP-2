@@ -4,6 +4,18 @@ import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { getGuideMessages, getPageFaq, resolveRouteKey } from '../data/guideContent';
 import { GUIDE_COLUMN, GUIDE_TAB_BOTTOM, GUIDE_Z } from './guidePlacement';
+import GuideSpeech from './guide/GuideSpeech';
+import { anchorPercents } from './guide/guideGeometry';
+import useOwlClearance from './guide/useOwlClearance';
+
+// The guide, standing in the corner of every room.
+//
+// The owl is drawn here and nothing else is: where the line it is saying goes
+// is worked out by GuideSpeech against the owl's measured position, the shape
+// of the art, and whatever the page has marked as keep-clear. This used to be
+// a fixed column with the bubble stacked above the owl, which is why the line
+// landed on the Next button on the reading and on two of the five scores on
+// Evidence — a column knows where its own edge is and nothing else.
 
 // Pages where the guide has not yet been chosen — overlay is suppressed entirely.
 const PRE_GUIDE_PATHS = ['/user-info', '/guide-select', '/sign-in', '/landing'];
@@ -11,7 +23,7 @@ const PRE_GUIDE_PATHS = ['/user-info', '/guide-select', '/sign-in', '/landing'];
 function GuideFaqItem({ q, a }) {
   const [open, setOpen] = useState(false);
   return (
-    <Box sx={{ borderTop: '1px solid var(--sand-200, #E8DBC3)' }}>
+    <Box sx={{ borderTop: '1px solid rgba(244,206,161,0.18)' }}>
       <Box
         component="button"
         type="button"
@@ -28,15 +40,15 @@ function GuideFaqItem({ q, a }) {
           '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
         }}
       >
-        <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 700, color: 'var(--navy-900, #10223C)', lineHeight: 1.35 }}>
+        <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', fontWeight: 700, color: 'inherit', lineHeight: 1.35, textAlign: 'left' }}>
           {q}
         </Box>
-        <Box aria-hidden sx={{ flexShrink: 0, fontSize: 16, lineHeight: 1, fontWeight: 700, color: 'var(--orange-deep, #C0612A)' }}>
+        <Box aria-hidden sx={{ flexShrink: 0, fontSize: 16, lineHeight: 1, fontWeight: 700, opacity: 0.7 }}>
           {open ? '−' : '+'}
         </Box>
       </Box>
       {open && (
-        <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', lineHeight: 1.55, color: 'var(--ink-soft, #44566C)', pb: '10px' }}>
+        <Box sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.78rem', lineHeight: 1.55, opacity: 0.82, pb: '10px' }}>
           {a}
         </Box>
       )}
@@ -47,6 +59,11 @@ function GuideFaqItem({ q, a }) {
 function GuideOverlay() {
   const { persona, hidden, toggleHidden, setHidden, suppress, pageMessage, hasSelectedGuide, stepKey } = useGuide();
   const location = useLocation();
+  const owlRef = useRef(null);
+  // Sink the bird past anything the page marked keep-clear — on Review &
+  // Lock that is the button out of the intake, which the owl used to stand
+  // on and swallow the click for.
+  const { sink, flipped } = useOwlClearance(owlRef, { enabled: !hidden });
 
   // All hooks must run unconditionally before any early return.
   const routeKey = useMemo(
@@ -83,6 +100,7 @@ function GuideOverlay() {
     ? {
         text: pageMessage.text,
         pose: pageMessage.pose || fallbackMessage?.pose || 'idle',
+        eyebrow: pageMessage.eyebrow || null,
         cta: pageMessage.cta || fallbackMessage?.cta,
         faq: pageMessage.faq || null,
         composer: pageMessage.composer || null,
@@ -96,10 +114,7 @@ function GuideOverlay() {
 
   // Collapse the FAQ whenever the underlying message changes.
   const [faqOpen, setFaqOpen] = useState(false);
-
-  useEffect(() => {
-    setFaqOpen(false);
-  }, [message?.text]);
+  useEffect(() => { setFaqOpen(false); }, [message?.text]);
 
   // Composer draft. Cleared when the guide moves on to a different message so
   // a half-written note cannot reappear under an unrelated line.
@@ -109,11 +124,6 @@ function GuideOverlay() {
     setDraft('');
     setSavedCount(0);
   }, [message?.text]);
-
-  // An acknowledgement has to be given again for each thing said, so the tick
-  // resets whenever the line does.
-  const [acked, setAcked] = useState(false);
-  useEffect(() => { setAcked(false); }, [message?.text]);
 
   // Suppress before a guide is chosen, on pre-guide routes, or when explicitly suppressed.
   const stage = new URLSearchParams(location.search || '').get('stage');
@@ -137,8 +147,6 @@ function GuideOverlay() {
 
   // ── Collapsed tab ────────────────────────────────────────────────────────
   if (hidden) {
-    // The tab is small, but it still sits over the bottom-right corner, so it
-    // reserves its own height rather than trusting nothing is under it.
     return (
       <Box
         component="button"
@@ -189,41 +197,48 @@ function GuideOverlay() {
     );
   }
 
-  // ── Expanded overlay ─────────────────────────────────────────────────────
-  // Width is constrained to the right 20% column so the guide never bleeds
-  // into the main content area. Height can grow upward freely.
+  const faceBox = anchorPercents(owlPose, flipped).face;
+  const hasExtras = faqItems.length > 0 || Boolean(message.composer);
+
+  // ── Expanded ─────────────────────────────────────────────────────────────
   return (
-    <Box
-      sx={{
-        position: 'fixed',
-        right: 0,
-        bottom: 0,
-        zIndex: GUIDE_Z,
-        width: GUIDE_COLUMN,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        pointerEvents: 'none',
-      }}
-    >
-      {/* ── Speech bubble ── */}
+    <>
+      {/* The owl. A square PNG that is mostly transparent padding, so it is
+          inert to the pointer and only the bird's face takes the click that
+          collapses it — the whole square used to, which is how it came to be
+          eating clicks on the button underneath it. */}
       <Box
         sx={{
-          position: 'relative',
-          mx: '15px',
-          mb: '13px',
-          p: '20px 22px 20px 22px',
-          background: 'var(--surface-1, #ffffff)',
-          border: '1px solid var(--sand-200, #E8DBC3)',
-          borderRadius: 'var(--cairn-radius-md, 14px)',
-          boxShadow: '0 8px 24px rgba(15,28,46,0.10)',
-          pointerEvents: 'auto',
+          position: 'fixed',
+          ...(flipped ? { left: 0 } : { right: 0 }),
+          bottom: -sink,
+          transition: 'bottom 220ms cubic-bezier(.2,.8,.2,1)',
+          zIndex: GUIDE_Z,
+          width: GUIDE_COLUMN,
+          aspectRatio: '1 / 1',
+          pointerEvents: 'none',
         }}
       >
-        {/* Close button. Withheld while the guide is holding the only way on:
-            collapsing the bubble then would leave the leader behind a backdrop
-            with nothing to press. */}
-        {!message.action && (
+        <Box
+          component="img"
+          ref={owlRef}
+          src={owlPose}
+          alt={`${persona.name} guide`}
+          draggable={false}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            objectPosition: flipped ? 'bottom left' : 'bottom right',
+            // Standing on the left, the bird turns to face into the page
+            // rather than out of it.
+            transform: flipped ? 'scaleX(-1)' : 'none',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        />
         <Box
           component="button"
           type="button"
@@ -231,141 +246,30 @@ function GuideOverlay() {
           aria-label="Hide guide"
           sx={{
             all: 'unset',
-            cursor: 'pointer',
             position: 'absolute',
-            top: 8, right: 8,
-            width: 20, height: 20,
+            ...faceBox,
             borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--ink-soft, #44566C)',
-            fontFamily: '"Manrope", sans-serif',
-            fontSize: 14, lineHeight: 1, fontWeight: 600,
-            transition: 'background 140ms',
-            '&:hover': { background: 'var(--sand-100, #F4ECDD)', color: 'var(--navy-900, #10223C)' },
-            '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.45)', outlineOffset: 4 },
           }}
-        >
-          ×
-        </Box>
-        )}
+        />
+      </Box>
 
-        {/* Message text */}
-        <Box
-          sx={{
-            fontFamily: '"Manrope", sans-serif',
-            fontStyle: 'normal',
-            fontSize: '0.875rem',
-            lineHeight: 1.55,
-            color: 'var(--ink, #0f1c2e)',
-            pr: '22px',
-          }}
-        >
-          {message.text}
-        </Box>
-
-        {/* ── Action ──
-            The way on lives in the bubble, under the line, rather than
-            floating somewhere else on the page: the eye finishes on what the
-            guide said and acts from there. When the page asks for an
-            acknowledgement the button waits on a tick — the leader agrees to
-            what was said rather than clicking past it. */}
-        {message.action && (
-          <Box sx={{ mt: '14px' }}>
-            {message.action.acknowledge && (
-              <Box
-                component="button"
-                type="button"
-                onClick={() => setAcked((v) => !v)}
-                aria-pressed={acked}
-                sx={{
-                  all: 'unset',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '9px',
-                  mb: '11px',
-                  '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
-                }}
-              >
-                <Box
-                  aria-hidden
-                  sx={{
-                    flexShrink: 0,
-                    mt: '1px',
-                    width: 17,
-                    height: 17,
-                    borderRadius: '5px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: `1.5px solid ${acked ? 'var(--orange-deep, #C0612A)' : 'var(--sand-300, #DCC9A6)'}`,
-                    background: acked ? 'var(--orange-deep, #C0612A)' : 'transparent',
-                    color: '#fff',
-                    fontSize: 11,
-                    lineHeight: 1,
-                    fontWeight: 700,
-                  }}
-                >
-                  {acked ? '✓' : ''}
-                </Box>
-                <Box
-                  sx={{
-                    fontFamily: '"Manrope", sans-serif',
-                    fontSize: 12.5,
-                    lineHeight: 1.45,
-                    fontWeight: 600,
-                    color: 'var(--ink-soft, #44566C)',
-                    textAlign: 'left',
-                  }}
-                >
-                  {message.action.acknowledgeLabel || 'I have read this.'}
-                </Box>
-              </Box>
-            )}
-            <Box
-              component="button"
-              type="button"
-              autoFocus={Boolean(message.action.autoFocus)}
-              disabled={Boolean(message.action.acknowledge) && !acked}
-              onClick={() => {
-                if (message.action.acknowledge && !acked) return;
-                message.action.onClick?.();
-              }}
-              sx={{
-                all: 'unset',
-                boxSizing: 'border-box',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                px: '20px',
-                minHeight: 36,
-                borderRadius: 999,
-                background: 'var(--navy-900, #10223C)',
-                color: 'var(--amber-soft, #F4CEA1)',
-                fontFamily: '"Manrope", sans-serif',
-                fontSize: 12.5,
-                fontWeight: 700,
-                cursor: message.action.acknowledge && !acked ? 'not-allowed' : 'pointer',
-                opacity: message.action.acknowledge && !acked ? 0.45 : 1,
-                transition: 'opacity 140ms',
-                '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
-              }}
-            >
-              {message.action.label || 'Continue'}
-            </Box>
-          </Box>
-        )}
-
-        {/* ── Composer ──
-            The guide can be written to as well as read. A page hands over a
-            composer and the bubble becomes the place the note is typed, so a
-            note is given to the guide rather than filled into a form
-            somewhere else on the page. It stays open after each save: one
-            thought is rarely the only one. */}
+      <GuideSpeech
+        owlRef={owlRef}
+        src={owlPose}
+        mirrored={flipped}
+        eyebrow={message.eyebrow}
+        text={message.text}
+        action={message.action}
+        onDismiss={toggleHidden}
+        resolveKey={`${sink}:${flipped}`}
+        zIndex={GUIDE_Z + 1}
+        maxWidth={hasExtras ? 340 : 310}
+      >
         {message.composer && (
-          <Box sx={{ mt: '14px' }}>
+          <Box>
             <Box
               component="textarea"
               rows={3}
@@ -386,15 +290,16 @@ function GuideOverlay() {
                 width: '100%',
                 boxSizing: 'border-box',
                 resize: 'vertical',
-                minHeight: 74,
+                minHeight: 72,
                 p: '10px 12px',
                 borderRadius: 'var(--cairn-radius-sm, 10px)',
-                border: '1px solid var(--sand-200, #E8DBC3)',
-                background: 'var(--sand-50, #FBF7F0)',
+                border: '1px solid rgba(244,206,161,0.24)',
+                background: 'rgba(255,255,255,0.06)',
                 fontFamily: '"Manrope", sans-serif',
-                fontSize: 13.5,
+                fontSize: 13,
                 lineHeight: 1.5,
-                color: 'var(--ink, #0f1c2e)',
+                color: 'inherit',
+                '&::placeholder': { color: 'inherit', opacity: 0.5 },
                 '&:focus': { outline: 'none', borderColor: 'var(--orange, #E07A3F)' },
               }}
             />
@@ -407,7 +312,7 @@ function GuideOverlay() {
                   fontWeight: 700,
                   letterSpacing: '0.14em',
                   textTransform: 'uppercase',
-                  color: savedCount ? 'var(--green, #2F855A)' : 'var(--ink-soft, #44566C)',
+                  opacity: 0.72,
                 }}
               >
                 {savedCount
@@ -430,13 +335,13 @@ function GuideOverlay() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  px: '18px',
-                  minHeight: 34,
+                  px: '16px',
+                  minHeight: 32,
                   borderRadius: 999,
-                  background: 'var(--navy-900, #10223C)',
-                  color: 'var(--amber-soft, #F4CEA1)',
+                  background: 'var(--amber-soft, #F4CEA1)',
+                  color: 'var(--navy-900, #10223C)',
                   fontFamily: '"Manrope", sans-serif',
-                  fontSize: 12.5,
+                  fontSize: 12,
                   fontWeight: 700,
                   cursor: draft.trim() ? 'pointer' : 'not-allowed',
                   opacity: draft.trim() ? 1 : 0.45,
@@ -449,9 +354,8 @@ function GuideOverlay() {
           </Box>
         )}
 
-        {/* ── Expandable FAQ for the detailed read ── */}
         {faqItems.length > 0 && (
-          <Box sx={{ mt: '14px' }}>
+          <Box>
             <Box
               component="button"
               type="button"
@@ -464,11 +368,11 @@ function GuideOverlay() {
                 alignItems: 'center',
                 gap: 0.7,
                 fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-                fontSize: 10,
+                fontSize: 9.5,
                 fontWeight: 700,
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
-                color: 'var(--orange-deep, #C0612A)',
+                color: 'var(--amber-soft, #F4CEA1)',
                 '&:focus-visible': { outline: '3px solid rgba(224,122,63,0.32)', outlineOffset: 2 },
               }}
             >
@@ -484,26 +388,8 @@ function GuideOverlay() {
             )}
           </Box>
         )}
-      </Box>
-
-      {/* ── Owl image ── scales to column width, flush to bottom-right */}
-      <Box
-        component="img"
-        src={owlPose}
-        alt={`${persona.name} guide`}
-        sx={{
-          width: '100%',
-          height: 'auto',
-          display: 'block',
-          objectFit: 'contain',
-          objectPosition: 'bottom right',
-          pointerEvents: 'auto',
-          cursor: 'pointer',
-        }}
-        onClick={toggleHidden}
-        draggable={false}
-      />
-    </Box>
+      </GuideSpeech>
+    </>
   );
 }
 

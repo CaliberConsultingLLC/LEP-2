@@ -54,6 +54,8 @@ function StationMarker({ station, index, status, isSelected, onSelect }) {
         type="button"
         onClick={() => onSelect(station.key)}
         aria-label={`${station.label} — ${STATUS_META[status].label}`}
+        // "You are here" is the answer the map exists to give.
+        data-guide-keepclear=""
         sx={{
           all: 'unset',
           cursor: 'pointer',

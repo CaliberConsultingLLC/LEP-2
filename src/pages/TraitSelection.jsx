@@ -14,6 +14,7 @@ import { commitSelectedTraits } from '../utils/campaignState';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import CairnGuidePanel from '../components/CairnGuidePanel';
+import { GUIDE_CORNER_GUTTER } from '../components/guidePlacement';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useGuide } from '../context/GuideContext';
@@ -30,12 +31,16 @@ function TraitSelection() {
   const [loadError, setLoadError] = useState('');
   const { persona, personaId, hidden, toggleHidden, setHidden, setSuppress, setGuideStep } = useGuide();
 
+  // Suppress the global overlay, because this page draws its own guide and two
+  // owls read as a fault. It used to collapse the guide as well — but `hidden`
+  // is persisted, so opening Trait Selection once closed the guide on every
+  // page after it and left it closed. Suppression is per-page and reversible;
+  // collapsing is neither.
   useEffect(() => {
     if (!useCairnTheme) return undefined;
     setSuppress(true);
-    setHidden(true);
     return () => setSuppress(false);
-  }, [setSuppress, setHidden, useCairnTheme]);
+  }, [setSuppress, useCairnTheme]);
 
   const getTraitLibraryEntry = (focusArea) => {
     const [traitId, subTraitId] = String(focusArea?.id || '').split('-');
@@ -526,6 +531,7 @@ function TraitSelection() {
                         </Box>
                       </Box>
                       <Box
+                        data-guide-keepclear=""
                         sx={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -559,6 +565,8 @@ function TraitSelection() {
                   pt: '14px',
                   flexShrink: 0,
                   gap: 2,
+                  // Keep the way forward out of the corner the guide stands in.
+                  pr: { lg: GUIDE_CORNER_GUTTER },
                 }}
               >
                 <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkSoft }}>
@@ -569,6 +577,7 @@ function TraitSelection() {
                   type="button"
                   onClick={handleContinue}
                   disabled={selectedTraits.length !== 3}
+                  data-guide-keepclear=""
                   sx={{
                     all: 'unset',
                     boxSizing: 'border-box',

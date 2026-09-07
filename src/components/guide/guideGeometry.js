@@ -1,0 +1,266 @@
+// Where the bubble goes, worked out rather than typed in.
+//
+// Every guide bubble in the product used to be placed by a breakpoint table —
+// `left: { md: 290, lg: 350, xl: 390 }` — which is a guess about two things
+// that both move: where the bird is inside its PNG, and how big the window is.
+// The guesses were wrong often enough that the bubble covered the owl's face
+// on the journal and the Next button on the reading.
+//
+// So nothing is typed in here except the shape of the preference. The anchor
+// comes off the art (see scripts/build-guide-anchors.mjs), the sizes come off
+// the DOM, and the placement is solved against both every time either changes.
+//
+// This module is deliberately pure: rectangles in, a rectangle and a tail out.
+// It can be reasoned about — and corrected — without a browser.
+
+import { getGuideAnchor } from '../../data/guideAnchors.generated';
+
+// Breathing room. `EDGE` keeps the bubble off the window's edge, `GAP` keeps
+// it off the owl's face; both are small enough to stay conversational and big
+// enough that the tail has somewhere to live.
+export const EDGE = 16;
+export const GAP = 14;
+
+// How far along its edge a tail may sit. Any closer to a corner and it reads
+// as a rendering fault rather than as a tail.
+const TAIL_INSET = 22;
+
+const area = (r) => Math.max(0, r.right - r.left) * Math.max(0, r.bottom - r.top);
+
+const overlap = (a, b) => {
+  const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  return w > 0 && h > 0 ? w * h : 0;
+};
+
+const rect = (left, top, width, height) => ({
+  left, top, width, height, right: left + width, bottom: top + height,
+});
+
+/**
+ * The owl's anchor in viewport pixels.
+ *
+ * `owlRect` is the rendered <img> box — which is mostly transparent padding,
+ * so none of these numbers can be read off it directly. `mirrored` is true for
+ * the Summary and journal owls, which are flipped with scaleX(-1); flipping x
+ * here is the whole fix for the bug where the mirror walked the face under a
+ * bubble placed from unmirrored fractions.
+ */
+export function resolveAnchor(owlRect, src, mirrored = false) {
+  const a = getGuideAnchor(src);
+  const fx = (v) => (mirrored ? 1 - v : v);
+
+  const faceL = Math.min(fx(a.face[0]), fx(a.face[2]));
+  const faceR = Math.max(fx(a.face[0]), fx(a.face[2]));
+
+  return {
+    speak: {
+      x: owlRect.left + fx(a.speak[0]) * owlRect.width,
+      y: owlRect.top + a.speak[1] * owlRect.height,
+    },
+    face: rect(
+      owlRect.left + faceL * owlRect.width,
+      owlRect.top + a.face[1] * owlRect.height,
+      (faceR - faceL) * owlRect.width,
+      (a.face[3] - a.face[1]) * owlRect.height,
+    ),
+    // Which way the bird is looking out of the frame. A guide standing on the
+    // left of the screen should speak to its right, and the reverse — this is
+    // what makes the placement mirror without a second set of numbers.
+    facing: mirrored ? 'right' : 'left',
+  };
+}
+
+/**
+ * The same anchor as CSS percentages, for placing something inside the owl's
+ * own box without measuring it first.
+ *
+ * The owl image used to take pointer events across its whole square, 90% of
+ * which is transparent padding — which is how it came to be swallowing clicks
+ * on the "Read your reflection" button underneath it. The fix is to make the
+ * image inert and put the click target on the bird's face, and the face is
+ * already known.
+ */
+export function anchorPercents(src, mirrored = false) {
+  const a = getGuideAnchor(src);
+  const fx = (v) => (mirrored ? 1 - v : v);
+  const l = Math.min(fx(a.face[0]), fx(a.face[2]));
+  const r = Math.max(fx(a.face[0]), fx(a.face[2]));
+  const pc = (v) => `${(v * 100).toFixed(2)}%`;
+  return {
+    face: { left: pc(l), top: pc(a.face[1]), width: pc(r - l), height: pc(a.face[3] - a.face[1]) },
+  };
+}
+
+/**
+ * Everything on the page the bubble must not cover.
+ *
+ * Pages opt in with `data-guide-keepclear` on the control or figure that
+ * matters — the page-turn on the reading, the current station on the map. The
+ * solver can only avoid what it has been told about, and the alternative to
+ * telling it is the bubble landing on the Next button by luck.
+ */
+export function readKeepClear(root = document) {
+  const out = [];
+  root.querySelectorAll('[data-guide-keepclear]').forEach((el) => {
+    if (el.getAttribute('data-guide-keepclear') === 'off') return;
+    const r = el.getBoundingClientRect();
+    if (r.width < 4 || r.height < 4) return;
+    out.push(rect(r.left, r.top, r.width, r.height));
+  });
+  return out;
+}
+
+// The clock positions, in the order they are preferred. Each one says where
+// the bubble sits relative to the speak point, expressed as the fraction of
+// the bubble that hangs on each side of it.
+//
+// `tx` is where along the bubble's width the speak point falls — 0.16 means
+// the bubble runs off to the right of the head, which is the one-to-two
+// o'clock reading the guide is meant to have.
+const PLACEMENTS = [
+  { id: 'above-right', tx: 0.16, ty: 1, prefer: 'left' },
+  { id: 'above-left', tx: 0.84, ty: 1, prefer: 'right' },
+  { id: 'above', tx: 0.5, ty: 1 },
+  { id: 'right', tx: 0, ty: 0.5, prefer: 'left' },
+  { id: 'left', tx: 1, ty: 0.5, prefer: 'right' },
+  { id: 'below-right', tx: 0.16, ty: 0, prefer: 'left' },
+  { id: 'below-left', tx: 0.84, ty: 0, prefer: 'right' },
+];
+
+/**
+ * Solve for the bubble's box and its tail.
+ *
+ * Walks the clock from the preferred position outward, clamps each candidate
+ * into the window, and scores it by how much of the face and of the page's
+ * keep-clear regions it lands on. The first candidate that lands on nothing
+ * wins; if every candidate lands on something — a small window with a large
+ * owl — the least bad one is taken, which is still strictly better than the
+ * fixed offset it replaces.
+ *
+ * The tail is worked out last, from where the bubble actually ended up, so it
+ * points at the head even when the clamp moved the bubble somewhere the
+ * preference never asked for.
+ */
+export function solveBubble({ anchor, bubble, viewport, obstacles = [], edge = EDGE, gap = GAP }) {
+  const { speak, face, facing } = anchor;
+  const avoid = [face, ...obstacles];
+
+  const maxLeft = Math.max(edge, viewport.width - edge - bubble.width);
+  const maxTop = Math.max(edge, viewport.height - edge - bubble.height);
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+  const ordered = [...PLACEMENTS].sort((a, b) => {
+    // A guide facing right speaks to its right; prefer the placements that go
+    // that way, without dropping the others as fallbacks.
+    const score = (p) => (p.prefer && p.prefer !== facing ? 1 : 0);
+    return score(a) - score(b);
+  });
+
+  let best = null;
+  ordered.forEach((p, index) => {
+    // Put the speak point at (tx, ty) of the bubble, then push the whole
+    // bubble clear of the head by the gap in whichever direction it sits.
+    let left = speak.x - p.tx * bubble.width;
+    let top = speak.y - p.ty * bubble.height;
+    if (p.ty === 1) top -= gap;
+    if (p.ty === 0) top += gap;
+    if (p.tx === 0) left += gap;
+    if (p.tx === 1) left -= gap;
+
+    const box = rect(clamp(left, edge, maxLeft), clamp(top, edge, maxTop), bubble.width, bubble.height);
+
+    // Overlapping the face is the thing this exists to prevent, so it counts
+    // for more than covering a button, which in turn counts for more than
+    // simply having been shoved away from where it was asked to go. The
+    // weights are wide apart on purpose: a bubble at an awkward clock position
+    // is a blemish, a bubble over the Next button is a broken page.
+    const faceHit = overlap(box, face);
+    const clearHit = obstacles.reduce((sum, o) => sum + overlap(box, o), 0);
+    const drift = Math.hypot(box.left - left, box.top - top);
+    const cost = faceHit * 12 + clearHit * 8 + drift + index * 40;
+
+    if (!best || cost < best.cost) best = { cost, box, id: p.id, faceHit, clearHit };
+  });
+
+  // Seven candidate positions is a coarse grid, and the best of them can still
+  // clip a corner of something — a 30px station marker sitting exactly where
+  // the bubble wants to be. So the winner is then pushed: take whatever it
+  // still overlaps, find the shortest move that clears it without leaving the
+  // window, and repeat. This is what takes the last few percent to nothing.
+  let box = best.box;
+  for (let pass = 0; pass < 6; pass += 1) {
+    let worst = null;
+    for (const o of avoid) {
+      const hit = overlap(box, o);
+      if (hit > 0 && (!worst || hit > worst.hit)) worst = { o, hit };
+    }
+    if (!worst) break;
+
+    const { o } = worst;
+    const moves = [
+      { dx: o.left - box.right - 1, dy: 0 },
+      { dx: o.right - box.left + 1, dy: 0 },
+      { dx: 0, dy: o.top - box.bottom - 1 },
+      { dx: 0, dy: o.bottom - box.top + 1 },
+    ]
+      .map((m) => ({
+        ...m,
+        left: clamp(box.left + m.dx, edge, maxLeft),
+        top: clamp(box.top + m.dy, edge, maxTop),
+      }))
+      .map((m) => {
+        const moved = rect(m.left, m.top, box.width, box.height);
+        return { ...m, moved, rest: avoid.reduce((s, x) => s + overlap(moved, x), 0), cost: Math.abs(m.dx) + Math.abs(m.dy) };
+      })
+      // A push that leaves as much overlap as it started with is the window
+      // refusing to give ground; take the one that actually clears something.
+      .filter((m) => m.rest < worst.hit)
+      .sort((a, b) => (a.rest - b.rest) || (a.cost - b.cost));
+
+    if (!moves.length) break;
+    box = moves[0].moved;
+  }
+
+  // Which edge the tail leaves from, decided by where the head ended up
+  // relative to the bubble rather than by which placement was asked for.
+  let side = null;
+  let offset = 0;
+  if (speak.y >= box.bottom) {
+    side = 'bottom';
+    offset = clamp(speak.x - box.left, TAIL_INSET, Math.max(TAIL_INSET, box.width - TAIL_INSET));
+  } else if (speak.y <= box.top) {
+    side = 'top';
+    offset = clamp(speak.x - box.left, TAIL_INSET, Math.max(TAIL_INSET, box.width - TAIL_INSET));
+  } else if (speak.x >= box.right) {
+    side = 'right';
+    offset = clamp(speak.y - box.top, TAIL_INSET, Math.max(TAIL_INSET, box.height - TAIL_INSET));
+  } else if (speak.x <= box.left) {
+    side = 'left';
+    offset = clamp(speak.y - box.top, TAIL_INSET, Math.max(TAIL_INSET, box.height - TAIL_INSET));
+  }
+  // No side means the head is behind the bubble, which the scoring is meant to
+  // prevent. Drawing a tail into the middle of the bubble would look broken,
+  // so it is left off and the overlap is the thing to fix.
+
+  return {
+    left: Math.round(box.left),
+    top: Math.round(box.top),
+    placement: best.id,
+    tail: side ? { side, offset: Math.round(offset) } : null,
+    // The origin the entrance animation grows from, so the bubble appears to
+    // come out of the beak rather than fade in over the page.
+    origin: {
+      x: Math.round(clamp(speak.x - box.left, 0, box.width)),
+      y: Math.round(clamp(speak.y - box.top, 0, box.height)),
+    },
+    // Measured on the box that actually shipped, after the push — reporting
+    // the pre-push numbers would make the solver look better than it is.
+    covers: {
+      face: Math.round(overlap(box, face)),
+      keepClear: Math.round(obstacles.reduce((s, o) => s + overlap(box, o), 0)),
+    },
+  };
+}
+
+export const __test = { rect, overlap, area, PLACEMENTS };

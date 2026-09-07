@@ -288,7 +288,8 @@ function EvidenceBlock({ evidence }) {
 
 function Answer({ question, answer }) {
   return (
-    <Box sx={{ maxWidth: 600 }}>
+    // The answer is the room; the guide is a note in the margin of it.
+    <Box data-guide-keepclear="" sx={{ maxWidth: 600 }}>
       <Typography sx={{ ...EYEBROW, fontSize: 9.5, letterSpacing: '0.2em', color: colors.inkSoft, mb: '12px' }}>
         Question {question.num}
       </Typography>

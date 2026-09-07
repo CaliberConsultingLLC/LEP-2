@@ -1,6 +1,19 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box, Collapse, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows } from '../styles/tokens';
+import GuideSpeech from './guide/GuideSpeech';
+import { anchorPercents } from './guide/guideGeometry';
+import useOwlClearance from './guide/useOwlClearance';
+
+// The growth-campaign guide.
+//
+// Same bird, same rules as everywhere else now: the owl is drawn here and
+// GuideSpeech decides where the line can go. It used to hang its bubble off
+// the owl's left at a fixed offset, which on the campaign builder put it over
+// 100% of "Back to traits" and 22% of "Review campaign" — both of the page's
+// navigation controls, at the one moment a leader is deciding what their team
+// will be asked. Those two buttons now carry data-guide-keepclear and the
+// solver walks around them.
 
 function CairnGuidePanel({
   persona,
@@ -15,8 +28,12 @@ function CairnGuidePanel({
   presenceOnly = false,
 }) {
   const [expanded, setExpanded] = useState(false);
-  const bubbleBg = isDark ? 'rgba(8,16,28,0.88)' : 'rgba(255,255,255,0.92)';
-  const bubbleBorder = isDark ? '1px solid rgba(244,206,161,0.14)' : `1px solid ${colors.sand200}`;
+  const owlRef = useRef(null);
+  const src = owlPose || persona.poses.idle;
+  // The campaign builder puts its "Review campaign" button in the same
+  // corner the guide stands in. The bubble is solved around it; the bird
+  // sinks past it.
+  const { sink, flipped } = useOwlClearance(owlRef, { enabled: !hidden });
 
   if (hidden) {
     return (
@@ -70,154 +87,113 @@ function CairnGuidePanel({
     );
   }
 
+  const face = anchorPercents(src, flipped).face;
+
   return (
-    <Box
-      sx={{
-        position: 'fixed',
-        right: { xs: 6, md: 10, lg: 16 },
-        bottom: 0,
-        zIndex: 1100,
-        display: 'flex',
-        alignItems: 'flex-end',
-        pointerEvents: 'none',
-        overflow: 'visible',
-      }}
-    >
-      {!presenceOnly && (
-        <Box
-          sx={{
-            position: 'relative',
-            width: { xs: 188, sm: 210, md: 220 },
-            flexShrink: 0,
-            borderRadius: radii.md,
-            border: bubbleBorder,
-            bgcolor: bubbleBg,
-            boxShadow: shadows.overlay,
-            p: '16px 18px 18px',
-            mb: '10px',
-            pointerEvents: 'auto',
-            backdropFilter: 'blur(10px)',
-            '&:after': {
-              content: '""',
-              position: 'absolute',
-              right: -8,
-              bottom: 28,
-              width: 16,
-              height: 16,
-              bgcolor: bubbleBg,
-              borderRight: bubbleBorder,
-              borderTop: bubbleBorder,
-              transform: 'rotate(45deg)',
-              zIndex: 1,
-            },
-          }}
-        >
-          <Box
-            component="button"
-            type="button"
-            onClick={toggleHidden}
-            aria-label="Hide guide"
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              width: 20,
-              height: 20,
-              borderRadius: radii.circle,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: isDark ? 'rgba(240,233,222,0.72)' : colors.inkSoft,
-              fontFamily: fonts.sans,
-              fontSize: 14,
-              lineHeight: 1,
-              fontWeight: 600,
-              transition: 'background 140ms',
-              '&:hover': { background: isDark ? 'rgba(244,206,161,0.1)' : colors.sand100 },
-              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-            }}
-          >
-            ×
-          </Box>
-
-          <Typography sx={{
-            fontFamily: fonts.mono,
-            fontSize: '0.64rem',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: colors.orangeDeep,
-            mb: 1.1,
-            pr: '18px',
-          }}>
-            Guide Notes
-          </Typography>
-          <Typography sx={{
-            fontFamily: fonts.serif,
-            fontStyle: 'italic',
-            fontSize: '0.88rem',
-            lineHeight: 1.55,
-            color: isDark ? colors.ink : colors.navy900,
-          }}>
-            "{commentary}"
-          </Typography>
-
-          <Box sx={{ my: 1.25, borderTop: bubbleBorder }} />
-
-          <Box
-            component="button"
-            type="button"
-            onClick={() => setExpanded((prev) => !prev)}
-            aria-expanded={expanded}
-            sx={{
-              all: 'unset',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.75,
-              fontFamily: fonts.sans,
-              fontSize: '0.74rem',
-              fontWeight: 800,
-              color: isDark ? colors.amberSoft : colors.orangeDeep,
-              letterSpacing: '0.02em',
-              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3, borderRadius: radii.pill },
-            }}
-          >
-            {moreLabel}
-            <Box component="span" sx={{ fontSize: '0.8rem', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>⌄</Box>
-          </Box>
-
-          <Collapse in={expanded} timeout="auto">
-            <Box sx={{ pt: 1.2 }}>
-              {children}
-            </Box>
-          </Collapse>
-        </Box>
-      )}
-
+    <>
+      {/* The owl. Inert to the pointer across its transparent square; only the
+          face takes the click that collapses it. */}
       <Box
-        component="img"
-        src={owlPose || persona.poses.idle}
-        alt={`${persona.name} guide`}
         sx={{
+          position: 'fixed',
+          ...(flipped
+            ? { left: { xs: 6, md: 10, lg: 16 } }
+            : { right: { xs: 6, md: 10, lg: 16 } }),
+          bottom: -sink,
+          transition: 'bottom 220ms cubic-bezier(.2,.8,.2,1)',
+          zIndex: 1100,
           width: presenceOnly
             ? { xs: 220, sm: 280, md: 320 }
             : { xs: 200, sm: 240, md: 280 },
-          height: 'auto',
-          display: 'block',
-          objectFit: 'contain',
-          objectPosition: 'bottom right',
-          ml: presenceOnly ? 0 : { xs: '-10px', md: '-14px' },
-          mb: '-4px',
-          pointerEvents: 'auto',
-          cursor: 'pointer',
-          zIndex: 2,
+          aspectRatio: '1 / 1',
+          pointerEvents: 'none',
         }}
-        onClick={toggleHidden}
-        draggable={false}
-      />
-    </Box>
+      >
+        <Box
+          component="img"
+          ref={owlRef}
+          src={src}
+          alt={`${persona.name} guide`}
+          draggable={false}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            objectPosition: flipped ? 'bottom left' : 'bottom right',
+            transform: flipped ? 'scaleX(-1)' : 'none',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        />
+        <Box
+          component="button"
+          type="button"
+          onClick={toggleHidden}
+          aria-label="Hide guide"
+          sx={{
+            all: 'unset',
+            position: 'absolute',
+            ...face,
+            borderRadius: '50%',
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 4 },
+          }}
+        />
+      </Box>
+
+      {!presenceOnly && (
+        <GuideSpeech
+          owlRef={owlRef}
+          src={src}
+          mirrored={flipped}
+          eyebrow="Guide Notes"
+          text={commentary}
+          onDismiss={toggleHidden}
+          tone={isDark ? 'sand' : 'navy'}
+          resolveKey={`${sink}:${flipped}`}
+          zIndex={1101}
+          maxWidth={300}
+        >
+          {children && (
+            <Box>
+              <Box sx={{ mb: 1.1, borderTop: '1px solid rgba(244,206,161,0.2)' }} />
+              <Box
+                component="button"
+                type="button"
+                onClick={() => setExpanded((prev) => !prev)}
+                aria-expanded={expanded}
+                sx={{
+                  all: 'unset',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  fontFamily: fonts.mono,
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: isDark ? colors.orangeDeep : colors.amberSoft,
+                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3, borderRadius: radii.pill },
+                }}
+              >
+                {moreLabel}
+                <Box component="span" sx={{ fontSize: '0.8rem', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>⌄</Box>
+              </Box>
+
+              <Collapse in={expanded} timeout="auto">
+                <Box sx={{ pt: 1.2, fontFamily: fonts.sans, fontSize: 12.5, lineHeight: 1.5 }}>
+                  {children}
+                </Box>
+              </Collapse>
+            </Box>
+          )}
+        </GuideSpeech>
+      )}
+    </>
   );
 }
 
