@@ -249,8 +249,10 @@ function DemoCatalog() {
           <Typography sx={{ ...type.body, maxWidth: '64ch' }}>
             Pick a state and a page. Each link wipes the session, loads that state, and
             lands you on the page — so what you see is the same every visit no matter
-            what you clicked before it. Guide copy is canned; this is for looking at
-            design, not at what the agent says.
+            what you clicked before it. In the trait rooms — Evidence and Sentiment —
+            the guide reads this fixture's real numbers, so it says something different
+            for every trait and every statement. Everywhere else its copy is still
+            canned, because nothing here seeds the generated lines yet.
           </Typography>
         </Box>
 
