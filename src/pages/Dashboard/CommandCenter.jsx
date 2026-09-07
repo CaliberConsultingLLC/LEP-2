@@ -96,6 +96,14 @@ const readJson = (key, fallback = null) => {
   }
 };
 
+const writeJson = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable — the auto-launch will simply offer itself again */
+  }
+};
+
 // ============================================================================
 // Section frame for shimmed pages — keeps existing components in a tidy column
 // ============================================================================
@@ -137,22 +145,62 @@ export default function CommandCenter() {
     }
   }, []);
 
+  // The Narrative plays itself, once.
+  //
+  // The first time a leader opens the dashboard after their team's reading has
+  // landed, they arrive in the Narrative rather than on Basecamp — it is the
+  // thing they waited a week for, and leaving them to find it in a tab strip
+  // makes it look optional. It happens exactly once: the flag is written the
+  // moment it fires, so every visit after this one lands on Basecamp and the
+  // Narrative is a room they choose.
+  //
+  // An explicit `?tab=` always wins. That keeps deep links, the demo catalog
+  // and the back button honest.
+  const autoLaunchNarrative = useMemo(() => {
+    const raw = String(new URLSearchParams(location.search || '').get('tab') || '').trim();
+    if (raw) return false;
+    const scope = getDebriefScope();
+    if (readJson(`${scope}_narrativeLaunched`, false)) return false;
+    // Already walked it under their own steam — nothing left to introduce.
+    if (readJson(`${scope}_narrative`, {})?.done) return false;
+    const closed = String(readJson('campaignRecords', {})?.teamCampaignClosed || '')
+      .toLowerCase() === 'true';
+    return closed || isDemoSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Resolve initial tab from ?tab=
   const initialTab = useMemo(() => {
     const raw = String(new URLSearchParams(location.search || '').get('tab') || '')
       .trim()
       .toLowerCase();
+    if (!raw && autoLaunchNarrative) return 'narrative';
     return QUERY_TO_TAB[raw] || 'today';
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  // Write the flag and put the tab in the URL, so a refresh or a back press
+  // shows what is actually on screen rather than bouncing to Basecamp.
+  useEffect(() => {
+    if (!autoLaunchNarrative) return;
+    writeJson(`${getDebriefScope()}_narrativeLaunched`, true);
+    const params = new URLSearchParams(location.search || '');
+    params.set('tab', 'narrative');
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLaunchNarrative]);
+
   // Keep state in sync if the URL changes (back/forward, dev panel deep-links)
   useEffect(() => {
     const raw = String(new URLSearchParams(location.search || '').get('tab') || '')
       .trim()
       .toLowerCase();
+    // The first render belongs to the auto-launch; the effect above is about to
+    // write the tab into the URL, and reading the empty one here would drag the
+    // leader back to Basecamp before it lands.
+    if (!raw && autoLaunchNarrative) return;
     const next = QUERY_TO_TAB[raw] || 'today';
     if (next !== activeTab) setActiveTab(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps

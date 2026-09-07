@@ -1554,10 +1554,14 @@ export default function NarrativeView() {
   const scope = useMemo(() => getDebriefScope(), []);
   const storeKey = `${scope}_narrative`;
 
-  const [idx, setIdxState] = useState(() => {
-    const saved = Number(readJson(storeKey, {})?.page);
-    return Number.isFinite(saved) ? Math.min(Math.max(saved, 0), SLIDE_COUNT - 1) : 0;
-  });
+  // The reading always opens on page one. It is a told story, not a form you
+  // resume: coming back to it a week later at page six, mid-thought, with the
+  // two explainers already spent, is not the thing that was written. Leaving
+  // and returning starts it again.
+  //
+  // The position is still written — `done` rides in the same record, and that
+  // is what the tab strip and the journey map read.
+  const [idx, setIdxState] = useState(0);
   const [doneEver, setDoneEver] = useState(() => Boolean(readJson(storeKey, {})?.done));
 
   const setIdx = (next) => {
