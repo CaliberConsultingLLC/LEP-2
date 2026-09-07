@@ -753,6 +753,11 @@ function IntakeForm() {
   const autosaveReadyRef = useRef(false);
   const authUidRef = useRef('');
   const lastDraftJsonRef = useRef('');
+  // The topbar's forward arrow has to run the CURRENT handleNext. It used to
+  // get one for free because the registration effect re-ran every render; now
+  // that it only re-runs when the arrows change, the handler rides a ref
+  // instead of a dependency list nobody could keep honest.
+  const handleNextRef = useRef(null);
 
   // The intake is the paid product. The cached flag answers first so the page
   // does not flicker, and the server is asked straight after — a refunded or
@@ -980,7 +985,14 @@ function IntakeForm() {
   // a run of single choices, the sliders, then the three open stories behind
   // their own intro screen. New-question definitions live in
   // intakeTraitCoverageV2.js so wording and trait signals cannot drift.
-  const behaviorSet = [
+  //
+  // Memoized because two effects below list it as a dependency. Rebuilt fresh
+  // each render, it made those effects fire on every render, and each one
+  // writes context state (guide step, topbar nav) — so the render that ran
+  // them scheduled the render that ran them again. That was the "Maximum
+  // update depth exceeded" storm. Nothing here reads component state, so one
+  // array for the life of the mount is the whole fix.
+  const behaviorSet = useMemo(() => [
     {
       id: 'resourcePick',
       theme: 'The Quick Pick',
@@ -1164,7 +1176,7 @@ function IntakeForm() {
       type: 'text',
     },
     buildNewQuestionEntry('shelvedIdea'),
-  ];
+  ], []);
 
   // 10 societal norms (now the "Insights" section, 5 per page)
   const societalNormsQuestions = SOCIETAL_NORM_DISPLAY_TEMPLATES;
@@ -1554,6 +1566,10 @@ function IntakeForm() {
     }
   };
 
+  useEffect(() => {
+    handleNextRef.current = handleNext;
+  });
+
   const handleDialogClose = () => {
     setDialogOpen(false);
     handleNext();
@@ -1599,7 +1615,7 @@ function IntakeForm() {
       canGoBack: currentStep > 0,
       canGoForward: canFwd,
       goBack: () => setCurrentStep((s) => Math.max(0, s - 1)),
-      goForward: handleNext,
+      goForward: () => handleNextRef.current?.(),
     });
     return unregisterStepNav;
   }, [currentStep, formData, mindsetIntroStep, reviewStep, isSubmitting,
