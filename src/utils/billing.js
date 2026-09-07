@@ -102,6 +102,11 @@ export async function refreshEntitlement() {
   if (getPaymentStatus() === 'preview') return true;
 
   try {
+    // Firebase restores the session asynchronously, so currentUser is null
+    // for the first frames after a reload. Reading it straight away made
+    // every check on a fresh page load return early — the request was never
+    // sent at all. authStateReady resolves once the restore has finished.
+    if (typeof auth?.authStateReady === 'function') await auth.authStateReady();
     const user = auth?.currentUser;
     if (!user) return isIntakeUnlocked();
 
