@@ -73,26 +73,79 @@ export default async function handler(req, res) {
   try {
     const event = JSON.parse(rawBody || '{}');
     const type = String(event?.type || '');
-    if (type !== 'checkout.session.completed') {
+
+    if (type === 'checkout.session.completed') {
+      const session = event?.data?.object || {};
+      const uid = String(session?.client_reference_id || session?.metadata?.uid || '').trim();
+      const email = String(session?.customer_details?.email || session?.customer_email || session?.metadata?.email || '').trim().toLowerCase();
+      if (uid) {
+        await db.collection('responses').doc(uid).set({
+          ownerUid: uid,
+          billing: {
+            paid: true,
+            paidAt: new Date().toISOString(),
+            amountTotal: session?.amount_total || null,
+            currency: session?.currency || 'usd',
+            stripeSessionId: session?.id || '',
+            // Kept so a refund can be matched back even when the charge
+            // carries no metadata of its own.
+            stripePaymentIntentId: String(session?.payment_intent || ''),
+            email,
+            source: 'webhook',
+          },
+        }, { merge: true });
+      }
       return res.status(200).json({ received: true });
     }
 
-    const session = event?.data?.object || {};
-    const uid = String(session?.client_reference_id || session?.metadata?.uid || '').trim();
-    const email = String(session?.customer_details?.email || session?.customer_email || session?.metadata?.email || '').trim().toLowerCase();
-    if (uid) {
+    // Refunds are issued by hand in the Stripe dashboard. Without this the
+    // money goes back and the access does not: nothing ever set paid to false
+    // again, so a refunded leader kept the whole year.
+    if (type === 'charge.refunded') {
+      const charge = event?.data?.object || {};
+
+      // Only a full refund revokes. A partial one is a goodwill adjustment,
+      // not a withdrawal of the product.
+      if (charge?.refunded !== true) {
+        return res.status(200).json({ received: true, ignored: 'partial-refund' });
+      }
+
+      let uid = String(charge?.metadata?.uid || '').trim();
+
+      // Charges made before the uid was stamped on the payment carry nothing,
+      // so fall back to the payment intent recorded at purchase.
+      if (!uid) {
+        const intent = String(charge?.payment_intent || '').trim();
+        if (intent) {
+          const snap = await db
+            .collection('responses')
+            .where('billing.stripePaymentIntentId', '==', intent)
+            .get();
+          uid = snap.docs[0]?.id || '';
+        }
+      }
+
+      if (!uid) {
+        console.error('Refund could not be matched to an account.', {
+          charge: charge?.id,
+          paymentIntent: charge?.payment_intent,
+        });
+        return res.status(200).json({ received: true, matched: false });
+      }
+
+      const existing = (await db.collection('responses').doc(uid).get()).data() || {};
       await db.collection('responses').doc(uid).set({
-        ownerUid: uid,
         billing: {
-          paid: true,
-          paidAt: new Date().toISOString(),
-          amountTotal: session?.amount_total || null,
-          currency: session?.currency || 'usd',
-          stripeSessionId: session?.id || '',
-          email,
-          source: 'webhook',
+          ...(existing.billing || {}),
+          paid: false,
+          refundedAt: new Date().toISOString(),
+          refundedAmount: charge?.amount_refunded || null,
+          stripeChargeId: charge?.id || '',
+          source: 'webhook-refund',
         },
       }, { merge: true });
+
+      return res.status(200).json({ received: true, revoked: uid });
     }
 
     return res.status(200).json({ received: true });

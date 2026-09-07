@@ -126,6 +126,11 @@ export default async function handler(req, res) {
     if (email) params.set('metadata[email]', email);
     if (name) params.set('metadata[name]', name);
     params.set('metadata[product]', 'compass');
+    // The same identity, stamped on the payment as well as the session. A
+    // refund arrives as a charge, and a charge carries none of the session's
+    // metadata — without this there is no way to tell whose access to revoke.
+    if (uid) params.set('payment_intent_data[metadata][uid]', uid);
+    if (email) params.set('payment_intent_data[metadata][email]', email);
 
     let stripeRes = await createSession(secret, params);
     let payload = await stripeRes.json().catch(() => ({}));
