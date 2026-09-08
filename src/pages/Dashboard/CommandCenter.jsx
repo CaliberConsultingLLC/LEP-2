@@ -436,7 +436,7 @@ export default function CommandCenter() {
     }
     switch (activeTab) {
       case 'narrative':
-        return <NarrativeView />;
+        return <NarrativeView onGoTab={goToTab} />;
       case 'signal':
         return (
           <SentimentView
