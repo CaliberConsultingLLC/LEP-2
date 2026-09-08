@@ -228,50 +228,65 @@ function NarrativeFrame({ children }) {
 
 // Title, lead and legend live INSIDE the frame, in a fixed-height band above
 // the body — only the numbered eyebrow sits outside, above the rectangle.
+//
+// The band is taller than the words that go in it, on purpose: it is a fixed
+// height so the body below never moves from page to page. But an unclosed band
+// is just a gap, and a gap reads as a mistake rather than as a margin — the
+// title and its legend looked like two loose paragraphs floating above the
+// content instead of a heading over it. So the band is ruled off at the line
+// it always ends on, which is the same line on every page of the deck. The
+// rule is drawn short of the frame's own edges, because a hairline that runs
+// wall to wall inside a bordered card reads as a second border.
 function SlideHeader({ title, lead, legend }) {
   return (
-    <Stack
-      direction="row"
-      alignItems="flex-start"
-      justifyContent="space-between"
-      spacing={3}
-      sx={{ width: '100%' }}
-    >
-      <Box sx={{ minWidth: 0 }}>
-        <Typography
-          component="h1"
-        data-guide-keepclear=""
-          sx={{
-            fontFamily: fonts.serif,
-            fontWeight: 500,
-            letterSpacing: '-0.03em',
-            lineHeight: 1.08,
-            fontSize: { xs: 24, md: 30 },
-            color: colors.textPrimary,
-            mb: lead ? 0.8 : 0,
-            textWrap: 'pretty',
-          }}
-        >
-          {title}
-        </Typography>
-        {lead && (
-          <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.5, color: colors.textSecondary, maxWidth: 760 }}>
-            {lead}
+    <Stack sx={{ width: '100%', height: '100%' }}>
+      <Stack
+        direction="row"
+        alignItems="flex-start"
+        justifyContent="space-between"
+        spacing={3}
+        sx={{ width: '100%', flex: 1, minHeight: 0 }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            component="h1"
+            data-guide-keepclear=""
+            sx={{
+              fontFamily: fonts.serif,
+              fontWeight: 500,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.08,
+              fontSize: { xs: 24, md: 30 },
+              color: colors.textPrimary,
+              mb: lead ? 0.8 : 0,
+              textWrap: 'pretty',
+            }}
+          >
+            {title}
           </Typography>
+          {lead && (
+            <Typography sx={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 1.5, color: colors.textSecondary, maxWidth: 760 }}>
+              {lead}
+            </Typography>
+          )}
+        </Box>
+        {legend && (
+          <Stack spacing={1} sx={{ flexShrink: 0, pb: 0.4 }}>
+            {legend.map((item) => (
+              <Stack key={item.strong} direction="row" alignItems="center" spacing={1}>
+                <Box sx={{ width: 10, height: 10, borderRadius: radii.circle, bgcolor: item.color, flexShrink: 0 }} />
+                <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textPrimary }}>
+                  <strong>{item.strong}</strong> {item.rest}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
         )}
-      </Box>
-      {legend && (
-        <Stack spacing={1} sx={{ flexShrink: 0, pb: 0.4 }}>
-          {legend.map((item) => (
-            <Stack key={item.strong} direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 10, height: 10, borderRadius: radii.circle, bgcolor: item.color, flexShrink: 0 }} />
-              <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textPrimary }}>
-                <strong>{item.strong}</strong> {item.rest}
-              </Typography>
-            </Stack>
-          ))}
-        </Stack>
-      )}
+      </Stack>
+      <Box
+        aria-hidden
+        sx={{ flexShrink: 0, alignSelf: 'center', width: '92%', height: '1px', bgcolor: colors.sand200 }}
+      />
     </Stack>
   );
 }

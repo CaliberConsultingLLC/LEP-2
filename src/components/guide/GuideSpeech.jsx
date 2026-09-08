@@ -285,12 +285,20 @@ export default function GuideSpeech({
 
       {action && (
         <Box sx={{ position: 'relative', zIndex: 1, mt: '14px' }}>
+          {/* A checkbox, and it has to say so. It was a button reporting
+              `aria-pressed`, which is a toggle — and the cairn theme paints
+              every pressed toggle in the product navy, because that is what a
+              pressed toggle looks like everywhere else. So ticking the box
+              filled the whole row with a solid navy block and swallowed the
+              sentence being agreed to. Nothing was wrong with the theme rule;
+              the markup was describing the wrong control. */}
           {action.acknowledge && (
             <Box
               component="button"
               type="button"
               onClick={() => setAcked((v) => !v)}
-              aria-pressed={acked}
+              role="checkbox"
+              aria-checked={acked}
               sx={{
                 all: 'unset', cursor: 'pointer', display: 'flex',
                 alignItems: 'flex-start', gap: '9px', mb: '11px',
