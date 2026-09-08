@@ -14,6 +14,18 @@ const TICK_DEGS = [45, 90, 135, 180, 225, 270, 315];
 
 const ZONE_LIST = [DIAL_ZONES.honed, DIAL_ZONES.offtarget, DIAL_ZONES.missing, DIAL_ZONES.natural];
 
+// The node and the gap chip, as shares of the dial's 0-100 square.
+//
+// Everything on the face is drawn at `size * scale` px inside a square whose
+// own width is `520 * scale`, so a pixel size divided by 520 is a share of the
+// square and holds at every size the dial is drawn at. The selected node is
+// 38px wide and carries a 7px glow ring, so it reaches 26px from its centre;
+// the gap chip measures 43 by 24 with its padding and border. Both are radii,
+// in percent, and the chip's is its half-diagonal — the offset below can send
+// it out in any direction, so the bound has to hold in the worst one.
+const NODE_R = (26 / 520) * 100;
+const CHIP_R = (Math.hypot(43, 24) / 2 / 520) * 100;
+
 function rad(d) {
   return (d * Math.PI) / 180;
 }
@@ -317,9 +329,47 @@ export default function EvidenceQuadrant({
     ? perceptionGap(selectedStatement.compass, selectedStatement.compassSelf)
     : 0;
   const showGapChip = Boolean(compass && teamPt && selfDrawn && Math.abs(gapValue) >= 10);
-  const gapMid = teamPt && selfDrawn
-    ? { x: (teamPt.x + selfDrawn.x) / 2, y: (teamPt.y + selfDrawn.y) / 2 }
-    : null;
+
+  // Where the gap chip goes.
+  //
+  // It sat on the midpoint of the team-self line, which is the right place
+  // only when the two dots leave a hole there — and they usually do not. A
+  // small gap means the dots are close by definition, so the chip was landing
+  // on top of both of the numbers it was measuring between. A label that
+  // covers the thing it labels has stopped being a label.
+  //
+  // So the midpoint is used when it is genuinely clear, and otherwise the chip
+  // steps off square to the line joining the pair, far enough out that both
+  // nodes are behind it, with a hairline running back to the point it is
+  // measuring. Which side it steps to is decided by the dial, not by a
+  // preference: outward into the quiet of the wedge when the face has room,
+  // inward when it does not, so the chip never leaves the instrument.
+  const gapChip = useMemo(() => {
+    if (!teamPt || !selfDrawn) return null;
+    const mid = { x: (teamPt.x + selfDrawn.x) / 2, y: (teamPt.y + selfDrawn.y) / 2 };
+    const dx = selfDrawn.x - teamPt.x;
+    const dy = selfDrawn.y - teamPt.y;
+    const d = Math.hypot(dx, dy);
+    // The room at the midpoint is half the separation, less the node reaching
+    // into it. Enough of that and nothing needs to move.
+    if (d / 2 >= NODE_R + CHIP_R) return { ...mid, leader: null };
+    const n = d > 0.001 ? { x: -dy / d, y: dx / d } : { x: 1, y: 0 };
+    // How far square to the line the chip has to stand for both nodes to clear
+    // it. The chip is `need` from each node centre when it sits on the corner
+    // of a right triangle whose other side is half the separation, so the
+    // offset is the third side — solved, not guessed, which is what keeps it
+    // right when the pair is nearly on top of each other and when it is not.
+    const need = NODE_R + CHIP_R;
+    const off = Math.sqrt(Math.max(0, need * need - (d / 2) ** 2)) + 0.8;
+    const step = (sign) => ({ x: mid.x + n.x * off * sign, y: mid.y + n.y * off * sign });
+    const fromHub = (p) => Math.hypot(p.x - 50, p.y - 50);
+    const out = step(1);
+    const back = step(-1);
+    const first = fromHub(out) > fromHub(back) ? out : back;
+    const second = first === out ? back : out;
+    const pick = fromHub(first) <= R_FACE - CHIP_R ? first : second;
+    return { ...pick, leader: mid };
+  }, [teamPt, selfDrawn]);
 
   const axisLine = useMemo(() => {
     if (compass || !teamPt) return null;
@@ -540,6 +590,24 @@ export default function EvidenceQuadrant({
                   style={{ transition: `opacity ${DIAL_EASE}` }}
                 />
               )}
+              {/* The hairline that keeps the chip attached to what it measures
+                  once it has stepped off the line. Solid and thinner than the
+                  team-self connector, so it reads as a leader rather than as a
+                  second measurement. */}
+              {gapChip?.leader && (
+                <line
+                  x1={gapChip.x}
+                  y1={gapChip.y}
+                  x2={gapChip.leader.x}
+                  y2={gapChip.leader.y}
+                  stroke={colors.navy900}
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  opacity={showGapChip ? 0.4 : 0}
+                  vectorEffect="non-scaling-stroke"
+                  style={{ transition: `opacity ${DIAL_EASE}` }}
+                />
+              )}
             </Box>
 
             <Box
@@ -624,20 +692,24 @@ export default function EvidenceQuadrant({
               </Box>
             )}
 
-            {gapMid && (
+            {gapChip && (
               <Box
                 sx={{
                   position: 'absolute',
-                  left: `${gapMid.x}%`,
-                  top: `${gapMid.y}%`,
+                  left: `${gapChip.x}%`,
+                  top: `${gapChip.y}%`,
                   transform: 'translate(-50%, -50%)',
-                  px: '8px',
-                  py: '2px',
+                  // Sized with the dial, like everything else on the face. A
+                  // chip held at a fixed pixel size grows against a shrinking
+                  // instrument, and the clearance solved for above stops being
+                  // true the moment it does.
+                  px: `${px(8)}px`,
+                  py: `${px(2)}px`,
                   borderRadius: radii.pill,
                   bgcolor: colors.dialNodeFill,
                   border: `1px solid ${colors.sand200}`,
                   fontFamily: fonts.mono,
-                  fontSize: 9.5,
+                  fontSize: 9.5 * scale,
                   fontWeight: 700,
                   letterSpacing: '0.06em',
                   fontVariantNumeric: 'tabular-nums',
