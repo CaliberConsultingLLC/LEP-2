@@ -1,0 +1,42 @@
+{
+  "_note": "Which raw drop file becomes which pose, per guide. Indices are raw_NN.png from scripts/prep-guide-art.py. A '*' in _substitutes means the set has no art for that pose and the nearest in character is standing in — regenerate those to replace them.",
+  "Mentor": {
+    "idle": 12, "plain": 14, "armsCross": 4, "point": 3, "pointUp": 7,
+    "sign": 17, "lantern": 10, "think": 11, "read": 8, "page": 15,
+    "map": 9, "greet": 16, "mad": 5,
+    "_spares": [6, 13], "_substitutes": []
+  },
+  "BestFriend": {
+    "idle": 40, "plain": 34, "armsCross": 45, "point": 39, "pointUp": 38,
+    "sign": 47, "lantern": 37, "think": 48, "read": 41, "page": 35,
+    "map": 36, "greet": 46, "mad": 44,
+    "_spares": [42, 43], "_substitutes": []
+  },
+  "Catalyst": {
+    "idle": 60, "plain": 56, "armsCross": 58, "point": 59, "pointUp": 54,
+    "sign": 53, "lantern": 50, "think": 52, "read": 51, "page": 55,
+    "map": 49, "greet": 57, "mad": 61,
+    "_spares": [62, 63], "_substitutes": []
+  },
+  "Roaster": {
+    "idle": 24, "plain": 31, "armsCross": 19, "point": 2, "pointUp": 18,
+    "sign": 32, "lantern": 20, "think": 33, "read": 29, "page": 22,
+    "map": 21, "greet": 27, "mad": 25,
+    "_spares": [1, 23, 26, 28, 30],
+    "_substitutes": ["plain", "think", "read", "greet"]
+  },
+  "Mother": {
+    "idle": 69, "plain": 68, "armsCross": 65, "point": 74, "pointUp": 67,
+    "sign": 72, "lantern": 64, "think": 75, "read": 71, "page": 77,
+    "map": 66, "greet": 70, "mad": 73,
+    "_spares": [76],
+    "_substitutes": ["sign", "lantern", "map", "greet", "mad"]
+  },
+  "Challenger": {
+    "idle": 83, "plain": 81, "armsCross": 86, "point": 85, "pointUp": 78,
+    "sign": 89, "lantern": 80, "think": 87, "read": 79, "page": 84,
+    "map": 88, "greet": 82, "mad": 90,
+    "_spares": [],
+    "_substitutes": ["sign", "lantern"]
+  }
+}

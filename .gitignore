@@ -71,3 +71,8 @@ reports/guide-anchors-sheet.html
 
 # Journey-map design handoff scratch
 design-map/
+
+# The raw art drop and its measurable copies. The generated anchors are
+# committed; these are the 300MB of source they were measured from.
+art-source/
+reports/guide-v2/

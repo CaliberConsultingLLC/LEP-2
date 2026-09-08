@@ -12,76 +12,45 @@ const PREFIX = {
   roaster: 'Roaster',
 };
 
-const MAX_INDEX = {
-  mentor: 6,
-  catalyst: 7,
-  challenger: 6,
-  bestFriend: 7,
-  mother: 8,
-  roaster: 8,
-};
-
 /**
- * Pose names in the copy → numbered file in Guide Images.
+ * The poses, and the file is named after the pose.
  *
- * Twelve pose names used to collapse into five slots, so every guide's images
- * beyond _05 were unreachable — twelve of the forty-two files could not be
- * requested by any page. They are now spread across eight.
+ * This was a table of numbered slots: a pose mapped to an index, and the index
+ * wrapped by however many files that guide happened to have. Two things came
+ * of that. A guide with six pictures asked for slot seven got a different pose
+ * than the copy had asked for — silently, and differently per guide, because
+ * they had between six and eight files each. And twelve of the forty-two files
+ * could not be reached from any page at all, because no slot ever landed on
+ * them.
  *
- * Slots are ordered by how often each pose is actually asked for, because
- * every guide has at least six images but only Mother and Roaster have eight.
- * Putting the common poses low means the wrap below costs the least-used ones.
+ * The September 2026 drop is thirteen deliberate poses for each of the six, so
+ * there is nothing left to wrap and nothing to look up: the pose IS the
+ * filename. A name that is not one of these falls back to idle, which is the
+ * only case left where the picture is not the one that was asked for.
  *
- * Slots 1-5 keep their existing art direction. 6-8 are an even distribution,
- * not a reading of what each picture shows — Mother_06 is a wing-out gesture
- * and Roaster_07 is a wings-spread laugh, so the art supports finer assignment
- * than this once someone has looked at all forty-two.
+ * Where a set had no art for a pose the nearest one in character stands in —
+ * Mother has no lantern, map or sign; Roaster has no plain, think or open
+ * book. scripts/guide-set-map.json records exactly which those are, so a later
+ * drop can replace the stand-ins without anyone having to work out which
+ * pictures were doing double duty.
  */
-const POSE_INDEX = {
-  idle: 1,
-  greet: 1,
-  armsCross: 2,
-  point: 3,
-  pointUp: 3,
-  sign: 4,
-  lantern: 5,
-  think: 6,
-  read: 6,
-  page: 7,
-  map: 7,
-  plain: 8,
-};
-
-function padded(n) {
-  return String(n).padStart(2, '0');
-}
+const POSES = new Set([
+  'idle', 'plain', 'armsCross', 'point', 'pointUp', 'sign',
+  'lantern', 'think', 'read', 'page', 'map', 'greet', 'mad',
+]);
 
 export function guideImage(guideId, pose = 'idle') {
   const id = PREFIX[guideId] ? guideId : 'mentor';
-  const prefix = PREFIX[id];
-  const max = MAX_INDEX[id] || 1;
-  const slot = POSE_INDEX[pose] || 1;
-  // Wrap rather than fall back to 1. A guide with six images asked for slot 7
-  // used to show its idle pose; now it shows a different one, so the guide
-  // still changes when the copy says it should.
-  const index = ((slot - 1) % max) + 1;
-  return `/Guide%20Images/${prefix}_${padded(index)}.png`;
+  const name = POSES.has(pose) ? pose : 'idle';
+  // WebP, because the set this replaced was 72MB of PNG for art that is never
+  // drawn larger than about 700 CSS pixels. The same pictures are 11.8MB here.
+  return `/Guide%20Images/${PREFIX[id]}_${name}.webp`;
 }
 
 export function guidePoses(guideId) {
-  return {
-    idle: guideImage(guideId, 'idle'),
-    greet: guideImage(guideId, 'greet'),
-    think: guideImage(guideId, 'think'),
-    read: guideImage(guideId, 'read'),
-    page: guideImage(guideId, 'page'),
-    map: guideImage(guideId, 'map'),
-    lantern: guideImage(guideId, 'lantern'),
-    point: guideImage(guideId, 'point'),
-    pointUp: guideImage(guideId, 'pointUp'),
-    plain: guideImage(guideId, 'plain'),
-    armsCross: guideImage(guideId, 'armsCross'),
-    sign: guideImage(guideId, 'sign'),
-    mad: guideImage(guideId, 'mad'),
-  };
+  const out = {};
+  POSES.forEach((pose) => { out[pose] = guideImage(guideId, pose); });
+  return out;
 }
+
+export const GUIDE_POSE_NAMES = [...POSES];
