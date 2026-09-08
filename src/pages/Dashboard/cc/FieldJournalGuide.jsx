@@ -1,32 +1,24 @@
 import React from 'react';
 import GuidePortrait from '../../../components/guide/GuidePortrait';
-import { fitPortrait, standingHeight } from '../../../components/guide/guideGeometry';
+import { fitPortrait, journalStandingHeight } from '../../../components/guide/guideGeometry';
 import { GUIDE_Z } from '../../../components/guidePlacement';
 
-// Where the guide stands, in the book's units.
+// Where the guide stands: the window's bottom-left corner.
 //
-// The book is drawn at 1140 x 724 and scaled as one piece, so these numbers are
-// the composition: how far the bird's leading edge reaches across the left
-// page, and where its feet come down relative to the book's bottom edge.
-// Because they are in the book's units they are multiplied by the book's own
-// scale, which means the picture is the same picture at 1100 x 850 and at
-// 1900 x 950 — the window changes how big the scene is drawn, never how it is
-// arranged.
+// It briefly stood in the BOOK's corner instead — sized off the book's scale,
+// its leading edge measured across the left page, its feet on the book's bottom
+// edge. That held the two together as one picture at every window shape, which
+// is a real property and the reason it was tried. But the book is centred in
+// the room and floats above its floor, so standing the bird on the book's line
+// lifted it 71px off the window's and pushed it 66px in from the left, and a
+// guide that touches no edge of anything is not standing in the room — it is a
+// cut-out laid on top of it. The corner is the anchor. The book is what the
+// bird happens to be next to.
 //
-// That is the fix for the thing that made placement look arbitrary. The bird
-// was sized by a breakpoint on the window's WIDTH (240/300/480/580/640, in
-// steps) and pinned to the window's left edge, while the book is sized by the
-// room's HEIGHT and centred in its width. Two systems keyed to two different
-// dimensions only agree at one aspect ratio, and the window is free to be any
-// other one.
-// Height is the exception, and it is deliberate: the bird stands at the height
-// every other full-height guide stands at, measured off the window rather than
-// off the book. Sizing it off the book's scale made it the smallest owl in the
-// product — drawn to 465 where the Summary's stands at 522 in the same window
-// — and a guide that shrinks when you walk into a room reads as a different,
-// lesser guide. What the book governs is where it stands, not how big it is.
-const OWL_LEAD_X = 480;   // its leading edge, measured from the book's left edge
-const OWL_FOOT = 24;      // how far below the book's bottom edge it stands
+// So there are no numbers here at all now. The bird's own left edge goes on the
+// window's left edge and its feet on the window's floor, both worked back
+// through the measured art rather than through the transparent padding around
+// it, and the height comes off the window like every other standing guide's.
 
 /**
  * The journal's guide: the large mirrored owl standing bottom-left, saying the
@@ -63,17 +55,18 @@ export default function FieldJournalGuide({
 }) {
   const owlSrc = persona?.poses?.[pose] || persona?.poses?.idle;
 
-  // Until the book has measured itself there is no scene to stand in. The
-  // guide holds its place but stays invisible for that frame rather than
-  // appearing in the old corner and walking to the new one — the book does the
-  // same thing with its own stage, for the same reason.
+  // The scene no longer says where the bird stands, only that the room has
+  // measured itself — the window's height is read off it rather than through a
+  // second resize listener saying the same thing one frame apart. Until it
+  // arrives the guide holds its place but stays invisible, rather than
+  // appearing at a guessed size and walking to the right one.
   const fit = scene && owlSrc
     ? fitPortrait({
       src: owlSrc,
       mirrored: true,
-      height: standingHeight(scene.vh),
-      leadX: scene.left + OWL_LEAD_X * scene.scale,
-      footInset: scene.footInset + OWL_FOOT * scene.scale,
+      height: journalStandingHeight(scene.vh),
+      trailX: 0,
+      footInset: 0,
     })
     : null;
 

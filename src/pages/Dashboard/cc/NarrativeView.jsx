@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows, type } from '../../../styles/tokens';
 import { useBenchmarkData } from './dashboardData.js';
@@ -1110,10 +1110,53 @@ function ExplainerVideo({ src, label, standalone = false }) {
   );
 }
 
+// The band of window the deck itself occupies, measured rather than assumed.
+//
+// The explainers are fixed overlays, so left to themselves they centre on the
+// WINDOW — and the window is 180px of header the reading never gets to use. A
+// clip centred there sits with its top edge against the header and 150px of
+// blurred page under it, which reads as pinned to the top rather than as
+// centred at all. So the overlay is handed the band the deck is standing in
+// and centres inside that, which is the only rectangle the page ever had.
+function useStageBand(ref) {
+  const [band, setBand] = useState(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      // Both edges are held as insets from the window, because that is what a
+      // fixed overlay can be told directly.
+      const next = {
+        top: Math.round(r.top),
+        bottom: Math.round(window.innerHeight - r.bottom),
+        height: Math.round(r.height),
+      };
+      setBand((prev) => (prev && prev.top === next.top && prev.bottom === next.bottom && prev.height === next.height ? prev : next));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [ref]);
+  return band;
+}
+
 // The explainers interrupt rather than page: the deck blurs behind a bordered
 // clip, and the guide comes up beside it to introduce what is being shown.
 // Sits below GUIDE_Z so the owl stays crisp above the blur.
-function VideoInterstitial({ which, onClose }) {
+// What the overlay spends on something other than the picture: the padding it
+// sits inside, and the label row above it. Both are reserved rather than
+// measured, the same way the deck reserves its own eyebrow row, so the clip is
+// the same size whichever explainer is playing.
+const OVERLAY_PAD_Y = 32;
+const OVERLAY_LABEL_H = EYEBROW_H + 13;
+
+function VideoInterstitial({ which, onClose, band }) {
   const copy = VIDEO_COPY[which];
   const video = which === 'map' ? MAP_VIDEO : GAP_VIDEO;
   const { setHidden, setPageMessage, clearPageMessage } = useGuide();
@@ -1124,6 +1167,13 @@ function VideoInterstitial({ which, onClose }) {
   // instead of once per render.
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
+
+  // The clip is sized to the band it is centred in rather than to the window.
+  // It is capped in BOTH directions off the same number, because a 16:9 box
+  // given only a max-height keeps the width it was already stretched to and
+  // crops the picture to fit; capping the width by the ratio shrinks the box
+  // instead, which is what a picture is supposed to do when the room shortens.
+  const clipH = band ? Math.max(200, band.height - OVERLAY_PAD_Y * 2 - OVERLAY_LABEL_H) : null;
 
   useEffect(() => {
     setHidden(false);
@@ -1151,37 +1201,53 @@ function VideoInterstitial({ which, onClose }) {
         position: 'fixed',
         inset: 0,
         zIndex: 1100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: { xs: 2, md: 6 },
-        py: { xs: 2, md: 4 },
         bgcolor: 'rgba(10, 20, 36, 0.42)',
         backdropFilter: 'blur(7px)',
         WebkitBackdropFilter: 'blur(7px)',
       }}
     >
-      {/* The clip carries its own title, so the overlay adds only a small
-          label — anything more read as a doubled heading. */}
-      {/* Sized to the room rather than to the reading measure — this is the one
-          moment in the deck where the picture is the content, and the clips are
-          cut at a fidelity that holds at this size. Held off the far right so
-          the guide's bubble, which is solved against the owl, still has its
-          corner. */}
-      <Box sx={{ width: '100%', maxWidth: 'min(1120px, 82vw)', textAlign: 'center' }}>
-        <Typography sx={{ ...type.eyebrow, color: colors.amberSoft, mb: 1.6 }}>{copy.eyebrow}</Typography>
-        <Box
-          sx={{
-            border: `3px solid ${colors.amberSoft}`,
-            borderRadius: radii.lg,
-            overflow: 'hidden',
-            boxShadow: '0 30px 80px rgba(5, 12, 24, 0.55)',
-            aspectRatio: '16 / 9',
-            maxHeight: '64vh',
-            mx: 'auto',
-          }}
-        >
-          <ExplainerVideo src={video.src} label={video.label} standalone />
+      {/* The blur covers the whole window — the header is part of what is being
+          interrupted. What is CENTRED is only the deck's own band, so the clip
+          lands where the reading was rather than tucked under the chrome. */}
+      <Box
+        sx={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: band ? band.top : 0,
+          bottom: band ? band.bottom : 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: { xs: 2, md: 6 },
+          py: { xs: 2, md: 4 },
+        }}
+      >
+        {/* The clip carries its own title, so the overlay adds only a small
+            label — anything more read as a doubled heading. */}
+        {/* Sized to the room rather than to the reading measure — this is the
+            one moment in the deck where the picture is the content, and the
+            clips are cut at a fidelity that holds at this size. Held off the
+            far right so the guide's bubble, which is solved against the owl,
+            still has its corner. */}
+        <Box sx={{ width: '100%', maxWidth: 'min(1120px, 82vw)', textAlign: 'center' }}>
+          <Box sx={{ height: EYEBROW_H, mb: '13px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            <Typography sx={{ ...type.eyebrow, color: colors.amberSoft }}>{copy.eyebrow}</Typography>
+          </Box>
+          <Box
+            sx={{
+              border: `3px solid ${colors.amberSoft}`,
+              borderRadius: radii.lg,
+              overflow: 'hidden',
+              boxShadow: '0 30px 80px rgba(5, 12, 24, 0.55)',
+              aspectRatio: '16 / 9',
+              maxHeight: clipH ? `${clipH}px` : '64vh',
+              maxWidth: clipH ? `${Math.round((clipH * 16) / 9)}px` : 'none',
+              mx: 'auto',
+            }}
+          >
+            <ExplainerVideo src={video.src} label={video.label} standalone />
+          </Box>
         </Box>
       </Box>
       {/* Nothing is drawn out here: the acknowledgement and the way on both
@@ -1714,6 +1780,11 @@ export default function NarrativeView({ onGoTab }) {
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  // The rectangle the reading actually occupies, handed to the explainers so
+  // they centre in the room rather than in the window.
+  const stageRef = useRef(null);
+  const band = useStageBand(stageRef);
+
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
   const traits = roles.ordered || [];
   const stmts = useMemo(() => pickNarrativeStatements(traits), [traits]);
@@ -1901,6 +1972,7 @@ export default function NarrativeView({ onGoTab }) {
 
   return (
     <Box
+      ref={stageRef}
       sx={{
         width: '100%',
         height: '100%',
@@ -1954,6 +2026,7 @@ export default function NarrativeView({ onGoTab }) {
       {interstitial && (
         <VideoInterstitial
           which={interstitial.which}
+          band={band}
           onClose={() => {
             const { target } = interstitial;
             setInterstitial(null);

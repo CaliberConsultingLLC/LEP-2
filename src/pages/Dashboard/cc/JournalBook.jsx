@@ -451,13 +451,12 @@ export default function JournalBook({
   // Where the spread actually landed, in window pixels.
   //
   // The book is the fixed thing in this room — drawn at one size and scaled as
-  // a single piece — so anything else that belongs in the same picture should
-  // be measured off it rather than off the window. The guide is the one that
-  // needs this: it used to be sized by a breakpoint on the window's width and
-  // pinned to the window's left edge, while the book is sized by the room's
-  // height and centred in its width. Widen the window without making it taller
-  // and the book's left edge marches right, away from a bird that did not
-  // move, until they are two objects on a page instead of one picture.
+  // a single piece — so anything that has to line up with it can be measured
+  // off it rather than off the window. The guide standing beside it does not:
+  // it is anchored to the window's own bottom-left corner, and takes only `vh`
+  // from here so that the room is measured once rather than by two listeners
+  // that disagree for a frame. The rest is reported because the stage is worth
+  // describing whole, not because the bird reads it.
   const fit = useMemo(() => {
     if (!stage) return null;
     const w = DESIGN_W * scale;
@@ -469,11 +468,6 @@ export default function JournalBook({
       top,
       width: w,
       height: h,
-      // How far the book's bottom edge sits above the window's floor, so
-      // something standing beside it can stand on the same line.
-      footInset: Math.max(0, vh - (top + h)),
-      // The guide tucks against the book horizontally but is sized against the
-      // window, the same as every other full-height owl in the product.
       vh,
     };
   }, [stage, scale, vh]);
