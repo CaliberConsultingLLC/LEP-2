@@ -264,3 +264,48 @@ export function solveBubble({ anchor, bubble, viewport, obstacles = [], edge = E
 }
 
 export const __test = { rect, overlap, area, PLACEMENTS };
+
+/**
+ * The frame a full-height portrait owl should be given, worked out from the
+ * bird rather than from the PNG that carries it.
+ *
+ * Two things are wrong with a width off a breakpoint table, and this replaces
+ * both.
+ *
+ * The first is that a width given to the <img> is not a size given to the
+ * bird. Across the 42 portraits the opaque box is between 0.78 and 0.99 of the
+ * frame tall and between 0.59 and 0.98 of it wide, and its feet sit anywhere
+ * from 0.87 to 1.0 down — so one CSS width draws birds that differ by a
+ * quarter in height, and the guide changes size and lifts off the floor when
+ * it changes pose. That is the "sometimes they just get super random" the
+ * placement audit measured and could not explain from the CSS.
+ *
+ * The second is that a breakpoint table is a step function on the window's
+ * width. The bird held at 480px from 900px of window all the way to 1200 while
+ * the room around it stretched, then jumped to 580. Nothing else on the page
+ * moves in steps.
+ *
+ * So the caller says how tall the bird should be drawn, where its leading edge
+ * should land, and how far its feet stand off the floor — all in viewport
+ * pixels, all derivable from whatever else the bird is standing next to — and
+ * the frame falls out of the measured art. Size the bird off the scene and the
+ * scene holds together at any window shape, which is the whole point.
+ */
+export function fitPortrait({ src, mirrored = false, height, leadX, footInset = 0 }) {
+  const [x0, y0, x1, y1] = getGuideAnchor(src).box;
+  // The portraits are square, so the drawn height fixes the whole frame.
+  const frame = height / (y1 - y0);
+  // Which of the bird's own edges faces into the page: its right when the art
+  // is mirrored to stand on the left, its left when it is not. Both come off
+  // the same measurement, which is why mirroring needs no second table.
+  const leadFrac = mirrored ? 1 - x0 : x0;
+  return {
+    width: frame,
+    height: frame,
+    left: leadX - leadFrac * frame,
+    // `bottom` is measured up from the window's floor and the frame carries
+    // transparent padding under the feet, so the padding comes back off — the
+    // bird stands on the line it was given rather than hovering above it.
+    bottom: footInset - (1 - y1) * frame,
+  };
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { fonts } from '../../../styles/tokens';
 import JournalPage, { PAGE_KEYFRAMES } from './JournalPage.jsx';
@@ -404,9 +404,10 @@ export default function JournalBook({
   notesTraitLabel,
   onBookmark,
   reducedMotion,
+  onFit,
 }) {
   const colRef = useRef(null);
-  const [{ scale, stage, vw }, setFit] = useState({ scale: 1, stage: null, vw: 0 });
+  const [{ scale, stage, vw, vh }, setFit] = useState({ scale: 1, stage: null, vw: 0, vh: 0 });
 
   useLayoutEffect(() => {
     const el = colRef.current;
@@ -427,11 +428,12 @@ export default function JournalBook({
       setFit((prev) =>
         Math.abs(next - prev.scale) > 0.004
           || prev.vw !== window.innerWidth
+          || prev.vh !== window.innerHeight
           || !prev.stage
           || Math.abs(box.left - prev.stage.left) > 1
           || Math.abs(box.width - prev.stage.width) > 1
           || Math.abs(box.top - prev.stage.top) > 1
-          ? { scale: next, stage: box, vw: window.innerWidth }
+          ? { scale: next, stage: box, vw: window.innerWidth, vh: window.innerHeight }
           : prev
       );
     };
@@ -445,6 +447,35 @@ export default function JournalBook({
       window.removeEventListener('resize', measure);
     };
   }, []);
+
+  // Where the spread actually landed, in window pixels.
+  //
+  // The book is the fixed thing in this room — drawn at one size and scaled as
+  // a single piece — so anything else that belongs in the same picture should
+  // be measured off it rather than off the window. The guide is the one that
+  // needs this: it used to be sized by a breakpoint on the window's width and
+  // pinned to the window's left edge, while the book is sized by the room's
+  // height and centred in its width. Widen the window without making it taller
+  // and the book's left edge marches right, away from a bird that did not
+  // move, until they are two objects on a page instead of one picture.
+  const fit = useMemo(() => {
+    if (!stage) return null;
+    const w = DESIGN_W * scale;
+    const h = DESIGN_H * scale;
+    const top = stage.top + (stage.height - h) / 2;
+    return {
+      scale,
+      left: stage.left + (stage.width - w) / 2,
+      top,
+      width: w,
+      height: h,
+      // How far the book's bottom edge sits above the window's floor, so
+      // something standing beside it can stand on the same line.
+      footInset: Math.max(0, vh - (top + h)),
+    };
+  }, [stage, scale, vh]);
+
+  useEffect(() => { onFit?.(fit); }, [onFit, fit]);
 
   const forward = flip?.dir === 'fwd';
   const openDelay = open ? '620ms' : '0ms';

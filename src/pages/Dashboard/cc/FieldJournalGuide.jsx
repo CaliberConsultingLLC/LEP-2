@@ -1,6 +1,27 @@
 import React from 'react';
 import GuidePortrait from '../../../components/guide/GuidePortrait';
+import { fitPortrait } from '../../../components/guide/guideGeometry';
 import { GUIDE_Z } from '../../../components/guidePlacement';
+
+// Where the guide stands, in the book's units.
+//
+// The book is drawn at 1140 x 724 and scaled as one piece, so these three
+// numbers are the whole composition: how tall the bird is against the book,
+// how far its leading edge reaches across the left page, and where its feet
+// come down relative to the book's bottom edge. Because they are in the book's
+// units they are multiplied by the book's own scale, which means the picture
+// is the same picture at 1100 x 850 and at 1900 x 950 — the window changes how
+// big the scene is drawn, never how it is arranged.
+//
+// That is the fix for the thing that made placement look arbitrary. The bird
+// was sized by a breakpoint on the window's WIDTH (240/300/480/580/640, in
+// steps) and pinned to the window's left edge, while the book is sized by the
+// room's HEIGHT and centred in its width. Two systems keyed to two different
+// dimensions only agree at one aspect ratio, and the window is free to be any
+// other one.
+const OWL_HEIGHT = 545;   // the bird's drawn height, in book units
+const OWL_LEAD_X = 480;   // its leading edge, measured from the book's left edge
+const OWL_FOOT = 24;      // how far below the book's bottom edge it stands
 
 /**
  * The journal's guide: the large mirrored owl standing bottom-left, saying the
@@ -33,12 +54,28 @@ export default function FieldJournalGuide({
   acknowledge = false,
   acknowledgeLabel = 'I have read this.',
   onDone,
+  scene = null,
 }) {
   const owlSrc = persona?.poses?.[pose] || persona?.poses?.idle;
+
+  // Until the book has measured itself there is no scene to stand in, so the
+  // guide keeps the corner it has always had rather than flashing somewhere
+  // else for a frame on the way to the right answer.
+  const fit = scene && owlSrc
+    ? fitPortrait({
+      src: owlSrc,
+      mirrored: true,
+      height: OWL_HEIGHT * scene.scale,
+      leadX: scene.left + OWL_LEAD_X * scene.scale,
+      footInset: scene.footInset + OWL_FOOT * scene.scale,
+    })
+    : null;
 
   return (
     <GuidePortrait
       src={owlSrc}
+      owlSx={fit ? { width: fit.width, left: fit.left, right: 'auto', bottom: fit.bottom } : undefined}
+      resolveKey={fit ? `${Math.round(fit.left)}:${Math.round(fit.width)}:${Math.round(fit.bottom)}` : 'unfit'}
       alt={persona?.name ? `${persona.name} guide` : 'Guide'}
       eyebrow={eyebrow}
       text={text}

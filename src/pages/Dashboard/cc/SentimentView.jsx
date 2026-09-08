@@ -6,6 +6,7 @@ import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import SentimentRoom from './SentimentRoom.jsx';
+import { useSentimentNarrative } from './useSentimentNarrative.js';
 import { mapRowStatements } from './EvidenceView.jsx';
 import {
   ChapterEyebrow,
@@ -318,7 +319,7 @@ function ClosePage({ reaction, edgeRow, onAdvancePhase }) {
 // ---------------------------------------------------------------------------
 // Sentiment snapshot — one trait at a time, three questions, chosen by the rail
 // ---------------------------------------------------------------------------
-function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData }) {
+function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData, answersByTrait }) {
   // The chapter rail owns trait selection; 0 is the fallback when this
   // renders without one.
   const traitIdx = Number.isFinite(traitIndex) ? traitIndex : 0;
@@ -331,6 +332,7 @@ function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData }) {
       statements={statements}
       hasSelfData={hasSelfData}
       traitIndex={traitIdx}
+      answersByTrait={answersByTrait}
     />
   );
 }
@@ -338,7 +340,7 @@ function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData }) {
 // ---------------------------------------------------------------------------
 // Main view — walkthrough on first visit / replay, snapshot once complete
 // ---------------------------------------------------------------------------
-export default function SentimentView({ t, phases, onAdvancePhase, traitIndex }) {
+export default function SentimentView({ t, phases, onAdvancePhase, traitIndex, resultsAnalysis }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
   const intakeData = useMemo(() => readJson('latestFormData', null), []);
@@ -349,6 +351,20 @@ export default function SentimentView({ t, phases, onAdvancePhase, traitIndex })
   const invited = Number(intakeData?.teamSize);
 
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
+
+  // The written version of the nine answers, if it can be had. Keyed off the
+  // same ordered rows the rooms render, so a trait's key always names the room
+  // it is showing. Purely an overlay — see useSentimentNarrative.
+  const { answersByTrait } = useSentimentNarrative({
+    rows: roles.ordered,
+    loaded,
+    hasTeamData: Boolean(rows.some((r) => r.team)),
+    hasSelfData,
+    responseCount: teamResponses?.length || 0,
+    personaId,
+    resultsAnalysis,
+  });
+
   const traitStories = useMemo(() => buildTraitStories(roles), [roles]);
   const gapStories = useMemo(() => (hasSelfData ? buildGapStories(roles) : []), [roles, hasSelfData]);
 
@@ -426,6 +442,7 @@ export default function SentimentView({ t, phases, onAdvancePhase, traitIndex })
         orderedRows={roles.ordered}
         traitIndex={traitIndex}
         hasSelfData={hasSelfData}
+        answersByTrait={answersByTrait}
       />
     );
   }

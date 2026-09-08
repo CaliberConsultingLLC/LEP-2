@@ -243,6 +243,9 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const [introOpen, setIntroOpen] = useState(false);
   const [introMsg, setIntroMsg] = useState(null);
   const introSeenRef = useRef({});
+  // The rectangle the book settled into. The guide stands against the book
+  // rather than against the window, so it has to be told where the book is.
+  const [scene, setScene] = useState(null);
 
   const landTimer = useRef(null);
   const flipTimer = useRef(null);
@@ -675,6 +678,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
           pose={interrupting ? introMsg?.pose : guideMsg.pose}
           interrupting={interrupting}
           onDone={dismissIntro}
+          scene={scene}
         />
       )}
 
@@ -699,6 +703,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
         notesTraitLabel={isLedger ? 'all traits' : traitLabel}
         onBookmark={(i) => (open ? flipTo(i) : (setSpread(i), openBook()))}
         reducedMotion={reducedMotion}
+        onFit={setScene}
       />
 
       <NoteModal note={modal} onClose={() => setModal(null)} />

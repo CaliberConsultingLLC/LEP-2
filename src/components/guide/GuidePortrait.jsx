@@ -33,6 +33,10 @@ export default function GuidePortrait({
   zIndex = 10040,
   maxWidth = 360,
   owlSx,
+  // Bumped by a caller that moved the owl without resizing it — a scene that
+  // recentres at constant scale changes the bird's left and nothing else, and
+  // a change of position fires no ResizeObserver.
+  resolveKey,
   children,
 }) {
   const owlRef = useRef(null);
@@ -133,6 +137,7 @@ export default function GuidePortrait({
         // The scrim behind an interruption is near-black whatever the page
         // under it was, so the bubble on one is always the light of the pair.
         tone={tone === 'auto' && backdrop ? 'sand' : tone}
+        resolveKey={resolveKey}
         zIndex={zIndex}
         maxWidth={maxWidth}
       >

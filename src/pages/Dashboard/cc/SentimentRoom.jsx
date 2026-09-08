@@ -16,6 +16,7 @@ import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import { useFitScale } from './useFitScale.js';
 import SentimentChart from './SentimentChart.jsx';
+import { traitKeyFor } from '../../../utils/campaignResults.js';
 import {
   SENTIMENT_FOOTNOTE,
   SENTIMENT_QUESTIONS,
@@ -189,14 +190,40 @@ function sentimentFallback(questionId, page, generic) {
 // The room
 // ---------------------------------------------------------------------------
 
-export default function SentimentRoom({ row, statements, hasSelfData, traitIndex = 0 }) {
+/**
+ * Prefers the written answer over the assembled one, beat by beat, and keeps
+ * the chart either way — the picture is built from the rows themselves and is
+ * the one thing on this page that cannot be written.
+ *
+ * Per beat rather than per answer, because a generated set can come back
+ * incomplete: one missing paragraph should cost one paragraph, not the page.
+ */
+function preferWritten(built, written) {
+  if (!written) return built;
+  const answers = {};
+  Object.entries(built.answers).forEach(([id, answer]) => {
+    const w = written[id];
+    answers[id] = w
+      ? {
+          ...answer,
+          verdict: w.verdict || answer.verdict,
+          definition: w.definition || answer.definition,
+          reading: w.reading || answer.reading,
+          consequence: w.consequence || answer.consequence,
+        }
+      : answer;
+  });
+  return { ...built, answers };
+}
+
+export default function SentimentRoom({ row, statements, hasSelfData, traitIndex = 0, answersByTrait = null }) {
   const [questionId, setQuestionId] = useState('q01');
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
-  const page = useMemo(
-    () => buildSentiment(row, statements, hasSelfData),
-    [row, statements, hasSelfData]
-  );
+  const page = useMemo(() => {
+    const built = buildSentiment(row, statements, hasSelfData);
+    return preferWritten(built, answersByTrait?.[traitKeyFor(row, traitIndex)]);
+  }, [row, statements, hasSelfData, answersByTrait, traitIndex]);
 
   // Arriving at a new trait returns to the first question — the third one has
   // no meaning until the first two have been read for this trait.

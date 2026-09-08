@@ -445,6 +445,7 @@ export default function CommandCenter() {
             phases={phases}
             onAdvancePhase={() => advancePhase('signal')}
             traitIndex={evidenceTraitIdx}
+            resultsAnalysis={resultsAnalysis}
           />
         );
       case 'evidence':
