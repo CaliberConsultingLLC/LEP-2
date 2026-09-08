@@ -125,7 +125,7 @@ function NoteTab({ count, onClick }) {
   );
 }
 
-function NotesPad({ open, notes, traitLabel, onToggle, onUse }) {
+function NotesPad({ open, notes, traitLabel, onUse }) {
   return (
     <Box
       sx={{
@@ -158,52 +158,45 @@ function NotesPad({ open, notes, traitLabel, onToggle, onUse }) {
         }}
       >
         <Box sx={{ position: 'absolute', left: 0, right: 0, top: 0, height: 18, bgcolor: 'rgba(255,255,255,0.3)' }} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mt: '6px' }}>
-          <Typography sx={{ fontFamily: fonts.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#6b5a1e' }}>
-            From the evidence · {traitLabel}
-          </Typography>
-          <Box
-            component="button"
-            type="button"
-            onClick={onToggle}
-            sx={{ all: 'unset', cursor: 'pointer', fontFamily: fonts.sans, fontSize: 11, fontWeight: 700, color: '#6b5a1e', ...focusRing('#6b5a1e') }}
-          >
-            Tuck away
-          </Box>
-        </Box>
-        <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 13, lineHeight: 1.5, color: '#5a4a15' }}>
-          What you jotted while reading the evidence. Tap a note to write it into the field you&#39;re on.
+        {/* A title and a rule. This pad used to carry a label, a "tuck away"
+            link, a sentence explaining what a note is, a bordered card around
+            every note and a "write it in" line under each one — five kinds of
+            text to say "here are the four things you jotted". The tab that
+            opened it closes it again, and a note that lifts under the cursor
+            does not need to be told it is clickable. */}
+        <Typography sx={{ fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#6b5a1e', mt: '6px' }}>
+          {traitLabel} notes
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'auto', minHeight: 0 }}>
+        <Box aria-hidden sx={{ height: '1px', bgcolor: 'rgba(107,90,30,0.28)', mt: '-4px' }} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', overflow: 'auto', minHeight: 0, mt: '-4px' }}>
           {notes.map((n, i) => (
             <Box
               key={`${n.ts}-${i}`}
               component="button"
               type="button"
               onClick={() => onUse(n)}
+              title="Write it in"
               sx={{
                 all: 'unset',
                 cursor: 'pointer',
                 display: 'block',
                 textAlign: 'left',
-                bgcolor: 'rgba(255,255,255,0.35)',
-                border: '1px solid rgba(107,90,30,0.18)',
-                p: '10px 12px',
-                borderRadius: '2px',
+                p: '11px 4px',
+                borderBottom: i === notes.length - 1 ? 'none' : '1px solid rgba(107,90,30,0.16)',
+                transition: 'background 140ms ease',
                 ...focusRing('#6b5a1e'),
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.6)' },
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.45)' },
               }}
             >
               <Typography sx={{ fontFamily: fonts.mono, fontSize: 7.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8a6a13' }}>
                 {n.meta}
               </Typography>
               <Typography sx={{ fontFamily: fonts.serif, fontSize: 14, lineHeight: 1.5, color: '#2a2410', mt: '5px' }}>{n.text}</Typography>
-              <Typography sx={{ fontFamily: fonts.sans, fontSize: 10.5, fontWeight: 700, color: '#8a6a13', mt: '6px' }}>Write it in ↵</Typography>
             </Box>
           ))}
           {!notes.length && (
-            <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 13.5, color: '#7a6a2a', p: '8px 2px' }}>
-              No notes saved for this trait. The evidence page has a pad at the bottom.
+            <Typography sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 13.5, color: '#7a6a2a', p: '10px 2px' }}>
+              Nothing jotted on this trait yet. The evidence page has a pad at the bottom.
             </Typography>
           )}
         </Box>
@@ -616,7 +609,7 @@ export default function JournalBook({
         </Box>
 
         {/* ---------- notes pad ---------- */}
-        <NotesPad open={notesOpen} notes={notes} traitLabel={notesTraitLabel} onToggle={onToggleNotes} onUse={onUseNote} />
+        <NotesPad open={notesOpen} notes={notes} traitLabel={notesTraitLabel} onUse={onUseNote} />
 
         {/* ---------- left half ---------- */}
         <Box

@@ -531,7 +531,10 @@ export default function ChapterHeader({
                     height: 78,
                     flexShrink: 0,
                     cursor: locked ? 'not-allowed' : 'pointer',
-                    opacity: locked ? 0.45 : active ? 1 : 0.6,
+                    // Only a locked room is dimmed. A room you have not opened
+                    // yet is still a place you can go, and greying it said the
+                    // opposite of that across the whole strip.
+                    opacity: locked ? 0.45 : 1,
                     borderRadius: 0,
                     boxShadow: active ? `inset 0 -2px 0 ${colors.orange}` : 'none',
                     '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: -4 },
@@ -557,7 +560,7 @@ export default function ChapterHeader({
                         ? 'var(--dial-node-fill)'
                         : done
                           ? (markers === 'number' ? colors.green : 'var(--dial-node-fill)')
-                          : colors.inkSoft,
+                          : colors.ink,
                     }}
                   >
                     {done && markers !== 'number' ? '✓' : index + 1}
@@ -569,7 +572,7 @@ export default function ChapterHeader({
                       fontFamily: fonts.sans,
                       fontSize: 13.5,
                       fontWeight: active ? 700 : 600,
-                      color: active ? colors.ink : colors.inkSoft,
+                      color: colors.ink,
                       whiteSpace: 'nowrap',
                     }}
                   >

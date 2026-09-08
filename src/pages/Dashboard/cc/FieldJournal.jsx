@@ -57,19 +57,25 @@ function traitRole(row, roles) {
   return 'strength';
 }
 
+// What the guide says while a step is open.
+//
+// These carry more than they used to. Each question on the page used to sit
+// under a cue and over a hint — three lines of instruction stacked on paper,
+// with the owl standing beside it saying a fourth. The page keeps the question;
+// the guide says the rest, which is what a guide is for.
 const FIELD_FALLBACKS = {
   envisionExperience:
-    'Sit in their seat for a minute. Say what they expect the way they would say it — not the way you would defend it.',
+    'Sit in their seat for a minute. Say what they expect the way they would say it — their words, not the way you would defend it. Do not fix it yet.',
   envisionWant:
-    'Underneath the expectation is a want. It is usually simpler than the complaint. One sentence.',
+    'Underneath the expectation is a want, and it is usually simpler than the complaint. The simplest thing they are hoping you would do or say. One honest sentence is enough.',
   branchBehavior:
-    'Behaviors, not intentions. If you want a place to start: the recap email, the check-back, the owner-and-date at the end of a meeting.',
+    'Behaviors, not intentions — concrete enough that someone on the team could watch you do it. The recap email, the check-back, the owner-and-date at the end of a meeting. Enter starts the next one.',
   branchSignal:
-    'Intentions drift. Give this a slot on the calendar, a way to measure it, and a person who will notice if it slips.',
+    'Intentions drift. Name the habit, how often, and how you will know it is holding — a slot on the calendar and a person who will notice if it slips.',
   commitGoal:
     'Honest, not heroic. Six to ten points in a cycle is a change people actually feel.',
   commitMessage:
-    'This is the line they will hold you to. Short enough to remember, specific enough to check.',
+    'They will read exactly this at the next check-in and nothing else from this journal. Short enough to remember, specific enough that they could hold you to it.',
 };
 
 const ADJUST_STEPS = ['branchBehavior', 'branchSignal', 'commitGoal', 'commitMessage'];
@@ -592,7 +598,6 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
           efficacy: r ? Math.round(r.team.efficacy) : 0,
         },
         insights: selectTraitInsights({ row: r, rowIndex: i, analysis: resultsAnalysis, respondents }),
-        respondents,
         steps,
         draft,
         traitDone: planComplete(p),

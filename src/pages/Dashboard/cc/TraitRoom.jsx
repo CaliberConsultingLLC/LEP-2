@@ -1,9 +1,10 @@
 // The Trait Room — the Evidence page body, one trait at a time.
 //
-// The dial on the left, the five statements on the right, and — beneath them,
-// sharing one bottom edge — the three mode buttons and the note pad they sit
-// beside. The table IS the selector: there are no statement tabs, and clicking
-// a row both expands it and lights its node on the dial.
+// The dial on the left with its three mode buttons fixed under it, and the five
+// statements on the right with the note pad under them. The table IS the
+// selector: there are no statement tabs, and clicking a row both expands it and
+// lights its node on the dial. The table is always ranked highest-first in
+// whichever mode is selected, so switching mode re-orders it.
 //
 // Idle means nothing is selected — all five dots on the dial, no self ghost, no
 // gap chip, every row collapsed. That is the arrival state, and clicking an
@@ -357,12 +358,32 @@ function NotePad({ trait, selectedIdx, onResize }) {
 // Trait Room
 // ---------------------------------------------------------------------------
 
+/** Score the active mode reads, used to rank the table and the dial together. */
+const modeScore = (s, mode) =>
+  mode === 'effort' ? s.effort : mode === 'efficacy' ? s.efficacy : s.compass;
+
 export default function TraitRoom({ row, statements, traitIndex = 0, role = 'strength', guideLines }) {
-  const [selected, setSelected] = useState(null);
+  // The open statement is held by its text rather than its position, because
+  // the positions move: switching mode re-ranks the table, and an index would
+  // silently open a different statement than the one that was open.
+  const [openText, setOpenText] = useState(null);
   const [mode, setMode] = useState('map');
   const { personaId, setPageMessage } = useGuide();
 
   const traitLabel = row?.subTrait || row?.trait || 'Trait';
+
+  // Highest first, always, in whichever score is selected. Five statements in
+  // campaign order is five statements in no order at all; ranked, the list says
+  // something before a single row is opened, and switching mode re-ranks it —
+  // which is the fastest way to see that effort and effect are not the same
+  // ordering of the same five behaviours.
+  const ordered = useMemo(
+    () => [...(statements || [])].sort((a, b) => modeScore(b, mode) - modeScore(a, mode)),
+    [statements, mode]
+  );
+
+  const selectedIdx = openText == null ? -1 : ordered.findIndex((s) => s.text === openText);
+  const selected = selectedIdx < 0 ? null : selectedIdx;
 
   // The room speaks for itself, per trait and per open statement.
   //
@@ -373,22 +394,22 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
   useEffect(() => {
     if (!guideLines || !row) return;
     const n = traitIndex + 1;
-    const open = Number.isInteger(selected) && statements?.[selected];
+    const open = Number.isInteger(selected) && ordered?.[selected];
     const stepKey = open ? `t${n}-s${selected + 1}` : `trait-${n}`;
     const fallback = open
-      ? guideLines.statement(statements[selected], statements, traitLabel)
-      : guideLines.trait(row, statements, traitLabel, role);
+      ? guideLines.statement(ordered[selected], ordered, traitLabel)
+      : guideLines.trait(row, ordered, traitLabel, role);
     const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, fallback, 'map');
     setPageMessage({
       text: spoken.text,
       pose: spoken.pose,
-      eyebrow: open ? `${traitLabel} · ${selected + 1} of ${statements.length}` : traitLabel,
+      eyebrow: open ? `${traitLabel} · ${selected + 1} of ${ordered.length}` : traitLabel,
     });
-  }, [row, selected, statements, traitLabel, traitIndex, role, guideLines, personaId, setPageMessage]);
+  }, [row, selected, ordered, traitLabel, traitIndex, role, guideLines, personaId, setPageMessage]);
 
   // Arriving at a new trait resets to idle — the previous trait's open
   // statement has no meaning here.
-  useEffect(() => { setSelected(null); setMode('map'); }, [traitLabel]);
+  useEffect(() => { setOpenText(null); setMode('map'); }, [traitLabel]);
 
   const traitZone = useMemo(() => {
     const effort = Math.round(Number(row?.team?.effort) || 0);
@@ -402,7 +423,10 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
     Math.round(Number(row?.team?.lepScore) || 0)
   );
 
-  const toggle = (idx) => setSelected((prev) => (prev === idx ? null : idx));
+  const toggle = (idx) => {
+    const text = ordered[idx]?.text;
+    setOpenText((prev) => (prev === text ? null : text));
+  };
 
   // The room is given a fixed box with overflow hidden, so it measures itself
   // into it rather than trusting it will fit. Opening a statement changes the
@@ -479,7 +503,7 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
           {/* `selectedIdx="all"` is the dial's idle presentation: every dot
               visible, none selected, no ghost, no gap chip. */}
           <EvidenceQuadrant
-            statements={statements}
+            statements={ordered}
             selectedIdx={selected == null ? 'all' : selected}
             onSelect={(idx) => toggle(idx)}
             mode={mode}
@@ -489,8 +513,14 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
           </Box>
           {/* Held to its own width and centred under the dial. Stretched edge
               to edge, three pills read as a segmented control the width of the
-              instrument; brought in, they read as a choice about it. */}
-          <Box sx={{ mt: 'auto', pt: '14px', display: 'flex', justifyContent: 'center', '& > div': { mb: 0 } }}>
+              instrument; brought in, they read as a choice about it.
+              A fixed gap under the dial, not `mt: auto`: these three buttons are
+              the instrument's own control and they belong at a known distance
+              from it. Pinned to the bottom of a stretching column they drifted
+              down the page every time a statement was opened on the right,
+              which made the thing you were about to click move because of
+              something you had already clicked. */}
+          <Box sx={{ mt: '14px', display: 'flex', justifyContent: 'center', '& > div': { mb: 0 } }}>
             <EvidenceModeBar mode={mode} onModeChange={setMode} />
           </Box>
         </Box>
@@ -519,14 +549,14 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
             overflow: 'hidden',
             boxShadow: shadows.card,
           }}>
-            {statements.map((s, i) => (
+            {ordered.map((s, i) => (
               <StatementRow
-                key={`${s.text}-${i}`}
+                key={s.text}
                 statement={s}
                 open={selected === i}
                 mode={mode}
                 onToggle={() => toggle(i)}
-                isLast={i === statements.length - 1}
+                isLast={i === ordered.length - 1}
               />
             ))}
           </Box>

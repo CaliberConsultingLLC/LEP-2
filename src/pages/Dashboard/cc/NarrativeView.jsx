@@ -11,15 +11,17 @@ import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 
 // ----------------------------------------------------------------------------
-// NarrativeView — the ten-page results debrief narrative (v2 design).
+// NarrativeView — the eight-page results debrief narrative (v2 design).
 //
 // Played once when the first team reading lands, replayable any time. Pages:
-//   01 Threshold · 02 Two Measurements (traits) · 03 Two Measurements
-//   (statements) · 04 The Map (video) · 05 The Map (statements) · 06 The Gap
-//   (traits) · 07 The Gap (statements) · 08–10 one Insight per trait.
+//   01 The Threshold · 02 Two Measurements · 03 Statements · 04 The Map ·
+//   05 The Gap · 06–08 one Insight per trait.
 //
-// Pages 02–06 keep exactly one thing selected; the navy card is the selection.
-// Guide pop-ups (intro/closing check-in, insights skip offer) come later.
+// Two explainer clips interrupt rather than page: the Compass on the way into
+// 02, the Perception Gap on the way into 05. After 05 the deck stops and asks
+// whether to keep walking it together or go and read Basecamp alone.
+//
+// Pages 02–05 keep exactly one thing selected; the navy card is the selection.
 // ----------------------------------------------------------------------------
 
 const readJson = (key, fallback = null) => {
@@ -1161,7 +1163,12 @@ function VideoInterstitial({ which, onClose }) {
     >
       {/* The clip carries its own title, so the overlay adds only a small
           label — anything more read as a doubled heading. */}
-      <Box sx={{ width: '100%', maxWidth: 'min(900px, 74vw)', textAlign: 'center' }}>
+      {/* Sized to the room rather than to the reading measure — this is the one
+          moment in the deck where the picture is the content, and the clips are
+          cut at a fidelity that holds at this size. Held off the far right so
+          the guide's bubble, which is solved against the owl, still has its
+          corner. */}
+      <Box sx={{ width: '100%', maxWidth: 'min(1120px, 82vw)', textAlign: 'center' }}>
         <Typography sx={{ ...type.eyebrow, color: colors.amberSoft, mb: 1.6 }}>{copy.eyebrow}</Typography>
         <Box
           sx={{
@@ -1170,7 +1177,7 @@ function VideoInterstitial({ which, onClose }) {
             overflow: 'hidden',
             boxShadow: '0 30px 80px rgba(5, 12, 24, 0.55)',
             aspectRatio: '16 / 9',
-            maxHeight: '56vh',
+            maxHeight: '64vh',
             mx: 'auto',
           }}
         >
@@ -1538,8 +1545,18 @@ function pickNarrativeStatements(orderedRows) {
 // statement version is the one that carries into action planning, so it is
 // the one that stayed.
 const SLIDE_COUNT = 8;
-// Where the explainers interrupt: entering the map, and entering the gap.
-const MAP_IDX = 3;
+// Where the explainers interrupt.
+//
+// The Compass explainer used to wait until the map on page four, three pages
+// after the deck had already started talking about effort and effectiveness as
+// two separate things. It shows exactly that — two scores becoming one — so it
+// belongs in front of the first page that asks the leader to read them, not
+// behind three pages of build-up. It now runs on the way into Two
+// Measurements, and pages two, three and four are read with the picture
+// already in hand.
+//
+// The Perception Gap explainer stays where it is, on the way into the gap.
+const MAP_IDX = 1;
 const GAP_IDX = 4;
 
 // Per-page fallbacks for the debrief. These carry the page's own job so they

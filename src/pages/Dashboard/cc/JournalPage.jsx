@@ -123,6 +123,34 @@ function WaxSeal({ children, size = 32, fontSize = 11 }) {
   );
 }
 
+/**
+ * The page turns.
+ *
+ * These were two underlined phrases with chevrons, which reads as a link, and
+ * the only other clickable words on the leaf were doing something quite
+ * different (writing an answer in). Both are buttons now — outlined rather than
+ * filled, so the one filled control on the page is still the one that commits
+ * what you wrote.
+ */
+const TURN_BUTTON = (accent, ready) => ({
+  all: 'unset',
+  boxSizing: 'border-box',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  fontFamily: fonts.sans,
+  fontSize: 12,
+  fontWeight: 700,
+  color: ready ? accent : PAPER.muted,
+  border: `1px solid ${ready ? accent : PAPER.ring}`,
+  borderRadius: '999px',
+  p: '6px 14px',
+  transition: 'border-color 140ms ease, color 140ms ease',
+  '&:hover': { color: ready ? '#8d3418' : PAPER.ink, borderColor: ready ? '#8d3418' : PAPER.sepia },
+});
+
 function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdReady, readOnly }) {
   return (
     // `mt: auto` pins the footer to the foot of the leaf and `flexShrink: 0`
@@ -151,22 +179,12 @@ function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdRe
           type="button"
           onClick={() => !readOnly && onBack?.()}
           sx={{
-            all: 'unset',
+            ...TURN_BUTTON(accent, false),
             cursor: readOnly ? 'default' : 'pointer',
-            fontFamily: fonts.sans,
-            fontSize: 12.5,
-            fontWeight: 700,
-            color: PAPER.muted,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
             ...focusRing(accent),
-            '&:hover': { color: PAPER.ink },
           }}
         >
-          <Box component="span" sx={{ fontSize: 15, lineHeight: 1 }}>‹</Box>
+          <Box component="span" sx={{ fontSize: 14, lineHeight: 1 }}>‹</Box>
           {backLabel}
         </Box>
       ) : (
@@ -202,23 +220,13 @@ function Footer({ backLabel, onBack, folio, dots, accent, fwdLabel, onFwd, fwdRe
           type="button"
           onClick={() => !readOnly && onFwd?.()}
           sx={{
-            all: 'unset',
+            ...TURN_BUTTON(accent, fwdReady),
             cursor: readOnly ? 'default' : 'pointer',
-            fontFamily: fonts.sans,
-            fontSize: 12.5,
-            fontWeight: 700,
-            color: fwdReady ? accent : PAPER.sepia,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
             ...focusRing(accent),
-            '&:hover': { color: fwdReady ? '#8d3418' : PAPER.ink },
           }}
         >
           {fwdLabel}
-          <Box component="span" sx={{ fontSize: 15, lineHeight: 1 }}>›</Box>
+          <Box component="span" sx={{ fontSize: 14, lineHeight: 1 }}>›</Box>
         </Box>
       ) : (
         <Box sx={{ width: 60, flexShrink: 0 }} />
@@ -236,7 +244,6 @@ export default function JournalPage(props) {
     accentHi = '#e07a3f',
     trait,
     insights = [],
-    respondents = 0,
     steps = [],
     draft = '',
     traitDone = false,
@@ -353,7 +360,7 @@ export default function JournalPage(props) {
               <Typography
                 sx={{ fontFamily: fonts.serif, fontSize: 26, fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1.05, mt: '6px', whiteSpace: 'nowrap' }}
               >
-                Insights to share
+                Reflect and adjust
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: '18px', flexShrink: 0, alignItems: 'flex-end', pb: '2px' }}>
@@ -372,11 +379,6 @@ export default function JournalPage(props) {
                 Insights from your results
               </Typography>
               <Box sx={{ flex: 1 }} />
-              <Typography
-                sx={{ fontFamily: fonts.mono, fontSize: 7.5, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: PAPER.sepiaSoft }}
-              >
-                {respondents} {respondents === 1 ? 'response' : 'responses'}
-              </Typography>
             </Box>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px', mt: '8px' }}>
               {insights.map((card, i) => (
@@ -386,13 +388,12 @@ export default function JournalPage(props) {
           </Box>
 
           <Box sx={{ position: 'relative', mt: '12px', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, mb: '8px' }}>
-              <Typography
-                sx={{ fontFamily: fonts.mono, fontSize: 8, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: accent, whiteSpace: 'nowrap' }}
-              >
-                Envision · Adjust · Commit
-              </Typography>
-              <Box sx={{ flex: 1 }} />
+            {/* "Envision · Adjust · Commit" used to sit here naming three
+                phases the leader never navigates by. All it was actually doing
+                was separating the insight cards from the thread, so it is the
+                rule it was standing in for. */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, mb: '12px' }}>
+              <Box aria-hidden sx={{ flex: 1, height: '1px', bgcolor: PAPER.rule }} />
               {traitDone && <WaxSeal>I</WaxSeal>}
             </Box>
 

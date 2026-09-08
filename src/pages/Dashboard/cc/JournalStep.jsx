@@ -6,8 +6,8 @@ import { PAPER } from './fieldJournalUtils.js';
 // One step in the thread down the right leaf.
 //
 // Only two states are ever drawn: written (a title, a check, and — once the
-// whole entry is complete — the answer read back), and open (the question, the
-// cue, and ruled paper to write on). Everything below the open step is not
+// whole entry is complete — the answer read back), and open (a title, the
+// question, ruled paper, and one button). Everything below the open step is not
 // rendered at all, so a leader sees the one question they are answering and
 // the ones they already answered, and nothing else.
 
@@ -27,6 +27,41 @@ export const STEP_KEYFRAMES = {
 };
 
 const RULED = 'repeating-linear-gradient(to bottom, transparent 0 27px, rgba(15,28,46,0.14) 27px 28px)';
+
+/** Mono caps, the way every other title in the tool announces itself. */
+const STEP_TITLE = {
+  fontFamily: fonts.mono,
+  fontWeight: 700,
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+};
+
+/**
+ * The one filled control on a leaf.
+ *
+ * Writing a step in used to be an underlined phrase with an arrow after it,
+ * which is what a link looks like — and nothing else in the tool asks to be
+ * committed by clicking a word. It is the action the whole page is built
+ * around, so it now looks like the action.
+ */
+const PRIMARY_BUTTON = {
+  all: 'unset',
+  boxSizing: 'border-box',
+  cursor: 'pointer',
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  bgcolor: '#10223c',
+  color: PAPER.buttonText,
+  fontFamily: fonts.sans,
+  fontSize: 12.5,
+  fontWeight: 700,
+  letterSpacing: '0.03em',
+  p: '9px 20px',
+  borderRadius: '999px',
+  boxShadow: '0 6px 16px rgba(15,28,46,0.22)',
+  transition: 'background 140ms ease',
+  '&:hover': { bgcolor: '#1c3457' },
+};
 
 /** `all: unset` takes the focus ring with it, so every control puts one back. */
 export const focusRing = (accent) => ({
@@ -181,27 +216,16 @@ export default function JournalStep({
                 '&:hover .fj-step-title': { color: readOnly ? PAPER.ink2 : accent },
               }}
             >
+              {/* No "Written · reopen" label. The tick beside it already says
+                  written, and a row that lifts to the accent under the cursor
+                  already says clickable — spelled out on all five rows it was
+                  the loudest text on a page about listening. */}
               <Typography
                 className="fj-step-title"
-                sx={{ fontFamily: fonts.sans, fontSize: 13.5, fontWeight: 700, color: PAPER.ink2, lineHeight: 1.3 }}
+                sx={{ ...STEP_TITLE, fontSize: 9.5, color: PAPER.ink2, lineHeight: 1.3 }}
               >
                 {def.title}
               </Typography>
-              {!readOnly && (
-                <Typography
-                  sx={{
-                    fontFamily: fonts.mono,
-                    fontSize: 7.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.2em',
-                    textTransform: 'uppercase',
-                    color: '#c9b995',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Written · reopen
-                </Typography>
-              )}
             </Box>
             {showAnswer && (
               <Typography
@@ -228,23 +252,25 @@ export default function JournalStep({
 
         {isActive && (
           <>
-            <Typography
-              sx={{ fontFamily: fonts.sans, fontSize: 11, fontWeight: 800, letterSpacing: '0.04em', color: accent, pt: '3px' }}
-            >
+            <Typography sx={{ ...STEP_TITLE, fontSize: 10, color: accent, pt: '3px' }}>
               {def.title}
             </Typography>
+            {/* The question, and then the paper. Whatever else needs saying
+                about how to answer it, the guide says. */}
             <Typography
-              sx={{ fontFamily: fonts.serif, fontSize: 18, fontWeight: 500, lineHeight: 1.32, color: PAPER.ink, mt: '4px', textWrap: 'pretty' }}
+              sx={{
+                fontFamily: fonts.serif,
+                fontStyle: 'italic',
+                fontSize: 18,
+                fontWeight: 500,
+                lineHeight: 1.34,
+                color: PAPER.ink,
+                mt: '6px',
+                textWrap: 'pretty',
+              }}
             >
               {def.question}
             </Typography>
-            {def.cue && (
-              <Typography
-                sx={{ fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 13.5, lineHeight: 1.45, color: PAPER.sepia, mt: '4px', textWrap: 'pretty' }}
-              >
-                {def.cue}
-              </Typography>
-            )}
 
             {def.kind !== 'goal' ? (
               <Box sx={{ mt: '10px' }}>
@@ -281,32 +307,18 @@ export default function JournalStep({
                     }}
                   />
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: '8px' }}>
-                  <Typography
-                    sx={{ fontFamily: fonts.mono, fontSize: 8, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAPER.sepiaSoft, minWidth: 0, pr: '10px' }}
-                  >
-                    {def.hint || 'Ctrl/⌘ + Enter to write it in'}
-                  </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: '10px' }}>
                   <Box
                     component="button"
                     type="button"
                     onClick={() => onSave(def.key)}
                     sx={{
-                      all: 'unset',
-                      cursor: 'pointer',
-                      fontFamily: fonts.sans,
-                      fontSize: 12.5,
-                      fontWeight: 800,
-                      color: accent,
-                      py: '6px',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
+                      ...PRIMARY_BUTTON,
                       opacity: String(draft || '').trim() ? 1 : 0.45,
                       ...focusRing(accent),
-                      '&:hover': { color: '#8d3418' },
                     }}
                   >
-                    Write it in →
+                    Write it in
                   </Box>
                 </Box>
               </Box>
@@ -334,31 +346,14 @@ export default function JournalStep({
                     sx={{ flex: 1, minWidth: 0, height: 22, m: 0, accentColor: accent, cursor: 'pointer' }}
                   />
                 </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: '10px' }}>
-                  <Typography
-                    sx={{ fontFamily: fonts.mono, fontSize: 8, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: PAPER.sepiaSoft, minWidth: 0, pr: '10px' }}
-                  >
-                    Honest, not heroic · six to ten points is a change people feel
-                  </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: '12px' }}>
                   <Box
                     component="button"
                     type="button"
                     onClick={() => onSave(def.key)}
-                    sx={{
-                      all: 'unset',
-                      cursor: 'pointer',
-                      fontFamily: fonts.sans,
-                      fontSize: 12.5,
-                      fontWeight: 800,
-                      color: accent,
-                      py: '6px',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                      ...focusRing(accent),
-                      '&:hover': { color: '#8d3418' },
-                    }}
+                    sx={{ ...PRIMARY_BUTTON, ...focusRing(accent) }}
                   >
-                    Set it →
+                    Set the target
                   </Box>
                 </Box>
               </Box>

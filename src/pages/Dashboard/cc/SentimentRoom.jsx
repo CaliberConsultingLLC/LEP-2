@@ -6,16 +6,14 @@
 // swaps the whole right column, including the evidence block underneath it —
 // each question is sourced by a different rule, and the block says which.
 //
-// This is a teaching surface, not a score readout. The header carries the
-// trait's numbers so they are available without being the point.
+// This is a teaching surface, not a score readout, and it carries no scores at
+// all: the numbers live in Evidence, one tab away, where they are the point.
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import { colors, fonts, radii, shadows } from '../../../styles/tokens';
+import { colors, fonts, shadows } from '../../../styles/tokens';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
-import MetricHint from '../../../components/MetricHint';
-import { SCORE_HINTS } from '../../../data/scoreGlossary';
 import { useFitScale } from './useFitScale.js';
 import {
   SENTIMENT_FOOTNOTE,
@@ -34,76 +32,6 @@ const EYEBROW = {
   fontWeight: 700,
   textTransform: 'uppercase',
 };
-
-// ---------------------------------------------------------------------------
-// Header — trait eyebrow on the left, the trait's numbers on the right.
-// ---------------------------------------------------------------------------
-
-function Score({ label, value, ink, hint }) {
-  return (
-    <Typography component="span" sx={{ whiteSpace: 'nowrap' }}>
-      {label}{' '}
-      <Box component="span" sx={{ color: ink, fontSize: 12 }}>
-        <MetricHint title={hint}>{value}</MetricHint>
-      </Box>
-    </Typography>
-  );
-}
-
-function SentimentHeader({ label, scores, zone }) {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
-        gap: '24px',
-        flexWrap: 'wrap',
-        rowGap: '10px',
-        mb: '24px',
-        maxWidth: 1000,
-      }}
-    >
-      <Typography sx={{ ...EYEBROW, fontSize: 10, letterSpacing: '0.22em', color: colors.orangeDeep }}>
-        Sentiment · {label}
-      </Typography>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          flexShrink: 0,
-          ...EYEBROW,
-          fontSize: 9.5,
-          letterSpacing: '0.2em',
-          color: colors.inkSoft,
-        }}
-      >
-        <Score label="Compass" value={scores.compass} ink={colors.orange} hint={SCORE_HINTS.compass} />
-        <Score label="Effort" value={scores.effort} ink={colors.orangeDeep} hint={SCORE_HINTS.effort} />
-        <Score label="Effectiveness" value={scores.efficacy} ink={colors.navy500} hint={SCORE_HINTS.efficacy} />
-        <Box
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            px: '11px',
-            py: '4px',
-            borderRadius: radii.pill,
-            border: `1px solid ${zone.ink}`,
-            letterSpacing: '0.12em',
-            fontSize: 9,
-            color: zone.ink,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <Box aria-hidden sx={{ width: 7, height: 7, borderRadius: radii.circle, bgcolor: zone.ink }} />
-          {zone.label}
-        </Box>
-      </Box>
-    </Box>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Left column — the three questions.
@@ -433,8 +361,12 @@ export default function SentimentRoom({ row, statements, hasSelfData, traitIndex
           transform: 'scale(var(--fit))',
         }}
       >
-        <SentimentHeader label={page.label} scores={page.scores} zone={page.zone} />
-
+        {/* No header strip. The scores used to sit across the top of this room,
+            which made a page about what it is like to be led by you open on
+            three numbers. They are one tab away in Evidence, where they are the
+            point. What is left is the trait's name, and it sits in the left
+            column on the same line as "Question 01" on the right — with nothing
+            above either of them, a full-width header row was only whitespace. */}
         <Box
           sx={{
             display: 'grid',
@@ -445,6 +377,9 @@ export default function SentimentRoom({ row, statements, hasSelfData, traitIndex
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Typography sx={{ ...EYEBROW, fontSize: 9.5, letterSpacing: '0.2em', color: colors.orangeDeep, mb: '12px' }}>
+              Sentiment · {page.label}
+            </Typography>
             {SENTIMENT_QUESTIONS.map((q) => (
               <QuestionCard
                 key={q.id}

@@ -46,64 +46,57 @@ export const STEP_KEYS = [
   'commitMessage',
 ];
 
+// A step is a title, a question, and somewhere to write. The cues and hints
+// that used to sit under each question have moved into the guide: three lines
+// of instruction stacked on one page of paper read as a form, and the owl is
+// already standing there with something to say.
 export const STEP_DEFS = (traitLabel) => [
   {
     key: 'envisionExperience',
     kind: 'text',
     title: 'Understanding expectations',
     question: `Put yourself in their seat. Regarding ${traitLabel}, what do they expect from you?`,
-    cue: 'Describe it the way they would say it — do not fix it yet.',
     placeholder: 'From where they sit, they expect…',
     lines: 5,
-    hint: 'Their words, not yours',
   },
   {
     key: 'envisionWant',
     kind: 'text',
-    title: 'Understanding wants and needs',
+    title: 'What they need from you',
     question: 'Underneath that, what do they most want from you here?',
-    cue: 'The simplest thing they are hoping you would do or say.',
     placeholder: 'More than anything, they want me to…',
     lines: 5,
-    hint: 'One honest sentence is enough',
   },
   {
     key: 'branchBehavior',
     kind: 'text',
     title: 'Behavior adjustments',
     question: 'Which of your behaviors will change?',
-    cue: 'List them. Concrete enough that someone on the team could watch you do it.',
     placeholder: '• I will…',
     lines: 5,
     bullets: true,
-    hint: 'Enter adds a bullet',
   },
   {
     key: 'branchSignal',
     kind: 'text',
     title: 'Accountability',
     question: 'How will you keep your feet on the path?',
-    cue: 'The habit, its cadence, and how you will know it is holding — who or what keeps you honest.',
     placeholder: 'Every week I will… and I will know it is holding when…',
     lines: 5,
-    hint: 'A ritual with a time attached',
   },
   {
     key: 'commitGoal',
     kind: 'goal',
     title: 'Setting a target',
     question: 'Where will this land next cycle?',
-    cue: 'Your team scored you here. Name the number you are working toward.',
   },
   {
     key: 'commitMessage',
     kind: 'quote',
     title: 'Your commitment to the team',
     question: 'In one line, what will you tell your team you are committing to?',
-    cue: 'They will read exactly this at the next check-in — nothing else from this journal.',
     placeholder: 'Expect me to…',
     lines: 3,
-    hint: 'Say it so they could hold you to it',
   },
 ];
 
