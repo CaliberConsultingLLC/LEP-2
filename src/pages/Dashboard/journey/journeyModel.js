@@ -11,6 +11,7 @@ export const JOURNEY_IMAGE = {
 const STATION_META = [
   {
     key: 'intake',
+    recap: 'Account set, context given, guide chosen.',
     label: 'Profile',
     title: 'Profile',
     subtitle: 'Name the context that shapes the leadership work in front of you.',
@@ -21,6 +22,7 @@ const STATION_META = [
   },
   {
     key: 'behaviors',
+    recap: 'Twenty-three honest answers about your leading.',
     label: 'Behaviors & Instincts',
     title: 'Daily Leadership Habits',
     subtitle: 'These questions help the Compass understand how you normally lead — answer honestly, not aspirationally. The feedback is here to help you grow.',
@@ -31,6 +33,7 @@ const STATION_META = [
   },
   {
     key: 'campaign',
+    recap: 'Reflection read, three traits, fifteen statements.',
     label: 'Reflection & Creation',
     title: 'Reflection & Creation',
     subtitle: 'Take your first internal look, then choose traits and build the growth campaign your team will help you run.',
@@ -41,6 +44,7 @@ const STATION_META = [
   },
   {
     key: 'assessment',
+    recap: 'You rated first; your team followed.',
     label: 'Campaign Assessment',
     title: 'Campaign Assessment',
     subtitle: 'Rate yourself first, then invite your team with a different link you send by hand.',
@@ -52,6 +56,7 @@ const STATION_META = [
   },
   {
     key: 'reflect',
+    recap: 'Signal read, Evidence walked, nothing skipped.',
     label: 'Review & Reflect',
     title: 'Review & Reflect',
     subtitle: 'Sit with the signal long enough for the pattern to become clear — Signal, then Evidence.',
@@ -62,6 +67,7 @@ const STATION_META = [
   },
   {
     key: 'action',
+    recap: 'One practice, small enough to keep.',
     label: 'Action Plan',
     title: 'Action Plan',
     subtitle: 'Turn insight into one practice your team can actually feel.',
@@ -72,6 +78,7 @@ const STATION_META = [
   },
   {
     key: 'checkin',
+    recap: 'Same traits, second reading, honest comparison.',
     label: 'Check-In Assessment',
     title: 'Check-In Reading',
     subtitle: 'Take a second reading and notice whether the practice is landing.',
@@ -83,6 +90,7 @@ const STATION_META = [
   },
   {
     key: 'revise',
+    recap: 'Keep what works, adjust the rest.',
     label: 'Revise Action Plan',
     title: 'Practice Revision',
     subtitle: 'Keep what is working and adjust what is asking for a truer path.',
@@ -93,6 +101,7 @@ const STATION_META = [
   },
   {
     key: 'final',
+    recap: 'The summit reading; name what changed.',
     label: 'Final Assessment',
     title: 'Summit Reading',
     subtitle: 'Gather the summit reading and name the growth your team can feel.',
@@ -114,6 +123,20 @@ export const JOURNEY_STATIONS = STATION_META.map((station, index) => {
     point,
   };
 });
+
+/* One sentence on where the leader stands, indexed by the furthest chapter
+   reached (index 0 = chapter I). Shown at the top of the folio index page. */
+export const JOURNEY_SUMMARY = [
+  'You are at the signpost. Nothing is recorded yet.',
+  'Your profile is set and your guide is chosen.',
+  'You have answered the intake. The reflection is waiting to be read.',
+  'You have read your reflection, chosen your traits, and built the campaign.',
+  'Your campaign is built and your team has answered.',
+  'Your campaign is built, your team has answered, and you have read what they said.',
+  'You have committed to a practice. The second reading is next.',
+  'Your team has read you twice. Time to adjust the plan.',
+  'Your plan is revised. The last reading of the year is ahead.',
+];
 
 export const chapterText = (index) => `Chapter ${JOURNEY_ROMAN[Math.min(index, 6)] || JOURNEY_ROMAN[0]} of VII`;
 export const chapterEyebrow = (index) => `${chapterText(index)} · ${JOURNEY_STATIONS[index]?.label || JOURNEY_STATIONS[0].label}`;

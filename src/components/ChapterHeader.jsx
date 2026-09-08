@@ -9,7 +9,6 @@ import { auth } from '../firebase';
 import {
   CHAPTER_TOTAL_ROMAN,
   chapterById,
-  chapterIndexOf,
   resolveFromLocation,
   stationIndexForChapter,
 } from '../data/chapterMap';
@@ -228,11 +227,23 @@ export default function ChapterHeader({
   const steps = stepsProp || chapter?.steps || [];
   const activeIndex = Math.max(0, steps.findIndex((s) => s.id === activeStepId));
   const activeStep = steps[activeIndex] || steps[0];
-  const chapterIndex = chapterIndexOf(chapterId);
   const stationIndex = stationIndexForChapter(chapterId);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [mapOpen, setMapOpen] = useState(false);
+  // `?map=1` opens the journey folio straight from a link, so the page catalog
+  // can point at it the way it points at every other surface.
+  const [mapOpen, setMapOpen] = useState(
+    () => new URLSearchParams(location.search || '').get('map') === '1'
+  );
+
+  const closeMap = () => {
+    setMapOpen(false);
+    const params = new URLSearchParams(location.search || '');
+    if (!params.has('map')) return;
+    params.delete('map');
+    const query = params.toString();
+    navigate(`${location.pathname}${query ? `?${query}` : ''}`, { replace: true });
+  };
   const panelRef = useRef(null);
   const chapterBtnRef = useRef(null);
   const portholeBtnRef = useRef(null);
@@ -249,7 +260,6 @@ export default function ChapterHeader({
     };
   }, [location.pathname]);
 
-  const atYearStart = chapterIndex === 0 && !completion[1];
 
   const closeDrawer = () => setDrawerOpen(false);
   const openMap = () => {
@@ -794,12 +804,10 @@ export default function ChapterHeader({
 
       <JourneyMapModal
         open={mapOpen}
-        mode="reference"
         currentIndex={stationIndex}
         firstName={firstName}
         completion={completion}
-        startOfYear={atYearStart}
-        onClose={() => setMapOpen(false)}
+        onClose={closeMap}
       />
     </Box>
   );

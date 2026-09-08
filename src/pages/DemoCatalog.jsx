@@ -145,6 +145,12 @@ const GROUPS = [
         hint: 'Opens on the field journal’s interruption — the large owl, with its line anchored off the head. Inside: one question a page, one button.',
       },
       { label: 'Journey', path: '/dashboard?tab=journey', in: ['mid', 'finished'] },
+      {
+        label: 'Journey map',
+        path: '/dashboard?tab=today&map=1',
+        in: ['mid', 'finished'],
+        hint: 'The folio that opens off the porthole: the nine-chapter index on the left page, the map on the right with the trail inked as far as you have walked. Picking a chapter only changes the sky text.',
+      },
     ],
   },
   {

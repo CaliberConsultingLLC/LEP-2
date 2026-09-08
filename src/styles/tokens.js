@@ -86,6 +86,18 @@ export const colors = {
   dialAxis: 'var(--dial-axis, rgba(15, 28, 46, 0.14))',
   dialHub: 'var(--dial-hub, rgba(15, 28, 46, 0.22))',
 
+  // Journey folio print palette. Fixed in both themes — see cairn-theme.css.
+  journeyPaper: 'var(--journey-paper, #fbf7f0)',
+  journeyMap: 'var(--journey-map, #f4ecdd)',
+  journeyEdge: 'var(--journey-edge, #e8dbc3)',
+  journeyGutter: 'var(--journey-gutter, #efe4cf)',
+  journeyTan: 'var(--journey-tan, #d1bc93)',
+  journeyTanLight: 'var(--journey-tan-light, #c9b58c)',
+  journeyGold: 'var(--journey-gold, #e1af43)',
+  journeyNavy: 'var(--journey-navy, #10223c)',
+  journeyInk: 'var(--journey-ink, #0f1c2e)',
+  journeyInkSoft: 'var(--journey-ink-soft, #44566c)',
+
   sand50: 'var(--sand-50, #fbf7f0)',
   sand100: 'var(--sand-100, #f4ecdd)',
   sand200: 'var(--sand-200, #e8dbc3)',

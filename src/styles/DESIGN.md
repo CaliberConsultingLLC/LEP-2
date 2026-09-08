@@ -114,6 +114,31 @@ current map station.
 - Center dot: orange with white border and a soft pulse, disabled under `prefers-reduced-motion`.
 - Station changes transition with `background-position 1300ms cubic-bezier(0.2,0.8,0.2,1)`.
 
+### Journey Map Modal (design 5A)
+
+`src/components/JourneyMapModal.jsx` is the two-page folio opened from the
+chapter header porthole. It is a **printed artefact**, and two rules bend for it.
+
+- **Fixed print palette.** Everything on the folio sits on `journey-base.png`,
+  a cream illustration that never remaps. So the folio uses the `journey*`
+  colour tokens, which — like `dialFace` — keep their light values under
+  `data-dark`. Remapping the paper while the artwork stayed cream would tear
+  the two apart. Use `colors.journey*`, never `sand*`/`ink*`, inside the folio.
+- **Off-scale type.** 5A is an approved pixel spec; its sizes (38 / 15 / 14.5 /
+  14 / 13.5 / 13 / 10.5 / 9 / 8.5px) are final and documented in the component
+  header. Do not round them onto the `type.*` scale.
+- **Selection is not the navy chip state.** A selected chapter is a paper
+  highlight plus an orange pin ring, so rows and pins carry `aria-current`, not
+  `aria-pressed` — `aria-pressed="true"` is painted navy-on-amber globally.
+- **Fit, don't guess.** The sheet is a fixed 1358×684. It is scaled to the
+  window by measurement so it never scrolls; never hand-tune a height for it.
+- **Terminology: chapters.** Nine chapters, I–IX. Never "stop", never "step".
+
+Trail geometry lives in `src/pages/Dashboard/journey/trail-data.js`. `TRAIL_D`
+is the single source of truth — fitted through the printed dashes — and the
+polyline the chapter ceremony walks is derived from it, so the drawn trail and
+the walked trail cannot drift apart.
+
 ### Buttons And Selection Controls
 
 - Primary button: pill radius, `--navy-900` background, `--amber-soft` text, Manrope 700 13px, letter-spacing 0.04em, padding 12px 22px, `white-space: nowrap`, hover to `--navy-800` with `translateY(-1px)`.
@@ -160,6 +185,16 @@ aliases (`textPrimary`, `textSecondary`) so dark mode flips automatically.
 | `sand50`          | `#FBF7F0`                    | Page background (light), chip bg          |
 | `sand100`         | `#F4ECDD`                    | Subtle wash surface, alert bg             |
 | `sand200`         | `#E8DBC3`                    | Card border, divider                      |
+| `journeyPaper`    | `#FBF7F0` (does not remap)   | Journey folio paper — cream in dark too   |
+| `journeyMap`      | `#F4ECDD` (does not remap)   | Journey map board behind the artwork      |
+| `journeyEdge`     | `#E8DBC3` (does not remap)   | Folio page edge, close button hairline    |
+| `journeyGutter`   | `#EFE4CF` (does not remap)   | Folio fold shading between the two pages  |
+| `journeyTan`      | `#D1BC93` (does not remap)   | Ahead-chapter rings, Revisit pill border  |
+| `journeyTanLight` | `#C9B58C` (does not remap)   | Unchecked sky-text item circle            |
+| `journeyGold`     | `#E1AF43` (does not remap)   | The rule under the folio index heading    |
+| `journeyNavy`     | `#10223C` (does not remap)   | Folio title, Revisit pill text, close X   |
+| `journeyInk`      | `#0F1C2E` (does not remap)   | Folio body ink                            |
+| `journeyInkSoft`  | `#44566C` (does not remap)   | Folio secondary ink                       |
 | `surface1`        | `#FFFFFF` (light) / `#10223C` (dark) | Card background                  |
 | `surface2`        | `var(--sand-50)`             | Recessed surface                          |
 | `textPrimary`     | `var(--ink)` → `#0F1C2E`     | Primary copy                              |

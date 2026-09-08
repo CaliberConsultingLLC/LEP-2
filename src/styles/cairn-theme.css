@@ -56,6 +56,22 @@ html[data-theme='cairn'] {
   --dial-axis: rgba(15, 28, 46, 0.14);
   --dial-hub: rgba(15, 28, 46, 0.22);
 
+  /* --- Journey folio (print palette) ---
+     The journey map is a printed artefact: cream paper and a fixed cream
+     illustration (journey-base.png). These do NOT remap under data-dark, for
+     the same reason --dial-face does not — the artwork underneath them stays
+     cream in every theme, and a remapped page would tear away from it. */
+  --journey-paper: #fbf7f0;
+  --journey-map: #f4ecdd;
+  --journey-edge: #e8dbc3;
+  --journey-gutter: #efe4cf;
+  --journey-tan: #d1bc93;
+  --journey-tan-light: #c9b58c;
+  --journey-gold: #e1af43;
+  --journey-navy: #10223c;
+  --journey-ink: #0f1c2e;
+  --journey-ink-soft: #44566c;
+
   /* --- Paper / cream scale --- */
   --sand-50: #fbf7f0;
   --sand-100: #f4ecdd;
