@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, Typography, useMediaQuery } from '@mui/material';
+import { Box, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import LockOutlined from '@mui/icons-material/LockOutlined';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CompassTopbar from './CompassTopbar';
@@ -252,6 +252,10 @@ export default function ChapterHeader({
   const atYearStart = chapterIndex === 0 && !completion[1];
 
   const closeDrawer = () => setDrawerOpen(false);
+  const openMap = () => {
+    setDrawerOpen(false);
+    setMapOpen(true);
+  };
   const toggleDrawer = (triggerRef) => {
     lastTriggerRef.current = triggerRef?.current || null;
     setDrawerOpen((open) => !open);
@@ -279,7 +283,6 @@ export default function ChapterHeader({
       const target = event.target;
       if (panelRef.current?.contains(target)) return;
       if (chapterBtnRef.current?.contains(target)) return;
-      if (portholeBtnRef.current?.contains(target)) return;
       if (mobileStepRef.current?.contains(target)) return;
       closeDrawer();
     };
@@ -334,29 +337,38 @@ export default function ChapterHeader({
           overflow: 'visible',
         }}
       >
-        <Box
-          component="button"
-          type="button"
-          ref={portholeBtnRef}
-          onClick={() => toggleDrawer(portholeBtnRef)}
-          aria-expanded={drawerOpen}
-          aria-controls="chapter-overview"
-          aria-label="Open chapter overview"
-          className="chapter-header-control"
-          sx={{
-            ...unstyledButton,
-            position: 'absolute',
-            left: 28,
-            top: portholeTop,
-            zIndex: 3,
-            cursor: 'pointer',
-            borderRadius: '50%',
-            lineHeight: 0,
-            '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
-          }}
-        >
-          <JourneyPorthole variant="corner" size={portholeSize} chapterIndex={stationIndex} />
-        </Box>
+        {/* The lens is the door to the map, and nothing else. It used to drop
+            the chapter drawer, which meant the one thing on screen that looks
+            like a map opened a panel of text instead. Now it opens the map.
+            The tooltip and the lift on hover are the only thing telling you it
+            is a control at all — the art gives no other clue. */}
+        <Tooltip title="Open your journey map" arrow placement="bottom-start">
+          <Box
+            component="button"
+            type="button"
+            ref={portholeBtnRef}
+            onClick={openMap}
+            aria-haspopup="dialog"
+            aria-label="Open your journey map"
+            className="chapter-header-control"
+            sx={{
+              ...unstyledButton,
+              position: 'absolute',
+              left: 28,
+              top: portholeTop,
+              zIndex: 3,
+              cursor: 'pointer',
+              borderRadius: '50%',
+              lineHeight: 0,
+              transition: reduceMotion ? 'none' : 'transform 180ms cubic-bezier(0.2,0.8,0.2,1), filter 180ms',
+              '&:hover': { transform: 'scale(1.045)', filter: 'brightness(1.06)' },
+              '&:active': { transform: 'scale(0.99)' },
+              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
+            }}
+          >
+            <JourneyPorthole variant="corner" size={portholeSize} chapterIndex={stationIndex} />
+          </Box>
+        </Tooltip>
 
         <Box
           component="button"
