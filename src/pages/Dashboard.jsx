@@ -63,7 +63,7 @@ function CurrentBearing({ onNavigate }) {
   const firstPlan = planEntries.find(({ plan }) => String(plan?.commitment || plan?.guidedAnswers?.behaviorCommitment || '').trim()) || planEntries[0];
   const primaryFocus = focusAreas.find((area) => selectedTraits.includes(area.id)) || focusAreas[0] || {};
   const activeCommitment = String(firstPlan?.plan?.commitment || firstPlan?.plan?.guidedAnswers?.behaviorCommitment || '').trim();
-  const responseStatus = teamCampaignClosed ? 'Signal ready' : 'Listening window open';
+  const responseStatus = teamCampaignClosed ? 'Sentiment ready' : 'Waiting on your team';
   const currentSeason = teamCampaignClosed ? 'Embarking' : 'Understanding';
 
   const commandCards = [

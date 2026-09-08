@@ -151,7 +151,7 @@ export const CHAPTERS = [
     purpose:
       'You answer the same fifteen statements first, then send a different link to your team. Compass never emails them — that is how the answers stay anonymous.',
     completeBlurb:
-      'Your benchmark is in and the team has a way to answer. Closing the window opens the first reading — a signal, not a verdict.',
+      'Your benchmark is in and the team has a way to answer. Closing the window opens the first reading — a starting point, not a verdict.',
     arriveHint: 'Read how this works, rate yourself, then send the team invite. Your assessment locks when you finish.',
     steps: [
       {
@@ -179,7 +179,7 @@ export const CHAPTERS = [
     num: 'VI',
     name: 'Review & Act',
     purpose:
-      'This is the place you come back to. The signal, the evidence, and your action plan live here together — the whole of today in one sitting.',
+      'This is the place you come back to. The sentiment analysis, the evidence, and your action plan live here together — the whole of today in one sitting.',
     completeBlurb:
       'You have a reading and a practice. Keep them together until the next check-in tells you whether it is landing.',
     arriveHint: 'The map holds the year. Today holds the work in front of you.',
@@ -235,7 +235,7 @@ export const CHAPTERS = [
     purpose:
       'The year map — where you have been, and what still sits ahead. The daily work stays on Today.',
     completeBlurb:
-      'You know where you are in the year. Come back to Today for the signal, the evidence, and the plan.',
+      'You know where you are in the year. Come back to Today for the sentiment analysis, the evidence, and the plan.',
     arriveHint: 'Keep the map in view. The work itself lives on Today.',
     steps: [
       {

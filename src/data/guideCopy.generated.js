@@ -1379,7 +1379,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::default": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "map",
     "mentor": {
       "text": "The signal is what your team is reflecting back. Hold it lightly — patterns matter more than any one number.",
@@ -1407,7 +1407,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::snapshot": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "map",
     "mentor": {
       "text": "This is your signal at rest. Walk it again any time — or go verify it in the evidence room.",
@@ -1435,7 +1435,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::threshold": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "read",
     "mentor": {
       "text": "The signal is what your team is reflecting back. Hold it lightly — patterns matter more than any one number.",
@@ -1463,7 +1463,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::traits": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "map",
     "mentor": {
       "text": "Three traits, one at a time — strongest ground first. The arrow walks you down; nothing is hidden, just paced.",
@@ -1491,7 +1491,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::gap": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "map",
     "mentor": {
       "text": "Three gaps, one at a time. When your read and your team's diverge, neither is wrong — the distance itself is the finding.",
@@ -1519,7 +1519,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::checkin": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "think",
     "mentor": {
       "text": "However this is landing for you is the right answer. I just want to know where you are.",
@@ -1547,7 +1547,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::reaction-resonates": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "idle",
     "mentor": {
       "text": "Good. Resonance means the mirror is clear. Keep that honesty when you pick a next step.",
@@ -1555,7 +1555,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::reaction-surprises": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "think",
     "mentor": {
       "text": "Surprise is useful. Don't explain it away — follow it into the evidence.",
@@ -1563,7 +1563,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::reaction-stings": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "lantern",
     "mentor": {
       "text": "If it stings, it's usually close to something true. Stay with it a moment longer than you want to.",
@@ -1571,7 +1571,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::reaction-disagree": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "armsCross",
     "mentor": {
       "text": "Disagreement is allowed. Test it against the receipts before you dismiss the signal.",
@@ -1579,7 +1579,7 @@ export const GUIDE_STEPS = {
     }
   },
   "dashboardSignal::close": {
-    "title": "Command Center · Signal",
+    "title": "Command Center · Sentiment Analysis",
     "pose": "point",
     "mentor": {
       "text": "A debrief should end in a door, not a number. Pick the one that matches where you are.",

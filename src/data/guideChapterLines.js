@@ -72,8 +72,8 @@ export const GUIDE_CHAPTER_LINES = {
     roaster: 'You are the mailroom now. Send the password. Then resist the urge to ask who finished.',
   },
   reflect: {
-    mentor: 'The numbers are not the story. Sit with Signal, then Evidence, until the pattern has a face.',
-    catalyst: 'Signal first, Evidence second, then you will know what to move. Do not skip to the plan.',
+    mentor: 'The numbers are not the story. Sit with the Sentiment Analysis, then Evidence, until the pattern has a face.',
+    catalyst: 'Sentiment Analysis first, Evidence second, then you will know what to move. Do not skip to the plan.',
     challenger: 'Look at where they disagreed with you. That is the page — do not start with the compliment.',
     bestFriend: 'This is the part where their view sits next to yours. Stay with it; I am not going anywhere.',
     mother: 'Read what came back before you decide anything. I will not let you turn away from the hard trait.',

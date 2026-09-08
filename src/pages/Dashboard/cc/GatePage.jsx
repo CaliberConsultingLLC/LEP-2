@@ -13,7 +13,7 @@ import { spokenGuide } from '../../../data/guideContent';
 // ----------------------------------------------------------------------------
 
 const GATE_GUIDE_LINE =
-  'Each room opens in order — that\u2019s not bureaucracy, it\u2019s pacing. The sequence is how the signal stays understandable.';
+  'Each room opens in order — that\u2019s not bureaucracy, it\u2019s pacing. Reading them in order is what keeps them understandable.';
 
 const COPY = {
   campaign: {

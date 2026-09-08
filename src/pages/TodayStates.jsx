@@ -130,7 +130,7 @@ export default function TodayStates() {
           label: 'Responses',
           current: view.responded,
           total: view.invited,
-          status: active.moment === 'listening' ? 'Signal forming' : 'Signal ready',
+          status: active.moment === 'listening' ? 'Waiting on your team' : 'Sentiment ready',
         }}
       />
 

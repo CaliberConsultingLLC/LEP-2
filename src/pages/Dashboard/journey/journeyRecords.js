@@ -222,7 +222,7 @@ export function getJourneyChapterItems() {
         done: Boolean(practice?.commitment),
       },
       {
-        text: 'Committed to it for the next eight weeks',
+        text: 'Committed to it for the year',
         date: shortDate(practice?.savedAt),
         done: Boolean(practice?.savedAt),
       },
