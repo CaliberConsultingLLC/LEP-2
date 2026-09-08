@@ -326,6 +326,9 @@ export function useBenchmarkData() {
                 delta: Number(team.delta || 0),
                 lepScore: Number(team.lepScore || 0),
                 statements: team.statements || [],
+                // How much the room agreed, on each axis. Team only — a self
+                // assessment is one voice, and one voice has no spread.
+                shape: team.shape || null,
               }
             : null,
           self: self

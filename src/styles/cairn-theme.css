@@ -26,6 +26,12 @@ html[data-theme='cairn'] {
   --green: #2f855a;
   --green-soft: #6f9a83;
   --efficacy-blue: #2b6ba8;
+  /* Chart series. The same two meanings the dial uses — effort and
+     effectiveness — stepped so the pair clears colour-vision separation
+     against the chart surface. Validated light and dark; do not nudge either
+     one without re-running the check. */
+  --chart-effort: #c0612a;
+  --chart-efficacy: #2b6ba8;
   --gap-negative: #b4321f;
   --gap-positive: #2f6b4f;
   --gap-negative-tint: rgba(180, 50, 31, 0.07);
@@ -446,6 +452,8 @@ html[data-theme='cairn'][data-dark='true'] {
 
   /* Ink → warm off-white */
   --ink: #f0e9de;
+  --chart-effort: #d4753c;
+  --chart-efficacy: #4a8fc9;
   --ink-soft: #a89880;
 
   /* Surface / text aliases */

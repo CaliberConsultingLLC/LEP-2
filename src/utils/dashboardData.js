@@ -60,6 +60,59 @@ export function getDashboardCampaignRows() {
   });
 }
 
+/**
+ * The shape of one statement's ratings, not just their middle.
+ *
+ * A mean is the one fact about a set of answers that nobody in the set
+ * actually said. Twelve people who all put a behaviour at 60 and a room split
+ * between 90 and 30 average to the same number and are not remotely the same
+ * situation to lead through — the first is a habit, the second is a policy some
+ * people get and others do not.
+ *
+ * Everything here is an aggregate over the whole set. No individual rating is
+ * ever carried out of this function, and none is attributable: `agree` and
+ * `dissent` are counts, `spread` is a distance, and the smallest set that can
+ * report a split at all is four answers.
+ *
+ * @param {number[]} values normalized 0-100 ratings, one per respondent
+ * @returns {{n:number, mean:number, sd:number, min:number, max:number,
+ *            agree:number, dissent:number, split:boolean, consensus:string}}
+ */
+export function ratingShape(values) {
+  const xs = (Array.isArray(values) ? values : []).filter((v) => Number.isFinite(v));
+  const n = xs.length;
+  if (!n) {
+    return { n: 0, mean: 0, sd: 0, min: 0, max: 0, agree: 0, dissent: 0, split: false, consensus: 'unknown' };
+  }
+
+  const mean = xs.reduce((sum, v) => sum + v, 0) / n;
+  const variance = xs.reduce((sum, v) => sum + (v - mean) ** 2, 0) / n;
+  const sd = Math.sqrt(variance);
+
+  // "Agrees with the headline" means within 15 points of it — close enough
+  // that the average is describing this person's experience too.
+  const agree = xs.filter((v) => Math.abs(v - mean) <= 15).length;
+
+  // A split needs a real minority, not one outlier: at least a fifth of the
+  // room, at least two people, and at least 20 points away from the middle.
+  const far = xs.filter((v) => Math.abs(v - mean) > 20).length;
+  const split = n >= 4 && far >= 2 && far >= n / 5;
+
+  const consensus = n < 3 ? 'thin' : sd <= 10 ? 'unanimous' : sd <= 18 ? 'settled' : split ? 'split' : 'scattered';
+
+  return {
+    n,
+    mean: Math.round(mean),
+    sd: Math.round(sd),
+    min: Math.round(Math.min(...xs)),
+    max: Math.round(Math.max(...xs)),
+    agree,
+    dissent: n - agree,
+    split,
+    consensus,
+  };
+}
+
 export function calculateCampaignTraitMetrics(campaignRows, responses) {
   const safeCampaignRows = Array.isArray(campaignRows) ? campaignRows : [];
   const safeResponses = Array.isArray(responses) ? responses : [];
@@ -116,6 +169,12 @@ export function calculateCampaignTraitMetrics(campaignRows, responses) {
         effort: avgStmtEffort,
         delta: stmtDelta,
         lepScore: (avgStmtEfficacy * 2 + avgStmtEffort) / 3,
+        // How much the room agreed, on each axis. Aggregates only — see
+        // ratingShape. Sentiment reads these; everything else ignores them.
+        shape: {
+          efficacy: ratingShape(stmtEfficacy),
+          effort: ratingShape(stmtEffort),
+        },
       };
     });
 
@@ -125,6 +184,10 @@ export function calculateCampaignTraitMetrics(campaignRows, responses) {
       delta,
       lepScore,
       statements,
+      shape: {
+        efficacy: ratingShape(traitRatings.efficacy),
+        effort: ratingShape(traitRatings.effort),
+      },
     };
 
     if (delta > 30 || (avgEffort > 70 && avgEfficacy < 50)) {

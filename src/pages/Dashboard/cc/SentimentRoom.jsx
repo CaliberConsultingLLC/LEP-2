@@ -3,8 +3,8 @@
 // Three questions down the left, one answer on the right. The questions never
 // change and never reorder: what it is like to be led by you, what you are
 // getting right, what your team sees that you do not. Selecting a question
-// swaps the whole right column, including the evidence block underneath it —
-// each question is sourced by a different rule, and the block says which.
+// swaps the whole right column, including the picture underneath it — each
+// question is sourced by a different rule, so each one is drawn differently.
 //
 // This is a teaching surface, not a score readout, and it carries no scores at
 // all: the numbers live in Evidence, one tab away, where they are the point.
@@ -15,17 +15,13 @@ import { colors, fonts, shadows } from '../../../styles/tokens';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import { useFitScale } from './useFitScale.js';
+import SentimentChart from './SentimentChart.jsx';
 import {
   SENTIMENT_FOOTNOTE,
   SENTIMENT_QUESTIONS,
   buildSentiment,
   sentimentGuideLine,
-  signedGap,
 } from './sentimentContent.js';
-
-// The mock's muted gray for the evidence descriptor sits between `ink-soft`
-// and the hairline; nothing in the token set lands there yet.
-const FAINT = '#8a94a3';
 
 const EYEBROW = {
   fontFamily: fonts.mono,
@@ -97,122 +93,15 @@ function QuestionCard({ question, selected, onSelect }) {
 }
 
 // ---------------------------------------------------------------------------
-// Evidence block — "Where this comes from". The columns are the source rule:
-// Q01 shows what the team said, Q02 what they rate highest, Q03 the splits.
-// ---------------------------------------------------------------------------
-
-const COLUMN_META = {
-  effort: { head: 'Effort', ink: colors.orangeDeep },
-  team: { head: 'Team', ink: colors.navy500 },
-  self: { head: 'You', ink: colors.ink },
-  gap: { head: 'Gap', ink: colors.orangeDeep },
-};
-
-const VALUE_INK = {
-  effort: colors.orangeDeep,
-  team: colors.navy500,
-  self: colors.ink,
-  gap: colors.orange,
-};
-
-function EvidenceBlock({ evidence }) {
-  const { columns, rows, descriptor, footer } = evidence;
-  return (
-    <Box sx={{ borderTop: `1px solid ${colors.sand200}`, pt: '16px' }}>
-      <Typography
-        sx={{
-          ...EYEBROW,
-          fontSize: 9.5,
-          letterSpacing: '0.2em',
-          color: colors.inkSoft,
-          mb: '10px',
-        }}
-      >
-        Where this comes from&nbsp;&nbsp;
-        <Box
-          component="span"
-          sx={{
-            fontFamily: fonts.sans,
-            fontWeight: 500,
-            fontSize: 12,
-            letterSpacing: '0.08em',
-            textTransform: 'none',
-            color: FAINT,
-          }}
-        >
-          {descriptor}
-        </Box>
-      </Typography>
-
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: `1fr${' auto'.repeat(columns.length)}`,
-          columnGap: '22px',
-          rowGap: '9px',
-          alignItems: 'baseline',
-          fontSize: 13.5,
-        }}
-      >
-        <Box />
-        {columns.map((col) => (
-          <Typography
-            key={`head-${col}`}
-            sx={{
-              ...EYEBROW,
-              fontSize: 8.5,
-              letterSpacing: '0.2em',
-              color: COLUMN_META[col].ink,
-              textAlign: 'right',
-            }}
-          >
-            {COLUMN_META[col].head}
-          </Typography>
-        ))}
-
-        {rows.map((row, i) => (
-          <React.Fragment key={`${row.text}-${i}`}>
-            <Typography
-              sx={{
-                fontFamily: fonts.serif,
-                fontSize: 13.5,
-                lineHeight: 1.35,
-                color: row.cited ? colors.ink : colors.inkSoft,
-                textWrap: 'pretty',
-              }}
-            >
-              {row.text}
-            </Typography>
-            {columns.map((col) => (
-              <Typography
-                key={`${col}-${i}`}
-                sx={{
-                  fontFamily: fonts.mono,
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  textAlign: 'right',
-                  color: row.cited ? VALUE_INK[col] : colors.inkSoft,
-                }}
-              >
-                {col === 'gap' ? signedGap(row.gap) : row[col]}
-              </Typography>
-            ))}
-          </React.Fragment>
-        ))}
-      </Box>
-
-      {footer && (
-        <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, lineHeight: 1.5, color: colors.inkSoft, mt: '12px' }}>
-          {footer}
-        </Typography>
-      )}
-    </Box>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Right column — the answer.
 // ---------------------------------------------------------------------------
+
+const BODY = {
+  fontFamily: fonts.sans,
+  fontSize: 15,
+  lineHeight: 1.65,
+  textWrap: 'pretty',
+};
 
 function Answer({ question, answer }) {
   return (
@@ -228,20 +117,22 @@ function Answer({ question, answer }) {
           fontWeight: 500,
           letterSpacing: '-0.03em',
           lineHeight: 1.08,
-          fontSize: { xs: 30, md: 40 },
+          fontSize: { xs: 28, md: 38 },
           color: colors.ink,
-          m: '0 0 20px',
+          m: '0 0 18px',
           textWrap: 'pretty',
         }}
       >
         {question.text}
       </Typography>
+
+      {/* The answer in one line, the way somebody on the team would say it. */}
       <Typography
         sx={{
           fontFamily: fonts.serif,
           fontStyle: 'italic',
-          fontSize: 19,
-          lineHeight: 1.55,
+          fontSize: 18.5,
+          lineHeight: 1.5,
           color: colors.ink,
           m: '0 0 16px',
           textWrap: 'pretty',
@@ -249,17 +140,16 @@ function Answer({ question, answer }) {
       >
         {answer.verdict}
       </Typography>
-      <Typography
-        sx={{ fontFamily: fonts.sans, fontSize: 15.5, lineHeight: 1.65, color: colors.ink, m: '0 0 12px', textWrap: 'pretty' }}
-      >
-        {answer.para1}
-      </Typography>
-      <Typography
-        sx={{ fontFamily: fonts.sans, fontSize: 15, lineHeight: 1.65, color: colors.inkSoft, m: '0 0 24px', textWrap: 'pretty' }}
-      >
-        {answer.para2}
-      </Typography>
-      <EvidenceBlock evidence={answer.evidence} />
+
+      {/* Then what the trait is, then what they live, then what it leaves
+          open. The teaching used to come last, behind a paragraph of scores,
+          which is the wrong way round: a leader cannot weigh a reading of a
+          trait before they have been told what the trait is. */}
+      <Typography sx={{ ...BODY, color: colors.ink, m: '0 0 12px' }}>{answer.definition}</Typography>
+      <Typography sx={{ ...BODY, color: colors.ink, m: '0 0 12px' }}>{answer.reading}</Typography>
+      <Typography sx={{ ...BODY, color: colors.inkSoft, m: '0 0 22px' }}>{answer.consequence}</Typography>
+
+      <SentimentChart chart={answer.chart} />
     </Box>
   );
 }

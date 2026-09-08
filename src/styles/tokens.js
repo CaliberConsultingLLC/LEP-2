@@ -60,6 +60,8 @@ export const colors = {
   green: 'var(--green, #2f855a)',
   greenSoft: 'var(--green-soft, #6f9a83)',
   efficacyBlue: 'var(--efficacy-blue, #2b6ba8)',
+  chartEffort: 'var(--chart-effort, #c0612a)',
+  chartEfficacy: 'var(--chart-efficacy, #2b6ba8)',
   gapNegative: 'var(--gap-negative, #b4321f)',
   gapPositive: 'var(--gap-positive, #2f6b4f)',
   gapNegativeTint: 'var(--gap-negative-tint, rgba(180, 50, 31, 0.07))',

@@ -77,6 +77,9 @@ export function mapRowStatements(row) {
       efficacySelf: Math.round(Number(self.efficacy) || Number(s.efficacy) || 0),
       compass: Math.round(Number(s.lepScore) || 0),
       compassSelf: Math.round(Number(self.lepScore) || Number(s.lepScore) || 0),
+      // Aggregate agreement across the room, per axis — never an individual
+      // rating. Null when the campaign predates it or has no responses.
+      shape: s.shape || null,
     };
   });
 }
