@@ -118,30 +118,53 @@ export function readKeepClear(root = document) {
 // `tx` is where along the bubble's width the speak point falls — 0.16 means
 // the bubble runs off to the right of the head, which is the one-to-two
 // o'clock reading the guide is meant to have.
+//
+// `prefer` is the way the guide has to be facing for this to be its natural
+// side, and every row of it used to say the opposite. `tx: 0.16` runs the
+// bubble off to the RIGHT of the head, and it was tagged `prefer: 'left'`.
+// The journal owl is mirrored, so it faces right, so the sort handed it
+// `above-left` — the bubble ran away from the direction the bird was looking
+// and into the corner of the window, which is the one place the eye is not.
 const PLACEMENTS = [
-  { id: 'above-right', tx: 0.16, ty: 1, prefer: 'left' },
-  { id: 'above-left', tx: 0.84, ty: 1, prefer: 'right' },
+  { id: 'above-right', tx: 0.16, ty: 1, prefer: 'right' },
+  { id: 'above-left', tx: 0.84, ty: 1, prefer: 'left' },
   { id: 'above', tx: 0.5, ty: 1 },
-  { id: 'right', tx: 0, ty: 0.5, prefer: 'left' },
-  { id: 'left', tx: 1, ty: 0.5, prefer: 'right' },
-  { id: 'below-right', tx: 0.16, ty: 0, prefer: 'left' },
-  { id: 'below-left', tx: 0.84, ty: 0, prefer: 'right' },
+  { id: 'right', tx: 0, ty: 0.5, prefer: 'right' },
+  { id: 'left', tx: 1, ty: 0.5, prefer: 'left' },
+  { id: 'below-right', tx: 0.16, ty: 0, prefer: 'right' },
+  { id: 'below-left', tx: 0.84, ty: 0, prefer: 'left' },
 ];
 
-/**
- * Solve for the bubble's box and its tail.
- *
- * Walks the clock from the preferred position outward, clamps each candidate
- * into the window, and scores it by how much of the face and of the page's
- * keep-clear regions it lands on. The first candidate that lands on nothing
- * wins; if every candidate lands on something — a small window with a large
- * owl — the least bad one is taken, which is still strictly better than the
- * fixed offset it replaces.
- *
- * The tail is worked out last, from where the bubble actually ended up, so it
- * points at the head even when the clamp moved the bubble somewhere the
- * preference never asked for.
- */
+// Where the speak point falls along the bubble in the placement the guide
+// takes when nothing is in its way — the one-to-two o'clock reading it is
+// meant to have. Exported so that a caller who wants the LINE centred can
+// stand the bird at the x which puts that placement across the middle, rather
+// than at the x which would centre some other placement it is not going to get.
+export const NATURAL_TX = PLACEMENTS[0].tx;
+
+// How far a box is from sitting in the middle of the window. The horizontal
+// miss counts double: a bubble off to one side reads as belonging to the
+// corner it is in, where one sitting high or low still reads as being in the
+// middle of the page.
+const centreCost = (box, viewport) =>
+  2 * Math.abs(box.left + box.width / 2 - viewport.width / 2)
+  + Math.abs(box.top + box.height / 2 - viewport.height / 2);
+
+// Which edge of the bubble the tail leaves from, worked out from where the
+// head ended up rather than from which placement was asked for — and null when
+// the head is behind the bubble, which is the one arrangement that is not
+// allowed, because a bubble with no tail is no longer the guide speaking.
+function tailFor(speak, box) {
+  const c = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+  const alongX = () => c(speak.x - box.left, TAIL_INSET, Math.max(TAIL_INSET, box.width - TAIL_INSET));
+  const alongY = () => c(speak.y - box.top, TAIL_INSET, Math.max(TAIL_INSET, box.height - TAIL_INSET));
+  if (speak.y >= box.bottom) return { side: 'bottom', offset: alongX() };
+  if (speak.y <= box.top) return { side: 'top', offset: alongX() };
+  if (speak.x >= box.right) return { side: 'right', offset: alongY() };
+  if (speak.x <= box.left) return { side: 'left', offset: alongY() };
+  return null;
+}
+
 export function solveBubble({ anchor, bubble, viewport, obstacles = [], edge = EDGE, gap = GAP }) {
   const { speak, face, facing } = anchor;
   const avoid = [face, ...obstacles];
@@ -158,6 +181,7 @@ export function solveBubble({ anchor, bubble, viewport, obstacles = [], edge = E
   });
 
   let best = null;
+  let clear = null;
   ordered.forEach((p, index) => {
     // Put the speak point at (tx, ty) of the bubble, then push the whole
     // bubble clear of the head by the gap in whichever direction it sits.
@@ -181,15 +205,25 @@ export function solveBubble({ anchor, bubble, viewport, obstacles = [], edge = E
     const cost = faceHit * 12 + clearHit * 8 + drift + index * 40;
 
     if (!best || cost < best.cost) best = { cost, box, id: p.id, faceHit, clearHit };
+
+    // A candidate that lands on nothing is not merely cheaper than one that
+    // does — it is a different kind of answer, and among those the clock order
+    // stops mattering. What matters is which of them is nearest the middle.
+    if (faceHit === 0 && clearHit === 0) {
+      const pull = centreCost(box, viewport);
+      if (!clear || pull < clear.pull) clear = { pull, box, id: p.id };
+    }
   });
 
-  // Seven candidate positions is a coarse grid, and the best of them can still
-  // clip a corner of something — a 30px station marker sitting exactly where
-  // the bubble wants to be. So the winner is then pushed: take whatever it
-  // still overlaps, find the shortest move that clears it without leaving the
-  // window, and repeat. This is what takes the last few percent to nothing.
-  let box = best.box;
-  for (let pass = 0; pass < 6; pass += 1) {
+  let box = clear ? clear.box : best.box;
+
+  // Seven candidate positions is a coarse grid, and when none of them landed
+  // clean the best of them can still clip a corner of something — a 30px
+  // station marker sitting exactly where the bubble wants to be. So the winner
+  // is pushed: take whatever it still overlaps, find the shortest move that
+  // clears it without leaving the window, and repeat. This is what takes the
+  // last few percent to nothing.
+  for (let pass = 0; !clear && pass < 6; pass += 1) {
     let worst = null;
     for (const o of avoid) {
       const hit = overlap(box, o);
@@ -222,32 +256,28 @@ export function solveBubble({ anchor, bubble, viewport, obstacles = [], edge = E
     box = moves[0].moved;
   }
 
+  // The bubble is not walked any further toward the middle of the window than
+  // this. It was tried: from a full-screen interruption the free space lets it
+  // reach dead centre, 150 to 230 pixels from the head depending on the window
+  // — and the tail is a 14px nub on the bubble's edge, not a leader that
+  // reaches. A centred bubble trailing a stub that points at nothing has
+  // stopped being something the guide said. Where the line should sit near the
+  // middle, the thing to move is the guide: stand the bird so that the bubble
+  // beside its head is already central. See `fitPortrait`'s `speakX`.
+
   // Which edge the tail leaves from, decided by where the head ended up
-  // relative to the bubble rather than by which placement was asked for.
-  let side = null;
-  let offset = 0;
-  if (speak.y >= box.bottom) {
-    side = 'bottom';
-    offset = clamp(speak.x - box.left, TAIL_INSET, Math.max(TAIL_INSET, box.width - TAIL_INSET));
-  } else if (speak.y <= box.top) {
-    side = 'top';
-    offset = clamp(speak.x - box.left, TAIL_INSET, Math.max(TAIL_INSET, box.width - TAIL_INSET));
-  } else if (speak.x >= box.right) {
-    side = 'right';
-    offset = clamp(speak.y - box.top, TAIL_INSET, Math.max(TAIL_INSET, box.height - TAIL_INSET));
-  } else if (speak.x <= box.left) {
-    side = 'left';
-    offset = clamp(speak.y - box.top, TAIL_INSET, Math.max(TAIL_INSET, box.height - TAIL_INSET));
-  }
-  // No side means the head is behind the bubble, which the scoring is meant to
-  // prevent. Drawing a tail into the middle of the bubble would look broken,
-  // so it is left off and the overlap is the thing to fix.
+  // relative to the bubble rather than by which placement was asked for. No
+  // side means the head is behind the bubble, which both the scoring and the
+  // walk above are meant to prevent; drawing a tail into the middle of the
+  // bubble would look broken, so it is left off and the overlap is the thing
+  // to fix.
+  const tail = tailFor(speak, box);
 
   return {
     left: Math.round(box.left),
     top: Math.round(box.top),
-    placement: best.id,
-    tail: side ? { side, offset: Math.round(offset) } : null,
+    placement: clear ? clear.id : best.id,
+    tail: tail ? { side: tail.side, offset: Math.round(tail.offset) } : null,
     // The origin the entrance animation grows from, so the bubble appears to
     // come out of the beak rather than fade in over the page.
     origin: {
@@ -291,20 +321,32 @@ export const __test = { rect, overlap, area, PLACEMENTS };
  * the frame falls out of the measured art. Size the bird off the scene and the
  * scene holds together at any window shape, which is the whole point.
  */
-export function fitPortrait({ src, mirrored = false, height, leadX, footInset = 0 }) {
-  const box = getGuideAnchor(src).box;
-  const [x0, y0] = box;
-  const y1 = box[3];
+export function fitPortrait({ src, mirrored = false, height, leadX, speakX, footInset = 0 }) {
+  const a = getGuideAnchor(src);
+  const [x0, y0] = a.box;
+  const y1 = a.box[3];
   // The portraits are square, so the drawn height fixes the whole frame.
   const frame = height / (y1 - y0);
-  // Which of the bird's own edges faces into the page: its right when the art
-  // is mirrored to stand on the left, its left when it is not. Both come off
-  // the same measurement, which is why mirroring needs no second table.
-  const leadFrac = mirrored ? 1 - x0 : x0;
+  const fx = (v) => (mirrored ? 1 - v : v);
+  // Two ways to say where the bird goes, and which one you want depends on
+  // what it is standing next to.
+  //
+  //   leadX   the edge it faces into the page with — its right when the art is
+  //           mirrored to stand on the left, its left when it is not. Use this
+  //           when the bird has to tuck against something, the way it tucks
+  //           against the journal's left page.
+  //
+  //   speakX  the point the line comes out of its beak. Use this when what has
+  //           to land somewhere is the line rather than the bird — on a
+  //           full-screen interruption the eye goes to the middle of a blurred
+  //           page, so the bubble belongs there, and the way to put it there
+  //           is to stand the bird so that is where it speaks.
+  const anchorFrac = speakX == null ? fx(x0) : fx(a.speak[0]);
+  const anchorAt = speakX == null ? leadX : speakX;
   return {
     width: frame,
     height: frame,
-    left: leadX - leadFrac * frame,
+    left: anchorAt - anchorFrac * frame,
     // `bottom` is measured up from the window's floor and the frame carries
     // transparent padding under the feet, so the padding comes back off — the
     // bird stands on the line it was given rather than hovering above it.

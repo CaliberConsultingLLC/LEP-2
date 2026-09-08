@@ -29,6 +29,7 @@ export default function SummaryBriefingModal({
       src={pose}
       alt={`${persona?.name || 'Guide'} briefing`}
       backdrop
+      centred
       eyebrow={persona?.name || 'Guide'}
       text={(
         <>

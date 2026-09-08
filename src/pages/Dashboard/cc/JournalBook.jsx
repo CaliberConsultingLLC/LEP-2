@@ -545,6 +545,20 @@ export default function JournalBook({
           transition: reducedMotion ? 'none' : 'transform 1200ms cubic-bezier(0.5,0,0.2,1)',
         }}
       >
+        {/* The leaf being written on, declared to the guide's solver.
+            The bubble may sit over the blank left page — it does, and it reads
+            as the guide leaning across the book to say it — but the questions,
+            the ruled lines and the reader's own handwriting are the thing being
+            worked on, so the line never goes there. This is what lets the
+            bubble walk toward the middle of the window without walking onto the
+            page: it stops at the gutter, which on a centred book is about as
+            near the middle as it can honestly get. */}
+        <Box
+          aria-hidden
+          data-guide-keepclear=""
+          sx={{ position: 'absolute', left: 570, top: 0, width: 570, height: '100%', pointerEvents: 'none', zIndex: 0 }}
+        />
+
         {/* ---------- right half: back cover, page block, right leaf ---------- */}
         <Box
           sx={{

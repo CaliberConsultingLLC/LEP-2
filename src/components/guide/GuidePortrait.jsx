@@ -1,9 +1,29 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box } from '@mui/material';
 import GuideSpeech from './GuideSpeech';
 import { SUMMARY_OWL } from '../guidePlacement';
-import { anchorPercents } from './guideGeometry';
+import { EDGE, NATURAL_TX, anchorPercents, fitPortrait } from './guideGeometry';
+
+// How tall the bird stands on a full-screen interruption, as a share of the
+// window's height, and the range that share is allowed to produce. Off the
+// height rather than off a table of window widths, so it grows the way
+// everything else on the page does — smoothly, and with the room it is in.
+const CENTRED_H = 0.58;
+const CENTRED_H_MIN = 300;
+const CENTRED_H_MAX = 620;
+
+function useViewport(active) {
+  const [vp, setVp] = useState(null);
+  useEffect(() => {
+    if (!active || typeof window === 'undefined') return undefined;
+    const read = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    read();
+    window.addEventListener('resize', read);
+    return () => window.removeEventListener('resize', read);
+  }, [active]);
+  return vp;
+}
 
 // The guide standing full height, and saying something.
 //
@@ -33,6 +53,20 @@ export default function GuidePortrait({
   zIndex = 10040,
   maxWidth = 360,
   owlSx,
+  // Stand the bird so that the line it says lands in the middle of the window.
+  //
+  // On an interruption the page behind is blurred to nothing, so the middle is
+  // the only place the eye has to go, and that is where the words should be.
+  // The bubble cannot simply be moved there — it is tethered to the head by a
+  // 14px tail, and a centred bubble 200px from the beak trailing a stub that
+  // points at empty scrim has stopped reading as something the guide said. So
+  // the bird moves instead: it is placed by its speak point, at exactly the x
+  // that puts the bubble beside its head across the centre of the window.
+  //
+  // Ignored when the caller passes `owlSx`, because a caller that positions
+  // the owl itself has a scene in mind — the journal stands its guide against
+  // the book, and the book is where that composition centres.
+  centred = false,
   // Bumped by a caller that moved the owl without resizing it — a scene that
   // recentres at constant scale changes the bird's left and nothing else, and
   // a change of position fires no ResizeObserver.
@@ -40,6 +74,22 @@ export default function GuidePortrait({
   children,
 }) {
   const owlRef = useRef(null);
+  const placeCentred = centred && !owlSx;
+  const vp = useViewport(placeCentred);
+
+  const centredFit = placeCentred && vp && src
+    ? fitPortrait({
+      src,
+      mirrored,
+      height: Math.max(CENTRED_H_MIN, Math.min(vp.h * CENTRED_H, CENTRED_H_MAX)),
+      // Where the beak has to be for the bubble to straddle the middle. Not
+      // half a bubble back from centre — the bubble does not sit centred on
+      // the beak, it hangs off it at the one-to-two o'clock the guide reads
+      // best at, so the offset is measured to that placement's own anchor.
+      speakX: vp.w / 2 - (0.5 - NATURAL_TX) * Math.min(maxWidth, vp.w - EDGE * 2),
+      footInset: 0,
+    })
+    : null;
 
   useEffect(() => {
     if (!backdrop || !dismissOnBackdrop) return undefined;
@@ -85,6 +135,9 @@ export default function GuidePortrait({
           bottom: SUMMARY_OWL.bottom,
           width: SUMMARY_OWL.width,
           userSelect: 'none',
+          ...(centredFit
+            ? { width: centredFit.width, left: centredFit.left, right: 'auto', bottom: centredFit.bottom }
+            : null),
           ...owlSx,
           zIndex: zIndex - 1,
           pointerEvents: 'none',
@@ -137,7 +190,9 @@ export default function GuidePortrait({
         // The scrim behind an interruption is near-black whatever the page
         // under it was, so the bubble on one is always the light of the pair.
         tone={tone === 'auto' && backdrop ? 'sand' : tone}
-        resolveKey={resolveKey}
+        resolveKey={centredFit
+          ? `${resolveKey ?? ''}:${Math.round(centredFit.left)}:${Math.round(centredFit.width)}`
+          : resolveKey}
         zIndex={zIndex}
         maxWidth={maxWidth}
       >
