@@ -530,7 +530,7 @@ export default function CommandCenter() {
           label: 'Responses',
           current: respondents,
           total: invited || 0,
-          status: campaignClosed ? 'Sentiment ready' : 'Sentiment forming',
+          status: campaignClosed ? 'Analysis ready' : 'Analysis forming',
         } : null}
       />
       {/* Today is a room, not a column of reading: it wants the shell's full

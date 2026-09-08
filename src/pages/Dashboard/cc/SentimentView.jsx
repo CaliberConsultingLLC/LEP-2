@@ -425,7 +425,7 @@ export default function SentimentView({ t, phases, onAdvancePhase, traitIndex, r
   if (!rows.some((r) => r.team)) {
     return (
       <Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 2.4, md: 4 }, py: 3 }}>
-        <Typography sx={{ ...type.eyebrow, mb: 1.6 }}>Sentiment</Typography>
+        <Typography sx={{ ...type.eyebrow, mb: 1.6 }}>Sentiment Analysis</Typography>
         <Typography sx={{ ...type.lead, fontSize: { xs: 24, md: 28 }, lineHeight: 1.25, mb: 1.4 }}>
           The campaign is still listening.
         </Typography>

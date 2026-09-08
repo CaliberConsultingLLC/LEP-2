@@ -190,11 +190,13 @@ export const CHAPTERS = [
         id: 'today',
         label: 'Basecamp',
         path: '/dashboard?tab=today',
-        whatHappens: ['The sentiment, the evidence, and your plan', 'Where you land when you log in'],
+        whatHappens: ['The sentiment analysis, the evidence, and your plan', 'Where you land when you log in'],
       },
       {
+        // The id stays `narrative`: it keys the guide bank, the phase chain
+        // and every ?tab=narrative link already sent. Only the name changed.
         id: 'narrative',
-        label: 'Narrative',
+        label: 'Walkthrough',
         path: '/dashboard?tab=narrative',
         gated: true,
         whatHappens: ['Your first reading, told in nine pages', 'Play it once, replay it any time'],
@@ -203,7 +205,7 @@ export const CHAPTERS = [
         // The id stays `signal`: it keys saved progress, the phase chain and
         // every ?tab=signal link already sitting in a sent email.
         id: 'signal',
-        label: 'Sentiment',
+        label: 'Sentiment Analysis',
         path: '/dashboard?tab=signal',
         gated: true,
         whatHappens: ['What it is like to be led by you, trait by trait', 'Three questions, answered from what your team rated', 'Reading only — nothing to commit here'],
@@ -213,7 +215,7 @@ export const CHAPTERS = [
         label: 'Evidence',
         path: '/dashboard?tab=evidence',
         gated: true,
-        whatHappens: ['Every statement behind the sentiment', 'Sourced, not styled', 'Opens the action plan when read'],
+        whatHappens: ['Every statement behind the sentiment analysis', 'Sourced, not styled', 'Opens the action plan when read'],
       },
       {
         // Named Action Plan everywhere a leader reads it; the id stays

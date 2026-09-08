@@ -138,6 +138,26 @@ export const JOURNEY_SUMMARY = [
   'Your plan is revised. The last reading of the year is ahead.',
 ];
 
+/* How far the product can actually put someone today.
+
+   The map draws nine chapters because nine is the shape of the year. But the
+   check-in reading, the plan revision and the final reading have no campaign to
+   build, no route to walk and no page to land on — the header's chapter map
+   stops at `action`. Finishing the action plan therefore must NOT move the
+   leader onto chapter VII: standing them on a chapter with nothing in it reads
+   as "you can start this now", which is not true and will not be true for
+   weeks. They stay at the Action Plan, practising, until there is a real
+   reading to take.
+
+   Raise this the day the check-in campaign ships — not before. */
+export const JOURNEY_LAST_REACHABLE_INDEX = 5;
+
+/** The chapter the leader is standing in: furthest reached, never past what exists. */
+export const clampToReachable = (index) => Math.min(
+  Math.max(0, Number(index) || 0),
+  JOURNEY_LAST_REACHABLE_INDEX,
+);
+
 export const chapterText = (index) => `Chapter ${JOURNEY_ROMAN[Math.min(index, 6)] || JOURNEY_ROMAN[0]} of VII`;
 export const chapterEyebrow = (index) => `${chapterText(index)} · ${JOURNEY_STATIONS[index]?.label || JOURNEY_STATIONS[0].label}`;
 
@@ -344,7 +364,7 @@ export function getJourneyCompletion() {
 export function getCurrentJourneyIndexFromState() {
   const completion = getJourneyCompletion();
   const firstOpen = completion.findIndex((complete) => !complete);
-  return firstOpen === -1 ? JOURNEY_STATIONS.length - 1 : firstOpen;
+  return clampToReachable(firstOpen === -1 ? JOURNEY_STATIONS.length - 1 : firstOpen);
 }
 
 export function getJourneyIndexForLocation(pathname = '', search = '') {
@@ -407,7 +427,7 @@ export function getHeaderMetaForLocation(pathname = '', search = '') {
   if (pathname.startsWith('/dashboard')) {
     if (['growth-plan', 'plan', 'practice'].includes(tab)) return { label: 'Practice', value: 'Active' };
     if (['my-journey', 'journey'].includes(tab)) return { label: 'Chapters', value: '9' };
-    return { label: 'Sentiment', value: 'Current' };
+    return { label: 'Sentiment Analysis', value: 'Current' };
   }
   return null;
 }

@@ -121,13 +121,13 @@ const GROUPS = [
         hint: 'Mid draws the listening window; finished draws the room after the reading.',
       },
       {
-        label: 'Narrative',
+        label: 'Walkthrough',
         path: '/dashboard?tab=narrative',
         in: ['finished'],
         hint: 'The eight-page reading, opened on page one. Two explainers interrupt it, and after page five it stops to ask whether to keep going together or take it from here.',
       },
       {
-        label: 'Sentiment',
+        label: 'Sentiment Analysis',
         path: '/dashboard?tab=sentiment',
         in: ['mid', 'finished'],
         hint: 'Mid is still gathering; finished opens the trait room — three questions, one answer, no scores at the top.',

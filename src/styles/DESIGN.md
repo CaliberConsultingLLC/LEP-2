@@ -87,7 +87,9 @@ BAR 2 · white 78px   ⌾  CHAPTER III OF VII ▾ | Trailhead · Markers · Haza
 
 #### Responsive
 
-- Below 1180px: drop step numerals; shorten tab labels to the first word.
+- Below 1280px: drop step numerals; shorten tab labels to the first word.
+  (Raised from 1180 when Narrative/Sentiment became Walkthrough/Sentiment
+  Analysis — the longer names squeezed the status chip off the rail.)
 - Below 900px: replace the tab row with `Step n of m` (opens the drawer);
   porthole 72px, `top:-26px`, rail padding-left 108px.
 - Step tabs never `flex-shrink`. Native button chrome is stripped (`appearance: none`,

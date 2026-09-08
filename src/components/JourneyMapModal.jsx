@@ -22,6 +22,7 @@ import {
   JOURNEY_ROMAN,
   JOURNEY_STATIONS,
   JOURNEY_SUMMARY,
+  clampToReachable,
   getJourneyCompletion,
 } from '../pages/Dashboard/journey/journeyModel.js';
 import {
@@ -69,12 +70,17 @@ const bareButton = {
 
 const clampChapter = (n) => Math.min(JOURNEY_CHAPTER_COUNT, Math.max(1, n));
 
-/** Furthest chapter reached, 1..9 — the first one not yet finished. */
+/**
+ * The chapter the leader is standing in, 1..9 — the first one not yet finished,
+ * held back to what the product can actually open. Finishing the action plan
+ * does not walk them onto the check-in; there is nothing there to take yet, and
+ * "You are here" over an empty chapter reads as an invitation to start it.
+ */
 function furthestChapter(completion, fallbackIndex) {
   const list = Array.isArray(completion) ? completion : null;
-  if (!list || !list.length) return clampChapter((Number(fallbackIndex) || 0) + 1);
+  if (!list || !list.length) return clampChapter(clampToReachable(fallbackIndex) + 1);
   const firstOpen = list.findIndex((done) => !done);
-  return clampChapter((firstOpen === -1 ? list.length - 1 : firstOpen) + 1);
+  return clampChapter(clampToReachable(firstOpen === -1 ? list.length - 1 : firstOpen) + 1);
 }
 
 /** Earliest thing recorded in a chapter — when the leader walked it. */

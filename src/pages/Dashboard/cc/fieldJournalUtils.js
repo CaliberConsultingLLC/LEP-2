@@ -141,9 +141,9 @@ export function truncateNote(text, max = 86) {
 // ---------------------------------------------------------------------------
 
 const STANDING_LABEL = {
-  strength: 'Sentiment · strength',
-  liability: 'Sentiment · liability',
-  mixed: 'Narrative theme',
+  strength: 'Sentiment Analysis · strength',
+  liability: 'Sentiment Analysis · liability',
+  mixed: 'Walkthrough theme',
 };
 
 const responseLine = (n) => {
@@ -182,7 +182,7 @@ export function selectTraitInsights({ row, rowIndex = 0, analysis = null, respon
   const rollup = (analysis?.traitRollups || []).find((r) => r?.id === traitKey);
   if (rollup?.finding) {
     cards.push({
-      who: `${STANDING_LABEL[rollup.standing] || 'Narrative theme'}${responseLine(respondents)}`,
+      who: `${STANDING_LABEL[rollup.standing] || 'Walkthrough theme'}${responseLine(respondents)}`,
       text: String(rollup.finding).trim(),
     });
   } else {

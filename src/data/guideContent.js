@@ -319,9 +319,9 @@ export const GUIDE_CONTENT = {
     ],
   },
 
-  // ── Command Center · Sentiment (bank key stays dashboardSignal) ──────────
+  // ── Command Center · Sentiment Analysis (bank key stays dashboardSignal) ──
   dashboardSignal: {
-    title: 'Sentiment',
+    title: 'Sentiment Analysis',
     mentor: [
       { text: 'The signal is what your team is reflecting back. Hold it lightly — patterns matter more than any one number.', pose: 'map', cta: 'Okay' },
       { text: 'Click a trait pill or a dot on the quadrant. I’ll meet you there with a steadier read.', pose: 'think', cta: 'Got it' },

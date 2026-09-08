@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Box, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import LockOutlined from '@mui/icons-material/LockOutlined';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -214,7 +214,7 @@ export default function ChapterHeader({
   const location = useLocation();
   const navigate = useNavigate();
   const compact = useMediaQuery('(max-width:900px)', { noSsr: true });
-  const slimTabs = useMediaQuery('(max-width:1180px)', { noSsr: true });
+  const slimTabs = useMediaQuery('(max-width:1280px)', { noSsr: true });
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)', { noSsr: true });
 
   const inferred = useMemo(
@@ -226,10 +226,8 @@ export default function ChapterHeader({
   const chapter = chapterById(chapterId);
   const steps = stepsProp || chapter?.steps || [];
   const activeIndex = Math.max(0, steps.findIndex((s) => s.id === activeStepId));
-  const activeStep = steps[activeIndex] || steps[0];
   const stationIndex = stationIndexForChapter(chapterId);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
   // `?map=1` opens the journey folio straight from a link, so the page catalog
   // can point at it the way it points at every other surface.
   const [mapOpen, setMapOpen] = useState(
@@ -244,12 +242,7 @@ export default function ChapterHeader({
     const query = params.toString();
     navigate(`${location.pathname}${query ? `?${query}` : ''}`, { replace: true });
   };
-  const panelRef = useRef(null);
-  const chapterBtnRef = useRef(null);
   const portholeBtnRef = useRef(null);
-  const mobileStepRef = useRef(null);
-  const lastTriggerRef = useRef(null);
-  const wasOpenRef = useRef(false);
 
   const { firstName, completion } = useMemo(() => {
     const userInfo = parseJson(localStorage.getItem('userInfo'), {});
@@ -261,48 +254,7 @@ export default function ChapterHeader({
   }, [location.pathname]);
 
 
-  const closeDrawer = () => setDrawerOpen(false);
-  const openMap = () => {
-    setDrawerOpen(false);
-    setMapOpen(true);
-  };
-  const toggleDrawer = (triggerRef) => {
-    lastTriggerRef.current = triggerRef?.current || null;
-    setDrawerOpen((open) => !open);
-  };
-
-  useEffect(() => {
-    if (drawerOpen) {
-      wasOpenRef.current = true;
-      panelRef.current?.focus();
-      return undefined;
-    }
-    if (wasOpenRef.current && lastTriggerRef.current) {
-      lastTriggerRef.current.focus();
-    }
-    wasOpenRef.current = false;
-    return undefined;
-  }, [drawerOpen]);
-
-  useEffect(() => {
-    if (!drawerOpen) return undefined;
-    const onKey = (event) => {
-      if (event.key === 'Escape') closeDrawer();
-    };
-    const onDown = (event) => {
-      const target = event.target;
-      if (panelRef.current?.contains(target)) return;
-      if (chapterBtnRef.current?.contains(target)) return;
-      if (mobileStepRef.current?.contains(target)) return;
-      closeDrawer();
-    };
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('mousedown', onDown);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.removeEventListener('mousedown', onDown);
-    };
-  }, [drawerOpen]);
+  const openMap = () => setMapOpen(true);
 
   const handleStepClick = (step, status) => {
     if (status === 'locked') return;
@@ -383,10 +335,8 @@ export default function ChapterHeader({
         <Box
           component="button"
           type="button"
-          ref={chapterBtnRef}
-          onClick={() => toggleDrawer(chapterBtnRef)}
-          aria-expanded={drawerOpen}
-          aria-controls="chapter-overview"
+          onClick={openMap}
+          aria-label="Open your journey map"
           className="chapter-header-control"
           sx={{
             ...unstyledButton,
@@ -412,17 +362,6 @@ export default function ChapterHeader({
             }}
           >
             {`Chapter ${chapter.num} of ${CHAPTER_TOTAL_ROMAN}`}
-            <Box
-              component="span"
-              aria-hidden
-              sx={{
-                fontSize: 10,
-                lineHeight: 1,
-                color: drawerOpen ? colors.orange : colors.inkSoft,
-              }}
-            >
-              {drawerOpen ? '▴' : '▾'}
-            </Box>
           </Box>
           <Typography
             component="span"
@@ -496,10 +435,8 @@ export default function ChapterHeader({
           <Box
             component="button"
             type="button"
-            ref={mobileStepRef}
-            onClick={() => toggleDrawer(mobileStepRef)}
-            aria-expanded={drawerOpen}
-            aria-controls="chapter-overview"
+            onClick={openMap}
+            aria-label="Open your journey map"
             className="chapter-header-control"
             sx={{
               ...unstyledButton,
@@ -613,194 +550,6 @@ export default function ChapterHeader({
         <Box sx={{ flex: 1, minWidth: 12 }} />
         {renderChip(chip)}
       </Box>
-
-      {drawerOpen && (
-        <Box
-          id="chapter-overview"
-          ref={panelRef}
-          role="region"
-          aria-label="Chapter overview"
-          tabIndex={-1}
-          sx={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: '100%',
-            zIndex: 5,
-            bgcolor: colors.navy950,
-            borderBottom: '1px solid rgba(244,206,161,0.2)',
-            boxShadow: '0 24px 48px rgba(9,16,31,0.3)',
-            outline: 'none',
-            animation: reduceMotion ? 'none' : 'chapterDrawerDropIn 240ms cubic-bezier(0.2,0.8,0.2,1) both',
-            '@keyframes chapterDrawerDropIn': {
-              from: { opacity: 0, transform: 'translateY(-10px)' },
-              to: { opacity: 1, transform: 'translateY(0)' },
-            },
-          }}
-        >
-          <Box
-            sx={{
-              padding: { xs: `22px 24px 24px ${railPadLeft}px`, md: `26px 44px 30px ${railPadLeft}px` },
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: 'minmax(0,1fr) minmax(0,1fr) 272px' },
-              gap: { xs: '22px', md: '40px' },
-              alignItems: 'start',
-            }}
-          >
-            <Box>
-              <Typography
-                sx={{
-                  fontFamily: fonts.mono,
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: colors.orange,
-                  mb: '11px',
-                }}
-              >
-                What this chapter is for
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: fonts.serif,
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: 15.5,
-                  lineHeight: 1.55,
-                  color: colors.sand200,
-                  maxWidth: '46ch',
-                }}
-              >
-                {chapter.purpose}
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                borderLeft: { md: '1px solid rgba(244,206,161,0.14)' },
-                pl: { md: '30px' },
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: fonts.mono,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: 'color-mix(in srgb, var(--amber-soft) 60%, transparent)',
-                  mb: '12px',
-                }}
-              >
-                What happens here
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-                {(activeStep?.whatHappens || []).slice(0, 3).map((fragment) => (
-                  <Box key={fragment} sx={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                    <Box
-                      aria-hidden
-                      sx={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: '50%',
-                        bgcolor: colors.orange,
-                        mt: '6px',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontFamily: fonts.sans,
-                        fontSize: 13,
-                        fontWeight: 500,
-                        lineHeight: 1.45,
-                        color: colors.sand100,
-                      }}
-                    >
-                      {fragment}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                borderLeft: { md: '1px solid rgba(244,206,161,0.14)' },
-                pl: { md: '30px' },
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}
-            >
-              <Typography
-                sx={{
-                  fontFamily: fonts.mono,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: 'color-mix(in srgb, var(--amber-soft) 60%, transparent)',
-                }}
-              >
-                {`Chapter ${chapter.num} of ${CHAPTER_TOTAL_ROMAN}`}
-              </Typography>
-              <Box
-                component="button"
-                type="button"
-                onClick={() => setMapOpen(true)}
-                aria-haspopup="dialog"
-                aria-label="Review the map"
-                className="chapter-header-control"
-                sx={{
-                  ...unstyledButton,
-                  cursor: 'pointer',
-                  position: 'relative',
-                  height: 112,
-                  width: '100%',
-                  borderRadius: radii.sm,
-                  overflow: 'hidden',
-                  border: '1px solid rgba(244,206,161,0.22)',
-                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                }}
-              >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    backgroundImage: 'url(/journey-base.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: '44% 62%',
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(180deg, rgba(9,16,31,0.1), rgba(9,16,31,0.82))',
-                  }}
-                />
-                <Typography
-                  sx={{
-                    position: 'absolute',
-                    left: 14,
-                    bottom: 12,
-                    fontFamily: fonts.mono,
-                    fontSize: 9,
-                    fontWeight: 700,
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    color: colors.amberSoft,
-                  }}
-                >
-                  Review the map
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      )}
 
       <JourneyMapModal
         open={mapOpen}
