@@ -13,7 +13,7 @@ import SelfAssessmentChapter from './pages/SelfAssessmentChapter';
 import NewCampaignIntro from './pages/NewCampaignIntro';
 import CampaignSurvey from './pages/CampaignSurvey';
 import CampaignComplete from './pages/CampaignComplete';
-import Dashboard from './pages/Dashboard';
+import CommandCenter from './pages/Dashboard/CommandCenter';
 import DesignSystem from './pages/DesignSystem';
 import Faq from './pages/Faq';
 import Documents from './pages/Documents';
@@ -86,7 +86,7 @@ function AppRoutes() {
       <Route path="/campaign/:id/survey" element={<CampaignSurvey />} />
       <Route path="/campaign/:id/complete" element={<CampaignComplete />} />
       <Route path="/sign-in" element={<SignIn />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><CommandCenter /></ProtectedRoute>} />
       {useCairnTheme && <Route path="/design" element={<DesignSystem />} />}
       <Route path="/faq" element={<Faq />} />
       <Route path="/documents" element={<Documents />} />

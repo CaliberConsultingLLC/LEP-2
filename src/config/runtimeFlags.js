@@ -75,6 +75,13 @@ const isDemoRuntime = (() => {
 //
 // Opt back into legacy with `?theme=legacy` on any URL, or VITE_LEGACY_SKIN=true.
 //
+// The dashboard is already past that point. `/dashboard` renders the Command
+// Center on every theme; the legacy ribbon-nav dashboard and its three tabs
+// (ResultsTab, ActionTabStaging, GrowthCampaignTab) were deleted once nothing
+// but `?theme=legacy` could reach them and their copy had drifted a rename
+// behind the live product. What is left of this flag is the marketing, intake,
+// and survey skins.
+//
 // This flag is the SKIN AND NOTHING ELSE. It used to also stand in for "we are
 // on staging, so skip auth and let Firestore writes fail quietly", which meant
 // the new design could not ship without shipping an open dashboard alongside

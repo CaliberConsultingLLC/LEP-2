@@ -163,6 +163,17 @@
         "--strictPort"
       ],
       "port": 5321
+    },
+    {
+      "name": "lep2-vite-cutdown",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5331",
+        "--strictPort"
+      ],
+      "port": 5331
     }
   ]
 }
