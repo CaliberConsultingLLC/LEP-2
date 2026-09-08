@@ -87,6 +87,9 @@
     "api/get-guide-lines.js": {
       "maxDuration": 300
     },
+    "api/get-sentiment-narrative.js": {
+      "maxDuration": 300
+    },
     "api/regenerate-statement.js": {
       "maxDuration": 60
     }
