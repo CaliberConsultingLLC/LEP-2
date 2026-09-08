@@ -58,9 +58,10 @@ export default function FieldJournalGuide({
 }) {
   const owlSrc = persona?.poses?.[pose] || persona?.poses?.idle;
 
-  // Until the book has measured itself there is no scene to stand in, so the
-  // guide keeps the corner it has always had rather than flashing somewhere
-  // else for a frame on the way to the right answer.
+  // Until the book has measured itself there is no scene to stand in. The
+  // guide holds its place but stays invisible for that frame rather than
+  // appearing in the old corner and walking to the new one — the book does the
+  // same thing with its own stage, for the same reason.
   const fit = scene && owlSrc
     ? fitPortrait({
       src: owlSrc,
@@ -74,7 +75,9 @@ export default function FieldJournalGuide({
   return (
     <GuidePortrait
       src={owlSrc}
-      owlSx={fit ? { width: fit.width, left: fit.left, right: 'auto', bottom: fit.bottom } : undefined}
+      owlSx={fit
+        ? { width: fit.width, left: fit.left, right: 'auto', bottom: fit.bottom }
+        : { opacity: 0 }}
       resolveKey={fit ? `${Math.round(fit.left)}:${Math.round(fit.width)}:${Math.round(fit.bottom)}` : 'unfit'}
       alt={persona?.name ? `${persona.name} guide` : 'Guide'}
       eyebrow={eyebrow}

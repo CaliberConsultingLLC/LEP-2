@@ -292,7 +292,9 @@ export const __test = { rect, overlap, area, PLACEMENTS };
  * scene holds together at any window shape, which is the whole point.
  */
 export function fitPortrait({ src, mirrored = false, height, leadX, footInset = 0 }) {
-  const [x0, y0, x1, y1] = getGuideAnchor(src).box;
+  const box = getGuideAnchor(src).box;
+  const [x0, y0] = box;
+  const y1 = box[3];
   // The portraits are square, so the drawn height fixes the whole frame.
   const frame = height / (y1 - y0);
   // Which of the bird's own edges faces into the page: its right when the art
