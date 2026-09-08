@@ -62,21 +62,55 @@ function EvIntroPage({ rows, respondents }) {
   );
 }
 
+/**
+ * Whether the leader actually rated this axis of this statement.
+ *
+ * The averager returns a number for every statement whether or not anybody
+ * answered it — an unanswered axis averages to 0 — so a self score of 0 and no
+ * self score at all arrived here as the same thing. This function used to
+ * resolve that ambiguity by falling back to the TEAM's number: it printed the
+ * room's answer in the leader's column and reported a perception gap of zero,
+ * which is a claim that the two readings agree, made about a reading that does
+ * not exist. Worse, only the two axes borrowed; the compass score underneath
+ * them kept the real zero, so the same card said "0 gap" on effort and showed
+ * a 13-point gap on the dial an inch away. That is the contradiction this
+ * fixes, and the borrowed number was always the wrong half of it.
+ *
+ * `shape.n` is the count of ratings behind the average. It has been carried on
+ * every statement since the shape work and it is the only thing in the data
+ * that separates "they said zero" from "they said nothing".
+ */
+function selfRated(stat, axis) {
+  const n = Number(stat?.shape?.[axis]?.n);
+  // Campaigns cached before `shape` existed keep the old read of the value
+  // itself — minus the borrowed team number, which was never defensible.
+  if (!Number.isFinite(n)) return Number.isFinite(Number(stat?.[axis]));
+  return n > 0;
+}
+
 export function mapRowStatements(row) {
   const fallbackText = fallbackStatementsForRow(row);
   const teamStatements = row?.team?.statements || [];
   const selfStatements = row?.self?.statements || [];
   return Array.from({ length: 5 }, (_, i) => {
     const s = teamStatements[i] || {};
-    const self = selfStatements[i] || {};
+    const self = selfStatements[i] || null;
+    const ratedEffort = selfRated(self, 'effort');
+    const ratedEfficacy = selfRated(self, 'efficacy');
+    // A compass score needs both axes. One of them missing does not make a
+    // score out of the other; it makes two thirds of one.
+    const hasSelf = ratedEffort && ratedEfficacy;
     return {
       text: String(s.text || '').trim() || fallbackText[i] || `Statement ${i + 1}`,
       effort: Math.round(Number(s.effort) || 0),
       efficacy: Math.round(Number(s.efficacy) || 0),
-      effortSelf: Math.round(Number(self.effort) || Number(s.effort) || 0),
-      efficacySelf: Math.round(Number(self.efficacy) || Number(s.efficacy) || 0),
+      // Null where the leader did not answer. Every reader of these three has
+      // to say so rather than print a number, which is the point.
+      effortSelf: ratedEffort ? Math.round(Number(self.effort)) : null,
+      efficacySelf: ratedEfficacy ? Math.round(Number(self.efficacy)) : null,
       compass: Math.round(Number(s.lepScore) || 0),
-      compassSelf: Math.round(Number(self.lepScore) || Number(s.lepScore) || 0),
+      compassSelf: hasSelf ? Math.round(Number(self.lepScore)) : null,
+      hasSelf,
       // Aggregate agreement across the room, per axis — never an individual
       // rating. Null when the campaign predates it or has no responses.
       shape: s.shape || null,
@@ -110,18 +144,29 @@ function fmtSigned(n) {
   return n > 0 ? `+${n}` : String(n);
 }
 
+// What a score reads as when the leader has not given one. An em dash, because
+// a blank cell reads as a rendering fault and a 0 reads as an answer.
+const NO_SCORE = '—';
+
 function traitAverages(statements, mode) {
-  if (!statements.length) return { team: 0, self: 0 };
-  const sum = statements.reduce(
-    (acc, s) => {
-      const sc = scoresFor(s, mode);
-      return { team: acc.team + sc.team, self: acc.self + sc.self };
-    },
-    { team: 0, self: 0 }
-  );
+  if (!statements.length) return { team: 0, self: null };
+  let teamSum = 0;
+  let selfSum = 0;
+  let selfN = 0;
+  statements.forEach((st) => {
+    const sc = scoresFor(st, mode);
+    teamSum += sc.team;
+    if (sc.self != null) {
+      selfSum += sc.self;
+      selfN += 1;
+    }
+  });
   return {
-    team: Math.round(sum.team / statements.length),
-    self: Math.round(sum.self / statements.length),
+    team: Math.round(teamSum / statements.length),
+    // Over the statements that HAVE a self reading, not over five. Dividing
+    // three answers by five reports a self score below anything the leader
+    // actually said, which is a worse lie than saying nothing.
+    self: selfN ? Math.round(selfSum / selfN) : null,
   };
 }
 
@@ -175,7 +220,9 @@ function ScoreCell({ label, value, note, variant, gapSign }) {
           color: valueColor,
         }}
       >
-        <MetricHint title={hint}>{isGap ? fmtSigned(value) : value}</MetricHint>
+        <MetricHint title={hint}>
+          {isGap && typeof value === 'number' ? fmtSigned(value) : value}
+        </MetricHint>
       </Typography>
       <Typography
         sx={{
@@ -216,17 +263,21 @@ function ScoreCells({ team, self, all, mode }) {
       <Box sx={{ bgcolor: colors.sand200 }} />
       <ScoreCell
         label="Self score"
-        value={self}
-        note="What you reported"
-        variant={all ? 'allSelf' : 'plain'}
+        value={self == null ? NO_SCORE : self}
+        note={self == null ? 'You have not rated this' : 'What you reported'}
+        variant={all && self != null ? 'allSelf' : 'plain'}
       />
       <Box sx={{ bgcolor: colors.sand200 }} />
+      {/* An unanswered gap is drawn plain rather than tinted: the tint is the
+          verdict, and there is no verdict without both readings. */}
       <ScoreCell
         label="Perception gap"
-        value={gap}
-        note={Math.abs(gap) >= 15 ? 'Worth a conversation' : 'Closely aligned'}
-        variant="gap"
-        gapSign={gap}
+        value={gap == null ? NO_SCORE : gap}
+        note={gap == null
+          ? 'Nothing yet to hold theirs against'
+          : Math.abs(gap) >= 15 ? 'Worth a conversation' : 'Closely aligned'}
+        variant={gap == null ? 'plain' : 'gap'}
+        gapSign={gap ?? 0}
       />
     </Box>
   );
@@ -579,7 +630,7 @@ function statementLine(s, all, label) {
   // identically the first time this ran against seeded data.
   const rank =
     [...all.keys()].sort((a, b) => (all[a].compass - all[b].compass) || (a - b)).indexOf(here) + 1;
-  const selfGap = Math.round((s.compassSelf || 0) - (s.compass || 0));
+  const selfGap = s.compassSelf == null ? null : Math.round(s.compassSelf - (s.compass || 0));
   const spread = Math.max(...all.map((x) => x.compass)) - Math.min(...all.map((x) => x.compass));
   const place =
     spread === 0 ? `number ${here + 1} of ${all.length} in ${label}` :
@@ -609,7 +660,7 @@ function statementLine(s, all, label) {
   if (split <= -15) {
     return `This one lands better than you are working at it — ${place}, and cheaper than you think.`;
   }
-  if (Math.abs(selfGap) >= 15) {
+  if (selfGap != null && Math.abs(selfGap) >= 15) {
     return `${Math.abs(selfGap)} points sit between your reading of this one and theirs. That distance is the conversation, not the score on either side of it.`;
   }
   // Nothing here is remarkable, so nothing here pretends to be. The steady
@@ -783,7 +834,11 @@ function EvGapsPage({ rows, chapterIndex }) {
     if (!r.self) return;
     (r.team?.statements || []).forEach((s, i) => {
       const self = r.self.statements[i];
-      if (!self) return;
+      // Same rule as mapRowStatements: an unrated axis averages to 0, and a
+      // zero the leader never gave would climb straight to the top of a list
+      // sorted by widest distance. The page would then open on the three
+      // statements they forgot to answer.
+      if (!self || !selfRated(self, 'effort') || !selfRated(self, 'efficacy')) return;
       gaps.push({
         trait: r.subTrait || r.trait,
         text: s.text,
@@ -801,8 +856,9 @@ function EvGapsPage({ rows, chapterIndex }) {
         <ChapterEyebrow index={chapterIndex} label="The Gaps" />
         <Headline>Where your read and theirs part ways.</Headline>
         <Prose serif sx={{ mx: 'auto', maxWidth: 560 }}>
-          Across all {gaps.length} statements, these three carry the widest distance between what
-          you rated and what your team felt. Each is a conversation waiting to happen.
+          {gaps.length
+            ? `Across all ${gaps.length} statements you rated, these three carry the widest distance between what you rated and what your team felt. Each is a conversation waiting to happen.`
+            : 'You have not rated these statements yourself yet, so there is nothing to hold your team’s reading against.'}
         </Prose>
       </Box>
       <Stack spacing={1.5}>

@@ -152,9 +152,16 @@ const responseLine = (n) => {
   return ` · ${count} ${count === 1 ? 'response' : 'responses'}`;
 };
 
+// `gap` is -1, not 0, where the leader gave no self reading: this list is
+// sorted by widest gap and picked from the top, and an unanswered statement
+// has to sort below a real agreement rather than tie with one.
 const rankedStatements = (row) =>
   mapRowStatements(row)
-    .map((s, i) => ({ ...s, index: i, gap: Math.abs(s.compassSelf - s.compass) }))
+    .map((s, i) => ({
+      ...s,
+      index: i,
+      gap: s.compassSelf == null ? -1 : Math.abs(s.compassSelf - s.compass),
+    }))
     .filter((s) => String(s.text || '').trim());
 
 /**

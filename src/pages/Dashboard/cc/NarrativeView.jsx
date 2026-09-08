@@ -41,7 +41,12 @@ const writeJson = (key, value) => {
   }
 };
 
-const fmtGap = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+// An em dash where there is no reading to compare. '0' is an answer — it says
+// the two sides landed on the same number — and an unanswered statement has
+// not earned that claim.
+const NO_SCORE = '—';
+const fmtGap = (n) => (n == null ? NO_SCORE : n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0');
+const fmtScore = (n) => (n == null ? NO_SCORE : n);
 const gapInk = (n) => (n > 0 ? colors.orangeDeep : n < 0 ? colors.navy500 : colors.textSecondary);
 
 // ---------------------------------------------------------------------------
@@ -91,6 +96,9 @@ function statementSplitRead(effort, efficacy) {
 }
 
 function mirrorStatementRead(gap) {
+  if (gap == null) {
+    return 'You have not rated this one yourself, so there is nothing yet to hold their reading against.';
+  }
   if (gap >= 15) {
     return 'One of the widest gaps in your reading. You feel this landing; your team doesn’t yet. Worth asking them what it looks like from where they sit.';
   }
@@ -458,8 +466,13 @@ function PickGrid({ left, right }) {
 const GAP_BAND = (n) => (n > 0 ? 'rgba(224,122,63,0.34)' : n < 0 ? 'rgba(63,100,123,0.30)' : 'transparent');
 
 function GapTrack({ label, ink, fill, you, team, gap }) {
-  const lo = Math.min(you, team);
-  const hi = Math.max(you, team);
+  // `you` is null when the leader did not rate this axis. The team's track
+  // still draws — that is their answer and it stands on its own — but the
+  // mark, the band and the number all come off, because all three describe a
+  // distance from a reading that was never given.
+  const unread = you == null;
+  const lo = unread ? team : Math.min(you, team);
+  const hi = unread ? team : Math.max(you, team);
   return (
     <Box>
       <Box
@@ -474,23 +487,29 @@ function GapTrack({ label, ink, fill, you, team, gap }) {
         <Box sx={{ position: 'relative', height: 12 }}>
           <Box sx={{ position: 'absolute', inset: 0, borderRadius: radii.pill, bgcolor: colors.sand100, overflow: 'hidden' }}>
             <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${team}%`, bgcolor: fill, transition: 'width 280ms ease' }} />
-            <Box sx={{ position: 'absolute', left: `${lo}%`, width: `${hi - lo}%`, top: 0, bottom: 0, bgcolor: GAP_BAND(gap) }} />
+            {!unread && (
+              <Box sx={{ position: 'absolute', left: `${lo}%`, width: `${hi - lo}%`, top: 0, bottom: 0, bgcolor: GAP_BAND(gap) }} />
+            )}
           </Box>
           {/* Your read, pinned on their track. The caption below keys the two
               colours, so the mark needs no label of its own. */}
-          <Box sx={{ position: 'absolute', left: `${you}%`, top: -6, bottom: -6, width: '2px', ml: '-1px', borderRadius: radii.pill, bgcolor: colors.navy900 }} />
-          <Box
-            sx={{
-              position: 'absolute',
-              left: `${you}%`,
-              top: -11,
-              width: 7,
-              height: 7,
-              ml: '-3.5px',
-              borderRadius: radii.circle,
-              bgcolor: colors.navy900,
-            }}
-          />
+          {!unread && (
+            <>
+              <Box sx={{ position: 'absolute', left: `${you}%`, top: -6, bottom: -6, width: '2px', ml: '-1px', borderRadius: radii.pill, bgcolor: colors.navy900 }} />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: `${you}%`,
+                  top: -11,
+                  width: 7,
+                  height: 7,
+                  ml: '-3.5px',
+                  borderRadius: radii.circle,
+                  bgcolor: colors.navy900,
+                }}
+              />
+            </>
+          )}
         </Box>
         <Typography
           sx={{
@@ -508,7 +527,7 @@ function GapTrack({ label, ink, fill, you, team, gap }) {
         </Typography>
       </Box>
       <Typography sx={{ fontFamily: fonts.sans, fontSize: 12.5, color: colors.textSecondary, mt: 'clamp(4px, 0.95vh, 9px)', pl: '122px' }}>
-        <Box component="span" sx={{ color: colors.navy900, fontWeight: 600 }}>You {you}</Box>
+        <Box component="span" sx={{ color: colors.navy900, fontWeight: 600 }}>You {fmtScore(you)}</Box>
         {' · '}
         <Box component="span" sx={{ color: ink, fontWeight: 600 }}>they feel {team}</Box>
       </Typography>
@@ -540,7 +559,7 @@ function GapCells({ label, labelColor, you, team, gap }) {
     >
       <Typography sx={{ ...type.monoLabel, color: labelColor }}>{label}</Typography>
       <Typography sx={{ ...cell, color: colors.textSecondary }}>
-        {you}
+        {fmtScore(you)}
         <Box component="span" sx={cap}>YOU</Box>
       </Typography>
       <Typography sx={{ ...cell, color: colors.textPrimary }}>
@@ -1475,9 +1494,9 @@ function SlideMap({ stmts, sel, onSel }) {
 
 function SlideGapStatements({ stmts, sel, onSel }) {
   const d = stmts[sel];
-  const gap = Math.round(d.compassSelf - d.compass);
-  const eg = Math.round(d.effortSelf - d.effort);
-  const fg = Math.round(d.efficacySelf - d.efficacy);
+  const gap = d.compassSelf == null ? null : Math.round(d.compassSelf - d.compass);
+  const eg = d.effortSelf == null ? null : Math.round(d.effortSelf - d.effort);
+  const fg = d.efficacySelf == null ? null : Math.round(d.efficacySelf - d.efficacy);
   return (
     <Box sx={{ height: '100%' }}>
       <PickGrid
@@ -1511,7 +1530,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
                 label="Effort"
                 ink={colors.orangeDeep}
                 fill={colors.orange}
-                you={Math.round(d.effortSelf)}
+                you={d.effortSelf == null ? null : Math.round(d.effortSelf)}
                 team={Math.round(d.effort)}
                 gap={eg}
               />
@@ -1519,7 +1538,7 @@ function SlideGapStatements({ stmts, sel, onSel }) {
                 label="Effectiveness"
                 ink={colors.navy500}
                 fill={colors.efficacyBlue}
-                you={Math.round(d.efficacySelf)}
+                you={d.efficacySelf == null ? null : Math.round(d.efficacySelf)}
                 team={Math.round(d.efficacy)}
                 gap={fg}
               />

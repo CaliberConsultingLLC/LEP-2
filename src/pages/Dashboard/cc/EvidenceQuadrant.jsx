@@ -314,7 +314,10 @@ export default function EvidenceQuadrant({
     selectedNumeric != null ? statements[selectedNumeric] : null;
 
   const selfDrawn = useMemo(() => {
-    if (!compass || isAll || !selectedStatement) return null;
+    // No self reading, no self dot. Drawing one on the team's own coordinates
+    // put a second marker on the dial that said the leader agreed exactly,
+    // about a statement they never answered.
+    if (!compass || isAll || !selectedStatement || !selectedStatement.hasSelf) return null;
     const pos = circPos(selectedStatement.effortSelf, selectedStatement.efficacySelf);
     if (teamPt && Math.hypot(pos.x - teamPt.x, pos.y - teamPt.y) < 9) {
       pos.y += 8;
@@ -328,7 +331,9 @@ export default function EvidenceQuadrant({
   const gapValue = selectedStatement
     ? perceptionGap(selectedStatement.compass, selectedStatement.compassSelf)
     : 0;
-  const showGapChip = Boolean(compass && teamPt && selfDrawn && Math.abs(gapValue) >= 10);
+  const showGapChip = Boolean(
+    compass && teamPt && selfDrawn && gapValue != null && Math.abs(gapValue) >= 10
+  );
 
   // Where the gap chip goes.
   //
@@ -692,7 +697,7 @@ export default function EvidenceQuadrant({
               </Box>
             )}
 
-            {gapChip && (
+            {gapChip && gapValue != null && (
               <Box
                 sx={{
                   position: 'absolute',

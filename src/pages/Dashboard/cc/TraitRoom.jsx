@@ -23,7 +23,10 @@ import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 
 const HAIRLINE_ON_NAVY = 'rgba(244,206,161,0.20)';
-const signed = (n) => `${n > 0 ? '+' : ''}${n}`;
+// An em dash where there is no self reading. '0' would say the two readings
+// land on the same number, which is a claim, and there is nothing here making
+// it.
+const signed = (n) => (n == null ? '—' : `${n > 0 ? '+' : ''}${n}`);
 
 /** Ink for the active mode — the score column follows whichever mode is on. */
 const modeInk = (mode) => {
@@ -103,7 +106,10 @@ function BigStat({ value, label, hint, ink }) {
 
 /** One metric line inside the navy block: label, then Team | Self | Gap. */
 function MetricRow({ label, team, self }) {
-  const gap = self - team;
+  // Null self means the leader did not rate this axis. The row shows an em
+  // dash and drops the gap cell entirely rather than printing a distance from
+  // a number nobody gave.
+  const gap = self == null ? null : self - team;
   const cell = (v, l, ink) => (
     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '5px', px: '14px' }}>
       <Typography sx={{ fontFamily: fonts.serif, fontSize: 17, fontWeight: 500, lineHeight: 1, color: ink }}>
@@ -130,8 +136,8 @@ function MetricRow({ label, team, self }) {
         '& > *:not(:first-of-type)': { borderLeft: `1px solid ${HAIRLINE_ON_NAVY}` },
       }}>
         {cell(team, 'team', '#f0e9de')}
-        {cell(self, 'self', '#f0e9de')}
-        {cell(signed(gap), 'gap', colors.amberSoft)}
+        {cell(self == null ? '—' : self, 'self', '#f0e9de')}
+        {gap != null && cell(signed(gap), 'gap', colors.amberSoft)}
       </Box>
     </Box>
   );
@@ -418,10 +424,12 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
   }, [row]);
 
   const traitCompass = Math.round(Number(row?.team?.lepScore) || 0);
-  const mirror = perceptionGap(
-    Math.round(Number(row?.self?.lepScore) || 0),
-    Math.round(Number(row?.team?.lepScore) || 0)
-  );
+  // `|| 0` on the self side turned a missing self assessment into a mirror of
+  // minus the leader's whole team score. Null in, null out, and the header
+  // below drops the figure rather than printing a number for it.
+  const mirror = row?.self
+    ? perceptionGap(Number(row.self.lepScore), Number(row.team?.lepScore))
+    : null;
 
   const toggle = (idx) => {
     const text = ordered[idx]?.text;
@@ -475,7 +483,9 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
           <BigStat
             value={signed(mirror)}
             label="Mirror"
-            hint="How your own rating compares with your team's — self minus team."
+            hint={mirror == null
+              ? 'You have not rated this trait yourself, so there is nothing to hold your team’s reading against.'
+              : "How your own rating compares with your team's — self minus team."}
             ink={colors.navy900}
           />
         </Stack>

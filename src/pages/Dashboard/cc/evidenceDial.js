@@ -57,8 +57,17 @@ export function zoneFor(effort, efficacy) {
   return DIAL_ZONES.missing;
 }
 
+// A score that is present, or null. Absent is not zero anywhere on this page.
+const shown = (v) => (Number.isFinite(Number(v)) ? Math.round(Number(v)) : null);
+
 export function perceptionGap(team, self) {
-  return Math.round(Number(team) || 0) - Math.round(Number(self) || 0);
+  const t = shown(team);
+  const s = shown(self);
+  // No self reading is not a gap of zero. Zero is a claim — that the two
+  // readings land on the same number — and there is nothing here to agree
+  // with. The caller has to say "not answered", not "no distance".
+  if (t == null || s == null) return null;
+  return t - s;
 }
 
 export function metricLabel(mode) {
@@ -67,12 +76,14 @@ export function metricLabel(mode) {
   return 'Compass score';
 }
 
+// `team` is always a number — the room answered or the page would not be here.
+// `self` is null when the leader did not rate that axis.
 export function scoresFor(statement, mode) {
   if (mode === 'effort') {
-    return { team: Math.round(statement.effort || 0), self: Math.round(statement.effortSelf || 0) };
+    return { team: shown(statement.effort) ?? 0, self: shown(statement.effortSelf) };
   }
   if (mode === 'efficacy') {
-    return { team: Math.round(statement.efficacy || 0), self: Math.round(statement.efficacySelf || 0) };
+    return { team: shown(statement.efficacy) ?? 0, self: shown(statement.efficacySelf) };
   }
-  return { team: Math.round(statement.compass || 0), self: Math.round(statement.compassSelf || 0) };
+  return { team: shown(statement.compass) ?? 0, self: shown(statement.compassSelf) };
 }

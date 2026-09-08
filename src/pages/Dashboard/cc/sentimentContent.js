@@ -265,7 +265,11 @@ function buildQ03(ctx) {
   const { label, statements, definition, hasSelfData, traitGap } = ctx;
 
   const ranked = [...statements]
-    .map((s) => ({ ...s, gap: s.efficacy - s.efficacySelf }))
+    // A statement the leader never rated has no distance from their reading,
+    // and treating the averager's 0 as one puts the questions they skipped at
+    // the top of a chart about what their team sees that they do not.
+    .map((s) => ({ ...s, gap: s.efficacySelf == null ? null : s.efficacy - s.efficacySelf }))
+    .filter((s) => s.gap != null)
     .sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap))
     .slice(0, 3);
   const [first, second] = ranked;
