@@ -42,7 +42,25 @@ const SAND = {
   btnInk: '#F4CEA1',
 };
 
-// Which of the two the bubble is.
+// The guide standing in a room the leader is reading.
+//
+// Navy on cream is the right bubble when the guide is interrupting: an
+// unmissable dark block is exactly the job. In the dashboard rooms it is not
+// the job. The leader is reading their own results and the guide is a note in
+// the margin of that — a dark block beside a page of findings competes with
+// the thing it is there to help them read, and the eye goes to the block.
+// Same ink, same shape, same everything else; it just stops shouting.
+const QUIET = {
+  bg: '#FFFDF9',
+  ink: '#C0612A',
+  body: '#22364E',
+  rule: 'rgba(15,28,46,0.16)',
+  shadow: '0 14px 34px rgba(15,28,46,0.14)',
+  btnBg: '#10223C',
+  btnInk: '#F4CEA1',
+};
+
+// Which of the three the bubble is.
 //
 // One rule: the guide speaks in the opposite of its ground. Most of the
 // product is sand-coloured paper, so most of the time that is navy. Two
@@ -106,7 +124,15 @@ export default function GuideSpeech({
 
   useEffect(() => { setAcked(false); }, [text]);
 
-  const tone = toneName === 'navy' ? NAVY : toneName === 'sand' ? SAND : (themeIsDark() ? SAND : NAVY);
+  const tone = toneName === 'navy'
+    ? NAVY
+    : toneName === 'sand'
+      ? SAND
+      // A room already dark has nothing to quieten against — SAND is the quiet
+      // bubble there, and it is the one with the right contrast.
+      : toneName === 'quiet'
+        ? (themeIsDark() ? SAND : QUIET)
+        : (themeIsDark() ? SAND : NAVY);
 
   const solve = useCallback(() => {
     const owl = owlRef?.current;
@@ -288,25 +314,66 @@ export default function GuideSpeech({
               </Box>
             </Box>
           )}
-          <Box
-            component="button"
-            type="button"
-            autoFocus={Boolean(action.autoFocus)}
-            disabled={blocked}
-            onClick={() => { if (!blocked) action.onClick?.(); }}
-            sx={{
-              all: 'unset', boxSizing: 'border-box',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              px: '20px', minHeight: 36, borderRadius: radii.pill,
-              background: tone.btnBg, color: tone.btnInk,
-              fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
-              cursor: blocked ? 'not-allowed' : 'pointer',
-              opacity: blocked ? 0.45 : 1,
-              transition: 'opacity 140ms',
-              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-            }}
-          >
-            {action.label || 'Continue'}
+          {/* A closing beat, ruled off from the line above it. The guide has
+              said its piece; this is the sentence that hands over. */}
+          {action.note && (
+            <Box sx={{ mb: '12px' }}>
+              <Box aria-hidden sx={{ height: '1px', background: tone.rule, opacity: 0.7, mb: '10px' }} />
+              <Box sx={{
+                fontFamily: fonts.serif, fontStyle: 'italic', fontSize: 14.5,
+                lineHeight: 1.5, color: tone.body,
+              }}>
+                {action.note}
+              </Box>
+            </Box>
+          )}
+          {/* One button, or two. Two when the guide is asking rather than
+              telling — the way on, and the way out of being walked through it.
+              The second is outlined, because a fork with two solid buttons
+              reads as two demands. */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap' }}>
+            <Box
+              component="button"
+              type="button"
+              autoFocus={Boolean(action.autoFocus)}
+              disabled={blocked}
+              onClick={() => { if (!blocked) action.onClick?.(); }}
+              sx={{
+                all: 'unset', boxSizing: 'border-box',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                px: '20px', minHeight: 36, borderRadius: radii.pill,
+                background: tone.btnBg, color: tone.btnInk,
+                fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
+                cursor: blocked ? 'not-allowed' : 'pointer',
+                opacity: blocked ? 0.45 : 1,
+                transition: 'opacity 140ms',
+                '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+              }}
+            >
+              {action.label || 'Continue'}
+            </Box>
+            {action.secondary && (
+              <Box
+                component="button"
+                type="button"
+                disabled={blocked}
+                onClick={() => { if (!blocked) action.secondary.onClick?.(); }}
+                sx={{
+                  all: 'unset', boxSizing: 'border-box',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  px: '18px', minHeight: 36, borderRadius: radii.pill,
+                  border: `1px solid ${tone.rule}`, color: tone.body,
+                  fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
+                  cursor: blocked ? 'not-allowed' : 'pointer',
+                  opacity: blocked ? 0.45 : 1,
+                  transition: 'opacity 140ms, border-color 140ms',
+                  '&:hover': { borderColor: tone.ink },
+                  '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                }}
+              >
+                {action.secondary.label}
+              </Box>
+            )}
           </Box>
         </Box>
       )}

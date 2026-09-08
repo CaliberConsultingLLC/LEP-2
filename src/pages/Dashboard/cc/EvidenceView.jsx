@@ -538,6 +538,12 @@ function StagePanels({
 // screen's job — a room about Deadline Management at 48 has something
 // different to say than one about Clarity at 79, and the fifteen statements
 // underneath differ again. Generated lines replace them key for key.
+//
+// One number at most, and only when the number is the point. The scores are on
+// the page beside the guide; reading them back is not an observation, it is the
+// screen said twice. What earns the space is what a leader would not see on
+// their own — and where there is nothing like that to find, these say the
+// steady true thing instead of inventing one.
 // ---------------------------------------------------------------------------
 export const GUIDE_LINE_WRITERS = { trait: traitLine, statement: statementLine };
 
@@ -554,12 +560,12 @@ function traitLine(row, statements, label, role) {
     return `${label}, five statements. Nothing has been scored here yet — read them as the questions your team is about to answer about you.`;
   }
   if (role === 'edge') {
-    return `Effort ${effort}, effectiveness ${efficacy} — a ${Math.abs(split)}-point split. They can see you working at ${label.toLowerCase()} harder than almost anything else, and it is landing least. That distance is aim, not effort.`;
+    return `${Math.abs(split)} points between how hard they see you working at ${label.toLowerCase()} and how much of it arrives. That distance is aim, not effort.`;
   }
   if (role === 'lifting') {
-    return `${label} lands at ${efficacy} on ${effort} of effort. It costs you least and returns most — worth knowing which of these five it rests on before you spend it somewhere else.`;
+    return `${label} returns more than it costs you. Worth knowing which of these five is carrying that before you spend the attention somewhere else.`;
   }
-  return `Effort ${effort} and effectiveness ${efficacy} — close, and both earned. Strength like this is built rather than found. Statement ${worst + 1} is the one holding it back.`;
+  return `Effort and effect are close here, and both earned. Strength like this is built rather than found — statement ${worst + 1} is the one holding it back.`;
 }
 
 // "an 81-point gap", not "a 81-point gap".
@@ -595,18 +601,20 @@ function statementLine(s, all, label) {
       'They are watching you try at this and not feeling it arrive.',
       'The effort is not in question here. Where it is aimed might be.',
       'More of the same will not close this one — it is already the most effort you spend.',
-      'This is what "trying hard" looks like from the other side of it.',
+      'This is what trying hard looks like from the other side of it.',
       'Whatever you are doing here, they are not receiving it as the thing you meant.',
     ];
-    return `Effort ${s.effort}, effectiveness ${s.efficacy}. ${article(split)} ${split}-point gap on one behaviour, and ${place}. ${closes[(rank - 1) % closes.length]}`;
+    return `${article(split)} ${split}-point gap on one behaviour, and ${place}. ${closes[(rank - 1) % closes.length]}`;
   }
   if (split <= -15) {
-    return `Effectiveness ${s.efficacy} on effort ${s.effort} — this one lands better than you are working at it. ${place[0].toUpperCase()}${place.slice(1)}, and cheaper than you think.`;
+    return `This one lands better than you are working at it — ${place}, and cheaper than you think.`;
   }
   if (Math.abs(selfGap) >= 15) {
-    return `You put this at ${s.compassSelf}. They put it at ${s.compass}. ${place[0].toUpperCase()}${place.slice(1)} — and the ${Math.abs(selfGap)} points between those two readings is the conversation.`;
+    return `${Math.abs(selfGap)} points sit between your reading of this one and theirs. That distance is the conversation, not the score on either side of it.`;
   }
-  return `Effort ${s.effort}, effectiveness ${s.efficacy}, ${place}. What you put into this one is roughly what comes back out — which makes it a fair place to read the others against.`;
+  // Nothing here is remarkable, so nothing here pretends to be. The steady
+  // true thing about the statement beats a manufactured finding.
+  return `${place[0].toUpperCase()}${place.slice(1)}. What you put into this one is roughly what comes back out, which makes it a fair place to read the other four against.`;
 }
 
 // ---------------------------------------------------------------------------

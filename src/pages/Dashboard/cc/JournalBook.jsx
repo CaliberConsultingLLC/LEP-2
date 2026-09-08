@@ -472,6 +472,9 @@ export default function JournalBook({
       // How far the book's bottom edge sits above the window's floor, so
       // something standing beside it can stand on the same line.
       footInset: Math.max(0, vh - (top + h)),
+      // The guide tucks against the book horizontally but is sized against the
+      // window, the same as every other full-height owl in the product.
+      vh,
     };
   }, [stage, scale, vh]);
 

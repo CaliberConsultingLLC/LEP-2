@@ -3,15 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box } from '@mui/material';
 import GuideSpeech from './GuideSpeech';
 import { SUMMARY_OWL } from '../guidePlacement';
-import { EDGE, NATURAL_TX, anchorPercents, fitPortrait } from './guideGeometry';
-
-// How tall the bird stands on a full-screen interruption, as a share of the
-// window's height, and the range that share is allowed to produce. Off the
-// height rather than off a table of window widths, so it grows the way
-// everything else on the page does — smoothly, and with the room it is in.
-const CENTRED_H = 0.58;
-const CENTRED_H_MIN = 300;
-const CENTRED_H_MAX = 620;
+import { EDGE, NATURAL_TX, anchorPercents, fitPortrait, standingHeight } from './guideGeometry';
 
 function useViewport(active) {
   const [vp, setVp] = useState(null);
@@ -81,7 +73,7 @@ export default function GuidePortrait({
     ? fitPortrait({
       src,
       mirrored,
-      height: Math.max(CENTRED_H_MIN, Math.min(vp.h * CENTRED_H, CENTRED_H_MAX)),
+      height: standingHeight(vp.h),
       // Where the beak has to be for the bubble to straddle the middle. Not
       // half a bubble back from centre — the bubble does not sit centred on
       // the beak, it hangs off it at the one-to-two o'clock the guide reads

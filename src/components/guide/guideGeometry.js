@@ -321,6 +321,24 @@ export const __test = { rect, overlap, area, PLACEMENTS };
  * the frame falls out of the measured art. Size the bird off the scene and the
  * scene holds together at any window shape, which is the whole point.
  */
+// How tall the bird stands when it IS the page rather than a speaker in it —
+// the Summary, the field journal, a full-screen interruption. A share of the
+// window's height, clamped, so it grows the way everything else on the page
+// does: smoothly, and with the room it is in.
+//
+// One definition, because there are three callers and they have to agree. The
+// journal used to size its guide off the BOOK's scale instead, which made it
+// the smallest full-height owl in the product — a bird drawn to 465 where the
+// Summary's stands at 522, in the same window, three clicks apart.
+export const STANDING_H = 0.58;
+export const STANDING_H_MIN = 300;
+export const STANDING_H_MAX = 620;
+
+export function standingHeight(viewportHeight) {
+  const h = Number(viewportHeight) || 0;
+  return Math.max(STANDING_H_MIN, Math.min(h * STANDING_H, STANDING_H_MAX));
+}
+
 export function fitPortrait({ src, mirrored = false, height, leadX, speakX, footInset = 0 }) {
   const a = getGuideAnchor(src);
   const [x0, y0] = a.box;

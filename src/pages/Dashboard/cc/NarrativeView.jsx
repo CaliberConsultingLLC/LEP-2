@@ -1195,178 +1195,58 @@ function VideoInterstitial({ which, onClose }) {
 // Five pages in, the leader has been told everything the reading has to tell
 // them: two measurements, five statements, the map, and the distance between
 // their read and their team's. What is left is three trait-by-trait insights,
-// which is a different kind of reading — slower, and optional.
+// which is a different kind of reading — slower, and optional. So the deck
+// stops and asks.
 //
-// So the deck stops and asks. This one does not use the guide's corner bubble
-// the way the explainers do: it is a decision rather than a remark, and a
-// decision belongs in the middle of the screen with everything else out of
-// focus behind it. The guide steps back while it is up so there is one voice
-// on screen instead of two.
+// It interrupts exactly the way the two explainers do, because it is the same
+// moment: the page blurs to nothing and the guide says the line from its own
+// corner. It was briefly a card in the middle of the screen with the owl's
+// face printed on it, which is a dialog wearing the guide as a costume — the
+// guide is already on the page and already the thing that talks.
+//
+// The only new part is that this one has two ways out instead of one, so the
+// bubble carries a second button.
 function CrossroadsInterstitial({ onContinue, onLeave }) {
-  const { persona, setSuppress } = useGuide();
-  const continueRef = useRef(null);
+  const { setHidden, setPageMessage, clearPageMessage } = useGuide();
 
-  // The guide is taken off the screen entirely rather than collapsed — a lone
-  // "Guide" tab floating over the blur is the corner of a room that is no
-  // longer there. Its face is on the card instead, because the card is it
-  // talking.
+  // Same reason as the explainers: handing the guide a message is a context
+  // write, which re-renders the deck above this and hands down fresh
+  // callbacks. Read the current ones through refs so the message is built once.
+  const continueRef = useRef(onContinue);
+  const leaveRef = useRef(onLeave);
+  continueRef.current = onContinue;
+  leaveRef.current = onLeave;
+
   useEffect(() => {
-    setSuppress(true);
-    return () => setSuppress(false);
-  }, [setSuppress]);
+    setHidden(false);
+    setPageMessage({
+      text: 'That is everything your team said, taken whole. Three pages left, one for each trait, holding what you predicted against what they answered — I can keep walking them with you, or you can take it from here and turn the rooms over yourself. Nothing locks either way.',
+      pose: 'think',
+      eyebrow: 'The reading · a fork',
+      action: {
+        label: 'Keep reading together',
+        onClick: () => continueRef.current?.(),
+        secondary: { label: 'Go to Basecamp', onClick: () => leaveRef.current?.() },
+        autoFocus: true,
+      },
+    });
+    return () => clearPageMessage();
+  }, [setHidden, setPageMessage, clearPageMessage]);
 
-  useEffect(() => { continueRef.current?.focus(); }, []);
-
-  const button = (primary) => ({
-    all: 'unset',
-    boxSizing: 'border-box',
-    cursor: 'pointer',
-    textAlign: 'center',
-    whiteSpace: 'nowrap',
-    fontFamily: fonts.sans,
-    fontSize: 13.5,
-    fontWeight: 700,
-    p: '12px 26px',
-    borderRadius: radii.pill,
-    transition: 'background 140ms ease, border-color 140ms ease',
-    ...(primary
-      ? {
-          bgcolor: colors.amberSoft,
-          color: colors.navy900,
-          '&:hover': { bgcolor: colors.amber },
-        }
-      : {
-          border: '1px solid rgba(244, 206, 161, 0.42)',
-          color: colors.amberSoft,
-          '&:hover': { borderColor: colors.amberSoft, bgcolor: 'rgba(244, 206, 161, 0.08)' },
-        }),
-    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
-  });
-
+  // Nothing is drawn here but the blur. Everything the leader reads and clicks
+  // is in the guide's bubble, below GUIDE_Z so the owl stays crisp above it.
   return (
     <Box
-      role="dialog"
-      aria-modal="true"
-      aria-label="Keep reading together, or go to Basecamp"
+      aria-hidden
       sx={{
         position: 'fixed',
         inset: 0,
         zIndex: 1100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: { xs: 2, md: 6 },
-        bgcolor: 'rgba(10, 20, 36, 0.58)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
+        bgcolor: 'rgba(10, 20, 36, 0.42)',
+        backdropFilter: 'blur(7px)',
+        WebkitBackdropFilter: 'blur(7px)',
       }}
-    >
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 520,
-          textAlign: 'center',
-          bgcolor: colors.navy900,
-          border: '1px solid rgba(244, 206, 161, 0.24)',
-          borderRadius: radii.lg,
-          boxShadow: '0 40px 90px rgba(5, 12, 24, 0.6)',
-          p: { xs: '30px 26px 26px', md: '38px 40px 32px' },
-        }}
-      >
-        <Box
-          component="img"
-          src={persona?.poses?.think || persona?.poses?.idle}
-          alt=""
-          aria-hidden
-          sx={{
-            width: 62,
-            height: 62,
-            borderRadius: radii.circle,
-            objectFit: 'cover',
-            objectPosition: 'top center',
-            border: `2px solid ${colors.amberSoft}`,
-            bgcolor: colors.navy950,
-            mb: 2,
-          }}
-        />
-        <Typography sx={{ ...type.eyebrow, color: colors.orange, mb: 1.4 }}>
-          The reading · a fork
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: fonts.serif,
-            fontStyle: 'italic',
-            fontSize: { xs: 19, md: 22 },
-            lineHeight: 1.45,
-            color: colors.sand100,
-            mb: 1.6,
-            textWrap: 'pretty',
-          }}
-        >
-          That is everything your team said, taken whole.
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: fonts.sans,
-            fontSize: 14.5,
-            lineHeight: 1.65,
-            color: 'rgba(244, 236, 221, 0.78)',
-            mb: 3,
-            textWrap: 'pretty',
-          }}
-        >
-          Three pages are left, one for each trait, holding what you predicted against
-          what they answered. I can keep walking them with you — or you can take it from
-          here and turn the rooms over yourself. Nothing locks either way.
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1.4, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Box component="button" type="button" ref={continueRef} onClick={onContinue} sx={button(true)}>
-            Keep reading together
-          </Box>
-          <Box component="button" type="button" onClick={onLeave} sx={button(false)}>
-            Go to Basecamp
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  );
-}
-
-// The way out of the last page.
-//
-// The tab strip has always been up there, but a reading that simply runs out
-// of pages does not tell anyone it is finished. This does.
-function ReadingDone({ onLeave }) {
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.6, flexWrap: 'wrap', justifyContent: 'center' }}>
-      <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, color: colors.textSecondary }}>
-        That is the whole reading.
-      </Typography>
-      <Box
-        component="button"
-        type="button"
-        onClick={onLeave}
-        sx={{
-          all: 'unset',
-          boxSizing: 'border-box',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-          fontFamily: fonts.sans,
-          fontSize: 13,
-          fontWeight: 700,
-          color: colors.amberSoft,
-          bgcolor: colors.navy900,
-          p: '9px 20px',
-          borderRadius: radii.pill,
-          boxShadow: shadows.card,
-          transition: 'background 140ms ease',
-          '&:hover': { bgcolor: colors.navy800 },
-          '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 3 },
-        }}
-      >
-        Go to Basecamp →
-      </Box>
-    </Box>
+    />
   );
 }
 
@@ -1788,11 +1668,16 @@ export default function NarrativeView({ onGoTab }) {
   const [forkTarget, setForkTarget] = useState(null);
   const [askedFork, setAskedFork] = useState(false);
 
+  // `leaveForBasecamp` is redefined every render and the guide message is a
+  // context write, so both the fork and the last page reach it through a ref
+  // rather than depending on the function identity.
+  const leaveRef = useRef(null);
   const leaveForBasecamp = () => {
     setInterstitial(null);
     setForkTarget(null);
     onGoTab?.('today');
   };
+  leaveRef.current = leaveForBasecamp;
 
   const go = (next) => {
     const clamped = Math.min(Math.max(next, 0), SLIDE_COUNT - 1);
@@ -1866,6 +1751,7 @@ export default function NarrativeView({ onGoTab }) {
   //
   // Above the loading returns because hooks cannot sit behind them.
   const pageId = chapters[idx].id;
+  const lastPage = idx === SLIDE_COUNT - 1;
   useEffect(() => {
     const spoken = spokenGuide(
       personaId,
@@ -1874,9 +1760,23 @@ export default function NarrativeView({ onGoTab }) {
       NARRATIVE_GUIDE[pageId] || NARRATIVE_GUIDE.threshold,
       pageId === 'threshold' ? 'read' : 'map'
     );
-    setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: chapters[idx].label });
+    setPageMessage({
+      text: spoken.text,
+      pose: spoken.pose,
+      eyebrow: chapters[idx].label,
+      // The reading has run out of pages. The tab strip has always been up
+      // there, but a story that simply stops never tells anyone it is over —
+      // so the guide says so, and hands over in the same breath.
+      action: lastPage
+        ? {
+            note: 'Now it’s time to get your hands dirty.',
+            label: 'Go to Basecamp',
+            onClick: () => leaveRef.current?.(),
+          }
+        : null,
+    });
     return () => clearPageMessage();
-  }, [pageId, idx, chapters, personaId, setPageMessage, clearPageMessage]);
+  }, [pageId, idx, lastPage, chapters, personaId, setPageMessage, clearPageMessage]);
 
   if (!loaded && !rows.length) {
     return (
@@ -2048,9 +1948,8 @@ export default function NarrativeView({ onGoTab }) {
         </Box>
         <StageArrow dir="next" hidden={idx === SLIDE_COUNT - 1} onClick={() => go(idx + 1)} />
       </Box>
-      <Stack alignItems="center" spacing={1.2} sx={{ pt: idx === SLIDE_COUNT - 1 ? 1 : 1.4, pb: 0, flexShrink: 0 }}>
+      <Stack alignItems="center" sx={{ pt: 1.4, pb: 0, flexShrink: 0 }}>
         <ProgressDots chapters={chapters} current={idx} onJump={setIdx} />
-        {idx === SLIDE_COUNT - 1 && <ReadingDone onLeave={leaveForBasecamp} />}
       </Stack>
       {interstitial && (
         <VideoInterstitial

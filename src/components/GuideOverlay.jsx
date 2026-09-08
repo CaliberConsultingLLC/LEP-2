@@ -260,6 +260,10 @@ function GuideOverlay() {
         owlRef={owlRef}
         src={owlPose}
         mirrored={flipped}
+        // Quiet in the dashboard rooms. Everywhere else the guide is the thing
+        // on the page; there, the leader's own results are, and the guide is a
+        // note in the margin of them.
+        tone={location.pathname.startsWith('/dashboard') ? 'quiet' : 'auto'}
         eyebrow={message.eyebrow}
         text={message.text}
         action={message.action}

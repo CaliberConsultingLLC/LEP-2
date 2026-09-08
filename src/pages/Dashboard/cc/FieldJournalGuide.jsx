@@ -1,17 +1,17 @@
 import React from 'react';
 import GuidePortrait from '../../../components/guide/GuidePortrait';
-import { fitPortrait } from '../../../components/guide/guideGeometry';
+import { fitPortrait, standingHeight } from '../../../components/guide/guideGeometry';
 import { GUIDE_Z } from '../../../components/guidePlacement';
 
 // Where the guide stands, in the book's units.
 //
-// The book is drawn at 1140 x 724 and scaled as one piece, so these three
-// numbers are the whole composition: how tall the bird is against the book,
-// how far its leading edge reaches across the left page, and where its feet
-// come down relative to the book's bottom edge. Because they are in the book's
-// units they are multiplied by the book's own scale, which means the picture
-// is the same picture at 1100 x 850 and at 1900 x 950 — the window changes how
-// big the scene is drawn, never how it is arranged.
+// The book is drawn at 1140 x 724 and scaled as one piece, so these numbers are
+// the composition: how far the bird's leading edge reaches across the left
+// page, and where its feet come down relative to the book's bottom edge.
+// Because they are in the book's units they are multiplied by the book's own
+// scale, which means the picture is the same picture at 1100 x 850 and at
+// 1900 x 950 — the window changes how big the scene is drawn, never how it is
+// arranged.
 //
 // That is the fix for the thing that made placement look arbitrary. The bird
 // was sized by a breakpoint on the window's WIDTH (240/300/480/580/640, in
@@ -19,7 +19,12 @@ import { GUIDE_Z } from '../../../components/guidePlacement';
 // room's HEIGHT and centred in its width. Two systems keyed to two different
 // dimensions only agree at one aspect ratio, and the window is free to be any
 // other one.
-const OWL_HEIGHT = 545;   // the bird's drawn height, in book units
+// Height is the exception, and it is deliberate: the bird stands at the height
+// every other full-height guide stands at, measured off the window rather than
+// off the book. Sizing it off the book's scale made it the smallest owl in the
+// product — drawn to 465 where the Summary's stands at 522 in the same window
+// — and a guide that shrinks when you walk into a room reads as a different,
+// lesser guide. What the book governs is where it stands, not how big it is.
 const OWL_LEAD_X = 480;   // its leading edge, measured from the book's left edge
 const OWL_FOOT = 24;      // how far below the book's bottom edge it stands
 
@@ -66,7 +71,7 @@ export default function FieldJournalGuide({
     ? fitPortrait({
       src: owlSrc,
       mirrored: true,
-      height: OWL_HEIGHT * scene.scale,
+      height: standingHeight(scene.vh),
       leadX: scene.left + OWL_LEAD_X * scene.scale,
       footInset: scene.footInset + OWL_FOOT * scene.scale,
     })
