@@ -1,6 +1,7 @@
 import { STAGING_PERSONAS } from '../data/stagingPersonas';
 import { CAMPAIGN_TRAITS } from './stagingSeed';
 import { STAGING_GUIDE_SUMMARIES, stagingFlattenedSummary } from '../data/stagingGuideSummaries';
+import { STAGING_GUIDE_LINES } from '../data/stagingGuideLines';
 import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
 
 const FLAG_KEY = 'compassDemo';
@@ -297,6 +298,13 @@ export function seedDemoPersona({ name, teamSize, closeCampaign = true } = {}) {
   try {
     localStorage.setItem('summariesByGuide', JSON.stringify(STAGING_GUIDE_SUMMARIES));
     localStorage.setItem('aiSummary', stagingFlattenedSummary(guide.id));
+    // The per-screen lines, for the same reason as the summary above: without
+    // them every room in the demo falls back to canned copy, and the catalog
+    // shows the design with the guide switched off.
+    localStorage.setItem('compassGuideLines', JSON.stringify({
+      ...STAGING_GUIDE_LINES,
+      __meta: { model: 'claude-opus-5', source: 'demo-fixture', basedOnResults: true },
+    }));
   } catch { /* ignore */ }
   ['focusAreas', 'focusAreasSource', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
     .forEach((key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } });

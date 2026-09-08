@@ -7,6 +7,7 @@
  */
 
 import { STAGING_GUIDE_SUMMARIES, stagingFlattenedSummary } from '../data/stagingGuideSummaries';
+import { STAGING_GUIDE_LINES } from '../data/stagingGuideLines';
 import { persistFocusAreas } from './focusAreas';
 
 export const STAGING_USER_ID   = 'staging-test-uid-001';
@@ -24,6 +25,7 @@ const SEED_KEYS = [
   'intakeStatus',
   'aiSummary',
   'summariesByGuide',
+  'compassGuideLines',
   'focusAreas',
   'focusAreasSource',
   'trailheadHighlights',
@@ -179,6 +181,10 @@ export function seedStagingData() {
   }));
 
   localStorage.setItem('summariesByGuide', JSON.stringify(STAGING_GUIDE_SUMMARIES));
+  localStorage.setItem('compassGuideLines', JSON.stringify({
+    ...STAGING_GUIDE_LINES,
+    __meta: { model: 'claude-opus-5', source: 'staging-fixture', basedOnResults: true },
+  }));
   localStorage.setItem('aiSummary', stagingFlattenedSummary('mentor'));
 
   persistFocusAreas([
