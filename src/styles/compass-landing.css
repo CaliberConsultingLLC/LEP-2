@@ -88,37 +88,12 @@ html:has([data-compass-landing]) {
   color: var(--cl-gold);
 }
 
-.cl-nav-links {
-  display: flex;
-  gap: 30px;
-  align-items: center;
-}
-
-.cl-nav-link {
-  background: none;
-  border: 0;
-  padding: 0;
-  font: inherit;
-  font-weight: 700;
-  font-size: 13px;
-  color: rgba(255, 248, 240, 0.6);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.cl-nav-link:hover {
-  color: var(--cl-gold);
-}
-
-/* Sign in and Begin sit together as the account corner, set off from the
-   section anchors by the wider gap. The anchors scroll this page; these two
-   leave it, and a returning leader should not have to read the labels to tell
-   them apart — they are the two that carry a box. */
+/* The nav carries no section anchors — the page is read by scrolling it. What
+   is left is the account corner: Begin, then Sign In hard against the edge. */
 .cl-nav-account {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-left: 12px;
 }
 
 /* Sign in wears the ghost outline at nav scale. The 1.5px border is taken out
@@ -1583,10 +1558,8 @@ html:has([data-compass-landing]) {
 
 @media (max-width: 900px) {
   .cl-page { --cl-gutter: 24px; }
-  .cl-nav { padding: 18px 24px; flex-wrap: wrap; }
-  .cl-nav-links { gap: 18px; flex-wrap: wrap; }
-  .cl-nav-link { font-size: 12px; }
-  .cl-nav-account { gap: 10px; padding-left: 0; }
+  .cl-nav { padding: 18px 24px; }
+  .cl-nav-account { gap: 10px; }
   .cl-nav-signin { font-size: 12px; padding: 8.5px 16.5px; }
 
   .cl-hero { padding: 4px 24px 0; }

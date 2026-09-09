@@ -327,13 +327,6 @@ const PRIVACY_TERMS = [
   },
 ];
 
-const NAV_LINKS = [
-  { label: 'Your Path', id: 'cl-route' },
-  { label: 'Your Guide', id: 'cl-guide' },
-  { label: 'Your Growth', id: 'cl-growth' },
-  { label: 'Pricing', id: 'cl-pricing' },
-];
-
 function SectionRule({ label }) {
   return (
     <div className="cl-rule">
@@ -460,25 +453,13 @@ export default function CompassLanding() {
           <img src={ASSETS.logo} alt="Compass logo" />
           <span className="cl-wordmark">The Compass</span>
         </div>
-        <div className="cl-nav-links">
-          {NAV_LINKS.map((link) => (
-            <button
-              key={link.label}
-              type="button"
-              className="cl-nav-link"
-              onClick={() => scrollTo(link.id)}
-            >
-              {link.label}
-            </button>
-          ))}
-          <div className="cl-nav-account">
-            <button type="button" className="cl-nav-signin" onClick={goToSignIn}>
-              Sign In
-            </button>
-            <button type="button" className="cl-btn-ember" onClick={startJourney}>
-              Begin Your Expedition →
-            </button>
-          </div>
+        <div className="cl-nav-account">
+          <button type="button" className="cl-btn-ember" onClick={startJourney}>
+            Begin Your Expedition →
+          </button>
+          <button type="button" className="cl-nav-signin" onClick={goToSignIn}>
+            Sign In
+          </button>
         </div>
       </nav>
 
