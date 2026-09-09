@@ -1,0 +1,264 @@
+/* ============================================================================
+   Compass auth — the sign-in door.
+
+   Rendered by src/pages/SignIn.jsx behind the `useCairnTheme` flag. It used to
+   be a cream MUI card, which meant a returning leader crossed from the night
+   sky of the landing page into what looked like a different product. Same
+   palette and type as compass-landing.css, deliberately quieter: this is a
+   door, not a pitch, so it gets the sky and the wordmark and nothing else.
+
+   Fits 100svh without scrolling at every width. Nothing here may grow the page.
+   ========================================================================= */
+
+.ca-page {
+  --ca-cream: #FFF8F0;
+  --ca-gold: #F4CEA1;
+  --ca-ember: #E07A3F;
+  --ca-ember-deep: #B8532C;
+  --ca-hairline: rgba(244, 206, 161, 0.2);
+
+  position: relative;
+  min-height: 100svh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 28px 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--ca-cream);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(40% 22% at 50% 8%, rgba(244, 206, 161, 0.10), transparent 70%),
+    radial-gradient(34% 18% at 78% 4%, rgba(99, 147, 170, 0.16), transparent 70%),
+    radial-gradient(30% 16% at 18% 10%, rgba(90, 60, 102, 0.20), transparent 70%),
+    radial-gradient(1.8px 1.8px at 71% 12%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.6px 1.6px at 24% 8%, rgba(244, 206, 161, 0.8), transparent),
+    radial-gradient(1.4px 1.4px at 86% 22%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.2px 1.2px at 12% 26%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.5px 1.5px at 58% 5%, rgba(255, 255, 255, 0.8), transparent),
+    linear-gradient(180deg, #04091a 0%, #0a1830 26%, #14294a 62%, #28496e 88%, #3a5a80 100%);
+}
+
+.ca-page *,
+.ca-page *::before,
+.ca-page *::after {
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------- brand ----- */
+
+.ca-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+}
+
+.ca-brand img {
+  width: 30px;
+  height: 30px;
+}
+
+.ca-wordmark {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 22px;
+  font-variant: small-caps;
+  color: var(--ca-gold);
+}
+
+/* -------------------------------------------------------------- card ----- */
+
+.ca-card {
+  width: 100%;
+  max-width: 424px;
+  padding: 34px 32px 30px;
+  border: 1px solid var(--ca-hairline);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(2px);
+}
+
+/* Scoped with [data-compass-auth] for the same reason the landing page scopes
+   its headings: the global `html[data-theme='cairn'] h1` rule in
+   cairn-theme.css paints every heading navy, which on this sky is invisible. */
+.ca-page[data-compass-auth] .ca-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 300;
+  font-size: 32px;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ca-cream);
+  letter-spacing: normal;
+}
+
+.ca-sub {
+  margin: 9px 0 24px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  text-align: center;
+  color: rgba(255, 248, 240, 0.62);
+}
+
+/* ------------------------------------------------------------ fields ----- */
+
+.ca-field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.ca-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(244, 206, 161, 0.72);
+}
+
+.ca-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(244, 206, 161, 0.26);
+  border-radius: 7px;
+  background: rgba(4, 9, 26, 0.45);
+  color: var(--ca-cream);
+  font-family: inherit;
+  font-size: 15px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.ca-input::placeholder {
+  color: rgba(255, 248, 240, 0.34);
+}
+
+.ca-input:focus {
+  outline: none;
+  border-color: var(--ca-gold);
+  background: rgba(4, 9, 26, 0.62);
+}
+
+/* ------------------------------------------------------------ notices ---- */
+
+.ca-notice {
+  margin-bottom: 16px;
+  padding: 10px 13px;
+  border-radius: 7px;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid transparent;
+}
+
+.ca-notice-error {
+  border-color: rgba(224, 122, 63, 0.5);
+  background: rgba(184, 83, 44, 0.18);
+  color: #FFD9C2;
+}
+
+.ca-notice-ok {
+  border-color: rgba(244, 206, 161, 0.45);
+  background: rgba(244, 206, 161, 0.12);
+  color: var(--ca-gold);
+}
+
+/* ------------------------------------------------------------ actions ---- */
+
+.ca-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -6px 0 20px;
+}
+
+.ca-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ca-gold);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.ca-link:hover:not(:disabled) {
+  opacity: 0.75;
+}
+
+.ca-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ca-submit {
+  width: 100%;
+  padding: 13px 22px;
+  border: 0;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--ca-ember), var(--ca-ember-deep));
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.ca-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.ca-submit:disabled {
+  opacity: 0.62;
+  cursor: default;
+  transform: none;
+}
+
+/* The way out for someone who does not have an account yet. Its absence is
+   what let a returning leader loop back into signup and buy a second seat. */
+.ca-alt {
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--ca-hairline);
+  font-size: 13px;
+  text-align: center;
+  color: rgba(255, 248, 240, 0.58);
+}
+
+.ca-alt .ca-link {
+  font-size: 13px;
+  margin-left: 5px;
+}
+
+.ca-back {
+  font-size: 12.5px;
+  color: rgba(255, 248, 240, 0.42);
+}
+
+.ca-back:hover {
+  color: rgba(255, 248, 240, 0.7);
+}
+
+@media (max-width: 480px) {
+  .ca-page { gap: 20px; padding: 22px 16px; }
+  .ca-card { padding: 26px 22px 24px; }
+  .ca-page[data-compass-auth] .ca-title { font-size: 27px; }
+}
+
+/* Short viewports — a laptop with the browser chrome open — tighten rather
+   than scroll, because this page is never allowed to scroll. */
+@media (max-height: 640px) {
+  .ca-page { gap: 16px; }
+  .ca-card { padding: 22px 26px 20px; }
+  .ca-page[data-compass-auth] .ca-title { font-size: 26px; }
+  .ca-sub { margin-bottom: 18px; }
+  .ca-field { margin-bottom: 12px; }
+  .ca-alt { margin-top: 16px; padding-top: 14px; }
+}

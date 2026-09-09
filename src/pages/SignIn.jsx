@@ -5,17 +5,14 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { resolveResumePath } from '../utils/resumePath';
+import '../styles/compass-auth.css';
 import { useCairnTheme } from '../config/runtimeFlags';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
-import ProcessTopRail from '../components/ProcessTopRail';
 import { clearGeneratedGuideLines, setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { clearFocusAreas, isCompleteFocusAreaSet, persistFocusAreas } from '../utils/focusAreas';
 
 function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isDark] = useDarkMode();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -294,110 +291,76 @@ function SignIn() {
 
   if (useCairnTheme) {
     return (
-      <Box
-        sx={{
-          minHeight: '100svh',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: colors.sand50,
-        }}
-      >
-        <ProcessTopRail utilityOnly />
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            px: 2,
-          }}
-        >
-        <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Box
-            sx={{
-              width: '100%',
-              maxWidth: 480,
-              borderRadius: radii.lg,
-              p: { xs: 3, sm: 3.5 },
-              border: isDark ? '1px solid rgba(244,206,161,0.14)' : `1px solid ${colors.sand200}`,
-              bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.88)',
-              boxShadow: isDark ? '0 10px 32px rgba(0,0,0,0.34)' : shadows.card,
-            }}
+      <div className="ca-page" data-compass-auth>
+        <a className="ca-brand" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
+          <img src="/landing/CompassLogo.png" alt="" />
+          <span className="ca-wordmark">The Compass</span>
+        </a>
+
+        <div className="ca-card">
+          <h1 className="ca-title">Welcome back</h1>
+          <p className="ca-sub">Sign in and pick up where you left off.</p>
+
+          {error && <div className="ca-notice ca-notice-error" role="alert">{error}</div>}
+          {infoMessage && <div className="ca-notice ca-notice-ok" role="status">{infoMessage}</div>}
+
+          <label className="ca-field">
+            <span className="ca-label">Email</span>
+            <input
+              className="ca-input"
+              type="email"
+              autoComplete="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+
+          <label className="ca-field">
+            <span className="ca-label">Password</span>
+            <input
+              className="ca-input"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSignIn(); }}
+            />
+          </label>
+
+          <div className="ca-forgot-row">
+            <button
+              type="button"
+              className="ca-link"
+              onClick={handleForgotPassword}
+              disabled={isResettingPassword}
+            >
+              {isResettingPassword ? 'Sending reset link…' : 'Forgot password?'}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="ca-submit"
+            onClick={handleSignIn}
+            disabled={isSubmitting}
           >
-            <Stack spacing={2}>
-              <Typography
-                sx={{
-                  fontFamily: fonts.sans,
-                  fontSize: { xs: '1.65rem', sm: '1.95rem' },
-                  fontWeight: 800,
-                  textAlign: 'center',
-                  color: isDark ? colors.ink : colors.navy900,
-                }}
-              >
-                Sign In
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: fonts.sans,
-                  fontSize: '0.9rem',
-                  textAlign: 'center',
-                  color: isDark ? 'rgba(240,233,222,0.64)' : colors.inkSoft,
-                }}
-              >
-                Enter your email and password to resume your journey.
-              </Typography>
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </button>
 
-              {error && <Alert severity="error">{error}</Alert>}
-              {infoMessage && <Alert severity="success">{infoMessage}</Alert>}
+          <p className="ca-alt">
+            First time here?
+            <button type="button" className="ca-link" onClick={() => navigate('/user-info')}>
+              Begin your expedition →
+            </button>
+          </p>
+        </div>
 
-              <TextField
-                type="email"
-                label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                fullWidth
-              />
-              <TextField
-                type="password"
-                label="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                fullWidth
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSignIn();
-                }}
-              />
-              <Stack direction="row" justifyContent="flex-end" sx={{ mt: -0.5 }}>
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={handleForgotPassword}
-                  disabled={isResettingPassword}
-                  sx={{ minWidth: 0, px: 0.4, color: colors.orangeDeep, fontWeight: 700 }}
-                >
-                  {isResettingPassword ? 'Sending reset link...' : 'Forgot Password?'}
-                </Button>
-              </Stack>
-
-              <Stack direction="row" spacing={1.5} justifyContent="center" sx={{ pt: 0.5 }}>
-                <Button variant="outlined" onClick={() => navigate('/')} sx={buttons.secondary}>
-                  Back
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleSignIn}
-                  disabled={isSubmitting}
-                  sx={buttons.primary}
-                >
-                  {isSubmitting ? 'Signing In...' : 'Sign In'}
-                </Button>
-              </Stack>
-            </Stack>
-          </Box>
-        </Container>
-        </Box>
-      </Box>
+        <button type="button" className="ca-link ca-back" onClick={() => navigate('/')}>
+          ← Back to the landing page
+        </button>
+      </div>
     );
   }
 
