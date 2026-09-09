@@ -1,0 +1,80 @@
+/* ============================================================================
+   "Best viewed on a desktop" — src/components/DesktopOnlyNotice.jsx.
+
+   Self-contained: it appears over the landing page, the intake, and the
+   dashboard alike, so nothing here hangs off `.cl-page` or the cairn theme
+   attribute. The palette is copied from the landing rather than shared,
+   because those tokens are scoped to that page.
+   ========================================================================= */
+
+.dn-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 9, 26, 0.82);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.dn-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 360px;
+  padding: 28px 24px 24px;
+  border: 1px solid rgba(244, 206, 161, 0.24);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0a1830, #14294a);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  color: #fff8f0;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+}
+
+.dn-logo {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 14px;
+  display: block;
+}
+
+.dn-card .dn-title {
+  margin: 0;
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 300;
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: normal;
+  color: #f4cea1;
+}
+
+.dn-card .dn-body {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(255, 248, 240, 0.78);
+}
+
+.dn-btn {
+  appearance: none;
+  margin-top: 20px;
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff8f0;
+  background: linear-gradient(135deg, #e07a3f, #b8532c);
+}
+
+.dn-btn:focus-visible {
+  outline: 2px solid #f4cea1;
+  outline-offset: 3px;
+}

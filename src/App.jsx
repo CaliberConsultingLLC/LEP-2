@@ -38,6 +38,7 @@ import { GuideProvider } from './context/GuideContext';
 import { StepNavProvider } from './context/StepNavContext';
 import GuideOverlay from './components/GuideOverlay';
 import StagingDevPanel from './components/StagingDevPanel';
+import DesktopOnlyNotice from './components/DesktopOnlyNotice';
 import JourneyCeremonyGate from './components/JourneyCeremonyGate';
 import { autoSeedIfNeeded } from './utils/stagingSeed';
 import { isDemoSession } from './utils/demoMode';
@@ -125,6 +126,9 @@ function App() {
             <AppRoutes />
             <JourneyCeremonyGate />
             <RouteAwareGuide />
+            {/* Last in the tree so it sits over everything else, including the
+                guide overlay and the demo banner. */}
+            <DesktopOnlyNotice />
           </Router>
         </StepNavProvider>
       </GuideProvider>

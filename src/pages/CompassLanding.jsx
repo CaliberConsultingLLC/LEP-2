@@ -161,24 +161,30 @@ const GUIDES = [
   },
 ];
 
+/* The three cards name what a leader walks away with, in the order it arrives:
+   the map is written first and everything downstream is drawn from it, the
+   campaign is what the map turns into, and Basecamp is where all of it lives
+   for the year. They used to describe the mechanics instead — "a 15-minute
+   intake", "5-minute surveys" — which sold the length of the form rather
+   than the thing being bought. */
 const GROWTH = [
   {
-    kicker: 'ONCE, AT THE START',
-    title: 'Your self-assessment',
+    kicker: 'BUILT FIRST, GROWS ALL YEAR',
+    title: 'Your leadership insights map',
     body:
-      'A 15-minute intake on how you actually lead — built into a personalized insights map that paints the full picture of you as a leader, in your own answers.',
+      'After your intake, the Compass writes a personalized insights map — the full picture of how you lead, drawn from nothing but your own answers. Everything that follows is built off it, and it keeps growing as the year adds evidence.',
   },
   {
     kicker: 'THREE TIMES THIS YEAR',
-    title: 'Your growth campaign',
+    title: 'A one-of-one growth campaign',
     body:
-      'Anonymous 5-minute team surveys at the start, month three, and month nine — your own perception against how they experience your leadership. Every gap is named.',
+      'Your map becomes a campaign no other leader gets — three traits and fifteen statements in your own vocabulary, answered anonymously by your team at the start, month three, and month nine. Every gap it finds turns into an action item.',
   },
   {
-    kicker: 'ALL YEAR',
-    title: 'Action plans + your data',
+    kicker: 'OPEN ALL YEAR',
+    title: 'A living dashboard',
     body:
-      'An action plan built on the three traits you choose, revised after every calibration — with your guide alongside. Twelve months of access to all of it.',
+      'Basecamp holds all of it: the sentiment analysis, the evidence behind every statement, guided reflection with your guide, and an action plan you revise as new results land. Twelve months of access.',
   },
 ];
 
@@ -195,6 +201,43 @@ const SIGNAL_ROWS = [
   { name: 'Decisive Direction', compass: 53, effort: 69, efficacy: 45, growth: '+4', down: false },
   { name: 'Coaching', compass: 78, effort: 71, efficacy: 81, growth: '+18', down: false },
   { name: 'Strategic Patience', compass: 59, effort: 64, efficacy: 57, growth: '−7', down: true },
+];
+
+/* The action plan is written in the field journal now — six numbered prompts
+   per trait, ending in a target and one line the team hears. The panel used to
+   show an ENVISION / ROOT / BRANCH triptych, which stopped existing when the
+   thread replaced it: `STEP_DEFS` in fieldJournalUtils.js is the format this
+   mirrors, and the labels here are its step titles verbatim. */
+const PLAN_STEPS = [
+  {
+    n: 1,
+    label: 'UNDERSTANDING EXPECTATIONS',
+    quote: true,
+    body:
+      '\u201CFrom where they sit, they expect a direction they can plan a week around \u2014 not one that moves in the Monday standup.\u201D',
+  },
+  {
+    n: 2,
+    label: 'WHAT THEY NEED FROM YOU',
+    quote: true,
+    body:
+      '\u201CMore than anything, they want me to decide out loud, so they can move without guessing.\u201D',
+  },
+  {
+    n: 3,
+    label: 'BEHAVIOR ADJUSTMENTS',
+    ember: true,
+    bullets: [
+      'I will close every meeting naming the decision, the why, and who owns it.',
+      'I will stop reversing a call in chat without saying what changed.',
+    ],
+  },
+  {
+    n: 4,
+    label: 'ACCOUNTABILITY',
+    body:
+      'Every Friday I read back the week\u2019s decisions. Nobody should hear a shift secondhand.',
+  },
 ];
 
 const GAP_ROWS = [
@@ -301,13 +344,13 @@ const GUIDE_INSIGHTS = {
   },
   plan: {
     mentor:
-      'One root, one branch, one goal. You don’t report to this page — you live it, and the next calibration tells the truth.',
-    catalyst: 'The root feeds you. The branch is what the team sees. They’ll see it by March.',
+      'Six answers, one target, one line they hear. You don’t report to this page — the next campaign tells you whether it landed.',
+    catalyst: 'The behaviors are the whole plan. Name them Monday, and month three will show it.',
     challenger:
-      'Your branch is public — end every meeting naming the decision. They’ll know if you skip it.',
-    bestFriend: 'It’s one page you could recite in an elevator. That’s exactly why it works.',
-    mother: 'Tend the root and the branch, and the goal takes care of itself. I’ll check on the gardener.',
-    roaster: 'A year of growth on one page. Even you can’t lose this one.',
+      'You told them what to expect. That’s public now — they’ll notice the first week you skip it.',
+    bestFriend: 'It’s short enough to say out loud. That’s exactly why it survives the year.',
+    mother: 'Write down what they need, then keep the promise at the end of it. I’ll be checking.',
+    roaster: 'Six prompts and a number. Even you can hold onto that for nine months.',
   },
 };
 
@@ -692,37 +735,49 @@ export default function CompassLanding() {
                 <div className="cl-gap-stack">
                   <span className="cl-kicker">ACTION PLAN · DECISIVE DIRECTION</span>
                   <p className="cl-plan-intro">
-                    Built once after your calibration, revised when new signals land. One page. You
-                    live it — you don&apos;t log into it.
+                    Written trait by trait in your field journal, and revised every time new
+                    results land.
                   </p>
                   <div className="cl-plan-steps">
+                    {PLAN_STEPS.map((step) => (
+                      <div className="cl-plan-step" key={step.label}>
+                        <span className={`cl-plan-label${step.ember ? ' ember' : ''}`}>
+                          <i className="cl-plan-num">{step.n}</i>
+                          {step.label}
+                        </span>
+                        {step.bullets ? (
+                          <ul className="cl-plan-bullets">
+                            {step.bullets.map((line) => (
+                              <li key={line}>{line}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className={step.quote ? 'quote' : undefined}>{step.body}</p>
+                        )}
+                      </div>
+                    ))}
                     <div className="cl-plan-step">
-                      <span className="cl-plan-label">ENVISION · IN THEIR SHOES</span>
-                      <p className="quote">
-                        &ldquo;Priorities shift mid-week and I find out in the standup. So I&apos;ve
-                        stopped planning ahead.&rdquo;
-                      </p>
-                    </div>
-                    <div className="cl-plan-step">
-                      <span className="cl-plan-label">ROOT · WHAT FEEDS THE CHANGE</span>
-                      <p>
-                        Study one framework on decision cadence; bring the idea of &ldquo;decision
-                        debt&rdquo; to the team.
-                      </p>
-                    </div>
-                    <div className="cl-plan-step">
-                      <span className="cl-plan-label ember">BRANCH · WHAT THE TEAM SEES</span>
-                      <p>Close every meeting by naming the decision, the why, and who owns it.</p>
-                    </div>
-                    <div className="cl-plan-step is-last">
                       <div className="cl-plan-goal-label">
-                        <span>TRAIT GOAL</span>
+                        <span>
+                          <i className="cl-plan-num">5</i>
+                          SETTING A TARGET
+                        </span>
                         <em>61 today → 75 by month 9</em>
                       </div>
                       <div className="cl-plan-goal-meter">
                         <span style={{ width: '61%' }} />
                         <i />
                       </div>
+                    </div>
+                    <div className="cl-plan-step is-last">
+                      <span className="cl-plan-label ember">
+                        <i className="cl-plan-num">6</i>
+                        YOUR COMMITMENT TO THE TEAM
+                      </span>
+                      <p className="quote">
+                        &ldquo;Expect me to name the decision, the why, and who owns it before any
+                        meeting ends.&rdquo;
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -770,8 +825,8 @@ export default function CompassLanding() {
         </div>
       </section>
 
-      <section className="cl-section cl-close" id="cl-pricing" aria-label="Your package">
-        <SectionRule label="YOUR PACKAGE" />
+      <section className="cl-section cl-close" id="cl-pricing" aria-label="Your product">
+        <SectionRule label="YOUR PRODUCT" />
         <h2>
           Full access. <em>No premium paywall.</em>
         </h2>

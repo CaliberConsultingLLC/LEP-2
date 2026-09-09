@@ -1123,15 +1123,55 @@ html:has([data-compass-landing]) {
   margin: 10px 0 16px;
 }
 
+/* Six prompts now stand where three used to, so the thread runs tighter than
+   the panel it replaced — same 460px stage, twice the steps. */
 .cl-plan-steps {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 9px;
 }
 
 .cl-plan-step {
   border-bottom: 1px solid rgba(28, 43, 58, 0.08);
-  padding-bottom: 13px;
+  padding-bottom: 8px;
+}
+
+/* The journal numbers each step in a small ringed circle down the left of the
+   thread; the panel borrows the same mark so the preview and the real page
+   read as one thing. `currentColor` keeps it on whichever ink the label uses,
+   ember included. */
+.cl-plan-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-right: 9px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.cl-plan-bullets {
+  margin: 5px 0 0;
+  padding: 0 0 0 17px;
+}
+
+.cl-plan-bullets li {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.cl-plan-bullets li + li {
+  margin-top: 3px;
+}
+
+.cl-plan-bullets li::marker {
+  color: var(--cl-ember-deep);
 }
 
 .cl-plan-step.is-last {
@@ -1140,6 +1180,8 @@ html:has([data-compass-landing]) {
 }
 
 .cl-plan-label {
+  display: flex;
+  align-items: center;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1151,9 +1193,9 @@ html:has([data-compass-landing]) {
 }
 
 .cl-plan-step p {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.5;
-  margin: 6px 0 0;
+  margin: 5px 0 0;
 }
 
 .cl-plan-step p.quote {
@@ -1164,11 +1206,17 @@ html:has([data-compass-landing]) {
 
 .cl-plan-goal-label {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--cl-steel-deep);
+}
+
+.cl-plan-goal-label > span {
+  display: flex;
+  align-items: center;
 }
 
 .cl-plan-goal-label em {
