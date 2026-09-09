@@ -9,6 +9,7 @@ import FieldJournalGuide from './FieldJournalGuide.jsx';
 import { useCairnTheme } from '../../../config/runtimeFlags';
 import { isDemoSession } from '../../../utils/demoMode';
 import { readTraitNotes } from './traitRoomNotes.js';
+import { hasSeenIntro, markIntroSeen } from '../../../utils/guideIntro';
 import JournalBook, { BOOK_KEYFRAMES, LAND_MS, TURN_MS, usePrefersReducedMotion } from './JournalBook.jsx';
 import {
   EMPTY_PLAN,
@@ -153,6 +154,29 @@ function guideForContext(ctx) {
   return { text: spoken.text, pose: spoken.pose, eyebrow };
 }
 
+// The one interruption this room gets: the guide stepping in front of the book
+// as the cover comes up, to say what this step is for.
+//
+// It waits for the cover on purpose. Said over the closed book it landed on top
+// of the line the guide was already saying beside it — two bubbles, one owl,
+// nothing gained. Opening the book is the moment someone has decided to write,
+// which is the moment worth orienting.
+function openingGuide(personaId) {
+  const spoken = spokenGuide(
+    personaId,
+    'dashboardPractice',
+    'open-book',
+    'You have read what your team said, sat with it, and let it argue with you. None of that changes anything on its own. This is where it turns into something you do — a page for each trait, one question at a time, in your own words. Put the first foot down and I will walk it with you.',
+    'point'
+  );
+  return {
+    text: spoken.text,
+    pose: spoken.pose,
+    eyebrow: 'The action plan',
+    cta: 'I’m ready',
+  };
+}
+
 function NoteModal({ note, onClose }) {
   if (!note) return null;
   return (
@@ -238,11 +262,11 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
   const [notesOpen, setNotesOpen] = useState(false);
   const [modal, setModal] = useState(null);
   const [guideMsg, setGuideMsg] = useState({ text: '', pose: 'think', eyebrow: '' });
-  // The guide introduces each spread once per reading, held in a ref scoped to
-  // the mounted page rather than storage that outlives it.
+  // The room interrupts once, ever: the first time this leader opens the book.
+  // Every spread used to get its own, which meant the interruption stopped
+  // being an introduction and became a door on each page.
   const [introOpen, setIntroOpen] = useState(false);
   const [introMsg, setIntroMsg] = useState(null);
-  const introSeenRef = useRef({});
   // The rectangle the book settled into. The guide stands against the book
   // rather than against the window, so it has to be told where the book is.
   const [scene, setScene] = useState(null);
@@ -505,24 +529,19 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
     setGuideMsg(msg);
   }, [guideCtx, traitCount]);
 
-  useEffect(() => {
-    introSeenRef.current = {};
-  }, [personaId]);
-
-  const introKey = !open ? 'closed' : isLedger ? 'ledger' : `trait-${traitIdx}`;
+  const introId = useMemo(() => `practice_${userKey}`, [userKey]);
 
   useEffect(() => {
-    if (!useCairnTheme || readOnly || !traitCount || flip) return;
-    if (introSeenRef.current[introKey]) return;
-    const msg = guideForContext({ ...guideCtx, editing: null });
-    setIntroMsg(msg);
+    if (!useCairnTheme || readOnly || !traitCount || !open) return;
+    if (hasSeenIntro(introId)) return;
+    setIntroMsg(openingGuide(personaId));
     setIntroOpen(true);
-  }, [introKey, flip, readOnly, traitCount, guideCtx]);
+  }, [open, readOnly, traitCount, personaId, introId]);
 
   const dismissIntro = useCallback(() => {
-    introSeenRef.current[introKey] = true;
+    markIntroSeen(introId);
     setIntroOpen(false);
-  }, [introKey]);
+  }, [introId]);
 
   // --- Page props -----------------------------------------------------------
   const pagePropsFor = useCallback(
@@ -677,6 +696,7 @@ export default function FieldJournal({ t, phases, onAdvancePhase, traitIndex, on
           text={interrupting ? introMsg?.text || '' : guideMsg.text}
           pose={interrupting ? introMsg?.pose : guideMsg.pose}
           interrupting={interrupting}
+          cta={introMsg?.cta || 'I’m ready'}
           onDone={dismissIntro}
           scene={scene}
         />

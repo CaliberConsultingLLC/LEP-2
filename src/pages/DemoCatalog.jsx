@@ -142,7 +142,7 @@ const GROUPS = [
         label: 'Action plan',
         path: '/dashboard?tab=practice',
         in: ['finished'],
-        hint: 'Opens on the field journal’s interruption — the large owl, with its line anchored off the head. Inside: one question a page, one button.',
+        hint: 'Opens on the closed book, the owl saying its line beside it. Opening the cover is what interrupts — once ever, per leader — and inside it is one question a page, one button.',
       },
       { label: 'Journey', path: '/dashboard?tab=journey', in: ['mid', 'finished'] },
       {
