@@ -103,6 +103,12 @@ const readPractice = (plansByCampaign, userKey, keys) => {
  *             are the things there is something to go back and *read*; the rest
  *             would offer to change a past decision from a map that is meant to
  *             be looked at.
+ *
+ *             Both point at /revisit/*, not at the live pages. /form and
+ *             /summary are rungs — each one hands you to the next step of a
+ *             climb this leader has already finished, and neither offers a way
+ *             back to Base Camp. The revisit routes are the same two pages with
+ *             the ladder taken off. See src/pages/Revisit/.
  *   done    — whether this specific thing happened
  *   subs    — optional sub-bullets (the three chosen traits)
  *
@@ -172,13 +178,13 @@ export function getJourneyChapterItems() {
     ],
     // II — Behaviors & Instincts
     [
-      { text: 'Recorded your leadership instincts', date: shortDate(intakeAt), revisit: '/form', done: intakeComplete },
+      { text: 'Recorded your leadership instincts', date: shortDate(intakeAt), revisit: '/revisit/intake', done: intakeComplete },
       { text: 'Considered your daily behaviors under pressure', date: shortDate(intakeAt), done: intakeComplete },
       { text: 'Named the habits your team sees most', date: shortDate(intakeAt), done: intakeComplete },
     ],
     // III — Reflection & Creation
     [
-      { text: 'Read your written reflection', date: shortDate(summaryAt), revisit: '/summary', done: reflectionRead },
+      { text: 'Read your written reflection', date: shortDate(summaryAt), revisit: '/revisit/summary', done: reflectionRead },
       {
         text: 'Identified three traits for your growth campaign',
         date: shortDate(summaryAt || campaignAt),

@@ -22,7 +22,7 @@ const PAGE_GROUPS = [
     pages: [
       { label: 'II - Daily Behaviors', path: '/form?stage=intake' },
       { label: 'III - Summary', path: '/summary' },
-      { label: 'III - Summary Snapshot', path: '/summary-static' },
+      { label: 'III - Summary (revisit)', path: '/revisit/summary' },
     ],
   },
   {

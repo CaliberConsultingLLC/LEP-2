@@ -325,7 +325,21 @@ export function resolveFromLocation(pathname = '', search = '') {
     if (step === '3') return { chapterId: 'behaviors', activeStepId: 'insights' };
     return { chapterId: 'behaviors', activeStepId: 'habits' };
   }
-  if (pathname.startsWith('/summary-static')) return { chapterId: 'reflect', activeStepId: 'trailhead' };
+  // /revisit/* is deliberately absent, and must stay absent.
+  //
+  // Those pages are look-backs at chapters already walked, and they name their
+  // own chapter to the rail directly, so nothing here needs to infer it. What
+  // matters is what JourneyCeremonyGate does with the answer: it tracks the
+  // chapter of each location and fires the chapter-handoff ceremony whenever
+  // that number goes up. Resolve /revisit/intake to Chapter II and the walk
+  // back out of it to Base Camp is a jump from II to VI — so pressing "Back to
+  // Base Camp" on a page whose whole promise is that it changes nothing
+  // replays the Chapter II handoff on the way home. Returning nothing leaves
+  // the gate's idea of where the leader is untouched while they read, which is
+  // the truth: they never left.
+  //
+  // /summary-static is gone the same way; it redirects to /revisit/summary
+  // before anything reads a chapter off it.
   if (pathname.startsWith('/summary')) {
     const reflectStages = ['trailhead', 'markers', 'hazards', 'new-trail'];
     const active = reflectStages.includes(stage) ? stage : 'trailhead';

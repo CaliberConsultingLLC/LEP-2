@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import UserInfo from './pages/UserInfo';
 import IntakeForm from './pages/IntakeForm';
 import Summary from './pages/Summary';
-import SummarySnapshot from './pages/SummarySnapshot';
+import RevisitIntake from './pages/Revisit/RevisitIntake';
 import TraitSelection from './pages/TraitSelection';
 import CampaignBuilder from './pages/CampaignBuilder';
 import CampaignVerify from './pages/CampaignVerify';
@@ -80,7 +80,14 @@ function AppRoutes() {
       <Route path="/pay/success" element={<CheckoutSuccess />} />
       <Route path="/form" element={<IntakeForm />} />
       <Route path="/summary" element={<Summary />} />
-      <Route path="/summary-static" element={<ProtectedRoute><SummarySnapshot /></ProtectedRoute>} />
+      {/* The two things a leader can be sent back to from the journey map's
+          Revisit pills. Same pages, read-only, and both of them exit to Base
+          Camp instead of onwards into a climb that is already behind them.
+          /summary-static was a second, hand-built copy of the reflection that
+          did not look like the reflection; it redirects here now. */}
+      <Route path="/revisit/intake" element={<ProtectedRoute><RevisitIntake /></ProtectedRoute>} />
+      <Route path="/revisit/summary" element={<ProtectedRoute><Summary revisit /></ProtectedRoute>} />
+      <Route path="/summary-static" element={<Navigate to="/revisit/summary" replace />} />
       <Route path="/trait-selection" element={<TraitSelection />} />
       <Route path="/campaign-intro" element={<Navigate to="/campaign-builder" replace />} />
       <Route path="/campaign-builder" element={<CampaignBuilder />} />

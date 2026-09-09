@@ -577,13 +577,34 @@ function ChapterCard({
         <Box sx={{ flex: 1, minWidth: 12 }} />
 
         {locked ? (
-          <Box sx={{
-            display: 'inline-flex', alignItems: 'center', gap: '7px', flexShrink: 0,
-            px: '16px', minHeight: 44, borderRadius: radii.pill,
-            bgcolor: colors.navy900, color: colors.amberSoft,
-            fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
-          }}>
-            <span aria-hidden>🔒</span> Locked
+          // Locked, and still openable — those are different things.
+          //
+          // This was an inert pill, which meant a sealed intake drew five
+          // chapter headings and no way to get inside any of them. The banner
+          // at the foot of the page said "you can open this page any time to
+          // read exactly what you said" and the page it was describing could
+          // not be opened. Locked is about writing: the padlock stays, the
+          // chevron says the card still turns, and nothing inside it offers an
+          // edit because QuestionCard already hides that when locked.
+          <Box
+            component="button"
+            type="button"
+            onClick={onToggle}
+            aria-expanded={open}
+            sx={{
+              all: 'unset', boxSizing: 'border-box', cursor: 'pointer', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', gap: '7px',
+              px: '16px', minHeight: 44, borderRadius: radii.pill,
+              bgcolor: colors.navy900, color: colors.amberSoft,
+              fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
+              transition: 'transform 140ms',
+              '&:hover': { transform: 'translateY(-1px)' },
+              '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+            }}
+          >
+            <span aria-hidden>🔒</span>
+            {open ? 'Close' : 'Read it back'}
+            <Box component="span" aria-hidden sx={{ fontSize: 11 }}>{open ? '⌃' : '⌄'}</Box>
           </Box>
         ) : (
           <Box
@@ -672,6 +693,12 @@ export default function ReviewAndLock({
   locked = false,
   lockedAt = '',
   flashedRow = '',
+  // A leader who came back to this months later is not being asked to check
+  // anything — the checking happened once and the answer is already sealed.
+  // The ledger below is identical either way; only what the page says it is
+  // for, and where its one button goes, change. See pages/Revisit/.
+  revisit = false,
+  exitLabel = 'Read your reflection',
 }) {
   const { persona } = useGuide();
   const groups = useMemo(
@@ -707,11 +734,16 @@ export default function ReviewAndLock({
 
       {/* Heading */}
       <Box sx={{ textAlign: 'center', mb: '20px' }}>
-        <Typography sx={{ ...type.eyebrow, mb: '10px' }}>THE LAST LOOK</Typography>
-        <Typography sx={{ ...type.pageTitle, mb: '8px' }}>Read it back before it locks.</Typography>
+        <Typography sx={{ ...type.eyebrow, mb: '10px' }}>
+          {revisit ? 'THE RECORD' : 'THE LAST LOOK'}
+        </Typography>
+        <Typography sx={{ ...type.pageTitle, mb: '8px' }}>
+          {revisit ? 'What you said, the day you said it.' : 'Read it back before it locks.'}
+        </Typography>
         <Typography sx={{ ...type.subtitle, mx: 'auto', textAlign: 'center' }}>
-          Five stretches of the intake. Open one, read what you actually said, and mark it right.
-          When all five are verified you can lock the whole thing in.
+          {revisit
+            ? 'Five stretches of the intake you answered as a new leader here. Open any one to read it back. Nothing on this page can be changed — that is the point of it.'
+            : 'Five stretches of the intake. Open one, read what you actually said, and mark it right. When all five are verified you can lock the whole thing in.'}
         </Typography>
       </Box>
 
@@ -734,7 +766,7 @@ export default function ReviewAndLock({
         ))}
       </Stack>
 
-      {locked ? <LockedBanner date={lockedDate} onRead={onLock} /> : (
+      {locked ? <LockedBanner date={lockedDate} onRead={onLock} label={exitLabel} /> : (
         <SignOffPanel
           verifiedCount={verifiedCount}
           total={groups.length}
@@ -857,7 +889,7 @@ function SignOffPanel({ verifiedCount, total, allVerified, isSubmitting, onLock 
 }
 
 // Navy, not white-and-green: green stays for per-chapter verification only.
-function LockedBanner({ date, onRead }) {
+function LockedBanner({ date, onRead, label = 'Read your reflection' }) {
   return (
     <Box sx={{
       position: 'relative',
@@ -921,7 +953,7 @@ function LockedBanner({ date, onRead }) {
           '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
         }}
       >
-        Read your reflection
+        {label}
       </Box>
     </Box>
   );

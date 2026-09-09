@@ -40,9 +40,19 @@ import { demoRequestFields } from '../utils/demoMode';
 import { getSummaryBriefing, summaryBriefingsReady } from '../data/guideBriefings';
 import { commitSelectedTraits } from '../utils/campaignState';
 import { isCompleteFocusAreaSet, persistFocusAreas, readFocusAreas } from '../utils/focusAreas';
+import { BASE_CAMP_PATH, RevisitBar } from './Revisit/RevisitShell';
 
 
-function Summary() {
+/**
+ * @param {object}  props
+ * @param {boolean} props.revisit  read-only: this is the reflection being
+ *   looked at again from Base Camp rather than read for the first time on the
+ *   way up. The four stages are identical — the page is the record and the
+ *   record does not change — but the two ends of it stop pointing into the
+ *   climb: back from the Trailhead and on from A New Trail both become the way
+ *   home. See src/pages/Revisit/.
+ */
+function Summary({ revisit = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = location;
@@ -94,16 +104,22 @@ function Summary() {
     return () => setSuppress(false);
   }, [setSuppress, useCairnTheme]);
 
+  // The stage rides in the URL, and the URL it rides in is whichever one this
+  // page was mounted at. Hard-coding `/summary` here bounced /revisit/summary
+  // straight back onto the live reading on the first render — same four
+  // stages, but the walk rather than the record.
+  const stagePath = location.pathname.startsWith('/revisit/') ? '/revisit/summary' : '/summary';
+
   useEffect(() => {
     if (!useCairnTheme) return undefined;
     const idx = stageIndexFromSearch(location.search);
     setActiveJourneyStep(idx);
     const params = new URLSearchParams(location.search || '');
     if (!params.get('stage')) {
-      navigate(`/summary?stage=${REFLECT_STAGES[idx]}`, { replace: true, state: location.state });
+      navigate(`${stagePath}?stage=${REFLECT_STAGES[idx]}`, { replace: true, state: location.state });
     }
     return undefined;
-  }, [location.search, navigate]);
+  }, [location.search, navigate, stagePath]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -119,7 +135,7 @@ function Summary() {
     const next = Math.max(0, Math.min(REFLECT_STAGES.length - 1, Number(idx) || 0));
     setActiveJourneyStep(next);
     if (useCairnTheme) {
-      navigate(`/summary?stage=${REFLECT_STAGES[next]}`, { replace: true, state: location.state });
+      navigate(`${stagePath}?stage=${REFLECT_STAGES[next]}`, { replace: true, state: location.state });
     }
   };
 
@@ -727,6 +743,13 @@ function Summary() {
 
   useEffect(() => {
     if (!useCairnTheme || isLoading) return undefined;
+    // A revisit is not a first reading. The briefing is the guide introducing
+    // a stage to somebody about to meet it; standing in front of a record
+    // somebody came back to on purpose, it is a door in the way.
+    if (revisit) {
+      setBriefingOpen(false);
+      return undefined;
+    }
     const ceremonyOpen = () => {
       try { return sessionStorage.getItem('journeyCeremonyOpen') === '1'; }
       catch { return false; }
@@ -748,7 +771,7 @@ function Summary() {
       window.removeEventListener('compass:journey-ceremony-done', show);
       window.clearTimeout(timer);
     };
-  }, [currentStageId, isLoading, personaId]);
+  }, [currentStageId, isLoading, personaId, revisit]);
 
   const dismissBriefing = () => {
     briefingSeenRef.current[currentStageId] = true;
@@ -1259,12 +1282,25 @@ function Summary() {
         situations: situations.slice(0, 3),
       };
     };
+    // The two ends of the reading. On the way up they are rungs: back from the
+    // Trailhead is the intake, on from A New Trail is trait selection. On a
+    // revisit both of them are the way home instead — the traits were chosen a
+    // long time ago, and offering that door again from a page that says it is
+    // a record is offering to redo a decision nobody asked to reopen.
     const getBackTarget = () => {
-      if (activeJourneyStep === 0) return { label: 'Intake', action: () => navigate('/form?stage=intake') };
+      if (activeJourneyStep === 0) {
+        return revisit
+          ? { label: 'Base Camp', action: () => navigate(BASE_CAMP_PATH) }
+          : { label: 'Intake', action: () => navigate('/form?stage=intake') };
+      }
       return { label: cairnJourneyStages[activeJourneyStep - 1]?.label || 'Back', action: () => goToJourneyStep(activeJourneyStep - 1) };
     };
     const getNextTarget = () => {
-      if (activeJourneyStep === cairnJourneyStages.length - 1) return { label: 'Traits', action: () => navigate('/trait-selection') };
+      if (activeJourneyStep === cairnJourneyStages.length - 1) {
+        return revisit
+          ? { label: 'Base Camp ›', action: () => navigate(BASE_CAMP_PATH) }
+          : { label: 'Traits', action: () => navigate('/trait-selection') };
+      }
       return { label: cairnJourneyStages[activeJourneyStep + 1]?.label || 'Next', action: () => goToJourneyStep(activeJourneyStep + 1) };
     };
     const backTarget = getBackTarget();
@@ -1396,6 +1432,16 @@ function Summary() {
                 pl: { md: 28, lg: 36, xl: 42 },
               }}
             >
+              {/* Inside the same inset as the stage card, so the bar sits over
+                  the reading rather than across the whole window. */}
+              {revisit && (
+                <Box sx={{ width: '100%', maxWidth: 960, mx: 'auto' }}>
+                  <RevisitBar
+                    label="Chapter III · Your reflection"
+                    note="The four stages as they were written for you. Nothing on this page is live — reading it again changes nothing behind it."
+                  />
+                </Box>
+              )}
               <Box
                 sx={{
                   width: '100%',
@@ -1811,7 +1857,11 @@ function Summary() {
                         back to canned copy, which is exactly the impression
                         this feature exists to avoid. By A New Trail they have
                         read four stages and the background work has landed. */}
-                    {onFinalStage && (
+                    {/* Not on a revisit: picking a voice here calls setPersona,
+                        which changes the leader's guide everywhere. A page whose
+                        own banner says nothing on it is live cannot carry the one
+                        control that quietly rewrites the rest of the product. */}
+                    {onFinalStage && !revisit && (
                       <>
                         <Box
                           component="button"

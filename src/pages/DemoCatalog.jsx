@@ -68,7 +68,18 @@ const GROUPS = [
         in: ['mid', 'finished'],
         hint: 'The stage interruption. One of the four; the other three are the same shape.',
       },
-      { label: 'Summary snapshot', path: '/summary-static', in: ['mid', 'finished'] },
+      {
+        label: 'Summary — revisited',
+        path: '/revisit/summary',
+        in: ['mid', 'finished'],
+        hint: 'The same four stages, opened from Base Camp months later: read-only, no guide swap, and both ends of the reading go home instead of on.',
+      },
+      {
+        label: 'Intake — revisited',
+        path: '/revisit/intake',
+        in: ['mid', 'finished'],
+        hint: 'The sealed ledger on its own, without the form around it. What you answered as a new user, with one button back to Base Camp.',
+      },
     ],
   },
   {
