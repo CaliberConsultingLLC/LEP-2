@@ -360,20 +360,22 @@ export default function GuideSpeech({
             >
               {action.label || 'Continue'}
             </Box>
+            {/* The way out is never gated. `blocked` holds the way ON until the
+                guide has been answered, which is the point of asking; holding
+                the way out too would mean the only escape from a question is
+                to agree with it. */}
             {action.secondary && (
               <Box
                 component="button"
                 type="button"
-                disabled={blocked}
-                onClick={() => { if (!blocked) action.secondary.onClick?.(); }}
+                onClick={() => action.secondary.onClick?.()}
                 sx={{
                   all: 'unset', boxSizing: 'border-box',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   px: '18px', minHeight: 36, borderRadius: radii.pill,
                   border: `1px solid ${tone.rule}`, color: tone.body,
                   fontFamily: fonts.sans, fontSize: 12.5, fontWeight: 700,
-                  cursor: blocked ? 'not-allowed' : 'pointer',
-                  opacity: blocked ? 0.45 : 1,
+                  cursor: 'pointer',
                   transition: 'opacity 140ms, border-color 140ms',
                   '&:hover': { borderColor: tone.ink },
                   '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },

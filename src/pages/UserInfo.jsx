@@ -71,15 +71,21 @@ function UserInfo() {
   const [openDialog, setOpenDialog] = useState(null);
   const closeDialog = () => setOpenDialog(null);
 
-  // The guide speaks before the form does. Two checkboxes at the foot of a
-  // signup form are the least-read part of the most consequential screen, and
-  // this product asks something of people who are not in the room. Agreeing in
-  // the ceremony sets the same two flags the form has always carried, so the
-  // stored consent and its timestamp are unchanged — only the delivery is.
-  const [ceremonyDone, setCeremonyDone] = useState(false);
+  // The guide speaks at the button, not at the door. Two checkboxes at the
+  // foot of a signup form are the least-read part of the most consequential
+  // screen, and this product asks something of people who are not in the room.
+  //
+  // So pressing Create does not create anything yet: it opens the
+  // interruption, the guide says what this expects of them and of their team,
+  // and the account is created from in there. Agreeing sets the same two flags
+  // the form has always carried, so the stored consent and its timestamp are
+  // unchanged — only the delivery is.
+  const [ceremonyOpen, setCeremonyOpen] = useState(false);
   const acceptCeremony = () => {
     setUserInfo((prev) => ({ ...prev, agreeTerms: true, agreePrivacy: true }));
-    setCeremonyDone(true);
+    // The flags are also passed straight through, because this call is the
+    // one that writes the consent record and setState has not landed yet.
+    createAccount({ terms: true, privacy: true });
   };
   const agreeDialog = (field) => {
     setUserInfo((prev) => ({ ...prev, [field]: true }));
@@ -193,11 +199,28 @@ function UserInfo() {
       return;
     }
 
+    // Under the cairn skin the consent moment IS the interruption, so the
+    // button opens it and the account is created from in there. The legacy
+    // skin still carries its two checkboxes and submits straight away.
+    if (useCairnTheme) {
+      setError(null);
+      setErrorCode('');
+      setCeremonyOpen(true);
+      return;
+    }
+
     if (!userInfo.agreeTerms || !userInfo.agreePrivacy) {
       setError('You must accept the Terms and Privacy Policy to continue.');
       return;
     }
 
+    await createAccount({ terms: userInfo.agreeTerms, privacy: userInfo.agreePrivacy });
+  };
+
+  // Everything from here down runs after they have agreed. `consent` is passed
+  // rather than read off state because the ceremony sets those flags and calls
+  // this in the same tick.
+  const createAccount = async (consent) => {
     setIsSubmitting(true);
     setError(null);
     setErrorCode('');
@@ -258,8 +281,8 @@ function UserInfo() {
           email: signupEmail,
           enteredEmail: normalizedEmail,
           consent: {
-            terms: userInfo.agreeTerms,
-            privacy: userInfo.agreePrivacy,
+            terms: consent.terms,
+            privacy: consent.privacy,
             acceptedAt: new Date().toISOString(),
           },
         }),
@@ -271,8 +294,8 @@ function UserInfo() {
           email: signupEmail,
           uid: signupUid,
           consent: {
-            terms: userInfo.agreeTerms,
-            privacy: userInfo.agreePrivacy,
+            terms: consent.terms,
+            privacy: consent.privacy,
             acceptedAt: new Date().toISOString(),
             version: 'v1',
           },
@@ -323,6 +346,9 @@ function UserInfo() {
         navigate('/form');
       }
     } catch (err) {
+      // Back to the form: the alert lives on it, and leaving the interruption
+      // up would leave the reason behind a blur.
+      setCeremonyOpen(false);
       const errorMessage = mapFirebaseAuthError(err?.code);
       setError(errorMessage);
       setErrorCode(String(err?.code || ''));
@@ -590,7 +616,11 @@ function UserInfo() {
               </Box>
               </Box>
 
-              <Stack spacing={0.55} sx={{ alignItems: useCairnTheme ? 'flex-start' : 'center', pt: useCairnTheme ? 0.4 : 0 }}>
+              {/* The legacy skin's own consent row. Under cairn these two are
+                  what the interruption asks for, and a second pair on the form
+                  would be both a duplicate and a way past it. */}
+              {!useCairnTheme && (
+              <Stack spacing={0.55} sx={{ alignItems: 'center' }}>
                 {[
                   {
                     name: 'agreeTerms',
@@ -660,6 +690,7 @@ function UserInfo() {
                   </Box>
                 ))}
               </Stack>
+              )}
 
               {error && (
                 <Alert
@@ -696,9 +727,15 @@ function UserInfo() {
                   mt: 2,
                 }}
               >
+                {/* Under cairn this button no longer submits — it hands over to
+                    the guide, who says what this expects before making the
+                    account. So it names the thing being asked for rather than
+                    the next screen. */}
                 {isSubmitting
                   ? 'Saving...'
-                  : isIntakeUnlocked() ? 'Continue to your guide' : 'Continue to payment'}
+                  : useCairnTheme
+                    ? 'Create my account'
+                    : isIntakeUnlocked() ? 'Continue to your guide' : 'Continue to payment'}
               </Button>
             </Stack>
           </CardContent>
@@ -707,8 +744,10 @@ function UserInfo() {
       </Container>
 
       <ConsentCeremony
-        open={!ceremonyDone}
+        open={ceremonyOpen}
+        busy={isSubmitting}
         onAgree={acceptCeremony}
+        onCancel={() => setCeremonyOpen(false)}
         onOpenTerms={() => setOpenDialog('terms')}
         onOpenPrivacy={() => setOpenDialog('privacy')}
       />
