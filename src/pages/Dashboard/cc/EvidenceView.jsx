@@ -5,7 +5,7 @@ import { useBenchmarkData } from './dashboardData.js';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import EvidenceQuadrant, { EvidenceModeBar } from './EvidenceQuadrant.jsx';
-import { metricLabel, perceptionGap, scoresFor, zoneFor } from './evidenceDial.js';
+import { PLATE_INK, SCORE_COL, metricLabel, perceptionGap, scoresFor, zoneFor } from './evidenceDial.js';
 import MetricHint from '../../../components/MetricHint';
 import { hintForMetricLabel, SCORE_HINTS } from '../../../data/scoreGlossary';
 import {
@@ -410,6 +410,8 @@ function AllStatementList({ statements, onSelect }) {
         >
           Trait statements
         </Typography>
+        {/* Named over the column of plates it belongs to, not merely flushed
+            to the right edge of the list. */}
         <Typography
           sx={{
             fontFamily: fonts.mono,
@@ -419,6 +421,8 @@ function AllStatementList({ statements, onSelect }) {
             textTransform: 'uppercase',
             color: colors.inkSoft,
             flexShrink: 0,
+            minWidth: SCORE_COL,
+            textAlign: 'center',
           }}
         >
           <MetricHint title={SCORE_HINTS.compass} underline>Compass score</MetricHint>
@@ -438,34 +442,58 @@ function AllStatementList({ statements, onSelect }) {
               cursor: 'pointer',
               boxSizing: 'border-box',
               display: 'grid',
-              gridTemplateColumns: '26px 1fr 30px',
-              gap: '14px',
-              alignItems: 'center',
+              gridTemplateColumns: `26px 1fr ${SCORE_COL}px`,
+              columnGap: '14px',
+              alignItems: 'stretch',
               width: '100%',
-              py: '13px',
-              px: '4px',
-              borderTop: idx === 0 ? 'none' : `1px solid ${colors.sand200}`,
+              pl: '4px',
               ...FOCUS_SX,
             }}
           >
-            <Typography sx={{ fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, color: colors.inkSoft }}>
+            {/* The row hairline stops at the plate. Run through it and the
+                column of colour reads as five separate chips instead of one
+                strip standing beside the statements. */}
+            <Typography sx={{
+              fontFamily: fonts.mono, fontSize: 10.5, fontWeight: 700, color: colors.inkSoft,
+              display: 'flex', alignItems: 'center', py: '13px',
+              borderTop: idx === 0 ? 'none' : `1px solid ${colors.sand200}`,
+            }}>
               {idx + 1}
             </Typography>
-            <Typography sx={{ fontFamily: fonts.serif, fontSize: 15.5, lineHeight: 1.35, color: colors.ink }}>
+            <Typography sx={{
+              fontFamily: fonts.serif, fontSize: 15.5, lineHeight: 1.35, color: colors.ink,
+              display: 'flex', alignItems: 'center', py: '13px',
+              borderTop: idx === 0 ? 'none' : `1px solid ${colors.sand200}`,
+            }}>
               {statement.text}
             </Typography>
-            <Typography
+            {/* This list sits on the page rather than inside a card, so the
+                strip rounds its own ends — otherwise the colour runs off the
+                top and bottom of the column like a cut. */}
+            <Box
               sx={{
-                fontFamily: fonts.mono,
-                fontSize: 19,
-                fontWeight: 700,
-                textAlign: 'right',
-                fontVariantNumeric: 'tabular-nums',
-                color: zone.ink,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderLeft: `1px solid ${colors.sand200}`,
+                bgcolor: zone.plate,
+                borderRadius: idx === 0
+                  ? '10px 10px 0 0'
+                  : idx === statements.length - 1 ? '0 0 10px 10px' : 0,
               }}
             >
-              <MetricHint title={SCORE_HINTS.compass}>{statement.compass}</MetricHint>
-            </Typography>
+              <Typography
+                sx={{
+                  fontFamily: fonts.mono,
+                  fontSize: 19,
+                  fontWeight: 700,
+                  fontVariantNumeric: 'tabular-nums',
+                  color: PLATE_INK,
+                }}
+              >
+                <MetricHint title={SCORE_HINTS.compass}>{statement.compass}</MetricHint>
+              </Typography>
+            </Box>
           </Box>
         );
       })}

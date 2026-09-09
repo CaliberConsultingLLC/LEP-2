@@ -14,7 +14,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import EvidenceQuadrant, { EvidenceModeBar } from './EvidenceQuadrant';
 import { useFitScale } from './useFitScale.js';
-import { DIAL_ZONES, perceptionGap, scoresFor, zoneFor } from './evidenceDial';
+import { DIAL_ZONES, PLATE_INK, SCORE_COL, perceptionGap, scorePlate, scoresFor, zoneFor } from './evidenceDial';
 import { appendTraitNote, notesLabel, readTraitNotes } from './traitRoomNotes';
 import MetricHint from '../../../components/MetricHint';
 import { SCORE_HINTS } from '../../../data/scoreGlossary';
@@ -27,13 +27,6 @@ const HAIRLINE_ON_NAVY = 'rgba(244,206,161,0.20)';
 // land on the same number, which is a claim, and there is nothing here making
 // it.
 const signed = (n) => (n == null ? '—' : `${n > 0 ? '+' : ''}${n}`);
-
-/** Ink for the active mode — the score column follows whichever mode is on. */
-const modeInk = (mode) => {
-  if (mode === 'effort') return colors.orange;
-  if (mode === 'efficacy') return colors.efficacyBlue;
-  return colors.navy900;
-};
 
 const modeHint = (mode) => {
   if (mode === 'effort') return SCORE_HINTS.effort;
@@ -200,6 +193,12 @@ function StatementRow({ statement, open, mode, onToggle, isLast }) {
     );
   }
 
+  // The number sits on a plate, and the plates stack into a column: one colour
+  // per quadrant in Compass, a ramp in Effort and Effectiveness. Because the
+  // table is ranked highest-first, the ramp arrives as a single gradient down
+  // the column — the shape of the trait, before a number is read. The rule down
+  // its left edge is what makes it a column rather than five loose chips, so the
+  // row's hairline stops at that rule instead of cutting across the colour.
   return (
     <Box
       component="button"
@@ -208,27 +207,45 @@ function StatementRow({ statement, open, mode, onToggle, isLast }) {
       aria-expanded={false}
       sx={{
         all: 'unset', boxSizing: 'border-box', cursor: 'pointer', width: '100%',
-        display: 'flex', alignItems: 'center', gap: '12px',
-        p: '15px 20px',
-        borderBottom: isLast ? 'none' : `1px solid ${colors.sand200}`,
-        transition: 'background 140ms',
-        '&:hover': { bgcolor: colors.sand50 },
+        display: 'flex', alignItems: 'stretch',
+        '&:hover .statement-body': { bgcolor: colors.sand50 },
         '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: -3 },
       }}
     >
-      <Box aria-hidden sx={{ color: colors.sand300, fontSize: 12, lineHeight: 1, flexShrink: 0 }}>⌄</Box>
-      <Typography sx={{
-        flex: 1, minWidth: 0,
-        fontFamily: fonts.serif, fontSize: 15, fontWeight: 500, lineHeight: 1.4, color: colors.ink,
-      }}>
-        {statement.text}
-      </Typography>
-      <Typography sx={{
-        fontFamily: fonts.serif, fontSize: 19, fontWeight: 500, lineHeight: 1,
-        color: modeInk(mode), flexShrink: 0,
-      }}>
-        <MetricHint title={modeHint(mode)}>{team}</MetricHint>
-      </Typography>
+      <Box
+        className="statement-body"
+        sx={{
+          flex: 1, minWidth: 0,
+          display: 'flex', alignItems: 'center', gap: '12px',
+          p: '15px 18px',
+          borderBottom: isLast ? 'none' : `1px solid ${colors.sand200}`,
+          transition: 'background 140ms',
+        }}
+      >
+        <Box aria-hidden sx={{ color: colors.sand300, fontSize: 12, lineHeight: 1, flexShrink: 0 }}>⌄</Box>
+        <Typography sx={{
+          flex: 1, minWidth: 0,
+          fontFamily: fonts.serif, fontSize: 15, fontWeight: 500, lineHeight: 1.4, color: colors.ink,
+        }}>
+          {statement.text}
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          width: SCORE_COL, flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderLeft: `1px solid ${colors.sand200}`,
+          bgcolor: scorePlate(team, mode, zone),
+          transition: 'background 180ms',
+        }}
+      >
+        <Typography sx={{
+          fontFamily: fonts.serif, fontSize: 19, fontWeight: 500, lineHeight: 1,
+          fontVariantNumeric: 'tabular-nums', color: PLATE_INK,
+        }}>
+          <MetricHint title={modeHint(mode)}>{team}</MetricHint>
+        </Typography>
+      </Box>
     </Box>
   );
 }
@@ -540,9 +557,13 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
               to carry "What your team rated" as well — everything in this room
               is what the team rated, so it was labelling the room. */}
           <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', mb: '10px' }}>
+            {/* Held over the score column, not merely flushed right: the word
+                names that strip of colour, so it sits on its centre. Anything
+                longer than the column is allowed to run left of it. */}
             <Typography sx={{
               fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em',
               textTransform: 'uppercase', color: colors.inkSoft,
+              minWidth: SCORE_COL, textAlign: 'center', whiteSpace: 'nowrap',
             }}>
               {mode === 'effort' ? 'Effort' : mode === 'efficacy' ? 'Effectiveness' : 'Compass'}
             </Typography>
