@@ -1515,9 +1515,15 @@ function IntakeForm() {
           localStorage.setItem('cairn_profile_details_complete', 'true');
           if (isDemoSession() || isIntakeUnlocked()) {
             navigate('/form?stage=intake');
-          } else {
-            navigate('/pay');
+            return;
           }
+          // Same rule as the two gates above: an empty cache is not a no. A
+          // leader who paid on another device reaches this hand-off with
+          // nothing stored locally, and must not be turned around on that
+          // silence — the server gets asked before anyone is sent to pay.
+          refreshEntitlement().then((allowed) => {
+            navigate(allowed ? '/form?stage=intake' : '/pay');
+          });
           return;
         }
 
