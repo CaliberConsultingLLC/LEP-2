@@ -4,6 +4,16 @@ import { allowPersistenceBypass } from '../config/runtimeFlags';
 import { isDemoSession } from './demoMode';
 import { isCampaignReady, normalizeCampaignItems } from './campaignState';
 
+// The signed-in user is the authority on who owns a campaign — not whatever
+// uid happens to be sitting in localStorage.
+//
+// firestore.rules now requires the ownerUid on a new document to equal
+// request.auth.uid, so a stale or missing copy here stopped being a
+// wrong-but-working value and became a DENIED write: no campaign created, at
+// the step where the leader has just finished their intake.
+const resolveOwnerUid = (userInfo) =>
+  String(auth?.currentUser?.uid || userInfo?.uid || '').trim() || null;
+
 const parseJson = (raw, fallback) => {
   try {
     return raw ? JSON.parse(raw) : fallback;
@@ -104,7 +114,7 @@ const writeLocalCampaignDocs = ({
   localCampaignDocs[selfCampaignId] = {
     userInfo,
     ownerId,
-    ownerUid: userInfo?.uid || null,
+    ownerUid: resolveOwnerUid(userInfo),
     bundleId,
     campaignType: 'self',
     campaign: selfCampaign,
@@ -114,7 +124,7 @@ const writeLocalCampaignDocs = ({
   localCampaignDocs[teamCampaignId] = {
     userInfo,
     ownerId,
-    ownerUid: userInfo?.uid || null,
+    ownerUid: resolveOwnerUid(userInfo),
     bundleId,
     campaignType: 'team',
     campaign: campaignData,
@@ -139,7 +149,7 @@ const cacheCampaignDocs = ({
   localStorage.setItem(`campaign_${selfCampaignId}`, JSON.stringify({
     userInfo,
     ownerId,
-    ownerUid: userInfo?.uid || null,
+    ownerUid: resolveOwnerUid(userInfo),
     bundleId,
     campaignType: 'self',
     campaign: selfCampaign,
@@ -152,7 +162,7 @@ const cacheCampaignDocs = ({
   localStorage.setItem(`campaign_${teamCampaignId}`, JSON.stringify({
     userInfo,
     ownerId,
-    ownerUid: userInfo?.uid || null,
+    ownerUid: resolveOwnerUid(userInfo),
     bundleId,
     campaignType: 'team',
     campaign: campaignData,
@@ -268,7 +278,7 @@ export async function ensureCampaignBundle({ lock = false } = {}) {
       const selfDocRef = await addDoc(collection(db, 'campaigns'), {
         userInfo,
         ownerId,
-        ownerUid: userInfo?.uid || null,
+        ownerUid: resolveOwnerUid(userInfo),
         bundleId,
         campaignType: 'self',
         campaign: selfCampaign,
@@ -279,7 +289,7 @@ export async function ensureCampaignBundle({ lock = false } = {}) {
       const teamDocRef = await addDoc(collection(db, 'campaigns'), {
         userInfo,
         ownerId,
-        ownerUid: userInfo?.uid || null,
+        ownerUid: resolveOwnerUid(userInfo),
         bundleId,
         campaignType: 'team',
         campaign: campaignData,
@@ -330,7 +340,7 @@ export async function ensureCampaignBundle({ lock = false } = {}) {
   const records = finalizeRecords({
     bundleId,
     ownerId,
-    ownerUid: userInfo?.uid || null,
+    ownerUid: resolveOwnerUid(userInfo),
     campaignSignature,
     selfCampaignId,
     teamCampaignId,

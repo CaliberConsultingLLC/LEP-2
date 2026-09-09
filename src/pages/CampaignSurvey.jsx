@@ -13,7 +13,7 @@ import {
   DialogActions,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { db } from '../firebase';
+import { auth, db } from '../firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
@@ -171,7 +171,10 @@ function CampaignSurvey() {
       campaignId: id,
       campaignType,
       ownerId: campaignMeta?.ownerId || null,
-      ownerUid: campaignMeta?.ownerUid || campaignMeta?.userInfo?.uid || null,
+      // The signed-in leader first: firestore.rules requires a new survey
+      // response to claim an ownerUid equal to request.auth.uid, so the
+      // cached copies below are a fallback, not the source of truth.
+      ownerUid: auth?.currentUser?.uid || campaignMeta?.ownerUid || campaignMeta?.userInfo?.uid || null,
       bundleId: campaignMeta?.bundleId || null,
       submittedAt: new Date(),
       ratings,

@@ -17,6 +17,27 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == 'TVPZiQah9uPI8ycO4umeEePHJU12';
     }
 
+    // Ownership carried as a FIELD on the document, for the collections whose
+    // ids are auto-generated and therefore say nothing about who owns them.
+    //
+    // The `in` check matters: reading a field a document does not have is an
+    // evaluation error, and an error denies. That is the right direction, but
+    // it means a document written before its ownership field existed becomes
+    // invisible to its owner rather than readable by everyone. See
+    // scripts/audit-ownership.mjs.
+    function ownedBy(field) {
+      return isSignedIn()
+        && resource != null
+        && field in resource.data
+        && resource.data[field] == request.auth.uid;
+    }
+
+    function claimedBy(field) {
+      return isSignedIn()
+        && field in request.resource.data
+        && request.resource.data[field] == request.auth.uid;
+    }
+
     // Once an intake is locked, the answers stop being editable — and that has
     // to hold here, not just in the UI. Hiding the Edit buttons only stops
     // someone who is not looking at the console.
@@ -47,28 +68,66 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Deliberately left as it was. These are shared reference norms, not one
+    // customer's data, so a wide read is not a leak — and the only writer I
+    // could trace is a dev-only page, which means tightening it is a guess
+    // about the intake rather than a fix. Narrowing this belongs in its own
+    // change, with the intake walked afterwards.
     match /societalNorms/{docId} {
       allow create, get, update: if isSignedIn();
       allow list, delete: if false;
     }
 
+    // Campaign ids travel in the invite links leaders hand to their teams, so
+    // "you need the id" was never a protection here — it was a published
+    // value. Any signed-in leader holding someone else's link could read that
+    // campaign and write to it.
+    //
+    // Team members are not signed in and never touch this collection from the
+    // browser: they come through /api/get-campaign and /api/submit-team-response,
+    // which run as the robot.
     match /campaigns/{docId} {
-      allow create, update: if isSignedIn();
-      allow get: if isSignedIn();
-      allow list: if isRobot();
+      allow create: if claimedBy('ownerUid') || isRobot();
+      allow get, list: if ownedBy('ownerUid') || isRobot();
+      allow update: if ownedBy('ownerUid') || isRobot();
       allow delete: if false;
     }
 
+    // A team's candid ratings of their leader — the most sensitive documents
+    // in the product, given by people who were promised aggregation.
+    //
+    // `list` used to ask only whether you were signed in. That is not a
+    // restriction: a rule that never mentions `resource` lets any customer
+    // read the WHOLE collection in one unfiltered query — every response, for
+    // every leader, at every company. Not by guessing ids. By asking.
+    //
+    // The data was never the problem. Both write paths already stamp
+    // `ownerUid` (api/submit-team-response.js and CampaignSurvey), and the
+    // dashboard already filters on it. Only the rule never caught up.
+    //
+    // `list` is evaluated against each candidate document, and Firestore will
+    // only run a query it can prove satisfies the rule — so the client is now
+    // forced to filter on ownerUid, and an unfiltered read is refused rather
+    // than silently returning someone else's team.
     match /surveyResponses/{docId} {
-      allow create: if isSignedIn();
-      allow get, update: if isSignedIn();
-      allow list: if isSignedIn();
+      allow create: if claimedBy('ownerUid') || isRobot();
+      allow get, list: if ownedBy('ownerUid') || isRobot();
+      // No customer edits a submitted response — a rating that can be changed
+      // afterwards is not evidence. The robot is allowed to, because the
+      // ownership backfill has to be able to repair a document written before
+      // `ownerUid` existed, and it changes nothing about the threat model:
+      // anything that could forge an update could already forge a create.
+      allow update: if isRobot();
       allow delete: if false;
     }
 
+    // Name, email and the consent record. Ids are auto-generated, so this was
+    // leaning on id obscurity rather than on a rule — weaker than the others
+    // in principle, and the same mistake.
     match /users/{docId} {
-      allow create, get, update: if isSignedIn();
-      allow list: if isRobot();
+      allow create: if claimedBy('uid');
+      allow get, list: if ownedBy('uid') || isRobot();
+      allow update: if ownedBy('uid') || isRobot();
       allow delete: if false;
     }
 
