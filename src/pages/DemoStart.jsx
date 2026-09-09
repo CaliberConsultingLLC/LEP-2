@@ -131,8 +131,10 @@ function DemoStart() {
           </Typography>
           <Typography sx={{ ...type.body, maxWidth: '58ch', mx: 'auto' }}>
             A throwaway session. Nothing is written to the live account store, and
-            closing the tab ends it. Three ways to run it, and one way to just look
-            at it.
+            closing the tab ends it. Three ways to run it.
+            {/* The catalog is dev-host only, so off one the sentence promising it
+                was pointing at a card that is not rendered. */}
+            {isDevHost ? ' And one way to just look at it.' : ''}
           </Typography>
         </Box>
 

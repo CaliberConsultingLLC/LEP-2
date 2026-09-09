@@ -1,5 +1,6 @@
 import { STAGING_PERSONAS } from '../data/stagingPersonas';
-import { CAMPAIGN_TRAITS } from './stagingSeed';
+import { CAMPAIGN_TRAITS, SEED_FOCUS_AREAS } from './stagingSeed';
+import { persistFocusAreas } from './focusAreas';
 import { STAGING_GUIDE_SUMMARIES, stagingFlattenedSummary } from '../data/stagingGuideSummaries';
 import { STAGING_GUIDE_LINES } from '../data/stagingGuideLines';
 import { SELECTABLE_GUIDE_PERSONAS } from '../data/guidePersonas';
@@ -238,7 +239,11 @@ export function seedDemoPersona({ name, teamSize, closeCampaign = true } = {}) {
   const persona = pick(STAGING_PERSONAS);
   const guide = pick(SELECTABLE_GUIDE_PERSONAS);
 
-  const safeName = String(name || '').trim() || 'You';
+  // 'Alex' rather than 'You': the seeded reflection, the guide lines and the
+  // staging email are all written about Alex, so defaulting to 'You' gave one
+  // demo two names for the same person — "Alex, cute story..." on the
+  // reflection and "You, your team has reflected back" on the dashboard.
+  const safeName = String(name || '').trim() || 'Alex';
   const societal = Array.isArray(persona.data?.societalResponses)
     ? persona.data.societalResponses
     : Array(10).fill(5);
@@ -308,6 +313,17 @@ export function seedDemoPersona({ name, teamSize, closeCampaign = true } = {}) {
   } catch { /* ignore */ }
   ['focusAreas', 'focusAreasSource', 'trailheadHighlights', 'summarySavedAt', 'aiCampaign']
     .forEach((key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } });
+
+  // Then put the five areas back.
+  //
+  // Clearing them alone left the demo unable to render the thing it exists to
+  // show: Summary's static path needs a complete focus-area set as well as a
+  // summary, and without one it stops on "Static staging summary data is
+  // missing. Use the Stage Navigator reset" — a message naming a dev panel,
+  // in front of whoever was being shown the product. Both seeded demo paths
+  // died there. The clear above still matters: it drops a previous run's
+  // areas so a second demo in the same tab cannot inherit them.
+  persistFocusAreas(SEED_FOCUS_AREAS, 'seed');
 
   localStorage.setItem('selectedTraits', JSON.stringify([
     'communication-clarity',

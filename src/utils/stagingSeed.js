@@ -15,6 +15,66 @@ export const STAGING_EMAIL     = 'alex@staging.test';
 export const STAGING_SELF_ID   = 'staging-self-001';
 export const STAGING_TEAM_ID   = 'staging-team-001';
 export const STAGING_BUNDLE_ID = 'staging-bundle-001';
+// The five focus areas the fixtures are built around.
+//
+// Exported because the demo needs exactly the same set. Summary refuses to
+// render its static path without a complete focus-area set, so a demo that
+// seeded a reflection but no areas landed on "Static staging summary data is
+// missing. Use the Stage Navigator reset" — a fixture error naming a dev
+// panel, shown to whoever was being given the demo.
+export const SEED_FOCUS_AREAS = [
+  {
+    id: 'communication-clarity',
+    traitName: 'Communication',
+    traitDefinition: 'Communication is the foundation of effective leadership.',
+    subTraitName: 'Clarity',
+    subTraitDefinition: 'The ability to break down complex concepts into simple, digestible messages.',
+    example: 'Team members ask "What do you mean?" after receiving direction.',
+    risk: 'Team confidence erodes as members lose trust in your direction.',
+    impact: 'When clarity is strong, your team moves with confidence and alignment.',
+  },
+  {
+    id: 'execution-deadlineManagement',
+    traitName: 'Execution & Follow-Through',
+    traitDefinition: 'The ability to translate plans into action and deliver results consistently.',
+    subTraitName: 'Deadline Management',
+    subTraitDefinition: 'Meeting commitments and delivering on time.',
+    example: 'Deadlines slip without early warning, eroding stakeholder trust.',
+    risk: 'You underestimate how long work will take, causing downstream delays.',
+    impact: 'Consistent delivery builds credibility and team confidence.',
+  },
+  {
+    id: 'strategicThinking-vision',
+    traitName: 'Strategic Thinking',
+    traitDefinition: 'The ability to see the big picture and align actions with long-term goals.',
+    subTraitName: 'Vision',
+    subTraitDefinition: 'Articulating a compelling future state.',
+    example: 'Team members cannot describe where the team is heading.',
+    risk: 'Decisions seem disconnected or reactive.',
+    impact: 'A clear vision energizes the team and guides daily prioritization.',
+  },
+  {
+    id: 'teamDevelopment-performanceManagement',
+    traitName: 'Team Development & Coaching',
+    traitDefinition: 'The ability to develop, mentor, and grow team members.',
+    subTraitName: 'Performance Management',
+    subTraitDefinition: 'Setting expectations and managing performance.',
+    example: 'People do not know what is expected of them.',
+    risk: 'Performance gaps persist unchecked and erode team morale.',
+    impact: 'Clear expectations and feedback unlock individual and team potential.',
+  },
+  {
+    id: 'decisionMaking-stakeholderConsideration',
+    traitName: 'Decision-Making & Judgment',
+    traitDefinition: 'Making sound decisions efficiently by balancing analysis with action.',
+    subTraitName: 'Stakeholder Consideration',
+    subTraitDefinition: 'Understanding how decisions affect different stakeholders.',
+    example: 'Key stakeholders feel excluded and resist decisions.',
+    risk: 'Stakeholder relationships deteriorate, creating roadblocks.',
+    impact: 'Inclusive decisions generate buy-in and reduce implementation friction.',
+  },
+];
+
 export const STAGING_SEED_VERSION = '2026-08-27-chapter-eight-v1';
 
 // Keys written by the seed so clearStagingData() can remove them precisely.
@@ -187,58 +247,7 @@ export function seedStagingData() {
   }));
   localStorage.setItem('aiSummary', stagingFlattenedSummary('mentor'));
 
-  persistFocusAreas([
-    {
-      id: 'communication-clarity',
-      traitName: 'Communication',
-      traitDefinition: 'Communication is the foundation of effective leadership.',
-      subTraitName: 'Clarity',
-      subTraitDefinition: 'The ability to break down complex concepts into simple, digestible messages.',
-      example: 'Team members ask "What do you mean?" after receiving direction.',
-      risk: 'Team confidence erodes as members lose trust in your direction.',
-      impact: 'When clarity is strong, your team moves with confidence and alignment.',
-    },
-    {
-      id: 'execution-deadlineManagement',
-      traitName: 'Execution & Follow-Through',
-      traitDefinition: 'The ability to translate plans into action and deliver results consistently.',
-      subTraitName: 'Deadline Management',
-      subTraitDefinition: 'Meeting commitments and delivering on time.',
-      example: 'Deadlines slip without early warning, eroding stakeholder trust.',
-      risk: 'You underestimate how long work will take, causing downstream delays.',
-      impact: 'Consistent delivery builds credibility and team confidence.',
-    },
-    {
-      id: 'strategicThinking-vision',
-      traitName: 'Strategic Thinking',
-      traitDefinition: 'The ability to see the big picture and align actions with long-term goals.',
-      subTraitName: 'Vision',
-      subTraitDefinition: 'Articulating a compelling future state.',
-      example: 'Team members cannot describe where the team is heading.',
-      risk: 'Decisions seem disconnected or reactive.',
-      impact: 'A clear vision energizes the team and guides daily prioritization.',
-    },
-    {
-      id: 'teamDevelopment-performanceManagement',
-      traitName: 'Team Development & Coaching',
-      traitDefinition: 'The ability to develop, mentor, and grow team members.',
-      subTraitName: 'Performance Management',
-      subTraitDefinition: 'Setting expectations and managing performance.',
-      example: 'People do not know what is expected of them.',
-      risk: 'Performance gaps persist unchecked and erode team morale.',
-      impact: 'Clear expectations and feedback unlock individual and team potential.',
-    },
-    {
-      id: 'decisionMaking-stakeholderConsideration',
-      traitName: 'Decision-Making & Judgment',
-      traitDefinition: 'Making sound decisions efficiently by balancing analysis with action.',
-      subTraitName: 'Stakeholder Consideration',
-      subTraitDefinition: 'Understanding how decisions affect different stakeholders.',
-      example: 'Key stakeholders feel excluded and resist decisions.',
-      risk: 'Stakeholder relationships deteriorate, creating roadblocks.',
-      impact: 'Inclusive decisions generate buy-in and reduce implementation friction.',
-    },
-  ], 'seed');
+  persistFocusAreas(SEED_FOCUS_AREAS, 'seed');
 
   localStorage.setItem('selectedTraits', JSON.stringify([
     'communication-clarity',
