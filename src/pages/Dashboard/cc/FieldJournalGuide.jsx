@@ -2,6 +2,7 @@ import React from 'react';
 import GuidePortrait from '../../../components/guide/GuidePortrait';
 import { fitPortrait, journalStandingHeight } from '../../../components/guide/guideGeometry';
 import { GUIDE_Z } from '../../../components/guidePlacement';
+import { perchedSrc } from '../../../data/guideArt';
 
 // Where the guide stands: the window's bottom-left corner.
 //
@@ -53,7 +54,7 @@ export default function FieldJournalGuide({
   onDone,
   scene = null,
 }) {
-  const owlSrc = persona?.poses?.[pose] || persona?.poses?.idle;
+  const owlSrc = perchedSrc(persona?.poses, persona?.poses?.[pose] || persona?.poses?.idle);
 
   // The scene no longer says where the bird stands, only that the room has
   // measured itself — the window's height is read off it rather than through a

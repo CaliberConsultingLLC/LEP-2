@@ -1,6 +1,6 @@
 import React from 'react';
 import GuidePortrait from './guide/GuidePortrait';
-import { guideImage } from '../data/guideArt';
+import { perchedImage, perchedSrc } from '../data/guideArt';
 import { useGuide } from '../context/GuideContext';
 
 // One interruption, used everywhere a room introduces itself.
@@ -32,9 +32,12 @@ export default function GuideInterruption({
   if (!open) return null;
 
   const persona = guide?.persona;
+  // The bird stands in the window's bottom-left corner here, so the same rule
+  // as everywhere else applies: art whose branch runs the wrong way is swapped
+  // for the nearest pose whose does.
   const src = guideId
-    ? guideImage(guideId, pose)
-    : (persona?.poses?.[pose] || persona?.poses?.idle);
+    ? perchedImage(guideId, pose)
+    : perchedSrc(persona?.poses, persona?.poses?.[pose] || persona?.poses?.idle);
 
   return (
     <GuidePortrait

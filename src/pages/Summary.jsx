@@ -22,6 +22,8 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
 import { SUMMARY_GUIDE_OWL_SX } from '../components/summaryGuideLayout';
+import { perchedSrc } from '../data/guideArt';
+import { perchTransform } from '../components/guide/guideGeometry';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
@@ -82,6 +84,9 @@ function Summary() {
   const summariesByGuideRef = useRef({});
   const hearGuideBtnRef = useRef(null);
   const { persona, personaId, setSuppress, setGuideStep } = useGuide();
+  // The bird stands in a corner here too, so it takes the same rule: art
+  // whose branch runs off to the left cannot be used in one.
+  const summaryOwlSrc = perchedSrc(persona.poses, persona.poses.read || persona.poses.idle);
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -1897,11 +1902,19 @@ function Summary() {
         </CompassLayout>
         <Box
           component="img"
-          src={persona.poses.read || persona.poses.idle}
+          src={summaryOwlSrc}
           alt={`${persona.name} delivering your reflection`}
           draggable={false}
           sx={{
             ...SUMMARY_GUIDE_OWL_SX,
+            // Flush into the window's bottom-left corner, which is what
+            // left: 0 was asking for and not what it was getting: the drawn
+            // bird stops short of its own frame by anything from 2% to 19%
+            // depending on the pose, so the guide stood 53px off the corner as
+            // Best Friend and 111px off it as Roaster. Pushed out by the art's
+            // own padding, every guide stands in the same place. The mirror
+            // comes after, on the same transform, or it is applied twice.
+            transform: `${perchTransform(summaryOwlSrc, true)} ${SUMMARY_GUIDE_OWL_SX.transform}`,
             // Behind the card, not over it. The owl is a portrait beside the
             // reflection; at z-index 1 it painted across the card's left edge,
             // which the old opaque highlight cards happened to hide and the

@@ -3,9 +3,10 @@ import { Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { useGuide } from '../context/GuideContext';
 import { getGuideMessages, getPageFaq, resolveRouteKey } from '../data/guideContent';
+import { perchedPose } from '../data/guideArt';
 import { GUIDE_COLUMN, GUIDE_TAB_BOTTOM, GUIDE_Z } from './guidePlacement';
 import GuideSpeech from './guide/GuideSpeech';
-import { anchorPercents } from './guide/guideGeometry';
+import { anchorPercents, perchTransform } from './guide/guideGeometry';
 import useOwlClearance from './guide/useOwlClearance';
 
 // The guide, standing in the corner of every room.
@@ -107,7 +108,9 @@ function GuideOverlay() {
         action: pageMessage.action || null,
       }
     : fallbackMessage;
-  const owlPose = persona.poses[message?.pose] || persona.poses.idle;
+  // The picture, not just the pose: art whose branch runs off to the left
+  // cannot stand in a corner, so the nearest pose that can stands in for it.
+  const owlPose = perchedPose(persona.poses, message?.pose || 'idle');
   const routeFaq = getPageFaq(routeKey);
   const rawFaq = Array.isArray(message?.faq) && message.faq.length ? message.faq : routeFaq;
   const faqItems = Array.isArray(rawFaq) ? rawFaq.filter((f) => f && f.q && f.a) : [];
@@ -212,6 +215,9 @@ function GuideOverlay() {
           position: 'fixed',
           ...(flipped ? { left: 0 } : { right: 0 }),
           bottom: -sink,
+          // Out by the art's own padding, so the end of the branch lands on
+          // the window's corner rather than the PNG's.
+          transform: perchTransform(owlPose, flipped),
           transition: 'bottom 220ms cubic-bezier(.2,.8,.2,1)',
           zIndex: GUIDE_Z,
           width: GUIDE_COLUMN,
@@ -268,7 +274,7 @@ function GuideOverlay() {
         text={message.text}
         action={message.action}
         onDismiss={toggleHidden}
-        resolveKey={`${sink}:${flipped}`}
+        resolveKey={`${sink}:${flipped}:${owlPose}`}
         zIndex={GUIDE_Z + 1}
         maxWidth={hasExtras ? 340 : 310}
       >

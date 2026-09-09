@@ -1,6 +1,7 @@
 import React from 'react';
 import { Typography } from '@mui/material';
 import GuidePortrait from './guide/GuidePortrait';
+import { perchedSrc } from '../data/guideArt';
 import { colors, fonts } from '../styles/tokens';
 import { SUMMARY_BRIEFING_Z } from './summaryGuideLayout';
 
@@ -22,7 +23,7 @@ export default function SummaryBriefingModal({
 }) {
   if (!open) return null;
 
-  const pose = persona?.poses?.read || persona?.poses?.idle;
+  const pose = perchedSrc(persona?.poses, persona?.poses?.read || persona?.poses?.idle);
 
   return (
     <GuidePortrait

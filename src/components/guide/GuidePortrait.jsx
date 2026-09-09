@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box } from '@mui/material';
 import GuideSpeech from './GuideSpeech';
 import { SUMMARY_OWL } from '../guidePlacement';
-import { EDGE, NATURAL_TX, anchorPercents, fitPortrait, standingHeight } from './guideGeometry';
+import { EDGE, NATURAL_TX, anchorPercents, fitPortrait, perchTransform, standingHeight } from './guideGeometry';
 
 function useViewport(active) {
   const [vp, setVp] = useState(null);
@@ -127,6 +127,14 @@ export default function GuidePortrait({
           bottom: SUMMARY_OWL.bottom,
           width: SUMMARY_OWL.width,
           userSelect: 'none',
+          // Nothing but SUMMARY_OWL's corner has been said about where this
+          // bird stands, so it is standing on the PNG's corner rather than its
+          // own — the art stops between 2% and 20% short of the frame's edge
+          // depending on the pose, which is up to 119px of daylight between a
+          // guide and the corner it is meant to be standing in. Push it out by
+          // its own padding. A caller that fitted the owl itself has already
+          // done this arithmetic against the drawn box, so it is left alone.
+          ...(!centredFit && !owlSx ? { transform: perchTransform(src, true) } : null),
           ...(centredFit
             ? { width: centredFit.width, left: centredFit.left, right: 'auto', bottom: centredFit.bottom }
             : null),
@@ -184,7 +192,10 @@ export default function GuidePortrait({
         tone={tone === 'auto' && backdrop ? 'sand' : tone}
         resolveKey={centredFit
           ? `${resolveKey ?? ''}:${Math.round(centredFit.left)}:${Math.round(centredFit.width)}`
-          : resolveKey}
+          // The art decides where the frame sits as well as where the head is,
+          // so a change of pose is a change of position even when nothing
+          // resized.
+          : `${resolveKey ?? ''}:${src ?? ''}`}
         zIndex={zIndex}
         maxWidth={maxWidth}
       >

@@ -93,6 +93,37 @@ export function anchorPercents(src, mirrored = false) {
 }
 
 /**
+ * Standing the corner owl on the corner.
+ *
+ * The small guide is drawn as a square frame pinned to the window's corner,
+ * and a square PNG is not a square bird: the drawn art stops somewhere short
+ * of the frame's edges, by a different amount in every picture. Across the
+ * seventy-eight the right edge of the art falls between 0.795 and 0.980 of the
+ * box, so pinning the FRAME to the corner leaves the branch anywhere from 6 to
+ * 65 pixels off it — Catalyst tight against the edge, Roaster floating well
+ * inside it, on the same page one click apart. That is the "the branches
+ * aren't going to the same spot" of it, and no amount of tuning the frame's
+ * offsets can fix it, because the offset that is wrong is inside the picture.
+ *
+ * So the frame is pinned as before and then pushed out by exactly the padding
+ * the art carries, which puts the bottom outer corner of the DRAWN art — the
+ * end of the branch — on the window's corner for every guide and every pose.
+ * A transform is what does it because transform percentages are the only ones
+ * in CSS measured against the element's own box; `right` and `margin` resolve
+ * against the viewport and would have to be told the frame's width, which is a
+ * clamp() nobody here can evaluate.
+ *
+ * Mirrored art flips the padding with everything else, so the push is the same
+ * distance the other way.
+ */
+export function perchTransform(src, mirrored = false) {
+  const box = getGuideAnchor(src).box;
+  const outX = (1 - box[2]) * 100;
+  const outY = (1 - box[3]) * 100;
+  return `translate(${(mirrored ? -outX : outX).toFixed(2)}%, ${outY.toFixed(2)}%)`;
+}
+
+/**
  * Everything on the page the bubble must not cover.
  *
  * Pages opt in with `data-guide-keepclear` on the control or figure that

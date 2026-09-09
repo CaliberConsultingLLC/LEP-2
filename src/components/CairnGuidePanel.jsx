@@ -2,7 +2,8 @@ import React, { useRef, useState } from 'react';
 import { Box, Collapse, Typography } from '@mui/material';
 import { colors, fonts, radii, shadows } from '../styles/tokens';
 import GuideSpeech from './guide/GuideSpeech';
-import { anchorPercents } from './guide/guideGeometry';
+import { anchorPercents, perchTransform } from './guide/guideGeometry';
+import { perchedSrc } from '../data/guideArt';
 import useOwlClearance from './guide/useOwlClearance';
 
 // The growth-campaign guide.
@@ -29,7 +30,9 @@ function CairnGuidePanel({
 }) {
   const [expanded, setExpanded] = useState(false);
   const owlRef = useRef(null);
-  const src = owlPose || persona.poses.idle;
+  // Art whose branch runs off to the left cannot stand in the corner the
+  // panel puts the bird in; the nearest pose that can stands in for it.
+  const src = perchedSrc(persona.poses, owlPose || persona.poses.idle);
   // The campaign builder puts its "Review campaign" button in the same
   // corner the guide stands in. The bubble is solved around it; the bird
   // sinks past it.
@@ -100,6 +103,9 @@ function CairnGuidePanel({
             ? { left: { xs: 6, md: 10, lg: 16 } }
             : { right: { xs: 6, md: 10, lg: 16 } }),
           bottom: -sink,
+          // Out by the art's own padding, so the end of the branch lands where
+          // the frame's corner was rather than somewhere inside it.
+          transform: perchTransform(src, flipped),
           transition: 'bottom 220ms cubic-bezier(.2,.8,.2,1)',
           zIndex: 1100,
           width: presenceOnly
@@ -153,7 +159,7 @@ function CairnGuidePanel({
           text={commentary}
           onDismiss={toggleHidden}
           tone={isDark ? 'sand' : 'navy'}
-          resolveKey={`${sink}:${flipped}`}
+          resolveKey={`${sink}:${flipped}:${src}`}
           zIndex={1101}
           maxWidth={300}
         >

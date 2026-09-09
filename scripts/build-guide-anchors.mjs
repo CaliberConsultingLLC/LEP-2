@@ -12,9 +12,10 @@
 // channel, and writes out three things per image as fractions of the (square)
 // image box:
 //
-//   box   the opaque bounding box — where the bird is, ignoring the padding
-//   face  the head box the bubble must never cover
-//   speak the point a tail should aim at, just inside the top of the head
+//   box    the opaque bounding box — where the bird is, ignoring the padding
+//   face   the head box the bubble must never cover
+//   speak  the point a tail should aim at, just inside the top of the head
+//   branch which side the branch leaves the picture on, read off the colour
 //
 // Fractions, not pixels, so the same numbers hold at every rendered size. The
 // consumer flips x for a mirrored owl; nothing here knows about mirroring.
@@ -50,11 +51,16 @@ const SHEET_FILE = path.join(ROOT, 'reports', 'guide-anchors-sheet.html');
 // bounding box without eating the feather tips.
 const ALPHA_FLOOR = 24;
 
-// ── PNG → alpha grid ────────────────────────────────────────────────────────
+// ── PNG → pixels ────────────────────────────────────────────────────────────
 // Every guide portrait is 8-bit RGBA, non-interlaced (colour type 6), so this
 // handles that one case and refuses anything else rather than quietly
 // returning a wrong answer.
-function decodeAlpha(file) {
+//
+// Colour comes back as well as alpha. The geometry only ever needed the
+// silhouette, but which way the branch runs cannot be read from a silhouette —
+// the bird's cape reaches further right than the branch does on some poses —
+// and the branch is the one brown thing in the picture.
+function decodePixels(file) {
   const buf = fs.readFileSync(file);
   if (buf.readUInt32BE(0) !== 0x89504e47) throw new Error(`${file}: not a PNG`);
 
@@ -113,10 +119,9 @@ function decodeAlpha(file) {
     }
   }
 
-  // Alpha only — one byte per pixel, which is all the geometry needs.
   const alpha = new Uint8Array(width * height);
   for (let i = 0, p = 3; i < alpha.length; i += 1, p += bpp) alpha[i] = out[p];
-  return { width, height, alpha };
+  return { width, height, alpha, rgba: out };
 }
 
 // ── geometry ────────────────────────────────────────────────────────────────
@@ -139,8 +144,58 @@ function widestRun(alpha, width, y) {
   return best;
 }
 
+// Which way the branch runs off the picture.
+//
+// Every guide sits on a branch, and the branch leaves the frame on one side or
+// on both. That matters because the bird always stands in a corner of the
+// window with the branch behind it: art whose branch leaves to the LEFT, stood
+// in the bottom-right corner, draws a sawn-off stump pointing back into the
+// page. Two of the seventy-eight do exactly that.
+//
+// The silhouette cannot answer this. On Mentor_think the cape reaches further
+// right than the branch does, so the opaque box says "right" for a picture
+// whose branch plainly goes left. The branch is the one piece of brown wood in
+// the drawing, so this asks for the colour: mid-toned, red over green over
+// blue, at the outer edge of the lower half. Anything else at that edge — a
+// navy cape, a red scarf, a pale wing — is not a branch and does not count.
+const WOOD = (r, g, b) =>
+  r > 60 && r < 205
+  && r - b > 28 && r - b < 120
+  && r - g > 10 && r - g < 80
+  && g - b > 3;
+
+function branchSide({ width, alpha, rgba }, x0, y0, x1, y1) {
+  const w = x1 - x0 + 1;
+  const h = y1 - y0 + 1;
+  // A narrow strip at each edge of the drawing, over the bottom 45% of it —
+  // where a branch on its way out of the frame has to be.
+  const strip = Math.max(3, Math.round(w * 0.03));
+  const top = y0 + Math.round(h * 0.55);
+  const count = (from, to) => {
+    let n = 0;
+    for (let y = top; y <= y1; y += 1) {
+      for (let x = from; x <= to; x += 1) {
+        const i = y * width + x;
+        if (alpha[i] <= ALPHA_FLOOR) continue;
+        const p = i * 4;
+        if (WOOD(rgba[p], rgba[p + 1], rgba[p + 2])) n += 1;
+      }
+    }
+    return n;
+  };
+  // Enough wood to be a branch crossing the edge rather than a twig or a
+  // stray warm pixel on a wingtip: 2% of the strip.
+  const floor = strip * h * 0.02;
+  const left = count(x0, x0 + strip - 1) > floor;
+  const right = count(x1 - strip + 1, x1) > floor;
+  if (left && right) return 'both';
+  if (right) return 'right';
+  if (left) return 'left';
+  return 'none';
+}
+
 function measure(file) {
-  const { width, height, alpha } = decodeAlpha(file);
+  const { width, height, alpha, rgba } = decodePixels(file);
 
   let x0 = width, y0 = height, x1 = -1, y1 = -1;
   for (let y = 0; y < height; y += 1) {
@@ -198,6 +253,7 @@ function measure(file) {
     box: [f(x0, width), f(y0, height), f(x1 + 1, width), f(y1 + 1, height)],
     face: [f(hx0, width), f(bandTop, height), f(hx1 + 1, width), f(bandBottom + 1, height)],
     speak: [f(speakX, width), f(speakY, height)],
+    branch: branchSide({ width, alpha, rgba }, x0, y0, x1, y1),
   };
 }
 
@@ -209,7 +265,7 @@ const rows = [];
 for (const file of files) {
   const key = path.basename(file, path.extname(file));
   const m = measure(path.join(ART_DIR, file));
-  anchors[key] = { box: m.box, face: m.face, speak: m.speak };
+  anchors[key] = { box: m.box, face: m.face, speak: m.speak, branch: m.branch };
   rows.push({ key, file, ...m });
 }
 
@@ -228,6 +284,12 @@ const banner = `// GENERATED by scripts/build-guide-anchors.mjs — do not edit 
 //   box    opaque bounding box [x0, y0, x1, y1] — the bird without its padding
 //   face   the head box a bubble must never cover
 //   speak  the point a speech tail aims at, just inside the top of the head
+//   branch the side the branch runs off — 'right', 'left' or 'both'
+//
+// The guide always stands in a corner with the branch behind it, and the art
+// is mirrored when it stands on the left, so the branch has to run off to the
+// RIGHT of the picture in every case. A 'left' pose is the one thing that
+// cannot be used in a corner; see perchedPose in src/data/guideArt.js.
 //
 // A mirrored owl (transform: scaleX(-1)) flips x at the point of use; nothing
 // in this file knows about mirroring.
@@ -236,7 +298,7 @@ const banner = `// GENERATED by scripts/build-guide-anchors.mjs — do not edit 
 `;
 
 const body = Object.entries(anchors)
-  .map(([k, v]) => `  '${k}': { box: [${v.box.join(', ')}], face: [${v.face.join(', ')}], speak: [${v.speak.join(', ')}] },`)
+  .map(([k, v]) => `  '${k}': { box: [${v.box.join(', ')}], face: [${v.face.join(', ')}], speak: [${v.speak.join(', ')}], branch: '${v.branch}' },`)
   .join('\n');
 
 const module = `${banner}
@@ -247,7 +309,7 @@ ${body}
 // The fallback is the average of the set. It is only reached if a pose is
 // asked for that has no art, in which case a roughly-right anchor beats a
 // crash.
-export const DEFAULT_ANCHOR = { box: [0.07, 0.05, 0.94, 0.96], face: [0.33, 0.05, 0.66, 0.3], speak: [0.5, 0.11] };
+export const DEFAULT_ANCHOR = { box: [0.07, 0.05, 0.94, 0.96], face: [0.33, 0.05, 0.66, 0.3], speak: [0.5, 0.11], branch: 'right' };
 
 export function getGuideAnchor(src) {
   if (!src) return DEFAULT_ANCHOR;
@@ -265,6 +327,11 @@ const cxs = rows.map((r) => (r.speak[0]));
 const rng = (a) => `${Math.min(...a).toFixed(3)} – ${Math.max(...a).toFixed(3)}`;
 console.log(`  head top   ${rng(tops)}  (spread ${(Math.max(...tops) - Math.min(...tops)).toFixed(3)} of the box)`);
 console.log(`  head centre ${rng(cxs)}  (spread ${(Math.max(...cxs) - Math.min(...cxs)).toFixed(3)} of the box)`);
+const wrongWay = rows.filter((r) => r.branch !== 'right' && r.branch !== 'both');
+if (wrongWay.length) {
+  console.log(`  ! ${wrongWay.length} portraits do not run their branch off to the right and cannot be stood in a corner:`);
+  for (const r of wrongWay) console.log(`      ${r.key} — branch ${r.branch}`);
+}
 if (undersized.length) {
   console.log(`  ! ${undersized.length} portraits are below the set's ${largest}px native size and will upscale on screen:`);
   for (const r of undersized) console.log(`      ${r.key} — ${r.native}px`);
@@ -280,7 +347,7 @@ if (process.argv.includes('--sheet')) {
         <b class="face" style="left:${pct(r.face[0])};top:${pct(r.face[1])};width:${pct(r.face[2] - r.face[0])};height:${pct(r.face[3] - r.face[1])}"></b>
         <b class="speak" style="left:${pct(r.speak[0])};top:${pct(r.speak[1])}"></b>
       </div>
-      <figcaption>${r.key} <span>${r.native}px</span></figcaption>
+      <figcaption>${r.key} <span>${r.native}px · branch ${r.branch}</span></figcaption>
     </figure>`;
   }).join('\n');
 
