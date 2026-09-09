@@ -328,9 +328,9 @@ const PRIVACY_TERMS = [
 ];
 
 const NAV_LINKS = [
-  { label: 'Your path', id: 'cl-route' },
-  { label: 'Your guide', id: 'cl-guide' },
-  { label: 'Your growth', id: 'cl-growth' },
+  { label: 'Your Path', id: 'cl-route' },
+  { label: 'Your Guide', id: 'cl-guide' },
+  { label: 'Your Growth', id: 'cl-growth' },
   { label: 'Pricing', id: 'cl-pricing' },
 ];
 
@@ -473,10 +473,10 @@ export default function CompassLanding() {
           ))}
           <div className="cl-nav-account">
             <button type="button" className="cl-nav-signin" onClick={goToSignIn}>
-              Sign in
+              Sign In
             </button>
             <button type="button" className="cl-btn-ember" onClick={startJourney}>
-              Begin your expedition →
+              Begin Your Expedition →
             </button>
           </div>
         </div>

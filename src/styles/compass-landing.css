@@ -66,9 +66,7 @@ html:has([data-compass-landing]) {
   justify-content: space-between;
   align-items: center;
   gap: 24px;
-  padding: 22px 56px;
-  max-width: var(--cl-max);
-  margin: 0 auto;
+  padding: 22px 44px;
 }
 
 .cl-brand {
@@ -112,32 +110,35 @@ html:has([data-compass-landing]) {
   color: var(--cl-gold);
 }
 
-/* Sign in and Begin sit together as the account corner, ruled off from the
-   section anchors to their left. The anchors scroll this page; these two leave
-   it, and a returning leader should not have to read the labels to tell them
-   apart. */
+/* Sign in and Begin sit together as the account corner, set off from the
+   section anchors by the wider gap. The anchors scroll this page; these two
+   leave it, and a returning leader should not have to read the labels to tell
+   them apart — they are the two that carry a box. */
 .cl-nav-account {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding-left: 30px;
-  border-left: 1px solid rgba(244, 206, 161, 0.2);
+  gap: 12px;
+  padding-left: 12px;
 }
 
+/* Sign in wears the ghost outline at nav scale. The 1.5px border is taken out
+   of the padding so it stands exactly as tall as the ember button beside it. */
 .cl-nav-signin {
-  background: none;
-  border: 0;
-  padding: 0;
+  border: 1.5px solid rgba(244, 206, 161, 0.55);
+  background: rgba(244, 206, 161, 0.08);
+  color: var(--cl-gold);
+  padding: 9.5px 20.5px;
+  border-radius: 6px;
   font: inherit;
   font-weight: 700;
   font-size: 13px;
-  color: var(--cl-gold);
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .cl-nav-signin:hover {
-  opacity: 0.75;
+  background: rgba(244, 206, 161, 0.16);
+  border-color: var(--cl-gold);
 }
 
 /* ------------------------------------------------------------- buttons --- */
@@ -171,7 +172,7 @@ html:has([data-compass-landing]) {
   background: rgba(244, 206, 161, 0.08);
   color: var(--cl-gold);
   padding: 17px 46px;
-  border-radius: 999px;
+  border-radius: 6px;
   font: inherit;
   font-weight: 800;
   font-size: 16px;
@@ -1585,8 +1586,8 @@ html:has([data-compass-landing]) {
   .cl-nav { padding: 18px 24px; flex-wrap: wrap; }
   .cl-nav-links { gap: 18px; flex-wrap: wrap; }
   .cl-nav-link { font-size: 12px; }
-  .cl-nav-account { gap: 14px; padding-left: 0; border-left: 0; }
-  .cl-nav-signin { font-size: 12px; }
+  .cl-nav-account { gap: 10px; padding-left: 0; }
+  .cl-nav-signin { font-size: 12px; padding: 8.5px 16.5px; }
 
   .cl-hero { padding: 4px 24px 0; }
   .cl-hero-cta { padding: 20px 0 28px; }
