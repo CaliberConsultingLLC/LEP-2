@@ -186,6 +186,18 @@
         "--strictPort"
       ],
       "port": 4173
+    },
+    {
+      "name": "lep2-prodhost",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--config",
+        "scripts/vite.prodhost.config.js"
+      ],
+      "port": 4180,
+      "url": "http://compass.localhost:4180"
     }
   ]
 }

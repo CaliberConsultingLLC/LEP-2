@@ -32,7 +32,8 @@ import DemoCatalog from './pages/DemoCatalog';
 import TodayStates from './pages/TodayStates';
 import ProtectedRoute from './components/ProtectedRoute';
 import DemoBanner from './components/DemoBanner';
-import { showDevTools, useCairnTheme, isProductionHost } from './config/runtimeFlags';
+import DemoGate from './components/DemoGate';
+import { showDevTools, useCairnTheme, isDevHost } from './config/runtimeFlags';
 import { GuideProvider } from './context/GuideContext';
 import { StepNavProvider } from './context/StepNavContext';
 import GuideOverlay from './components/GuideOverlay';
@@ -56,7 +57,7 @@ function DemoChrome() {
   return (
     <>
       {demo && <DemoBanner />}
-      {!demo && !onDemoStart && <StagingDevPanel />}
+      {isDevHost && !demo && !onDemoStart && <StagingDevPanel />}
     </>
   );
 }
@@ -66,9 +67,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/landing" element={<Home />} />
-      {!isProductionHost && <Route path="/demo" element={<DemoStart />} />}
-      {!isProductionHost && <Route path="/demo/catalog" element={<DemoCatalog />} />}
-      {!isProductionHost && <Route path="/today-states" element={<TodayStates />} />}
+      {/* Public, but behind a shared password. The catalog and the Today
+          states below stay dev-host-only: those are page-review tools,
+          not something anyone is ever shown. */}
+      <Route path="/demo" element={<DemoGate><DemoStart /></DemoGate>} />
+      {isDevHost && <Route path="/demo/catalog" element={<DemoCatalog />} />}
+      {isDevHost && <Route path="/today-states" element={<TodayStates />} />}
       <Route path="/user-info" element={<UserInfo />} />
       <Route path="/guide-select" element={<GuideSelect />} />
       <Route path="/pay" element={<Checkout />} />
@@ -106,7 +110,13 @@ function App() {
   // skin is active. On production the tree is identical to what shipped
   // before — no provider, no overlay, no behavior change.
   if (useCairnTheme) {
-    if (!isDemoSession()) autoSeedIfNeeded();
+    // The staging seed is a workshop convenience: it writes a finished
+    // persona — intake, reflection, traits, campaign, team answers — into
+    // localStorage so a page can be opened without walking the whole product
+    // to reach it. It used to run on every host, which meant the first real
+    // customer would have signed up, paid, and landed inside Alex's results
+    // instead of their own blank start. It is now confined to dev hosts.
+    if (isDevHost && !isDemoSession()) autoSeedIfNeeded();
     return (
       <GuideProvider>
         <StepNavProvider>

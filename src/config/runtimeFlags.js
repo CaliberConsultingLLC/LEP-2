@@ -21,38 +21,76 @@ const getQueryParam = (name) => {
   }
 };
 
-const runtimeDevOverride = (() => {
-  if (typeof window === 'undefined') return false;
-  try {
-    const qsEnabled = ['1', 'true', 'yes', 'on'].includes(normalize(getQueryParam('dev')));
-    const pathEnabled = String(window.location.pathname || '').startsWith('/dev-');
-    return qsEnabled || pathEnabled;
-  } catch {
-    return false;
-  }
+// The hosts where this build is a workshop rather than a product.
+//
+// This replaces `isProductionHost`, which named the ONE host that had to be
+// safe — `app.northstarpartners.org` — and left every other host running with
+// the staging seed, the dev panel, the dev routes and the auth bypass all
+// switched on. Any domain nobody had thought of was, by default, the
+// dangerous case. Attaching compass.northstarpartners.org under that rule
+// would have shipped the workshop to the public.
+//
+// The list now names the hosts that GET the tools. Anything not on it is
+// treated as the product, so an unrecognised host is the safe case. Adding a
+// domain is no longer a thing that can quietly open a door.
+// Matched exactly, or by suffix for the wildcard case. Deliberately NOT a
+// substring test: `host.includes('localhost')` would also hand the tools to
+// `notlocalhost.com`, and `includes('compass-staging')` to anyone who put
+// that string in a domain they control. A rule that decides who gets an auth
+// bypass should not be satisfiable by a substring.
+const DEV_HOSTS = new Set([
+  'localhost',
+  '127.0.0.1',
+  '::1',
+  '[::1]',
+  'staging.northstarpartners.org',
+]);
+
+// Every Vercel deployment URL for this project, including branch previews.
+const DEV_HOST_SUFFIXES = ['.vercel.app'];
+
+export const isDevHost = (() => {
+  const host = getHostname();
+  if (!host) return false;
+  if (DEV_HOSTS.has(host)) return true;
+  return DEV_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
 })();
 
+// Dev tooling is granted by where the build is running or how it was built —
+// never by the URL a visitor types.
+//
+// Both flags used to read `?dev=1`, or any path starting with `/dev-`, as
+// permission to turn themselves on. That made the flag authorize its own use:
+// on any host, `/dashboard?dev=1` walked straight past ProtectedRoute with no
+// account, and `/dev-repository` mounted the repository console because the
+// path prefix flipped the same switch that gated the route. A flag a stranger
+// can set is not a flag.
 export const showDevTools =
-  import.meta.env.DEV || isTrue(import.meta.env.VITE_ENABLE_DEV_TOOLS) || runtimeDevOverride;
+  import.meta.env.DEV || isTrue(import.meta.env.VITE_ENABLE_DEV_TOOLS) || isDevHost;
 
 export const allowDevBypass =
-  import.meta.env.DEV || isTrue(import.meta.env.VITE_ENABLE_DEV_BYPASS) || runtimeDevOverride;
+  import.meta.env.DEV || isTrue(import.meta.env.VITE_ENABLE_DEV_BYPASS) || isDevHost;
 
-export const useFakeDashboardData =
-  normalize(import.meta.env.VITE_DASHBOARD_DATA_SOURCE || 'fake') !== 'real';
+// Real team data is the default now.
+//
+// This used to fall back to 'fake' whenever the env var was unset, which meant
+// a deployment that simply never had the variable added would serve invented
+// team answers to a paying customer — no error, no banner, nothing to notice.
+// Unset now means fake on a workshop host and real everywhere else, and either
+// can still be forced by name.
+export const useFakeDashboardData = (() => {
+  const source = normalize(import.meta.env.VITE_DASHBOARD_DATA_SOURCE);
+  if (source === 'real') return false;
+  if (source === 'fake') return true;
+  return isDevHost;
+})();
 
-const STAGING_HOST_NEEDLES = ['staging.northstarpartners.org', 'compass-staging'];
-
+// Label only — this is what puts the STAGING chip in the top bar. Gate
+// behaviour on `isDevHost`, never on this.
 export const isStagingHost = (() => {
   const host = getHostname();
   if (!host) return false;
-  return STAGING_HOST_NEEDLES.some((needle) => host.includes(needle));
-})();
-
-export const isProductionHost = (() => {
-  const host = getHostname();
-  if (!host || isStagingHost) return false;
-  return host.includes('app.northstarpartners.org');
+  return host === 'staging.northstarpartners.org' || host.startsWith('compass-staging');
 })();
 
 const isDemoRuntime = (() => {
@@ -114,20 +152,21 @@ const boolEnv = (raw, fallback) => {
 // as unpaid.
 //
 // A demo session still needs both: it has no account and must not write.
-// Anyone who wants the old staging behaviour back sets the env var explicitly.
+// Anyone who wants the old staging behaviour back sets the env var explicitly
+// — and now that only counts on a dev host, so setting it cannot reach the
+// public site by accident.
 //
 // To rehearse production on staging — real login, real Firestore writes, real
-// campaign tokens — set these to "false" and reload:
-//   VITE_ALLOW_AUTH_BYPASS=false
-//   VITE_ALLOW_PERSISTENCE_BYPASS=false
+// campaign tokens — leave both unset, which is the default.
+const resolveBypass = (envValue) => {
+  if (isDemoRuntime) return true;
+  if (!isDevHost) return false;
+  return boolEnv(envValue, false);
+};
 
 // Lets `ProtectedRoute` hand out the dashboard with no Firebase user.
-export const allowAuthBypass = isProductionHost
-  ? false
-  : boolEnv(import.meta.env.VITE_ALLOW_AUTH_BYPASS, isDemoRuntime);
+export const allowAuthBypass = resolveBypass(import.meta.env.VITE_ALLOW_AUTH_BYPASS);
 
 // Lets intake and campaign writes swallow Firestore permission errors and
 // hand out placeholder campaign access tokens instead of signed ones.
-export const allowPersistenceBypass = isProductionHost
-  ? false
-  : boolEnv(import.meta.env.VITE_ALLOW_PERSISTENCE_BYPASS, isDemoRuntime);
+export const allowPersistenceBypass = resolveBypass(import.meta.env.VITE_ALLOW_PERSISTENCE_BYPASS);
