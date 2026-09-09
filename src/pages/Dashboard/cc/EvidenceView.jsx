@@ -623,10 +623,56 @@ function StagePanels({
 // screen said twice. What earns the space is what a leader would not see on
 // their own — and where there is nothing like that to find, these say the
 // steady true thing instead of inventing one.
+//
+// Every branch below is written six times, once per guide. These rooms are keyed
+// per trait and per statement, and no CSV row can carry them — a static line for
+// "trait-1" would have to drop the numbers that make it worth reading. So the
+// voice lives here instead: same finding, same figures, six ways of saying it.
+// Without this the owl spoke in one flat register through the whole exhibit no
+// matter which guide the leader had chosen.
 // ---------------------------------------------------------------------------
 export const GUIDE_LINE_WRITERS = { trait: traitLine, statement: statementLine };
 
-function traitLine(row, statements, label, role) {
+// Guides added after this table was written fall back to mentor rather than to
+// an empty bubble.
+const inVoice = (table, personaId) => table[personaId] || table.mentor;
+
+const TRAIT_VOICES = {
+  unscored: {
+    mentor: (label) => `${label}, five statements. Nothing has been scored here yet — read them as the questions your team is about to answer about you.`,
+    catalyst: (label) => `${label}, five statements, no scores yet. Read them as the questions headed for your team.`,
+    challenger: (label) => `${label}, five statements. Nothing scored yet, so read them as what your team is about to be asked about you — and notice which one you would rather they skipped.`,
+    bestFriend: (label) => `${label} — five statements, nothing scored yet. Read them like the questions your team is about to get, because that is what they are.`,
+    mother: (label) => `${label}, five statements. Nothing has been scored yet. Read them as the questions your people are about to answer about you, and take your time.`,
+    roaster: (label) => `${label}, five statements, zero scores. These are the questions your team is about to answer about you. Enjoy the preview.`,
+  },
+  edge: {
+    mentor: (label, gap) => `${gap} points between how hard they see you working at ${label} and how much of it arrives. That distance is aim, not effort.`,
+    catalyst: (label, gap) => `${gap} points between the effort they see on ${label} and what actually lands. Aim problem, not effort problem — trying harder will not close it.`,
+    challenger: (label, gap) => `${gap} points between how hard they see you working at ${label} and how much of it lands. You cannot work your way out of that one. It is aim.`,
+    bestFriend: (label, gap) => `${gap} points between how hard they see you trying at ${label} and how much actually gets there. That is aim, not effort — which is honestly better news.`,
+    mother: (label, gap) => `${gap} points sit between the effort they see in your ${label} and what actually reaches them. That distance is aim, not effort. Working harder will only tire you.`,
+    roaster: (label, gap) => `${gap} points between how hard they see you working at ${label} and how much of it arrives. That is not a hustle problem. That is a pointing-the-wrong-way problem.`,
+  },
+  lifting: {
+    mentor: (label) => `${label} returns more than it costs you. Worth knowing which of these five is carrying that before you spend the attention somewhere else.`,
+    catalyst: (label) => `${label} returns more than it costs. Find which of the five is carrying it, then go spend your attention elsewhere.`,
+    challenger: (label) => `${label} costs you less than it returns. Know which of these five is doing that work before you take it for granted.`,
+    bestFriend: (label) => `${label} gives back more than you put in. Worth figuring out which of these five is doing the heavy lifting before you spend attention somewhere else.`,
+    mother: (label) => `${label} returns more than it costs you. Find out which of these five is carrying that, so you know what to protect.`,
+    roaster: (label) => `${label} pays for itself. Find out which of the five is doing it, before you accidentally improve the wrong one.`,
+  },
+  strength: {
+    mentor: (n) => `Effort and effect are close here, and both earned. Strength like this is built rather than found — statement ${n} is the one holding it back.`,
+    catalyst: (n) => `Effort and effect are close, and both earned. Built, not lucky. Statement ${n} is the one holding it back — start there.`,
+    challenger: (n) => `Effort and effect line up here, and you earned both. Statement ${n} is the one dragging it. Do not let a strength coast on the other four.`,
+    bestFriend: (n) => `Effort and effect are close here, and you earned both — that is built, not luck. Statement ${n} is the one holding it back.`,
+    mother: (n) => `Effort and effect sit close together here, and both were earned. Strength like this is built, not found. Statement ${n} is the one holding it back.`,
+    roaster: (n) => `Effort and effect actually match here. Rare. Statement ${n} is the freeloader.`,
+  },
+};
+
+function traitLine(row, statements, label, role, personaId = 'mentor') {
   const effort = Math.round(row?.team?.effort || 0);
   const efficacy = Math.round(row?.team?.efficacy || 0);
   const split = effort - efficacy;
@@ -636,21 +682,122 @@ function traitLine(row, statements, label, role) {
   );
 
   if (!effort && !efficacy) {
-    return `${label}, five statements. Nothing has been scored here yet — read them as the questions your team is about to answer about you.`;
+    return inVoice(TRAIT_VOICES.unscored, personaId)(label);
   }
   if (role === 'edge') {
-    return `${Math.abs(split)} points between how hard they see you working at ${label.toLowerCase()} and how much of it arrives. That distance is aim, not effort.`;
+    return inVoice(TRAIT_VOICES.edge, personaId)(label.toLowerCase(), Math.abs(split));
   }
   if (role === 'lifting') {
-    return `${label} returns more than it costs you. Worth knowing which of these five is carrying that before you spend the attention somewhere else.`;
+    return inVoice(TRAIT_VOICES.lifting, personaId)(label);
   }
-  return `Effort and effect are close here, and both earned. Strength like this is built rather than found — statement ${worst + 1} is the one holding it back.`;
+  return inVoice(TRAIT_VOICES.strength, personaId)(worst + 1);
 }
 
 // "an 81-point gap", not "a 81-point gap".
 const article = (n) => (/^(8|11|18)/.test(String(n)) ? 'An' : 'A');
 
-function statementLine(s, all, label) {
+// A wide-split trait sends all five of its statements down the same branch, so
+// each voice carries its own five closers and rotates them by rank. Six voices
+// sharing one rotation would have been the old bug wearing a hat: switch guide,
+// same five sentences.
+const STATEMENT_VOICES = {
+  unscored: {
+    mentor: (quote, place) => `${quote} — ${place}. Nothing scored here yet, so read it as a question: would your team say you do this?`,
+    catalyst: (quote, place) => `${quote} — ${place}. Not scored yet. Quick gut check: would your team say you do this?`,
+    challenger: (quote, place) => `${quote} — ${place}. Nothing scored yet. Answer it yourself first, honestly: would your team say you do this?`,
+    bestFriend: (quote, place) => `${quote} — ${place}. No scores on it yet. So — would your team actually say you do this?`,
+    mother: (quote, place) => `${quote} — ${place}. Nothing has been scored here yet. Read it as a question: would your people say you do this?`,
+    roaster: (quote, place) => `${quote} — ${place}. Unscored. So answer it yourself: would your team say you do this, or would they pause?`,
+  },
+  wideSplit: {
+    mentor: {
+      lead: (split, place) => `${article(split)} ${split}-point gap on one behaviour, and ${place}.`,
+      closes: [
+        'They are watching you try at this and not feeling it arrive.',
+        'The effort is not in question here. Where it is aimed might be.',
+        'More of the same will not close this one — it is already the most effort you spend.',
+        'This is what trying hard looks like from the other side of it.',
+        'Whatever you are doing here, they are not receiving it as the thing you meant.',
+      ],
+    },
+    catalyst: {
+      lead: (split, place) => `${split}-point gap on one behaviour — ${place}.`,
+      closes: [
+        'They see the effort. They just are not feeling the result.',
+        'Effort is fine. Aim is the fix. Change the aim.',
+        'More of the same will not close this — you are already at full effort here.',
+        'This is what hard work looks like from the receiving end.',
+        'What you meant is not what arrived. Adjust and send it again.',
+      ],
+    },
+    challenger: {
+      lead: (split, place) => `${split} points on a single behaviour, and ${place}.`,
+      closes: [
+        'They watch you try at this. They do not feel it land. Both are true.',
+        'Nobody is questioning your effort. Question your aim instead.',
+        'You cannot out-work this one. You are already working it hardest.',
+        'This is what trying hard looks like to someone who is not you.',
+        'You meant one thing. They received another. That is the whole finding.',
+      ],
+    },
+    bestFriend: {
+      lead: (split, place) => `${split}-point gap on this one behaviour, ${place}.`,
+      closes: [
+        'They can see you trying. It is just not landing for them.',
+        'Your effort is not the question here. Where it is pointed might be.',
+        'Doing more of this will not fix it — you are already doing the most here.',
+        'This is what trying hard looks like from the other side.',
+        'What you meant and what they got are two different things.',
+      ],
+    },
+    mother: {
+      lead: (split, place) => `${article(split)} ${split}-point gap on one behaviour, and ${place}.`,
+      closes: [
+        'They see you trying at this, and they do not feel it arrive. Both things are true.',
+        'Your effort is not in question. Where you are aiming it may be.',
+        'More of the same will not close this. You already spend the most effort here.',
+        'This is what trying hard looks like from where they are standing.',
+        'You meant one thing and they received another. That happens, and it is fixable.',
+      ],
+    },
+    roaster: {
+      lead: (split, place) => `${split} points on one behaviour, and ${place}.`,
+      closes: [
+        'They can see you trying. They just cannot feel it.',
+        'Effort: confirmed. Aim: questionable.',
+        'You cannot grind your way out of this one. You are already grinding hardest here.',
+        'This is what trying really hard looks like from the cheap seats.',
+        'You meant well. It arrived as something else entirely.',
+      ],
+    },
+  },
+  cheap: {
+    mentor: (place) => `This one lands better than you are working at it — ${place}, and cheaper than you think.`,
+    catalyst: (place) => `This lands better than you are working it — ${place}. Cheap win. Leave it alone and spend the effort elsewhere.`,
+    challenger: (place) => `This lands better than you are working at it. ${place}, and cheaper than you believe. Do not add effort here.`,
+    bestFriend: (place) => `This one lands better than you are actually working at it — ${place}, and cheaper than you would guess.`,
+    mother: (place) => `This one arrives better than you are working at it — ${place}, and cheaper than you think. You may leave it be.`,
+    roaster: (place) => `This one punches above its effort — ${place}. Do not fix it. You will only make it expensive.`,
+  },
+  selfGap: {
+    mentor: (gap) => `${gap} points sit between your reading of this one and theirs. That distance is the conversation, not the score on either side of it.`,
+    catalyst: (gap) => `${gap} points between your read and theirs. That gap is the conversation — go have it.`,
+    challenger: (gap) => `${gap} points between what you think of this one and what they think. Neither score is the point. The gap is what you have not discussed.`,
+    bestFriend: (gap) => `${gap} points between how you see this and how they do. That gap is the conversation, not either number.`,
+    mother: (gap) => `${gap} points sit between your reading of this and theirs. The distance is the conversation, not the score on either side of it.`,
+    roaster: (gap) => `${gap} points between your read and theirs. One of you is calibrated. The gap is the conversation.`,
+  },
+  even: {
+    mentor: (place) => `${place}. What you put into this one is roughly what comes back out, which makes it a fair place to read the other four against.`,
+    catalyst: (place) => `${place}. Effort in, effect out, about even. Good baseline for reading the other four.`,
+    challenger: (place) => `${place}. What you put in is roughly what comes back. Nothing to fix here — use it as the ruler for the other four.`,
+    bestFriend: (place) => `${place}. What you put in is about what comes back out, which makes it a decent yardstick for the other four.`,
+    mother: (place) => `${place}. What you put in is close to what comes back, and that steadiness is worth noticing. Read the other four against it.`,
+    roaster: (place) => `${place}. Effort in, effect out, roughly even. Boring. Use it as the control group.`,
+  },
+};
+
+function statementLine(s, all, label, personaId = 'mentor') {
   const split = (s.effort || 0) - (s.efficacy || 0);
   const here = all.indexOf(s);
   // Ties break by position, or every statement in a flat set claims to be the
@@ -669,31 +816,26 @@ function statementLine(s, all, label) {
   // No scores yet — quoting zeros reads like a broken page. Say the true thing
   // about the behaviour instead and leave the numbers out.
   if (!s.effort && !s.efficacy) {
-    return `“${String(s.text || '').replace(/\s+$/, '')}” — ${place}. Nothing scored here yet, so read it as a question: would your team say you do this?`;
+    const quote = `“${String(s.text || '').replace(/\s+$/, '')}”`;
+    return inVoice(STATEMENT_VOICES.unscored, personaId)(quote, place);
   }
 
   // A wide-split trait makes every one of its five statements take this
   // branch, so the closing clause rotates by rank — otherwise the room reads
   // as one sentence with the numbers swapped, which is the whole complaint.
   if (split >= 25) {
-    const closes = [
-      'They are watching you try at this and not feeling it arrive.',
-      'The effort is not in question here. Where it is aimed might be.',
-      'More of the same will not close this one — it is already the most effort you spend.',
-      'This is what trying hard looks like from the other side of it.',
-      'Whatever you are doing here, they are not receiving it as the thing you meant.',
-    ];
-    return `${article(split)} ${split}-point gap on one behaviour, and ${place}. ${closes[(rank - 1) % closes.length]}`;
+    const voice = inVoice(STATEMENT_VOICES.wideSplit, personaId);
+    return `${voice.lead(split, place)} ${voice.closes[(rank - 1) % voice.closes.length]}`;
   }
   if (split <= -15) {
-    return `This one lands better than you are working at it — ${place}, and cheaper than you think.`;
+    return inVoice(STATEMENT_VOICES.cheap, personaId)(place);
   }
   if (selfGap != null && Math.abs(selfGap) >= 15) {
-    return `${Math.abs(selfGap)} points sit between your reading of this one and theirs. That distance is the conversation, not the score on either side of it.`;
+    return inVoice(STATEMENT_VOICES.selfGap, personaId)(Math.abs(selfGap));
   }
   // Nothing here is remarkable, so nothing here pretends to be. The steady
   // true thing about the statement beats a manufactured finding.
-  return `${place[0].toUpperCase()}${place.slice(1)}. What you put into this one is roughly what comes back out, which makes it a fair place to read the other four against.`;
+  return inVoice(STATEMENT_VOICES.even, personaId)(`${place[0].toUpperCase()}${place.slice(1)}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -725,8 +867,8 @@ function EvTraitPage({ row, traitIndex = 0, traitCount = 1, onNextTrait, role = 
     const onStatement = typeof selected === 'number' && statements[selected];
     const stepKey = onStatement ? `t${n}-s${selected + 1}` : `trait-${n}`;
     const fallback = onStatement
-      ? statementLine(statements[selected], statements, traitLabel)
-      : traitLine(row, statements, traitLabel, role);
+      ? statementLine(statements[selected], statements, traitLabel, personaId)
+      : traitLine(row, statements, traitLabel, role, personaId);
     const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, fallback, 'map');
     setPageMessage({
       text: spoken.text,

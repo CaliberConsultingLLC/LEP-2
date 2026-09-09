@@ -683,12 +683,49 @@ export function getGuideLine(personaId, routeKey, stepKey = 'default') {
 export function spokenGuide(personaId, routeKey, stepKey, fallbackText = '', fallbackPose = 'idle') {
   const line = getGuideLine(personaId, routeKey, stepKey);
   const useFallback = !line.exact && String(fallbackText || '').trim();
+  const text = useFallback ? fallbackText : (line.text || fallbackText);
+  warnIfVoiceless(personaId, `${routeKey}::${stepKey}`, text);
   return {
-    text: useFallback ? fallbackText : (line.text || fallbackText),
+    text,
     pose: line.pose || fallbackPose,
     cta: line.cta || 'Okay',
     title: line.title || 'Guide',
   };
+}
+
+/**
+ * Dev-only drift alarm: warn when two guides say the identical sentence.
+ *
+ * Six personas reading one string is the specific defect this whole file exists
+ * to prevent, and it is invisible in normal use — you only catch it by switching
+ * guide on the same screen and noticing nothing moved. It reappeared four
+ * different ways (a route with no CSV rows, a step key the CSV never learned, a
+ * row filled for Mentor only, a computed fallback written once) so guarding the
+ * CSV alone would not have caught it.
+ *
+ * Checking the resolved OUTPUT catches all four, including the computed
+ * fallbacks that legitimately have no CSV row and are voiced in code instead.
+ * The trade is that it only sees personas actually rendered this session, so it
+ * fires when someone switches guide — which is exactly when a human would have
+ * noticed anyway, and now they get a key to fix instead of a hunch.
+ */
+const seenLines = new Map();
+
+function warnIfVoiceless(personaId, fullKey, text) {
+  if (!import.meta.env?.DEV) return;
+  const line = String(text || '').trim();
+  if (!line) return;
+  const byPersona = seenLines.get(fullKey) || new Map();
+  const owner = byPersona.get(line);
+  if (owner && owner !== personaId) {
+    console.warn(
+      `[guide] "${fullKey}" reads identically for ${owner} and ${personaId}. ` +
+      'Static does not mean identical — give this key six voices in ' +
+      'content/guides/3-guide-copy.csv, or in the fallback beside its numbers.'
+    );
+  }
+  byPersona.set(line, owner || personaId);
+  seenLines.set(fullKey, byPersona);
 }
 
 // Return the full array of messages for a route + persona (+ optional step).

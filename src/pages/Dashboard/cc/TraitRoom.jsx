@@ -420,8 +420,8 @@ export default function TraitRoom({ row, statements, traitIndex = 0, role = 'str
     const open = Number.isInteger(selected) && ordered?.[selected];
     const stepKey = open ? `t${n}-s${selected + 1}` : `trait-${n}`;
     const fallback = open
-      ? guideLines.statement(ordered[selected], ordered, traitLabel)
-      : guideLines.trait(row, ordered, traitLabel, role);
+      ? guideLines.statement(ordered[selected], ordered, traitLabel, personaId)
+      : guideLines.trait(row, ordered, traitLabel, role, personaId);
     const spoken = spokenGuide(personaId, 'dashboardEvidence', stepKey, fallback, 'map');
     setPageMessage({
       text: spoken.text,

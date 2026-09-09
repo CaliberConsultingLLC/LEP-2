@@ -1552,6 +1552,26 @@ export const GUIDE_STEPS = {
     "mentor": {
       "text": "Good. Resonance means the mirror is clear. Keep that honesty when you pick a next step.",
       "pose": "idle"
+    },
+    "catalyst": {
+      "text": "It lands. That's momentum — carry it straight into the next step instead of admiring it.",
+      "pose": "idle"
+    },
+    "challenger": {
+      "text": "It resonates, which means you already knew. So the question is why it is still on the list.",
+      "pose": "idle"
+    },
+    "bestFriend": {
+      "text": "That tracks, right? Good — hold onto that feeling when you pick what to do next.",
+      "pose": "idle"
+    },
+    "mother": {
+      "text": "It rings true. That is worth something. Carry the same honesty into what you choose to do about it.",
+      "pose": "idle"
+    },
+    "roaster": {
+      "text": "It resonates. Translation: you knew. Knowing has never once fixed anything, so pick a next step.",
+      "pose": "idle"
     }
   },
   "dashboardSignal::reaction-surprises": {
@@ -1559,6 +1579,26 @@ export const GUIDE_STEPS = {
     "pose": "think",
     "mentor": {
       "text": "Surprise is useful. Don't explain it away — follow it into the evidence.",
+      "pose": "think"
+    },
+    "catalyst": {
+      "text": "Surprise is a lead. Don't file it — chase it into the evidence while it's still fresh.",
+      "pose": "think"
+    },
+    "challenger": {
+      "text": "You did not see that coming, which means your read of yourself has a hole in it. Go find the edge of it.",
+      "pose": "think"
+    },
+    "bestFriend": {
+      "text": "Huh — didn't expect that one? Don't talk yourself out of it. Go look at what's underneath.",
+      "pose": "think"
+    },
+    "mother": {
+      "text": "Surprise is worth keeping. Do not smooth it over. Follow it into the evidence and see what it is attached to.",
+      "pose": "think"
+    },
+    "roaster": {
+      "text": "Surprised? That's the sound of a blind spot introducing itself. Follow it before you rationalize it.",
       "pose": "think"
     }
   },
@@ -1568,6 +1608,26 @@ export const GUIDE_STEPS = {
     "mentor": {
       "text": "If it stings, it's usually close to something true. Stay with it a moment longer than you want to.",
       "pose": "lantern"
+    },
+    "catalyst": {
+      "text": "It stings because it's close. Sit with it for thirty seconds, then turn it into one thing you'll change.",
+      "pose": "lantern"
+    },
+    "challenger": {
+      "text": "It stings because it is true and you already suspected it. Stay there. Leaving early is the whole habit.",
+      "pose": "lantern"
+    },
+    "bestFriend": {
+      "text": "Ouch — yeah. That usually means it's close to something real. Stay with it a minute, I'm not going anywhere.",
+      "pose": "lantern"
+    },
+    "mother": {
+      "text": "If it stings, it is near something true. Stay with it a little longer than is comfortable. I will wait with you.",
+      "pose": "lantern"
+    },
+    "roaster": {
+      "text": "Stings, does it. Things that are false don't sting. Sit in it a beat longer than you'd like.",
+      "pose": "lantern"
     }
   },
   "dashboardSignal::reaction-disagree": {
@@ -1575,6 +1635,26 @@ export const GUIDE_STEPS = {
     "pose": "armsCross",
     "mentor": {
       "text": "Disagreement is allowed. Test it against the receipts before you dismiss the signal.",
+      "pose": "armsCross"
+    },
+    "catalyst": {
+      "text": "Disagree? Fine. Check it against the statements first, then decide. Fast, not dismissive.",
+      "pose": "armsCross"
+    },
+    "challenger": {
+      "text": "You are allowed to disagree. You are not allowed to skip the receipts on the way there.",
+      "pose": "armsCross"
+    },
+    "bestFriend": {
+      "text": "You can totally disagree. Just look at the actual statements first, before you file it under they're wrong.",
+      "pose": "armsCross"
+    },
+    "mother": {
+      "text": "You may disagree. Do it properly, though — read the evidence first, and then tell me you still do.",
+      "pose": "armsCross"
+    },
+    "roaster": {
+      "text": "Sure, disagree. Everyone does at first. Check the receipts, then disagree with something specific.",
       "pose": "armsCross"
     }
   },
@@ -2096,6 +2176,18 @@ export const GUIDE_STEPS = {
     "challenger": {
       "text": "Bad news first. Open the tab you wish you didn't have to.",
       "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Find the thing you keep scrolling past. That's the one, and you know it.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Look for what you keep avoiding. That is usually where the work is, and it will keep waiting for you.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Open the tab you've been pretending not to see. Yes, that one.",
+      "pose": "map"
     }
   },
   "dashboardGrowth::default": {
@@ -2111,6 +2203,18 @@ export const GUIDE_STEPS = {
     },
     "challenger": {
       "text": "Which of these have you already told yourself you'd do — and haven't? Start there.",
+      "pose": "page"
+    },
+    "bestFriend": {
+      "text": "Small stuff you actually do beats big stuff you don't. Pick one behavior for this week.",
+      "pose": "page"
+    },
+    "mother": {
+      "text": "Small promises kept are worth more than large ones dropped. One behavior. One week. That is enough.",
+      "pose": "page"
+    },
+    "roaster": {
+      "text": "One small thing you'll actually do beats one big thing you'll describe eloquently and abandon.",
       "pose": "page"
     }
   },
@@ -2128,6 +2232,18 @@ export const GUIDE_STEPS = {
     "challenger": {
       "text": "You don't get points for reading. You get points for what you change on Monday.",
       "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Listen for what they're saying under the numbers. The good stuff's usually in the margins.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Listen underneath the numbers. What your people mean is often in the margins, not the totals.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "The numbers are the headline. The margins are the story. Read the margins.",
+      "pose": "map"
     }
   },
   "dashboardResults::default": {
@@ -2143,6 +2259,18 @@ export const GUIDE_STEPS = {
     },
     "challenger": {
       "text": "The gap you rationalize is the gap your team talks about when you're not in the room.",
+      "pose": "lantern"
+    },
+    "bestFriend": {
+      "text": "Hold the highs and lows together. Both are you — neither one is the whole picture.",
+      "pose": "lantern"
+    },
+    "mother": {
+      "text": "Hold the best and the worst of it side by side. Both are true, and neither is the whole of you.",
+      "pose": "lantern"
+    },
+    "roaster": {
+      "text": "Highs and lows, same leader, same week. Pick one of each and stop framing the average.",
       "pose": "lantern"
     }
   },
@@ -2160,6 +2288,18 @@ export const GUIDE_STEPS = {
     "challenger": {
       "text": "Stop browsing. Start.",
       "pose": "greet"
+    },
+    "bestFriend": {
+      "text": "Hey — you made it. Have a look around, and hit begin when you're ready. I'll be here.",
+      "pose": "greet"
+    },
+    "mother": {
+      "text": "You are here. Look around as long as you like, and begin when you are ready. There is no rush.",
+      "pose": "greet"
+    },
+    "roaster": {
+      "text": "You're here. Impressive. Now click the button before you find something else to organize.",
+      "pose": "greet"
     }
   },
   "signIn::default": {
@@ -2176,6 +2316,18 @@ export const GUIDE_STEPS = {
     "challenger": {
       "text": "Authenticate. Then do the work.",
       "pose": "idle"
+    },
+    "bestFriend": {
+      "text": "Sign in so your stuff stays yours. Takes a second.",
+      "pose": "idle"
+    },
+    "mother": {
+      "text": "Sign in so your work stays with you. It should be waiting for you next time.",
+      "pose": "idle"
+    },
+    "roaster": {
+      "text": "Sign in. Yes, another account. No, I don't make the rules.",
+      "pose": "idle"
     }
   },
   "faq::default": {
@@ -2191,6 +2343,18 @@ export const GUIDE_STEPS = {
     },
     "challenger": {
       "text": "Read the one you're most tempted to skip.",
+      "pose": "think"
+    },
+    "bestFriend": {
+      "text": "Look for the one you're actually wondering about. That's the one worth reading.",
+      "pose": "think"
+    },
+    "mother": {
+      "text": "Read the question you are actually carrying, not the one that is easiest to answer. Confusion usually means something matters.",
+      "pose": "think"
+    },
+    "roaster": {
+      "text": "Read the one you're embarrassed to have to ask. That's the one you need.",
       "pose": "think"
     }
   },
@@ -2304,6 +2468,594 @@ export const GUIDE_STEPS = {
     "roaster": {
       "text": "You send it. Choosing only your fans is allowed, and it wastes five hundred dollars.",
       "pose": "point"
+    }
+  },
+  "dashboardNarrative::threshold": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "read",
+    "mentor": {
+      "text": "This is the first thing your team said back. Read it slowly — the number matters less than the shape underneath it.",
+      "pose": "read"
+    },
+    "catalyst": {
+      "text": "First read is in. Don't grab the number and run — the shape under it is where the useful part lives.",
+      "pose": "read"
+    },
+    "challenger": {
+      "text": "Here it is. You are going to want to argue with the number. Look at the shape instead — that is the part you cannot negotiate.",
+      "pose": "read"
+    },
+    "bestFriend": {
+      "text": "Okay. This is what they said. Take a second before you react to the number — the shape underneath is the real story.",
+      "pose": "read"
+    },
+    "mother": {
+      "text": "This is what your people said back to you. Sit with it before you decide what it means. The number is the smallest part of it.",
+      "pose": "read"
+    },
+    "roaster": {
+      "text": "There it is. You'll want to relitigate the number for twenty minutes. Skip that and look at the shape.",
+      "pose": "read"
+    }
+  },
+  "dashboardNarrative::measurements": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "Two questions behind every score: how hard they see you trying, and how well it lands. They move independently, and the distance between them is the finding.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Two lines, not one. Effort and landing. They move apart — and that gap is the thing worth acting on.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "Trying hard and landing well are different measurements. You have been treating them as one. The gap is the finding.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Two separate things here — how hard they see you working, and whether it actually reaches them. Those don't always match.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "There are two questions inside every score: the effort they see, and what actually arrives. They are not the same, and the distance between them is what we came for.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Effort and effect. Two numbers. You've been quietly assuming they're the same one. They're not.",
+      "pose": "map"
+    }
+  },
+  "dashboardNarrative::statements": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "Same two measurements, now on single behaviours. This is where a trait score stops being an average and starts being specific.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Zoom in. Same two measures, one behaviour at a time. Averages hide things; statements don't.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "An average lets you off. A single behaviour does not. This is where it gets specific.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Same two measures, but per behaviour now. This is where it stops being a vibe and starts being a thing you did.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Now the same two questions, one behaviour at a time. An average is a comfortable place to hide. This is not.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Averages are where accountability goes to nap. Here's the itemized bill.",
+      "pose": "map"
+    }
+  },
+  "dashboardNarrative::map": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "Four quadrants. Where a behaviour sits tells you whether it needs more effort or a different aim — those are not the same fix.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Four boxes. Position tells you the move: push harder, or push somewhere else. Don't guess — read it.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "Working harder and aiming better are different fixes. The quadrant tells you which one you actually need. Stop applying the wrong one.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Four quadrants. Where something lands tells you if you need more effort or a different angle — and honestly those are opposite fixes.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Four quadrants. Where a behaviour sits tells you what it needs. More effort and better aim are not the same medicine, and one will not do the other's job.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Four quadrants. One of them is 'trying very hard at the wrong thing.' Check whether you live there.",
+      "pose": "map"
+    }
+  },
+  "dashboardNarrative::gap-statements": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "Your read beside theirs, one statement at a time. Neither of you is wrong. The distance is the thing to look at.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Your call next to theirs. Nobody's wrong here. The gap is the signal — find the widest one and start there.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "You scored yourself. They scored you. Where those disagree is the part nobody has said to your face.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Your read, their read, side by side. Neither one is the truth. The space between them is where the conversation is.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "What you believed, beside what they saw. Nobody here is lying. The distance is simply what has not been said out loud yet.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Your self-assessment versus the receipts. Where they diverge is where you've been marking your own homework.",
+      "pose": "map"
+    }
+  },
+  "dashboardNarrative::insight-1": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "One trait, read whole. Hold it against what you predicted before your team was asked.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "First trait, all the way through. Compare it to your own guess — that comparison is fast and it's useful.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "One trait, complete. Now put it next to what you predicted. If you were right, say so. If you were not, say that too.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "First one, start to finish. Remember what you guessed before any of this? Hold it up against that.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "One trait, read all the way through. Set it beside what you predicted about yourself, and be honest about the difference.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Trait one, unabridged. Now compare it to your prediction. This is the fun part.",
+      "pose": "map"
+    }
+  },
+  "dashboardNarrative::insight-2": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "The second trait. Notice whether the pattern here rhymes with the last one.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Second one. Watch for the echo — if it rhymes with the first, you've found something bigger than a trait.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "Second trait. If this repeats the first, it is not a trait problem. It is a you problem, and that is more useful.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Number two. See if it rhymes with the first one — that's usually where the real thing is hiding.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "The second one now. Notice whether it echoes the first. A pattern that repeats is telling you something a single trait cannot.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Trait two. If it's the same song in a different key, congratulations — you've found your actual habit.",
+      "pose": "map"
+    }
+  },
+  "dashboardNarrative::insight-3": {
+    "title": "Command Center · Narrative Debrief",
+    "pose": "map",
+    "mentor": {
+      "text": "Last trait. By now you can probably say what it is going to tell you — check whether you are right.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Last one. Call it before you read it, then check. Fast test of how well you know your own pattern.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "Last trait. You can probably predict this one now. Predict it, then read it, and notice what you got wrong.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Last one. Bet you can guess what it says by now — go ahead and guess, then check.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "The last one. You can likely say what it will tell you before you read it. Say it first, then read, and see what you missed.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Final trait. You already know what it says. Read it anyway — the gap between knowing and doing is the whole product.",
+      "pose": "map"
+    }
+  },
+  "dashboardPractice::closed-book": {
+    "title": "Command Center · Field Journal",
+    "pose": "read",
+    "mentor": {
+      "text": "Your field journal. Everything the team told you is already inside. Open it when you are ready to write.",
+      "pose": "read"
+    },
+    "catalyst": {
+      "text": "Field journal. Their words are already in there. Open it when you're ready to put something down.",
+      "pose": "read"
+    },
+    "challenger": {
+      "text": "The journal. Everything they said is already inside it. Reading was the easy half — this is the half that costs you.",
+      "pose": "read"
+    },
+    "bestFriend": {
+      "text": "This is your journal. All of it's in there already. Open it whenever you're ready — no rush, but don't stall either.",
+      "pose": "read"
+    },
+    "mother": {
+      "text": "Your field journal. Everything they told you is already inside, waiting. Open it when you are ready, and not before.",
+      "pose": "read"
+    },
+    "roaster": {
+      "text": "The journal. Their feedback's already in there. Opening it is where most people quietly stop.",
+      "pose": "read"
+    }
+  },
+  "dashboardPractice::open-book": {
+    "title": "Command Center · Field Journal",
+    "pose": "point",
+    "mentor": {
+      "text": "You have read what your team said, sat with it, and let it argue with you. None of that changes anything on its own. This is where it turns into something you do — a page for each trait, one question at a time, in your own words. Put the first foot down and I will walk it with you.",
+      "pose": "point"
+    },
+    "catalyst": {
+      "text": "Read it, sat with it, argued with it. None of that moves a number. This is the part that does — one page per trait, one question at a time, your words. Start and I'll keep pace with you.",
+      "pose": "point"
+    },
+    "challenger": {
+      "text": "You have read it and you have felt something about it. Neither one counts. A page per trait, one question at a time, in your own words — and nobody writes it for you. Begin.",
+      "pose": "point"
+    },
+    "bestFriend": {
+      "text": "You've read it, you've sat with it, you've probably argued with it in the shower. That's all fine — it just doesn't change anything yet. One page per trait, one question at a time, your words. I'm right here.",
+      "pose": "point"
+    },
+    "mother": {
+      "text": "You have read what they said and let it work on you. That was necessary, and it is not enough. Now a page for each trait, one question at a time, in your own words. Put your foot down and I will stay with you.",
+      "pose": "point"
+    },
+    "roaster": {
+      "text": "You've read it. You've had feelings. Feelings aren't a plan. One page per trait, one question at a time, your handwriting. Let's go.",
+      "pose": "point"
+    }
+  },
+  "dashboardPractice::ledger-incomplete": {
+    "title": "Command Center · Field Journal",
+    "pose": "lantern",
+    "mentor": {
+      "text": "One page is still open. The commitment only counts when it covers all three.",
+      "pose": "lantern"
+    },
+    "catalyst": {
+      "text": "One page short. All three or it doesn't count — finish the open one.",
+      "pose": "lantern"
+    },
+    "challenger": {
+      "text": "You left one open. A commitment with a hole in it is a preference. Close it.",
+      "pose": "lantern"
+    },
+    "bestFriend": {
+      "text": "One's still unfinished. Come on — all three, or it doesn't really count.",
+      "pose": "lantern"
+    },
+    "mother": {
+      "text": "There is still a page open. A promise that covers two of three is not the promise you meant to make. Finish it.",
+      "pose": "lantern"
+    },
+    "roaster": {
+      "text": "Two out of three. That's not a commitment, that's a sampler platter. Finish the third.",
+      "pose": "lantern"
+    }
+  },
+  "dashboardPractice::ledger-complete": {
+    "title": "Command Center · Field Journal",
+    "pose": "lantern",
+    "mentor": {
+      "text": "Three pages, in your handwriting. Read them once the way your team will read them, then sign.",
+      "pose": "lantern"
+    },
+    "catalyst": {
+      "text": "Three pages, done. One read-through as your team, then sign it and move.",
+      "pose": "lantern"
+    },
+    "challenger": {
+      "text": "Three pages. Read them as the person who has to live with you, not as the person who wrote them. Then sign.",
+      "pose": "lantern"
+    },
+    "bestFriend": {
+      "text": "All three, in your own words. Read them once like you're on the receiving end — then sign.",
+      "pose": "lantern"
+    },
+    "mother": {
+      "text": "Three pages, in your own hand. Read them once as your team will read them, slowly, and then sign.",
+      "pose": "lantern"
+    },
+    "roaster": {
+      "text": "Three pages. Read them back in your team's voice. If you cringe, edit. Then sign.",
+      "pose": "lantern"
+    }
+  },
+  "dashboardPractice::ledger-signed": {
+    "title": "Command Center · Field Journal",
+    "pose": "lantern",
+    "mentor": {
+      "text": "Signed. Your team sees these three lines at the next check-in — nothing else from this journal.",
+      "pose": "lantern"
+    },
+    "catalyst": {
+      "text": "Signed. Three lines go to your team at the check-in. Everything else stays yours. Now go do them.",
+      "pose": "lantern"
+    },
+    "challenger": {
+      "text": "Signed. Three lines, and they will be held against you at the check-in. That is the point.",
+      "pose": "lantern"
+    },
+    "bestFriend": {
+      "text": "Signed. They'll see these three lines at the check-in — that's it. The rest stays between us.",
+      "pose": "lantern"
+    },
+    "mother": {
+      "text": "Signed. These three lines are what your people will see at the next check-in, and nothing more. Now keep them.",
+      "pose": "lantern"
+    },
+    "roaster": {
+      "text": "Signed. Three lines, publicly, at the check-in. The journal stays private. The promise doesn't.",
+      "pose": "lantern"
+    }
+  },
+  "dashboardPractice::field-envisionExperience": {
+    "title": "Command Center · Field Journal",
+    "pose": "think",
+    "mentor": {
+      "text": "Sit in their seat for a minute. Say what they expect the way they would say it — their words, not the way you would defend it. Do not fix it yet.",
+      "pose": "think"
+    },
+    "catalyst": {
+      "text": "Their seat, their words. Write what they expect the way they'd say it — no defending, no fixing. That comes later.",
+      "pose": "think"
+    },
+    "challenger": {
+      "text": "In their words, not your rebuttal. Write what they expect the way they would say it to someone who is not you. Do not fix it yet.",
+      "pose": "think"
+    },
+    "bestFriend": {
+      "text": "Sit in their chair for a sec. How would they say it — not how you'd explain it. Don't fix it yet, just say it.",
+      "pose": "think"
+    },
+    "mother": {
+      "text": "Take their seat for a moment. Say what they expect in their words, not in the version where you come out well. We are not fixing anything yet.",
+      "pose": "think"
+    },
+    "roaster": {
+      "text": "Their words. Not your press release. Write what they actually expect, and resist the urge to argue with it in the same sentence.",
+      "pose": "think"
+    }
+  },
+  "dashboardPractice::field-envisionWant": {
+    "title": "Command Center · Field Journal",
+    "pose": "think",
+    "mentor": {
+      "text": "Underneath the expectation is a want, and it is usually simpler than the complaint. The simplest thing they are hoping you would do or say. One honest sentence is enough.",
+      "pose": "think"
+    },
+    "catalyst": {
+      "text": "Under the complaint is a want, and it's usually smaller than you think. One honest sentence. Go.",
+      "pose": "think"
+    },
+    "challenger": {
+      "text": "The complaint is the surface. The want underneath it is simpler, and harder to admit. One sentence.",
+      "pose": "think"
+    },
+    "bestFriend": {
+      "text": "Under all that is something pretty simple they want from you. Usually simpler than the complaint. One honest line is plenty.",
+      "pose": "think"
+    },
+    "mother": {
+      "text": "Beneath the expectation there is a want, and it is almost always simpler than the complaint. One honest sentence will do.",
+      "pose": "think"
+    },
+    "roaster": {
+      "text": "Under every complaint is a small, obvious, slightly embarrassing want. Name it in one sentence.",
+      "pose": "think"
+    }
+  },
+  "dashboardPractice::field-branchBehavior": {
+    "title": "Command Center · Field Journal",
+    "pose": "map",
+    "mentor": {
+      "text": "Behaviors, not intentions — concrete enough that someone on the team could watch you do it. The recap email, the check-back, the owner-and-date at the end of a meeting. Enter starts the next one.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Behaviors, not intentions. Watchable ones. The recap email, the check-back, owner-and-date before people leave the room. Enter for the next.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "If nobody could watch you do it, it is not a behavior, it is a mood. Recap email. Check-back. Owner and date. Enter for the next.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Actual behaviors — stuff someone could literally see you do. The recap email, the check-back, owner-and-date at the end. Hit Enter for the next one.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Behaviors, not intentions. Concrete enough that someone could watch you do it — the recap, the check-back, the owner and date before anyone leaves. Enter begins the next.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Be more communicative is not a behavior, it's a horoscope. Recap email. Check-back. Owner and date. Enter for the next.",
+      "pose": "map"
+    }
+  },
+  "dashboardPractice::field-branchSignal": {
+    "title": "Command Center · Field Journal",
+    "pose": "map",
+    "mentor": {
+      "text": "Intentions drift. Name the habit, how often, and how you will know it is holding — a slot on the calendar and a person who will notice if it slips.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Intentions drift. Name the habit, the frequency, and the tell. Calendar slot plus one person who'd notice. Done.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "Every intention drifts and yours will too. Name the cadence, and name the person who will notice when it slips. Without both, this is a wish.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Good intentions slide — happens to everyone. So: what's the habit, how often, and who'd notice if you quit? Put it on the calendar.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Intentions drift. Name the habit, how often, and how you will know it is holding — a place on the calendar, and someone who will notice if it slips.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Intentions have a half-life of about nine days. Give me the cadence, the calendar slot, and the name of the person who'll notice you quit.",
+      "pose": "map"
+    }
+  },
+  "dashboardPractice::field-commitGoal": {
+    "title": "Command Center · Field Journal",
+    "pose": "map",
+    "mentor": {
+      "text": "Honest, not heroic. Six to ten points in a cycle is a change people actually feel.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Honest, not heroic. Six to ten points in a cycle is real movement people can feel. Pick a number you'll hit.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "Do not pick a number to impress me. Six to ten points is a change people feel. Anything larger is a story you will be explaining later.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Honest, not heroic. Six to ten points is genuinely a lot — people feel that. Don't oversell it.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Honest, not heroic. Six to ten points in a cycle is a real change, and people will feel it. You do not have to promise more.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Pick a number you'll actually hit, not one that sounds good out loud. Six to ten points is real. Twenty is a fantasy with a deadline.",
+      "pose": "map"
+    }
+  },
+  "dashboardPractice::field-commitMessage": {
+    "title": "Command Center · Field Journal",
+    "pose": "map",
+    "mentor": {
+      "text": "They will read exactly this at the next check-in and nothing else from this journal. Short enough to remember, specific enough that they could hold you to it.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "This exact line goes to them at the check-in. Nothing else does. Short enough to remember, specific enough to be held to.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "This is the only thing they see. Short enough to remember, specific enough that they could call you on it — that second part is the whole point.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "This is the one thing they actually read at the check-in. Keep it short, and specific enough that they could call you out.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "This is what they will read at the next check-in, and nothing else from these pages. Short enough to remember. Specific enough that they can hold you to it.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "This sentence is the whole exhibit. Short enough to remember, specific enough to be used against you. That's a feature.",
+      "pose": "map"
+    }
+  },
+  "dashboardPractice::sealed-p1": {
+    "title": "Command Center · Field Journal",
+    "pose": "map",
+    "mentor": {
+      "text": "Good. You know what they were carrying. Now do something with it.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "Good — you've got what they were carrying. Now turn it into a move.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "You know what they were carrying now. Understanding it is not the same as changing it. Next page.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Nice. You actually get what they were carrying now. Okay — now do something with it.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "Good. You know what they have been carrying. Understanding is the first half. Now do something with it.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "Great, you understand them. Empathy with no follow-through is just a well-informed shrug. Next page.",
+      "pose": "map"
+    }
+  },
+  "dashboardPractice::sealed-p2": {
+    "title": "Command Center · Field Journal",
+    "pose": "map",
+    "mentor": {
+      "text": "That is a real commitment. Turn to the next trait, or read it back once more.",
+      "pose": "map"
+    },
+    "catalyst": {
+      "text": "That's a real commitment. Next trait, or read it back once and then go.",
+      "pose": "map"
+    },
+    "challenger": {
+      "text": "That one is real. Read it back once so you cannot claim later that you did not mean it. Then the next trait.",
+      "pose": "map"
+    },
+    "bestFriend": {
+      "text": "Okay, that's a real one. Read it back once if you want, then on to the next trait.",
+      "pose": "map"
+    },
+    "mother": {
+      "text": "That is a real commitment. Read it back once, or turn to the next trait. Either is fine — you have done the work here.",
+      "pose": "map"
+    },
+    "roaster": {
+      "text": "That's an actual commitment. Read it back once so future-you can't claim ambiguity. Then next trait.",
+      "pose": "map"
     }
   }
 };

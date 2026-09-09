@@ -145,12 +145,37 @@ function guideForContext(ctx) {
   const team = Math.round(row?.team?.lepScore || 0);
   const self = Math.round(row?.self?.lepScore || 0);
   const pageKey = `${role}-p1`;
+  const who = respondents || 'Your team';
+  // Keyed per trait role and carrying this trait's two scores, so these cannot
+  // be a CSV row — the voice has to be written here beside the numbers.
   const fallbacks = {
-    'edge-p1': `${respondents || 'Your team'} put you at ${team} here, and you put yourself at ${self}. Read what they wrote before you decide what it means.`,
-    'lifting-p1': 'They hear you. They just leave holding different versions of what you said. Sit with their words a minute.',
-    'strength-p1': 'This one is a strength, and they told you so. Read it anyway — strengths slip quietly.',
+    'edge-p1': {
+      mentor: `${who} put you at ${team} here, and you put yourself at ${self}. Read what they wrote before you decide what it means.`,
+      catalyst: `${who} put you at ${team}. You said ${self}. Read their words before you decide what the gap means.`,
+      challenger: `${who} put you at ${team}. You put yourself at ${self}. Do not explain the difference yet — read what they actually wrote.`,
+      bestFriend: `${who} put you at ${team} here. You said ${self}. Read what they wrote before you decide what that means.`,
+      mother: `${who} put you at ${team}, and you put yourself at ${self}. Read what they wrote before you settle on what it means. Take your time with it.`,
+      roaster: `${who} put you at ${team}. You went with ${self}. One of those is a self-report. Read their words first.`,
+    },
+    'lifting-p1': {
+      mentor: 'They hear you. They just leave holding different versions of what you said. Sit with their words a minute.',
+      catalyst: 'They hear you. They just walk out with different versions of it. Read their words before you move.',
+      challenger: 'They hear you. They leave with different versions of what you said. That is not their listening. That is your delivery.',
+      bestFriend: 'They do hear you. They just leave holding slightly different versions of it. Sit with their words a sec.',
+      mother: 'They hear you. They simply leave holding different versions of what you said. Sit with their words a moment.',
+      roaster: 'They hear you. They each just leave with a different version. Congratulations, you are a Rorschach test.',
+    },
+    'strength-p1': {
+      mentor: 'This one is a strength, and they told you so. Read it anyway — strengths slip quietly.',
+      catalyst: 'This one is a strength and they said so. Read it anyway — strengths slip quietly.',
+      challenger: 'This is a strength and they told you so. Read it anyway. Strengths do not announce their decline.',
+      bestFriend: 'This one is a strength — they said so themselves. Still worth reading. Strengths slip quietly.',
+      mother: 'This one is a strength, and they told you so. Read it anyway. Strengths slip quietly.',
+      roaster: 'This one is a strength. They said so. Read it anyway — nothing decays faster than a compliment you stopped checking.',
+    },
   };
-  const spoken = spokenGuide(personaId, 'dashboardPractice', pageKey, fallbacks[pageKey] || fallbacks['edge-p1'], 'think');
+  const voices = fallbacks[pageKey] || fallbacks['edge-p1'];
+  const spoken = spokenGuide(personaId, 'dashboardPractice', pageKey, voices[personaId] || voices.mentor, 'think');
   return { text: spoken.text, pose: spoken.pose, eyebrow };
 }
 

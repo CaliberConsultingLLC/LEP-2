@@ -3,8 +3,15 @@
 // Three questions down the left, one answer on the right. The questions never
 // change and never reorder: what it is like to be led by you, what you are
 // getting right, what your team sees that you do not. Selecting a question
-// swaps the whole right column, including the picture underneath it — each
-// question is sourced by a different rule, so each one is drawn differently.
+// swaps the whole right column.
+//
+// There used to be a chart under each answer. It is gone: on a page whose
+// whole claim is that this is a teaching surface and not a score readout, a
+// picture built out of the rows was the one thing pulling the eye back to the
+// numbers — and it took the bottom third of the room to do it. The words get
+// that space now, and they are set large enough to be read at arm's length
+// rather than skimmed. buildSentiment still assembles `answer.chart`, and
+// SentimentChart still knows how to draw it, so putting it back is one line.
 //
 // This is a teaching surface, not a score readout, and it carries no scores at
 // all: the numbers live in Evidence, one tab away, where they are the point.
@@ -15,7 +22,6 @@ import { colors, fonts, shadows } from '../../../styles/tokens';
 import { useGuide } from '../../../context/GuideContext';
 import { spokenGuide } from '../../../data/guideContent';
 import { useFitScale } from './useFitScale.js';
-import SentimentChart from './SentimentChart.jsx';
 import { traitKeyFor } from '../../../utils/campaignResults.js';
 import {
   SENTIMENT_FOOTNOTE,
@@ -81,7 +87,7 @@ function QuestionCard({ question, selected, onSelect }) {
         component="span"
         sx={{
           fontFamily: fonts.serif,
-          fontSize: 17,
+          fontSize: 18,
           lineHeight: 1.35,
           color: selected ? '#fff' : colors.ink,
           textWrap: 'pretty',
@@ -97,18 +103,22 @@ function QuestionCard({ question, selected, onSelect }) {
 // Right column — the answer.
 // ---------------------------------------------------------------------------
 
+// Sized for the room the chart used to take. 17.5px at a 62ch measure is a
+// long-form reading size, not a caption size — which is the point: this is the
+// only place in the debrief where the answer is a paragraph rather than a
+// number, and it should look like the thing worth stopping on.
 const BODY = {
   fontFamily: fonts.sans,
-  fontSize: 15,
-  lineHeight: 1.65,
+  fontSize: 17.5,
+  lineHeight: 1.7,
   textWrap: 'pretty',
 };
 
 function Answer({ question, answer }) {
   return (
     // The answer is the room; the guide is a note in the margin of it.
-    <Box data-guide-keepclear="" sx={{ maxWidth: 600 }}>
-      <Typography sx={{ ...EYEBROW, fontSize: 9.5, letterSpacing: '0.2em', color: colors.inkSoft, mb: '12px' }}>
+    <Box data-guide-keepclear="" sx={{ maxWidth: 660 }}>
+      <Typography sx={{ ...EYEBROW, fontSize: 9.5, letterSpacing: '0.2em', color: colors.inkSoft, mb: '14px' }}>
         Question {question.num}
       </Typography>
       <Typography
@@ -118,9 +128,9 @@ function Answer({ question, answer }) {
           fontWeight: 500,
           letterSpacing: '-0.03em',
           lineHeight: 1.08,
-          fontSize: { xs: 28, md: 38 },
+          fontSize: { xs: 30, md: 42 },
           color: colors.ink,
-          m: '0 0 18px',
+          m: '0 0 20px',
           textWrap: 'pretty',
         }}
       >
@@ -132,10 +142,10 @@ function Answer({ question, answer }) {
         sx={{
           fontFamily: fonts.serif,
           fontStyle: 'italic',
-          fontSize: 18.5,
-          lineHeight: 1.5,
+          fontSize: 22,
+          lineHeight: 1.45,
           color: colors.ink,
-          m: '0 0 16px',
+          m: '0 0 20px',
           textWrap: 'pretty',
         }}
       >
@@ -146,11 +156,9 @@ function Answer({ question, answer }) {
           open. The teaching used to come last, behind a paragraph of scores,
           which is the wrong way round: a leader cannot weigh a reading of a
           trait before they have been told what the trait is. */}
-      <Typography sx={{ ...BODY, color: colors.ink, m: '0 0 12px' }}>{answer.definition}</Typography>
-      <Typography sx={{ ...BODY, color: colors.ink, m: '0 0 12px' }}>{answer.reading}</Typography>
-      <Typography sx={{ ...BODY, color: colors.inkSoft, m: '0 0 22px' }}>{answer.consequence}</Typography>
-
-      <SentimentChart chart={answer.chart} />
+      <Typography sx={{ ...BODY, color: colors.ink, m: '0 0 15px' }}>{answer.definition}</Typography>
+      <Typography sx={{ ...BODY, color: colors.ink, m: '0 0 15px' }}>{answer.reading}</Typography>
+      <Typography sx={{ ...BODY, color: colors.inkSoft, m: 0 }}>{answer.consequence}</Typography>
     </Box>
   );
 }
@@ -162,28 +170,90 @@ function Answer({ question, answer }) {
 // complaint: the trait changes, the numbers change, the guide does not. These
 // take the trait's own effort, effectiveness and split so the same question
 // gets a different reading in each room. A generated line replaces them.
+//
+// And each branch is written six times. These keys are per trait and per
+// question, so no CSV row can hold them without dropping the scores that make
+// them worth saying — the voice has to live beside the arithmetic. Six guides
+// reading one sentence was the same bug one level down.
 // ---------------------------------------------------------------------------
-function sentimentFallback(questionId, page, generic) {
+const SENTIMENT_VOICES = {
+  q01Split: {
+    mentor: (label, c, e, f) => `${label} sits at ${c}, and the two halves disagree — ${e} effort against ${f} landing. Read this one for the distance between them, not the headline.`,
+    catalyst: (label, c, e, f) => `${label} is at ${c}, but the halves disagree — ${e} effort, ${f} landing. The distance is the story, not the headline.`,
+    challenger: (label, c, e, f) => `${label} reads ${c}, and that number is hiding an argument: ${e} effort against ${f} landing. Read the distance, not the headline.`,
+    bestFriend: (label, c, e, f) => `${label} is at ${c}, but the two halves do not agree — ${e} effort, ${f} landing. That gap is the real thing here.`,
+    mother: (label, c, e, f) => `${label} sits at ${c}, and the two halves disagree — ${e} of effort against ${f} landing. Read this one for the distance between them, not for the headline.`,
+    roaster: (label, c, e, f) => `${label} says ${c}. The fine print says ${e} effort, ${f} landing. The headline is doing a lot of work.`,
+  },
+  q01Cheap: {
+    mentor: (label, e, f) => `${label} lands at ${f} on only ${e} of effort. That is cheaper than it should be. Worth knowing why before you assume it will hold.`,
+    catalyst: (label, e, f) => `${label} lands at ${f} on just ${e} of effort. That is cheap. Find out why before you bank on it.`,
+    challenger: (label, e, f) => `${label} lands at ${f} on ${e} of effort. That is cheaper than it should be, and you do not know why. Find out before you assume it holds.`,
+    bestFriend: (label, e, f) => `${label} lands at ${f} on only ${e} of effort — cheaper than it should be. Worth knowing why before you count on it.`,
+    mother: (label, e, f) => `${label} lands at ${f} on only ${e} of effort. That is cheaper than it should be. Find out why before you assume it will hold.`,
+    roaster: (label, e, f) => `${label}: ${f} landing on ${e} of effort. Suspiciously good value. Find out why before you build on it.`,
+  },
+  q01Even: {
+    mentor: (label, c) => `${label} comes in at ${c}, with effort and effect close together. What you put in is roughly what they feel — so this number is about level, not aim.`,
+    catalyst: (label, c) => `${label} comes in at ${c}, effort and effect close together. Aim is fine. This one is about level.`,
+    challenger: (label, c) => `${label} is ${c}, effort and effect close. Nothing is misaimed here. If you want a different number you have to want a different level.`,
+    bestFriend: (label, c) => `${label} is at ${c}, with effort and effect pretty close. What you put in is what they feel — so this is a level question, not an aim one.`,
+    mother: (label, c) => `${label} comes in at ${c}, with effort and effect close together. What you put in is roughly what they feel, so this number is about level, not aim.`,
+    roaster: (label, c) => `${label}: ${c}, effort and effect in step. Nothing clever to say here. It is what it is, at the level you set.`,
+  },
+  q02Split: {
+    mentor: (label, split) => `This is where the ${split}-point gap on ${label} actually shows up — in specific behaviours, not in the average.`,
+    catalyst: (label, split) => `Here is where that ${split}-point gap on ${label} actually lives — specific behaviours, not the average.`,
+    challenger: (label, split) => `The ${split}-point gap on ${label} is not an average problem. It is these behaviours. Look at them.`,
+    bestFriend: (label, split) => `This is where that ${split}-point gap on ${label} actually shows up — in specific things, not in the average.`,
+    mother: (label, split) => `This is where the ${split}-point gap on ${label} actually shows up — in particular behaviours, not in the average.`,
+    roaster: (label, split) => `The ${split}-point gap on ${label} does not live in the average. It lives here, itemized.`,
+  },
+  q02Even: {
+    mentor: (label) => `The average on ${label} hides the spread. These statements are where it stops being one number.`,
+    catalyst: (label) => `The average on ${label} hides the spread. Here is where it stops being one number.`,
+    challenger: (label) => `One number for ${label} is a convenience. These five are the truth of it.`,
+    bestFriend: (label) => `The average on ${label} smooths everything out. This is where it stops being one number.`,
+    mother: (label) => `The average on ${label} hides the spread. These statements are where it stops being a single number.`,
+    roaster: (label) => `The average on ${label} is a rounding of five different opinions. Here they are, unrounded.`,
+  },
+  q03Split: {
+    mentor: (label) => `You already know ${label} is costing more than it returns. This is the part where you decide whether that stays true next cycle.`,
+    catalyst: (label) => `You know ${label} is costing more than it returns. This is where you decide if that is still true next cycle.`,
+    challenger: (label) => `You already know ${label} costs more than it returns. Knowing has not changed it. This is where you decide.`,
+    bestFriend: (label) => `You already know ${label} costs you more than it gives back. This is the part where you decide if that is still true next cycle.`,
+    mother: (label) => `You already know ${label} is costing more than it returns. This is where you decide whether that stays true next cycle.`,
+    roaster: (label) => `You know ${label} costs more than it returns. You have known a while. This is the deciding part.`,
+  },
+  q03Even: {
+    mentor: (label) => `${label} is not asking for rescue. The question is whether you keep it deliberate or let it run on its own.`,
+    catalyst: (label) => `${label} does not need rescuing. Question is whether you keep it deliberate or let it coast.`,
+    challenger: (label) => `${label} does not need rescuing. It needs you to decide whether it stays deliberate or goes on autopilot.`,
+    bestFriend: (label) => `${label} is not asking to be rescued. It is more: do you keep doing it on purpose, or let it run itself?`,
+    mother: (label) => `${label} is not asking for rescue. The question is whether you keep it deliberate, or let it run on its own.`,
+    roaster: (label) => `${label} is fine. The only question is whether it stays intentional or quietly becomes a habit you take credit for.`,
+  },
+};
+
+const inSentimentVoice = (table, personaId) => table[personaId] || table.mentor;
+
+function sentimentFallback(questionId, page, generic, personaId = 'mentor') {
   const { compass, effort, efficacy } = page.scores || {};
   if (![compass, effort, efficacy].every(Number.isFinite)) return generic;
   const split = effort - efficacy;
   const label = page.label;
+  const lower = label.toLowerCase();
+  const say = (branch) => inSentimentVoice(SENTIMENT_VOICES[branch], personaId);
 
   if (questionId === 'q01') {
-    return split >= 20
-      ? `${label} sits at ${compass}, and the two halves disagree — ${effort} effort against ${efficacy} landing. Read this one for the distance between them, not the headline.`
-      : split <= -20
-        ? `${label} lands at ${efficacy} on only ${effort} of effort. That is cheaper than it should be. Worth knowing why before you assume it will hold.`
-        : `${label} comes in at ${compass}, with effort and effect close together. What you put in is roughly what they feel — so this number is about level, not aim.`;
+    if (split >= 20) return say('q01Split')(label, compass, effort, efficacy);
+    if (split <= -20) return say('q01Cheap')(label, effort, efficacy);
+    return say('q01Even')(label, compass);
   }
   if (questionId === 'q02') {
-    return split >= 20
-      ? `This is where the ${split}-point gap on ${label.toLowerCase()} actually shows up — in specific behaviours, not in the average.`
-      : `The average on ${label.toLowerCase()} hides the spread. These statements are where it stops being one number.`;
+    return split >= 20 ? say('q02Split')(lower, split) : say('q02Even')(lower);
   }
-  return split >= 20
-    ? `You already know ${label.toLowerCase()} is costing more than it returns. This is the part where you decide whether that stays true next cycle.`
-    : `${label} is not asking for rescue. The question is whether you keep it deliberate or let it run on its own.`;
+  return split >= 20 ? say('q03Split')(lower) : say('q03Even')(label);
 }
 
 // ---------------------------------------------------------------------------
@@ -244,7 +314,7 @@ export default function SentimentRoom({ row, statements, hasSelfData, traitIndex
       personaId,
       'dashboardSignal',
       `sent-t${traitIndex + 1}-${question.id}`,
-      sentimentFallback(question.id, page, line.text),
+      sentimentFallback(question.id, page, line.text, personaId),
       line.pose
     );
     setPageMessage({ text: spoken.text, pose: spoken.pose, eyebrow: page.label });
@@ -293,7 +363,13 @@ export default function SentimentRoom({ row, statements, hasSelfData, traitIndex
             maxWidth: 1000,
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* The question column is keep-clear too, not just the answer. With
+              the chart under it the answer was the tall side of the room and
+              the guide always chose the right corner; without it the two
+              columns are the same height, the solver flips to the left, and
+              the bubble lands on the third question — the one control on this
+              page. Telling it about both columns is what stops that. */}
+          <Box data-guide-keepclear="" sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <Typography sx={{ ...EYEBROW, fontSize: 9.5, letterSpacing: '0.2em', color: colors.orangeDeep, mb: '12px' }}>
               Sentiment · {page.label}
             </Typography>
