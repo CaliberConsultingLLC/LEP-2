@@ -96,13 +96,23 @@ html:has([data-compass-landing]) {
   gap: 12px;
 }
 
-/* Sign in wears the ghost outline at nav scale. The 1.5px border is taken out
-   of the padding so it stands exactly as tall as the ember button beside it. */
+/* One outlined, one filled, so their heights cannot be left to padding: the
+   hairline renders at a whole pixel and the outlined one comes up short. Both
+   are held to the same box and centre their label inside it. */
+.cl-nav-account button {
+  box-sizing: border-box;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sign in wears the ghost outline at nav scale. */
 .cl-nav-signin {
   border: 1.5px solid rgba(244, 206, 161, 0.55);
   background: rgba(244, 206, 161, 0.08);
   color: var(--cl-gold);
-  padding: 9.5px 20.5px;
+  padding: 0 21px;
   border-radius: 6px;
   font: inherit;
   font-weight: 700;
@@ -1560,7 +1570,8 @@ html:has([data-compass-landing]) {
   .cl-page { --cl-gutter: 24px; }
   .cl-nav { padding: 18px 24px; }
   .cl-nav-account { gap: 10px; }
-  .cl-nav-signin { font-size: 12px; padding: 8.5px 16.5px; }
+  .cl-nav-account button { height: 38px; }
+  .cl-nav-signin { font-size: 12px; padding: 0 17px; }
 
   .cl-hero { padding: 4px 24px 0; }
   .cl-hero-cta { padding: 20px 0 28px; }
