@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { resolveResumePath } from '../utils/resumePath';
 import { useCairnTheme } from '../config/runtimeFlags';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { buttons, colors, fonts, radii, shadows } from '../styles/tokens';
@@ -231,7 +232,10 @@ function SignIn() {
           signedInAt: new Date().toISOString(),
         })
       );
-      const nextPath = location?.state?.from || '/dashboard';
+      // A leader sent here from a gated page goes back to it; everyone else
+      // resumes where they stopped rather than landing on a Base Camp that has
+      // nothing to report yet.
+      const nextPath = location?.state?.from || resolveResumePath();
       navigate(nextPath, { replace: true });
       return;
     } catch (signInError) {
