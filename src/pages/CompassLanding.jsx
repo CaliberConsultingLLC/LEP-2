@@ -445,6 +445,7 @@ export default function CompassLanding() {
       : GUIDE_INSIGHTS[showcase][showcaseTrait][activeGuide];
 
   const startJourney = () => navigate('/user-info');
+  const goToSignIn = () => navigate('/sign-in');
 
   const scrollTo = (id) => {
     const el = document.getElementById(id);
@@ -470,9 +471,14 @@ export default function CompassLanding() {
               {link.label}
             </button>
           ))}
-          <button type="button" className="cl-btn-ember" onClick={startJourney}>
-            Begin your expedition →
-          </button>
+          <div className="cl-nav-account">
+            <button type="button" className="cl-nav-signin" onClick={goToSignIn}>
+              Sign in
+            </button>
+            <button type="button" className="cl-btn-ember" onClick={startJourney}>
+              Begin your expedition →
+            </button>
+          </div>
         </div>
       </nav>
 

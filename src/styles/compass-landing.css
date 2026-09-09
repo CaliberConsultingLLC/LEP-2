@@ -112,6 +112,34 @@ html:has([data-compass-landing]) {
   color: var(--cl-gold);
 }
 
+/* Sign in and Begin sit together as the account corner, ruled off from the
+   section anchors to their left. The anchors scroll this page; these two leave
+   it, and a returning leader should not have to read the labels to tell them
+   apart. */
+.cl-nav-account {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-left: 30px;
+  border-left: 1px solid rgba(244, 206, 161, 0.2);
+}
+
+.cl-nav-signin {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--cl-gold);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.cl-nav-signin:hover {
+  opacity: 0.75;
+}
+
 /* ------------------------------------------------------------- buttons --- */
 
 .cl-btn-ember {
@@ -1557,6 +1585,8 @@ html:has([data-compass-landing]) {
   .cl-nav { padding: 18px 24px; flex-wrap: wrap; }
   .cl-nav-links { gap: 18px; flex-wrap: wrap; }
   .cl-nav-link { font-size: 12px; }
+  .cl-nav-account { gap: 14px; padding-left: 0; border-left: 0; }
+  .cl-nav-signin { font-size: 12px; }
 
   .cl-hero { padding: 4px 24px 0; }
   .cl-hero-cta { padding: 20px 0 28px; }
