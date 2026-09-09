@@ -102,9 +102,19 @@ const boolEnv = (raw, fallback) => {
   return value === 'true' || value === '1' || value === 'yes';
 };
 
-// Both bypasses default to today's behaviour so the current staging QA loop
-// keeps working, and both are hard-off on the production host regardless of
-// what the environment says.
+// Both bypasses default OFF everywhere except a demo session.
+//
+// They used to default on for the staging host, which made sense while staging
+// was a rehearsal. It is the product now — it takes real money at
+// staging.northstarpartners.org — so defaulting to "skip auth, let writes fail
+// quietly" meant the storefront shipped with an open dashboard and silent data
+// loss. The auth bypass also hid a real failure for an afternoon: with it on,
+// ProtectedRoute returned early and never subscribed to onAuthStateChanged, so
+// Firebase never restored the session and the paywall read a signed-in leader
+// as unpaid.
+//
+// A demo session still needs both: it has no account and must not write.
+// Anyone who wants the old staging behaviour back sets the env var explicitly.
 //
 // To rehearse production on staging — real login, real Firestore writes, real
 // campaign tokens — set these to "false" and reload:
@@ -114,10 +124,10 @@ const boolEnv = (raw, fallback) => {
 // Lets `ProtectedRoute` hand out the dashboard with no Firebase user.
 export const allowAuthBypass = isProductionHost
   ? false
-  : boolEnv(import.meta.env.VITE_ALLOW_AUTH_BYPASS, isStagingHost || isDemoRuntime);
+  : boolEnv(import.meta.env.VITE_ALLOW_AUTH_BYPASS, isDemoRuntime);
 
 // Lets intake and campaign writes swallow Firestore permission errors and
 // hand out placeholder campaign access tokens instead of signed ones.
 export const allowPersistenceBypass = isProductionHost
   ? false
-  : boolEnv(import.meta.env.VITE_ALLOW_PERSISTENCE_BYPASS, isStagingHost || isDemoRuntime);
+  : boolEnv(import.meta.env.VITE_ALLOW_PERSISTENCE_BYPASS, isDemoRuntime);

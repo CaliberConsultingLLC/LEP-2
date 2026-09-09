@@ -22,7 +22,7 @@ import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
-import { useCairnTheme } from '../config/runtimeFlags';
+import { allowDevBypass, useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
 import { legalParagraphs } from '../data/legalDocs';
 import { isIntakeUnlocked, setPaymentStatus } from '../utils/billing';
@@ -57,10 +57,6 @@ const cairnInputSx = {
 
 function UserInfo() {
   const navigate = useNavigate();
-  const stagingHost = typeof window !== 'undefined' ? String(window.location.hostname || '') : '';
-  const isStagingRuntime =
-    stagingHost.includes('staging.northstarpartners.org') ||
-    stagingHost.includes('compass-staging');
   const [userInfo, setUserInfo] = useState({
     name: '',
     email: '',
@@ -70,6 +66,7 @@ function UserInfo() {
     agreePrivacy: false,
   });
   const [error, setError] = useState(null);
+  const [errorCode, setErrorCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openDialog, setOpenDialog] = useState(null);
   const closeDialog = () => setOpenDialog(null);
@@ -203,6 +200,7 @@ function UserInfo() {
 
     setIsSubmitting(true);
     setError(null);
+    setErrorCode('');
 
     try {
       const normalizedEmail = String(userInfo.email || '').trim().toLowerCase();
@@ -219,19 +217,27 @@ function UserInfo() {
       try {
         credential = await createUserWithEmailAndPassword(auth, signupEmail, userInfo.password);
       } catch (createErr) {
-        if (isStagingRuntime && createErr?.code === 'auth/email-already-in-use') {
+        // Re-running the signup with a +alias used to happen on the staging
+        // hostname, which is the product. A returning customer who reached
+        // for "Begin your expedition" instead of "Sign in" was handed a
+        // silent second account and a second $500 invoice, with no error to
+        // tell them the first one existed. Repeat E2E runs still need the
+        // alias, so it moved behind the dev opt-in (?dev=1, a /dev- path, or
+        // VITE_ENABLE_DEV_BYPASS) — never behind a guess about the host.
+        if (!allowDevBypass) throw createErr;
+        if (createErr?.code === 'auth/email-already-in-use') {
           signupEmail = makeStagingAliasEmail(normalizedEmail);
           credential = await createUserWithEmailAndPassword(auth, signupEmail, userInfo.password);
           console.info(
-            '[UserInfo] Staging signup reused existing email via alias:',
+            '[UserInfo] Dev signup reused existing email via alias:',
             { enteredEmail: normalizedEmail, signupEmail }
           );
-        } else if (isStagingRuntime) {
-          // Staging-only hard fallback to unblock full E2E testing even when auth is unavailable/misconfigured.
-          signupEmail = makeStagingAliasEmail(normalizedEmail);
-          console.warn('[UserInfo] Staging auth fallback activated:', createErr);
         } else {
-          throw createErr;
+          // Hard fallback so a broken or unreachable auth config cannot stop
+          // a dev run. This mints a uid Firebase has never heard of, so it
+          // must never be reachable by a paying customer.
+          signupEmail = makeStagingAliasEmail(normalizedEmail);
+          console.warn('[UserInfo] Dev auth fallback activated:', createErr);
         }
       }
       if (credential?.user?.uid) {
@@ -314,6 +320,7 @@ function UserInfo() {
     } catch (err) {
       const errorMessage = mapFirebaseAuthError(err?.code);
       setError(errorMessage);
+      setErrorCode(String(err?.code || ''));
       console.error('Error creating user profile:', err);
     } finally {
       setIsSubmitting(false);
@@ -650,7 +657,19 @@ function UserInfo() {
               </Stack>
 
               {error && (
-                <Alert severity="error" sx={{ fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif', fontSize: useCairnTheme ? '0.82rem' : '0.95rem', py: useCairnTheme ? 0.4 : undefined }}>
+                <Alert
+                  severity="error"
+                  sx={{ fontFamily: useCairnTheme ? '"Manrope", sans-serif' : 'Gemunu Libre, sans-serif', fontSize: useCairnTheme ? '0.82rem' : '0.95rem', py: useCairnTheme ? 0.4 : undefined }}
+                  action={errorCode === 'auth/email-already-in-use' ? (
+                    <Button
+                      size="small"
+                      onClick={() => navigate('/sign-in')}
+                      sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}
+                    >
+                      Sign in
+                    </Button>
+                  ) : null}
+                >
                   {error}
                 </Alert>
               )}
