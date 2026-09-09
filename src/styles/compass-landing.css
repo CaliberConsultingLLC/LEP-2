@@ -616,11 +616,16 @@ html:has([data-compass-landing]) {
   transition: all 0.3s;
 }
 
+/* The selected tile steps forward; it does not zoom in. 158% of a 155px tile
+   is a 245px picture in a 155px hole, which cropped the September owls down to
+   a head — the tiles either side showed a whole bird on a branch and the one
+   you had chosen showed a face. A percentage rather than a pixel width so the
+   step is the same at every breakpoint. */
 .cl-page .cl-guide-tile.is-active img {
-  width: 158%;
+  width: 116%;
   height: auto;
   flex-shrink: 0;
-  margin-top: -18px;
+  margin-top: -6px;
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
 }
 
@@ -690,20 +695,36 @@ html:has([data-compass-landing]) {
 }
 
 .cl-guide-detail-portrait {
-  height: 200px;
+  height: 210px;
   overflow: hidden;
 }
 
+/* Whole bird, not a face.
+
+   This was `object-fit: cover` plus `scale(-1.85, 1.85)` about a typed
+   `transform-origin: 50% 24%` — a crop tight enough that the frame held a beak
+   and a pair of eyes. It was tuned against the art that came before the
+   September 2026 drop; the new set does not sit the same way in its box, so
+   the same numbers landed the crop somewhere different on every guide, and at
+   1.85 there was no picture left either side to absorb the difference.
+
+   The measured boxes in guideAnchors.generated.js all centre on 0.5, so the
+   right frame needs no per-guide offset — it needs to stop zooming. 1.45 puts
+   the head near the top of a 210px frame and runs the body out of the bottom
+   under the mask, which is a portrait. The mirroring stays: this sits left of
+   the pitch, so the bird has to face right, into the words. */
 .cl-guide-detail-portrait img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 10%;
-  transform: scale(-1.85, 1.85);
-  transform-origin: 50% 24%;
-  -webkit-mask-image: linear-gradient(180deg, #000 52%, transparent 97%);
-  mask-image: linear-gradient(180deg, #000 52%, transparent 97%);
+  display: block;
+  width: 145%;
+  height: auto;
+  max-width: none;
+  margin-left: -22.5%;
+  transform: scaleX(-1);
+  transform-origin: 50% 50%;
+  -webkit-mask-image: linear-gradient(180deg, #000 68%, transparent 99%);
+  mask-image: linear-gradient(180deg, #000 68%, transparent 99%);
 }
+
 
 .cl-guide-detail-head {
   display: flex;

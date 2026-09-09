@@ -150,10 +150,17 @@ const GUIDES = [
     pitch: 'You invest in everyone but yourself. This year, that changes — I’ll see to it.',
   },
   {
+    // Not `idle`. The Roaster's idle art is the bird laughing with a mug that
+    // reads "Better People / Brighter Days" — legible at tile size, and the
+    // single most wholesome picture in the set sitting under "Sharp humor.
+    // Cuts through the spin." Whoever skims this row meets a cheerful owl and
+    // reads the tagline as a joke that did not land. armsCross is the same
+    // bird doing what the copy says: side-eye, smirk, a wing waving the
+    // whole thing off.
     id: 'roaster',
     name: 'Roaster',
-    img: guideImage('roaster', 'idle'),
-    crop: guideImage('roaster', 'idle'),
+    img: guideImage('roaster', 'armsCross'),
+    crop: guideImage('roaster', 'armsCross'),
     accent: '#A33A32',
     tagline: 'Sharp humor. Cuts through the spin.',
     quip: 'Everyone says they want feedback. What they want is applause with footnotes.',
