@@ -220,10 +220,15 @@ function UserInfo() {
         // Re-running the signup with a +alias used to happen on the staging
         // hostname, which is the product. A returning customer who reached
         // for "Begin your expedition" instead of "Sign in" was handed a
-        // silent second account and a second $500 invoice, with no error to
-        // tell them the first one existed. Repeat E2E runs still need the
-        // alias, so it moved behind the dev opt-in (?dev=1, a /dev- path, or
-        // VITE_ENABLE_DEV_BYPASS) — never behind a guess about the host.
+        // silent second account and a second invoice, with no error to tell
+        // them the first one existed.
+        //
+        // Repeat E2E runs still need the alias, so it sits behind
+        // `allowDevBypass` — which is now true on dev hosts only. The opt-ins
+        // it used to also accept (?dev=1, a /dev- path, VITE_ENABLE_DEV_BYPASS)
+        // are gone, and the last of those was set on the Vercel production
+        // scope: the aliasing was reachable on the public domain, which is the
+        // one place a real customer could have been charged twice by it.
         if (!allowDevBypass) throw createErr;
         if (createErr?.code === 'auth/email-already-in-use') {
           signupEmail = makeStagingAliasEmail(normalizedEmail);

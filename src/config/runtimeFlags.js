@@ -56,20 +56,31 @@ export const isDevHost = (() => {
   return DEV_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
 })();
 
-// Dev tooling is granted by where the build is running or how it was built —
-// never by the URL a visitor types.
+// Dev tooling is granted by WHERE the build is running. Nothing else.
 //
-// Both flags used to read `?dev=1`, or any path starting with `/dev-`, as
-// permission to turn themselves on. That made the flag authorize its own use:
-// on any host, `/dashboard?dev=1` walked straight past ProtectedRoute with no
-// account, and `/dev-repository` mounted the repository console because the
-// path prefix flipped the same switch that gated the route. A flag a stranger
-// can set is not a flag.
-export const showDevTools =
-  import.meta.env.DEV || isTrue(import.meta.env.VITE_ENABLE_DEV_TOOLS) || isDevHost;
+// Two doors have been closed here, both of which were open on a public domain.
+//
+// The first was the URL: `?dev=1`, or any path starting with `/dev-`, used to
+// count as permission to turn these on, so the flag authorized its own use.
+// On any host, `/dashboard?dev=1` walked past ProtectedRoute with no account,
+// and `/dev-repository` mounted the repository console because the path prefix
+// flipped the very switch that gated the route.
+//
+// The second was `VITE_ENABLE_DEV_TOOLS` / `VITE_ENABLE_DEV_BYPASS`, which are
+// set true on the Vercel production scope — reasonably, back when the only
+// deployment there was staging. Closing the URL door and leaving those meant
+// the bypass was still live on compass.northstarpartners.org the hour it went
+// up: verified by opening /dashboard?dev=1 on the real domain and landing in
+// the Command Center with no account. They are gone rather than fixed, because
+// every host that should have the tools is already on the dev list, so all a
+// build-time override can do now is put them somewhere they do not belong.
+//
+// `import.meta.env.DEV` stays. It is only ever true under `vite dev`, never in
+// a built deployment, so it cannot reach a real host — and it keeps the tools
+// working when a dev server is opened from a phone on the LAN.
+export const showDevTools = import.meta.env.DEV || isDevHost;
 
-export const allowDevBypass =
-  import.meta.env.DEV || isTrue(import.meta.env.VITE_ENABLE_DEV_BYPASS) || isDevHost;
+export const allowDevBypass = import.meta.env.DEV || isDevHost;
 
 // Real team data is the default now.
 //
