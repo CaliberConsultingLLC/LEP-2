@@ -24,6 +24,7 @@ import { Box, Typography, useMediaQuery } from '@mui/material';
 import JourneyPorthole from '../../../components/JourneyPorthole';
 import { JOURNEY_STATIONS } from '../journey/journeyModel.js';
 import { LOCK_PHRASE, lockHint } from './todayRoomModel.js';
+import { getGuideAnchor } from '../../../data/guideAnchors.generated';
 
 // ---------------------------------------------------------------------------
 // Palette. Two themes, one shape. Raw hex rather than tokens in a few places
@@ -690,6 +691,12 @@ export default function TodayRoom({
     </Box>
   );
 
+  // How much daylight this particular picture carries on each side.
+  const bleed = useMemo(() => {
+    const box = getGuideAnchor(view.owlSrc).box;
+    return { left: box[0], right: 1 - box[2], bottom: 1 - box[3] };
+  }, [view.owlSrc]);
+
   const owlCell = (
     <Box
       sx={{
@@ -718,10 +725,18 @@ export default function TodayRoom({
           position: 'absolute',
           width: 'var(--owl-w)',
           height: 'var(--owl-w)',
-          bottom: 'calc(var(--owl-w) * -0.275)',
+          // Bled off the corner by the measured padding of the ART, not by the
+          // 0.15 taken off the 1280 mockup. A square PNG is not a square bird
+          // and the daylight around it runs from 2% of the box to 20% of it
+          // depending on the pose, so one fixed number stands one guide on the
+          // corner and leaves the other five either floating inside it or
+          // hanging a tenth of their width past it. Same rule the corner guide
+          // uses everywhere else: push out by exactly what the picture pads,
+          // and the end of the branch lands in the same place every time.
+          bottom: `calc(var(--owl-w) * -${(0.255 + bleed.bottom).toFixed(3)})`,
           ...(isReading
-            ? { left: 'calc(var(--owl-w) * -0.15)' }
-            : { right: 'calc(var(--owl-w) * -0.15)' }),
+            ? { left: `calc(var(--owl-w) * -${bleed.left.toFixed(3)})` }
+            : { right: `calc(var(--owl-w) * -${bleed.right.toFixed(3)})` }),
         }}
       >
         <Box
@@ -736,10 +751,15 @@ export default function TodayRoom({
             filter: p.owlFilter,
             pointerEvents: 'none',
             transformOrigin: '50% 100%',
+            // A float, and nothing else. The bob used to carry a permanent
+            // -2deg to -1deg lean, which does not read as a bird breathing —
+            // it reads as a bird standing on a tilted branch, because the
+            // branch is in the picture and tilts with it. Nowhere else in the
+            // product is the guide anything but upright.
             animation: 'todayOwlBob 4s ease-in-out infinite',
             '@keyframes todayOwlBob': {
-              '0%, 100%': { transform: 'translateY(0) rotate(-2deg)' },
-              '50%': { transform: 'translateY(-6px) rotate(-1deg)' },
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-6px)' },
             },
             '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
           }}
