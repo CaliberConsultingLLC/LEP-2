@@ -759,19 +759,26 @@ function IntakeForm() {
   // instead of a dependency list nobody could keep honest.
   const handleNextRef = useRef(null);
 
-  // The intake is the paid product. The cached flag answers first so the page
-  // does not flicker, and the server is asked straight after — a refunded or
-  // self-granted flag survives the first check and not the second.
+  // The intake is the paid product.
+  //
+  // Same rule as Guide Select: the cached flag is an optimistic yes and never
+  // a no. It is per-browser, so a paid leader on a clean device has nothing to
+  // read and must not be bounced on that silence. Only the server revokes.
+  const [payGate, setPayGate] = useState(
+    () => (isDemoSession() || isIntakeUnlocked() ? 'allowed' : 'checking')
+  );
+
   useEffect(() => {
     const stage = String(new URLSearchParams(location.search || '').get('stage') || '').trim().toLowerCase();
-    if (stage !== 'intake' || isDemoSession()) return undefined;
-    if (!isIntakeUnlocked()) {
-      navigate('/pay', { replace: true });
+    if (stage !== 'intake' || isDemoSession()) {
+      setPayGate('allowed');
       return undefined;
     }
     let cancelled = false;
     refreshEntitlement().then((allowed) => {
-      if (!cancelled && !allowed) navigate('/pay', { replace: true });
+      if (cancelled) return;
+      if (allowed) setPayGate('allowed');
+      else navigate('/pay', { replace: true });
     });
     return () => { cancelled = true; };
   }, [location.search, navigate]);
@@ -1819,6 +1826,8 @@ function IntakeForm() {
   };
 
   // ---------- UI ----------
+  if (payGate === 'checking') return null;
+
   return (
     <Box
       sx={{

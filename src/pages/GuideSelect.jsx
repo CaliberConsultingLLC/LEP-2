@@ -21,19 +21,25 @@ function GuideSelect() {
   const active = guides[activeIndex] || guides[0];
   const canBegin = hasSelectedGuide && guides.some((p) => p.id === personaId);
 
-  // Guide selection sits behind the paywall. Anyone who reached it without
-  // paying gets sent back one step. The cached flag is checked first so a
-  // paying leader never sees a flash of the paywall, then the server is asked
-  // — that second answer is the one a refund can change.
+  // Guide selection sits behind the paywall.
+  //
+  // The cached flag is an optimistic yes, never a no. It lives in this
+  // browser's localStorage, so a leader who paid on another device — or who
+  // just signed in on a clean one — arrives with nothing cached and would be
+  // bounced to a door they have already paid through. Only the server's no
+  // sends anyone back; until it answers, the page holds rather than renders,
+  // so an unpaid visitor still never sees what is behind it.
+  const [payGate, setPayGate] = useState(
+    () => (isDemoSession() || isIntakeUnlocked() ? 'allowed' : 'checking')
+  );
+
   useEffect(() => {
     if (isDemoSession()) return undefined;
-    if (!isIntakeUnlocked()) {
-      navigate('/pay', { replace: true });
-      return undefined;
-    }
     let cancelled = false;
     refreshEntitlement().then((allowed) => {
-      if (!cancelled && !allowed) navigate('/pay', { replace: true });
+      if (cancelled) return;
+      if (allowed) setPayGate('allowed');
+      else navigate('/pay', { replace: true });
     });
     return () => { cancelled = true; };
   }, [navigate]);
@@ -89,6 +95,8 @@ function GuideSelect() {
     '&:hover': { borderColor: colors.orange, color: colors.navy900 },
     '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
   };
+
+  if (payGate === 'checking') return null;
 
   return (
     <Box sx={{
