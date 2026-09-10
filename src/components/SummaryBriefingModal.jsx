@@ -13,6 +13,21 @@ import { SUMMARY_BRIEFING_Z } from './summaryGuideLayout';
 // All of that is gone. GuidePortrait stands the owl and GuideSpeech works out
 // where a bubble can sit without covering the face, the way on, or anything
 // the page behind has marked as keep-clear.
+//
+// It stands in the corner rather than `centred`.
+//
+// Centring did not centre the bubble by moving the bubble — it moved the BIRD,
+// to whatever x put its line across the middle of the window. That reads as a
+// guide standing in the middle of the room: unanchored, and drawn small,
+// because a bird placed by its speak point is sized to clear the bubble rather
+// than to stand anywhere. The corner is where this guide stands on every other
+// screen in the product, and SUMMARY_OWL already describes it — bottom left,
+// mirrored, up to 640px.
+//
+// The line does not end up in a corner as a result: the bird faces right out
+// of the left corner, and the solver puts its bubble on the side it is facing,
+// which is into the middle of the page. What is lost is the bubble landing on
+// dead centre exactly; what is gained is a guide that is somewhere.
 
 export default function SummaryBriefingModal({
   open,
@@ -30,7 +45,6 @@ export default function SummaryBriefingModal({
       src={pose}
       alt={`${persona?.name || 'Guide'} briefing`}
       backdrop
-      centred
       eyebrow={persona?.name || 'Guide'}
       text={(
         <>

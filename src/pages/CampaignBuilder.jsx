@@ -616,20 +616,20 @@ function CampaignBuilder() {
               <Typography sx={{ fontFamily: 'Georgia, serif', fontWeight: 800, fontSize: '0.76rem', color: 'var(--orange, #E07A3F)' }}>✓</Typography>
             </Box>
             <Box>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 800, color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', lineHeight: 1.3 }}>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.8rem', fontWeight: 800, color: 'var(--guide-note-heading)', lineHeight: 1.3 }}>
                 {title}
               </Typography>
-              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.74rem', lineHeight: 1.45, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)', mt: 0.25 }}>
+              <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.74rem', lineHeight: 1.45, color: 'var(--guide-note-soft)', mt: 0.25 }}>
                 {body}
               </Typography>
             </Box>
           </Box>
         ))}
-        <Box sx={{ mt: 1.4, pt: 1.35, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75 }}>
+        <Box sx={{ mt: 1.4, pt: 1.35, borderTop: '1px solid var(--guide-note-rule)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: 'var(--guide-note-heading)', mb: 0.75 }}>
             Active set
           </Typography>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.5, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.5, color: 'var(--guide-note-soft)' }}>
             {activeStatements.length || 0} prompts in this focus area
             {swappedThisTrait > 0 ? `, ${swappedThisTrait} swapped out.` : '.'}
           </Typography>

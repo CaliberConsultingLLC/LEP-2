@@ -5,6 +5,7 @@ import GuideSpeech from './guide/GuideSpeech';
 import { anchorPercents, perchTransform } from './guide/guideGeometry';
 import { perchedSrc } from '../data/guideArt';
 import useOwlClearance from './guide/useOwlClearance';
+import { GUIDE_COLUMN, GUIDE_COLUMN_PRESENCE } from './guidePlacement';
 
 // The growth-campaign guide.
 //
@@ -30,6 +31,32 @@ function CairnGuidePanel({
 }) {
   const [expanded, setExpanded] = useState(false);
   const owlRef = useRef(null);
+
+  // The palette for whatever the page hands us as `children`.
+  //
+  // The bubble is the OPPOSITE of its ground — navy on the light pages, sand
+  // on the dark ones — so a page that colours its own notes from `isDark` gets
+  // it backwards in both themes at once: ink-soft (#44566C) on navy in light
+  // mode, near-white on cream in dark. Both were shipped and both were
+  // unreadable. Publishing the palette here, keyed off the same flag that
+  // picks the tone, is the only way a caller cannot get it wrong.
+  const notes = isDark
+    ? {
+      heading: '#0F1C2E',
+      body: '#22364E',
+      soft: 'rgba(15,28,46,0.68)',
+      rule: 'rgba(15,28,46,0.14)',
+      chipBg: 'rgba(15,28,46,0.06)',
+      chipInk: '#0F1C2E',
+    }
+    : {
+      heading: colors.amberSoft,
+      body: '#EFE7D8',
+      soft: 'rgba(239,231,216,0.74)',
+      rule: 'rgba(244,206,161,0.20)',
+      chipBg: 'rgba(244,206,161,0.10)',
+      chipInk: colors.amberSoft,
+    };
   // Art whose branch runs off to the left cannot stand in the corner the
   // panel puts the bird in; the nearest pose that can stands in for it.
   const src = perchedSrc(persona.poses, owlPose || persona.poses.idle);
@@ -108,9 +135,7 @@ function CairnGuidePanel({
           transform: perchTransform(src, flipped),
           transition: 'bottom 220ms cubic-bezier(.2,.8,.2,1)',
           zIndex: 1100,
-          width: presenceOnly
-            ? { xs: 220, sm: 280, md: 320 }
-            : { xs: 200, sm: 240, md: 280 },
+          width: presenceOnly ? GUIDE_COLUMN_PRESENCE : GUIDE_COLUMN,
           aspectRatio: '1 / 1',
           pointerEvents: 'none',
         }}
@@ -165,7 +190,7 @@ function CairnGuidePanel({
         >
           {children && (
             <Box>
-              <Box sx={{ mb: 1.1, borderTop: '1px solid rgba(244,206,161,0.2)' }} />
+              <Box sx={{ mb: 1.1, borderTop: `1px solid ${notes.rule}` }} />
               <Box
                 component="button"
                 type="button"
@@ -191,7 +216,24 @@ function CairnGuidePanel({
               </Box>
 
               <Collapse in={expanded} timeout="auto">
-                <Box sx={{ pt: 1.2, fontFamily: fonts.sans, fontSize: 12.5, lineHeight: 1.5 }}>
+                <Box
+                  sx={{
+                    pt: 1.2,
+                    fontFamily: fonts.sans,
+                    fontSize: 12.5,
+                    lineHeight: 1.5,
+                    // Read by the page's own notes so it never has to know
+                    // which way round the bubble is. `color` is the default
+                    // for anything that does not ask.
+                    color: notes.body,
+                    '--guide-note-heading': notes.heading,
+                    '--guide-note-body': notes.body,
+                    '--guide-note-soft': notes.soft,
+                    '--guide-note-rule': notes.rule,
+                    '--guide-note-chip-bg': notes.chipBg,
+                    '--guide-note-chip-ink': notes.chipInk,
+                  }}
+                >
                   {children}
                 </Box>
               </Collapse>

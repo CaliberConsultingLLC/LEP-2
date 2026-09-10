@@ -224,7 +224,7 @@ function TraitSelection() {
         commentary={guideCommentary}
         owlPose={persona.poses[guideLine.pose] || persona.poses.think || persona.poses.idle}
       >
-        <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)', mb: 1 }}>
+        <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: 'var(--guide-note-heading)', mb: 1 }}>
           How to choose
         </Typography>
         {[
@@ -237,8 +237,8 @@ function TraitSelection() {
               width: 22,
               height: 22,
               borderRadius: '50%',
-              bgcolor: idx < selectedTraits.length ? 'var(--orange, #E07A3F)' : isDark ? 'rgba(244,206,161,0.08)' : 'var(--sand-100, #F3EAD8)',
-              color: idx < selectedTraits.length ? '#fff' : isDark ? 'var(--amber-soft, #F4CEA1)' : 'var(--navy-900, #10223C)',
+              bgcolor: idx < selectedTraits.length ? 'var(--orange, #E07A3F)' : 'var(--guide-note-chip-bg)',
+              color: idx < selectedTraits.length ? '#fff' : 'var(--guide-note-chip-ink)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -249,16 +249,16 @@ function TraitSelection() {
             }}>
               {idx + 1}
             </Box>
-            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.45, color: isDark ? 'rgba(240,233,222,0.72)' : 'var(--ink-soft, #44566C)' }}>
+            <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.45, color: 'var(--guide-note-soft)' }}>
               {item}
             </Typography>
           </Box>
         ))}
-        <Box sx={{ mt: 1.4, pt: 1.35, borderTop: isDark ? '1px solid rgba(244,206,161,0.12)' : '1px solid var(--sand-200, #E8DBC3)' }}>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: isDark ? 'var(--ink, #f0e9de)' : 'var(--navy-900, #10223C)', mb: 0.75 }}>
+        <Box sx={{ mt: 1.4, pt: 1.35, borderTop: '1px solid var(--guide-note-rule)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontWeight: 800, fontSize: '0.82rem', color: 'var(--guide-note-heading)', mb: 0.75 }}>
             Your control point
           </Typography>
-          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.5, color: isDark ? 'rgba(240,233,222,0.62)' : 'var(--ink-soft, #44566C)' }}>
+          <Typography sx={{ fontFamily: '"Manrope", sans-serif', fontSize: '0.76rem', lineHeight: 1.5, color: 'var(--guide-note-soft)' }}>
             You are choosing where to focus first. The campaign only moves forward after you confirm these three areas.
           </Typography>
         </Box>

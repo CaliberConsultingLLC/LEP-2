@@ -18,7 +18,19 @@ export const GUIDE_Z = 1200;
 
 // The right-hand column the expanded overlay occupies. Narrow enough to leave
 // the 1180px content column intact on a laptop.
+//
+// Every corner guide is drawn at this width. CairnGuidePanel used to keep its
+// own table — `{ xs: 200, sm: 240, md: 280 }` — set during the branch-corner
+// work, which left the bird on Trait Selection and the Campaign Builder at
+// 280px while the same bird on every other page stood at 350. Two sizes for
+// one guide, and the smaller one on the two pages where it has the most to
+// say. One constant now, so a change to the guide's size is a change to the
+// guide's size.
 export const GUIDE_COLUMN = 'clamp(250px, 25vw, 350px)';
+
+// A guide that is only standing there — no bubble, no notes — carries the
+// corner on its own and is drawn a little larger for it.
+export const GUIDE_COLUMN_PRESENCE = 'clamp(280px, 28vw, 390px)';
 
 // The collapsed tab: small, and the only thing on screen when hidden.
 export const GUIDE_TAB_HEIGHT = 48;
