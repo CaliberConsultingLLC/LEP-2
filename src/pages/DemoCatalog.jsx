@@ -230,13 +230,18 @@ function DemoCatalog() {
   // Entering the catalog starts (and clears) the throwaway session, so the
   // storage shim is installed before any fixture is written and nothing here
   // can reach a real account on this browser.
+  //
+  // 'catalog' scope, so the clearing stays inside the catalog's own drawer. It
+  // used to share one with the clickthroughs, which meant opening the catalog
+  // to glance at a page destroyed a run that was halfway through — including a
+  // summary that had just spent three minutes generating.
   useEffect(() => {
-    startDemoSession();
+    startDemoSession('catalog');
   }, []);
 
   const open = (path, fixtureId) => {
     setBusy(true);
-    startDemoSession();
+    startDemoSession('catalog');
     applyFixture(fixtureId);
     // Hard load on purpose: GuideContext and the page's own mount-time reads
     // resolve out of storage once, so the fixture has to be on disk before the

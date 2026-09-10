@@ -9,7 +9,36 @@ const FLAG_KEY = 'compassDemo';
 // Set by the seeded demo paths. Marks a session whose campaign is already on
 // disk, so pages use it instead of calling an API that has nothing to add.
 const STATIC_KEY = 'compassDemoStatic';
-const PREFIX = 'demo_';
+// Two demos, two drawers.
+//
+// The catalog and the clickthroughs want opposite things from storage. The
+// catalog is a contact sheet: every link resets first, on purpose, so a page
+// looks the same on the tenth visit as the first. A clickthrough is a run —
+// you answer the intake, wait out a real generation, and the whole point is
+// that what comes back is still there ten minutes later.
+//
+// They used to share one drawer, so the catalog's reset ate the run. That is
+// the bug behind "I read a full summary, went to look at something else, came
+// back and it was shorter": the catalog had wiped the generated reading and
+// seeded Alex's frozen fixture over it, and the fixture is about half the
+// length. Splitting the prefix lets the catalog keep resetting as hard as it
+// likes without reaching a run in progress.
+const SCOPE_KEY = 'compassDemoScope';
+const PREFIXES = { run: 'demo_', catalog: 'democat_' };
+const DEFAULT_SCOPE = 'run';
+
+function readScope() {
+  try {
+    const scope = sessionStorage.getItem(SCOPE_KEY);
+    return PREFIXES[scope] ? scope : DEFAULT_SCOPE;
+  } catch {
+    return DEFAULT_SCOPE;
+  }
+}
+
+function activePrefix() {
+  return PREFIXES[readScope()];
+}
 
 function readFlag() {
   try {
@@ -67,14 +96,14 @@ export function installDemoStorage() {
   try {
     proto.getItem = function getItem(key) {
       if (readFlag() && this === window.localStorage) {
-        return origGet.call(session, PREFIX + String(key));
+        return origGet.call(session, activePrefix() + String(key));
       }
       return origGet.call(this, key);
     };
 
     proto.setItem = function setItem(key, value) {
       if (readFlag() && this === window.localStorage) {
-        origSet.call(session, PREFIX + String(key), String(value));
+        origSet.call(session, activePrefix() + String(key), String(value));
         return;
       }
       origSet.call(this, key, value);
@@ -82,7 +111,7 @@ export function installDemoStorage() {
 
     proto.removeItem = function removeItem(key) {
       if (readFlag() && this === window.localStorage) {
-        origRemove.call(session, PREFIX + String(key));
+        origRemove.call(session, activePrefix() + String(key));
         return;
       }
       origRemove.call(this, key);
@@ -93,7 +122,7 @@ export function installDemoStorage() {
         const toRemove = [];
         for (let i = 0; i < session.length; i += 1) {
           const storedKey = session.key(i);
-          if (storedKey && storedKey.startsWith(PREFIX)) toRemove.push(storedKey);
+          if (storedKey && storedKey.startsWith(activePrefix())) toRemove.push(storedKey);
         }
         toRemove.forEach((storedKey) => origRemove.call(session, storedKey));
         return;
@@ -111,14 +140,25 @@ export function installDemoStorageIfActive() {
   if (readFlag()) installDemoStorage();
 }
 
-export function startDemoSession() {
+/**
+ * @param {'run'|'catalog'} scope  which drawer this session writes to. 'run' is
+ *   a clickthrough and is left alone by the catalog; 'catalog' is the contact
+ *   sheet, which resets itself constantly and must not be able to reach a run.
+ */
+export function startDemoSession(scope = DEFAULT_SCOPE) {
+  const next = PREFIXES[scope] ? scope : DEFAULT_SCOPE;
   try {
-    // Wipe whatever the last demo run left behind. Without this, picking a
-    // second option in the same tab inherits the first one's state — try the
-    // skip-ahead path and then the walk-it path, and the campaign is already
-    // closed before you start.
+    sessionStorage.setItem(SCOPE_KEY, next);
+  } catch {
+    /* ignore */
+  }
+  try {
+    // Wipe whatever the last demo run left behind — in THIS scope only.
+    // Without this, picking a second option in the same tab inherits the
+    // first one's state: try the skip-ahead path and then the walk-it path,
+    // and the campaign is already closed before you start.
     Object.keys(sessionStorage)
-      .filter((k) => k.startsWith(PREFIX))
+      .filter((k) => k.startsWith(PREFIXES[next]))
       .forEach((k) => sessionStorage.removeItem(k));
     sessionStorage.removeItem(STATIC_KEY);
   } catch {
@@ -139,13 +179,17 @@ export function startDemoSession() {
 
 export function endDemoSession() {
   try {
+    // Leaving the demo ends every drawer, not just the one that happens to be
+    // open — otherwise a catalog visit could leave a run's storage behind it.
+    const prefixes = Object.values(PREFIXES);
     const toRemove = [];
     for (let i = 0; i < sessionStorage.length; i += 1) {
       const storedKey = sessionStorage.key(i);
-      if (storedKey && storedKey.startsWith(PREFIX)) toRemove.push(storedKey);
+      if (storedKey && prefixes.some((p) => storedKey.startsWith(p))) toRemove.push(storedKey);
     }
     toRemove.forEach((storedKey) => sessionStorage.removeItem(storedKey));
     sessionStorage.removeItem(FLAG_KEY);
+    sessionStorage.removeItem(SCOPE_KEY);
   } catch {
     /* ignore */
   }

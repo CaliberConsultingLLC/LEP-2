@@ -1,18 +1,26 @@
-// Two ways into the demo.
+// Two ways into the demo, and one way to just look at it.
 //
-// "Take the full experience" is the real product: pick a guide, answer the
-// intake, read a summary written from your own answers. It takes as long as
-// the product takes, which is the point when you are showing someone the work.
+// "Take the full experience" is the real product with the pay gate off: pick a
+// guide, answer the intake yourself, wait out a real generation, read a summary
+// written from your own answers. When it reaches the self-assessment there is a
+// button to fill in the team's answers rather than wait on a team that does not
+// exist (DemoAutomateResults), so the dashboard populates and the run finishes.
 //
-// "Generate a persona for me" skips to the reflection with a finished intake
-// already in place. It is for showing the back half — summary, campaign,
-// dashboard rooms — without spending fifteen minutes to get there.
+// "Walk it without the wait" is the same road starting one stop later, on a
+// reflection that is already written — for when you are showing someone the
+// back half and three minutes of loading screen is three minutes too many.
+//
+// There used to be a third, "Generate a persona for me": a random leader's
+// intake taken straight into a live generation. It sat between the two above
+// without being either of them — the full run already generates from real
+// answers, and the showcase already skips the wait — so it was three ways to
+// start for two things anyone actually wanted to do.
 
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
-import { seedDemoBlankIntake, seedDemoPersona, seedDemoShowcase, startDemoSession } from '../utils/demoMode';
+import { seedDemoBlankIntake, seedDemoShowcase, startDemoSession } from '../utils/demoMode';
 import { FIXTURES } from '../utils/catalogFixtures';
 import { isDevHost } from '../config/runtimeFlags';
 
@@ -90,16 +98,6 @@ function DemoStart() {
     window.location.assign('/summary?stage=trailhead');
   };
 
-  const runPersona = () => {
-    setBusy(true);
-    startDemoSession();
-    seedDemoPersona({});
-    // Full page load on purpose: GuideContext resolves the picked voice from
-    // storage on mount, and `regen=live` tells Summary to generate rather than
-    // replay a cached run.
-    window.location.assign('/summary?stage=trailhead&regen=live');
-  };
-
   return (
     <Box
       sx={{
@@ -131,7 +129,7 @@ function DemoStart() {
           </Typography>
           <Typography sx={{ ...type.body, maxWidth: '58ch', mx: 'auto' }}>
             A throwaway session. Nothing is written to the live account store, and
-            closing the tab ends it. Three ways to run it.
+            closing the tab ends it. Two ways to run it.
             {/* The catalog is dev-host only, so off one the sentence promising it
                 was pointing at a card that is not rendered. */}
             {isDevHost ? ' And one way to just look at it.' : ''}
@@ -140,7 +138,7 @@ function DemoStart() {
 
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
           gap: 2,
           alignItems: 'stretch',
         }}>
@@ -148,17 +146,9 @@ function DemoStart() {
             primary
             eyebrow="The whole thing"
             title="Take the full experience"
-            body="Your context, a guide, and the intake answered by you. The summary is generated from what you actually said — this is the product as a customer meets it."
+            body="Your context, a guide, and the intake answered by you. The summary is generated from what you actually said — the product as a customer meets it, with the pay gate off. At the self-assessment, one button fills in the team’s answers so the dashboard populates without waiting on a real team."
             cta="Start the intake"
             onClick={runFull}
-          />
-          <PathCard
-            eyebrow="Skip ahead"
-            title="Generate a persona for me"
-            body="A finished intake from a random leader and a random guide, taken straight to the reflection. The campaign is already closed, so the dashboard rooms open behind it."
-            cta="Generate and go to the reflection"
-            onClick={runPersona}
-            busy={busy}
           />
           <PathCard
             eyebrow="Show someone"
@@ -170,7 +160,7 @@ function DemoStart() {
           />
         </Box>
 
-        {/* Set apart from the three above on purpose. Those start a run and
+        {/* Set apart from the two above on purpose. Those start a run and
             carry you forward; this one starts nothing. It is a list.
 
             Hidden off a dev host, because the route behind it is too: the

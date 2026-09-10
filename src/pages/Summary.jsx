@@ -14,6 +14,7 @@ import {
   Divider,
   Menu,
   Tooltip,
+  useMediaQuery,
 } from '@mui/material';
 import { Warning, Lightbulb, CheckCircle, TrendingUp, AltRoute, OutlinedFlag, WrongLocationOutlined, ReportProblemOutlined } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -25,6 +26,7 @@ import { SUMMARY_GUIDE_OWL_SX } from '../components/summaryGuideLayout';
 import { perchedSrc } from '../data/guideArt';
 import { perchTransform } from '../components/guide/guideGeometry';
 import { useCairnTheme } from '../config/runtimeFlags';
+import useViewportFit from '../hooks/useViewportFit';
 import { useGuide } from '../context/GuideContext';
 import traitSystem from '../data/traitSystem';
 import { intakeContext } from '../data/intakeContext';
@@ -37,6 +39,7 @@ import { flattenGuideSummary, pickGuideSummary } from '../utils/guideSummary';
 import { setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { splitSentences as splitProseSentences } from '../utils/guideSummary';
 import { demoRequestFields } from '../utils/demoMode';
+import { hasSeenIntro, markIntroSeen } from '../utils/guideIntro';
 import { getSummaryBriefing, summaryBriefingsReady } from '../data/guideBriefings';
 import { commitSelectedTraits } from '../utils/campaignState';
 import { isCompleteFocusAreaSet, persistFocusAreas, readFocusAreas } from '../utils/focusAreas';
@@ -181,6 +184,30 @@ function Summary({ revisit = false }) {
         // Non-fatal: Firestore holds the durable copy.
       }
     }
+  };
+
+  // The other five voices, written through to Firestore as they land.
+  //
+  // Only the first response was ever persisted — `persistSummaryCache` runs
+  // once, with the map from the selected-guide call, and the five voices that
+  // arrive later were written to localStorage and nowhere else. localStorage is
+  // cleared on sign-out, so signing back in rehydrated a one-voice cache from
+  // `summaryCache.summariesByGuide` and every other guide was gone. Worse than
+  // gone: `pickGuideSummary` falls back to whatever single voice is in the map,
+  // so asking for a guide that had been dropped silently returned a different
+  // guide's reading. That is a real way for a returning leader to find their
+  // reflection "different" — no demo required.
+  //
+  // A nested merge, so a voice landing late adds itself without rewriting the
+  // ones already there.
+  const persistGuideVoices = async (summaries) => {
+    const uid = String(auth?.currentUser?.uid || '').trim();
+    if (!uid || !summaries || !Object.keys(summaries).length) return;
+    await setDoc(
+      doc(db, 'responses', uid),
+      { summaryCache: { summariesByGuide: summaries } },
+      { merge: true }
+    );
   };
 
   // Derive focus areas from the intake, or derive nothing.
@@ -463,13 +490,18 @@ function Summary({ revisit = false }) {
         : {};
       if (!Object.keys(extra).length) return;
 
-      setSummariesByGuide((prev) => {
-        const merged = { ...prev, ...extra };
-        summariesByGuideRef.current = merged;
-        try {
-          localStorage.setItem('summariesByGuide', JSON.stringify(merged));
-        } catch { /* non-fatal */ }
-        return merged;
+      // Merged off the ref rather than inside a state updater: the updater can
+      // be invoked more than once for one render, and it is not the place to
+      // start a Firestore write from.
+      const merged = { ...summariesByGuideRef.current, ...extra };
+      summariesByGuideRef.current = merged;
+      setSummariesByGuide(merged);
+      try {
+        localStorage.setItem('summariesByGuide', JSON.stringify(merged));
+      } catch { /* non-fatal */ }
+      // Durable copy, so all six survive a sign-out.
+      persistGuideVoices(merged).catch((persistErr) => {
+        console.warn('Failed to cache guide voices to Firestore:', persistErr);
       });
     } catch (err) {
       // Non-blocking: the selected guide already rendered. A missing voice is
@@ -722,24 +754,29 @@ function Summary({ revisit = false }) {
     return () => setGuideStep('default');
   }, [currentStageId, setGuideStep]);
 
-  // Which stages this reading has already been introduced to.
+  // Which stages this leader has already been introduced to.
   //
-  // Scoped to the mounted page rather than to the tab. Moving between stages
-  // keeps this component alive, so flipping back does not brief you twice;
-  // arriving at the reflection again does.
+  // An interruption is orientation for a step somebody has not taken yet. Read
+  // a second time it is not orientation, it is a door in the way — so each of
+  // the four is spent once and then gone, for good.
   //
-  // It used to live in sessionStorage, which outlives the reading. A second
-  // walk in the same tab got no briefings at all, and a walk that had stopped
-  // part-way earlier got them only on the stages it had never reached — which
-  // is how "it only fires on the last step" happens. The staging reset had to
-  // clear the key by hand for the same reason.
-  const briefingSeenRef = useRef({});
-
-  // A different guide is a different voice on the same four stages, so they
-  // introduce them in their own words rather than inheriting a dismissal.
-  useEffect(() => {
-    briefingSeenRef.current = {};
-  }, [personaId]);
+  // This was a ref, which is scoped to the mounted component: leaving the
+  // reflection and coming back — a click of Back is enough — built a fresh one
+  // and every stage introduced itself again. Before that it was sessionStorage,
+  // which had the opposite fault: it outlived the reading, so a second walk in
+  // the same tab got no briefings at all and a part-finished walk got them only
+  // on the stages it had never reached.
+  //
+  // guideIntro is neither. It is per person and it persists, and in a demo
+  // session localStorage is already redirected into sessionStorage, so a fresh
+  // demo run still gets its interruptions back without this page knowing that.
+  //
+  // Keyed by stage alone, not by stage and guide. Switching guides used to
+  // clear the lot on the grounds that a different voice introduces the same
+  // stage differently — which is true, and still means four modals for
+  // somebody who has already read all four and only wanted to hear them in
+  // another voice. Seen once is seen.
+  const briefingIntroId = (stageId) => `summary-${stageId}`;
 
   useEffect(() => {
     if (!useCairnTheme || isLoading) return undefined;
@@ -754,12 +791,12 @@ function Summary({ revisit = false }) {
       try { return sessionStorage.getItem('journeyCeremonyOpen') === '1'; }
       catch { return false; }
     };
-    if (briefingSeenRef.current[currentStageId]) {
+    if (hasSeenIntro(briefingIntroId(currentStageId))) {
       setBriefingOpen(false);
       return undefined;
     }
     const show = () => {
-      if (briefingSeenRef.current[currentStageId]) return;
+      if (hasSeenIntro(briefingIntroId(currentStageId))) return;
       // The chapter ceremony owns the screen while it is up. The briefing
       // waits for its done event rather than stacking on top of it.
       if (ceremonyOpen()) return;
@@ -774,7 +811,7 @@ function Summary({ revisit = false }) {
   }, [currentStageId, isLoading, personaId, revisit]);
 
   const dismissBriefing = () => {
-    briefingSeenRef.current[currentStageId] = true;
+    markIntroSeen(briefingIntroId(currentStageId));
     setBriefingOpen(false);
   };
 
@@ -954,6 +991,28 @@ function Summary({ revisit = false }) {
     ]),
     [summarySections]
   );
+
+  // -- fit ---------------------------------------------------------------------
+  // The four stages are rooms, not documents, so none of them may run off the
+  // bottom of the window. The trouble is that what fills them is written by a
+  // model: A New Trail asks for 3-4 paragraphs and gets anywhere between them,
+  // so there is no type size that is right for both the short version and the
+  // long one. Measured at 1440x900 with every beat at the top of its budget,
+  // this page ran 121px past the viewport and took the leverage cards and the
+  // footer nav with it.
+  //
+  // So the stage is measured into the box instead of sized by hand. A long
+  // reading renders a little smaller; a short one renders at full size. See
+  // src/hooks/useViewportFit.js.
+  const fitting = useMediaQuery('(min-width:900px)', { noSsr: true });
+  const {
+    boxRef: fitBoxRef,
+    contentRef: fitContentRef,
+    fit,
+  } = useViewportFit({
+    enabled: useCairnTheme && fitting,
+    watch: [activeJourneyStep, summarySections, focusAreas, revisit],
+  });
 
   const renderParagraphWithTooltips = (text) => {
     const raw = String(text || '');
@@ -1183,6 +1242,18 @@ function Summary({ revisit = false }) {
       return content.charAt(0).toUpperCase() + content.slice(1);
     };
 
+    // The ceiling is a safety net, not a shaping tool.
+    //
+    // It sat at 7, which is exactly what the prompt asks for (promptBuilder.js:
+    // "Framing 2 paragraphs, 5-7 sentences in total"). A guard set at the top
+    // of the requested range fires on every run that lands one sentence long —
+    // and when it fires it drops the tail mid-paragraph and flattens the
+    // writer's paragraph breaks into spaces, with nothing on screen to say so.
+    // At 9 it only catches a beat that has genuinely run away. The page no
+    // longer needs it to hold the layout together either: the fit above scales
+    // a long reading rather than cutting it.
+    const CEILING = 9;
+
     const padFramingReflection = (text, mode) => {
       const defaults = mode === 'markers'
         ? [
@@ -1202,13 +1273,13 @@ function Summary({ revisit = false }) {
       const list = splitSentences(text);
       // In range already — hand the text back untouched so the writer's own
       // paragraph breaks survive. Padding is only for a beat that came back thin.
-      if (list.length >= 5 && list.length <= 7) return String(text || '').trim();
+      if (list.length >= 5 && list.length <= CEILING) return String(text || '').trim();
       for (const s of defaults) {
         if (list.length >= 5) break;
         if (!list.includes(s)) list.push(s);
       }
       while (list.length < 5) list.push(defaults[list.length % defaults.length]);
-      return list.slice(0, 7).join(' ');
+      return list.slice(0, CEILING).join(' ');
     };
 
     const buildSituationStage = (text, mode) => {
@@ -1400,8 +1471,13 @@ function Summary({ revisit = false }) {
     return (
       <Box
         sx={{
+          // A definite height, not a minimum. The fit below measures against
+          // whatever box it is handed, so handing it an open-ended one gives it
+          // nothing to measure and the stage grows the page instead.
           minHeight: '100svh',
+          height: fitting ? '100svh' : 'auto',
           overflowX: 'hidden',
+          overflowY: fitting ? 'hidden' : 'visible',
           bgcolor: colors.sand50,
           display: 'flex',
           flexDirection: 'column',
@@ -1418,20 +1494,37 @@ function Summary({ revisit = false }) {
             }}
           />
         </Box>
-        <CompassLayout fluid allowBleed>
+        <CompassLayout fluid allowBleed viewportFit={fitting}>
           {error ? (
             <Box sx={{ py: 4 }}>
               <Typography sx={{ fontFamily: fonts.sans, color: 'error.main', mb: 2 }}>{error}</Typography>
             </Box>
           ) : (
             <Box
+              ref={fitBoxRef}
               sx={{
                 position: 'relative',
                 width: '100%',
+                // The box the reading is measured into. `1 1 0` rather than
+                // `auto`: on `auto` the flex basis is the content's own height,
+                // so a long reading grows the box it was supposed to be fitted
+                // into and the measurement always reads "it fits".
+                ...(fitting ? { flex: '1 1 0px', minHeight: 0 } : null),
                 overflow: 'visible',
                 pl: { md: 28, lg: 36, xl: 42 },
               }}
             >
+              <Box
+                ref={fitContentRef}
+                style={{ '--fit': fit }}
+                sx={{
+                  // Laid out at 1/fit and scaled back down, so the card keeps
+                  // its real proportions and only the whole composition shrinks.
+                  width: fitting ? 'calc(100% / var(--fit))' : '100%',
+                  transformOrigin: 'top left',
+                  transform: fitting ? 'scale(var(--fit))' : 'none',
+                }}
+              >
               {/* Inside the same inset as the stage card, so the bar sits over
                   the reading rather than across the whole window. */}
               {revisit && (
@@ -1946,6 +2039,7 @@ function Summary({ revisit = false }) {
                     </Box>
                   </Box>
                 </Box>
+              </Box>
               </Box>
             </Box>
           )}
