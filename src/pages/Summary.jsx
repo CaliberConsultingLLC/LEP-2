@@ -40,6 +40,33 @@ import { setGeneratedGuideLines } from '../data/generatedGuideLines';
 import { splitSentences as splitProseSentences } from '../utils/guideSummary';
 import { demoRequestFields } from '../utils/demoMode';
 import { hasSeenIntro, markIntroSeen } from '../utils/guideIntro';
+
+// How wide the four stages of the reading are allowed to run.
+//
+// These were 960 and 864, set when the reading shared the window with a
+// right-hand guide. It does not: the guide stands bottom-LEFT here, and the
+// composition already reserves its column with a left inset, so everything to
+// the right of that was being left on the table — about 640px of it on a
+// 1920 window.
+//
+// That mattered because the only other way to make a long reading fit is
+// useViewportFit shrinking the type, and shrinking the type to avoid a
+// scrollbar makes the reading harder to read in order to make it fit. Width is
+// the cheaper axis: the same paragraph in a wider column is a shorter one, so
+// spending horizontal room buys vertical room at no cost to the type size.
+//
+// Both stay `mx: 'auto'` inside the inset column, so growing them grows the
+// composition equally on both sides of where it already sits rather than
+// sliding it across the page.
+//
+// The trade is measure. At 1120 the prose runs near 100 characters a line,
+// past the 45-75 that reads easiest, and that is deliberate: on these four
+// screens a line that is slightly long to track beats a screen that has to be
+// scrolled, because the reading is the one place a leader is asked to sit
+// still. If it reads too wide, lower REFLECT_PROSE_MAX first — the fit scale
+// picks up whatever height that gives back.
+const REFLECT_HEADER_MAX = 1240;
+const REFLECT_PROSE_MAX = 1120;
 import { getSummaryBriefing, summaryBriefingsReady } from '../data/guideBriefings';
 import { commitSelectedTraits } from '../utils/campaignState';
 import { isCompleteFocusAreaSet, persistFocusAreas, readFocusAreas } from '../utils/focusAreas';
@@ -1528,7 +1555,7 @@ function Summary({ revisit = false }) {
               {/* Inside the same inset as the stage card, so the bar sits over
                   the reading rather than across the whole window. */}
               {revisit && (
-                <Box sx={{ width: '100%', maxWidth: 960, mx: 'auto' }}>
+                <Box sx={{ width: '100%', maxWidth: REFLECT_HEADER_MAX, mx: 'auto' }}>
                   <RevisitBar
                     label="Chapter III · Your reflection"
                     note="The four stages as they were written for you. Nothing on this page is live — reading it again changes nothing behind it."
@@ -1538,7 +1565,7 @@ function Summary({ revisit = false }) {
               <Box
                 sx={{
                   width: '100%',
-                  maxWidth: 960,
+                  maxWidth: REFLECT_HEADER_MAX,
                   mx: 'auto',
                   position: 'relative',
                   zIndex: 2,
@@ -1593,7 +1620,7 @@ function Summary({ revisit = false }) {
                   sx={{
                     position: 'relative',
                     zIndex: 1,
-                    maxWidth: 864,
+                    maxWidth: REFLECT_PROSE_MAX,
                     width: '100%',
                     mx: 'auto',
                     display: 'flex',
