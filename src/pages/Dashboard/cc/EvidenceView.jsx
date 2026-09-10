@@ -1174,11 +1174,16 @@ export default function EvidenceView({ t, phases, onAdvancePhase, traitIndex }) 
     if (hasSelfData) {
       list.push({ id: 'ev-gaps', label: 'The Gaps', guide: () => EVIDENCE_GUIDE.gaps, pose: 'lantern' });
     }
-    orderedRows.forEach((row) => {
+    orderedRows.forEach((row, i) => {
       const role =
         row.trait === roles.edge?.trait ? 'edge' : row.trait === roles.lifting?.trait ? 'lifting' : 'strength';
       list.push({
-        id: `ev-${row.trait}`,
+        // Index-keyed, not trait-keyed. A trait id is this leader's own — no
+        // generator can target it and no copy sheet can hold it, so keying on
+        // the trait meant every one of these chapters silently fell through to
+        // the reused three-sentence fallback. The index is stable per position
+        // in the walk, which is what the generator writes against.
+        id: `ev-trait-${i + 1}`,
         label: row.subTrait || row.trait,
         row,
         role,

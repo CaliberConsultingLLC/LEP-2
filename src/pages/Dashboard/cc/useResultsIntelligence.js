@@ -17,6 +17,9 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../../firebase';
 import { GUIDE_STEPS } from '../../../data/guideCopy.generated.js';
 import { setGeneratedGuideLines } from '../../../data/generatedGuideLines.js';
+import { buildGuideScreenData } from '../../../data/guideScreenData.js';
+import { deriveTraitRoles } from './debriefContent.js';
+import { mapRowStatements } from './EvidenceView.jsx';
 import {
   buildCampaignResults,
   campaignResultsSignature,
@@ -125,10 +128,26 @@ export function useResultsIntelligence({ rows, loaded, hasTeamData, hasSelfData,
       // generated at summary time remain in place.
       let dashboardLinesByGuide = null;
       try {
+        // What every dashboard screen is actually showing. Without this the
+        // guide wrote about the trait rooms and statements from the map alone
+        // and invented the figures, which is how a 33-effort behaviour got told
+        // to stop trying so hard. The per-trait and per-statement keys are not
+        // in the copy sheet — they cannot be, since this leader's traits differ
+        // from the next one's — so they come in through the data itself.
+        const screenData = buildGuideScreenData({
+          rows,
+          roles: deriveTraitRoles(rows),
+          mapStatements: mapRowStatements,
+          hasSelfData,
+          respondents: responseCount,
+        });
+        const stepKeys = [...new Set([...DASHBOARD_STEP_KEYS, ...Object.keys(screenData)])];
+
         const linesPayload = await postJson('/api/get-guide-lines', {
           insightProfile,
           resultsAnalysis: analysis,
-          stepKeys: DASHBOARD_STEP_KEYS,
+          stepKeys,
+          screenData,
         }, 280000);
         dashboardLinesByGuide = linesPayload?.linesByGuide || null;
         if (dashboardLinesByGuide && Object.keys(dashboardLinesByGuide).length) {

@@ -61,9 +61,9 @@ function collectLines(data, requestedKeys) {
   return out;
 }
 
-async function runGuideVoice({ guideId, insightProfile, resultsAnalysis, stepKeys }) {
+async function runGuideVoice({ guideId, insightProfile, resultsAnalysis, stepKeys, screenData }) {
   const voice = getGuideVoice(guideId);
-  const requests = buildStepRequests(GUIDE_STEPS, guideId, stepKeys);
+  const requests = buildStepRequests(GUIDE_STEPS, guideId, stepKeys, screenData);
   if (!requests.length) return {};
 
   const system = buildCachedSystem(
@@ -126,9 +126,16 @@ export default async function handler(req, res) {
       ? body.stepKeys.filter(isPostIntakeStepKey)
       : null;
 
+    // What each screen is actually showing, keyed the same way the steps are.
+    // Screens the caller sends no data for get no figures — which is correct,
+    // and is the whole reason this exists.
+    const screenData = body.screenData && typeof body.screenData === 'object' && !Array.isArray(body.screenData)
+      ? body.screenData
+      : null;
+
     const settled = await Promise.allSettled(
       requestedGuides.map((guideId) =>
-        runGuideVoice({ guideId, insightProfile, resultsAnalysis, stepKeys })
+        runGuideVoice({ guideId, insightProfile, resultsAnalysis, stepKeys, screenData })
       )
     );
 

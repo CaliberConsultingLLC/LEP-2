@@ -22,17 +22,57 @@ export function isPostIntakeStepKey(key) {
  * Builds the per-screen request list. Passing the existing canned line does two
  * jobs at once: it tells the model what the screen is for, and it anchors the
  * length and register far better than any description of the screen would.
+ *
+ * `screenData` carries what the screen is actually SHOWING — the scores, the
+ * statements, the gaps. Without it the guide was writing about data it had
+ * never seen, which is exactly how it produced confident sentences about
+ * numbers that were not on the page. A request with no `data` is a screen with
+ * nothing on it to be wrong about.
+ *
+ * Keys are no longer required to exist in the copy sheet. The Evidence rooms
+ * and the journal pages are keyed per trait and per statement, and no static
+ * sheet can enumerate those — this leader's traits differ from the next one's.
+ * Those keys arrive through `screenData` and carry their own description.
  */
-export function buildStepRequests(guideSteps, guideId, stepKeys = null) {
-  const keys = (stepKeys && stepKeys.length ? stepKeys : Object.keys(guideSteps || {}))
-    .filter((k) => guideSteps?.[k])
-    .filter(isPostIntakeStepKey);
+export function buildStepRequests(guideSteps, guideId, stepKeys = null, screenData = null) {
+  const sheetKeys = Object.keys(guideSteps || {});
+  const dataKeys = Object.keys(screenData || {});
+  const requested = stepKeys && stepKeys.length
+    ? stepKeys
+    : [...new Set([...sheetKeys, ...dataKeys])];
 
-  return keys.map((key) => ({
-    key,
-    screen: String(guideSteps[key]?.title || key.split('::')[0]).trim(),
-    canned: String(guideSteps[key]?.[guideId]?.text || '').trim(),
-  }));
+  return requested
+    .filter((k) => guideSteps?.[k] || screenData?.[k])
+    .filter(isPostIntakeStepKey)
+    .map((key) => {
+      const step = guideSteps?.[key];
+      const data = screenData?.[key] || null;
+      const req = {
+        key,
+        screen: String(step?.title || describeKey(key)).trim(),
+        canned: String(step?.[guideId]?.text || '').trim(),
+      };
+      if (data) req.data = data;
+      return req;
+    });
+}
+
+/**
+ * A readable screen name for a key the copy sheet has never heard of. The model
+ * uses this to know where it is standing, so "trait room 2, statement 3" beats
+ * the raw key by a wide margin.
+ */
+function describeKey(key) {
+  const step = String(key || '').split('::')[1] || '';
+  let m = step.match(/^t(\d+)-s(\d+)$/);
+  if (m) return `Evidence · trait room ${m[1]}, statement ${m[2]} of 5`;
+  m = step.match(/^trait-(\d+)$/);
+  if (m) return `Evidence · trait room ${m[1]}`;
+  m = step.match(/^ev-trait-(\d+)$/);
+  if (m) return `Evidence · walkthrough chapter for trait ${m[1]}`;
+  m = step.match(/^(edge|lifting|strength)-p(\d+)$/);
+  if (m) return `Field Journal · ${m[1]} trait, page ${m[2]}`;
+  return step || key;
 }
 
 export const GUIDE_LINES_SCHEMA = {
@@ -65,7 +105,21 @@ already — their insight map is below. You are not introducing yourself and you
 WHAT YOU ARE REPLACING
 Each request carries the generic line currently shown on that screen. Treat it as three things: what the
 screen is for, roughly how long your line should be, and the bar you have to clear. Do not rewrite it.
-Say something only this leader's guide could say.
+Say something only this leader's guide could say. Where "canned" is empty there is no generic line to
+beat — that screen has never had one written for it. Use "screen" and "data" to know where you are
+standing, and hold the same length as the rest.
+
+WHAT THE SCREEN IS SHOWING
+A request may also carry a "data" object. That object IS the screen — the scores, statements and gaps
+this leader is looking at while you speak. It is the ground truth for that line.
+- Every number you write must appear in that screen's own "data". Not the map, not another screen, not
+  a figure you worked out in your head. If it is not in this request's "data", you may not state it.
+- A request with NO "data" is a screen with no figures on it. Write about the moment, not about numbers,
+  and do not reach for one.
+- "self" fields are what this leader predicted about themselves; the plain fields are what their team
+  reported. A null self field means they never rated it — say so if it matters, never print it as zero.
+- Read the whole object before writing. A single statement's "siblings" are the other four in the room,
+  and one score almost never means anything until it is read against them.
 
 HARD RULES
 - Return one entry for EVERY key you are given, using that exact key. No additions, no omissions.
@@ -92,6 +146,11 @@ read aloud, and it is the most common way one of these lines fails.
   Say the steady, true, general thing about the screen in your own register and spend the revelation
   where one actually exists. A quiet line is better than a forced one, and there are 82 of these —
   they cannot all be revelations.
+- Accuracy outranks interest. A quiet true line is worth more than a sharp line that misreads the
+  screen, because the leader is looking straight at the number while you talk. Before you write a
+  claim about effort, check the effort figure in this request's "data" and make sure the claim
+  survives it: telling someone to stop pushing on their lowest-effort behaviour is the exact failure
+  this section exists to prevent.
 
 CALIBRATION
 - Screens before results exist (summary, trait selection, campaign setup) draw on the map: their asset,
@@ -134,7 +193,10 @@ No campaign results exist yet. Write the post-results screens from the map alone
 anything about how their team responded.
 `}
 SCREENS (write one line for each key)
+Where a screen carries "data", that is what the leader is looking at while you speak. Every figure you
+write for that screen must come from its own "data" object; a screen with no "data" gets no figures.
 ${JSON.stringify(requests)}
 
-Write all of them now. Same keys. Sound like yourself, and say something true about this leader.
+Write all of them now. Same keys. Sound like yourself, say something true about this leader, and do not
+state a number the screen does not show.
 `.trim();
