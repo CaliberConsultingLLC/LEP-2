@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { guideImage } from '../data/guideArt';
+import { bustStyle } from '../components/guide/guideGeometry';
 import { SUPPORT_EMAIL, SUPPORT_MAILTO, DOCUMENTS_PATH, FAQ_PATH } from '../data/supportLinks';
 import '../styles/compass-landing.css';
 
@@ -210,41 +211,45 @@ const SIGNAL_ROWS = [
   { name: 'Strategic Patience', compass: 59, effort: 64, efficacy: 57, growth: '−7', down: true },
 ];
 
-/* The action plan is written in the field journal now — six numbered prompts
-   per trait, ending in a target and one line the team hears. The panel used to
-   show an ENVISION / ROOT / BRANCH triptych, which stopped existing when the
-   thread replaced it: `STEP_DEFS` in fieldJournalUtils.js is the format this
-   mirrors, and the labels here are its step titles verbatim. */
-const PLAN_STEPS = [
+/* The Action Plan panel is a picture of the journal rather than a transcript
+   of it. The six prompts used to be set out in full — six labels, two bullet
+   lists, a meter and a quote inside a 460px panel, which on the page read as a
+   wall of 11px type nobody was going to work through while deciding whether to
+   buy anything. What sells the journal is that it IS a journal, so the panel
+   shows the spread from far enough back that only the prompt you are sitting
+   on is in focus, and the rest is the shape of writing. One legible question,
+   three more coming into view on the next leaf.
+
+   The focused question is `envisionExperience` from `STEP_DEFS` in
+   fieldJournalUtils.js, shortened to the part that does not need a trait name
+   in it. */
+/* The left leaf: the prompt in hand, and the one under it going out of focus.
+   Both are `STEP_DEFS` from fieldJournalUtils.js, shortened to the part that
+   does not need a trait name spliced into it. `written` is the width of each
+   line of the answer as a share of the page — blurred to strokes, so it is
+   handwriting's rhythm rather than words. */
+const BOOK_LEFT = [
   {
-    n: 1,
+    step: 1,
     label: 'UNDERSTANDING EXPECTATIONS',
-    quote: true,
-    body:
-      '\u201CFrom where they sit, they expect a direction they can plan a week around \u2014 not one that moves in the Monday standup.\u201D',
+    question: 'Put yourself in their seat. What do they expect from you?',
+    written: ['94%', '88%', '61%'],
   },
   {
-    n: 2,
+    step: 2,
     label: 'WHAT THEY NEED FROM YOU',
-    quote: true,
-    body:
-      '\u201CMore than anything, they want me to decide out loud, so they can move without guessing.\u201D',
+    question: 'Underneath that, what do they most want from you here?',
+    written: ['91%', '73%'],
   },
-  {
-    n: 3,
-    label: 'BEHAVIOR ADJUSTMENTS',
-    ember: true,
-    bullets: [
-      'I will close every meeting naming the decision, the why, and who owns it.',
-      'I will stop reversing a call in chat without saying what changed.',
-    ],
-  },
-  {
-    n: 4,
-    label: 'ACCOUNTABILITY',
-    body:
-      'Every Friday I read back the week\u2019s decisions. Nobody should hear a shift secondhand.',
-  },
+];
+
+/* The right leaf: what the entry turns into, each one a little further off
+   than the last. The target under the third is the only number the picture
+   keeps — a shape, not a figure to read. */
+const BOOK_AHEAD = [
+  'What are you going to commit to?',
+  'What are you committed to changing?',
+  'What goal are you setting?',
 ];
 
 const GAP_ROWS = [
@@ -739,53 +744,57 @@ export default function CompassLanding() {
               )}
 
               {showcase === 'plan' && (
-                <div className="cl-gap-stack">
+                <div className="cl-gap-stack is-plan">
                   <span className="cl-kicker">ACTION PLAN · DECISIVE DIRECTION</span>
                   <p className="cl-plan-intro">
                     Written trait by trait in your field journal, and revised every time new
                     results land.
                   </p>
-                  <div className="cl-plan-steps">
-                    {PLAN_STEPS.map((step) => (
-                      <div className="cl-plan-step" key={step.label}>
-                        <span className={`cl-plan-label${step.ember ? ' ember' : ''}`}>
-                          <i className="cl-plan-num">{step.n}</i>
-                          {step.label}
-                        </span>
-                        {step.bullets ? (
-                          <ul className="cl-plan-bullets">
-                            {step.bullets.map((line) => (
-                              <li key={line}>{line}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className={step.quote ? 'quote' : undefined}>{step.body}</p>
-                        )}
-                      </div>
-                    ))}
-                    <div className="cl-plan-step">
-                      <div className="cl-plan-goal-label">
-                        <span>
-                          <i className="cl-plan-num">5</i>
-                          SETTING A TARGET
-                        </span>
-                        <em>61 today → 75 by month 9</em>
-                      </div>
-                      <div className="cl-plan-goal-meter">
-                        <span style={{ width: '61%' }} />
-                        <i />
-                      </div>
-                    </div>
-                    <div className="cl-plan-step is-last">
-                      <span className="cl-plan-label ember">
-                        <i className="cl-plan-num">6</i>
-                        YOUR COMMITMENT TO THE TEAM
+                  {/* An open spread, seen from across the desk. Only the prompt
+                      in hand is in focus; the rest is the shape of a page being
+                      worked through. */}
+                  <div className="cl-book">
+                    <div className="cl-book-leaf is-left">
+                      <span className="cl-book-head" aria-hidden="true">
+                        FIELD JOURNAL · DECISIVE DIRECTION
                       </span>
-                      <p className="quote">
-                        &ldquo;Expect me to name the decision, the why, and who owns it before any
-                        meeting ends.&rdquo;
-                      </p>
+                      {BOOK_LEFT.map((entry, i) => (
+                        <div
+                          className={`cl-book-entry${i ? ' is-far' : ''}`}
+                          key={entry.step}
+                          aria-hidden={i ? 'true' : undefined}
+                        >
+                          <span className="cl-book-step">
+                            <i>{entry.step}</i>
+                            {entry.label}
+                          </span>
+                          <p>{entry.question}</p>
+                          <div className="cl-book-written" aria-hidden="true">
+                            {entry.written.map((w) => (
+                              <i key={w}>
+                                <span style={{ width: w }} />
+                              </i>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
+                    <div className="cl-book-leaf is-right">
+                      <span className="cl-book-head" aria-hidden="true">— 2 —</span>
+                      <div className="cl-book-ahead">
+                        {BOOK_AHEAD.map((line, i) => (
+                          <div className="cl-book-ahead-item" key={line}>
+                            <p>{line}</p>
+                            {i === BOOK_AHEAD.length - 1 && (
+                              <span className="cl-book-meter" aria-hidden="true">
+                                <i />
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="cl-book-spine" aria-hidden="true" />
                   </div>
                 </div>
               )}
@@ -793,7 +802,8 @@ export default function CompassLanding() {
 
             <div className="cl-panel-rail">
               <div className="cl-rail-portrait">
-                <img src={guide.crop} alt={guide.name} />
+                {/* Framed off the measured art, never typed — see `bustStyle`. */}
+                <img src={guide.crop} alt={guide.name} style={bustStyle(guide.crop)} />
               </div>
               <div className="cl-rail-quote">
                 <p>&ldquo;{railQuote}&rdquo;</p>

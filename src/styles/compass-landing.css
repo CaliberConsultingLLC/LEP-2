@@ -875,6 +875,10 @@ html:has([data-compass-landing]) {
   min-height: 100%;
 }
 
+.cl-gap-stack.is-plan {
+  justify-content: flex-start;
+}
+
 .cl-gap-row.is-pair {
   grid-template-columns: 1.2fr 2fr;
 }
@@ -1144,130 +1148,205 @@ html:has([data-compass-landing]) {
   margin: 10px 0 16px;
 }
 
-/* Six prompts now stand where three used to, so the thread runs tighter than
-   the panel it replaced — same 460px stage, twice the steps. */
-.cl-plan-steps {
+/* The journal spread that stands in for the action plan.
+
+   Sized as a picture: one fixed aspect, one container, and everything inside
+   it in `cqw` — so the whole spread shrinks and grows as a single image
+   instead of the type holding still while the paper moves under it.
+
+   Everything but the prompt in hand is blurred. That is the point of the
+   panel: a leader should recognise a journal and read one question, not try to
+   work through a six-step form in a marketing panel. */
+.cl-book {
+  position: relative;
+  container-type: inline-size;
+  width: min(100%, 680px);
+  margin: 6px auto 2px;
+  aspect-ratio: 1140 / 700;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 10px;
+  background-color: #fffdf8;
+  background-image: url('/journal/paper.png');
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  box-shadow: 0 26px 54px rgba(10, 22, 40, 0.3);
+  overflow: hidden;
+}
+
+/* The fore-edges: a page has thickness, and without it the spread reads as two
+   rectangles of cream rather than as paper. */
+.cl-book::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(138, 122, 94, 0.26),
+    inset 22px 0 22px -22px rgba(94, 78, 54, 0.38),
+    inset -22px 0 22px -22px rgba(94, 78, 54, 0.38);
+}
+
+.cl-book-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 11%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(94, 78, 54, 0) 0%,
+    rgba(94, 78, 54, 0.14) 40%,
+    rgba(94, 78, 54, 0.3) 50%,
+    rgba(94, 78, 54, 0.14) 60%,
+    rgba(94, 78, 54, 0) 100%
+  );
+}
+
+.cl-book-leaf {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  min-width: 0;
+  padding: 7.5% 8%;
 }
 
-.cl-plan-step {
-  border-bottom: 1px solid rgba(28, 43, 58, 0.08);
-  padding-bottom: 8px;
+.cl-book-leaf.is-left { padding-right: 6%; }
+.cl-book-leaf.is-right { padding-left: 6%; }
+
+.cl-book-head {
+  font-size: 1.32cqw;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #8a7a5e;
+  opacity: 0.85;
+  filter: blur(0.24cqw);
 }
 
-/* The journal numbers each step in a small ringed circle down the left of the
-   thread; the panel borrows the same mark so the preview and the real page
-   read as one thing. `currentColor` keeps it on whichever ink the label uses,
-   ember included. */
-.cl-plan-num {
+.cl-book-leaf.is-right .cl-book-head {
+  align-self: flex-end;
+  letter-spacing: 0.14em;
+}
+
+/* One prompt and its answer. The first on the leaf is the one being written;
+   the second is pushed to the foot of the page and goes soft, which is what
+   makes the spread read as a page in progress rather than a form. */
+.cl-book-entry {
+  margin-top: 7%;
+}
+
+.cl-book-entry.is-far {
+  margin-top: auto;
+  opacity: 0.5;
+  filter: blur(0.42cqw);
+}
+
+/* The same ringed numeral the journal marks its steps with, so the picture and
+   the real page read as one thing. */
+.cl-book-step {
+  display: flex;
+  align-items: center;
+  font-size: 1.5cqw;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: var(--cl-ember-deep);
+}
+
+.cl-book-step i {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 15px;
-  height: 15px;
-  margin-right: 9px;
+  width: 2.3cqw;
+  height: 2.3cqw;
+  margin-right: 1.3cqw;
   border: 1px solid currentColor;
   border-radius: 50%;
   font-style: normal;
-  font-size: 9px;
+  font-size: 1.35cqw;
   line-height: 1;
   letter-spacing: 0;
 }
 
-.cl-plan-bullets {
-  margin: 5px 0 0;
-  padding: 0 0 0 17px;
-}
-
-.cl-plan-bullets li {
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.cl-plan-bullets li + li {
-  margin-top: 3px;
-}
-
-.cl-plan-bullets li::marker {
-  color: var(--cl-ember-deep);
-}
-
-.cl-plan-step.is-last {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-.cl-plan-label {
-  display: flex;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: var(--cl-steel-deep);
-}
-
-.cl-plan-label.ember {
-  color: var(--cl-ember-deep);
-}
-
-.cl-plan-step p {
-  font-size: 15px;
-  line-height: 1.5;
-  margin: 5px 0 0;
-}
-
-.cl-plan-step p.quote {
+.cl-book-entry p {
   font-family: 'Fraunces', serif;
-  font-style: italic;
-  color: var(--cl-ink);
+  font-size: 2.85cqw;
+  line-height: 1.34;
+  color: #0f1c2e;
+  margin: 1.4cqw 0 0;
 }
 
-.cl-plan-goal-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: var(--cl-steel-deep);
+.cl-book-entry.is-far p {
+  font-size: 2.4cqw;
 }
 
-.cl-plan-goal-label > span {
-  display: flex;
-  align-items: center;
+/* Answers, at a distance: the rules are real, the writing on them is not. */
+.cl-book-written {
+  margin-top: 5%;
 }
 
-.cl-plan-goal-label em {
-  font-style: normal;
-  color: var(--cl-ember-deep);
-}
-
-.cl-plan-goal-meter {
-  height: 8px;
-  background: rgba(28, 43, 58, 0.1);
-  border-radius: 4px;
-  margin-top: 8px;
+.cl-book-written i {
+  display: block;
+  height: 3.9cqw;
+  border-bottom: 1px solid #e8dbc3;
   position: relative;
 }
 
-.cl-plan-goal-meter > span {
-  display: block;
-  height: 8px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #C0612A, var(--cl-ember));
+.cl-book-written i span {
+  position: absolute;
+  left: 0;
+  bottom: 1cqw;
+  height: 0.75cqw;
+  border-radius: 0.4cqw;
+  background: rgba(34, 54, 78, 0.34);
+  filter: blur(0.42cqw);
 }
 
-.cl-plan-goal-meter > i {
-  position: absolute;
-  left: 75%;
-  top: -3px;
-  width: 2px;
-  height: 14px;
-  background: var(--cl-steel-deep);
+/* The far leaf: what the entry turns into, spread down the page, each one a
+   little further out of focus than the one above it. */
+.cl-book-ahead {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding: 2% 0 6%;
 }
+
+.cl-book-ahead-item p {
+  font-family: 'Fraunces', serif;
+  font-size: 2.35cqw;
+  line-height: 1.3;
+  color: #22364e;
+  margin: 0;
+  padding-bottom: 1.5cqw;
+  border-bottom: 1px solid #e8dbc3;
+}
+
+.cl-book-ahead-item:nth-child(1) { opacity: 0.78; filter: blur(0.26cqw); }
+.cl-book-ahead-item:nth-child(2) { opacity: 0.64; filter: blur(0.34cqw); }
+.cl-book-ahead-item:nth-child(3) { opacity: 0.52; filter: blur(0.42cqw); }
+
+/* The target step 5 sets, kept as a shape under the question that asks for it
+   — the one part of the plan a picture can still say out loud. */
+.cl-book-meter {
+  display: block;
+  position: relative;
+  height: 1.1cqw;
+  margin-top: 2.4cqw;
+  border-radius: 0.6cqw;
+  background: rgba(28, 43, 58, 0.12);
+}
+
+.cl-book-meter i {
+  display: block;
+  position: absolute;
+  inset: 0 39% 0 0;
+  border-radius: 0.6cqw;
+  background: linear-gradient(90deg, #c0612a, var(--cl-ember));
+}
+
 
 /* guide rail */
 
@@ -1282,20 +1361,20 @@ html:has([data-compass-landing]) {
   height: 310px;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 }
 
+/* The framing — size and offsets — is inline, solved from the art's own
+   measured box by `bustStyle`; the drawn bird is 0.64 of its square wide on
+   Roaster and 0.95 on Mother, so a crop typed here frames one guide and
+   beheads the next. What stays is the treatment: the bird dissolves into the
+   rail rather than being sliced off by the bottom edge. */
 .cl-rail-portrait img {
-  width: 100%;
-  height: 140%;
+  position: absolute;
   max-width: none;
-  object-fit: cover;
-  object-position: 50% 8%;
-  margin: -8% 0 0;
   display: block;
-  transform: scale(1.85);
-  transform-origin: 50% 12%;
-  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5));
 }
 

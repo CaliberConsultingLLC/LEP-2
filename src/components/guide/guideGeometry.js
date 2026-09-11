@@ -432,3 +432,47 @@ export function fitPortrait({ src, mirrored = false, height, leadX, trailX, spea
     bottom: footInset - (1 - y1) * frame,
   };
 }
+
+/**
+ * The crop a head-and-shoulders portrait wants inside a fixed frame — the
+ * landing page's guide rail, where the owl is a bust in a window rather than a
+ * bird standing in a scene.
+ *
+ * Same reason `fitPortrait` exists, one frame smaller. A typed
+ * `transform: scale(1.85)` is a zoom on the PNG, not on the bird: the drawn box
+ * is 0.64 of the square wide on Roaster and 0.95 on Mother, and the head sits
+ * anywhere from 0.34 to 0.46 across it. One number cannot frame both, and the
+ * one that was there had every guide cropped to an eye and a beak.
+ *
+ * `visible` is the share of the bird's HEIGHT the frame shows — 1 fits the
+ * whole bird and reads as a sticker, 0.5 is a face filling the box. Around 0.72
+ * is a bust: head, shoulders and the body down to the belly, cut where the mask
+ * is already fading it into the rail. Because every portrait is drawn to the same
+ * height inside its square, sizing by height is also what keeps six different
+ * birds the same size as they swap through the rail.
+ *
+ * Returned as percentages, so the numbers hold at any frame size: `height`
+ * against the frame (the art is square, so `width: auto` follows), and a
+ * translate against the image's OWN width — the one way to say "put the head
+ * here" without knowing how wide the frame is.
+ */
+export function bustStyle(src, { visible = 0.72, faceBias = 0.75 } = {}) {
+  const a = getGuideAnchor(src);
+  const [x0, y0, x1, y1] = a.box;
+  const heightPct = 100 / (visible * (y1 - y0));
+  const faceCx = (a.face[0] + a.face[2]) / 2;
+  const boxCx = (x0 + x1) / 2;
+  // Centre the head, then hand a quarter of that back to the body — a bird
+  // whose head is well off to one side would otherwise stand with a bare strip
+  // of rail beside it.
+  const anchorX = faceCx + (1 - faceBias) * (boxCx - faceCx);
+  return {
+    height: `${heightPct.toFixed(2)}%`,
+    width: 'auto',
+    left: '50%',
+    // The art carries transparent padding above the head; take it back off so
+    // the head starts just under the frame's top edge whatever pose is showing.
+    top: `${(1 - y0 * heightPct).toFixed(2)}%`,
+    transform: `translateX(${(-anchorX * 100).toFixed(2)}%)`,
+  };
+}
