@@ -75,8 +75,6 @@ export const SEED_FOCUS_AREAS = [
   },
 ];
 
-export const STAGING_SEED_VERSION = '2026-08-27-chapter-eight-v1';
-
 // Keys written by the seed so clearStagingData() can remove them precisely.
 const SEED_KEYS = [
   'userInfo',
@@ -156,6 +154,41 @@ export const CAMPAIGN_TRAITS = [
     ],
   },
 ];
+
+// The stamp that says a browser's copy of the seed is current.
+//
+// This used to be a hand-typed date — '2026-08-27-chapter-eight-v1' — and that
+// is precisely where it went wrong. The seeded reflection was rewritten on
+// 2026-09-02: the trailhead went from one paragraph to three, the markers and
+// hazards from two scenes to three, and every stage framing from two sentences
+// to the five the page expects. The string was not touched, so
+// autoSeedIfNeeded() went on telling every already-seeded browser it was up to
+// date, and any machine that had opened staging before that day kept serving
+// the old short reflection out of localStorage. That is the "sometimes the
+// Trailhead is really short and isn't giving the full work to it" of it, and
+// why it followed the laptop rather than the build.
+//
+// So it is not typed any more. It is a hash of the fixture itself, which means
+// editing a single sentence of the seeded reflection retires every stale copy
+// of it on the next load, and the stamp cannot drift from the content again.
+// The date prefix stays for a human reading localStorage.
+function fixtureStamp(...parts) {
+  const text = JSON.stringify(parts);
+  // FNV-1a. Not a security hash — it only has to change when the text does.
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
+}
+
+export const STAGING_SEED_VERSION = `chapter-eight-${fixtureStamp(
+  STAGING_GUIDE_SUMMARIES,
+  STAGING_GUIDE_LINES,
+  SEED_FOCUS_AREAS,
+  CAMPAIGN_TRAITS,
+)}`;
 
 export function seedStagingData() {
   const now = new Date().toISOString();
@@ -374,13 +407,17 @@ export function clearStagingData() {
 }
 
 export function autoSeedIfNeeded() {
-  if (
-    !localStorage.getItem('__cairn_seeded__')
-    || localStorage.getItem('__cairn_seed_version__') !== STAGING_SEED_VERSION
-  ) {
-    // Drop sticky chapter-popup flags whenever seed refreshes so transitions
-    // are visible again after deploy / reset.
-    localStorage.removeItem('journeyCeremonySeen');
-    seedStagingData();
-  }
+  const stamp = localStorage.getItem('__cairn_seed_version__');
+  if (localStorage.getItem('__cairn_seeded__') && stamp === STAGING_SEED_VERSION) return;
+  // A stale seed is cleared before it is rewritten, not written over. The seed
+  // only overwrites the keys it still writes, so anything an older version of
+  // it left behind — an aiSummary in the previous shape, a focus-area set that
+  // no longer matches the reflection — would survive the reseed and go on
+  // being served. That is the stale data this is here to retire, so it goes
+  // first.
+  if (stamp) clearStagingData();
+  // Drop sticky chapter-popup flags whenever seed refreshes so transitions
+  // are visible again after deploy / reset.
+  localStorage.removeItem('journeyCeremonySeen');
+  seedStagingData();
 }
