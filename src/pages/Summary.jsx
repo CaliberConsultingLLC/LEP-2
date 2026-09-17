@@ -1,5 +1,5 @@
 // src/pages/Summary.jsx
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import GuidePickerMenu from '../components/GuidePickerMenu';
 import {
   Container,
@@ -24,7 +24,8 @@ import CompassLayout from '../components/CompassLayout';
 import SummaryBriefingModal from '../components/SummaryBriefingModal';
 import { SUMMARY_GUIDE_OWL_SX } from '../components/summaryGuideLayout';
 import { perchedSrc } from '../data/guideArt';
-import { perchTransform } from '../components/guide/guideGeometry';
+import { GUIDE_PERSONAS } from '../data/guidePersonas';
+import { fitPortrait, standingAspects, standingHeightBeside } from '../components/guide/guideGeometry';
 import { useCairnTheme } from '../config/runtimeFlags';
 import useViewportFit from '../hooks/useViewportFit';
 import { useGuide } from '../context/GuideContext';
@@ -67,6 +68,11 @@ import { hasSeenIntro, markIntroSeen } from '../utils/guideIntro';
 // picks up whatever height that gives back.
 const REFLECT_HEADER_MAX = 1240;
 const REFLECT_PROSE_MAX = 1120;
+
+// Daylight between the guide and the reading he is delivering. Small: the two
+// are one picture, and a wide alley between them reads as a layout that came
+// apart rather than as a man standing beside a page.
+const SUMMARY_OWL_GAP = 12;
 import { getSummaryBriefing, summaryBriefingsReady } from '../data/guideBriefings';
 import { commitSelectedTraits } from '../utils/campaignState';
 import { isCompleteFocusAreaSet, persistFocusAreas, readFocusAreas } from '../utils/focusAreas';
@@ -127,6 +133,7 @@ function Summary({ revisit = false }) {
   // The bird stands in a corner here too, so it takes the same rule: art
   // whose branch runs off to the left cannot be used in one.
   const summaryOwlSrc = perchedSrc(persona.poses, persona.poses.read || persona.poses.idle);
+
 
   useEffect(() => {
     if (!useCairnTheme) return undefined;
@@ -1041,6 +1048,95 @@ function Summary({ revisit = false }) {
     watch: [activeJourneyStep, summarySections, focusAreas, revisit],
   });
 
+  // Every picture this owl can ever be, so the cap below is taken over the set
+  // rather than over whichever voice happens to be picked. See
+  // standingAspects: a per-guide cap stands six birds at six heights.
+  const SUMMARY_OWL_ASPECT = useMemo(
+    () => standingAspects(
+      GUIDE_PERSONAS.map((p) => perchedSrc(p.poses, p.poses?.read || p.poses?.idle)),
+      // The same flag fitPortrait is given below: this bird stands on the
+      // left, so it is mirrored, so the edge the corner holds is the one on
+      // the right of the picture.
+      { mirrored: true },
+    ),
+    [],
+  );
+
+  // How much page there is to the left of the reading, measured rather than
+  // assumed. Both numbers move — the reading's column is a percentage of the
+  // window and the guide is a share of its height — so the only honest way to
+  // keep them off each other is to read one and size the other to it.
+  //
+  // A callback ref rather than a useRef, because the column is not on the page
+  // when this component first runs — the reading is still loading — and a ref
+  // read inside an effect that fires once is null at exactly that moment. It
+  // then fell back to the window's full width, which is the same as no cap at
+  // all, and the guide went on being drawn over the reading. Held as state so
+  // the measurement runs when the column actually arrives.
+  const [readingColumnEl, setReadingColumnEl] = useState(null);
+  const [owlScene, setOwlScene] = useState(null);
+  useLayoutEffect(() => {
+    if (!useCairnTheme || typeof window === 'undefined' || !readingColumnEl) return undefined;
+    const read = () => {
+      const box = readingColumnEl.getBoundingClientRect();
+      const room = box.left;
+      // How much window there is under the reading. The guide stands on the
+      // floor and the reading stops well short of it, so most of the bird is
+      // beside nothing at all and only its head and shoulders have to fit the
+      // column.
+      const clearBelow = Math.max(0, window.innerHeight - box.bottom);
+      setOwlScene((prev) => (
+        prev
+        && Math.abs(prev.room - room) < 0.5
+        && Math.abs(prev.clearBelow - clearBelow) < 0.5
+        && prev.vh === window.innerHeight
+          ? prev
+          : { room, clearBelow, vh: window.innerHeight }
+      ));
+    };
+    read();
+    window.addEventListener('resize', read);
+    // The box gets its height from 100svh, which does not reliably report a
+    // change to a ResizeObserver when the window is resized — the same thing
+    // useViewportFit found and documents. So the window is listened to as well
+    // as observed, and the stage, the fit scale and the reading itself are
+    // dependencies below, because those are the other three ways the column's
+    // bottom edge moves without the window changing at all.
+    window.visualViewport?.addEventListener('resize', read);
+    // The guide is fixed-positioned and reserves nothing, so nothing it does
+    // can move the column it is measuring — this cannot feed back.
+    const ro = new ResizeObserver(read);
+    ro.observe(readingColumnEl);
+    return () => {
+      window.removeEventListener('resize', read);
+      window.visualViewport?.removeEventListener('resize', read);
+      ro.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useCairnTheme, readingColumnEl, activeJourneyStep, summarySections, fit, revisit]);
+
+  // The frame the guide is drawn in. `trailX: 0` anchors the bird by its own
+  // trailing edge — the one behind it, mirrored to the window's left — so the
+  // corner holds it rather than the transparent padding around it, and
+  // `footInset: 0` stands it on the floor rather than above it.
+  const owlFrame = useMemo(() => {
+    if (!owlScene || !summaryOwlSrc) return null;
+    return fitPortrait({
+      src: summaryOwlSrc,
+      mirrored: true,
+      height: standingHeightBeside({
+        viewportHeight: owlScene.vh,
+        // A hair of daylight, so a bird sized exactly to the room does not
+        // read as leaning on the card.
+        room: owlScene.room - SUMMARY_OWL_GAP,
+        clearBelow: owlScene.clearBelow,
+        aspects: SUMMARY_OWL_ASPECT,
+      }),
+      trailX: 0,
+      footInset: 0,
+    });
+  }, [owlScene, summaryOwlSrc, SUMMARY_OWL_ASPECT]);
+
   const renderParagraphWithTooltips = (text) => {
     const raw = String(text || '');
     // Support light emphasis: **bold**, *italic*, _underline_
@@ -1563,6 +1659,7 @@ function Summary({ revisit = false }) {
                 </Box>
               )}
               <Box
+                ref={setReadingColumnEl}
                 sx={{
                   width: '100%',
                   maxWidth: REFLECT_HEADER_MAX,
@@ -2078,14 +2175,32 @@ function Summary({ revisit = false }) {
           draggable={false}
           sx={{
             ...SUMMARY_GUIDE_OWL_SX,
-            // Flush into the window's bottom-left corner, which is what
-            // left: 0 was asking for and not what it was getting: the drawn
-            // bird stops short of its own frame by anything from 2% to 19%
-            // depending on the pose, so the guide stood 53px off the corner as
-            // Best Friend and 111px off it as Roaster. Pushed out by the art's
-            // own padding, every guide stands in the same place. The mirror
-            // comes after, on the same transform, or it is applied twice.
-            transform: `${perchTransform(summaryOwlSrc, true)} ${SUMMARY_GUIDE_OWL_SX.transform}`,
+            // Sized off the bird and off the room the reading leaves it, not
+            // off a breakpoint table.
+            //
+            // The table was `{ md: 480, lg: 580, xl: 640 }`, and it was a
+            // width given to the PNG rather than a size given to the bird: the
+            // drawn art is between 0.62 and 0.93 of its square wide depending
+            // on the guide, so one CSS width drew six different birds. Beside
+            // an opaque reading column that is not a cosmetic difference —
+            // anything that reaches under the column is cut off, and at
+            // 1440x900 the column's edge fell at 352 while the bird reached
+            // 360 as Roaster and 538 as Mother. Four of the six guides were
+            // served with a slice missing down their right side, which is why
+            // it looked intermittent: it depended on the voice, not the build.
+            //
+            // fitPortrait puts the drawn bird's own trailing edge on the
+            // window's left edge and its feet on the floor — the job
+            // perchTransform used to do here, now done in the same arithmetic
+            // that sizes it — and standingHeightBeside cuts the height only as
+            // far as the measured room requires, so a window wide enough for
+            // both is unchanged.
+            ...(owlFrame
+              ? { width: owlFrame.width, height: 'auto', left: owlFrame.left, bottom: owlFrame.bottom }
+              // Held in place but not drawn until the room has been measured,
+              // rather than appearing at a guessed size and walking to the
+              // right one.
+              : { opacity: 0 }),
             // Behind the card, not over it. The owl is a portrait beside the
             // reflection; at z-index 1 it painted across the card's left edge,
             // which the old opaque highlight cards happened to hide and the

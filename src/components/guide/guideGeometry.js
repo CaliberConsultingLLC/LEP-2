@@ -18,6 +18,10 @@ import { getGuideAnchor } from '../../data/guideAnchors.generated';
 // Breathing room. `EDGE` keeps the bubble off the window's edge, `GAP` keeps
 // it off the owl's face; both are small enough to stay conversational and big
 // enough that the tail has somewhere to live.
+// The reach profile the anchor build writes: ten steps from the crown to the
+// feet. Named here because both functions below index it.
+const PROFILE_STEPS = 10;
+
 export const EDGE = 16;
 export const GAP = 14;
 
@@ -383,6 +387,92 @@ export const JOURNAL_STANDING_H_MAX = 700;
 export function journalStandingHeight(viewportHeight) {
   const h = Number(viewportHeight) || 0;
   return Math.max(STANDING_H_MIN, Math.min(h * JOURNAL_STANDING_H, JOURNAL_STANDING_H_MAX));
+}
+
+/**
+ * How far the birds in a set reach from the edge they are anchored by, taken
+ * from the crown down in ten steps, per unit of their height.
+ *
+ * Needed because a bird standing beside a column of the page has to be capped
+ * by its WIDTH, and the only handle `fitPortrait` takes is a height. Going
+ * through a ratio converts one into the other.
+ *
+ * `mirrored` picks which edge, and it is the same flag `fitPortrait` takes: a
+ * bird standing on the left is mirrored, so the edge the corner holds is the
+ * right-hand one in the picture.
+ *
+ * The maxima are over the whole set rather than a lookup on the pose actually
+ * being drawn, and that is the point. Reach runs from 0.65 of the height on
+ * Roaster to 0.97 on Mother, so capping each guide by its own fits them all
+ * and stands six birds at six different heights — the guide changing size when
+ * the leader changes voice, which is the same defect the breakpoint tables had
+ * and the reason `fitPortrait` exists. One cap, from the longest reach, keeps
+ * them the same bird.
+ */
+export function standingAspects(srcs, { mirrored = false } = {}) {
+  const list = (Array.isArray(srcs) ? srcs : [srcs]).filter(Boolean);
+  const reach = new Array(PROFILE_STEPS).fill(0);
+  list.forEach((src) => {
+    const a = getGuideAnchor(src);
+    const [x0, y0, x1, y1] = a.box;
+    const full = (x1 - x0) / (y1 - y0);
+    const measured = mirrored ? a.reach?.r : a.reach?.l;
+    for (let i = 0; i < PROFILE_STEPS; i += 1) {
+      const v = measured?.[i];
+      reach[i] = Math.max(reach[i], v > 0 ? v : full);
+    }
+  });
+  return { reach, full: reach[PROFILE_STEPS - 1] };
+}
+
+/**
+ * How tall a standing bird may be drawn when something on the page is beside
+ * it and is allowed to win.
+ *
+ * The Summary's guide stands bottom-left with the reading in a column to its
+ * right, and the column is opaque, so any part of the bird that reaches under
+ * it is not layered behind it — it is cut off. The bird was sized by a
+ * breakpoint table (480/580/640) and the column by a separate one, two numbers
+ * that never had to agree, and at 1440x900 they did not: the reading's left
+ * edge fell at 352 while the drawn bird reached 360 as Roaster and 538 as
+ * Mother. Four of the six guides were served with a slice down their right
+ * side, the width of the slice depending on which voice the leader had picked.
+ *
+ * So the room is measured and the bird is cut to it — but only as far as it
+ * actually has to be. `clearBelow` is how much page there is UNDER the column,
+ * measured up from the floor, and it matters more than it sounds: the reading
+ * ends a couple of hundred pixels above the bottom of the window, the bird
+ * stands on the floor, and so the part of it level with the column is head and
+ * shoulders rather than the book and the spread of the tail. Capping on the
+ * whole bounding box took a third off the guide to clear a card its widest
+ * point was nowhere near. Pass 0 and you get that answer back.
+ *
+ * Solved rather than derived because the share of the bird standing level with
+ * the column is itself a function of how tall the bird is. Reach is monotonic
+ * in the height, so a bisection finds the tallest that fits.
+ */
+export function standingHeightBeside({ viewportHeight, room, clearBelow = 0, aspects }) {
+  const natural = standingHeight(viewportHeight);
+  if (!aspects?.reach?.length || !(aspects.full > 0) || !Number.isFinite(room)) return natural;
+
+  const reachAt = (h) => {
+    if (h <= 0) return 0;
+    // The share of the bird standing level with the column, rounded UP to the
+    // next measured step. Reach only ever grows on the way down the bird, so
+    // the step below is always an over-estimate and never a clip.
+    const t = Math.min(1, Math.max(0, (h - Math.max(0, clearBelow)) / h));
+    const step = Math.min(PROFILE_STEPS - 1, Math.max(0, Math.ceil(t * PROFILE_STEPS) - 1));
+    return aspects.reach[step] * h;
+  };
+
+  if (reachAt(natural) <= room) return natural;
+  let lo = 0;
+  let hi = natural;
+  for (let i = 0; i < 24; i += 1) {
+    const mid = (lo + hi) / 2;
+    if (reachAt(mid) <= room) lo = mid; else hi = mid;
+  }
+  return lo;
 }
 
 export function fitPortrait({ src, mirrored = false, height, leadX, trailX, speakX, footInset = 0 }) {
