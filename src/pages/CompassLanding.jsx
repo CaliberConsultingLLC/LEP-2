@@ -522,11 +522,13 @@ export default function CompassLanding() {
         <div className="cl-hero-copy">
         <span className="cl-eyebrow">AN AI-SUPPORTED INDIVIDUAL DEVELOPMENT PLAN</span>
         <h1>
-          Leaders don&rsquo;t follow paths.
+          Good leaders follow paths.
           <br />
-          <em className="cl-gold">They set them.</em>
+          <em className="cl-gold">Great leaders chart their own.</em>
         </h1>
-        <p className="cl-hero-sub clx-lede">Not a course. Not a coach. Not a personality quiz.</p>
+        <p className="cl-hero-sub clx-lede">
+          Not a <em>course</em>. Not a <em>coach</em>. Not a <em>personality quiz</em>.
+        </p>
         <p className="cl-hero-sub clx-body">
           The Compass is an <strong>Individual Development Plan</strong> built around how you
           actually lead — you answer, your team answers anonymously, and you spend a year

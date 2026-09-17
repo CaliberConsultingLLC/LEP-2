@@ -228,7 +228,13 @@ html:has([data-compass-landing]) {
 }
 
 .cl-page .cl-hero h1 .cl-gold {
-  color: var(--cl-gold);
+  /* A warmer step off the page-wide gold: the headline reads as orange, the
+     rest of the page keeps its pale apricot. */
+  color: #F2B67C;
+}
+
+.cl-page .cl-hero-sub em {
+  font-style: italic;
 }
 
 .cl-page .cl-hero-sub {
