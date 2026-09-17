@@ -124,8 +124,13 @@ function StagingDevPanel() {
   const handleReset = () => {
     clearStagingData();
     seedStagingData();
-    setFlash('Reset ✓ — reload to apply');
-    setTimeout(() => setFlash(''), 3000);
+    // Reload rather than asking someone to. Every page here reads its content
+    // out of localStorage once, on mount, so a reset that leaves the page
+    // standing goes on showing exactly the data it just replaced — which is
+    // indistinguishable from the reset not having worked. This button existed
+    // to get out of a stale seed and, used as labelled, looked like proof the
+    // staleness was something else.
+    window.location.reload();
   };
 
   // Both regenerate paths now go through /summary itself, the same door a real
