@@ -10,6 +10,8 @@
 .cl-page {
   --cl-cream: #FFF8F0;
   --cl-gold: #F4CEA1;
+  /* A warmer step off the page-wide gold, for the two hero focal points. */
+  --cl-gold-warm: #F2B67C;
   --cl-ember: #E07A3F;
   --cl-ember-deep: #B8532C;
   --cl-steel: #6393AA;
@@ -228,9 +230,7 @@ html:has([data-compass-landing]) {
 }
 
 .cl-page .cl-hero h1 .cl-gold {
-  /* A warmer step off the page-wide gold: the headline reads as orange, the
-     rest of the page keeps its pale apricot. */
-  color: #F2B67C;
+  color: var(--cl-gold-warm);
 }
 
 .cl-page .cl-hero-sub em {
@@ -260,8 +260,10 @@ html:has([data-compass-landing]) {
 }
 
 .cl-hero-sub.clx-body strong {
+  /* The one bolded phrase in the hero body carries the headline's orange, so
+     the two focal points read as a pair. */
   font-weight: 800;
-  color: #FFF8F0;
+  color: var(--cl-gold-warm);
 }
 
 .cl-hero-cta {
