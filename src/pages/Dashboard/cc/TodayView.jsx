@@ -142,7 +142,7 @@ export default function TodayView({
     if (locking) return;
     setLocking(true);
     try {
-      await lockTeamCampaignWindow();
+      await lockTeamCampaignWindow({ responses: respondents });
       onNavigate('signal');
     } catch {
       // The window stays open and the leader stays on Today. `lockTeamCampaign`

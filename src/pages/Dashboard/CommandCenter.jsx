@@ -417,7 +417,7 @@ export default function CommandCenter() {
     if (campaignClosed || autoClosedRef.current || demoSession) return;
     if (inviteProgress(respondents, inviteTarget).state !== 'complete') return;
     autoClosedRef.current = true;
-    lockTeamCampaignWindow().catch(() => { autoClosedRef.current = false; });
+    lockTeamCampaignWindow({ responses: respondents }).catch(() => { autoClosedRef.current = false; });
   }, [respondents, inviteTarget, campaignClosed, demoSession]);
 
   // Marks the phase complete and carries the user through the door to the

@@ -23,7 +23,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { Box, Typography, useMediaQuery } from '@mui/material';
 import JourneyPorthole from '../../../components/JourneyPorthole';
 import { JOURNEY_STATIONS } from '../journey/journeyModel.js';
-import { LOCK_PHRASE, lockHint } from './todayRoomModel.js';
+import { LOCK_MIN_RESPONSES, LOCK_PHRASE, lockHint } from './todayRoomModel.js';
 import { getGuideAnchor } from '../../../data/guideAnchors.generated';
 
 // ---------------------------------------------------------------------------
@@ -640,7 +640,11 @@ export default function TodayRoom({
   useEffect(remeasure, [view.moment, view.theme, traitIdx, picked]);
 
   const trait = traits[Math.min(traitIdx, traits.length - 1)] || traits[0] || {};
-  const lockReady = lockText.trim().toLowerCase() === LOCK_PHRASE.toLowerCase();
+  // Below three answers there is nothing to lock: the results would not be
+  // anonymous. The field and button stay put so the card does not change
+  // shape, but neither does anything until the third answer lands.
+  const canLock = (view.responded || 0) >= LOCK_MIN_RESPONSES;
+  const lockReady = canLock && lockText.trim().toLowerCase() === LOCK_PHRASE.toLowerCase();
   const outstanding = Math.max(0, (view.invited || 0) - (view.responded || 0));
 
   // Clicking a station shifts the map and nothing else, so the line the guide
@@ -851,14 +855,18 @@ export default function TodayRoom({
               </Box>
             </Box>
             <Typography sx={{ fontFamily: FONT_SERIF, fontSize: 19, fontWeight: 500, lineHeight: 1.35, color: p.ink }}>
-              You can lock it in now{target > 0 ? ` — even before all ${spellOut(target)}` : ''}. It is
-              irreversible: results are calculated and no more feedback lands.
+              {canLock
+                ? <>You can lock it in now{target > 0 ? ` — even before all ${spellOut(target)}` : ''}. It is
+                  irreversible: results are calculated and no more feedback lands.</>
+                : <>It can be locked once at least three have answered — fewer than that and their
+                  answers would not be anonymous.</>}
             </Typography>
             <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', mt: '4px' }}>
               <Box
                 component="input"
                 type="text"
                 value={lockText}
+                disabled={!canLock}
                 spellCheck={false}
                 aria-label={`Type “${LOCK_PHRASE}” to confirm`}
                 placeholder={`Type “${LOCK_PHRASE}”`}
@@ -878,6 +886,7 @@ export default function TodayRoom({
                   outline: 'none',
                   '&::placeholder': { color: p.faint },
                   '&:focus': { borderColor: p.inputFocus },
+                  '&:disabled': { opacity: 0.5, cursor: 'not-allowed' },
                 }}
               />
               <PillButton p={p} disabled={!lockReady} onClick={() => lockReady && onLockIn?.()}>

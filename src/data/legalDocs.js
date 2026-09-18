@@ -319,7 +319,7 @@ const SURVEY = {
     'After your self-assessment you send a separate link to your team — at least three people you lead directly. They answer the same observable statements you did. The survey is short and does not require a Compass account.',
     'You see counts and combined scores — never individual responses, names, or emails attached to answers.',
     'More responses make a steadier Signal. If only a few people answer, treat the pattern as a sketch, not a conclusion.',
-    'Once you accept no more answers (or the expected team count is in), the campaign locks and the dashboard can calculate. Locked surveys reject new submits.',
+    'Once at least three have answered, you can lock the campaign yourself; it also locks on its own when everyone you counted has answered. Locking calculates the dashboard, and locked surveys reject new submits. It cannot be locked on fewer than three answers, because fewer would not be anonymous.',
   ],
 };
 

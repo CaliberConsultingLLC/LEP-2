@@ -84,6 +84,10 @@ const spell = (n) => {
 
 export const LOCK_PHRASE = 'Finalize Assessment';
 
+// Mirrors MIN_RESPONSES_TO_LOCK in utils/campaignInvites.js, which is where it
+// is enforced; this module stays free of app imports so it can be tested bare.
+export const LOCK_MIN_RESPONSES = 3;
+
 /** Progressive feedback under the lock-in field. Empty until they start typing. */
 export function lockHint(text, ready, outstanding = 0) {
   if (ready) {
@@ -109,7 +113,12 @@ function owlLineFor(moment, theme, view) {
   const traits = view.traits || [];
   switch (moment) {
     case 'listening': {
-      const out = Math.max(0, (view.invited || 0) - (view.responded || 0));
+      const got = view.responded || 0;
+      if (got < LOCK_MIN_RESPONSES) {
+        const need = LOCK_MIN_RESPONSES - got;
+        return `${got ? `${spell(got)} in` : 'Nothing in yet'}. It needs ${spellLower(need)} more before it can lock — under three, nobody stays anonymous.`;
+      }
+      const out = Math.max(0, (view.invited || 0) - got);
       if (!out) return 'Everyone answered. Lock it and go read what they said.';
       return `${out === 1 ? 'One is' : `${spell(out)} are`} still out. You can wait, or you can lock it. Either way, do not refresh the page like it owes you money.`;
     }

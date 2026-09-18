@@ -1,5 +1,6 @@
 import { deleteField, doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { MIN_RESPONSES_TO_LOCK } from './campaignInvites';
 
 export const TEAM_WINDOW_CHANGED_EVENT = 'compass-team-window-changed';
 export const LOCK_CONFIRM_PHRASE = 'Finalize Assessment';
@@ -31,7 +32,16 @@ function emitWindowChanged() {
   }
 }
 
-export async function lockTeamCampaignWindow() {
+// Refuses below three answers. The lock is what turns responses into scores,
+// and scores from one or two people are not anonymous — so the count is a
+// required argument, and a caller that does not know it cannot lock.
+export async function lockTeamCampaignWindow({ responses } = {}) {
+  const got = Number(responses);
+  if (!Number.isFinite(got) || got < MIN_RESPONSES_TO_LOCK) {
+    const err = new Error('too-few-responses');
+    err.code = 'too-few-responses';
+    throw err;
+  }
   const records = parseRecords();
   const teamCampaignId = String(records?.teamCampaignId || '').trim();
   const closedAt = new Date().toISOString();

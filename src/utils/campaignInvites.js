@@ -15,12 +15,17 @@ import { auth, db } from '../firebase';
 
 const KEY = 'campaignInviteTarget';
 
-// A floor of 2 because one respondent is not anonymous — with a single answer
-// the leader knows exactly whose it is. The ceiling is a sanity bound, not a
-// licence limit: past this the survey is an org-wide instrument and wants a
-// different conversation.
-export const INVITE_MIN = 2;
-export const INVITE_MAX = 50;
+// Three to fifteen, the same range the leader picks their team size from in
+// Your Context. Three is the floor because fewer is not anonymous — with one or
+// two answers the leader can work out whose is whose. Fifteen is the product's
+// ceiling: the growth campaign is for the people a leader leads directly.
+export const INVITE_MIN = 3;
+export const INVITE_MAX = 15;
+
+// The campaign cannot be locked — and so never scored — on fewer answers than
+// this, for the same reason. Enforced in lockTeamCampaignWindow and shown on
+// the lock card.
+export const MIN_RESPONSES_TO_LOCK = 3;
 
 /**
  * Suggests a starting number from the team size given at intake.
@@ -43,19 +48,26 @@ export function clampInviteCount(value) {
 }
 
 /**
- * The declared number, or null when the leader has not said yet. Null is
- * meaningful: callers should show "responses so far" rather than a fraction
- * with a made-up denominator.
+ * The number the campaign is counted against: what the leader declared when
+ * they took the link, or else the team size they gave in Your Context — which
+ * is now a 3–15 choice made for exactly this. Null only when neither exists,
+ * and then callers show "responses so far" rather than a made-up fraction.
  */
 export function readInviteTarget() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || 'null');
     const n = Number(raw?.declared);
-    if (!Number.isFinite(n) || n <= 0) return null;
-    return { declared: clampInviteCount(n), declaredAt: String(raw?.declaredAt || '') };
-  } catch {
-    return null;
-  }
+    if (Number.isFinite(n) && n > 0) {
+      return { declared: clampInviteCount(n), declaredAt: String(raw?.declaredAt || '') };
+    }
+  } catch { /* fall through to the context answer */ }
+  try {
+    const teamSize = Number(JSON.parse(localStorage.getItem('latestFormData') || '{}')?.teamSize);
+    if (Number.isFinite(teamSize) && teamSize > 0) {
+      return { declared: clampInviteCount(teamSize), declaredAt: '', source: 'context' };
+    }
+  } catch { /* nothing to count against */ }
+  return null;
 }
 
 export async function setInviteTarget(count) {

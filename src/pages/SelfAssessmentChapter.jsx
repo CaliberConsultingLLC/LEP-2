@@ -151,7 +151,12 @@ function SelfAssessmentChapter() {
       return '8';
     }
   });
-  const [countSaved, setCountSaved] = useState(() => Boolean(readInviteTarget()));
+  // Saved means the leader said it here. A target read back from their Your
+  // Context answer is a starting value, not a confirmation.
+  const [countSaved, setCountSaved] = useState(() => {
+    const t = readInviteTarget();
+    return Boolean(t && t.source !== 'context');
+  });
 
   useEffect(() => {
     if (!selfId) {
