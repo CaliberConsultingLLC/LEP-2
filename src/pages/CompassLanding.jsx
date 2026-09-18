@@ -927,8 +927,11 @@ export default function CompassLanding() {
           </p>
           <p className="cl-org-legal">
             © {new Date().getFullYear()} North Star Partners. All rights reserved.{' '}
-            <a href={DOCUMENTS_PATH}>Terms of Use</a> and <a href={`${DOCUMENTS_PATH}#privacy`}>Privacy Policy</a>
+            <a href={`${DOCUMENTS_PATH}/terms`}>Terms of Service</a>,{' '}
+            <a href={`${DOCUMENTS_PATH}/privacy`}>Privacy Policy</a> and{' '}
+            <a href={`${DOCUMENTS_PATH}/consent`}>Consent to Participate</a>
             {' '}apply when you create an account.{' '}
+            <a href={`${DOCUMENTS_PATH}/refunds`}>Refund Policy</a>.{' '}
             <a href={FAQ_PATH}>FAQ</a>
           </p>
         </div>

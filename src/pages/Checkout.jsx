@@ -6,6 +6,7 @@ import { CheckoutFormProvider, CheckoutForm, useCheckoutForm } from '@stripe/rea
 import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import { colors, fonts } from '../styles/tokens';
+import { legalDocPath } from '../data/legalDocs';
 import {
   LIST_PRICE_USD,
   POST_PAYMENT_ROUTE,
@@ -339,6 +340,22 @@ function Checkout() {
                 List price is <strong style={{ color: CAIRN.navy900 }}>${LIST_PRICE_USD} per leader, per year</strong>.
                 If you were given an introductory code, enter it with <strong style={{ color: CAIRN.navy900 }}>Add code</strong> and
                 the total updates before you pay.
+              </Typography>
+              {/* "Per year" above reads like a subscription to anyone who has
+                  been caught by one. It is a single payment, and the refund
+                  terms are the first thing a careful buyer looks for. */}
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 1.55, color: colors.inkSoft, mt: 1.5 }}>
+                A one-time payment — nothing renews automatically. Refunds are covered by the{' '}
+                <Box
+                  component="a"
+                  href={legalDocPath('refunds')}
+                  target="_blank"
+                  rel="noopener"
+                  sx={{ color: colors.orangeDeep, fontWeight: 700 }}
+                >
+                  Refund & Cancellation Policy
+                </Box>
+                .
               </Typography>
             </Box>
           </Box>

@@ -12,7 +12,6 @@ import {
   Alert,
   Checkbox,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material';
@@ -24,7 +23,9 @@ import ProcessTopRail from '../components/ProcessTopRail';
 import CompassLayout from '../components/CompassLayout';
 import { allowDevBypass, useCairnTheme } from '../config/runtimeFlags';
 import { buttons, colors, fonts, radii, surfaces, type } from '../styles/tokens';
-import { legalParagraphs } from '../data/legalDocs';
+import LegalDocument from '../components/LegalDocument';
+import { legalDocById } from '../data/legalDocs';
+import { LEGAL_VERSIONS, REQUIRED_CONSENTS } from '../data/legalVersions';
 import { isIntakeUnlocked, setPaymentStatus } from '../utils/billing';
 
 const cairnLabelSx = {
@@ -76,16 +77,16 @@ function UserInfo() {
   // screen, and this product asks something of people who are not in the room.
   //
   // So pressing Create does not create anything yet: it opens the
-  // interruption, the guide says what this expects of them and of their team,
-  // and the account is created from in there. Agreeing sets the same two flags
-  // the form has always carried, so the stored consent and its timestamp are
-  // unchanged — only the delivery is.
+  // interruption, the card says what this expects of them and of their team,
+  // and the account is created from in there — once they have ticked the one
+  // box that agrees to the Terms, Privacy Policy and Consent to Participate,
+  // and whichever way they answered the separate newsletter box.
   const [ceremonyOpen, setCeremonyOpen] = useState(false);
-  const acceptCeremony = () => {
+  const acceptCeremony = ({ marketingOptIn = false } = {}) => {
     setUserInfo((prev) => ({ ...prev, agreeTerms: true, agreePrivacy: true }));
     // The flags are also passed straight through, because this call is the
     // one that writes the consent record and setState has not landed yet.
-    createAccount({ terms: true, privacy: true });
+    createAccount({ terms: true, privacy: true, participation: true, marketingOptIn });
   };
   const agreeDialog = (field) => {
     setUserInfo((prev) => ({ ...prev, [field]: true }));
@@ -104,6 +105,28 @@ function UserInfo() {
         return 'Network issue detected. Please check your connection and try again.';
       default:
         return 'Could not create your account right now. Please try again.';
+    }
+  };
+
+  // The evidence copy of the consent, written by the server so the IP, the
+  // time and the document editions are not the browser's word for it. Best
+  // effort: failing to log must not fail the signup, so it is reported and
+  // the account carries on. The users doc keeps its own copy either way.
+  const recordConsent = async ({ idToken, consent }) => {
+    try {
+      const agreed = [
+        consent.terms && 'terms',
+        consent.privacy && 'privacy',
+        consent.participation && 'consent',
+      ].filter(Boolean);
+      const response = await fetch('/api/record-consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ agreed, marketingOptIn: Boolean(consent.marketingOptIn) }),
+      });
+      if (!response.ok) throw new Error(`record-consent-${response.status}`);
+    } catch (consentError) {
+      console.warn('Consent log write failed:', consentError);
     }
   };
 
@@ -283,6 +306,8 @@ function UserInfo() {
           consent: {
             terms: consent.terms,
             privacy: consent.privacy,
+            participation: Boolean(consent.participation),
+            marketingOptIn: Boolean(consent.marketingOptIn),
             acceptedAt: new Date().toISOString(),
           },
         }),
@@ -296,8 +321,10 @@ function UserInfo() {
           consent: {
             terms: consent.terms,
             privacy: consent.privacy,
+            participation: Boolean(consent.participation),
+            marketingOptIn: Boolean(consent.marketingOptIn),
             acceptedAt: new Date().toISOString(),
-            version: 'v1',
+            documents: Object.fromEntries(REQUIRED_CONSENTS.map((id) => [id, LEGAL_VERSIONS[id]])),
           },
           createdAt: new Date(),
         });
@@ -306,6 +333,7 @@ function UserInfo() {
       }
 
       if (idToken) {
+        await recordConsent({ idToken, consent });
         const emailResult = await triggerWelcomeEmail({
           idToken,
           email: signupEmail,
@@ -626,7 +654,7 @@ function UserInfo() {
                     name: 'agreeTerms',
                     checked: userInfo.agreeTerms,
                     text: 'I agree to the',
-                    linkText: 'Terms of Use',
+                    linkText: 'Terms of Service',
                     dialog: 'terms',
                   },
                   {
@@ -748,38 +776,20 @@ function UserInfo() {
         busy={isSubmitting}
         onAgree={acceptCeremony}
         onCancel={() => setCeremonyOpen(false)}
-        onOpenTerms={() => setOpenDialog('terms')}
-        onOpenPrivacy={() => setOpenDialog('privacy')}
       />
-      <Dialog open={openDialog === 'terms'} onClose={closeDialog} maxWidth="sm" fullWidth sx={{ zIndex: 10060 }}>
-        <DialogTitle sx={{ fontFamily: useCairnTheme ? fonts.serif : 'Gemunu Libre, sans-serif' }}>Terms of Use</DialogTitle>
-        <DialogContent dividers>
-          {legalParagraphs('terms').map((para) => (
-            <Typography key={para} sx={{ fontFamily: useCairnTheme ? fonts.sans : 'Gemunu Libre, sans-serif', lineHeight: 1.6, mb: 1.2 }}>
-              {para}
-            </Typography>
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog}>Close</Button>
-          <Button variant="contained" onClick={() => agreeDialog('agreeTerms')}>Agree</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={openDialog === 'privacy'} onClose={closeDialog} maxWidth="sm" fullWidth sx={{ zIndex: 10060 }}>
-        <DialogTitle sx={{ fontFamily: useCairnTheme ? fonts.serif : 'Gemunu Libre, sans-serif' }}>Privacy Policy</DialogTitle>
-        <DialogContent dividers>
-          {legalParagraphs('privacy').map((para) => (
-            <Typography key={para} sx={{ fontFamily: useCairnTheme ? fonts.sans : 'Gemunu Libre, sans-serif', lineHeight: 1.6, mb: 1.2 }}>
-              {para}
-            </Typography>
-          ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog}>Close</Button>
-          <Button variant="contained" onClick={() => agreeDialog('agreePrivacy')}>Agree</Button>
-        </DialogActions>
-      </Dialog>
+      {/* The legacy skin's own consent row opens these. Under cairn the
+          documents open in a tab of their own from the consent card. */}
+      {['terms', 'privacy'].map((id) => (
+        <Dialog key={id} open={openDialog === id} onClose={closeDialog} maxWidth="md" fullWidth sx={{ zIndex: 10060 }}>
+          <DialogContent dividers>
+            <LegalDocument doc={legalDocById(id)} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeDialog}>Close</Button>
+            <Button variant="contained" onClick={() => agreeDialog(id === 'terms' ? 'agreeTerms' : 'agreePrivacy')}>Agree</Button>
+          </DialogActions>
+        </Dialog>
+      ))}
       </CompassLayout>
     </Box>
   );

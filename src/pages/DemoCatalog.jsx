@@ -169,6 +169,12 @@ const GROUPS = [
     pages: [
       { label: 'FAQ', path: '/faq', in: ['fresh'] },
       { label: 'Documents', path: '/documents', in: ['fresh'] },
+      {
+        label: 'Terms of Service',
+        path: '/documents/terms',
+        in: ['fresh'],
+        hint: 'Each agreement has its own page — Privacy, Consent to Participate and Refunds sit beside it at /documents/privacy, /consent and /refunds. The consent card at sign-up opens these in a new tab.',
+      },
       { label: 'Design system', path: '/design', in: ['fresh'] },
       {
         label: 'Today — the eight states',

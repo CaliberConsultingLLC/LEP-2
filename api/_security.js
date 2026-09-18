@@ -4,7 +4,7 @@ function nowMs() {
   return Date.now();
 }
 
-function getClientIp(req) {
+export function getClientIp(req) {
   const xff = req.headers['x-forwarded-for'];
   if (typeof xff === 'string' && xff.trim()) {
     return xff.split(',')[0].trim();

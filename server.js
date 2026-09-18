@@ -6,6 +6,7 @@ import confirmCheckout from './api/confirm-checkout.js';
 import sendPasswordReset from './api/send-password-reset.js';
 import cronCampaignMail from './api/cron-campaign-mail.js';
 import sendWelcomeEmail from './api/send-welcome-email.js';
+import recordConsent from './api/record-consent.js';
 import demoLogin from './api/demo-login.js';
 
 const app = express();
@@ -68,6 +69,7 @@ app.post('/api/cron-campaign-mail', (req, res) => cronCampaignMail(req, res));
 // sends — two versions of the first email a customer gets.
 app.post('/api/send-welcome-email', (req, res) => sendWelcomeEmail(req, res));
 app.post('/api/demo-login', (req, res) => demoLogin(req, res));
+app.post('/api/record-consent', (req, res) => recordConsent(req, res));
 
 app.post('/api/get-user-journey', async (req, res) => {
   try {

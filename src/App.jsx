@@ -47,7 +47,7 @@ const GUIDE_HIDDEN_ROUTES = ['/', '/landing', '/sign-in', '/guide-select', '/use
 
 function RouteAwareGuide() {
   const { pathname } = useLocation();
-  if (GUIDE_HIDDEN_ROUTES.includes(pathname) || pathname.startsWith('/campaign/')) return null;
+  if (GUIDE_HIDDEN_ROUTES.includes(pathname) || pathname.startsWith('/campaign/') || pathname.startsWith('/documents/')) return null;
   return <GuideOverlay />;
 }
 
@@ -102,6 +102,7 @@ function AppRoutes() {
       {useCairnTheme && <Route path="/design" element={<DesignSystem />} />}
       <Route path="/faq" element={<Faq />} />
       <Route path="/documents" element={<Documents />} />
+      <Route path="/documents/:docId" element={<Documents />} />
       <Route path="/pricing" element={<Pricing />} />
       {showDevTools && <Route path="/dev-skip-1" element={<DevSkipOne />} />}
       {showDevTools && <Route path="/dev-skip-two" element={<DevSkipTwo />} />}
