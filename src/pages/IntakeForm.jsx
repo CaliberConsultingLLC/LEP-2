@@ -190,7 +190,18 @@ function buildYearOptions(minYear, maxYear) {
 }
 
 const BIRTH_YEAR_OPTIONS = buildYearOptions(1945, CONTEXT_YEAR - 18);
-const TEAM_SIZE_OPTIONS = buildCountOptions(15, { min: 1 });
+// Team size is the number of people the growth campaign will go to, and a
+// campaign needs at least three answers to stay anonymous — so the choice
+// starts at three and stops at fifteen, and both ends say so.
+const TEAM_SIZE_MIN = 3;
+const TEAM_SIZE_MAX = 15;
+const TEAM_SIZE_OPTIONS = buildCountOptions(TEAM_SIZE_MAX, { min: TEAM_SIZE_MIN, plusAtMax: false })
+  .map((o) => ({
+    ...o,
+    label: o.value === String(TEAM_SIZE_MIN) ? `${o.value} (min)`
+      : o.value === String(TEAM_SIZE_MAX) ? `${o.value} (max)`
+        : o.label,
+  }));
 const YEARS_OPTIONS = buildCountOptions(40, { min: 0, unit: { one: 'year', many: 'years' } });
 
 function optionsWithCurrent(options, current) {
@@ -1259,6 +1270,17 @@ function IntakeForm() {
   // ---------- state helpers ----------
   const handleChange = (id, value) => setFormData(prev => ({ ...prev, [id]: value }));
 
+  // Team size opens at the minimum rather than blank, and an older answer
+  // below it (the list used to start at one) is lifted to it. Anything above
+  // fifteen from before the cap is left alone and still shown.
+  useEffect(() => {
+    if (currentStep !== 1) return;
+    const raw = String(formData.teamSize ?? '').trim();
+    if (!raw || (/^\d+$/.test(raw) && Number(raw) < TEAM_SIZE_MIN)) {
+      setFormData((prev) => ({ ...prev, teamSize: String(TEAM_SIZE_MIN) }));
+    }
+  }, [currentStep, formData.teamSize]);
+
   const setSocietalValue = (index, value) => {
     const next = [...societalResponses];
     next[index] = value;
@@ -1291,7 +1313,7 @@ function IntakeForm() {
       birthYear >= 1900 &&
       birthYear <= currentYear &&
       isNumeric(formData.teamSize) &&
-      teamSize >= 0 &&
+      teamSize >= TEAM_SIZE_MIN &&
       isNumeric(formData.leadershipExperience) &&
       leadershipExperience >= 0 &&
       isNumeric(formData.careerExperience) &&
@@ -1743,7 +1765,7 @@ function IntakeForm() {
                 <Typography sx={{ ...type.eyebrow, mb: 1 }}>Leader profile</Typography>
                 <Typography sx={{ ...type.question, fontSize: 24, mb: 0.85 }}>Your Context</Typography>
                 <Typography sx={{ ...type.body, mx: 'auto', maxWidth: '52ch', color: colors.inkSoft }}>
-                  These answers are not scored. They give the Compass enough about your setting that the insights and growth plan stay pertinent to how you actually lead.
+                  This is more than a profile. It is the context Compass will reference as it builds your leadership insights map, so what it tells you fits the role, the team and the setting you actually lead in.
                 </Typography>
               </Box>
 
@@ -1821,6 +1843,9 @@ function IntakeForm() {
                       onChange={(next) => handleChange('teamSize', next)}
                       options={TEAM_SIZE_OPTIONS}
                     />
+                    <Typography sx={{ ...type.bodyMuted, fontSize: 12.5, mt: 0.6 }}>
+                      How many people you plan to send your growth campaign to.
+                    </Typography>
                   </ContextField>
                   <ContextField label="Years in leadership" htmlFor="context-years-leadership">
                     <ContextSelect
