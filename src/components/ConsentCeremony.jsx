@@ -19,11 +19,11 @@
 // alone. What comes back is left for later on purpose — promising a result
 // here is selling, and this is the one screen that should not be.
 //
-// It stands on the chapter-ceremony shell — a sand card with the navy guide
-// panel beside it, centred in the window — rather than as a speech bubble off
-// the full-height owl. The bubble is tethered to the bird's head, so it could
-// never sit in the middle of the screen, and a document this long hanging off
-// a beak at the edge of the window was where the eye was being asked to read.
+// The guide stands where every interruption's guide stands — full height,
+// anchored bottom-left, on the same frame and perch GuidePortrait uses. The
+// words are a card centred in the window rather than a bubble off its beak:
+// a bubble is tethered to the head, so it could never sit in the middle of
+// the screen, and the middle is where the eye should be for this one.
 //
 // No guide has been chosen yet, because that happens after payment. This uses
 // the house guide, and the copy is written to be true in any voice.
@@ -36,15 +36,16 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, Typography } from '@mui/material';
-import { guideImage } from '../data/guideArt';
+import { perchedImage } from '../data/guideArt';
+import { SUMMARY_OWL } from './guidePlacement';
+import { perchTransform } from './guide/guideGeometry';
 import { legalDocPath } from '../data/legalDocs';
 import { colors, fonts, radii, shadows } from '../styles/tokens';
 import { SUMMARY_BRIEFING_Z } from './summaryGuideLayout';
 
 const HOUSE_GUIDE = 'mentor';
-const CARD_W = 580;
-const PANEL_W = 250;
-const MOBILE_MAX = 639;
+const OWL_SRC = perchedImage(HOUSE_GUIDE, 'lantern');
+const CARD_W = 720;
 
 // Three things that decide whether this will work for them, in the order they
 // would meet them.
@@ -127,34 +128,36 @@ function Tick({ checked, onChange, autoFocus, children }) {
   );
 }
 
-function GuidePanel() {
+// Drawn exactly as GuidePortrait draws its owl: SUMMARY_OWL's frame, pushed
+// out by the art's own padding so the branch lands on the corner, mirrored to
+// face into the room. Above the scrim so it stays crisp over the blur.
+function Guide() {
   return (
     <Box
       aria-hidden
       sx={{
-        position: 'relative',
-        flexShrink: 0,
-        overflow: 'hidden',
-        bgcolor: colors.navy900,
-        width: PANEL_W,
-        alignSelf: 'stretch',
-        minHeight: 320,
-        [`@media (max-width: ${MOBILE_MAX}px)`]: { display: 'none' },
+        position: SUMMARY_OWL.position,
+        left: SUMMARY_OWL.left,
+        bottom: SUMMARY_OWL.bottom,
+        width: SUMMARY_OWL.width,
+        transform: perchTransform(OWL_SRC, true),
+        zIndex: SUMMARY_BRIEFING_Z + 1,
+        pointerEvents: 'none',
+        userSelect: 'none',
       }}
     >
       <Box
         component="img"
-        src={guideImage(HOUSE_GUIDE, 'lantern')}
+        src={OWL_SRC}
         alt=""
         draggable={false}
         sx={{
-          position: 'absolute',
-          bottom: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '108%',
+          width: '100%',
           height: 'auto',
-          objectFit: 'contain',
+          display: 'block',
+          transform: 'scaleX(-1)',
+          transformOrigin: 'center bottom',
+          filter: 'drop-shadow(0 16px 36px rgba(9,16,31,0.28))',
         }}
       />
     </Box>
@@ -176,6 +179,22 @@ export default function ConsentCeremony({ open, busy, onAgree, onCancel }) {
   const blocked = !agreed || busy;
 
   return createPortal(
+    <>
+    {/* Three layers: the scrim, the guide on it, and the card over both —
+        so where a narrow window brings the card across the bird, the words
+        win. */}
+    <Box
+      aria-hidden
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: SUMMARY_BRIEFING_Z,
+        bgcolor: 'rgba(9,16,31,0.5)',
+        backdropFilter: 'blur(5px)',
+        WebkitBackdropFilter: 'blur(5px)',
+      }}
+    />
+    <Guide />
     <Box
       role="dialog"
       aria-modal="true"
@@ -183,10 +202,7 @@ export default function ConsentCeremony({ open, busy, onAgree, onCancel }) {
       sx={{
         position: 'fixed',
         inset: 0,
-        zIndex: SUMMARY_BRIEFING_Z,
-        bgcolor: 'rgba(9,16,31,0.62)',
-        backdropFilter: 'blur(3px)',
-        WebkitBackdropFilter: 'blur(3px)',
+        zIndex: SUMMARY_BRIEFING_Z + 2,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -203,7 +219,7 @@ export default function ConsentCeremony({ open, busy, onAgree, onCancel }) {
           borderRadius: radii.xl,
           boxShadow: '0 40px 90px rgba(9,16,31,0.4)',
           bgcolor: colors.sand50,
-          width: `min(100%, ${CARD_W + PANEL_W}px)`,
+          width: `min(100%, ${CARD_W}px)`,
           maxHeight: 'calc(100vh - 32px)',
           animation: 'consentIn 220ms cubic-bezier(.2,.9,.25,1) both',
           '@keyframes consentIn': {
@@ -321,9 +337,9 @@ export default function ConsentCeremony({ open, busy, onAgree, onCancel }) {
           </Box>
         </Box>
 
-        <GuidePanel />
       </Box>
-    </Box>,
+    </Box>
+    </>,
     document.body
   );
 }
