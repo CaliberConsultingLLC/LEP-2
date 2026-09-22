@@ -1,19 +1,20 @@
 // Daily counts for the Compass Pulse admin dashboard.
 //
-// GET /api/pulse-stats?key=...&days=7
+// GET /api/pulse-stats?days=7
 //
-// The key is a shared secret held in PULSE_STATS_KEY. Without it set the
-// endpoint refuses rather than running open to anyone who finds the path.
+// Open to anyone, so it is rate-limited, and everything it returns has to be
+// safe to publish: counts, and a recent-events list of what happened and when.
 //
 // Days are Indianapolis days, not UTC days: a signup at 9pm Eastern belongs to
 // the day it happened on for the person reading the dashboard.
 //
 // Nothing identifying leaves this endpoint — no names, no emails, no uids.
-// The recent-events list says what happened and when, not to whom.
+// Visit paths are the one field a stranger can write (track-visit takes
+// whatever it is sent), and /campaign/:id is a team's live survey link, so a
+// visit is only labelled with a known route, ids collapsed.
 
-import crypto from 'node:crypto';
 import { db } from './firebase.js';
-import { safeServerError } from './_security.js';
+import { applyRateLimit, safeServerError } from './_security.js';
 
 const TIME_ZONE = 'America/Indiana/Indianapolis';
 const DEFAULT_DAYS = 7;
@@ -55,10 +56,20 @@ function dayRange(days, nowMs) {
   return keys;
 }
 
-function keyMatches(provided, expected) {
-  const a = Buffer.from(String(provided || ''));
-  const b = Buffer.from(expected);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+// Mirrors the public routes in src/App.jsx. Anything else reads as "other".
+const KNOWN_PATHS = new Set([
+  '/', '/landing', '/demo', '/user-info', '/guide-select', '/pay', '/pay/success',
+  '/form', '/summary', '/revisit/intake', '/revisit/summary', '/trait-selection',
+  '/campaign-builder', '/campaign-verify', '/self-assessment', '/sign-in',
+  '/dashboard', '/faq', '/documents', '/pricing',
+]);
+
+function visitLabel(rawPath) {
+  const path = String(rawPath || '/').split(/[?#]/)[0].replace(/\/+$/, '') || '/';
+  const campaign = path.match(/^\/campaign\/[^/]+(\/survey|\/complete)?$/);
+  if (campaign) return `Visit /campaign/:id${campaign[1] || ''}`;
+  if (/^\/documents\/[^/]+$/.test(path)) return 'Visit /documents/:doc';
+  return KNOWN_PATHS.has(path) ? `Visit ${path}` : 'Visit (other page)';
 }
 
 export default async function handler(req, res) {
@@ -68,12 +79,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const expected = String(process.env.PULSE_STATS_KEY || '').trim();
-  if (!expected) {
-    return res.status(503).json({ error: 'Pulse stats are not configured' });
-  }
-  if (!keyMatches(req.query?.key, expected)) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  // Each call reads four whole collections, so keep it well under what one
+  // open dashboard tab needs to feel live.
+  const rate = applyRateLimit(req, res, { action: 'pulse-stats', limit: 20, windowMs: 60_000 });
+  if (!rate.allowed) {
+    return res.status(429).json({ error: 'Too many requests' });
   }
 
   const requested = Number.parseInt(String(req.query?.days ?? ''), 10);
@@ -107,7 +117,7 @@ export default async function handler(req, res) {
 
     visitsSnap.docs.forEach((snap) => {
       const data = snap.data() || {};
-      tally('visits', data.createdAt, { type: 'visit', label: `Visit ${String(data.path || '/').slice(0, 200)}` });
+      tally('visits', data.createdAt, { type: 'visit', label: visitLabel(data.path) });
     });
 
     usersSnap.docs.forEach((snap) => {
