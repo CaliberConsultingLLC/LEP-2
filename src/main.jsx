@@ -159,6 +159,22 @@ const theme = createTheme({
 
 const activeTheme = useCairnTheme ? cairnMuiTheme : theme;
 
+// One visit per browser session, for the Compass Pulse dashboard. Counting
+// must never be able to break the app, so every step is allowed to fail.
+try {
+  if (!sessionStorage.getItem('compassVisitTracked')) {
+    sessionStorage.setItem('compassVisitTracked', '1');
+    fetch('/api/track-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: location.pathname }),
+      keepalive: true,
+    }).catch(() => {});
+  }
+} catch {
+  // sessionStorage can throw in private windows or with site data blocked.
+}
+
 const root = createRoot(document.getElementById('root'));
 
 root.render(
