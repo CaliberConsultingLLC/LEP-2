@@ -199,20 +199,20 @@ function docRef(collection, id) {
   };
 }
 
+// A range filter on one field needs no composite index; mixing it with an
+// equality on another field does, so callers should range on one field only.
+const FILTER_OPS = { '==': 'EQUAL', '>=': 'GREATER_THAN_OR_EQUAL', '<': 'LESS_THAN' };
+
 function collectionRef(name, constraints = {}) {
   const withConstraint = (patch) => collectionRef(name, { ...constraints, ...patch });
 
   const runQuery = async () => {
     const structuredQuery = { from: [{ collectionId: name }] };
-    if (constraints.where) {
-      structuredQuery.where = {
-        fieldFilter: {
-          field: { fieldPath: constraints.where.field },
-          op: 'EQUAL',
-          value: encode(constraints.where.value),
-        },
-      };
-    }
+    const filters = (constraints.where || []).map(({ field, op, value }) => ({
+      fieldFilter: { field: { fieldPath: field }, op: FILTER_OPS[op], value: encode(value) },
+    }));
+    if (filters.length === 1) structuredQuery.where = filters[0];
+    if (filters.length > 1) structuredQuery.where = { compositeFilter: { op: 'AND', filters } };
     if (constraints.orderBy) {
       structuredQuery.orderBy = [{
         field: { fieldPath: constraints.orderBy.field },
@@ -231,8 +231,8 @@ function collectionRef(name, constraints = {}) {
   return {
     doc: (id) => docRef(name, id),
     where: (field, op, value) => {
-      if (op !== '==') throw new Error(`unsupported-operator:${op}`);
-      return withConstraint({ where: { field, value } });
+      if (!FILTER_OPS[op]) throw new Error(`unsupported-operator:${op}`);
+      return withConstraint({ where: [...(constraints.where || []), { field, op, value }] });
     },
     orderBy: (field, direction = 'asc') => withConstraint({ orderBy: { field, direction } }),
     limit: (n) => withConstraint({ limit: n }),

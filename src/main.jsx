@@ -163,13 +163,15 @@ const activeTheme = useCairnTheme ? cairnMuiTheme : theme;
 // must never be able to break the app, so every step is allowed to fail.
 try {
   if (!sessionStorage.getItem('compassVisitTracked')) {
-    sessionStorage.setItem('compassVisitTracked', '1');
     fetch('/api/track-visit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: location.pathname }),
       keepalive: true,
-    }).catch(() => {});
+    })
+      // Marked only once it lands, so a failed ping is retried on the next load.
+      .then((res) => { if (res.ok) sessionStorage.setItem('compassVisitTracked', '1'); })
+      .catch(() => {});
   }
 } catch {
   // sessionStorage can throw in private windows or with site data blocked.

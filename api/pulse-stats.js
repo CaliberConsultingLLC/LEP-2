@@ -21,6 +21,11 @@ const DEFAULT_DAYS = 7;
 const MAX_DAYS = 120;
 const RECENT_LIMIT = 50;
 
+// The endpoint is public and each miss reads users, campaigns and responses
+// whole, so a warm instance answers repeat calls from memory for a minute.
+const CACHE_MS = 60_000;
+const CACHE = new Map();
+
 const dayKeyFormat = new Intl.DateTimeFormat('en-CA', {
   timeZone: TIME_ZONE,
   year: 'numeric',
@@ -91,15 +96,25 @@ export default async function handler(req, res) {
     ? Math.min(requested, MAX_DAYS)
     : DEFAULT_DAYS;
 
+  const cached = CACHE.get(days);
+  if (cached && Date.now() - cached.at < CACHE_MS) {
+    return res.status(200).json(cached.body);
+  }
+
   try {
-    const [visitsSnap, usersSnap, campaignsSnap, responsesSnap] = await Promise.all([
-      db.collection('authEvents').where('eventType', '==', 'visit').get(),
+    const keys = dayRange(days, Date.now());
+    // authEvents grows with every visit, so only its window is read. The day
+    // before the first key is a safe floor in any US zone; tally() trims the
+    // rest. createdAt there is always an ISO string, so this compares cleanly.
+    const floor = new Date(Date.parse(`${keys[0]}T00:00:00Z`) - 24 * 60 * 60 * 1000).toISOString();
+
+    const [eventsSnap, usersSnap, campaignsSnap, responsesSnap] = await Promise.all([
+      db.collection('authEvents').where('createdAt', '>=', floor).get(),
       db.collection('users').get(),
       db.collection('campaigns').get(),
       db.collection('responses').get(),
     ]);
 
-    const keys = dayRange(days, Date.now());
     const byDay = new Map(keys.map((date) => [date, {
       date, visits: 0, signups: 0, campaigns: 0, emailsSent: 0, emailsFailed: 0,
     }]));
@@ -115,8 +130,9 @@ export default async function handler(req, res) {
       if (event) events.push({ ts: new Date(ms).toISOString(), ...event });
     };
 
-    visitsSnap.docs.forEach((snap) => {
+    eventsSnap.docs.forEach((snap) => {
       const data = snap.data() || {};
+      if (data.eventType !== 'visit') return;
       tally('visits', data.createdAt, { type: 'visit', label: visitLabel(data.path) });
     });
 
@@ -161,7 +177,7 @@ export default async function handler(req, res) {
       .sort((a, b) => b.ts.localeCompare(a.ts))
       .slice(0, RECENT_LIMIT);
 
-    return res.status(200).json({
+    const body = {
       timeZone: TIME_ZONE,
       days,
       from: keys[0],
@@ -169,7 +185,9 @@ export default async function handler(req, res) {
       totals,
       series,
       recent,
-    });
+    };
+    CACHE.set(days, { at: Date.now(), body });
+    return res.status(200).json(body);
   } catch (error) {
     return safeServerError(res, 'pulse-stats error:', error);
   }

@@ -8,6 +8,8 @@ import cronCampaignMail from './api/cron-campaign-mail.js';
 import sendWelcomeEmail from './api/send-welcome-email.js';
 import recordConsent from './api/record-consent.js';
 import demoLogin from './api/demo-login.js';
+import trackVisit from './api/track-visit.js';
+import pulseStats from './api/pulse-stats.js';
 
 const app = express();
 app.use(cors());
@@ -70,6 +72,8 @@ app.post('/api/cron-campaign-mail', (req, res) => cronCampaignMail(req, res));
 app.post('/api/send-welcome-email', (req, res) => sendWelcomeEmail(req, res));
 app.post('/api/demo-login', (req, res) => demoLogin(req, res));
 app.post('/api/record-consent', (req, res) => recordConsent(req, res));
+app.post('/api/track-visit', (req, res) => trackVisit(req, res));
+app.get('/api/pulse-stats', (req, res) => pulseStats(req, res));
 
 app.post('/api/get-user-journey', async (req, res) => {
   try {
