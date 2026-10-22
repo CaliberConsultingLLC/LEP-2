@@ -417,7 +417,8 @@ function tokenMatches(given) {
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!tokenMatches(req.query?.token)) {
-    return res.status(404).json({ error: 'Not found' });
+    // Diagnostic only: lengths, never values.
+    return res.status(404).json({ error: 'Not found', configured: Boolean(OPS_TOKEN), expectedLength: OPS_TOKEN.length, receivedLength: String(req.query?.token || '').length });
   }
   if (req.method === 'GET') {
     // No server-initiated stream; tell clients to use POST only.
