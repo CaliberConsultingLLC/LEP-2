@@ -93,6 +93,9 @@
     "api/regenerate-statement.js": {
       "maxDuration": 60
     },
+    "api/ops-mcp.js": {
+      "maxDuration": 60
+    },
     "api/demo-login.js": {
       "maxDuration": 10
     }
