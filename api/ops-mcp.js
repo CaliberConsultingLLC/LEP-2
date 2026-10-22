@@ -286,14 +286,16 @@ const TOOLS = [
       const respById = new Map(responses.map((r) => [r.id, r]));
       const counts = Object.fromEntries(STAGES.map((s) => [s, 0]));
       const listed = [];
+      let paidAccounts = 0;
       users.forEach((u) => {
+        if (respById.get(u.uid)?.billing?.paid === true) paidAccounts += 1;
         const j = journeyOf(respById.get(u.uid), teamCounts.get(u.uid) || 0);
         counts[j.stage] += 1;
         if (listStage && j.stage.toLowerCase() === String(listStage).toLowerCase()) {
           listed.push({ name: u.name || '', email: u.email || '', signedUp: local(u.createdAt) });
         }
       });
-      return { totalAccounts: users.length, byStage: counts, ...(listStage ? { stage: listStage, people: listed } : {}) };
+      return { totalAccounts: users.length, paidAccounts, note: 'byStage counts each leader once, at their furthest stage, so paid leaders who moved on are counted under later stages. paidAccounts is the total ever recorded as paid by the site (Stripe is the source of truth; refunds issued before the refund webhook existed may not be reflected).', byStage: counts, ...(listStage ? { stage: listStage, people: listed } : {}) };
     },
   },
   {
