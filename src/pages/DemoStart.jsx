@@ -22,7 +22,6 @@ import { useNavigate } from 'react-router-dom';
 import { buttons, colors, fonts, radii, shadows, surfaces, type } from '../styles/tokens';
 import { seedDemoBlankIntake, seedDemoShowcase, startDemoSession } from '../utils/demoMode';
 import { FIXTURES } from '../utils/catalogFixtures';
-import { isDevHost } from '../config/runtimeFlags';
 
 
 function PathCard({ eyebrow, title, body, cta, onClick, primary = false, busy = false }) {
@@ -129,10 +128,7 @@ function DemoStart() {
           </Typography>
           <Typography sx={{ ...type.body, maxWidth: '58ch', mx: 'auto' }}>
             A throwaway session. Nothing is written to the live account store, and
-            closing the tab ends it. Two ways to run it.
-            {/* The catalog is dev-host only, so off one the sentence promising it
-                was pointing at a card that is not rendered. */}
-            {isDevHost ? ' And one way to just look at it.' : ''}
+            closing the tab ends it. Two ways to run it, and one way to just look at it.
           </Typography>
         </Box>
 
@@ -161,12 +157,7 @@ function DemoStart() {
         </Box>
 
         {/* Set apart from the two above on purpose. Those start a run and
-            carry you forward; this one starts nothing. It is a list.
-
-            Hidden off a dev host, because the route behind it is too: the
-            catalog is for checking design changes, and a dead button on a
-            demo someone was invited to is worse than no button. */}
-        {isDevHost && (
+            carry you forward; this one starts nothing. It is a list. */}
         <Box
           sx={{
             ...surfaces.card,
@@ -228,7 +219,6 @@ function DemoStart() {
             Open the catalog
           </Box>
         </Box>
-        )}
       </Box>
     </Box>
   );

@@ -68,12 +68,14 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/landing" element={<Home />} />
-      {/* Public, but behind a shared password. The catalog and the Today
-          states below stay dev-host-only: those are page-review tools,
-          not something anyone is ever shown. */}
+      {/* Public, but behind a shared password — the demo and the page
+          review tools alike. The catalog and the Today states were
+          dev-host-only, which left the public domain with no way to open a
+          page directly; neither calls an API or reads a dev flag, so the
+          password is all they need. */}
       <Route path="/demo" element={<DemoGate><DemoStart /></DemoGate>} />
-      {isDevHost && <Route path="/demo/catalog" element={<DemoCatalog />} />}
-      {isDevHost && <Route path="/today-states" element={<TodayStates />} />}
+      <Route path="/demo/catalog" element={<DemoGate><DemoCatalog /></DemoGate>} />
+      <Route path="/today-states" element={<DemoGate><TodayStates /></DemoGate>} />
       <Route path="/user-info" element={<UserInfo />} />
       <Route path="/guide-select" element={<GuideSelect />} />
       <Route path="/pay" element={<Checkout />} />
