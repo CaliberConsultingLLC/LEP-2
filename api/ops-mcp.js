@@ -271,6 +271,45 @@ const TOOLS = [
     },
   },
   {
+    name: 'user_results',
+    description: 'A leader\'s actual experience and data: profile and intake answers, the guide they picked, the generated reflection, campaign records, and each team member\'s survey answers. Pass an email (preferred) or uid. Use user_journey for status only; use this to look at what they answered and were shown.',
+    inputSchema: { type: 'object', properties: { email: { type: 'string' }, uid: { type: 'string' } } },
+    run: async ({ email, uid }) => {
+      const em = String(email || '').trim().toLowerCase();
+      let user = null;
+      if (uid) {
+        user = (await query('users', { where: [['uid', '==', String(uid)]] }))[0] || { uid: String(uid) };
+      } else if (em) {
+        const all = await query('users', { fields: ['name', 'email', 'uid', 'createdAt'] });
+        user = all.find((u) => String(u.email || '').trim().toLowerCase() === em) || null;
+      } else {
+        throw new Error('Pass an email or uid.');
+      }
+      if (!user?.uid) return { found: false, note: `No account found for ${em || uid}. Try find_user with part of the name.` };
+      const [resp, team] = await Promise.all([
+        getDoc('responses', user.uid),
+        query('surveyResponses', { where: [['ownerUid', '==', user.uid]] }),
+      ]);
+      if (!resp) return { found: true, uid: user.uid, email: user.email || '', note: 'Account exists but has no responses document yet.' };
+      const { id: _id, intakeDraft, latestFormData, summaryCache, campaignBundle, billing, ops, ...rest } = resp;
+      return {
+        found: true,
+        name: user.name || resp.ownerName || '',
+        email: user.email || resp.ownerEmail || '',
+        uid: user.uid,
+        signedUp: local(user.createdAt),
+        journey: journeyOf(resp, team.length),
+        intakeAnswers: latestFormData || intakeDraft?.formData || null,
+        intakeDraft: intakeDraft || null,
+        reflection: summaryCache || null,
+        campaign: campaignBundle || null,
+        billing: billing || null,
+        teamResponses: team.map(({ id, ...t }) => ({ id, ...t })),
+        otherFields: rest,
+      };
+    },
+  },
+  {
     name: 'funnel',
     description: 'How many leaders are at each stage of the Compass journey right now, optionally listing who is at a given stage (e.g. who is stuck at "Intake in progress").',
     inputSchema: {
