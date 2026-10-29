@@ -310,6 +310,56 @@ const TOOLS = [
     },
   },
   {
+    name: 'user_progress',
+    description: 'What a leader has done after the survey: debrief steps finished, reading notes, and practice / action plans, decoded and grouped by trait. Pass an email (preferred) or uid. Set raw to true to get every saved entry exactly as stored (for export).',
+    inputSchema: { type: 'object', properties: { email: { type: 'string' }, uid: { type: 'string' }, raw: { type: 'boolean' } } },
+    run: async ({ email, uid, raw }) => {
+      const em = String(email || '').trim().toLowerCase();
+      let user = null;
+      if (uid) {
+        user = (await query('users', { where: [['uid', '==', String(uid)]] }))[0] || { uid: String(uid) };
+      } else if (em) {
+        const all = await query('users', { fields: ['name', 'email', 'uid', 'createdAt'] });
+        user = all.find((u) => String(u.email || '').trim().toLowerCase() === em) || null;
+      } else {
+        throw new Error('Pass an email or uid.');
+      }
+      if (!user?.uid) return { found: false, note: `No account found for ${em || uid}. Try find_user with part of the name.` };
+      const resp = await getDoc('responses', user.uid);
+      const progress = resp?.progress || {};
+      const entries = Object.entries(progress).map(([enc, entry]) => {
+        let key = enc;
+        try { key = decodeURIComponent(enc); } catch { /* keep encoded */ }
+        let value = entry?.v ?? null;
+        if (typeof value === 'string') { try { value = JSON.parse(value); } catch { /* keep string */ } }
+        return { key, savedAt: local(entry?.t), value };
+      });
+      const base = {
+        found: true,
+        name: user.name || resp?.ownerName || '',
+        email: user.email || resp?.ownerEmail || '',
+        uid: user.uid,
+        lastProgressSave: local(resp?.progressUpdatedAt),
+        entries: entries.length,
+      };
+      if (!entries.length) {
+        return { ...base, note: 'Nothing saved yet. Progress began saving to Firebase on the day sync shipped, so earlier browser-only work is not here.' };
+      }
+      if (raw) return { ...base, raw: entries };
+      const pick = (prefix) => entries.filter((e) => e.key.startsWith(prefix));
+      const suffix = (key, prefix) => key.slice(prefix.length);
+      const debrief = {};
+      pick('signalDebrief_').forEach((e) => { debrief[suffix(e.key, 'signalDebrief_')] = { savedAt: e.savedAt, value: e.value }; });
+      return {
+        ...base,
+        debrief,
+        readingNotes: pick('traitRoomNotes_').map((e) => ({ scope: suffix(e.key, 'traitRoomNotes_'), savedAt: e.savedAt, notesByTrait: e.value })),
+        practicePlans: pick('practiceStudio_').map((e) => ({ scope: suffix(e.key, 'practiceStudio_'), savedAt: e.savedAt, plan: e.value })),
+        other: entries.filter((e) => !/^(signalDebrief_|traitRoomNotes_|practiceStudio_)/.test(e.key)),
+      };
+    },
+  },
+  {
     name: 'funnel',
     description: 'How many leaders are at each stage of the Compass journey right now, optionally listing who is at a given stage (e.g. who is stuck at "Intake in progress").',
     inputSchema: {

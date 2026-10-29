@@ -32,8 +32,8 @@ function emitWindowChanged() {
   }
 }
 
-// Refuses below three answers. The lock is what turns responses into scores,
-// and scores from one or two people are not anonymous — so the count is a
+// Refuses below the minimum (two) answers. The lock is what turns responses into scores,
+// and scores from very few people are thin — so the count is a
 // required argument, and a caller that does not know it cannot lock.
 export async function lockTeamCampaignWindow({ responses } = {}) {
   const got = Number(responses);
