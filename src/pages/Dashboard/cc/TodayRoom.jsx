@@ -23,7 +23,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { Box, Typography, useMediaQuery } from '@mui/material';
 import JourneyPorthole from '../../../components/JourneyPorthole';
 import { JOURNEY_STATIONS } from '../journey/journeyModel.js';
-import { LOCK_MIN_RESPONSES, LOCK_PHRASE, lockHint } from './todayRoomModel.js';
+import { LOCK_MIN_RESPONSES, LOCK_PHRASE, lockHint, waitingStatus } from './todayRoomModel.js';
 import { getGuideAnchor } from '../../../data/guideAnchors.generated';
 
 // ---------------------------------------------------------------------------
@@ -835,6 +835,19 @@ export default function TodayRoom({
               </Box>
             )}
           </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
+            <Typography
+              sx={{ fontFamily: FONT_SANS, fontSize: 15, lineHeight: 1.5, color: p.inkSoft, maxWidth: '52ch' }}
+              aria-live="polite"
+            >
+              {waitingStatus(view.responded, view.optedOut)}
+            </Typography>
+            {view.teamLink ? (
+              <PillButton p={p} variant="ghost" onClick={copyLink}>
+                {copied ? 'Link copied' : 'Copy team link'}
+              </PillButton>
+            ) : null}
+          </Box>
           <ActionPanel p={p}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
               <Typography component="span" sx={eyebrowSx(p.accent)}>Lock in this assessment</Typography>
@@ -858,8 +871,7 @@ export default function TodayRoom({
               {canLock
                 ? <>You can lock it in now{target > 0 ? ` — even before all ${spellOut(target)}` : ''}. It is
                   irreversible: results are calculated and no more feedback lands.</>
-                : <>It can be locked once at least three have answered — fewer than that and their
-                  answers would not be anonymous.</>}
+                : <>It can be locked once at least {spellOut(LOCK_MIN_RESPONSES)} have answered.</>}
             </Typography>
             <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', mt: '4px' }}>
               <Box

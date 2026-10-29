@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Stack, Button, Paper, Grid, TextField } from '@mui/material';
+import { Container, Box, Typography, Stack, Button, Paper, TextField } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -16,16 +16,9 @@ function NewCampaignIntro() {
   const [campaignData, setCampaignData] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-  const [activeSection, setActiveSection] = useState('what');
   const [surveyClosed, setSurveyClosed] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const introSections = ['what', 'how', 'agreement'];
-  const introSectionIdx = introSections.indexOf(activeSection);
-  const goIntroSection = (dir) => {
-    const next = Math.min(introSections.length - 1, Math.max(0, introSectionIdx + dir));
-    setActiveSection(introSections[next]);
-  };
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -438,34 +431,153 @@ function NewCampaignIntro() {
           }}
         >
           <Typography sx={{
-            fontFamily: useCairnTheme ? fonts.serif : 'Montserrat, sans-serif',
-            fontSize: { xs: '1.7rem', md: '2.1rem' },
-            fontWeight: useCairnTheme ? 600 : 800,
+            fontFamily: fonts.mono,
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: colors.orangeDeep,
             mb: 1,
-            color: useCairnTheme ? colors.navy900 : 'text.primary',
           }}>
-            Welcome to the Compass
+            {isSelfCampaign ? 'Welcome to the Compass' : 'Anonymous leadership feedback'}
+          </Typography>
+          <Typography component="h1" sx={{
+            fontFamily: fonts.serif,
+            fontSize: { xs: '1.7rem', md: '2.2rem' },
+            fontWeight: 600,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            mb: 1,
+            color: colors.navy900,
+          }}>
+            {isSelfCampaign
+              ? 'Your personal benchmark'
+              : leaderName
+                ? `${leaderName} is asking for your honest view`
+                : 'Your honest view helps your leader grow'}
           </Typography>
           <Typography sx={{
-            fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-            fontSize: { xs: '1.02rem', md: '1.08rem' },
-            color: useCairnTheme ? colors.inkSoft : 'text.secondary',
-            mb: 2.8,
-            maxWidth: 640,
+            fontFamily: fonts.sans,
+            fontSize: { xs: '1rem', md: '1.05rem' },
+            color: colors.inkSoft,
+            mb: 3,
+            maxWidth: 620,
             mx: 'auto',
             lineHeight: 1.55,
           }}>
-            {isSelfCampaign
-              ? 'This personal benchmark helps compare your self-assessment to team feedback later.'
-              : leaderName
-                ? `You are invited to rate ${leaderName} — about five minutes.`
-                : 'You are invited to provide feedback that helps your leader grow. About five minutes.'}
+            Fifteen short statements about the leadership you see day to day. About five minutes, and nobody will know which answers are yours.
           </Typography>
 
-          {!isSelfCampaign && (
-            <Box sx={{ mb: 2.4, maxWidth: 420, mx: 'auto', textAlign: 'left' }}>
+          {/* The one idea the whole survey depends on, shown before they start. */}
+          <Typography sx={{
+            fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em',
+            textTransform: 'uppercase', color: colors.inkSoft, mb: 1.25, textAlign: 'left',
+          }}>
+            For every statement you give two ratings
+          </Typography>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: 1.5,
+            mb: 1.75,
+            textAlign: 'left',
+          }}>
+            {[
+              {
+                key: 'effort',
+                color: '#E07A3F',
+                tint: 'rgba(224,122,63,0.08)',
+                line: 'rgba(224,122,63,0.35)',
+                title: 'Effort',
+                def: 'How much they try at this.',
+                example: 'A leader who checks in with you every week is putting in a lot of effort.',
+                bar: 0.9,
+              },
+              {
+                key: 'efficacy',
+                color: '#6393AA',
+                tint: 'rgba(99,147,170,0.08)',
+                line: 'rgba(99,147,170,0.38)',
+                title: 'Effectiveness',
+                def: 'How well it actually lands for you.',
+                example: 'But if those check-ins never clear anything up, effectiveness is low.',
+                bar: 0.3,
+              },
+            ].map((scale) => (
+              <Box
+                key={scale.key}
+                sx={{
+                  bgcolor: scale.tint,
+                  border: `1px solid ${scale.line}`,
+                  borderRadius: radii.md,
+                  p: { xs: 1.75, md: 2 },
+                }}
+              >
+                <Typography sx={{
+                  fontFamily: fonts.sans, fontWeight: 800, fontSize: '1.15rem', color: scale.color, mb: 0.25,
+                }}>
+                  {scale.title}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: fonts.sans, fontWeight: 700, fontSize: '0.98rem', color: colors.navy900, mb: 0.75,
+                }}>
+                  {scale.def}
+                </Typography>
+                <Box aria-hidden sx={{ height: 8, borderRadius: 999, bgcolor: 'rgba(15,30,58,0.08)', mb: 0.9, overflow: 'hidden' }}>
+                  <Box sx={{ height: '100%', width: `${scale.bar * 100}%`, bgcolor: scale.color, borderRadius: 999 }} />
+                </Box>
+                <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.88rem', color: colors.inkSoft, lineHeight: 1.5 }}>
+                  {scale.example}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          <Typography sx={{
+            fontFamily: fonts.serif,
+            fontStyle: 'italic',
+            fontSize: '1.02rem',
+            color: colors.navy900,
+            lineHeight: 1.5,
+            mb: 2.5,
+            textAlign: 'left',
+          }}>
+            The two are often different, and that difference is the most useful thing you can tell them. Rate what you experience, not what you think they meant.
+          </Typography>
+
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: 1,
+            mb: 2.5,
+            textAlign: 'left',
+          }}>
+            {[
+              ['15 statements', 'Take a moment on each one. There are no right answers.'],
+              ['About 5 minutes', 'Answer in one sitting if you can.'],
+              ['Anonymous', 'No names, no tracking. Your leader only sees combined results.'],
+            ].map(([head, body]) => (
+              <Box key={head} sx={{ borderTop: `2px solid ${colors.brass}`, pt: 0.9 }}>
+                <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: '0.92rem', color: colors.navy900 }}>
+                  {head}
+                </Typography>
+                <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.84rem', color: colors.inkSoft, lineHeight: 1.45 }}>
+                  {body}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Box sx={{
+            bgcolor: colors.sand50,
+            border: `1px solid ${colors.sand200}`,
+            borderRadius: radii.md,
+            p: { xs: 1.75, md: 2.25 },
+            textAlign: 'left',
+          }}>
+            {!isSelfCampaign && (
               <TextField
                 fullWidth
+                size="small"
                 type="password"
                 autoComplete="off"
                 label="Campaign password"
@@ -475,257 +587,39 @@ function NewCampaignIntro() {
                   if (passwordError) setPasswordError('');
                 }}
                 error={Boolean(passwordError)}
-                helperText={passwordError || 'This is the password your leader sent — not a Compass account.'}
-                sx={{ mb: 1.5 }}
+                helperText={passwordError || 'The password your leader sent. It is not a Compass account.'}
+                sx={{ mb: 1.75, bgcolor: colors.surface1, borderRadius: 1 }}
               />
+            )}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} alignItems={{ sm: 'center' }}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleStart}
-                disabled={isNavigating || surveyClosed}
-                fullWidth
-                sx={useCairnTheme
-                  ? { ...buttons.primary, minHeight: 48 }
-                  : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3, minHeight: 48 }}
+                disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
+                sx={{ ...buttons.primary, minHeight: 48, px: 3.5 }}
               >
-                {surveyClosed ? 'Survey Closed' : 'Start the 5-minute survey'}
+                {!isSelfCampaign && surveyClosed ? 'Survey closed' : 'Start the survey'}
               </Button>
-            </Box>
-          )}
-
-          {useCairnTheme ? (
-            <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} sx={{ mb: 2.5 }}>
               <Button
-                onClick={() => goIntroSection(-1)}
-                disabled={introSectionIdx <= 0}
-                sx={{ ...buttons.secondary, minWidth: 44, px: 1.5, opacity: introSectionIdx <= 0 ? 0.4 : 1 }}
+                variant="outlined"
+                color="inherit"
+                onClick={handleOptOut}
+                disabled={isNavigating}
+                sx={{ ...buttons.secondary, minHeight: 48, px: 3 }}
               >
-                ‹
+                Opt out
               </Button>
-              <Typography sx={{
-                fontFamily: fonts.mono,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: colors.inkSoft,
-                minWidth: 140,
-              }}>
-                {activeSection === 'what' ? 'What is the Compass' : activeSection === 'how' ? 'How it works' : 'Agreement'}
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.82rem', color: colors.inkSoft, lineHeight: 1.45, flex: 1 }}>
+                Taking part is your choice. If you opt out, your leader sees only how many people did, never who.
               </Typography>
-              <Button
-                onClick={() => goIntroSection(1)}
-                disabled={introSectionIdx >= introSections.length - 1}
-                sx={{ ...buttons.secondary, minWidth: 44, px: 1.5, opacity: introSectionIdx >= introSections.length - 1 ? 0.4 : 1 }}
-              >
-                ›
-              </Button>
             </Stack>
-          ) : (
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center" sx={{ mb: 2 }}>
-            <Button
-              variant={activeSection === 'what' ? 'contained' : 'outlined'}
-              onClick={() => setActiveSection('what')}
-              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
-            >
-              What is the Compass
-            </Button>
-            <Button
-              variant={activeSection === 'how' ? 'contained' : 'outlined'}
-              onClick={() => setActiveSection('how')}
-              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
-            >
-              How Does it Work
-            </Button>
-            <Button
-              variant={activeSection === 'agreement' ? 'contained' : 'outlined'}
-              onClick={() => setActiveSection('agreement')}
-              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
-            >
-              Agreement
-            </Button>
-          </Stack>
-          )}
-
-          {activeSection === 'what' && (
-            <Grid container spacing={1.2} sx={{ textAlign: 'left' }}>
-              {[
-                {
-                  title: 'Description',
-                  body: 'The Compass is a leadership growth system that compares intent to lived team experience across key leadership traits.',
-                },
-                {
-                  title: 'Purpose',
-                  body: 'It helps reveal where leadership behaviors are landing well and where gaps may be limiting trust, alignment, and momentum.',
-                },
-                {
-                  title: 'Intent',
-                  body: 'The intent is practical growth over time through clear insights, focused action, and repeated measurement across campaigns.',
-                },
-              ].map((card) => (
-                <Grid item xs={12} key={card.title}>
-                  <Paper sx={useCairnTheme
-                    ? {
-                        p: 1.5,
-                        borderRadius: radii.md,
-                        minHeight: 128,
-                        border: `1px solid ${colors.sand200}`,
-                        bgcolor: colors.surface1,
-                        boxShadow: shadows.none,
-                      }
-                    : { p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}
-                  >
-                    <Typography sx={{
-                      fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                      fontWeight: 800,
-                      fontSize: '0.98rem',
-                      mb: 0.6,
-                      color: useCairnTheme ? colors.navy900 : 'inherit',
-                    }}
-                    >
-                      {card.title}
-                    </Typography>
-                    <Typography sx={{
-                      fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                      fontSize: '0.9rem',
-                      color: useCairnTheme ? colors.inkSoft : 'text.secondary',
-                      lineHeight: 1.5,
-                    }}
-                    >
-                      {card.body}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-
-          {activeSection === 'how' && (
-            <Box
-              sx={{
-                display: 'grid',
-                gap: 1.2,
-                textAlign: 'left',
-                gridTemplateColumns: '1fr',
-              }}
-            >
-              {[
-                {
-                  title: 'Discovery (AI-powered gap analysis)',
-                  body: 'The platform identifies likely leadership friction points and surfaces where effort and effectiveness may be misaligned.',
-                },
-                {
-                  title: 'Self-Assessment',
-                  body: 'The leader first completes the campaign personally to set a baseline for later comparison against team feedback.',
-                },
-                {
-                  title: 'Team Assessment',
-                  body: 'Team members then complete the same campaign experience so aggregate feedback can be compared to self-perception.',
-                },
-                {
-                  title: 'Insights Lead to Action',
-                  body: 'Results are translated into focused priorities and practical actions tied to the most meaningful growth opportunities.',
-                },
-                {
-                  title: 'Rinse and Repeat',
-                  body: 'Leaders run additional campaigns over time to track progress, close gaps, and sustain measurable leadership growth.',
-                },
-              ].map((card) => (
-                <Paper
-                  key={card.title}
-                  sx={useCairnTheme
-                    ? {
-                        p: 1.5,
-                        borderRadius: radii.md,
-                        minHeight: 128,
-                        border: `1px solid ${colors.sand200}`,
-                        bgcolor: colors.surface1,
-                        boxShadow: shadows.none,
-                      }
-                    : { p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}
-                >
-                  <Typography sx={{
-                    fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                    fontWeight: 800,
-                    fontSize: '0.98rem',
-                    mb: 0.6,
-                    color: useCairnTheme ? colors.navy900 : 'inherit',
-                  }}
-                  >
-                    {card.title}
-                  </Typography>
-                  <Typography sx={{
-                    fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                    fontSize: '0.9rem',
-                    color: useCairnTheme ? colors.inkSoft : 'text.secondary',
-                    lineHeight: 1.5,
-                  }}
-                  >
-                    {card.body}
-                  </Typography>
-                </Paper>
-              ))}
-            </Box>
-          )}
-
-          {activeSection === 'agreement' && (
-            <Paper sx={useCairnTheme
-              ? {
-                  p: 2,
-                  borderRadius: radii.md,
-                  border: `1px solid ${colors.sand200}`,
-                  bgcolor: colors.sand50,
-                  boxShadow: shadows.none,
-                }
-              : { p: 2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.32)', bgcolor: 'rgba(255,250,244,0.92)' }}
-            >
-              <Typography sx={{
-                fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                fontSize: '0.93rem',
-                lineHeight: 1.6,
-                color: useCairnTheme ? colors.ink : 'text.primary',
-                textAlign: 'left',
-                mb: 1.2,
-              }}
-              >
-                Please provide candid, honest feedback so this process can be useful for leadership growth. Your participation is optional. If you do not wish to provide feedback for any reason, you may opt out anonymously.
+            {!isSelfCampaign && surveyClosed && (
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.orangeDeep, mt: 1.1 }}>
+                This campaign has been closed by the person who sent it. New responses are no longer accepted.
               </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleStart}
-                  disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
-                  sx={useCairnTheme
-                    ? buttons.primary
-                    : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
-                >
-                  {!isSelfCampaign && surveyClosed ? 'Survey Closed' : 'Proceed with Feedback'}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={handleOptOut}
-                  sx={useCairnTheme
-                    ? buttons.secondary
-                    : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
-                >
-                  Opt Out Anonymously
-                </Button>
-              </Stack>
-              {!isSelfCampaign && surveyClosed && (
-                <Typography sx={{
-                  fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                  fontSize: '0.86rem',
-                  color: useCairnTheme ? colors.orangeDeep : '#9B2C2C',
-                  mt: 1.1,
-                }}
-                >
-                  This campaign has been manually closed. New survey responses are no longer accepted.
-                </Typography>
-              )}
-            </Paper>
-          )}
+            )}
+          </Box>
         </Paper>
       </Container>
     </Box>

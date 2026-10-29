@@ -20,12 +20,9 @@ import GatePage from './cc/GatePage.jsx';
 import { isDemoSession } from '../../utils/demoMode';
 import MetricHint from '../../components/MetricHint';
 import { SCORE_HINTS } from '../../data/scoreGlossary';
-import { inviteProgress, readInviteTarget } from '../../utils/campaignInvites';
 import {
   LOCK_CONFIRM_PHRASE,
   TEAM_WINDOW_CHANGED_EVENT,
-  lockTeamCampaignWindow,
-  parseExpectedTeamCount,
 } from '../../utils/lockTeamCampaign';
 
 // ============================================================================
@@ -251,18 +248,12 @@ export default function CommandCenter() {
   const {
     teamResponses,
     liveResponseCount,
+    optedOutCount,
     rows: benchmarkRows,
     loaded: benchmarkLoaded,
     hasTeamData,
     hasSelfData,
   } = useBenchmarkData();
-  // The number the leader declared when they took the link. Falls back to the
-  // old team-size guess only when they never said — and inviteProgress reports
-  // that case as 'waiting' rather than inventing a denominator.
-  const inviteTarget = useMemo(() => readInviteTarget(), []);
-  const invited = inviteTarget?.declared ?? parseExpectedTeamCount(
-    readJson('latestFormData', {})?.teamSize ?? readJson('userInfo', {})?.teamSize
-  );
   const respondents = campaignClosed
     ? (teamResponses?.length || liveResponseCount || 0)
     : (liveResponseCount || 0);
@@ -409,16 +400,8 @@ export default function CommandCenter() {
 
   const drilledStepStatus = isTraitDrilled ? {} : isPracticeDrilled ? practiceStepStatus : dockStatus;
 
-  // Everyone answered, so there is nothing left to wait for. The leader keeps
-  // the manual close for every other case; this fires only on a full house,
-  // and only once.
-  const autoClosedRef = useRef(false);
-  useEffect(() => {
-    if (campaignClosed || autoClosedRef.current || demoSession) return;
-    if (inviteProgress(respondents, inviteTarget).state !== 'complete') return;
-    autoClosedRef.current = true;
-    lockTeamCampaignWindow({ responses: respondents }).catch(() => { autoClosedRef.current = false; });
-  }, [respondents, inviteTarget, campaignClosed, demoSession]);
+  // There is no auto-close. Compass cannot know how many people received the
+  // link, so it cannot know when "everyone" has answered; the leader locks it.
 
   // Marks the phase complete and carries the user through the door to the
   // next phase's first chapter.
@@ -478,7 +461,7 @@ export default function CommandCenter() {
             onNavigate={goToTab}
             campaignClosed={campaignClosed}
             respondents={respondents}
-            invited={invited}
+            optedOut={optedOutCount}
             rows={benchmarkRows}
             phases={phases}
           />
@@ -529,7 +512,7 @@ export default function CommandCenter() {
           variant: 'dashboard',
           label: 'Responses',
           current: respondents,
-          total: invited || 0,
+          total: 0,
           status: campaignClosed ? 'Sentiment ready' : 'Waiting on your team',
         } : null}
       />

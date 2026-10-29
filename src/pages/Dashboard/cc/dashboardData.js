@@ -157,6 +157,7 @@ export function useBenchmarkData() {
   );
   const [selfResponses, setSelfResponses] = useState([]);
   const [liveResponseCount, setLiveResponseCount] = useState(0);
+  const [optedOutCount, setOptedOutCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [windowTick, setWindowTick] = useState(0);
 
@@ -228,6 +229,7 @@ export function useBenchmarkData() {
             (snap) => {
               if (!active) return;
               setLiveResponseCount(snap.docs.filter((d) => d.data()?.ratings).length);
+              setOptedOutCount(snap.docs.filter((d) => d.data()?.optedOut === true).length);
               setLoaded(true);
             },
             (err) => {
@@ -278,6 +280,7 @@ export function useBenchmarkData() {
 
         if (!active) return;
         setLiveResponseCount(teamDocs.length);
+        setOptedOutCount(teamSnap.docs.filter((d) => d.data()?.optedOut === true).length);
         if (teamDocs.length) {
           setTeamResponses(teamDocs);
           setSelfResponses(selfDocs.length ? selfDocs : []);
@@ -377,6 +380,7 @@ export function useBenchmarkData() {
     selfDataSource,
     teamResponses,
     liveResponseCount,
+    optedOutCount,
     selfResponses,
     teamMetrics: teamMetrics?.traitData || {},
     selfMetrics: selfMetrics?.traitData || {},

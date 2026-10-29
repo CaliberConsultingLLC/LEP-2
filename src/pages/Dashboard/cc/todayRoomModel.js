@@ -86,9 +86,35 @@ export const LOCK_PHRASE = 'Finalize Assessment';
 
 // Mirrors MIN_RESPONSES_TO_LOCK in utils/campaignInvites.js, which is where it
 // is enforced; this module stays free of app imports so it can be tested bare.
-export const LOCK_MIN_RESPONSES = 3;
+export const LOCK_MIN_RESPONSES = 2;
 
 /** Progressive feedback under the lock-in field. Empty until they start typing. */
+/**
+ * What the leader reads while they wait. Counts only what Compass really knows:
+ * validated responses and opt-outs. It never says how many are outstanding,
+ * because it cannot know how many people got the link.
+ */
+export function waitingStatus(responded = 0, optedOut = 0) {
+  const got = Math.max(0, Number(responded) || 0);
+  const out = Math.max(0, Number(optedOut) || 0);
+  const noun = (n) => (n === 1 ? 'response' : 'responses');
+  const need = LOCK_MIN_RESPONSES - got;
+  const lines = [];
+  if (got === 0) {
+    lines.push('No responses yet. Share the link below with your team.');
+  } else if (need > 0) {
+    lines.push(`You have ${got} ${noun(got)} so far. Waiting on at least ${need} more. Here is your link to share again.`);
+  } else {
+    lines.push(`You have ${got} ${noun(got)}. That is enough to lock, and your link below still works if you want more.`);
+  }
+  if (out > 0) {
+    lines.push(
+      `${out} ${out === 1 ? 'person has' : 'people have'} opted out.${need > 0 ? ' You may need to send this to a few extra people.' : ''}`
+    );
+  }
+  return lines.join(' ');
+}
+
 export function lockHint(text, ready, outstanding = 0) {
   if (ready) {
     return outstanding > 0
@@ -116,11 +142,9 @@ function owlLineFor(moment, theme, view) {
       const got = view.responded || 0;
       if (got < LOCK_MIN_RESPONSES) {
         const need = LOCK_MIN_RESPONSES - got;
-        return `${got ? `${spell(got)} in` : 'Nothing in yet'}. It needs ${spellLower(need)} more before it can lock — under three, nobody stays anonymous.`;
+        return `${got ? `${spell(got)} in` : 'Nothing in yet'}. It needs ${spellLower(need)} more before it can lock. Do not refresh the page like it owes you money.`;
       }
-      const out = Math.max(0, (view.invited || 0) - got);
-      if (!out) return 'Everyone answered. Lock it and go read what they said.';
-      return `${out === 1 ? 'One is' : `${spell(out)} are`} still out. You can wait, or you can lock it. Either way, do not refresh the page like it owes you money.`;
+      return 'Enough to read. You can lock it now, or wait for more. Either way, do not refresh the page like it owes you money.';
     }
     case 'reading': {
       const read = traits.filter((t) => t.read).map((t) => t.name);
@@ -295,6 +319,7 @@ export function buildTodayView({
   name = '',
   responded = 0,
   invited = 0,
+  optedOut = 0,
   teamLink = '',
   traits = [],
   daysToCheckIn = 69,
@@ -309,6 +334,7 @@ export function buildTodayView({
     name: String(name || '').trim().split(/\s+/)[0] || 'there',
     responded,
     invited,
+    optedOut,
     teamLink,
     traits: safeTraits,
     daysToCheckIn,

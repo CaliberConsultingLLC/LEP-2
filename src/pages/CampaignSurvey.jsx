@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Box,
@@ -51,9 +51,22 @@ function CampaignSurvey() {
   const [traitRecapOpen, setTraitRecapOpen] = useState(false);
   const [surveyClosed, setSurveyClosed] = useState(false);
   const [loadState, setLoadState] = useState('loading');
+  // A response that fails the thoughtful-answer check is refused by the server
+  // and never stored. The respondent sees it here and chooses what happens next.
+  const [validationFailed, setValidationFailed] = useState(false);
+  const [optingOut, setOptingOut] = useState(false);
+  const startedAtRef = useRef(null);
   const [isDark] = useDarkMode();
 
   const TRAIT_QUESTION_COUNT = 5;
+
+  // The clock starts when the first statement is on screen, not when the page
+  // mounts, so loading time never counts toward the minimum.
+  useEffect(() => {
+    if (loadState === 'ready' && startedAtRef.current == null) {
+      startedAtRef.current = Date.now();
+    }
+  }, [loadState]);
   const parseJson = (raw, fallback) => {
     try {
       return raw ? JSON.parse(raw) : fallback;
@@ -193,6 +206,7 @@ function CampaignSurvey() {
             campaignId: id,
             accessToken,
             ratings,
+            durationMs: startedAtRef.current == null ? 0 : Date.now() - startedAtRef.current,
           }),
         });
         const submitPayload = await submitResponse.json().catch(() => ({}));
@@ -201,6 +215,9 @@ function CampaignSurvey() {
           if (submitResponse.status === 409 || normalizedError.includes('closed')) {
             setSurveyClosed(true);
           }
+          if (submitResponse.status === 422 || normalizedError.includes('failed-validation')) {
+            throw new Error('failed-validation');
+          }
           throw new Error(submitPayload?.error || 'team-survey-submit-failed');
         }
       } else {
@@ -208,6 +225,7 @@ function CampaignSurvey() {
       }
     } catch (persistErr) {
       const message = String(persistErr?.message || '').toLowerCase();
+      if (message.includes('failed-validation')) throw persistErr;
       if (message.includes('missing-access-token')) {
         alert('Campaign access expired. Please re-enter the campaign password.');
         navigate(`/campaign/${id}`, { replace: true });
@@ -257,6 +275,11 @@ function CampaignSurvey() {
         await saveResponses();
         navigate(`/campaign/${id}/complete`);
       } catch (error) {
+        if (String(error?.message || '') === 'failed-validation') {
+          setTraitRecapOpen(false);
+          setValidationFailed(true);
+          return;
+        }
         console.warn('Survey submit failed:', error);
         alert('Could not submit this survey right now. Please try again.');
       }
@@ -274,8 +297,46 @@ function CampaignSurvey() {
       await saveResponses();
       navigate(`/campaign/${id}/complete`);
     } catch (error) {
+      if (String(error?.message || '') === 'failed-validation') {
+        setValidationFailed(true);
+        return;
+      }
       console.warn('Survey submit failed:', error);
       alert('Could not submit this survey right now. Please try again.');
+    }
+  };
+
+  // Start over: clear every answer (including the cached copy that would
+  // otherwise refill the sliders) and restart the clock.
+  const handleRetake = () => {
+    try { localStorage.removeItem(`latestSurveyRatings_${id}`); } catch { /* ignore */ }
+    setRatings({});
+    setCurrentQuestion(0);
+    setTraitRecapOpen(false);
+    startedAtRef.current = Date.now();
+    setValidationFailed(false);
+  };
+
+  const handleOptOutAfterCheck = async () => {
+    if (optingOut) return;
+    setOptingOut(true);
+    try {
+      const response = await fetch('/api/submit-team-response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campaignId: id,
+          accessToken: String(campaignMeta?.accessToken || '').trim(),
+          optedOut: true,
+        }),
+      });
+      if (!response.ok) throw new Error('opt-out-failed');
+      try { localStorage.removeItem(`latestSurveyRatings_${id}`); } catch { /* ignore */ }
+      navigate(`/campaign/${id}/complete`);
+    } catch (err) {
+      console.warn('Opt-out failed:', err);
+      alert('Could not record that right now. Please try again.');
+      setOptingOut(false);
     }
   };
 
@@ -656,6 +717,31 @@ function CampaignSurvey() {
             </Button>
             <Button variant="contained" onClick={handleProceedNextTrait} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)', borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: 'var(--navy-700, #1C3558)', boxShadow: 'none' } }}>
               {currentQuestion < (questions.length - 1) ? 'Proceed to Next Trait' : 'Complete Survey'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={validationFailed} maxWidth="xs" fullWidth disableEscapeKeyDown aria-labelledby="validation-title">
+          <DialogTitle id="validation-title" sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', textAlign: 'center' }}>
+            Let&rsquo;s make sure this reflects your view
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--navy-900, #10223C)', mb: 1.5 }}>
+              We noticed your answers were completed quickly or with very little variation, so we couldn&rsquo;t count them yet.
+            </Typography>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--ink-soft, #44566C)', mb: 1.5 }}>
+              You can go back and take your time. Effort and effectiveness are rarely identical, so telling them apart is the most useful thing you can do.
+            </Typography>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--ink-soft, #44566C)' }}>
+              Or you can opt out. This is entirely your choice, and your leader won&rsquo;t be told it was you.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1, flexWrap: 'wrap' }}>
+            <Button variant="outlined" onClick={handleOptOutAfterCheck} disabled={optingOut} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', borderColor: 'var(--sand-300, #C9B99A)', color: 'var(--navy-900, #10223C)', borderRadius: '10px' }}>
+              {optingOut ? 'Recording...' : 'Opt out'}
+            </Button>
+            <Button variant="contained" onClick={handleRetake} disabled={optingOut} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)', borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: 'var(--navy-700, #1C3558)', boxShadow: 'none' } }}>
+              Go back and retake
             </Button>
           </DialogActions>
         </Dialog>
@@ -1181,6 +1267,31 @@ function CampaignSurvey() {
             </Button>
             <Button variant="contained" onClick={handleProceedNextTrait}>
               {currentQuestion < (questions.length - 1) ? 'Proceed to Next Trait' : 'Complete Survey'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={validationFailed} maxWidth="xs" fullWidth disableEscapeKeyDown aria-labelledby="validation-title">
+          <DialogTitle id="validation-title" sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800, fontSize: '1.1rem', color: 'var(--navy-900, #10223C)', textAlign: 'center' }}>
+            Let&rsquo;s make sure this reflects your view
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--navy-900, #10223C)', mb: 1.5 }}>
+              We noticed your answers were completed quickly or with very little variation, so we couldn&rsquo;t count them yet.
+            </Typography>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--ink-soft, #44566C)', mb: 1.5 }}>
+              You can go back and take your time. Effort and effectiveness are rarely identical, so telling them apart is the most useful thing you can do.
+            </Typography>
+            <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--ink-soft, #44566C)' }}>
+              Or you can opt out. This is entirely your choice, and your leader won&rsquo;t be told it was you.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1, flexWrap: 'wrap' }}>
+            <Button variant="outlined" onClick={handleOptOutAfterCheck} disabled={optingOut} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', borderColor: 'var(--sand-300, #C9B99A)', color: 'var(--navy-900, #10223C)', borderRadius: '10px' }}>
+              {optingOut ? 'Recording...' : 'Opt out'}
+            </Button>
+            <Button variant="contained" onClick={handleRetake} disabled={optingOut} sx={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'none', bgcolor: 'var(--navy-900, #10223C)', color: 'var(--amber-soft, #F4CEA1)', borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: 'var(--navy-700, #1C3558)', boxShadow: 'none' } }}>
+              Go back and retake
             </Button>
           </DialogActions>
         </Dialog>

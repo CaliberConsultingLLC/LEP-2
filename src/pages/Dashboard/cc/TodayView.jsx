@@ -58,7 +58,7 @@ export default function TodayView({
   onNavigate = () => {},
   campaignClosed = false,
   respondents = 0,
-  invited = 0,
+  optedOut = 0,
   rows = [],
   phases,
 }) {
@@ -131,12 +131,12 @@ export default function TodayView({
       guideId: personaId,
       name: userInfo?.name || '',
       responded: respondents,
-      invited: invited || respondents,
+      optedOut,
       teamLink,
       traits,
       daysToCheckIn: daysUntilCheckIn(records?.teamCampaignClosedAt),
     });
-  }, [rows, phases?.pages?.evidence, phases?.done?.evidence, campaignClosed, respondents, invited, personaId, dark]);
+  }, [rows, phases?.pages?.evidence, phases?.done?.evidence, campaignClosed, respondents, optedOut, personaId, dark]);
 
   const lockIn = async () => {
     if (locking) return;

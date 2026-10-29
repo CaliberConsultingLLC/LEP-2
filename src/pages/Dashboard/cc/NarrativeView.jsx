@@ -1834,7 +1834,6 @@ export default function NarrativeView({ onGoTab }) {
   const userInfo = readJson('userInfo', {});
   const firstName = String(userInfo?.name || '').trim().split(/\s+/)[0] || '';
   const respondents = teamResponses?.length || 0;
-  const invited = Number(readJson('latestFormData', {})?.teamSize);
 
   const chapters = useMemo(
     () => [
@@ -1917,9 +1916,7 @@ export default function NarrativeView({ onGoTab }) {
   const activeId = chapters[idx].id;
 
   const answered =
-    Number.isFinite(invited) && invited >= respondents && respondents > 0
-      ? `${respondents} of ${invited} teammates answered.`
-      : respondents > 0
+    respondents > 0
       ? `${respondents} ${respondents === 1 ? 'teammate' : 'teammates'} answered.`
       : 'Your team has answered.';
 
