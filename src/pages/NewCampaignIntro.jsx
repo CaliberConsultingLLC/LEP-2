@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { selfAssessmentComplete } from '../data/chapterMap';
 import { readLocalCampaignDoc } from '../utils/campaignBundle';
 import { useCairnTheme } from '../config/runtimeFlags';
@@ -17,8 +17,16 @@ function NewCampaignIntro() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [surveyClosed, setSurveyClosed] = useState(false);
+  const [slide, setSlide] = useState(0);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const SLIDES = [
+    { title: 'Two ratings for every question' },
+    { title: 'How to answer' },
+    { title: 'Your answers and your choice' },
+  ];
+  const goSlide = (dir) => setSlide((i) => Math.min(SLIDES.length - 1, Math.max(0, i + dir)));
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -151,7 +159,6 @@ function NewCampaignIntro() {
   }, [campaignData]);
 
   const isSelfCampaign = campaignData?.campaignType === 'self';
-  const leaderName = getLeaderDisplayName(campaignData);
   const hasUsableCampaign = isCampaignReady(campaignData?.campaign, { minTraits: isSelfCampaign ? 1 : 0, minStatementsPerTrait: isSelfCampaign ? 1 : 0 });
 
   useEffect(() => {
@@ -432,147 +439,178 @@ function NewCampaignIntro() {
         >
           <Typography sx={{
             fontFamily: fonts.mono,
-            fontSize: 10.5,
+            fontSize: 11,
             fontWeight: 700,
-            letterSpacing: '0.2em',
+            letterSpacing: '0.22em',
             textTransform: 'uppercase',
             color: colors.orangeDeep,
             mb: 1,
           }}>
-            {isSelfCampaign ? 'Welcome to the Compass' : 'Anonymous leadership feedback'}
+            The Compass
           </Typography>
           <Typography component="h1" sx={{
             fontFamily: fonts.serif,
-            fontSize: { xs: '1.7rem', md: '2.2rem' },
+            fontSize: { xs: '1.8rem', md: '2.3rem' },
             fontWeight: 600,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
-            mb: 1,
+            mb: 1.25,
             color: colors.navy900,
           }}>
-            {isSelfCampaign
-              ? 'Your personal benchmark'
-              : leaderName
-                ? `${leaderName} is asking for your honest view`
-                : 'Your honest view helps your leader grow'}
+            Leadership Growth Assessment
           </Typography>
           <Typography sx={{
             fontFamily: fonts.sans,
             fontSize: { xs: '1rem', md: '1.05rem' },
             color: colors.inkSoft,
             mb: 3,
-            maxWidth: 620,
+            maxWidth: 640,
             mx: 'auto',
             lineHeight: 1.55,
           }}>
-            Fifteen short statements about the leadership you see day to day. About five minutes, and nobody will know which answers are yours.
+            15 short questions about the leadership you see day to day in your manager. This takes about 5 minutes. Your answers are completely confidential.
           </Typography>
 
-          {/* The one idea the whole survey depends on, shown before they start. */}
-          <Typography sx={{
-            fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em',
-            textTransform: 'uppercase', color: colors.inkSoft, mb: 1.25, textAlign: 'left',
-          }}>
-            For every statement you give two ratings
-          </Typography>
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: 1.5,
-            mb: 1.75,
-            textAlign: 'left',
-          }}>
-            {[
-              {
-                key: 'effort',
-                color: '#E07A3F',
-                tint: 'rgba(224,122,63,0.08)',
-                line: 'rgba(224,122,63,0.35)',
-                title: 'Effort',
-                def: 'How much they try at this.',
-                example: 'A leader who checks in with you every week is putting in a lot of effort.',
-                bar: 0.9,
-              },
-              {
-                key: 'efficacy',
-                color: '#6393AA',
-                tint: 'rgba(99,147,170,0.08)',
-                line: 'rgba(99,147,170,0.38)',
-                title: 'Effectiveness',
-                def: 'How well it actually lands for you.',
-                example: 'But if those check-ins never clear anything up, effectiveness is low.',
-                bar: 0.3,
-              },
-            ].map((scale) => (
+          {/* Three short cards, one at a time, so the page stays one page. */}
+          <Box
+            role="group"
+            aria-roledescription="carousel"
+            aria-label="How this works"
+            sx={{ mb: 2.5 }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'stretch', gap: { xs: 0.75, md: 1.5 } }}>
+              <Button
+                onClick={() => goSlide(-1)}
+                disabled={slide <= 0}
+                aria-label="Previous"
+                sx={{ ...buttons.secondary, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide <= 0 ? 0.35 : 1 }}
+              >
+                ‹
+              </Button>
+
               <Box
-                key={scale.key}
+                aria-live="polite"
                 sx={{
-                  bgcolor: scale.tint,
-                  border: `1px solid ${scale.line}`,
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: { xs: 360, md: 270 },
+                  textAlign: 'left',
+                  bgcolor: colors.sand50,
+                  border: `1px solid ${colors.sand200}`,
                   borderRadius: radii.md,
-                  p: { xs: 1.75, md: 2 },
+                  p: { xs: 2, md: 2.75 },
                 }}
               >
                 <Typography sx={{
-                  fontFamily: fonts.sans, fontWeight: 800, fontSize: '1.15rem', color: scale.color, mb: 0.25,
+                  fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em',
+                  textTransform: 'uppercase', color: colors.inkSoft, mb: 0.5,
                 }}>
-                  {scale.title}
+                  {slide + 1} of {SLIDES.length}
                 </Typography>
                 <Typography sx={{
-                  fontFamily: fonts.sans, fontWeight: 700, fontSize: '0.98rem', color: colors.navy900, mb: 0.75,
+                  fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.4rem' },
+                  color: colors.navy900, mb: 1.5, lineHeight: 1.2,
                 }}>
-                  {scale.def}
+                  {SLIDES[slide].title}
                 </Typography>
-                <Box aria-hidden sx={{ height: 8, borderRadius: 999, bgcolor: 'rgba(15,30,58,0.08)', mb: 0.9, overflow: 'hidden' }}>
-                  <Box sx={{ height: '100%', width: `${scale.bar * 100}%`, bgcolor: scale.color, borderRadius: 999 }} />
-                </Box>
-                <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.88rem', color: colors.inkSoft, lineHeight: 1.5 }}>
-                  {scale.example}
-                </Typography>
+
+                {slide === 0 && (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
+                    {[
+                      {
+                        key: 'effort', color: '#E07A3F', tint: 'rgba(224,122,63,0.08)', line: 'rgba(224,122,63,0.35)',
+                        title: 'Effort', def: 'How much they try at this.',
+                        example: 'A manager who checks in with you every week is putting in a lot of effort.', bar: 0.9,
+                      },
+                      {
+                        key: 'efficacy', color: '#6393AA', tint: 'rgba(99,147,170,0.08)', line: 'rgba(99,147,170,0.38)',
+                        title: 'Effectiveness', def: 'How well it actually lands for you.',
+                        example: 'But if those check-ins never clear anything up, effectiveness is low.', bar: 0.3,
+                      },
+                    ].map((scale) => (
+                      <Box key={scale.key} sx={{ bgcolor: scale.tint, border: `1px solid ${scale.line}`, borderRadius: radii.md, p: 1.75 }}>
+                        <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: '1.1rem', color: scale.color }}>
+                          {scale.title}
+                        </Typography>
+                        <Typography sx={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: '0.95rem', color: colors.navy900, mb: 0.75 }}>
+                          {scale.def}
+                        </Typography>
+                        <Box aria-hidden sx={{ height: 8, borderRadius: 999, bgcolor: 'rgba(15,30,58,0.08)', mb: 0.9, overflow: 'hidden' }}>
+                          <Box sx={{ height: '100%', width: `${scale.bar * 100}%`, bgcolor: scale.color, borderRadius: 999 }} />
+                        </Box>
+                        <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.inkSoft, lineHeight: 1.5 }}>
+                          {scale.example}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                {slide === 1 && (
+                  <Box component="ul" sx={{ m: 0, pl: 2.25, display: 'flex', flexDirection: 'column', gap: 1.1 }}>
+                    {[
+                      'Rate what you experience, not what you think they meant.',
+                      'The two ratings are often different, and that difference is the most useful thing you can tell them.',
+                      'Take a moment on each question. There are no right or wrong answers.',
+                      'Set aside five uninterrupted minutes and answer in one sitting.',
+                    ].map((line) => (
+                      <Typography component="li" key={line} sx={{ fontFamily: fonts.sans, fontSize: '1rem', color: colors.ink, lineHeight: 1.5 }}>
+                        {line}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
+
+                {slide === 2 && (
+                  <Box component="ul" sx={{ m: 0, pl: 2.25, display: 'flex', flexDirection: 'column', gap: 1.1 }}>
+                    {[
+                      'Your answers are completely confidential. There are no names and no tracking.',
+                      'Your leader only ever sees combined results from the whole team.',
+                      'Taking part is your choice. You can opt out below.',
+                      'If you opt out, your leader sees only how many people did, never who.',
+                    ].map((line) => (
+                      <Typography component="li" key={line} sx={{ fontFamily: fonts.sans, fontSize: '1rem', color: colors.ink, lineHeight: 1.5 }}>
+                        {line}
+                      </Typography>
+                    ))}
+                  </Box>
+                )}
               </Box>
-            ))}
+
+              <Button
+                onClick={() => goSlide(1)}
+                disabled={slide >= SLIDES.length - 1}
+                aria-label="Next"
+                sx={{ ...buttons.secondary, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide >= SLIDES.length - 1 ? 0.35 : 1 }}
+              >
+                ›
+              </Button>
+            </Box>
+
+            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }}>
+              {SLIDES.map((s, i) => (
+                <Box
+                  key={s.title}
+                  component="button"
+                  type="button"
+                  onClick={() => setSlide(i)}
+                  aria-label={`Go to ${s.title}`}
+                  aria-current={i === slide ? 'true' : undefined}
+                  sx={{
+                    all: 'unset', cursor: 'pointer', width: 10, height: 10, borderRadius: '50%',
+                    bgcolor: i === slide ? colors.orangeDeep : colors.sand300,
+                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                  }}
+                />
+              ))}
+            </Stack>
           </Box>
-          <Typography sx={{
-            fontFamily: fonts.serif,
-            fontStyle: 'italic',
-            fontSize: '1.02rem',
-            color: colors.navy900,
-            lineHeight: 1.5,
-            mb: 2.5,
-            textAlign: 'left',
-          }}>
-            The two are often different, and that difference is the most useful thing you can tell them. Rate what you experience, not what you think they meant.
-          </Typography>
 
           <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-            gap: 1,
-            mb: 2.5,
-            textAlign: 'left',
-          }}>
-            {[
-              ['15 statements', 'Take a moment on each one. There are no right answers.'],
-              ['About 5 minutes', 'Answer in one sitting if you can.'],
-              ['Anonymous', 'No names, no tracking. Your leader only sees combined results.'],
-            ].map(([head, body]) => (
-              <Box key={head} sx={{ borderTop: `2px solid ${colors.brass}`, pt: 0.9 }}>
-                <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: '0.92rem', color: colors.navy900 }}>
-                  {head}
-                </Typography>
-                <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.84rem', color: colors.inkSoft, lineHeight: 1.45 }}>
-                  {body}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-
-          <Box sx={{
-            bgcolor: colors.sand50,
-            border: `1px solid ${colors.sand200}`,
-            borderRadius: radii.md,
-            p: { xs: 1.75, md: 2.25 },
-            textAlign: 'left',
+            maxWidth: 460,
+            mx: 'auto',
+            pt: 2.5,
+            borderTop: `1px solid ${colors.sand200}`,
           }}>
             {!isSelfCampaign && (
               <TextField
@@ -587,35 +625,32 @@ function NewCampaignIntro() {
                   if (passwordError) setPasswordError('');
                 }}
                 error={Boolean(passwordError)}
-                helperText={passwordError || 'The password your leader sent. It is not a Compass account.'}
-                sx={{ mb: 1.75, bgcolor: colors.surface1, borderRadius: 1 }}
+                helperText={passwordError || 'Enter the password your leader sent you. You do not need a Compass account.'}
+                sx={{ mb: 2, textAlign: 'left' }}
               />
             )}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} alignItems={{ sm: 'center' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} justifyContent="center">
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleStart}
                 disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
-                sx={{ ...buttons.primary, minHeight: 48, px: 3.5 }}
+                sx={{ ...buttons.primary, minHeight: 48, px: 4, flex: { sm: 1 } }}
               >
-                {!isSelfCampaign && surveyClosed ? 'Survey closed' : 'Start the survey'}
+                {!isSelfCampaign && surveyClosed ? 'Survey closed' : 'Start survey'}
               </Button>
               <Button
                 variant="outlined"
                 color="inherit"
                 onClick={handleOptOut}
                 disabled={isNavigating}
-                sx={{ ...buttons.secondary, minHeight: 48, px: 3 }}
+                sx={{ ...buttons.secondary, minHeight: 48, px: 4, flex: { sm: 1 } }}
               >
                 Opt out
               </Button>
-              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.82rem', color: colors.inkSoft, lineHeight: 1.45, flex: 1 }}>
-                Taking part is your choice. If you opt out, your leader sees only how many people did, never who.
-              </Typography>
             </Stack>
             {!isSelfCampaign && surveyClosed && (
-              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.orangeDeep, mt: 1.1 }}>
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.orangeDeep, mt: 1.25 }}>
                 This campaign has been closed by the person who sent it. New responses are no longer accepted.
               </Typography>
             )}
