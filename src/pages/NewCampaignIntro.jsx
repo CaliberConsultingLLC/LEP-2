@@ -22,12 +22,12 @@ function NewCampaignIntro() {
   const [passwordError, setPasswordError] = useState('');
 
   const SLIDES = [
-    { title: 'Your answers are completely confidential' },
-    { title: 'How to answer' },
-    { title: 'Two ratings for every question' },
+    { title: 'Confidentiality turns into confidence' },
+    { title: 'Honesty leads to real change' },
+    { title: 'Two ratings tell the full story' },
   ];
-  const leadSx = { fontFamily: fonts.serif, fontWeight: 500, fontSize: { xs: '1.1rem', md: '1.2rem' }, lineHeight: 1.4, color: colors.navy900, maxWidth: 560 };
-  const bodySx = { fontFamily: fonts.sans, fontSize: '1rem', lineHeight: 1.55, color: colors.inkSoft, maxWidth: 560 };
+  const leadSx = { fontFamily: fonts.serif, fontWeight: 500, fontSize: { xs: '1.1rem', md: '1.2rem' }, lineHeight: 1.4, color: colors.navy900, maxWidth: 560, mx: 'auto' };
+  const bodySx = { fontFamily: fonts.sans, fontSize: '1rem', lineHeight: 1.55, color: colors.inkSoft, maxWidth: 560, mx: 'auto' };
   const goSlide = (dir) => setSlide((i) => Math.min(SLIDES.length - 1, Math.max(0, i + dir)));
 
   const quotes = [
@@ -505,45 +505,41 @@ function NewCampaignIntro() {
                 }}
               >
                 <Typography sx={{
-                  fontFamily: fonts.mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em',
-                  textTransform: 'uppercase', color: colors.inkSoft, mb: 0.5,
-                }}>
-                  {slide + 1} of {SLIDES.length}
-                </Typography>
-                <Typography sx={{
                   fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.4rem' },
-                  color: colors.navy900, mb: 1.5, lineHeight: 1.2,
+                  color: colors.orangeDeep, mb: 1.5, lineHeight: 1.2,
                 }}>
                   {SLIDES[slide].title}
                 </Typography>
 
                 {slide === 0 && (
-                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
-                    <Typography sx={leadSx}>No names. No accounts. No tracking of who you are.</Typography>
-                    <Typography sx={bodySx}>
-                      Your answers are stored without anything that identifies you, so they cannot be traced back to you.
+                  <Stack spacing={1.75} alignItems="center" sx={{ textAlign: 'center' }}>
+                    <Typography sx={{ ...leadSx, fontWeight: 800, color: colors.orangeDeep, fontFamily: fonts.sans }}>
+                      No names, no accounts, no tracking. You can be confident that your answers are stored without anything that identifies you.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Only your leader sees the combined results. No one else in your organization does.
+                      We do not ask for your email, and we do not store your IP address with your answers.
+                    </Typography>
+                    <Typography sx={{ ...bodySx, fontWeight: 800, color: colors.navy500 }}>
+                      Only your leader will see the combined results. No one else in the organization sees them at all, so you can be confident your answers are going to the right place.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Taking part is optional. You can opt out below if you choose, and your leader will not be told it was you.
+                      Taking part is optional. You can opt out below, and your leader will not be told it was you.
                     </Typography>
                   </Stack>
                 )}
 
                 {slide === 1 && (
-                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
-                    <Typography sx={leadSx}>
-                      This is not a typical survey. It was built specifically for {leaderName || 'your leader'}, to help them grow.
+                  <Stack spacing={1.75} alignItems="center" sx={{ textAlign: 'center' }}>
+                    <Typography sx={{ ...leadSx, fontWeight: 800, color: colors.orangeDeep, fontFamily: fonts.sans }}>
+                      Rate your honest experience.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Rate your honest experience, knowing your manager is the only one who will see it.
+                      This campaign was built specifically for {leaderName}. No other leader has one like it. They are choosing to work on a few aspects of their leadership approach, and your honesty helps them make the right changes.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Take your time. There are no right or wrong answers. Set aside 5 uninterrupted minutes.
+                      Take your time. There are no right or wrong answers.
                     </Typography>
-                    <Typography sx={bodySx}>
+                    <Typography sx={{ ...bodySx, fontWeight: 800, color: colors.navy500 }}>
                       Each question has two parts: you will rate their effort and their effectiveness.
                     </Typography>
                   </Stack>
