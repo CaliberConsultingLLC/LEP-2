@@ -21,12 +21,16 @@ function NewCampaignIntro() {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  const accent = (text, color) => (
+    <Box component="span" sx={{ color: color || 'inherit', textDecoration: 'underline', textUnderlineOffset: '5px', textDecorationThickness: '2px' }}>
+      {text}
+    </Box>
+  );
   const SLIDES = [
-    { title: 'Confidentiality turns into confidence' },
-    { title: 'Honesty leads to real change' },
-    { title: 'Two ratings tell the full story' },
+    { key: 'confidential', label: 'Confidentiality', title: <>Confidentiality turns into {accent('confidence', colors.orangeDeep)}</> },
+    { key: 'honesty', label: 'Honesty', title: <>Honesty leads to {accent('real change')}</> },
+    { key: 'ratings', label: 'Two ratings', title: <>Two ratings tell the full story</> },
   ];
-  const leadSx = { fontFamily: fonts.serif, fontWeight: 500, fontSize: { xs: '1.1rem', md: '1.2rem' }, lineHeight: 1.4, color: colors.navy900, maxWidth: 560, mx: 'auto' };
   const bodySx = { fontFamily: fonts.sans, fontSize: '1rem', lineHeight: 1.55, color: colors.inkSoft, maxWidth: 560, mx: 'auto' };
   const goSlide = (dir) => setSlide((i) => Math.min(SLIDES.length - 1, Math.max(0, i + dir)));
 
@@ -486,7 +490,7 @@ function NewCampaignIntro() {
                 onClick={() => goSlide(-1)}
                 disabled={slide <= 0}
                 aria-label="Previous"
-                sx={{ ...buttons.secondary, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide <= 0 ? 0.35 : 1 }}
+                sx={{ ...buttons.secondary, display: { xs: 'none', md: 'inline-flex' }, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide <= 0 ? 0.35 : 1 }}
               >
                 ‹
               </Button>
@@ -496,7 +500,7 @@ function NewCampaignIntro() {
                 sx={{
                   flex: 1,
                   minWidth: 0,
-                  minHeight: { xs: 360, md: 270 },
+                  minHeight: { xs: 0, md: 300 },
                   textAlign: 'center',
                   bgcolor: colors.sand50,
                   border: `1px solid ${colors.sand200}`,
@@ -506,21 +510,15 @@ function NewCampaignIntro() {
               >
                 <Typography sx={{
                   fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.4rem' },
-                  color: colors.orangeDeep, mb: 1.5, lineHeight: 1.2,
+                  color: colors.navy900, mb: 1.75, lineHeight: 1.2,
                 }}>
                   {SLIDES[slide].title}
                 </Typography>
 
                 {slide === 0 && (
-                  <Stack spacing={1.75} alignItems="center" sx={{ textAlign: 'center' }}>
-                    <Typography sx={{ ...leadSx, fontWeight: 800, color: colors.orangeDeep, fontFamily: fonts.sans }}>
-                      No names, no accounts, no tracking. You can be confident that your answers are stored without anything that identifies you.
-                    </Typography>
+                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
                     <Typography sx={bodySx}>
-                      We do not ask for your email, and we do not store your IP address with your answers.
-                    </Typography>
-                    <Typography sx={{ ...bodySx, fontWeight: 800, color: colors.navy500 }}>
-                      Only your leader will see the combined results. No one else in the organization sees them at all, so you can be confident your answers are going to the right place.
+                      No names, no accounts, no tracking. You can be confident that your answers are stored without anything that identifies you. We do not ask for your email, and we do not store your IP address with your answers. Only your leader will see the combined results. No one else in the organization sees them at all, so you can be confident your answers are going to the right place.
                     </Typography>
                     <Typography sx={bodySx}>
                       Taking part is optional. You can opt out below, and your leader will not be told it was you.
@@ -529,18 +527,12 @@ function NewCampaignIntro() {
                 )}
 
                 {slide === 1 && (
-                  <Stack spacing={1.75} alignItems="center" sx={{ textAlign: 'center' }}>
-                    <Typography sx={{ ...leadSx, fontWeight: 800, color: colors.orangeDeep, fontFamily: fonts.sans }}>
-                      Rate your honest experience.
-                    </Typography>
+                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
                     <Typography sx={bodySx}>
                       This campaign was built specifically for {leaderName}. No other leader has one like it. They are choosing to work on a few aspects of their leadership approach, and your honesty helps them make the right changes.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Take your time. There are no right or wrong answers.
-                    </Typography>
-                    <Typography sx={{ ...bodySx, fontWeight: 800, color: colors.navy500 }}>
-                      Each question has two parts: you will rate their effort and their effectiveness.
+                      Take your time. There are no right or wrong answers. Each question has two parts: you will rate their effort and their effectiveness.
                     </Typography>
                   </Stack>
                 )}
@@ -587,20 +579,28 @@ function NewCampaignIntro() {
                 onClick={() => goSlide(1)}
                 disabled={slide >= SLIDES.length - 1}
                 aria-label="Next"
-                sx={{ ...buttons.secondary, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide >= SLIDES.length - 1 ? 0.35 : 1 }}
+                sx={{ ...buttons.secondary, display: { xs: 'none', md: 'inline-flex' }, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide >= SLIDES.length - 1 ? 0.35 : 1 }}
               >
                 ›
               </Button>
             </Box>
 
-            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.5 }}>
+            <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mt: 1.5 }}>
+              <Button
+                onClick={() => goSlide(-1)}
+                disabled={slide <= 0}
+                aria-label="Previous"
+                sx={{ ...buttons.secondary, display: { xs: 'inline-flex', md: 'none' }, minWidth: 40, minHeight: 40, px: 0, mr: 1, opacity: slide <= 0 ? 0.35 : 1 }}
+              >
+                ‹
+              </Button>
               {SLIDES.map((s, i) => (
                 <Box
-                  key={s.title}
+                  key={s.key}
                   component="button"
                   type="button"
                   onClick={() => setSlide(i)}
-                  aria-label={`Go to ${s.title}`}
+                  aria-label={`Go to ${s.label}`}
                   aria-current={i === slide ? 'true' : undefined}
                   sx={{
                     all: 'unset', cursor: 'pointer', width: 10, height: 10, borderRadius: '50%',
@@ -609,6 +609,14 @@ function NewCampaignIntro() {
                   }}
                 />
               ))}
+              <Button
+                onClick={() => goSlide(1)}
+                disabled={slide >= SLIDES.length - 1}
+                aria-label="Next"
+                sx={{ ...buttons.secondary, display: { xs: 'inline-flex', md: 'none' }, minWidth: 40, minHeight: 40, px: 0, ml: 1, opacity: slide >= SLIDES.length - 1 ? 0.35 : 1 }}
+              >
+                ›
+              </Button>
             </Stack>
           </Box>
 
