@@ -22,14 +22,14 @@ function NewCampaignIntro() {
   const [passwordError, setPasswordError] = useState('');
 
   const accent = (text, color) => (
-    <Box component="span" sx={{ color: color || 'inherit', textDecoration: 'underline', textUnderlineOffset: '5px', textDecorationThickness: '2px' }}>
+    <Box component="span" sx={{ color: color || 'inherit' }}>
       {text}
     </Box>
   );
   const SLIDES = [
     { key: 'confidential', label: 'Confidentiality', title: <>Confidentiality turns into {accent('confidence', colors.orangeDeep)}</> },
-    { key: 'honesty', label: 'Honesty', title: <>Honesty leads to {accent('real change')}</> },
-    { key: 'ratings', label: 'Two ratings', title: <>Two ratings tell the full story</> },
+    { key: 'honesty', label: 'Honesty', title: <>Honesty leads to {accent('real change', colors.orangeDeep)}</> },
+    { key: 'ratings', label: 'Two ratings', title: <>Two ratings tell the {accent('full story', colors.orangeDeep)}</> },
   ];
   const bodySx = { fontFamily: fonts.sans, fontSize: '1rem', lineHeight: 1.55, color: colors.inkSoft, maxWidth: 560, mx: 'auto' };
   const goSlide = (dir) => setSlide((i) => Math.min(SLIDES.length - 1, Math.max(0, i + dir)));
@@ -518,10 +518,13 @@ function NewCampaignIntro() {
                 {slide === 0 && (
                   <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
                     <Typography sx={bodySx}>
-                      No names, no accounts, no tracking. You can be confident that your answers are stored without anything that identifies you. We do not ask for your email, and we do not store your IP address with your answers. Only your leader will see the combined results. No one else in the organization sees them at all, so you can be confident your answers are going to the right place.
+                      No names, no accounts, no tracking. You can be confident that your answers are stored without anything that identifies you. We do not ask for your email, and we do not store your IP address with your answers.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Taking part is optional. You can opt out below, and your leader will not be told it was you.
+                      Only your leader will see the combined results. No one else in the organization sees them at all, so you can be confident your answers are going to the right place.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Taking part is optional. You can opt out below anonymously.
                     </Typography>
                   </Stack>
                 )}
@@ -532,7 +535,7 @@ function NewCampaignIntro() {
                       This campaign was built specifically for {leaderName}. No other leader has one like it. They are choosing to work on a few aspects of their leadership approach, and your honesty helps them make the right changes.
                     </Typography>
                     <Typography sx={bodySx}>
-                      Take your time. There are no right or wrong answers. Each question has two parts: you will rate their effort and their effectiveness.
+                      Take your time. There are no right or wrong answers. Each question has two parts: you will rate their effort and their effectiveness. Candid feedback, even when it is hard to give, is the most valuable thing you can offer a leader. It shows them where their efforts are landing and where they are not, and that honesty is what makes real growth possible.
                     </Typography>
                   </Stack>
                 )}
