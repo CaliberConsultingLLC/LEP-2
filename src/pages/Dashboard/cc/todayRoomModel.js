@@ -321,6 +321,7 @@ export function buildTodayView({
   invited = 0,
   optedOut = 0,
   teamLink = '',
+  teamPassword = '',
   traits = [],
   daysToCheckIn = 69,
   readingBody = '',
@@ -336,6 +337,7 @@ export function buildTodayView({
     invited,
     optedOut,
     teamLink,
+    teamPassword,
     traits: safeTraits,
     daysToCheckIn,
     readingBody: readingBody

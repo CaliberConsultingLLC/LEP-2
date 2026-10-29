@@ -668,6 +668,13 @@ export default function TodayRoom({
     };
   };
 
+  const [pwCopied, setPwCopied] = useState(false);
+  const copyPassword = () => {
+    if (navigator?.clipboard?.writeText) navigator.clipboard.writeText(view.teamPassword).catch(() => {});
+    setPwCopied(true);
+    window.setTimeout(() => setPwCopied(false), 1600);
+  };
+
   const copyLink = () => {
     if (onCopyLink) onCopyLink(view.teamLink);
     else if (navigator?.clipboard?.writeText) navigator.clipboard.writeText(view.teamLink).catch(() => {});
@@ -845,6 +852,11 @@ export default function TodayRoom({
             {view.teamLink ? (
               <PillButton p={p} variant="ghost" onClick={copyLink}>
                 {copied ? 'Link copied' : 'Copy team link'}
+              </PillButton>
+            ) : null}
+            {view.teamLink && view.teamPassword ? (
+              <PillButton p={p} variant="ghost" onClick={copyPassword}>
+                {pwCopied ? 'Password copied' : `Copy password: ${view.teamPassword}`}
               </PillButton>
             ) : null}
           </Box>

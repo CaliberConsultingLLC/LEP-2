@@ -133,6 +133,7 @@ export default function TodayView({
       responded: respondents,
       optedOut,
       teamLink,
+      teamPassword: records?.teamCampaignPassword || '',
       traits,
       daysToCheckIn: daysUntilCheckIn(records?.teamCampaignClosedAt),
     });
