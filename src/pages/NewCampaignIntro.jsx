@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Box, Typography, Stack, Button, Paper, Grid, TextField } from '@mui/material';
+import { Container, Box, Typography, Stack, Button, Paper, TextField } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -16,16 +16,23 @@ function NewCampaignIntro() {
   const [campaignData, setCampaignData] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-  const [activeSection, setActiveSection] = useState('what');
   const [surveyClosed, setSurveyClosed] = useState(false);
+  const [slide, setSlide] = useState(0);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const introSections = ['what', 'how', 'agreement'];
-  const introSectionIdx = introSections.indexOf(activeSection);
-  const goIntroSection = (dir) => {
-    const next = Math.min(introSections.length - 1, Math.max(0, introSectionIdx + dir));
-    setActiveSection(introSections[next]);
-  };
+
+  const accent = (text, color) => (
+    <Box component="span" sx={{ color: color || 'inherit' }}>
+      {text}
+    </Box>
+  );
+  const SLIDES = [
+    { key: 'confidential', label: 'Confidentiality', title: <>Confidentiality turns into {accent('confidence', colors.orangeDeep)}</> },
+    { key: 'honesty', label: 'Honesty', title: <>Honesty leads to {accent('real change', colors.orangeDeep)}</> },
+    { key: 'ratings', label: 'Two ratings', title: <>Two ratings tell the {accent('full story', colors.orangeDeep)}</> },
+  ];
+  const bodySx = { fontFamily: fonts.sans, fontSize: '1rem', lineHeight: 1.55, color: colors.inkSoft, maxWidth: 560, mx: 'auto' };
+  const goSlide = (dir) => setSlide((i) => Math.min(SLIDES.length - 1, Math.max(0, i + dir)));
 
   const quotes = [
     "The best leaders don’t create followers; they inspire others to become leaders. — John C. Maxwell",
@@ -438,294 +445,244 @@ function NewCampaignIntro() {
           }}
         >
           <Typography sx={{
-            fontFamily: useCairnTheme ? fonts.serif : 'Montserrat, sans-serif',
-            fontSize: { xs: '1.7rem', md: '2.1rem' },
-            fontWeight: useCairnTheme ? 600 : 800,
+            fontFamily: fonts.mono,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: colors.orangeDeep,
             mb: 1,
-            color: useCairnTheme ? colors.navy900 : 'text.primary',
           }}>
-            Welcome to the Compass
+            The Compass
+          </Typography>
+          <Typography component="h1" sx={{
+            fontFamily: fonts.serif,
+            fontSize: { xs: '1.8rem', md: '2.3rem' },
+            fontWeight: 600,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            mb: 1.25,
+            color: colors.navy900,
+          }}>
+            Leadership Growth Assessment
           </Typography>
           <Typography sx={{
-            fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-            fontSize: { xs: '1.02rem', md: '1.08rem' },
-            color: useCairnTheme ? colors.inkSoft : 'text.secondary',
-            mb: 2.8,
+            fontFamily: fonts.sans,
+            fontSize: { xs: '1rem', md: '1.05rem' },
+            color: colors.inkSoft,
+            mb: 3,
             maxWidth: 640,
             mx: 'auto',
             lineHeight: 1.55,
           }}>
-            {isSelfCampaign
-              ? 'This personal benchmark helps compare your self-assessment to team feedback later.'
-              : leaderName
-                ? `You are invited to rate ${leaderName} — about five minutes.`
-                : 'You are invited to provide feedback that helps your leader grow. About five minutes.'}
+            15 short questions about the leadership you see day to day in your manager. This takes about 5 minutes. Your answers are completely confidential.
           </Typography>
 
-          {!isSelfCampaign && (
-            <Box sx={{ mb: 2.4, maxWidth: 420, mx: 'auto', textAlign: 'left' }}>
-              <TextField
-                fullWidth
-                type="password"
-                autoComplete="off"
-                label="Campaign password"
-                value={passwordInput}
-                onChange={(event) => {
-                  setPasswordInput(event.target.value);
-                  if (passwordError) setPasswordError('');
-                }}
-                error={Boolean(passwordError)}
-                helperText={passwordError || 'This is the password your leader sent — not a Compass account.'}
-                sx={{ mb: 1.5 }}
-              />
+          {/* Three short cards, one at a time, so the page stays one page. */}
+          <Box
+            role="group"
+            aria-roledescription="carousel"
+            aria-label="How this works"
+            sx={{ mb: 2.5 }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'stretch', gap: { xs: 0.75, md: 1.5 } }}>
               <Button
-                variant="contained"
-                color="primary"
-                onClick={handleStart}
-                disabled={isNavigating || surveyClosed}
-                fullWidth
-                sx={useCairnTheme
-                  ? { ...buttons.primary, minHeight: 48 }
-                  : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3, minHeight: 48 }}
-              >
-                {surveyClosed ? 'Survey Closed' : 'Start the 5-minute survey'}
-              </Button>
-            </Box>
-          )}
-
-          {useCairnTheme ? (
-            <Stack direction="row" alignItems="center" justifyContent="center" spacing={2} sx={{ mb: 2.5 }}>
-              <Button
-                onClick={() => goIntroSection(-1)}
-                disabled={introSectionIdx <= 0}
-                sx={{ ...buttons.secondary, minWidth: 44, px: 1.5, opacity: introSectionIdx <= 0 ? 0.4 : 1 }}
+                onClick={() => goSlide(-1)}
+                disabled={slide <= 0}
+                aria-label="Previous"
+                sx={{ ...buttons.secondary, display: { xs: 'none', md: 'inline-flex' }, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide <= 0 ? 0.35 : 1 }}
               >
                 ‹
               </Button>
-              <Typography sx={{
-                fontFamily: fonts.mono,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: colors.inkSoft,
-                minWidth: 140,
-              }}>
-                {activeSection === 'what' ? 'What is the Compass' : activeSection === 'how' ? 'How it works' : 'Agreement'}
-              </Typography>
+
+              <Box
+                aria-live="polite"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: { xs: 0, md: 300 },
+                  textAlign: 'center',
+                  bgcolor: colors.sand50,
+                  border: `1px solid ${colors.sand200}`,
+                  borderRadius: radii.md,
+                  p: { xs: 2, md: 2.75 },
+                }}
+              >
+                <Typography sx={{
+                  fontFamily: fonts.serif, fontWeight: 600, fontSize: { xs: '1.25rem', md: '1.4rem' },
+                  color: colors.navy900, mb: 1.75, lineHeight: 1.2,
+                }}>
+                  {SLIDES[slide].title}
+                </Typography>
+
+                {slide === 0 && (
+                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
+                    <Typography sx={bodySx}>
+                      No names, no accounts, no tracking. You can be confident that your answers are stored without anything that identifies you. We do not ask for your email, and we do not store your IP address with your answers.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Only your leader will see the combined results. No one else in the organization sees them at all, so you can be confident your answers are going to the right place.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Taking part is optional. You can opt out below anonymously.
+                    </Typography>
+                  </Stack>
+                )}
+
+                {slide === 1 && (
+                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
+                    <Typography sx={bodySx}>
+                      This campaign was built specifically for {leaderName}. No other leader has one like it. They are choosing to work on a few aspects of their leadership approach, and your honesty helps them make the right changes.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Take your time. There are no right or wrong answers. Each question has two parts: you will rate their effort and their effectiveness. Candid feedback, even when it is hard to give, is the most valuable thing you can offer a leader. It shows them where their efforts are landing and where they are not, and that honesty is what makes real growth possible.
+                    </Typography>
+                  </Stack>
+                )}
+
+                {slide === 2 && (
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5, mb: 1.75 }}>
+                      {[
+                        {
+                          key: 'effort', color: '#E07A3F', tint: 'rgba(224,122,63,0.08)', line: 'rgba(224,122,63,0.35)',
+                          title: 'Effort', def: 'How much they try at this.',
+                          example: 'A manager who checks in with you every week is putting in a lot of effort.', bar: 0.9,
+                        },
+                        {
+                          key: 'efficacy', color: '#6393AA', tint: 'rgba(99,147,170,0.08)', line: 'rgba(99,147,170,0.38)',
+                          title: 'Effectiveness', def: 'How well it actually lands for you.',
+                          example: 'But if those check-ins never clear anything up, effectiveness is low.', bar: 0.3,
+                        },
+                      ].map((scale) => (
+                        <Box key={scale.key} sx={{ bgcolor: scale.tint, border: `1px solid ${scale.line}`, borderRadius: radii.md, p: 1.75 }}>
+                          <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: '1.1rem', color: scale.color }}>
+                            {scale.title}
+                          </Typography>
+                          <Typography sx={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: '0.95rem', color: colors.navy900, mb: 0.75 }}>
+                            {scale.def}
+                          </Typography>
+                          <Box aria-hidden sx={{ height: 8, borderRadius: 999, bgcolor: 'rgba(15,30,58,0.08)', mb: 0.9, overflow: 'hidden' }}>
+                            <Box sx={{ height: '100%', width: `${scale.bar * 100}%`, bgcolor: scale.color, borderRadius: 999 }} />
+                          </Box>
+                          <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.inkSoft, lineHeight: 1.5 }}>
+                            {scale.example}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                    <Typography sx={bodySx}>
+                      These two ratings are separate and both meaningful. Together they will help guide the leader&rsquo;s action planning.
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+
               <Button
-                onClick={() => goIntroSection(1)}
-                disabled={introSectionIdx >= introSections.length - 1}
-                sx={{ ...buttons.secondary, minWidth: 44, px: 1.5, opacity: introSectionIdx >= introSections.length - 1 ? 0.4 : 1 }}
+                onClick={() => goSlide(1)}
+                disabled={slide >= SLIDES.length - 1}
+                aria-label="Next"
+                sx={{ ...buttons.secondary, display: { xs: 'none', md: 'inline-flex' }, minWidth: 44, px: 0, alignSelf: 'center', opacity: slide >= SLIDES.length - 1 ? 0.35 : 1 }}
+              >
+                ›
+              </Button>
+            </Box>
+
+            <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mt: 1.5 }}>
+              <Button
+                onClick={() => goSlide(-1)}
+                disabled={slide <= 0}
+                aria-label="Previous"
+                sx={{ ...buttons.secondary, display: { xs: 'inline-flex', md: 'none' }, minWidth: 40, minHeight: 40, px: 0, mr: 1, opacity: slide <= 0 ? 0.35 : 1 }}
+              >
+                ‹
+              </Button>
+              {SLIDES.map((s, i) => (
+                <Box
+                  key={s.key}
+                  component="button"
+                  type="button"
+                  onClick={() => setSlide(i)}
+                  aria-label={`Go to ${s.label}`}
+                  aria-current={i === slide ? 'true' : undefined}
+                  sx={{
+                    all: 'unset', cursor: 'pointer', width: 10, height: 10, borderRadius: '50%',
+                    bgcolor: i === slide ? colors.orangeDeep : colors.sand300,
+                    '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
+                  }}
+                />
+              ))}
+              <Button
+                onClick={() => goSlide(1)}
+                disabled={slide >= SLIDES.length - 1}
+                aria-label="Next"
+                sx={{ ...buttons.secondary, display: { xs: 'inline-flex', md: 'none' }, minWidth: 40, minHeight: 40, px: 0, ml: 1, opacity: slide >= SLIDES.length - 1 ? 0.35 : 1 }}
               >
                 ›
               </Button>
             </Stack>
-          ) : (
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center" sx={{ mb: 2 }}>
-            <Button
-              variant={activeSection === 'what' ? 'contained' : 'outlined'}
-              onClick={() => setActiveSection('what')}
-              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
-            >
-              What is the Compass
-            </Button>
-            <Button
-              variant={activeSection === 'how' ? 'contained' : 'outlined'}
-              onClick={() => setActiveSection('how')}
-              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
-            >
-              How Does it Work
-            </Button>
-            <Button
-              variant={activeSection === 'agreement' ? 'contained' : 'outlined'}
-              onClick={() => setActiveSection('agreement')}
-              sx={{ fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700 }}
-            >
-              Agreement
-            </Button>
-          </Stack>
-          )}
+          </Box>
 
-          {activeSection === 'what' && (
-            <Grid container spacing={1.2} sx={{ textAlign: 'left' }}>
-              {[
-                {
-                  title: 'Description',
-                  body: 'The Compass is a leadership growth system that compares intent to lived team experience across key leadership traits.',
-                },
-                {
-                  title: 'Purpose',
-                  body: 'It helps reveal where leadership behaviors are landing well and where gaps may be limiting trust, alignment, and momentum.',
-                },
-                {
-                  title: 'Intent',
-                  body: 'The intent is practical growth over time through clear insights, focused action, and repeated measurement across campaigns.',
-                },
-              ].map((card) => (
-                <Grid item xs={12} key={card.title}>
-                  <Paper sx={useCairnTheme
-                    ? {
-                        p: 1.5,
-                        borderRadius: radii.md,
-                        minHeight: 128,
-                        border: `1px solid ${colors.sand200}`,
-                        bgcolor: colors.surface1,
-                        boxShadow: shadows.none,
-                      }
-                    : { p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}
-                  >
-                    <Typography sx={{
-                      fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                      fontWeight: 800,
-                      fontSize: '0.98rem',
-                      mb: 0.6,
-                      color: useCairnTheme ? colors.navy900 : 'inherit',
-                    }}
-                    >
-                      {card.title}
-                    </Typography>
-                    <Typography sx={{
-                      fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                      fontSize: '0.9rem',
-                      color: useCairnTheme ? colors.inkSoft : 'text.secondary',
-                      lineHeight: 1.5,
-                    }}
-                    >
-                      {card.body}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-
-          {activeSection === 'how' && (
-            <Box
-              sx={{
-                display: 'grid',
-                gap: 1.2,
-                textAlign: 'left',
-                gridTemplateColumns: '1fr',
-              }}
-            >
-              {[
-                {
-                  title: 'Discovery (AI-powered gap analysis)',
-                  body: 'The platform identifies likely leadership friction points and surfaces where effort and effectiveness may be misaligned.',
-                },
-                {
-                  title: 'Self-Assessment',
-                  body: 'The leader first completes the campaign personally to set a baseline for later comparison against team feedback.',
-                },
-                {
-                  title: 'Team Assessment',
-                  body: 'Team members then complete the same campaign experience so aggregate feedback can be compared to self-perception.',
-                },
-                {
-                  title: 'Insights Lead to Action',
-                  body: 'Results are translated into focused priorities and practical actions tied to the most meaningful growth opportunities.',
-                },
-                {
-                  title: 'Rinse and Repeat',
-                  body: 'Leaders run additional campaigns over time to track progress, close gaps, and sustain measurable leadership growth.',
-                },
-              ].map((card) => (
-                <Paper
-                  key={card.title}
-                  sx={useCairnTheme
-                    ? {
-                        p: 1.5,
-                        borderRadius: radii.md,
-                        minHeight: 128,
-                        border: `1px solid ${colors.sand200}`,
-                        bgcolor: colors.surface1,
-                        boxShadow: shadows.none,
-                      }
-                    : { p: 1.5, borderRadius: 2, minHeight: 128, border: '1px solid rgba(69,112,137,0.24)', bgcolor: 'rgba(255,255,255,0.86)' }}
-                >
-                  <Typography sx={{
-                    fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                    fontWeight: 800,
-                    fontSize: '0.98rem',
-                    mb: 0.6,
-                    color: useCairnTheme ? colors.navy900 : 'inherit',
-                  }}
-                  >
-                    {card.title}
-                  </Typography>
-                  <Typography sx={{
-                    fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                    fontSize: '0.9rem',
-                    color: useCairnTheme ? colors.inkSoft : 'text.secondary',
-                    lineHeight: 1.5,
-                  }}
-                  >
-                    {card.body}
-                  </Typography>
-                </Paper>
-              ))}
-            </Box>
-          )}
-
-          {activeSection === 'agreement' && (
-            <Paper sx={useCairnTheme
-              ? {
-                  p: 2,
-                  borderRadius: radii.md,
-                  border: `1px solid ${colors.sand200}`,
-                  bgcolor: colors.sand50,
-                  boxShadow: shadows.none,
-                }
-              : { p: 2, borderRadius: 2, border: '1px solid rgba(224,122,63,0.32)', bgcolor: 'rgba(255,250,244,0.92)' }}
-            >
-              <Typography sx={{
-                fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                fontSize: '0.93rem',
-                lineHeight: 1.6,
-                color: useCairnTheme ? colors.ink : 'text.primary',
-                textAlign: 'left',
-                mb: 1.2,
-              }}
-              >
-                Please provide candid, honest feedback so this process can be useful for leadership growth. Your participation is optional. If you do not wish to provide feedback for any reason, you may opt out anonymously.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.1} justifyContent="center">
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleStart}
-                  disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
-                  sx={useCairnTheme
-                    ? buttons.primary
-                    : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
-                >
-                  {!isSelfCampaign && surveyClosed ? 'Survey Closed' : 'Proceed with Feedback'}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={handleOptOut}
-                  sx={useCairnTheme
-                    ? buttons.secondary
-                    : { fontFamily: 'Montserrat, sans-serif', textTransform: 'none', fontWeight: 700, px: 3 }}
-                >
-                  Opt Out Anonymously
-                </Button>
-              </Stack>
-              {!isSelfCampaign && surveyClosed && (
+          <Box sx={{
+            maxWidth: 460,
+            mx: 'auto',
+            pt: 2.5,
+            borderTop: `1px solid ${colors.sand200}`,
+          }}>
+            {!isSelfCampaign && (
+              <>
                 <Typography sx={{
-                  fontFamily: useCairnTheme ? fonts.sans : 'Montserrat, sans-serif',
-                  fontSize: '0.86rem',
-                  color: useCairnTheme ? colors.orangeDeep : '#9B2C2C',
-                  mt: 1.1,
-                }}
-                >
-                  This campaign has been manually closed. New survey responses are no longer accepted.
+                  fontFamily: fonts.sans,
+                  fontSize: { xs: '1rem', md: '1.05rem' },
+                  color: colors.inkSoft,
+                  lineHeight: 1.55,
+                  mb: 1.5,
+                }}>
+                  Enter the password your leader sent you. You do not need to sign up for an account.
                 </Typography>
-              )}
-            </Paper>
-          )}
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="password"
+                  autoComplete="off"
+                  label="Campaign password"
+                  value={passwordInput}
+                  onChange={(event) => {
+                    setPasswordInput(event.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  error={Boolean(passwordError)}
+                  helperText={passwordError || ' '}
+                  sx={{ mb: 1 }}
+                />
+              </>
+            )}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} justifyContent="center">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleStart}
+                disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
+                sx={{ ...buttons.primary, minHeight: 48, px: 4, flex: { sm: 1 } }}
+              >
+                {!isSelfCampaign && surveyClosed ? 'Survey closed' : 'Take the survey'}
+              </Button>
+              <Button
+                variant="outlined"
+                color="inherit"
+                onClick={handleOptOut}
+                disabled={isNavigating}
+                sx={{ ...buttons.secondary, minHeight: 48, px: 4, flex: { sm: 1 } }}
+              >
+                Opt out
+              </Button>
+            </Stack>
+            {!isSelfCampaign && surveyClosed && (
+              <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.orangeDeep, mt: 1.25 }}>
+                This campaign has been closed by the person who sent it. New responses are no longer accepted.
+              </Typography>
+            )}
+          </Box>
         </Paper>
       </Container>
     </Box>

@@ -12,14 +12,6 @@ import {
 } from '../data/chapterMap';
 import { readCampaignRecords } from '../utils/campaignBundle';
 import { buttons, colors, fonts, radii, surfaces } from '../styles/tokens';
-import {
-  INVITE_MAX,
-  INVITE_MIN,
-  clampInviteCount,
-  readInviteTarget,
-  setInviteTarget,
-  suggestedInviteCount,
-} from '../utils/campaignInvites';
 
 const ctaSx = {
   all: 'unset',
@@ -139,25 +131,6 @@ function SelfAssessmentChapter() {
   const selfId = getSelfCampaignId();
   const records = useMemo(() => readCampaignRecords(), [complete, isInvite]);
   const [copied, setCopied] = useState({ link: false, password: false });
-  // Compass cannot know how many links the leader sent, so it asks. Everything
-  // downstream counts against this instead of guessing from team size.
-  const [sendCount, setSendCount] = useState(() => {
-    const saved = readInviteTarget();
-    if (saved) return String(saved.declared);
-    try {
-      const intake = JSON.parse(localStorage.getItem('latestFormData') || '{}');
-      return String(suggestedInviteCount(intake?.teamSize));
-    } catch {
-      return '8';
-    }
-  });
-  // Saved means the leader said it here. A target read back from their Your
-  // Context answer is a starting value, not a confirmation.
-  const [countSaved, setCountSaved] = useState(() => {
-    const t = readInviteTarget();
-    return Boolean(t && t.source !== 'context');
-  });
-
   useEffect(() => {
     if (!selfId) {
       navigate('/campaign-verify', { replace: true });
@@ -284,77 +257,6 @@ function SelfAssessmentChapter() {
                 />
               </Box>
 
-              {/* The denominator. Without it the dashboard has to invent one. */}
-              <Box sx={{
-                mt: 2,
-                pt: 2,
-                borderTop: `1px solid ${colors.sand200}`,
-              }}>
-                <Typography sx={{
-                  fontFamily: fonts.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.18em',
-                  textTransform: 'uppercase', color: colors.orangeDeep, mb: 0.75,
-                }}>
-                  How many are you sending it to?
-                </Typography>
-                <Typography sx={{ ...stageType.body, fontSize: 13.5, mb: 1.5 }}>
-                  We cannot see who you send it to, so tell us the number. Every count
-                  after this reads against it, and the window closes itself when they
-                  have all answered.
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
-                  <Box
-                    component="input"
-                    type="number"
-                    inputMode="numeric"
-                    min={INVITE_MIN}
-                    max={INVITE_MAX}
-                    value={sendCount}
-                    onChange={(e) => { setSendCount(e.target.value); setCountSaved(false); }}
-                    aria-label="Number of people you are sending the survey to"
-                    sx={{
-                      boxSizing: 'border-box',
-                      width: 92,
-                      height: 44,
-                      px: '14px',
-                      borderRadius: radii.pill,
-                      border: `1px solid ${colors.sand300}`,
-                      bgcolor: colors.surface1,
-                      fontFamily: fonts.serif,
-                      fontSize: 18,
-                      color: colors.ink,
-                      '&:focus': { outline: 'none', borderColor: colors.orange },
-                    }}
-                  />
-                  <Box
-                    component="button"
-                    type="button"
-                    onClick={async () => {
-                      const next = clampInviteCount(sendCount);
-                      setSendCount(String(next));
-                      await setInviteTarget(next);
-                      setCountSaved(true);
-                    }}
-                    sx={{
-                      all: 'unset', boxSizing: 'border-box', cursor: 'pointer',
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      px: '20px', height: 44, borderRadius: radii.pill,
-                      border: `1px solid ${colors.navy500}`,
-                      fontFamily: fonts.sans, fontSize: 13, fontWeight: 700, color: colors.navy900,
-                      '&:hover': { bgcolor: colors.sand100 },
-                      '&:focus-visible': { outline: `3px solid ${colors.ringFocus}`, outlineOffset: 2 },
-                    }}
-                  >
-                    {countSaved ? 'Saved' : 'Set'}
-                  </Box>
-                  <Typography sx={{
-                    fontFamily: fonts.sans, fontSize: 12.5, color: colors.inkSoft,
-                  }}>
-                    {countSaved
-                      ? `Tracking ${clampInviteCount(sendCount)} responses.`
-                      : `Between ${INVITE_MIN} and ${INVITE_MAX}. You can change it later.`}
-                  </Typography>
-                </Box>
-              </Box>
               <DemoAutomateResults />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1.75, gap: 1.25 }}>
@@ -367,7 +269,7 @@ function SelfAssessmentChapter() {
                 Continue to Dashboard
               </Box>
               <Typography sx={{ ...stageType.cardBody, color: colors.inkSoft, textAlign: 'center', maxWidth: '46ch' }}>
-                Keep the window open until enough of your team has answered. You can lock it in from Today when you are ready.
+                Aim for five people, ideally your direct reports. Peers or supervisors work too, as long as they see your leadership and will be honest. Keep the window open until enough of them have answered, then lock it in from Today.
               </Typography>
             </Box>
           </Box>

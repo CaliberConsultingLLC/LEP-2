@@ -1,6 +1,7 @@
 import { db } from './firebase.js';
 import { verifyCampaignAccessToken } from './_campaignAccess.js';
 import { applyRateLimit, ensureJsonObjectBody, safeServerError } from './_security.js';
+import { validateTeamRatings } from './_responseValidation.js';
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -50,6 +51,21 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'Survey closed' });
     }
 
+    // Thoughtful-answer check. A failing response is refused and never stored,
+    // so the leader's counts and scores cannot include it and never learn it
+    // existed. The respondent is told, and may retake or opt out.
+    let durationMs = null;
+    if (!optedOut) {
+      durationMs = Number(req.body?.durationMs);
+      const verdict = validateTeamRatings(ratings, durationMs);
+      if (verdict.malformed) {
+        return res.status(400).json({ error: 'Invalid request' });
+      }
+      if (!verdict.ok) {
+        return res.status(422).json({ error: 'failed-validation' });
+      }
+    }
+
     await db.collection('surveyResponses').add({
       id: campaignId,
       campaignId,
@@ -60,7 +76,7 @@ export default async function handler(req, res) {
       submittedAt: new Date(),
       accessMode: optedOut ? 'anonymous-opt-out' : 'anonymous-link',
       optedOut,
-      ...(optedOut ? {} : { ratings }),
+      ...(optedOut ? {} : { ratings, durationMs: Math.round(durationMs) }),
     });
 
     return res.status(200).json({ ok: true });

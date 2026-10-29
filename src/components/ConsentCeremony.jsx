@@ -15,7 +15,7 @@
 //
 // Its job is fit, not a tour. Someone reading this should be able to tell
 // whether they are a good candidate before they pay: it asks for candour, it
-// needs at least three people they lead directly, and what it learns is theirs
+// needs five people who see their leadership up close, and what it learns is theirs
 // alone. What comes back is left for later on purpose — promising a result
 // here is selling, and this is the one screen that should not be.
 //
@@ -55,8 +55,9 @@ const BEATS = [
     text: 'It starts with an intake, and from there Compass builds a map of how you lead that grows with you over time. It only works if you answer honestly — your genuine, candid thinking, not the answer that sounds right.',
   },
   {
-    label: 'What it asks of your team',
-    text: 'You will invite your team to give anonymous feedback. You need at least three people, and they have to be people you lead directly — not peers, friends or anyone picked at random. Their view of your leadership is the point.',
+    label: 'Before you buy, this needs to be true',
+    text: 'You will send an anonymous survey to five people. Ideally they are your direct reports. A supervisor or a peer works too, as long as they see your leadership behavior up close and will give you honest feedback. If you cannot name five people like that, Compass will not give you a reliable picture.',
+    emphasis: true,
   },
   {
     label: 'Who sees it',
@@ -263,14 +264,24 @@ export default function ConsentCeremony({ open, busy, onAgree, onCancel }) {
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mb: '20px' }}>
             {BEATS.map((beat) => (
-              <Box key={beat.label} sx={{ borderLeft: `2px solid ${colors.brass}`, pl: '14px' }}>
+              <Box
+                key={beat.label}
+                sx={beat.emphasis
+                  ? {
+                      border: `1.5px solid ${colors.orangeDeep}`,
+                      bgcolor: colors.sand100,
+                      borderRadius: radii.lg || '14px',
+                      p: '14px 16px',
+                    }
+                  : { borderLeft: `2px solid ${colors.brass}`, pl: '14px' }}
+              >
                 <Box sx={{
                   fontFamily: fonts.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.16em',
                   textTransform: 'uppercase', color: colors.orangeDeep, mb: '4px',
                 }}>
                   {beat.label}
                 </Box>
-                <Box sx={{ fontFamily: fonts.sans, fontSize: 13.5, lineHeight: 1.55, color: colors.ink }}>
+                <Box sx={{ fontFamily: fonts.sans, fontSize: beat.emphasis ? 15 : 13.5, fontWeight: beat.emphasis ? 600 : 400, lineHeight: 1.55, color: colors.ink }}>
                   {beat.text}
                 </Box>
               </Box>

@@ -191,9 +191,10 @@ function buildYearOptions(minYear, maxYear) {
 
 const BIRTH_YEAR_OPTIONS = buildYearOptions(1945, CONTEXT_YEAR - 18);
 // Team size is the number of people the growth campaign will go to, and a
-// campaign needs at least three answers to stay anonymous — so the choice
-// starts at three and stops at fifteen, and both ends say so.
-const TEAM_SIZE_MIN = 3;
+// campaign is recommended to go to at least five people, so that two
+// validated answers is a realistic floor — so the choice starts at five and
+// stops at fifteen, and both ends say so.
+const TEAM_SIZE_MIN = 5;
 const TEAM_SIZE_MAX = 15;
 const TEAM_SIZE_OPTIONS = buildCountOptions(TEAM_SIZE_MAX, { min: TEAM_SIZE_MIN, plusAtMax: false })
   .map((o) => ({

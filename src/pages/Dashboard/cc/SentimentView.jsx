@@ -81,11 +81,9 @@ function QuadrantChip({ zone }) {
 // ---------------------------------------------------------------------------
 // 01 · Threshold
 // ---------------------------------------------------------------------------
-function ThresholdPage({ firstName, respondents, invited, overallCompass }) {
+function ThresholdPage({ firstName, respondents, overallCompass }) {
   const answered =
-    Number.isFinite(invited) && invited >= respondents && respondents > 0
-      ? `${respondents} of ${invited} teammates answered.`
-      : respondents > 0
+    respondents > 0
       ? `${respondents} ${respondents === 1 ? 'teammate' : 'teammates'} answered.`
       : 'Your team has answered.';
   return (
@@ -343,12 +341,10 @@ function SentimentSnapshot({ orderedRows, traitIndex, hasSelfData, answersByTrai
 export default function SentimentView({ t, phases, onAdvancePhase, traitIndex, resultsAnalysis }) {
   const { loaded, rows, hasSelfData, teamResponses } = useBenchmarkData();
   const userInfo = useMemo(() => readJson('userInfo', {}), []);
-  const intakeData = useMemo(() => readJson('latestFormData', null), []);
   const { personaId, setPageMessage, clearPageMessage } = useGuide();
 
   const firstName = String(userInfo?.name || '').trim().split(/\s+/)[0] || '';
   const respondents = teamResponses?.length || 0;
-  const invited = Number(intakeData?.teamSize);
 
   const roles = useMemo(() => deriveTraitRoles(rows), [rows]);
 
@@ -453,7 +449,6 @@ export default function SentimentView({ t, phases, onAdvancePhase, traitIndex, r
         <ThresholdPage
           firstName={firstName}
           respondents={respondents}
-          invited={invited}
           overallCompass={overallCompass}
         />
       )}
