@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import LoadingScreen from '../components/LoadingScreen';
 import ProcessTopRail from '../components/ProcessTopRail';
-import { isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
+import { getLeaderDisplayName, isCampaignReady, normalizeCampaignItems } from '../utils/campaignState';
 import { selfAssessmentComplete } from '../data/chapterMap';
 import { readLocalCampaignDoc } from '../utils/campaignBundle';
 import { useCairnTheme } from '../config/runtimeFlags';
@@ -22,10 +22,12 @@ function NewCampaignIntro() {
   const [passwordError, setPasswordError] = useState('');
 
   const SLIDES = [
-    { title: 'Two ratings for every question' },
+    { title: 'Your answers are completely confidential' },
     { title: 'How to answer' },
-    { title: 'Your answers and your choice' },
+    { title: 'Two ratings for every question' },
   ];
+  const leadSx = { fontFamily: fonts.serif, fontWeight: 500, fontSize: { xs: '1.1rem', md: '1.2rem' }, lineHeight: 1.4, color: colors.navy900, maxWidth: 560 };
+  const bodySx = { fontFamily: fonts.sans, fontSize: '1rem', lineHeight: 1.55, color: colors.inkSoft, maxWidth: 560 };
   const goSlide = (dir) => setSlide((i) => Math.min(SLIDES.length - 1, Math.max(0, i + dir)));
 
   const quotes = [
@@ -159,6 +161,7 @@ function NewCampaignIntro() {
   }, [campaignData]);
 
   const isSelfCampaign = campaignData?.campaignType === 'self';
+  const leaderName = getLeaderDisplayName(campaignData);
   const hasUsableCampaign = isCampaignReady(campaignData?.campaign, { minTraits: isSelfCampaign ? 1 : 0, minStatementsPerTrait: isSelfCampaign ? 1 : 0 });
 
   useEffect(() => {
@@ -494,7 +497,7 @@ function NewCampaignIntro() {
                   flex: 1,
                   minWidth: 0,
                   minHeight: { xs: 360, md: 270 },
-                  textAlign: 'left',
+                  textAlign: 'center',
                   bgcolor: colors.sand50,
                   border: `1px solid ${colors.sand200}`,
                   borderRadius: radii.md,
@@ -515,64 +518,71 @@ function NewCampaignIntro() {
                 </Typography>
 
                 {slide === 0 && (
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
-                    {[
-                      {
-                        key: 'effort', color: '#E07A3F', tint: 'rgba(224,122,63,0.08)', line: 'rgba(224,122,63,0.35)',
-                        title: 'Effort', def: 'How much they try at this.',
-                        example: 'A manager who checks in with you every week is putting in a lot of effort.', bar: 0.9,
-                      },
-                      {
-                        key: 'efficacy', color: '#6393AA', tint: 'rgba(99,147,170,0.08)', line: 'rgba(99,147,170,0.38)',
-                        title: 'Effectiveness', def: 'How well it actually lands for you.',
-                        example: 'But if those check-ins never clear anything up, effectiveness is low.', bar: 0.3,
-                      },
-                    ].map((scale) => (
-                      <Box key={scale.key} sx={{ bgcolor: scale.tint, border: `1px solid ${scale.line}`, borderRadius: radii.md, p: 1.75 }}>
-                        <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: '1.1rem', color: scale.color }}>
-                          {scale.title}
-                        </Typography>
-                        <Typography sx={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: '0.95rem', color: colors.navy900, mb: 0.75 }}>
-                          {scale.def}
-                        </Typography>
-                        <Box aria-hidden sx={{ height: 8, borderRadius: 999, bgcolor: 'rgba(15,30,58,0.08)', mb: 0.9, overflow: 'hidden' }}>
-                          <Box sx={{ height: '100%', width: `${scale.bar * 100}%`, bgcolor: scale.color, borderRadius: 999 }} />
-                        </Box>
-                        <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.inkSoft, lineHeight: 1.5 }}>
-                          {scale.example}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
+                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
+                    <Typography sx={leadSx}>No names. No accounts. No tracking of who you are.</Typography>
+                    <Typography sx={bodySx}>
+                      Your answers are stored without anything that identifies you, so they cannot be traced back to you.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Only your leader sees the combined results. No one else in your organization does.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Taking part is optional. You can opt out below if you choose, and your leader will not be told it was you.
+                    </Typography>
+                  </Stack>
                 )}
 
                 {slide === 1 && (
-                  <Box component="ul" sx={{ m: 0, pl: 2.25, display: 'flex', flexDirection: 'column', gap: 1.1 }}>
-                    {[
-                      'Rate what you experience, not what you think they meant.',
-                      'The two ratings are often different, and that difference is the most useful thing you can tell them.',
-                      'Take a moment on each question. There are no right or wrong answers.',
-                      'Set aside five uninterrupted minutes and answer in one sitting.',
-                    ].map((line) => (
-                      <Typography component="li" key={line} sx={{ fontFamily: fonts.sans, fontSize: '1rem', color: colors.ink, lineHeight: 1.5 }}>
-                        {line}
-                      </Typography>
-                    ))}
-                  </Box>
+                  <Stack spacing={1.5} alignItems="center" sx={{ textAlign: 'center' }}>
+                    <Typography sx={leadSx}>
+                      This is not a typical survey. It was built specifically for {leaderName || 'your leader'}, to help them grow.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Rate your honest experience, knowing your manager is the only one who will see it.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Take your time. There are no right or wrong answers. Set aside 5 uninterrupted minutes.
+                    </Typography>
+                    <Typography sx={bodySx}>
+                      Each question has two parts: you will rate their effort and their effectiveness.
+                    </Typography>
+                  </Stack>
                 )}
 
                 {slide === 2 && (
-                  <Box component="ul" sx={{ m: 0, pl: 2.25, display: 'flex', flexDirection: 'column', gap: 1.1 }}>
-                    {[
-                      'Your answers are completely confidential. There are no names and no tracking.',
-                      'Your leader only ever sees combined results from the whole team.',
-                      'Taking part is your choice. You can opt out below.',
-                      'If you opt out, your leader sees only how many people did, never who.',
-                    ].map((line) => (
-                      <Typography component="li" key={line} sx={{ fontFamily: fonts.sans, fontSize: '1rem', color: colors.ink, lineHeight: 1.5 }}>
-                        {line}
-                      </Typography>
-                    ))}
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5, mb: 1.75 }}>
+                      {[
+                        {
+                          key: 'effort', color: '#E07A3F', tint: 'rgba(224,122,63,0.08)', line: 'rgba(224,122,63,0.35)',
+                          title: 'Effort', def: 'How much they try at this.',
+                          example: 'A manager who checks in with you every week is putting in a lot of effort.', bar: 0.9,
+                        },
+                        {
+                          key: 'efficacy', color: '#6393AA', tint: 'rgba(99,147,170,0.08)', line: 'rgba(99,147,170,0.38)',
+                          title: 'Effectiveness', def: 'How well it actually lands for you.',
+                          example: 'But if those check-ins never clear anything up, effectiveness is low.', bar: 0.3,
+                        },
+                      ].map((scale) => (
+                        <Box key={scale.key} sx={{ bgcolor: scale.tint, border: `1px solid ${scale.line}`, borderRadius: radii.md, p: 1.75 }}>
+                          <Typography sx={{ fontFamily: fonts.sans, fontWeight: 800, fontSize: '1.1rem', color: scale.color }}>
+                            {scale.title}
+                          </Typography>
+                          <Typography sx={{ fontFamily: fonts.sans, fontWeight: 700, fontSize: '0.95rem', color: colors.navy900, mb: 0.75 }}>
+                            {scale.def}
+                          </Typography>
+                          <Box aria-hidden sx={{ height: 8, borderRadius: 999, bgcolor: 'rgba(15,30,58,0.08)', mb: 0.9, overflow: 'hidden' }}>
+                            <Box sx={{ height: '100%', width: `${scale.bar * 100}%`, bgcolor: scale.color, borderRadius: 999 }} />
+                          </Box>
+                          <Typography sx={{ fontFamily: fonts.sans, fontSize: '0.86rem', color: colors.inkSoft, lineHeight: 1.5 }}>
+                            {scale.example}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                    <Typography sx={bodySx}>
+                      These two ratings are separate and both meaningful. Together they will help guide the leader&rsquo;s action planning.
+                    </Typography>
                   </Box>
                 )}
               </Box>
@@ -613,21 +623,32 @@ function NewCampaignIntro() {
             borderTop: `1px solid ${colors.sand200}`,
           }}>
             {!isSelfCampaign && (
-              <TextField
-                fullWidth
-                size="small"
-                type="password"
-                autoComplete="off"
-                label="Campaign password"
-                value={passwordInput}
-                onChange={(event) => {
-                  setPasswordInput(event.target.value);
-                  if (passwordError) setPasswordError('');
-                }}
-                error={Boolean(passwordError)}
-                helperText={passwordError || 'Enter the password your leader sent you. You do not need a Compass account.'}
-                sx={{ mb: 2, textAlign: 'left' }}
-              />
+              <>
+                <Typography sx={{
+                  fontFamily: fonts.sans,
+                  fontSize: { xs: '1rem', md: '1.05rem' },
+                  color: colors.inkSoft,
+                  lineHeight: 1.55,
+                  mb: 1.5,
+                }}>
+                  Enter the password your leader sent you. You do not need to sign up for an account.
+                </Typography>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="password"
+                  autoComplete="off"
+                  label="Campaign password"
+                  value={passwordInput}
+                  onChange={(event) => {
+                    setPasswordInput(event.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  error={Boolean(passwordError)}
+                  helperText={passwordError || ' '}
+                  sx={{ mb: 1 }}
+                />
+              </>
             )}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} justifyContent="center">
               <Button
@@ -637,7 +658,7 @@ function NewCampaignIntro() {
                 disabled={isNavigating || (!isSelfCampaign && surveyClosed)}
                 sx={{ ...buttons.primary, minHeight: 48, px: 4, flex: { sm: 1 } }}
               >
-                {!isSelfCampaign && surveyClosed ? 'Survey closed' : 'Start survey'}
+                {!isSelfCampaign && surveyClosed ? 'Survey closed' : 'Take the survey'}
               </Button>
               <Button
                 variant="outlined"
